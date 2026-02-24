@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Database
+data/*.db
+
+# Uploaded files
+uploads/*
+!uploads/.gitkeep
+
+# PDF exports
+data/exports/
+
+# Environment
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Session files
+cookies.txt

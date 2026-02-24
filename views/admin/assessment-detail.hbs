@@ -1,0 +1,413 @@
+<div class="container">
+  <div class="d-flex align-items-center mb-4">
+    <a href="/admin/projects/{{assessment.project_id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
+    <div class="flex-grow-1">
+      <h1 class="mb-0">{{assessment.project_name}}</h1>
+      <p class="text-muted mb-0">Assessment Package — {{{statusBadge assessment.status}}}</p>
+    </div>
+  </div>
+
+  <!-- Status & Actions Bar -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-8">
+          <div class="d-flex flex-wrap gap-3 align-items-center">
+            <div>
+              <span class="small text-muted d-block">Invite Code</span>
+              <code class="fs-5 fw-bold">{{assessment.invite_code}}</code>
+            </div>
+            <div class="vr d-none d-md-block"></div>
+            <div>
+              <span class="small text-muted d-block">Owner</span>
+              <span class="fw-semibold">{{assessment.project_owner_name}}</span>
+            </div>
+            <div class="vr d-none d-md-block"></div>
+            <div>
+              <span class="small text-muted d-block">Classification</span>
+              <span class="badge bg-info">{{assessment.data_classification}}</span>
+            </div>
+            {{#if assessment.overall_score}}
+              <div class="vr d-none d-md-block"></div>
+              <div>
+                <span class="small text-muted d-block">Score</span>
+                <span class="fw-bold fs-5 {{#ifCond assessment.overall_score '>=' 80}}text-success{{else}}text-danger{{/ifCond}}">
+                  {{assessment.overall_score}}%
+                </span>
+              </div>
+            {{/if}}
+            {{#if assessment.result}}
+              <div class="vr d-none d-md-block"></div>
+              <div>
+                <span class="small text-muted d-block">Result</span>
+                {{{statusBadge assessment.result}}}
+              </div>
+            {{/if}}
+          </div>
+        </div>
+        <div class="col-md-4 text-md-end">
+          <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+            {{!-- Action buttons based on status --}}
+            {{#eq assessment.status "draft"}}
+              <form method="POST" action="/admin/assessments/{{assessment.id}}/send-invite" class="d-inline">
+                <button class="btn btn-primary"><i class="bi bi-send me-1"></i>Send Invite</button>
+              </form>
+              <form method="POST" action="/admin/assessments/{{assessment.id}}/delete" class="d-inline"
+                onsubmit="return confirm('Delete this draft assessment? This cannot be undone.')">
+                <input type="hidden" name="return_to" value="/admin/projects/{{assessment.project_id}}">
+                <button class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+              </form>
+            {{/eq}}
+
+            {{#eq assessment.status "evidence-gathering"}}
+              <form method="POST" action="/admin/assessments/{{assessment.id}}/send-invite" class="d-inline">
+                <button class="btn btn-outline-primary btn-sm"><i class="bi bi-send me-1"></i>Resend Invite</button>
+              </form>
+              <a href="/respond/{{assessment.invite_code}}" target="_blank" class="btn btn-outline-success btn-sm" title="Open the public evidence submission portal">
+                <i class="bi bi-box-arrow-up-right me-1"></i>Open Portal
+              </a>
+            {{/eq}}
+
+            {{#eq assessment.status "submitted"}}
+              <form method="POST" action="/admin/assessments/{{assessment.id}}/start-audit" class="d-inline">
+                <button class="btn btn-warning"><i class="bi bi-search me-1"></i>Start Audit</button>
+              </form>
+              <form method="POST" action="/admin/assessments/{{assessment.id}}/reactivate" class="d-inline">
+                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-unlock me-1"></i>Reactivate</button>
+              </form>
+            {{/eq}}
+
+            {{#eq assessment.status "audit"}}
+              <form method="POST" action="/admin/assessments/{{assessment.id}}/complete-audit" class="d-inline"
+                onsubmit="return confirm('Complete the audit? This will calculate the score and determine ATO/iATO/Denied.')">
+                <button class="btn btn-success"><i class="bi bi-check-circle me-1"></i>Complete Audit</button>
+              </form>
+            {{/eq}}
+
+            {{#eq assessment.status "completed"}}
+              <a href="/admin/assessments/{{assessment.id}}/generate-ato" class="btn btn-success">
+                <i class="bi bi-file-earmark-pdf me-1"></i>Generate {{#if assessment.ato_type}}{{assessment.ato_type}}{{else}}ATO{{/if}}
+              </a>
+            {{/eq}}
+
+            <a href="/admin/assessments/{{assessment.id}}/export-pdf" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-download me-1"></i>Export PDF
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg">
+      <div class="stat-card">
+        <div class="stat-number">{{stats.total}}</div>
+        <div class="stat-label">Total Controls</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg">
+      <div class="stat-card">
+        <div class="stat-number">{{stats.inherited}}</div>
+        <div class="stat-label">Inherited</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg">
+      <div class="stat-card">
+        <div class="stat-number">{{stats.evidenceProvided}}</div>
+        <div class="stat-label">Evidence Provided</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg">
+      <div class="stat-card">
+        <div class="stat-number text-success">{{stats.met}}</div>
+        <div class="stat-label">Met</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg">
+      <div class="stat-card">
+        <div class="stat-number" style="color:var(--cs-warning)">{{stats.partiallyMet}}</div>
+        <div class="stat-label">Partially Met</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg">
+      <div class="stat-card">
+        <div class="stat-number text-danger">{{stats.notMet}}</div>
+        <div class="stat-label">Not Met</div>
+      </div>
+    </div>
+  </div>
+
+  {{!-- Score Bar (when audit is done or in progress) --}}
+  {{#or stats.met stats.partiallyMet stats.notMet}}
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-2">
+          <span class="fw-semibold">Audit Progress</span>
+          <span class="fw-bold">{{stats.score}}%</span>
+        </div>
+        <div class="progress" style="height:12px">
+          <div class="progress-bar bg-success" style="width:{{percentage stats.met stats.applicable}}%"
+            title="Met: {{stats.met}}"></div>
+          <div class="progress-bar" style="width:{{percentage stats.partiallyMet stats.applicable}}%;background:var(--cs-warning)"
+            title="Partially Met: {{stats.partiallyMet}}"></div>
+          <div class="progress-bar bg-danger" style="width:{{percentage stats.notMet stats.applicable}}%"
+            title="Not Met: {{stats.notMet}}"></div>
+        </div>
+        <div class="d-flex gap-3 mt-2 small">
+          <span><i class="bi bi-circle-fill text-success"></i> Met ({{stats.met}})</span>
+          <span><i class="bi bi-circle-fill" style="color:var(--cs-warning)"></i> Partial ({{stats.partiallyMet}})</span>
+          <span><i class="bi bi-circle-fill text-danger"></i> Not Met ({{stats.notMet}})</span>
+          <span><i class="bi bi-circle-fill text-secondary"></i> Pending ({{stats.pending}})</span>
+        </div>
+      </div>
+    </div>
+  {{/or}}
+
+  <!-- iATO Checklist Section -->
+  {{#eq assessment.result "iato"}}
+    <div class="card mb-4">
+      <div class="card-header" style="background:var(--cs-warning)">
+        <i class="bi bi-list-check me-2"></i>iATO Remediation Checklist
+      </div>
+      <div class="card-body">
+        {{#if checklistItems.length}}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Control</th>
+                  <th>Deadline</th>
+                  <th>Assigned To</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each checklistItems}}
+                  <tr>
+                    <td>{{this.description}}</td>
+                    <td><code>{{this.control_id}}</code></td>
+                    <td>{{formatDate this.deadline}}</td>
+                    <td>{{this.assigned_to}}</td>
+                    <td>{{{statusBadge this.status}}}</td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        {{else}}
+          <p class="text-muted mb-3">No checklist items yet. Add remediation items for partially-met or not-met controls.</p>
+        {{/if}}
+        <hr>
+        <h6 class="fw-semibold mb-3">Add Checklist Item</h6>
+        <form method="POST" action="/admin/assessments/{{assessment.id}}/checklist/add" class="row g-2">
+          <div class="col-md-4">
+            <input type="text" class="form-control form-control-sm" name="description" placeholder="Remediation item description" required>
+          </div>
+          <div class="col-md-2">
+            <select class="form-select form-select-sm" name="control_id">
+              <option value="">Control (optional)</option>
+              {{#each controls}}
+                {{#or (eq this.audit_result "not-met") (eq this.audit_result "partially-met")}}
+                  <option value="{{this.control_id}}">{{this.control_id}}</option>
+                {{/or}}
+              {{/each}}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <input type="date" class="form-control form-control-sm" name="deadline" required>
+          </div>
+          <div class="col-md-2">
+            <input type="text" class="form-control form-control-sm" name="assigned_to" placeholder="Assigned to">
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-sm btn-warning w-100"><i class="bi bi-plus-lg me-1"></i>Add</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  {{/eq}}
+
+  <!-- Control Families -->
+  {{#each families}}
+    <div class="form-section" id="family-{{this.code}}">
+      <div class="section-header">
+        <h3 class="section-title">
+          <span class="section-number">{{this.code}}</span>
+          {{this.name}}
+        </h3>
+        <p class="section-description">{{this.controls.length}} control(s)</p>
+      </div>
+
+      {{#each this.controls}}
+        <div class="control-card {{#if this.is_inherited}}inherited{{/if}}" id="control-{{this.id}}">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                {{{controlResultIcon this.audit_result}}}
+                <span class="control-id">{{this.control_id}}</span>
+                <span class="control-title">{{this.title}}</span>
+              </div>
+              {{#if this.is_inherited}}
+                <span class="badge bg-info mb-1"><i class="bi bi-arrow-left-right me-1"></i>Inherited: {{this.inherited_from}}</span>
+              {{/if}}
+            </div>
+            <div class="d-flex gap-1">
+              <span class="badge bg-secondary">{{this.priority}}</span>
+              {{#if this.audit_result}}{{{statusBadge this.audit_result}}}{{/if}}
+            </div>
+          </div>
+
+          {{#if this.tailored_description}}
+            <div class="mt-2 p-2 rounded" style="background:#f8f9fa">
+              <small class="text-muted fw-semibold d-block mb-1">Tailored Description</small>
+              <small>{{this.tailored_description}}</small>
+            </div>
+          {{/if}}
+
+          {{#if this.evidence_guidance}}
+            <div class="mt-2 p-2 rounded" style="background:#fff8e1">
+              <small class="text-muted fw-semibold d-block mb-1"><i class="bi bi-info-circle me-1"></i>Evidence Guidance</small>
+              <small>{{this.evidence_guidance}}</small>
+            </div>
+          {{/if}}
+
+          <!-- Evidence (if provided) -->
+          {{#eq this.evidence_status "provided"}}
+            <div class="mt-2 p-2 rounded border" style="background:#f0fff0">
+              <small class="text-success fw-semibold d-block mb-1"><i class="bi bi-check-circle me-1"></i>Evidence Submitted</small>
+              <div class="small">{{{this.evidence_html}}}</div>
+              {{#if this.evidence_text}}
+                {{#unless this.evidence_html}}
+                  <div class="small">{{this.evidence_text}}</div>
+                {{/unless}}
+              {{/if}}
+            </div>
+          {{/eq}}
+
+          {{!-- Audit controls (only in audit status) --}}
+          {{#eq ../../assessment.status "audit"}}
+            <div class="audit-row mt-3 p-2 rounded" style="background:#f5f7fa">
+              <div class="d-flex gap-2 align-items-center flex-wrap">
+                <span class="small fw-semibold text-muted me-2">Audit:</span>
+                <button type="button" class="audit-btn met {{#eq this.audit_result 'met'}}active{{/eq}}"
+                  onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'met', this)" title="Met">
+                  <i class="bi bi-check-lg"></i>
+                </button>
+                <button type="button" class="audit-btn partial {{#eq this.audit_result 'partially-met'}}active{{/eq}}"
+                  onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'partially-met', this)" title="Partially Met">
+                  <i class="bi bi-dash-lg"></i>
+                </button>
+                <button type="button" class="audit-btn not-met {{#eq this.audit_result 'not-met'}}active{{/eq}}"
+                  onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'not-met', this)" title="Not Met">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+                <input type="text" class="form-control form-control-sm flex-grow-1"
+                  id="audit-comment-{{this.id}}" placeholder="Auditor comments..."
+                  value="{{this.audit_comments}}"
+                  onchange="auditControl({{this.id}}, '{{../../assessment.id}}', null, null, this.value)">
+              </div>
+            </div>
+          {{/eq}}
+
+          {{!-- Audit comments (after audit) --}}
+          {{#if this.audit_comments}}
+            {{#neq ../../assessment.status "audit"}}
+              <div class="mt-2 p-2 rounded" style="background:#fdf2f8">
+                <small class="fw-semibold d-block mb-1"><i class="bi bi-chat-left-text me-1"></i>Auditor Comments</small>
+                <small>{{this.audit_comments}}</small>
+              </div>
+            {{/neq}}
+          {{/if}}
+
+          <!-- Comment thread toggle -->
+          <div class="mt-2">
+            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0"
+              data-bs-toggle="collapse" data-bs-target="#comments-{{this.id}}">
+              <i class="bi bi-chat-dots me-1"></i>Comments
+            </button>
+          </div>
+          <div class="collapse mt-2" id="comments-{{this.id}}">
+            <div class="comment-thread border rounded p-2" id="thread-{{this.id}}">
+              <div class="text-muted small text-center py-2">Loading comments...</div>
+            </div>
+            <div class="input-group mt-2">
+              <input type="text" class="form-control form-control-sm" id="commentInput-{{this.id}}"
+                placeholder="Add a comment...">
+              <button class="btn btn-sm btn-outline-primary" onclick="addComment({{this.id}}, '{{../../assessment.id}}')">
+                <i class="bi bi-send"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      {{/each}}
+    </div>
+  {{/each}}
+</div>
+
+<script>
+async function auditControl(controlId, assessmentId, result, btn, comments) {
+  const payload = {};
+  if (result) {
+    payload.result = result;
+    // Deactivate siblings, activate this
+    if (btn) {
+      btn.closest('.audit-row').querySelectorAll('.audit-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+  }
+  const commentEl = document.getElementById('audit-comment-' + controlId);
+  payload.comments = comments || (commentEl ? commentEl.value : '');
+  if (result) payload.result = result;
+
+  try {
+    await fetch('/admin/assessments/' + assessmentId + '/audit-control/' + controlId, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) { console.error(e); }
+}
+
+async function loadComments(controlId) {
+  try {
+    const res = await fetch('/api/comments/' + controlId);
+    const data = await res.json();
+    const thread = document.getElementById('thread-' + controlId);
+    if (data.comments && data.comments.length) {
+      thread.innerHTML = data.comments.map(c =>
+        '<div class="comment-item">' +
+        '<span class="comment-author">' + c.user_name + '</span> ' +
+        '<span class="comment-time">' + new Date(c.created_at).toLocaleString() + '</span>' +
+        '<div>' + c.content + '</div></div>'
+      ).join('');
+    } else {
+      thread.innerHTML = '<div class="text-muted small text-center py-2">No comments yet</div>';
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function addComment(controlId, assessmentId) {
+  const input = document.getElementById('commentInput-' + controlId);
+  if (!input.value.trim()) return;
+  try {
+    await fetch('/api/comments/' + controlId, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: input.value, user_name: '{{admin.name}}', user_role: 'assessor' })
+    });
+    input.value = '';
+    loadComments(controlId);
+  } catch(e) { console.error(e); }
+}
+
+// Load comments when expanded
+document.querySelectorAll('[id^="comments-"]').forEach(el => {
+  el.addEventListener('show.bs.collapse', () => {
+    const controlId = el.id.replace('comments-', '');
+    loadComments(controlId);
+  });
+});
+</script>

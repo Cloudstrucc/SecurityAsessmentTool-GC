@@ -1,0 +1,136 @@
+<div class="container">
+  <div class="d-flex align-items-center mb-4">
+    <a href="/admin/projects/{{project.id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
+    <div>
+      <h1 class="mb-0">New Assessment</h1>
+      <p class="text-muted mb-0">{{project.name}} — Select & tailor ITSG-33 controls</p>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    <i class="bi bi-lightbulb me-2"></i>
+    <strong>{{controlCount}} controls recommended</strong> based on project characteristics
+    ({{project.data_classification}}, {{project.hosting_type}}, {{project.app_type}}{{#if project.has_pii}}, PII{{/if}}).
+    Review, tailor descriptions, confirm inheritance, then create the assessment package.
+  </div>
+
+  <form method="POST" action="/admin/projects/{{project.id}}/assessments/new" id="assessmentForm">
+
+    <!-- Sticky toolbar -->
+    <div class="progress-sticky">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <span class="fw-semibold" id="selectedCount">{{controlCount}}</span> of {{controlCount}} controls selected
+        </div>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll(true)">Select All</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll(false)">Deselect All</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-clipboard-check me-1"></i>Create Assessment
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {{#each families}}
+      <div class="form-section" id="family-{{this.code}}">
+        <div class="section-header">
+          <h3 class="section-title">
+            <span class="section-number">{{this.code}}</span>
+            {{this.name}}
+          </h3>
+          <p class="section-description">{{this.controls.length}} control(s) in this family</p>
+        </div>
+
+        {{#each this.controls}}
+          <div class="control-card {{#if this.inheritedFrom}}inherited{{/if}}" id="card-{{this.id}}">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div class="d-flex align-items-center gap-2">
+                <input type="checkbox" class="form-check-input control-toggle" name="control_ids"
+                  value="{{this.id}}" id="ctrl-{{this.id}}" checked onchange="updateCount()">
+                <label for="ctrl-{{this.id}}" class="control-id mb-0">{{this.id}}</label>
+                <span class="control-title">{{this.title}}</span>
+              </div>
+              <div class="d-flex gap-1">
+                <span class="badge bg-secondary">{{this.priority}}</span>
+                {{#if this.inheritedFrom}}
+                  <span class="badge bg-info"><i class="bi bi-arrow-left-right me-1"></i>Inherited</span>
+                {{/if}}
+                {{#if this.hasTemplate}}
+                  <span class="badge bg-success"><i class="bi bi-recycle me-1"></i>Template</span>
+                {{/if}}
+              </div>
+            </div>
+
+            <p class="control-desc mb-3">{{this.description}}</p>
+
+            <!-- Hidden fields for standard data -->
+            <input type="hidden" name="title_{{this.id}}" value="{{this.title}}">
+            <input type="hidden" name="desc_{{this.id}}" value="{{this.description}}">
+            <input type="hidden" name="priority_{{this.id}}" value="{{this.priority}}">
+            {{#if this.inheritedFrom}}
+              <input type="hidden" name="inherited[{{this.id}}]" value="1">
+              <input type="hidden" name="inherited_from[{{this.id}}]" value="{{this.inheritedFrom}}">
+            {{/if}}
+
+            <!-- Tailoring fields (collapsible) -->
+            <div class="collapse {{#if this.hasTemplate}}show{{/if}}" id="tailor-{{this.id}}">
+              <div class="row g-2 mt-1">
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Tailored Description</label>
+                  <textarea class="form-control form-control-sm" name="tailored[{{this.id}}]" rows="3"
+                    placeholder="Project-specific description for this control...">{{this.tailoredDescription}}</textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Evidence Guidance</label>
+                  <textarea class="form-control form-control-sm" name="guidance[{{this.id}}]" rows="3"
+                    placeholder="What evidence the project owner should provide...">{{this.evidenceGuidance}}</textarea>
+                </div>
+              </div>
+              {{#if this.inheritedFrom}}
+                <div class="mt-2 p-2 rounded" style="background:#e8f4f8">
+                  <small class="text-info fw-semibold">
+                    <i class="bi bi-arrow-left-right me-1"></i>
+                    Potentially inherited from: {{this.inheritedFrom}}
+                  </small>
+                </div>
+              {{/if}}
+              <div class="mt-2">
+                <label class="form-label small fw-semibold">Applicability</label>
+                <select class="form-select form-select-sm" name="applicable[{{this.id}}]" style="max-width:200px">
+                  <option value="1" selected>In Scope</option>
+                  <option value="0">Out of Scope</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 mt-2"
+              data-bs-toggle="collapse" data-bs-target="#tailor-{{this.id}}">
+              <i class="bi bi-pencil-square me-1"></i>Tailor
+            </button>
+          </div>
+        {{/each}}
+      </div>
+    {{/each}}
+
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-5">
+      <a href="/admin/projects/{{project.id}}" class="btn btn-outline-secondary">
+        <i class="bi bi-x-lg me-1"></i>Cancel
+      </a>
+      <button type="submit" class="btn btn-primary btn-lg">
+        <i class="bi bi-clipboard-check me-2"></i>Create Assessment Package
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+function updateCount() {
+  const checked = document.querySelectorAll('.control-toggle:checked').length;
+  document.getElementById('selectedCount').textContent = checked;
+}
+function toggleAll(state) {
+  document.querySelectorAll('.control-toggle').forEach(cb => { cb.checked = state; });
+  updateCount();
+}
+</script>

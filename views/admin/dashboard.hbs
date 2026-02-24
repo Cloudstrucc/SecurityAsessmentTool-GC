@@ -1,0 +1,148 @@
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">Dashboard</h1>
+      <p class="text-muted mb-0">Welcome back, {{admin.name}}</p>
+    </div>
+    <a href="/admin/projects/new" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i>New Project
+    </a>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#e7f1fb;color:var(--cs-accent)">
+          <i class="bi bi-folder2-open"></i>
+        </div>
+        <div class="stat-number">{{stats.totalProjects}}</div>
+        <div class="stat-label">Total Projects</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#fff3cd;color:var(--cs-warning)">
+          <i class="bi bi-clipboard-check"></i>
+        </div>
+        <div class="stat-number">{{stats.activeAssessments}}</div>
+        <div class="stat-label">Active Assessments</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#f8d7da;color:var(--cs-danger)">
+          <i class="bi bi-search"></i>
+        </div>
+        <div class="stat-number">{{stats.pendingAudits}}</div>
+        <div class="stat-label">Pending Audits</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#d8eeca;color:var(--cs-success)">
+          <i class="bi bi-patch-check"></i>
+        </div>
+        <div class="stat-number">{{stats.activeATOs}}</div>
+        <div class="stat-label">Active ATOs</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Recent Projects -->
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-folder2-open me-2"></i>Recent Projects</span>
+          <a href="/admin/projects" class="btn btn-sm btn-outline-light">View All</a>
+        </div>
+        <div class="card-body p-0">
+          {{#if projects.length}}
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Classification</th>
+                    <th>Status</th>
+                    <th>Updated</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#each projects}}
+                    <tr style="cursor:pointer" onclick="window.location='/admin/projects/{{this.id}}'">
+                      <td class="fw-semibold">{{this.name}}</td>
+                      <td><span class="badge bg-info">{{this.data_classification}}</span></td>
+                      <td>{{{statusBadge this.status}}}</td>
+                      <td class="text-muted small">{{formatDate this.updated_at}}</td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          {{else}}
+            <div class="p-4 text-center text-muted">
+              <i class="bi bi-folder-plus" style="font-size:2rem"></i>
+              <p class="mt-2 mb-0">No projects yet. <a href="/admin/projects/new">Create your first project</a></p>
+            </div>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Assessments -->
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-clipboard-check me-2"></i>Recent Assessments</span>
+          <a href="/admin/assessments" class="btn btn-sm btn-outline-light">View All</a>
+        </div>
+        <div class="card-body p-0">
+          {{#if assessments.length}}
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>Project</th>
+                    <th>Status</th>
+                    <th>Result</th>
+                    <th>Updated</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#each assessments}}
+                    <tr style="cursor:pointer" onclick="window.location='/admin/assessments/{{this.id}}'">
+                      <td class="fw-semibold">{{this.project_name}}</td>
+                      <td>{{{statusBadge this.status}}}</td>
+                      <td>
+                        {{#if this.result}}{{{statusBadge this.result}}}{{else}}<span class="text-muted">—</span>{{/if}}
+                      </td>
+                      <td class="text-muted small">{{formatDate this.updated_at}}</td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          {{else}}
+            <div class="p-4 text-center text-muted">
+              <i class="bi bi-clipboard-plus" style="font-size:2rem"></i>
+              <p class="mt-2 mb-0">No assessments yet.</p>
+            </div>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{#if stats.activeIATOs}}
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="alert alert-warning">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong>{{stats.activeIATOs}} active iATO(s)</strong> require remediation tracking. Review the checklist items to ensure deadlines are met.
+        </div>
+      </div>
+    </div>
+  {{/if}}
+</div>

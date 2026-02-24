@@ -1,0 +1,38 @@
+<div class="container" style="max-width:800px">
+  <h1 class="mb-1">Settings</h1>
+  <p class="text-muted mb-4">Application configuration</p>
+
+  <div class="form-section">
+    <div class="section-header">
+      <h3 class="section-title">
+        <span class="section-number"><i class="bi bi-person"></i></span>
+        Account
+      </h3>
+    </div>
+    <table class="table table-borderless mb-0">
+      <tr>
+        <td class="fw-semibold text-muted" style="width:35%">Name</td>
+        <td>{{admin.name}}</td>
+      </tr>
+      <tr>
+        <td class="fw-semibold text-muted">Email</td>
+        <td>{{admin.email}}</td>
+      </tr>
+      <tr>
+        <td class="fw-semibold text-muted">Role</td>
+        <td><span class="badge bg-info">{{admin.role}}</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="form-section">
+    <div class="section-header">
+      <h3 class="section-title">
+        <span class="section-number"><i class="bi bi-info-circle"></i></span>
+        About
+      </h3>
+    </div>
+    <p>Government of Canada Security Assessment & Authorization (SA&A) Tool for ITSG-33 / Protected B compliance.</p>
+    <p class="small text-muted mb-0">Built with Node.js, Express, Bootstrap 5, and sql.js. Version 1.0.0</p>
+  </div>
+</div>

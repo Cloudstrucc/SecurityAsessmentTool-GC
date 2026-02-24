@@ -1,0 +1,169 @@
+<div class="container" style="max-width: 960px;">
+  <div class="d-flex align-items-center mb-4">
+    <a href="/admin/projects" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
+    <div>
+      <h1 class="mb-0">New Project</h1>
+      <p class="text-muted mb-0">Define the IM/IT project for security assessment</p>
+    </div>
+  </div>
+
+  <form method="POST" action="/admin/projects/new" id="projectForm">
+
+    <!-- Section 1: Project Information -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <span class="section-number">1</span>
+          Project Information
+        </h3>
+        <p class="section-description">Basic details about the IM/IT system or application</p>
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="name">Project Name <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="name" name="name" required placeholder="e.g., HR Case Management System">
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="description">Project Description <span class="text-danger">*</span></label>
+        <textarea class="form-control" id="description" name="description" rows="4" required
+          placeholder="Describe the system's purpose, users, data flows, and key functionality..."></textarea>
+        <div class="form-text">Provide enough detail for the system to recommend appropriate ITSG-33 controls.</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="specifications">Technical Specifications (optional)</label>
+        <textarea class="form-control" id="specifications" name="specifications" rows="3"
+          placeholder="Architecture details, integration points, APIs, etc. Markdown supported."></textarea>
+      </div>
+    </div>
+
+    <!-- Section 2: Classification & Data -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <span class="section-number">2</span>
+          Classification & Data Sensitivity
+        </h3>
+        <p class="section-description">Security classification and data handling requirements</p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="data_classification">Data Classification <span class="text-danger">*</span></label>
+          <select class="form-select" id="data_classification" name="data_classification" required>
+            <option value="unclassified">Unclassified</option>
+            <option value="protected-a">Protected A</option>
+            <option value="protected-b" selected>Protected B</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="app_type">Application Type <span class="text-danger">*</span></label>
+          <select class="form-select" id="app_type" name="app_type" required>
+            <option value="internal">Internal-Facing</option>
+            <option value="external">External-Facing (Public)</option>
+            <option value="both">Both Internal & External</option>
+          </select>
+        </div>
+      </div>
+      <div class="mt-3">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="has_pii" name="has_pii" value="1" checked>
+          <label class="form-check-label fw-semibold" for="has_pii">
+            <i class="bi bi-person-badge me-1"></i>System processes Personally Identifiable Information (PII)
+          </label>
+          <div class="form-text ms-4">Enabling this adds privacy-specific controls (e.g., AP, UL, DM families)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Hosting Environment -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <span class="section-number">3</span>
+          Hosting Environment
+        </h3>
+        <p class="section-description">Where the system is deployed and operated</p>
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="hosting_type">Primary Hosting <span class="text-danger">*</span></label>
+        <select class="form-select" id="hosting_type" name="hosting_type" required>
+          <option value="azure">Microsoft Azure (GC Cloud)</option>
+          <option value="aws">Amazon Web Services (GC Cloud)</option>
+          <option value="gcp">Google Cloud Platform</option>
+          <option value="ibm">IBM Cloud</option>
+          <option value="ssc">SSC Data Centre</option>
+          <option value="on-premises">On-Premises</option>
+          <option value="hybrid">Hybrid (Cloud + On-Premises)</option>
+          <option value="saas">SaaS / Third-Party Hosted</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Section 4: Technology Stack -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <span class="section-number">4</span>
+          Technology Stack
+        </h3>
+        <p class="section-description">Select all technologies currently in use. These help identify inherited security controls.</p>
+      </div>
+
+      <div class="row g-2" id="techGrid">
+        {{#each technologies}}
+          <div class="col-md-4 col-6">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="technologies" value="{{@key}}" id="tech-{{@key}}">
+              <label class="form-check-label" for="tech-{{@key}}">
+                {{this.name}}
+                <span class="badge bg-light text-muted ms-1" style="font-size:0.65rem">{{this.type}}</span>
+              </label>
+            </div>
+          </div>
+        {{/each}}
+      </div>
+    </div>
+
+    <!-- Section 5: Contacts -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <span class="section-number">5</span>
+          Key Contacts
+        </h3>
+        <p class="section-description">Individuals involved in the assessment and authorization process</p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Project Owner / Architect Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="project_owner_name" required placeholder="Full name">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Project Owner / Architect Email <span class="text-danger">*</span></label>
+          <input type="email" class="form-control" name="project_owner_email" required placeholder="name@agency.gc.ca">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Project Authority Name</label>
+          <input type="text" class="form-control" name="project_authority_name" placeholder="Full name">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Project Authority Email</label>
+          <input type="email" class="form-control" name="project_authority_email" placeholder="name@agency.gc.ca">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">CIO / Delegated Authority Name</label>
+          <input type="text" class="form-control" name="cio_name" placeholder="Full name">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">CIO / Delegated Authority Email</label>
+          <input type="email" class="form-control" name="cio_email" placeholder="name@agency.gc.ca">
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-5">
+      <a href="/admin/projects" class="btn btn-outline-secondary"><i class="bi bi-x-lg me-1"></i>Cancel</a>
+      <button type="submit" class="btn btn-primary btn-lg">
+        <i class="bi bi-folder-plus me-2"></i>Create Project
+      </button>
+    </div>
+  </form>
+</div>

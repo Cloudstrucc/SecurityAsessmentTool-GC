@@ -1,0 +1,278 @@
+<div class="container">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <h1 class="mb-1">{{assessment.project_name}}</h1>
+      <p class="text-muted mb-0">Security Assessment Evidence Submission — ITSG-33 / {{assessment.data_classification}}</p>
+    </div>
+    {{#if isReadOnly}}
+      <span class="badge bg-success fs-6 py-2 px-3"><i class="bi bi-lock me-1"></i>Submitted</span>
+    {{/if}}
+  </div>
+
+  {{#if isReadOnly}}
+    <div class="alert alert-info">
+      <i class="bi bi-info-circle me-2"></i>
+      This assessment has been submitted and is now <strong>read-only</strong>. Your assessor will review the evidence and
+      may reactivate it if updates are needed.
+    </div>
+  {{/if}}
+
+  <!-- Progress bar (sticky) -->
+  <div class="progress-sticky">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span class="fw-semibold">Progress: <span id="progressCount">{{provided}}</span> of {{total}} controls addressed</span>
+      <span class="fw-bold" id="progressPct">{{progress}}%</span>
+    </div>
+    <div class="progress">
+      <div class="progress-bar" id="progressBar" style="width:{{progress}}%" role="progressbar"></div>
+    </div>
+    {{#unless isReadOnly}}
+      <div class="text-end mt-2">
+        <form method="POST" action="/respond/{{inviteCode}}/submit" class="d-inline"
+          onsubmit="return confirm('Submit all evidence? This will lock the form and notify your assessor. You will not be able to make changes unless the assessor reactivates your submission.')">
+          <button class="btn btn-primary" id="submitBtn" {{#ifCond progress '<' 1}}disabled{{/ifCond}}>
+            <i class="bi bi-send me-1"></i>Submit All Evidence
+          </button>
+        </form>
+      </div>
+    {{/unless}}
+  </div>
+
+  <!-- Family navigation -->
+  <div class="mb-4">
+    <div class="d-flex flex-wrap gap-2">
+      {{#each families}}
+        <a href="#family-{{this.code}}" class="btn btn-sm btn-outline-primary">
+          {{this.code}} — {{this.name}}
+          <span class="badge bg-light text-dark ms-1">{{this.controls.length}}</span>
+        </a>
+      {{/each}}
+    </div>
+  </div>
+
+  <!-- Control Families -->
+  {{#each families}}
+    <div class="form-section" id="family-{{this.code}}">
+      <div class="section-header">
+        <h3 class="section-title">
+          <span class="section-number">{{this.code}}</span>
+          {{this.name}}
+        </h3>
+      </div>
+
+      {{#each this.controls}}
+        <div class="control-card {{#if this.is_inherited}}inherited{{/if}} {{#eq this.evidence_status 'provided'}}border-success{{/eq}}"
+          id="control-{{this.id}}">
+
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <span class="control-id">{{this.control_id}}</span>
+              <span class="control-title ms-2">{{this.title}}</span>
+            </div>
+            <div class="d-flex gap-1">
+              {{#if this.is_inherited}}
+                <span class="badge bg-info"><i class="bi bi-arrow-left-right me-1"></i>Inherited: {{this.inherited_from}}</span>
+              {{/if}}
+              {{#eq this.evidence_status "provided"}}
+                <span class="badge bg-success"><i class="bi bi-check me-1"></i>Done</span>
+              {{/eq}}
+            </div>
+          </div>
+
+          {{#if this.tailored_description}}
+            <p class="control-desc mb-2">{{this.tailored_description}}</p>
+          {{else}}
+            <p class="control-desc mb-2">{{this.description}}</p>
+          {{/if}}
+
+          {{#if this.evidence_guidance}}
+            <div class="p-2 rounded mb-3" style="background:#fff8e1">
+              <small class="fw-semibold"><i class="bi bi-lightbulb me-1"></i>Evidence Guidance:</small>
+              <small class="d-block mt-1">{{this.evidence_guidance}}</small>
+            </div>
+          {{/if}}
+
+          <!-- Evidence Editor -->
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Your Evidence</label>
+            {{#if ../../isReadOnly}}
+              <div class="evidence-editor" style="background:#f8f9fa;min-height:80px">
+                {{{this.evidence_html}}}
+                {{#unless this.evidence_html}}{{this.evidence_text}}{{/unless}}
+              </div>
+            {{else}}
+              <div class="evidence-editor" contenteditable="true" id="editor-{{this.id}}"
+                data-control-id="{{this.id}}"
+                oninput="autoSave({{this.id}})"
+                placeholder="Enter your evidence here...">{{{this.evidence_html}}}</div>
+              <div class="d-flex justify-content-between mt-1">
+                <div class="btn-group btn-group-sm">
+                  <button type="button" class="btn btn-outline-secondary" onclick="execCmd('bold')" title="Bold"><i class="bi bi-type-bold"></i></button>
+                  <button type="button" class="btn btn-outline-secondary" onclick="execCmd('italic')" title="Italic"><i class="bi bi-type-italic"></i></button>
+                  <button type="button" class="btn btn-outline-secondary" onclick="execCmd('insertUnorderedList')" title="Bullet List"><i class="bi bi-list-ul"></i></button>
+                  <button type="button" class="btn btn-outline-secondary" onclick="execCmd('insertOrderedList')" title="Numbered List"><i class="bi bi-list-ol"></i></button>
+                </div>
+                <small class="text-muted" id="saveStatus-{{this.id}}"></small>
+              </div>
+            {{/if}}
+          </div>
+
+          <!-- File Upload -->
+          {{#unless ../../isReadOnly}}
+            <div class="mb-2">
+              <label class="form-label small fw-semibold">Attachments</label>
+              <div class="input-group input-group-sm">
+                <input type="file" class="form-control form-control-sm" id="fileInput-{{this.id}}"
+                  onchange="uploadFile({{this.id}})">
+                <button class="btn btn-outline-primary" type="button" onclick="uploadFile({{this.id}})">
+                  <i class="bi bi-upload me-1"></i>Upload
+                </button>
+              </div>
+            </div>
+          {{/unless}}
+          <div id="attachments-{{this.id}}" class="d-flex flex-wrap gap-1 mb-2">
+            {{!-- Attachments loaded dynamically or from data --}}
+          </div>
+
+          <!-- Comments -->
+          <div class="mt-2">
+            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0"
+              data-bs-toggle="collapse" data-bs-target="#comments-{{this.id}}" onclick="loadComments({{this.id}})">
+              <i class="bi bi-chat-dots me-1"></i>Comments
+            </button>
+          </div>
+          <div class="collapse mt-2" id="comments-{{this.id}}">
+            <div class="comment-thread border rounded p-2" id="thread-{{this.id}}">
+              <div class="text-muted small text-center py-1">Loading...</div>
+            </div>
+            {{#unless ../../isReadOnly}}
+              <div class="input-group input-group-sm mt-2">
+                <input type="text" class="form-control" id="commentInput-{{this.id}}" placeholder="Add a comment...">
+                <button class="btn btn-outline-primary" onclick="addComment({{this.id}})">
+                  <i class="bi bi-send"></i>
+                </button>
+              </div>
+            {{/unless}}
+          </div>
+        </div>
+      {{/each}}
+    </div>
+  {{/each}}
+
+  {{#unless isReadOnly}}
+    <div class="text-center mb-5 mt-4">
+      <form method="POST" action="/respond/{{inviteCode}}/submit"
+        onsubmit="return confirm('Submit all evidence? This will lock the form and notify your assessor.')">
+        <button class="btn btn-primary btn-lg"><i class="bi bi-send me-2"></i>Submit All Evidence</button>
+      </form>
+    </div>
+  {{/unless}}
+</div>
+
+<script>
+const INVITE_CODE = '{{inviteCode}}';
+let saveTimers = {};
+
+function execCmd(command) {
+  document.execCommand(command, false, null);
+}
+
+function autoSave(controlId) {
+  clearTimeout(saveTimers[controlId]);
+  const status = document.getElementById('saveStatus-' + controlId);
+  if (status) status.textContent = 'Saving...';
+  saveTimers[controlId] = setTimeout(() => saveEvidence(controlId), 1500);
+}
+
+async function saveEvidence(controlId) {
+  const editor = document.getElementById('editor-' + controlId);
+  if (!editor) return;
+  const status = document.getElementById('saveStatus-' + controlId);
+  try {
+    const res = await fetch('/respond/' + INVITE_CODE + '/save/' + controlId, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        evidence_text: editor.innerText,
+        evidence_html: editor.innerHTML
+      })
+    });
+    const data = await res.json();
+    if (status) status.textContent = data.success ? 'Saved ✓' : 'Error saving';
+    if (data.success) updateProgress();
+    setTimeout(() => { if (status) status.textContent = ''; }, 3000);
+  } catch(e) {
+    if (status) status.textContent = 'Error saving';
+  }
+}
+
+function updateProgress() {
+  const editors = document.querySelectorAll('[id^="editor-"]');
+  let filled = 0;
+  editors.forEach(ed => { if (ed.innerText.trim().length > 0) filled++; });
+  const total = {{total}};
+  const pct = total > 0 ? Math.round(filled / total * 100) : 0;
+  const countEl = document.getElementById('progressCount');
+  const pctEl = document.getElementById('progressPct');
+  const barEl = document.getElementById('progressBar');
+  const btnEl = document.getElementById('submitBtn');
+  if (countEl) countEl.textContent = filled;
+  if (pctEl) pctEl.textContent = pct + '%';
+  if (barEl) barEl.style.width = pct + '%';
+  if (btnEl) btnEl.disabled = filled < 1;
+}
+
+async function uploadFile(controlId) {
+  const input = document.getElementById('fileInput-' + controlId);
+  if (!input.files.length) return;
+  const formData = new FormData();
+  formData.append('file', input.files[0]);
+  try {
+    const res = await fetch('/respond/' + INVITE_CODE + '/upload/' + controlId, {
+      method: 'POST', body: formData
+    });
+    const data = await res.json();
+    if (data.success) {
+      const container = document.getElementById('attachments-' + controlId);
+      const badge = document.createElement('span');
+      badge.className = 'badge bg-light text-dark border';
+      badge.innerHTML = '<i class="bi bi-paperclip me-1"></i>' + data.file.name;
+      container.appendChild(badge);
+      input.value = '';
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function loadComments(controlId) {
+  try {
+    const res = await fetch('/api/comments/' + controlId);
+    const data = await res.json();
+    const thread = document.getElementById('thread-' + controlId);
+    if (data.comments && data.comments.length) {
+      thread.innerHTML = data.comments.map(c =>
+        '<div class="comment-item">' +
+        '<span class="comment-author">' + c.user_name + '</span> ' +
+        '<span class="comment-time">' + new Date(c.created_at).toLocaleString() + '</span>' +
+        '<div>' + c.content + '</div></div>'
+      ).join('');
+    } else {
+      thread.innerHTML = '<div class="text-muted small text-center py-1">No comments yet</div>';
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function addComment(controlId) {
+  const input = document.getElementById('commentInput-' + controlId);
+  if (!input.value.trim()) return;
+  try {
+    await fetch('/respond/' + INVITE_CODE + '/comment/' + controlId, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: input.value })
+    });
+    input.value = '';
+    loadComments(controlId);
+  } catch(e) { console.error(e); }
+}
+</script>
