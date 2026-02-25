@@ -1,0 +1,184 @@
+<div class="container py-4">
+  <div class="text-center mb-4">
+    <div style="width:56px;height:56px;border-radius:14px;background:#d4edda;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+      <i class="bi bi-check-circle-fill text-success" style="font-size:1.5rem;"></i>
+    </div>
+    <h2>GC Web Standards Checklist</h2>
+    <p class="text-muted mb-1">{{report.project_name}}</p>
+    <div class="d-flex justify-content-center gap-2 flex-wrap">
+      <span class="badge bg-light text-dark border"><i class="bi bi-database me-1"></i>{{report.data_classification}}</span>
+      <span class="badge bg-light text-dark border"><i class="bi bi-globe me-1"></i>{{report.app_type}}</span>
+      {{#if report.hosting_type}}<span class="badge bg-light text-dark border"><i class="bi bi-cloud me-1"></i>{{report.hosting_type}}</span>{{/if}}
+    </div>
+  </div>
+
+  {{#if isReadOnly}}
+    <div class="alert alert-success text-center">
+      <i class="bi bi-patch-check me-2"></i>
+      <strong>This checklist has been validated and approved.</strong> No further changes can be made.
+    </div>
+  {{/if}}
+
+  {{#if isReturned}}
+    <div class="alert alert-warning">
+      <i class="bi bi-arrow-return-left me-2"></i>
+      <strong>Returned for revision.</strong> The assessor has requested updates. Please review the items below and resubmit.
+      {{#if report.reviewer_notes}}
+        <hr class="my-2">
+        <strong>Assessor notes:</strong> {{report.reviewer_notes}}
+      {{/if}}
+    </div>
+  {{/if}}
+
+  {{#ifCond report.status '==' 'submitted'}}
+    <div class="alert alert-info text-center">
+      <i class="bi bi-hourglass-split me-2"></i>
+      <strong>Submitted and awaiting review.</strong> You can still update items until the assessor validates.
+    </div>
+  {{/ifCond}}
+
+  <div class="card mb-4" style="border-left:4px solid var(--cs-success)">
+    <div class="card-body">
+      <h5 class="mb-2">{{guidance.summary.title}}</h5>
+      <p class="mb-2 small">{{guidance.summary.description}}</p>
+      <p class="mb-0 small"><strong>{{totalRequired}} required</strong> and <strong>{{totalRecommended}} recommended</strong> items.
+        All <span class="badge bg-danger" style="font-size:0.7rem">Required</span> items must be addressed before launch.</p>
+    </div>
+  </div>
+
+  <!-- Categories -->
+  {{#each guidance.categories}}
+  <div class="form-section mb-4" id="cat-{{this.id}}">
+    <div class="section-header">
+      <h4 class="section-title">
+        <i class="bi bi-{{this.icon}} me-2" style="color:var(--cs-accent)"></i>
+        {{this.title}}
+      </h4>
+      <p class="section-description mb-0">{{this.description}}</p>
+    </div>
+
+    {{#each this.items}}
+    <div class="control-card" id="item-{{this.id}}">
+      <div class="d-flex justify-content-between align-items-start gap-3">
+        <div class="flex-grow-1">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            {{#if this.required}}
+              <span class="badge bg-danger" style="font-size:0.7rem">Required</span>
+            {{else}}
+              <span class="badge bg-info" style="font-size:0.7rem">Recommended</span>
+            {{/if}}
+            <span class="small">{{this.text}}</span>
+          </div>
+        </div>
+        <div style="min-width:130px">
+          <select class="form-select form-select-sm checklist-status" data-id="{{this.id}}"
+            {{#if ../../isReadOnly}}disabled{{/if}}>
+            <option value="pending" {{#ifCond this.status '==' 'pending'}}selected{{/ifCond}}>Pending</option>
+            <option value="met" {{#ifCond this.status '==' 'met'}}selected{{/ifCond}}>✓ Met</option>
+            <option value="in-progress" {{#ifCond this.status '==' 'in-progress'}}selected{{/ifCond}}>In Progress</option>
+            <option value="na" {{#ifCond this.status '==' 'na'}}selected{{/ifCond}}>N/A</option>
+          </select>
+        </div>
+      </div>
+      <div class="mt-2">
+        <input type="text" class="form-control form-control-sm checklist-notes" data-id="{{this.id}}"
+          placeholder="Notes or evidence reference (optional)..." value="{{this.notes}}"
+          {{#if ../../isReadOnly}}disabled{{/if}}>
+      </div>
+    </div>
+    {{/each}}
+  </div>
+  {{/each}}
+
+  {{#unless isReadOnly}}
+  <!-- Auto-save indicator -->
+  <div class="text-center mb-3">
+    <small class="text-muted" id="saveStatus"><i class="bi bi-cloud-check me-1"></i>Changes auto-save as you go</small>
+  </div>
+
+  <!-- Submit -->
+  <div class="card mb-5">
+    <div class="card-header"><i class="bi bi-send me-2"></i>Submit Checklist for Review</div>
+    <div class="card-body">
+      <p class="text-muted small">Once you've addressed the items above, submit for the security assessor to validate. You'll be able to make updates until the assessor approves.</p>
+      <form method="POST" action="/guidance/{{report.invite_code}}/submit" id="submitForm">
+        <input type="hidden" name="checklist_json" id="checklistJson" value="">
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Your Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="respondent_name" required
+              value="{{report.respondent_name}}" placeholder="e.g. Jane Doe">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Your Email <span class="text-danger">*</span></label>
+            <input type="email" class="form-control" name="respondent_email" required
+              value="{{report.respondent_email}}" placeholder="e.g. jane.doe@agency.gc.ca">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Additional Notes</label>
+          <textarea class="form-control" name="respondent_notes" rows="3"
+            placeholder="Any questions, clarifications, or additional context...">{{report.respondent_notes}}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 py-2" id="submitBtn">
+          <i class="bi bi-send me-2"></i>Submit for Review
+        </button>
+      </form>
+    </div>
+  </div>
+  {{/unless}}
+
+  <!-- Footer Notice -->
+  <div class="alert alert-secondary small mb-5">
+    <i class="bi bi-info-circle me-2"></i>
+    {{guidance.summary.footer}}
+  </div>
+</div>
+
+<script>
+const CODE = '{{report.invite_code}}';
+let saveTimer = null;
+
+function gatherResponses() {
+  const responses = {};
+  document.querySelectorAll('.checklist-status').forEach(sel => {
+    const id = sel.dataset.id;
+    const notesEl = document.querySelector(`.checklist-notes[data-id="${id}"]`);
+    responses[id] = {
+      status: sel.value,
+      notes: notesEl ? notesEl.value : ''
+    };
+  });
+  return responses;
+}
+
+function autoSave() {
+  clearTimeout(saveTimer);
+  const el = document.getElementById('saveStatus');
+  el.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Saving...';
+
+  saveTimer = setTimeout(async () => {
+    try {
+      await fetch('/guidance/' + CODE + '/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ responses: gatherResponses() })
+      });
+      el.innerHTML = '<i class="bi bi-cloud-check me-1 text-success"></i>Saved';
+    } catch(e) {
+      el.innerHTML = '<i class="bi bi-exclamation-triangle me-1 text-danger"></i>Save failed';
+    }
+  }, 800);
+}
+
+// Auto-save on any change
+document.querySelectorAll('.checklist-status, .checklist-notes').forEach(el => {
+  el.addEventListener('change', autoSave);
+  el.addEventListener('input', autoSave);
+});
+
+// Inject current state into hidden field on submit
+document.getElementById('submitForm')?.addEventListener('submit', function() {
+  document.getElementById('checklistJson').value = JSON.stringify(gatherResponses());
+});
+</script>

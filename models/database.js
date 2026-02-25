@@ -177,6 +177,30 @@ async function initDatabase() {
     )
   `);
 
+  // ── GUIDANCE REPORTS (no-SA&A web guidance checklist) ──
+  db.run(`
+    CREATE TABLE IF NOT EXISTS guidance_reports (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      invite_code TEXT UNIQUE,
+      status TEXT DEFAULT 'draft',
+      checklist_responses TEXT DEFAULT '{}',
+      respondent_name TEXT,
+      respondent_email TEXT,
+      respondent_notes TEXT,
+      submitted_at DATETIME,
+      reviewer_notes TEXT,
+      validated_at DATETIME,
+      validated_by INTEGER,
+      created_by INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+      FOREIGN KEY (validated_by) REFERENCES users(id),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    )
+  `);
+
   // ── ATO DOCUMENTS ──
   db.run(`
     CREATE TABLE IF NOT EXISTS ato_documents (

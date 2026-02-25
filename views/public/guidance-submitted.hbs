@@ -1,0 +1,33 @@
+<div class="container py-5" style="max-width:600px;">
+  <div class="text-center">
+    <div style="width:80px;height:80px;border-radius:20px;background:#d4edda;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;">
+      <i class="bi bi-check-circle-fill text-success" style="font-size:2.5rem;"></i>
+    </div>
+    <h2 class="mb-3">Checklist Submitted</h2>
+    <p class="lead text-muted">Your GC Web Standards checklist for <strong>{{projectName}}</strong> has been submitted for review.</p>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between mb-2">
+        <span class="text-muted">Access Code</span>
+        <code class="fw-bold">{{code}}</code>
+      </div>
+      <div class="d-flex justify-content-between">
+        <span class="text-muted">Status</span>
+        <span class="badge bg-info">Awaiting Review</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-info mt-4 small">
+    <i class="bi bi-info-circle me-2"></i>
+    The security assessor will review your responses. You can revisit and update your checklist at any time using your access code until it has been validated.
+  </div>
+
+  <div class="text-center mt-4">
+    <a href="/guidance/{{code}}" class="btn btn-outline-primary">
+      <i class="bi bi-arrow-left me-1"></i>Back to Checklist
+    </a>
+  </div>
+</div>

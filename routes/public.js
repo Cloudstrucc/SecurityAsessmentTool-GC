@@ -456,4 +456,99 @@ router.post('/intake', ensureClientAuth, intakeUpload.array('attachments', 10), 
   }
 });
 
+// ══════════════════════════════════════════════════
+// PUBLIC GUIDANCE PORTAL (invite-based checklist)
+// ══════════════════════════════════════════════════
+
+const { GC_WEB_GUIDANCE } = require('../config/itsg33-controls');
+
+router.get('/guidance/:code', (req, res) => {
+  const report = get(`
+    SELECT g.*, p.name as project_name, p.data_classification, p.app_type,
+      p.hosting_type, p.project_owner_name, p.project_owner_email
+    FROM guidance_reports g JOIN projects p ON g.project_id = p.id
+    WHERE g.invite_code = ?
+  `, [req.params.code.toUpperCase()]);
+
+  if (!report) {
+    return res.render('error', {
+      title: 'Invalid Code',
+      message: 'This guidance checklist code is not valid. Please check the code and try again.',
+      showAccessForm: true
+    });
+  }
+
+  let responses = {};
+  try { responses = JSON.parse(report.checklist_responses || '{}'); } catch(e) {}
+
+  const guidanceWithResponses = {
+    ...GC_WEB_GUIDANCE,
+    categories: GC_WEB_GUIDANCE.categories.map(cat => ({
+      ...cat,
+      items: cat.items.map(item => ({
+        ...item,
+        status: responses[item.id]?.status || 'pending',
+        notes: responses[item.id]?.notes || ''
+      }))
+    }))
+  };
+
+  let totalRequired = 0, totalRecommended = 0;
+  GC_WEB_GUIDANCE.categories.forEach(cat => {
+    cat.items.forEach(item => {
+      if (item.required) totalRequired++;
+      else totalRecommended++;
+    });
+  });
+
+  const isReadOnly = report.status === 'validated';
+  const isReturned = report.status === 'returned';
+
+  res.render('public/guidance-portal', {
+    title: 'GC Web Guidance Checklist — ' + report.project_name,
+    report, guidance: guidanceWithResponses,
+    totalRequired, totalRecommended,
+    isReadOnly, isReturned
+  });
+});
+
+router.post('/guidance/:code/save', express.json({ limit: '1mb' }), (req, res) => {
+  const report = get('SELECT * FROM guidance_reports WHERE invite_code = ?', [req.params.code.toUpperCase()]);
+  if (!report) return res.status(404).json({ error: 'Not found' });
+  if (report.status === 'validated') return res.status(403).json({ error: 'Already validated' });
+
+  const { responses } = req.body;
+  run(`UPDATE guidance_reports SET checklist_responses = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+    [JSON.stringify(responses || {}), report.id]);
+
+  res.json({ ok: true });
+});
+
+router.post('/guidance/:code/submit', (req, res) => {
+  const report = get(`
+    SELECT g.*, p.name as project_name
+    FROM guidance_reports g JOIN projects p ON g.project_id = p.id
+    WHERE g.invite_code = ?
+  `, [req.params.code.toUpperCase()]);
+  if (!report) { req.flash('error', 'Invalid code'); return res.redirect('/'); }
+  if (report.status === 'validated') { req.flash('error', 'Already validated'); return res.redirect('/guidance/' + req.params.code); }
+
+  const { respondent_name, respondent_email, respondent_notes } = req.body;
+
+  // Save any final checklist state from hidden field
+  let responses = {};
+  try { responses = JSON.parse(req.body.checklist_json || report.checklist_responses || '{}'); } catch(e) {}
+
+  run(`UPDATE guidance_reports SET status = 'submitted', checklist_responses = ?,
+    respondent_name = ?, respondent_email = ?, respondent_notes = ?,
+    submitted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+    [JSON.stringify(responses), respondent_name || '', respondent_email || '', respondent_notes || '', report.id]);
+
+  res.render('public/guidance-submitted', {
+    title: 'Checklist Submitted',
+    projectName: report.project_name,
+    code: report.invite_code
+  });
+});
+
 module.exports = router;

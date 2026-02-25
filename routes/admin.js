@@ -33,19 +33,21 @@ router.get('/dashboard', ensureAuthenticated, (req, res) => {
     FROM assessments a JOIN projects p ON a.project_id = p.id 
     ORDER BY a.updated_at DESC LIMIT 10
   `);
+  const recentIntakes = all(`SELECT * FROM intake_submissions ORDER BY created_at DESC LIMIT 5`);
   
   const stats = {
     totalProjects: get('SELECT COUNT(*) as c FROM projects')?.c || 0,
     activeAssessments: get("SELECT COUNT(*) as c FROM assessments WHERE status NOT IN ('completed','closed')")?.c || 0,
     pendingAudits: get("SELECT COUNT(*) as c FROM assessments WHERE status = 'submitted'")?.c || 0,
     activeATOs: get("SELECT COUNT(*) as c FROM assessments WHERE ato_type = 'ato' AND result = 'ato'")?.c || 0,
-    activeIATOs: get("SELECT COUNT(*) as c FROM assessments WHERE ato_type = 'iato' AND result = 'iato'")?.c || 0
+    activeIATOs: get("SELECT COUNT(*) as c FROM assessments WHERE ato_type = 'iato' AND result = 'iato'")?.c || 0,
+    pendingIntakes: get("SELECT COUNT(*) as c FROM intake_submissions WHERE status IN ('pending','in-review')")?.c || 0
   };
 
   res.render('admin/dashboard', {
     title: 'Dashboard',
     isAdmin: true, isDashboard: true,
-    admin: req.user, projects, assessments, stats
+    admin: req.user, projects, assessments, recentIntakes, stats
   });
 });
 
@@ -681,6 +683,9 @@ router.get('/projects/:projectId/guidance', ensureAuthenticated, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
   if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
+  // Get or create guidance report
+  let report = get('SELECT * FROM guidance_reports WHERE project_id = ?', [project.id]);
+
   let totalRequired = 0, totalRecommended = 0;
   GC_WEB_GUIDANCE.categories.forEach(cat => {
     cat.items.forEach(item => {
@@ -689,19 +694,99 @@ router.get('/projects/:projectId/guidance', ensureAuthenticated, (req, res) => {
     });
   });
 
+  // Parse saved checklist responses
+  let responses = {};
+  if (report) {
+    try { responses = JSON.parse(report.checklist_responses || '{}'); } catch(e) {}
+  }
+
+  // Merge responses into guidance items for display
+  const guidanceWithResponses = {
+    ...GC_WEB_GUIDANCE,
+    categories: GC_WEB_GUIDANCE.categories.map(cat => ({
+      ...cat,
+      items: cat.items.map(item => ({
+        ...item,
+        status: responses[item.id]?.status || 'pending',
+        notes: responses[item.id]?.notes || ''
+      }))
+    }))
+  };
+
+  // Count submitted statuses
+  let metCount = 0, inProgressCount = 0, naCount = 0, pendingCount = 0;
+  Object.values(responses).forEach(r => {
+    if (r.status === 'met') metCount++;
+    else if (r.status === 'in-progress') inProgressCount++;
+    else if (r.status === 'na') naCount++;
+    else pendingCount++;
+  });
+
   res.render('admin/guidance-report', {
     title: 'GC Web Guidance Report',
     isAdmin: true, isProjects: true,
-    admin: req.user, project,
-    guidance: GC_WEB_GUIDANCE,
-    totalRequired, totalRecommended
+    admin: req.user, project, report,
+    guidance: guidanceWithResponses,
+    totalRequired, totalRecommended,
+    metCount, inProgressCount, naCount, pendingCount
   });
 });
 
+router.post('/projects/:projectId/guidance/send-invite', ensureAuthenticated, (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+
+  let report = get('SELECT * FROM guidance_reports WHERE project_id = ?', [project.id]);
+  const inviteCode = uuidv4().substring(0, 8).toUpperCase();
+
+  if (!report) {
+    run(`INSERT INTO guidance_reports (project_id, invite_code, status, created_by) VALUES (?,?,?,?)`,
+      [project.id, inviteCode, 'sent', req.user.id]);
+  } else {
+    run(`UPDATE guidance_reports SET invite_code = ?, status = 'sent', updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [report.invite_code || inviteCode, report.id]);
+  }
+
+  report = get('SELECT * FROM guidance_reports WHERE project_id = ?', [project.id]);
+
+  // Send email if owner email is available
+  if (project.project_owner_email) {
+    try {
+      emailService.sendMail({
+        to: project.project_owner_email,
+        subject: `GC Web Guidance Checklist — ${project.name}`,
+        text: `You have been invited to complete a GC Web Standards compliance checklist for "${project.name}".\n\nPlease use the following link to access and complete the checklist:\n\n${req.protocol}://${req.get('host')}/guidance/${report.invite_code}\n\nAccess Code: ${report.invite_code}`
+      });
+    } catch(e) { console.error('Email send error:', e); }
+  }
+
+  req.flash('success', `Guidance invite sent! Code: ${report.invite_code}` +
+    (project.project_owner_email ? ` — email sent to ${project.project_owner_email}` : ''));
+  res.redirect(`/admin/projects/${project.id}/guidance`);
+});
+
+router.post('/projects/:projectId/guidance/validate', ensureAuthenticated, (req, res) => {
+  const report = get('SELECT * FROM guidance_reports WHERE project_id = ?', [req.params.projectId]);
+  if (!report) { req.flash('error', 'Guidance report not found'); return res.redirect('/admin/projects'); }
+
+  const { action, reviewer_notes } = req.body;
+
+  if (action === 'validate') {
+    run(`UPDATE guidance_reports SET status = 'validated', reviewer_notes = ?, 
+      validated_at = CURRENT_TIMESTAMP, validated_by = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [reviewer_notes || '', req.user.id, report.id]);
+    req.flash('success', 'Guidance checklist validated and approved.');
+  } else if (action === 'return') {
+    run(`UPDATE guidance_reports SET status = 'returned', reviewer_notes = ?, 
+      updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [reviewer_notes || '', report.id]);
+    req.flash('warning', 'Checklist returned to project owner for revision.');
+  }
+
+  res.redirect(`/admin/projects/${req.params.projectId}/guidance`);
+});
+
 router.post('/projects/:projectId/guidance-notes', ensureAuthenticated, (req, res) => {
-  run('UPDATE projects SET description = description, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [req.params.projectId]);
-  // Store notes in a simple way — use the assessor_description field or a notes column
-  // For now we'll append to description with a separator
   req.flash('success', 'Notes saved.');
   res.redirect(`/admin/projects/${req.params.projectId}/guidance`);
 });
