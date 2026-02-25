@@ -106,37 +106,63 @@ if az group show --name "$RESOURCE_GROUP" &> /dev/null; then
   log "Found existing resource group: $RESOURCE_GROUP"
 fi
 
-# If no app name provided, try to find one in the resource group
+# If no app name provided via env var, show interactive menu
 if [ -z "$APP_NAME" ]; then
   if $EXISTING_RG; then
-    # Look for existing app services in the resource group
     FOUND_APPS=$(az webapp list --resource-group "$RESOURCE_GROUP" --query "[].name" -o tsv 2>/dev/null || true)
     if [ -n "$FOUND_APPS" ]; then
       APP_COUNT=$(echo "$FOUND_APPS" | wc -l | tr -d ' ')
-      if [ "$APP_COUNT" -eq 1 ]; then
-        APP_NAME="$FOUND_APPS"
+
+      echo ""
+      echo "  ┌─────────────────────────────────────────────────┐"
+      echo "  │  Apps in resource group: $RESOURCE_GROUP"
+      echo "  └─────────────────────────────────────────────────┘"
+      echo ""
+
+      # Show numbered list of existing apps
+      INDEX=1
+      while IFS= read -r app; do
+        printf "    %d)  %s\n" "$INDEX" "$app"
+        INDEX=$((INDEX + 1))
+      done <<< "$FOUND_APPS"
+
+      # Always offer create-new option
+      echo ""
+      echo "    N)  Create a NEW app"
+      echo ""
+      read -p "  Select [1-$APP_COUNT] or N: " APP_CHOICE
+
+      if [[ "$APP_CHOICE" =~ ^[Nn]$ ]]; then
+        # ── Create new ──
+        NEW_NAME="gc-sa-tool-$(openssl rand -hex 4)"
+        read -p "  App name [$NEW_NAME]: " CUSTOM_NAME
+        APP_NAME="${CUSTOM_NAME:-$NEW_NAME}"
+        EXISTING_APP=false
+        info "Will create new app: $APP_NAME"
+
+      elif [[ "$APP_CHOICE" =~ ^[0-9]+$ ]] && [ "$APP_CHOICE" -ge 1 ] && [ "$APP_CHOICE" -le "$APP_COUNT" ]; then
+        # ── Pick existing by number ──
+        APP_NAME=$(echo "$FOUND_APPS" | sed -n "${APP_CHOICE}p")
         EXISTING_APP=true
-        log "Found existing app: $APP_NAME"
+        log "Selected: $APP_NAME"
+
       else
-        echo ""
-        echo "  Multiple apps found in $RESOURCE_GROUP:"
-        echo "$FOUND_APPS" | nl -ba
-        echo ""
-        read -p "  Enter the app name to update: " APP_NAME
-        if [ -z "$APP_NAME" ]; then
-          err "No app name provided."
-        fi
-        EXISTING_APP=true
+        err "Invalid selection: '$APP_CHOICE'. Enter 1-$APP_COUNT or N."
       fi
+
     else
+      # No apps at all in the resource group
       APP_NAME="gc-sa-tool-$(openssl rand -hex 4)"
       warn "No existing apps found. Will create: $APP_NAME"
     fi
+
   else
+    # Resource group doesn't exist yet
     APP_NAME="gc-sa-tool-$(openssl rand -hex 4)"
   fi
+
 else
-  # App name was provided — check if it exists
+  # App name was provided via AZURE_APP_NAME env var — check if it exists
   if $EXISTING_RG && az webapp show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" &> /dev/null; then
     EXISTING_APP=true
     log "Found existing app: $APP_NAME"
@@ -158,7 +184,7 @@ else
 fi
 echo ""
 echo "  Resource Group:    $RESOURCE_GROUP $(if $EXISTING_RG; then echo '(exists)'; else echo '(will create)'; fi)"
-echo "  App Name:          $APP_NAME $(if $EXISTING_APP; then echo '(exists)'; else echo '(will create)'; fi)"
+echo "  App Name:          $APP_NAME $(if $EXISTING_APP; then echo '(exists — code update only)'; else echo '(will create)'; fi)"
 echo "  Location:          $LOCATION"
 if ! $EXISTING_APP; then
   echo "  SKU:               $SKU"
@@ -192,14 +218,22 @@ if ! $UPDATE_ONLY; then
 
   # App Service Plan + Web App
   if ! $EXISTING_APP; then
-    info "Creating App Service plan: $APP_SERVICE_PLAN ($SKU)"
-    az appservice plan create \
-      --name "$APP_SERVICE_PLAN" \
-      --resource-group "$RESOURCE_GROUP" \
-      --sku "$SKU" \
-      --is-linux \
-      --output none
-    log "App Service plan created"
+
+    # Reuse existing plan in the resource group if one exists
+    EXISTING_PLAN=$(az appservice plan list --resource-group "$RESOURCE_GROUP" --query "[0].name" -o tsv 2>/dev/null || true)
+    if [ -n "$EXISTING_PLAN" ]; then
+      APP_SERVICE_PLAN="$EXISTING_PLAN"
+      log "Reusing existing App Service plan: $APP_SERVICE_PLAN"
+    else
+      info "Creating App Service plan: $APP_SERVICE_PLAN ($SKU)"
+      az appservice plan create \
+        --name "$APP_SERVICE_PLAN" \
+        --resource-group "$RESOURCE_GROUP" \
+        --sku "$SKU" \
+        --is-linux \
+        --output none
+      log "App Service plan created"
+    fi
 
     info "Creating web app: $APP_NAME"
     az webapp create \

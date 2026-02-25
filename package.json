@@ -27,5 +27,8 @@
     "qrcode": "^1.5.4",
     "sql.js": "^1.9.0",
     "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "node-fetch": "^2.7.0"
   }
 }

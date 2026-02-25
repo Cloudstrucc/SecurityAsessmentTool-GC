@@ -73,38 +73,99 @@
       </div>
     </div>
 
-    <!-- ─── Section 2: Data Sensitivity & Classification ─── -->
+    <!-- ─── Section 2: Security Categorization ─── -->
     <div class="form-section">
       <div class="section-header">
-        <h4 class="section-title"><span class="section-number">2</span> Data Sensitivity & Classification</h4>
-        <p class="section-description">Identify the types of sensitive data your system will process, store, or transmit. Check all that apply.</p>
+        <h4 class="section-title"><span class="section-number">2</span> Security Categorization</h4>
+        <p class="section-description">Categorize your system across three independent security dimensions per the <strong>TBS Directive on Security Management (Appendix J)</strong> and <strong>ITSG-33</strong>. The tool will automatically determine the applicable security control profile.</p>
       </div>
 
-      <!-- Info callout with definitions -->
-      <div class="alert alert-info mb-4" style="font-size:0.9rem;">
-        <h6 class="fw-bold mb-2"><i class="bi bi-info-circle me-1"></i> GC Data Classification Definitions</h6>
-        <div class="mb-2">
-          <strong>Protected A</strong> — Information that, if compromised, could cause <em>limited or minor</em> injury to an individual, organization, or government. Examples: employee performance reviews, internal memos with low-sensitivity advice.
-        </div>
-        <div class="mb-2">
-          <strong>Protected B</strong> — Information that, if compromised, could cause <em>serious</em> injury. This includes most personal information collected by the GC. Examples: Social Insurance Numbers (SIN), medical records, tax information, immigration files, financial records.
-        </div>
-        <div>
-          <strong>Personal Information (PII)</strong> — Any recorded information about an identifiable individual as defined by the <em>Privacy Act</em>: name, address, date of birth, SIN, biometric data, medical records, employment history, financial information, opinions or views about the individual, etc.
+      <!-- ── 2A: Confidentiality ── -->
+      <div class="card mb-3 border-0 bg-light">
+        <div class="card-body">
+          <h6 class="fw-bold mb-1"><i class="bi bi-shield-lock me-1"></i> Confidentiality Level <span class="text-danger">*</span></h6>
+          <p class="text-muted small mb-2">What is the highest sensitivity of information the system will process, store, or transmit?</p>
+
+          <select class="form-select cia-input" id="confidentialityLevel" name="confidentialityLevel" required>
+            <option value="">Select confidentiality level...</option>
+            <optgroup label="Non-National Interest (Protected)">
+              <option value="unclassified">Unclassified — No injury expected from disclosure</option>
+              <option value="protected-a">Protected A — Limited injury (e.g., internal memos, routine performance feedback)</option>
+              <option value="protected-b" selected>Protected B — Serious injury (e.g., SIN, medical/tax/financial records, most PII)</option>
+              <option value="protected-c">Protected C — Extremely grave injury (e.g., witness protection, informant IDs)</option>
+            </optgroup>
+            <optgroup label="National Interest (Classified)">
+              <option value="confidential">Confidential — Limited injury to national interest</option>
+              <option value="secret">Secret — Serious injury to national interest</option>
+              <option value="top-secret">Top Secret — Exceptionally grave injury to national interest</option>
+            </optgroup>
+          </select>
+          <div id="confHelp" class="form-text mt-1"></div>
         </div>
       </div>
 
-      <div class="mb-3">
-        <label class="form-label" for="dataClassification">Data Classification Level <span class="text-danger">*</span></label>
-        <select class="form-select" id="dataClassification" name="dataClassification" required>
-          <option value="">Select the highest classification level...</option>
-          <option value="unclassified">Unclassified</option>
-          <option value="protected-a">Protected A</option>
-          <option value="protected-b" selected>Protected B</option>
-        </select>
+      <!-- ── 2B: Integrity ── -->
+      <div class="card mb-3 border-0 bg-light">
+        <div class="card-body">
+          <h6 class="fw-bold mb-1"><i class="bi bi-check2-square me-1"></i> Integrity Level <span class="text-danger">*</span></h6>
+          <p class="text-muted small mb-2">What is the expected injury if data is modified, corrupted, or destroyed without authorization?</p>
+
+          <select class="form-select cia-input" id="integrityLevel" name="integrityLevel" required>
+            <option value="low">Low — Limited injury; minor data corruption tolerable with manual workarounds</option>
+            <option value="medium" selected>Medium — Serious injury; data must be reliable, unauthorized changes significantly impact operations</option>
+            <option value="high">High — Very grave injury; data accuracy is critical, corruption could endanger life/health/safety</option>
+          </select>
+        </div>
       </div>
 
-      <!-- PII Checklist -->
+      <!-- ── 2C: Availability ── -->
+      <div class="card mb-3 border-0 bg-light">
+        <div class="card-body">
+          <h6 class="fw-bold mb-1"><i class="bi bi-clock-history me-1"></i> Availability Level <span class="text-danger">*</span></h6>
+          <p class="text-muted small mb-2">What is the expected injury if the system is unavailable or disrupted?</p>
+
+          <select class="form-select cia-input" id="availabilityLevel" name="availabilityLevel" required>
+            <option value="low">Low — Extended outages (days) tolerable; alternative processes exist</option>
+            <option value="medium" selected>Medium — Disruptions of hours could cause serious injury; system supports important operations</option>
+            <option value="high">High — Even brief outages (minutes) cause grave injury; mission-critical or life/safety system</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ── 2D: High Value Asset ── -->
+      <div class="card mb-3 border-0 bg-light">
+        <div class="card-body">
+          <div class="form-check">
+            <input class="form-check-input cia-input" type="checkbox" id="isHVA" name="isHVA" value="1">
+            <label class="form-check-label" for="isHVA">
+              <strong><i class="bi bi-star me-1"></i> High Value Asset (HVA)</strong>
+              <small class="d-block text-muted">Check if this system supports delivery of services at a national scale, is determined to be a significant solution handling sensitive information, or has been designated as a High Value Asset by your department. Adds the <strong>PBHVA overlay</strong> (137 additional controls).</small>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Live Profile Preview ── -->
+      <div id="profilePreview" class="alert alert-secondary mb-3" style="display:none;">
+        <div class="d-flex align-items-center mb-2">
+          <i class="bi bi-cpu fs-5 me-2"></i>
+          <div>
+            <strong>Determined Security Profile:</strong>
+            <span id="profileBadge" class="badge ms-2">—</span>
+          </div>
+        </div>
+        <div id="profileName" class="fw-bold mb-1"></div>
+        <div id="profileDesc" class="small mb-1"></div>
+        <div id="profileControls" class="small text-muted"></div>
+        <div id="profileTailoring" class="small mt-2" style="display:none;">
+          <strong>Tailoring notes:</strong>
+          <ul id="tailoringList" class="mb-0 mt-1 small"></ul>
+        </div>
+      </div>
+
+      <hr class="my-3">
+
+      <!-- ── 2E: PII Checklist ── -->
       <div class="mb-3">
         <label class="form-label fw-bold">Personal Information (PII) Checklist</label>
         <p class="text-muted small mb-2">Does your system collect, process, store, or transmit any of the following? Check all that apply.</p>
@@ -508,6 +569,103 @@
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
     });
+
+    // ── Live Profile Determination Preview ──
+    const PROFILES = {
+      NONE: { name: 'No SA&A Required — GC Web Guidance Only', color: 'secondary', controls: '~48 checklist items' },
+      CCCS_LOW: { name: 'CCCS Low Cloud Profile (PA/L/L)', color: 'info', controls: '~220 controls' },
+      PBMM: { name: 'ITSG-33 Profile 1 — Protected B / Medium / Medium (PBMM)', color: 'warning', controls: '~310 controls + enhancements' },
+      PBMM_HVA: { name: 'PBMM + High Value Asset Overlay', color: 'warning', controls: '~380 controls + enhancements' },
+      PB_HIGH: { name: 'Protected B / High I/A (Tailored from PBMM)', color: 'danger', controls: '~350+ controls (tailored)' },
+      PC_BASELINE: { name: 'Protected C Baseline (Tailored from PBMM)', color: 'danger', controls: '~380+ controls (tailored)' },
+      SECRET_MM: { name: 'ITSG-33 Profile 3 — Secret / Medium / Medium', color: 'dark', controls: '~380 controls + enhancements' },
+      CLASSIFIED_HIGH: { name: 'Classified — Custom Profile (CSE engagement required)', color: 'dark', controls: 'Custom' }
+    };
+
+    function determineProfileClient() {
+      const conf = document.getElementById('confidentialityLevel').value;
+      const integ = document.getElementById('integrityLevel').value;
+      const avail = document.getElementById('availabilityLevel').value;
+      const hva = document.getElementById('isHVA').checked;
+      const piiChecked = document.querySelectorAll('input[name="piiTypes"]:checked:not(#pii-none)').length > 0;
+
+      if (!conf) return null;
+
+      let profileId, reason, notes = [];
+      const national = ['confidential', 'secret', 'top-secret'].includes(conf);
+
+      if (national) {
+        if (conf === 'secret' && integ === 'medium' && avail === 'medium') {
+          profileId = 'SECRET_MM'; reason = 'Secret / Medium / Medium → ITSG-33 Profile 3';
+        } else {
+          profileId = 'CLASSIFIED_HIGH'; reason = conf.replace('-', ' ') + ' classification requires CSE/CCCS engagement';
+          notes.push('No published CSE profile — department must develop custom profile with CSE.');
+          if (conf === 'top-secret') notes.push('Top Secret requires dedicated infrastructure with enhanced physical, personnel, and TEMPEST controls.');
+        }
+      } else if (conf === 'protected-c') {
+        profileId = 'PC_BASELINE'; reason = 'Protected C requires tailored profile above PBMM';
+        notes.push('Start from PBMM baseline and tailor upward for enhanced confidentiality.');
+      } else if (conf === 'protected-b') {
+        if (integ === 'high' || avail === 'high') {
+          profileId = 'PB_HIGH'; reason = 'Protected B with high ' + (integ === 'high' ? 'integrity' : '') + (integ === 'high' && avail === 'high' ? ' and ' : '') + (avail === 'high' ? 'availability' : '');
+          notes.push('Start from PBMM and tailor upward.');
+        } else if (hva) {
+          profileId = 'PBMM_HVA'; reason = 'Protected B / Medium / Medium + HVA designation';
+          notes.push('PBHVA overlay adds 69 controls for enhanced integrity and availability.');
+        } else {
+          profileId = 'PBMM'; reason = 'Protected B / Medium / Medium — standard PBMM';
+        }
+      } else if (conf === 'protected-a') {
+        if (integ === 'low' && avail === 'low') {
+          profileId = 'CCCS_LOW'; reason = 'Protected A / Low / Low — CCCS Low';
+        } else {
+          profileId = 'PBMM'; reason = 'Protected A with medium+ I/A elevates to PBMM';
+          notes.push('Higher I/A dimensions drive profile selection upward.');
+        }
+      } else {
+        // Unclassified
+        if (piiChecked) {
+          profileId = (integ !== 'low' || avail !== 'low') ? 'PBMM' : 'CCCS_LOW';
+          reason = 'Unclassified with PII — elevated to ' + (profileId === 'PBMM' ? 'PBMM' : 'CCCS Low');
+        } else if (integ !== 'low' || avail !== 'low') {
+          profileId = 'CCCS_LOW'; reason = 'Unclassified with medium+ I/A';
+        } else {
+          profileId = 'NONE'; reason = 'Unclassified / low impact / no PII';
+        }
+      }
+
+      return { profileId, reason, notes };
+    }
+
+    function updateProfilePreview() {
+      const result = determineProfileClient();
+      const preview = document.getElementById('profilePreview');
+      if (!result) { preview.style.display = 'none'; return; }
+
+      const p = PROFILES[result.profileId];
+      preview.style.display = 'block';
+      preview.className = 'alert alert-' + (p.color === 'dark' ? 'dark' : p.color === 'danger' ? 'danger' : p.color === 'warning' ? 'warning' : p.color === 'info' ? 'info' : 'secondary') + ' mb-3';
+      document.getElementById('profileBadge').className = 'badge bg-' + p.color + ' ms-2';
+      document.getElementById('profileBadge').textContent = result.profileId.replace(/_/g, ' ');
+      document.getElementById('profileName').textContent = p.name;
+      document.getElementById('profileDesc').textContent = result.reason;
+      document.getElementById('profileControls').textContent = 'Baseline: ' + p.controls;
+
+      const tailDiv = document.getElementById('profileTailoring');
+      const tailList = document.getElementById('tailoringList');
+      if (result.notes.length > 0) {
+        tailDiv.style.display = 'block';
+        tailList.innerHTML = result.notes.map(n => '<li>' + n + '</li>').join('');
+      } else {
+        tailDiv.style.display = 'none';
+      }
+    }
+
+    // Bind change events
+    document.querySelectorAll('.cia-input').forEach(el => el.addEventListener('change', updateProfilePreview));
+    document.querySelectorAll('input[name="piiTypes"]').forEach(el => el.addEventListener('change', updateProfilePreview));
+    // Initial render
+    updateProfilePreview();
   </script>
 
   {{/if}}

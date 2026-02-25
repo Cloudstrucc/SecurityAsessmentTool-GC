@@ -401,10 +401,25 @@ router.post('/intake', ensureClientAuth, intakeUpload.array('attachments', 10), 
     const activities = Array.isArray(req.body.completedActivities) ? req.body.completedActivities : (req.body.completedActivities ? [req.body.completedActivities] : []);
     const hasPII = piiTypes.length > 0 && !piiTypes.includes('none') ? 1 : 0;
 
+    // Determine security profile from C/I/A categorization
+    const { determineProfile, detectComplexity } = require('../config/security-profiles');
+    const confLevel = req.body.confidentialityLevel || 'protected-b';
+    const intLevel = req.body.integrityLevel || 'medium';
+    const avaLevel = req.body.availabilityLevel || 'medium';
+    const isHVA = req.body.isHVA ? 1 : 0;
+    const hasComplexity = detectComplexity(req.body.projectDescription || '');
+    const profileResult = determineProfile({
+      confidentiality: confLevel, integrity: intLevel, availability: avaLevel,
+      hasPII: hasPII === 1, isHVA: isHVA === 1, hasComplexity
+    });
+    const securityProfile = profileResult.profile.id;
+
     const intakeId = run(
       `INSERT INTO intake_submissions (
         ref_code, project_name, project_description, department, branch,
         target_date, user_count, app_type, data_classification,
+        confidentiality_level, integrity_level, availability_level, is_hva,
+        security_profile,
         pii_types, has_pii, atip_subject, pia_completed,
         hosting_type, hosting_region, technologies, other_tech,
         has_apis, gc_interconnections, interconnections, mobile_access, external_users,
@@ -413,12 +428,14 @@ router.post('/intake', ensureClientAuth, intakeUpload.array('attachments', 10), 
         tech_lead_name, tech_lead_email, tech_lead_title,
         authority_name, authority_email, authority_title,
         additional_notes
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         refCode, req.body.projectName || '', req.body.projectDescription || '',
         req.body.department || '', req.body.branch || '',
         req.body.targetDate || '', req.body.userCount || '', req.body.appType || '',
-        req.body.dataClassification || 'protected-b',
+        confLevel,
+        confLevel, intLevel, avaLevel, isHVA,
+        securityProfile,
         JSON.stringify(piiTypes), hasPII,
         req.body.atipSubject || '', req.body.piaCompleted || '',
         req.body.hostingType || '', req.body.hostingRegion || '',

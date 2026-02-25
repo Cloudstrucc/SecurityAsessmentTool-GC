@@ -3,6 +3,7 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { run, runBatch, all, get } = require('../models/database');
 const { passport, ensureAuthenticated } = require('../config/passport');
+const { determineProfile, detectComplexity, categorizationLabel, categorizationFullLabel, SECURITY_PROFILES, CONFIDENTIALITY_LEVELS, INTEGRITY_LEVELS, AVAILABILITY_LEVELS } = require('../config/security-profiles');
 const { getRecommendedControls, assessSAARequirement, groupByFamily, COMMON_TECHNOLOGIES, CONTROL_FAMILIES, CONTROLS, GC_WEB_GUIDANCE } = require('../config/itsg33-controls');
 const emailService = require('../utils/emailService');
 const pdfExport = require('../utils/pdfExport');
@@ -120,11 +121,14 @@ router.get('/projects/:projectId/assessments/new', ensureAuthenticated, (req, re
 
   const projectInfo = {
     dataClassification: project.data_classification,
+    confidentiality: project.confidentiality_level || project.data_classification,
     hostingType: project.hosting_type,
     appType: project.app_type,
     hasPII: !!project.has_pii,
     technologies: techs,
-    description: project.description
+    description: project.description,
+    securityProfile: project.security_profile || 'PBMM',
+    isHVA: !!project.is_hva
   };
 
   // Check if SA&A is required
@@ -541,15 +545,33 @@ router.get('/intakes/:id', ensureAuthenticated, (req, res) => {
   if (intake.external_users === 'yes') engineDesc += ' external public';
 
   const recommended = getRecommendedControls({
-    dataClassification: intake.data_classification, hostingType: intake.hosting_type,
+    dataClassification: intake.data_classification,
+    confidentiality: intake.confidentiality_level || intake.data_classification,
+    hostingType: intake.hosting_type,
     appType: intake.app_type, hasPII: intake.has_pii === 1,
-    technologies, description: engineDesc
+    technologies, description: engineDesc,
+    securityProfile: intake.security_profile || 'PBMM',
+    isHVA: intake.is_hva === 1
   });
 
   const saaCheck = assessSAARequirement({
-    dataClassification: intake.data_classification, hasPII: intake.has_pii === 1,
+    dataClassification: intake.data_classification,
+    confidentiality: intake.confidentiality_level || intake.data_classification,
+    hasPII: intake.has_pii === 1,
     description: engineDesc, appType: intake.app_type
   });
+
+  // Profile determination for display
+  const confLevel = intake.confidentiality_level || intake.data_classification || 'protected-b';
+  const intLevel = intake.integrity_level || 'medium';
+  const avaLevel = intake.availability_level || 'medium';
+  const profileResult = determineProfile({
+    confidentiality: confLevel, integrity: intLevel, availability: avaLevel,
+    hasPII: intake.has_pii === 1, isHVA: intake.is_hva === 1,
+    hasComplexity: detectComplexity(engineDesc)
+  });
+  const catLabel = categorizationLabel(confLevel, intLevel, avaLevel);
+  const catFullLabel = categorizationFullLabel(confLevel, intLevel, avaLevel);
 
   res.render('admin/intake-review', {
     title: 'Review: ' + intake.project_name, isAdmin: true,
@@ -564,7 +586,13 @@ router.get('/intakes/:id', ensureAuthenticated, (req, res) => {
     p3Count: recommended.filter(c => c.priority === 'P3').length,
     inheritedCount: recommended.filter(c => c.isInherited).length,
     saaRequired: saaCheck.requiresSAA,
-    saaReason: saaCheck.reason
+    saaReason: saaCheck.reason,
+    catLabel, catFullLabel,
+    profileName: profileResult.profile.name,
+    profileShortName: profileResult.profile.shortName,
+    profileReason: profileResult.reason,
+    tailoringNotes: profileResult.tailoringNotes,
+    profileColor: profileResult.profile.color
   });
 });
 
@@ -594,6 +622,18 @@ router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
 
     const classification = req.body.overrideClassification || intake.data_classification;
     const appType = req.body.overrideAppType || intake.app_type;
+    const confLevel = req.body.overrideClassification || intake.confidentiality_level || classification;
+    const intLevel = req.body.overrideIntegrity || intake.integrity_level || 'medium';
+    const avaLevel = req.body.overrideAvailability || intake.availability_level || 'medium';
+    const isHVA = req.body.overrideHVA ? 1 : (intake.is_hva || 0);
+
+    // Determine profile using the full C/I/A engine
+    const profileResult = determineProfile({
+      confidentiality: confLevel, integrity: intLevel, availability: avaLevel,
+      hasPII: intake.has_pii === 1, isHVA: isHVA === 1,
+      hasComplexity: detectComplexity(intake.project_description || '')
+    });
+    const securityProfile = intake.security_profile || profileResult.profile.id;
 
     let fullDescription = intake.project_description || '';
     if (intake.interconnections) fullDescription += '\nInterconnections: ' + intake.interconnections;
@@ -604,11 +644,15 @@ router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
     const slug = intake.project_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now().toString(36);
 
     const projectId = run(
-      `INSERT INTO projects (name, slug, description, data_classification, hosting_type, app_type,
-        has_pii, technologies, specifications, project_owner_name, project_owner_email,
+      `INSERT INTO projects (name, slug, description, data_classification,
+        confidentiality_level, integrity_level, availability_level, security_profile, is_hva,
+        hosting_type, app_type, has_pii, technologies, specifications,
+        project_owner_name, project_owner_email,
         project_authority_name, project_authority_email, status, created_by
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [intake.project_name, slug, fullDescription, classification, intake.hosting_type, appType,
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [intake.project_name, slug, fullDescription, classification,
+        confLevel, intLevel, avaLevel, securityProfile, isHVA,
+        intake.hosting_type, appType,
         intake.has_pii, JSON.stringify(allTech), intake.other_tech || '',
         intake.owner_name, intake.owner_email,
         intake.authority_name || '', intake.authority_email || '', 'active', req.user.id]
@@ -616,8 +660,8 @@ router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
 
     // Check if SA&A is required
     const saaCheck = assessSAARequirement({
-      dataClassification: classification, hasPII: intake.has_pii === 1,
-      description: fullDescription, appType
+      dataClassification: classification, confidentiality: confLevel,
+      hasPII: intake.has_pii === 1, description: fullDescription, appType
     });
 
     if (!saaCheck.requiresSAA) {
@@ -631,8 +675,10 @@ router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
     }
 
     const recommended = getRecommendedControls({
-      dataClassification: classification, hostingType: intake.hosting_type,
-      appType, hasPII: intake.has_pii === 1, technologies: allTech, description: fullDescription
+      dataClassification: classification, confidentiality: confLevel,
+      hostingType: intake.hosting_type, appType, hasPII: intake.has_pii === 1,
+      technologies: allTech, description: fullDescription,
+      securityProfile: securityProfile, isHVA: isHVA === 1
     });
 
     const inviteCode = uuidv4().substring(0, 8).toUpperCase();

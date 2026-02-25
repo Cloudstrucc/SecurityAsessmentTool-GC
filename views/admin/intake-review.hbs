@@ -70,20 +70,52 @@
       </div>
     </div>
 
-    <!-- Data Classification & PII -->
+    <!-- Security Categorization -->
     <div class="form-section">
       <div class="section-header">
-        <h4 class="section-title"><span class="section-number">2</span> Data Sensitivity & Classification</h4>
+        <h4 class="section-title"><span class="section-number">2</span> Security Categorization</h4>
       </div>
-      <div class="row g-3">
+
+      <div class="row g-3 mb-3">
         <div class="col-md-4">
-          <label class="form-label small text-muted">Classification</label>
+          <label class="form-label small text-muted"><i class="bi bi-shield-lock me-1"></i>Confidentiality</label>
           <div>
-            {{#if (eq intake.data_classification 'protected-b')}}<span class="badge bg-danger" style="font-size:0.9rem;">Protected B</span>
-            {{else if (eq intake.data_classification 'protected-a')}}<span class="badge bg-warning" style="font-size:0.9rem;">Protected A</span>
-            {{else}}<span class="badge bg-secondary" style="font-size:0.9rem;">{{intake.data_classification}}</span>{{/if}}
+            {{#if (eq intake.confidentiality_level 'top-secret')}}<span class="badge bg-dark" style="font-size:0.9rem;">Top Secret</span>
+            {{else if (eq intake.confidentiality_level 'secret')}}<span class="badge bg-dark" style="font-size:0.9rem;">Secret</span>
+            {{else if (eq intake.confidentiality_level 'confidential')}}<span class="badge bg-dark" style="font-size:0.9rem;">Confidential</span>
+            {{else if (eq intake.confidentiality_level 'protected-c')}}<span class="badge bg-danger" style="font-size:0.9rem;">Protected C</span>
+            {{else if (eq intake.confidentiality_level 'protected-b')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">Protected B</span>
+            {{else if (eq intake.confidentiality_level 'protected-a')}}<span class="badge bg-info" style="font-size:0.9rem;">Protected A</span>
+            {{else}}<span class="badge bg-secondary" style="font-size:0.9rem;">{{intake.confidentiality_level}}</span>{{/if}}
           </div>
         </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted"><i class="bi bi-check2-square me-1"></i>Integrity</label>
+          <div>
+            {{#if (eq intake.integrity_level 'high')}}<span class="badge bg-danger" style="font-size:0.9rem;">High</span>
+            {{else if (eq intake.integrity_level 'medium')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">Medium</span>
+            {{else}}<span class="badge bg-success" style="font-size:0.9rem;">Low</span>{{/if}}
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted"><i class="bi bi-clock-history me-1"></i>Availability</label>
+          <div>
+            {{#if (eq intake.availability_level 'high')}}<span class="badge bg-danger" style="font-size:0.9rem;">High</span>
+            {{else if (eq intake.availability_level 'medium')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">Medium</span>
+            {{else}}<span class="badge bg-success" style="font-size:0.9rem;">Low</span>{{/if}}
+            {{#if intake.is_hva}}<span class="badge bg-danger ms-1" style="font-size:0.8rem;"><i class="bi bi-star-fill me-1"></i>HVA</span>{{/if}}
+          </div>
+        </div>
+      </div>
+
+      {{#if intake.security_profile}}
+      <div class="alert alert-info py-2 mb-3">
+        <i class="bi bi-cpu me-2"></i><strong>Determined Profile:</strong>
+        <span class="badge bg-primary ms-2">{{intake.security_profile}}</span>
+      </div>
+      {{/if}}
+
+      <div class="row g-3">
         <div class="col-md-4">
           <label class="form-label small text-muted">ATIP Subject</label>
           <div>{{#if intake.atip_subject}}{{intake.atip_subject}}{{else}}—{{/if}}</div>
@@ -91,6 +123,10 @@
         <div class="col-md-4">
           <label class="form-label small text-muted">PIA Status</label>
           <div>{{#if intake.pia_completed}}{{intake.pia_completed}}{{else}}—{{/if}}</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Contains PII</label>
+          <div>{{#if intake.has_pii}}<span class="badge bg-danger">Yes</span>{{else}}<span class="badge bg-success">No</span>{{/if}}</div>
         </div>
         <div class="col-12">
           <label class="form-label small text-muted">PII Types Identified</label>
@@ -301,13 +337,47 @@
             <p class="small text-muted mb-3">Add context or adjust details before creating the project and assessment. These overrides feed into the recommendation engine.</p>
 
             <div class="mb-3">
-              <label class="form-label small fw-bold">Override Classification</label>
+              <label class="form-label small fw-bold">Override Confidentiality</label>
               <select class="form-select form-select-sm" name="overrideClassification">
-                <option value="">Use submitted ({{intake.data_classification}})</option>
-                <option value="unclassified">Unclassified</option>
-                <option value="protected-a">Protected A</option>
-                <option value="protected-b">Protected B</option>
+                <option value="">Use submitted ({{intake.confidentiality_level}})</option>
+                <optgroup label="Non-National Interest">
+                  <option value="unclassified">Unclassified</option>
+                  <option value="protected-a">Protected A</option>
+                  <option value="protected-b">Protected B</option>
+                  <option value="protected-c">Protected C</option>
+                </optgroup>
+                <optgroup label="National Interest (Classified)">
+                  <option value="confidential">Confidential</option>
+                  <option value="secret">Secret</option>
+                  <option value="top-secret">Top Secret</option>
+                </optgroup>
               </select>
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Override Integrity</label>
+                <select class="form-select form-select-sm" name="overrideIntegrity">
+                  <option value="">Use submitted ({{intake.integrity_level}})</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Override Availability</label>
+                <select class="form-select form-select-sm" name="overrideAvailability">
+                  <option value="">Use submitted ({{intake.availability_level}})</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" name="overrideHVA" value="1" id="overrideHVA" {{#if intake.is_hva}}checked{{/if}}>
+              <label class="form-check-label small fw-bold" for="overrideHVA">High Value Asset (HVA)</label>
             </div>
 
             <div class="mb-3">
