@@ -9,19 +9,47 @@
     </div>
   </div>
 
-  <div class="row justify-content-center">
-    <div class="col-lg-5">
-      <div class="card">
-        <div class="card-header">
-          <i class="bi bi-key me-2"></i>Enter Your Access Code
+  <div class="row justify-content-center g-4">
+    <!-- Intake -->
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header" style="background:var(--cs-accent);">
+          <i class="bi bi-clipboard2-data me-2"></i>Submit an Intake
         </div>
-        <div class="card-body p-4">
-          <p class="text-muted mb-3">If you've received an invitation from a security practitioner, enter your access code below to begin providing evidence for your assessment.</p>
-          <form action="/respond/access" method="POST">
+        <div class="card-body p-4 d-flex flex-column">
+          <p class="text-muted mb-3">Starting a new project? Submit a security assessment intake form with your project details, data classification, and technology stack.</p>
+          <p class="small text-muted mb-3"><i class="bi bi-shield-lock me-1"></i>Account with MFA required.</p>
+          <div class="mt-auto">
+            {{#if user}}
+              <a href="/intake" class="btn btn-primary w-100 py-2">
+                <i class="bi bi-clipboard-plus me-2"></i>Start Intake
+              </a>
+            {{else}}
+              <a href="/client/login" class="btn btn-primary w-100 py-2">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In to Submit
+              </a>
+              <a href="/client/register" class="btn btn-outline-primary w-100 py-2 mt-2">
+                <i class="bi bi-person-plus me-2"></i>Register
+              </a>
+            {{/if}}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Access Code -->
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header">
+          <i class="bi bi-key me-2"></i>Enter Access Code
+        </div>
+        <div class="card-body p-4 d-flex flex-column">
+          <p class="text-muted mb-3">Received an invitation from a security practitioner? Enter your access code to provide evidence for your assessment.</p>
+          <form action="/respond/access" method="POST" class="mt-auto">
             <div class="mb-3">
               <label for="code" class="form-label">Access Code</label>
-              <input type="text" class="form-control form-control-lg text-center text-uppercase" id="code" name="code" 
-                placeholder="e.g. A1B2C3D4" maxlength="10" required autofocus
+              <input type="text" class="form-control form-control-lg text-center text-uppercase" id="code" name="code"
+                placeholder="e.g. A1B2C3D4" maxlength="10" required
                 style="letter-spacing:3px;font-weight:600;font-family:'Courier New',monospace">
             </div>
             <button type="submit" class="btn btn-primary w-100 py-2">
@@ -32,16 +60,19 @@
       </div>
     </div>
 
-    <div class="col-lg-5">
-      <div class="card">
+    <!-- Assessor -->
+    <div class="col-lg-4">
+      <div class="card h-100">
         <div class="card-header bg-light" style="background:var(--cs-light)!important;color:var(--cs-primary)">
           <i class="bi bi-person-badge me-2"></i>Security Practitioner
         </div>
-        <div class="card-body p-4">
-          <p class="text-muted mb-3">Security assessors and practitioners can log in to manage projects, create assessments, and conduct audits.</p>
-          <a href="/admin/login" class="btn btn-dark w-100 py-2">
-            <i class="bi bi-shield-check me-2"></i>Assessor Login
-          </a>
+        <div class="card-body p-4 d-flex flex-column">
+          <p class="text-muted mb-3">Security assessors and practitioners can log in to manage projects, review intakes, create assessments, and conduct audits.</p>
+          <div class="mt-auto">
+            <a href="/admin/login" class="btn btn-dark w-100 py-2">
+              <i class="bi bi-shield-check me-2"></i>Assessor Login
+            </a>
+          </div>
           <hr class="my-3">
           <div class="small text-muted">
             <p class="mb-2"><strong>This portal supports:</strong></p>

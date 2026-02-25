@@ -179,6 +179,7 @@
             <li class="nav-item"><a class="nav-link {{#if isDashboard}}active{{/if}}" href="/admin/dashboard"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
             <li class="nav-item"><a class="nav-link {{#if isProjects}}active{{/if}}" href="/admin/projects"><i class="bi bi-folder2-open me-1"></i>Projects</a></li>
             <li class="nav-item"><a class="nav-link {{#if isAssessments}}active{{/if}}" href="/admin/assessments"><i class="bi bi-clipboard-check me-1"></i>Assessments</a></li>
+            <li class="nav-item"><a class="nav-link {{#if isIntakes}}active{{/if}}" href="/admin/intakes"><i class="bi bi-inbox me-1"></i>Intakes</a></li>
             <li class="nav-item"><a class="nav-link {{#if isSettings}}active{{/if}}" href="/admin/settings"><i class="bi bi-gear me-1"></i>Settings</a></li>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
@@ -189,6 +190,21 @@
               </ul>
             </li>
           {{else}}
+            {{#if user}}
+              {{#if (eq user.role 'client')}}
+              <li class="nav-item"><a class="nav-link" href="/intake"><i class="bi bi-clipboard-plus me-1"></i>Intake</a></li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                  <i class="bi bi-person-circle me-1"></i>{{user.name}}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><span class="dropdown-item-text small text-muted">{{user.email}}</span></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/client/logout"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+                </ul>
+              </li>
+              {{/if}}
+            {{/if}}
             {{#if clientName}}
               <li class="nav-item"><span class="nav-link"><i class="bi bi-person me-1"></i>{{clientName}}</span></li>
             {{/if}}

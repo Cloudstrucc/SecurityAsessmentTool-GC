@@ -1,0 +1,107 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2><i class="bi bi-inbox me-2"></i>Intake Submissions</h2>
+    <p class="text-muted mb-0">Review project intake requests from clients and create assessments.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="/admin/dashboard" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Dashboard</a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#e7f1fb;color:var(--cs-accent);"><i class="bi bi-inbox"></i></div>
+      <div class="stat-number">{{stats.total}}</div>
+      <div class="stat-label">Total Submissions</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fff3cd;color:var(--cs-warning);"><i class="bi bi-hourglass-split"></i></div>
+      <div class="stat-number">{{stats.pending}}</div>
+      <div class="stat-label">Pending Review</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#d8eeca;color:var(--cs-success);"><i class="bi bi-check-circle"></i></div>
+      <div class="stat-number">{{stats.accepted}}</div>
+      <div class="stat-label">Accepted</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#e7f1fb;color:var(--cs-accent);"><i class="bi bi-eye"></i></div>
+      <div class="stat-number">{{stats.inReview}}</div>
+      <div class="stat-label">In Review</div>
+    </div>
+  </div>
+</div>
+
+<!-- Intakes Table -->
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-list-ul me-2"></i>All Submissions</span>
+  </div>
+  <div class="card-body p-0">
+    {{#if intakes.length}}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Project Name</th>
+            <th>Department</th>
+            <th>Classification</th>
+            <th>PII</th>
+            <th>Hosting</th>
+            <th>Submitted By</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each intakes}}
+          <tr>
+            <td><code>{{this.ref_code}}</code></td>
+            <td><strong>{{this.project_name}}</strong></td>
+            <td class="small">{{this.department}}</td>
+            <td>
+              {{#if (eq this.data_classification 'protected-b')}}<span class="badge bg-danger">Protected B</span>
+              {{else if (eq this.data_classification 'protected-a')}}<span class="badge bg-warning">Protected A</span>
+              {{else}}<span class="badge bg-secondary">{{this.data_classification}}</span>{{/if}}
+            </td>
+            <td>
+              {{#if this.has_pii}}<span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Yes</span>
+              {{else}}<span class="badge bg-light text-muted">No</span>{{/if}}
+            </td>
+            <td><span class="badge bg-light text-dark">{{this.hosting_type}}</span></td>
+            <td class="small">{{this.owner_name}}<br><span class="text-muted">{{this.owner_email}}</span></td>
+            <td>
+              {{#if (eq this.status 'pending')}}<span class="badge bg-warning">Pending</span>
+              {{else if (eq this.status 'in-review')}}<span class="badge bg-info">In Review</span>
+              {{else if (eq this.status 'accepted')}}<span class="badge bg-success">Accepted</span>
+              {{else if (eq this.status 'declined')}}<span class="badge bg-secondary">Declined</span>
+              {{else}}<span class="badge bg-secondary">{{this.status}}</span>{{/if}}
+            </td>
+            <td class="small text-muted">{{formatDate this.created_at}}</td>
+            <td>
+              <a href="/admin/intakes/{{this.id}}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye me-1"></i>Review</a>
+            </td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+    {{else}}
+    <div class="text-center py-5">
+      <i class="bi bi-inbox text-muted" style="font-size:3rem;"></i>
+      <h5 class="text-muted mt-3">No intake submissions yet</h5>
+      <p class="text-muted">Share the intake form link with project teams: <code>/intake</code></p>
+    </div>
+    {{/if}}
+  </div>
+</div>

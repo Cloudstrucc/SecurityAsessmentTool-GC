@@ -5,9 +5,20 @@ const emailService = require('../utils/emailService');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcryptjs');
+const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
+const QRCode = require('qrcode');
 
 const upload = multer({
   dest: path.join(__dirname, '..', 'uploads'),
+  limits: { fileSize: 25 * 1024 * 1024 }
+});
+
+const intakeUploadDir = path.join(__dirname, '..', 'uploads', 'intakes');
+if (!fs.existsSync(intakeUploadDir)) fs.mkdirSync(intakeUploadDir, { recursive: true });
+const intakeUpload = multer({
+  dest: intakeUploadDir,
   limits: { fileSize: 25 * 1024 * 1024 }
 });
 
@@ -189,6 +200,260 @@ router.get('/respond/:code/checklist', (req, res) => {
     assessment, inviteCode: code, items,
     clientName: assessment.project_owner_name
   });
+});
+
+// ── CLIENT AUTH MIDDLEWARE ──
+function ensureClientAuth(req, res, next) {
+  if (req.isAuthenticated()) return next();
+  if (req.session && req.session.clientId) return next();
+  req.flash('error', 'Please sign in to access the intake portal.');
+  res.redirect('/client/login');
+}
+
+// ── CLIENT REGISTRATION ──
+
+router.get('/client/register', (req, res) => {
+  res.render('public/register', { title: 'Register', formData: {} });
+});
+
+router.post('/client/register', (req, res) => {
+  try {
+    const { name, email, organization, password, confirmPassword } = req.body;
+
+    if (!name || !email || !organization || !password) {
+      req.flash('error', 'All fields are required.');
+      return res.render('public/register', { title: 'Register', formData: req.body });
+    }
+
+    if (password.length < 10) {
+      req.flash('error', 'Password must be at least 10 characters.');
+      return res.render('public/register', { title: 'Register', formData: req.body });
+    }
+
+    if (password !== confirmPassword) {
+      req.flash('error', 'Passwords do not match.');
+      return res.render('public/register', { title: 'Register', formData: req.body });
+    }
+
+    const existing = get('SELECT id FROM users WHERE email = ?', [email]);
+    if (existing) {
+      req.flash('error', 'An account with this email already exists.');
+      return res.render('public/register', { title: 'Register', formData: req.body });
+    }
+
+    const hashedPassword = bcrypt.hashSync(password, 12);
+    const secret = otpGenerateSecret();
+
+    const userId = run(
+      `INSERT INTO users (email, password, name, role, organization, totp_secret, mfa_enabled, is_active)
+       VALUES (?,?,?,?,?,?,?,?)`,
+      [email, hashedPassword, name, 'client', organization, secret, 0, 1]
+    );
+
+    // Redirect to MFA setup
+    req.session.pendingMfaUserId = userId;
+    res.redirect(303, '/client/mfa-setup');
+
+  } catch (err) {
+    console.error('Registration error:', err);
+    req.flash('error', 'Registration failed. Please try again.');
+    res.redirect('/client/register');
+  }
+});
+
+// ── MFA SETUP ──
+
+router.get('/client/mfa-setup', async (req, res) => {
+  const userId = req.session.pendingMfaUserId;
+  if (!userId) { return res.redirect('/client/register'); }
+
+  const user = get('SELECT id, email, totp_secret FROM users WHERE id = ?', [userId]);
+  if (!user || !user.totp_secret) { return res.redirect('/client/register'); }
+
+  const otpauth = otpGenerateURI({ issuer: 'GC SA&A Portal', label: user.email, secret: user.totp_secret });
+
+  try {
+    const qrCodeUrl = await QRCode.toDataURL(otpauth);
+    res.render('public/mfa-setup', {
+      title: 'MFA Setup',
+      qrCodeUrl,
+      secret: user.totp_secret,
+      userId: user.id
+    });
+  } catch (err) {
+    console.error('QR code error:', err);
+    req.flash('error', 'Failed to generate QR code.');
+    res.redirect('/client/register');
+  }
+});
+
+router.post('/client/mfa-setup', (req, res) => {
+  const userId = req.session.pendingMfaUserId || req.body.userId;
+  const { token } = req.body;
+
+  const user = get('SELECT id, totp_secret FROM users WHERE id = ?', [userId]);
+  if (!user) {
+    req.flash('error', 'User not found. Please register again.');
+    return res.redirect('/client/register');
+  }
+
+  const isValid = otpVerify({ secret: user.totp_secret, token }).valid;
+  if (!isValid) {
+    req.flash('error', 'Invalid code. Please try again — make sure your device clock is synced.');
+    return res.redirect(303, '/client/mfa-setup');
+  }
+
+  // Activate MFA
+  run('UPDATE users SET mfa_enabled = 1 WHERE id = ?', [user.id]);
+  delete req.session.pendingMfaUserId;
+
+  // Log them in
+  req.session.clientId = user.id;
+  req.flash('success', 'Account created and MFA enabled! You can now submit intakes.');
+  res.redirect('/intake');
+});
+
+// ── CLIENT LOGIN ──
+
+router.get('/client/login', (req, res) => {
+  res.render('public/client-login', { title: 'Client Sign In' });
+});
+
+router.post('/client/login', (req, res) => {
+  const { email, password } = req.body;
+  const user = get('SELECT * FROM users WHERE email = ? AND is_active = 1', [email]);
+
+  if (!user || !bcrypt.compareSync(password, user.password)) {
+    req.flash('error', 'Invalid email or password.');
+    return res.redirect('/client/login');
+  }
+
+  if (!user.mfa_enabled) {
+    // User registered but never completed MFA setup
+    req.session.pendingMfaUserId = user.id;
+    req.flash('warning', 'Please complete your MFA setup.');
+    return res.redirect(303, '/client/mfa-setup');
+  }
+
+  // Show MFA step
+  req.session.pendingLoginUserId = user.id;
+  res.render('public/client-login', {
+    title: 'Verify MFA',
+    mfaStep: true,
+    userId: user.id
+  });
+});
+
+router.post('/client/login/mfa', (req, res) => {
+  const userId = req.session.pendingLoginUserId || req.body.userId;
+  const { token } = req.body;
+
+  const user = get('SELECT id, totp_secret, name FROM users WHERE id = ? AND mfa_enabled = 1', [userId]);
+  if (!user) {
+    req.flash('error', 'Session expired. Please sign in again.');
+    return res.redirect('/client/login');
+  }
+
+  const isValid = otpVerify({ secret: user.totp_secret, token }).valid;
+  if (!isValid) {
+    req.flash('error', 'Invalid authentication code. Please try again.');
+    // Re-render MFA step instead of redirecting (avoids losing state)
+    return res.render('public/client-login', {
+      title: 'Verify MFA', mfaStep: true, userId: user.id
+    });
+  }
+
+  // Successful login
+  delete req.session.pendingLoginUserId;
+  req.session.clientId = user.id;
+  run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
+
+  req.flash('success', 'Welcome back, ' + user.name + '!');
+  res.redirect('/intake');
+});
+
+// ── CLIENT LOGOUT ──
+
+router.get('/client/logout', (req, res) => {
+  delete req.session.clientId;
+  delete req.session.pendingLoginUserId;
+  delete req.session.pendingMfaUserId;
+  req.flash('success', 'You have been signed out.');
+  res.redirect('/');
+});
+
+// ── INTAKE FORM (protected) ──
+
+// GET /intake — Show the intake form
+router.get('/intake', ensureClientAuth, (req, res) => {
+  res.render('public/intake', {
+    title: 'Security Assessment Intake'
+  });
+});
+
+// POST /intake — Process intake submission
+router.post('/intake', ensureClientAuth, intakeUpload.array('attachments', 10), (req, res) => {
+  try {
+    const refCode = 'INT-' + uuidv4().substring(0, 8).toUpperCase();
+
+    const piiTypes = Array.isArray(req.body.piiTypes) ? req.body.piiTypes : (req.body.piiTypes ? [req.body.piiTypes] : []);
+    const technologies = Array.isArray(req.body.technologies) ? req.body.technologies : (req.body.technologies ? [req.body.technologies] : []);
+    const activities = Array.isArray(req.body.completedActivities) ? req.body.completedActivities : (req.body.completedActivities ? [req.body.completedActivities] : []);
+    const hasPII = piiTypes.length > 0 && !piiTypes.includes('none') ? 1 : 0;
+
+    const intakeId = run(
+      `INSERT INTO intake_submissions (
+        ref_code, project_name, project_description, department, branch,
+        target_date, user_count, app_type, data_classification,
+        pii_types, has_pii, atip_subject, pia_completed,
+        hosting_type, hosting_region, technologies, other_tech,
+        has_apis, gc_interconnections, interconnections, mobile_access, external_users,
+        completed_activities,
+        owner_name, owner_email, owner_title,
+        tech_lead_name, tech_lead_email, tech_lead_title,
+        authority_name, authority_email, authority_title,
+        additional_notes
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [
+        refCode, req.body.projectName || '', req.body.projectDescription || '',
+        req.body.department || '', req.body.branch || '',
+        req.body.targetDate || '', req.body.userCount || '', req.body.appType || '',
+        req.body.dataClassification || 'protected-b',
+        JSON.stringify(piiTypes), hasPII,
+        req.body.atipSubject || '', req.body.piaCompleted || '',
+        req.body.hostingType || '', req.body.hostingRegion || '',
+        JSON.stringify(technologies), req.body.otherTech || '',
+        req.body.hasAPIs || '', req.body.gcInterconnections || '',
+        req.body.interconnections || '', req.body.mobileAccess || '', req.body.externalUsers || '',
+        JSON.stringify(activities),
+        req.body.ownerName || '', req.body.ownerEmail || '', req.body.ownerTitle || '',
+        req.body.techLeadName || '', req.body.techLeadEmail || '', req.body.techLeadTitle || '',
+        req.body.authorityName || '', req.body.authorityEmail || '', req.body.authorityTitle || '',
+        req.body.additionalNotes || ''
+      ]
+    );
+
+    // Save uploaded files
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        run(
+          `INSERT INTO intake_attachments (intake_id, filename, original_name, mime_type, size) VALUES (?,?,?,?,?)`,
+          [intakeId, file.filename, file.originalname, file.mimetype, file.size]
+        );
+      });
+    }
+
+    res.render('public/intake', {
+      title: 'Intake Submitted',
+      success: true,
+      refCode: refCode
+    });
+
+  } catch (err) {
+    console.error('Intake submission error:', err);
+    req.flash('error', 'Failed to submit intake. Please try again.');
+    res.redirect('/intake');
+  }
 });
 
 module.exports = router;

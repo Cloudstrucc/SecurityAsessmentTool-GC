@@ -34,7 +34,9 @@ async function initDatabase() {
       organization TEXT,
       is_active INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      last_login DATETIME
+      last_login DATETIME,
+      totp_secret TEXT,
+      mfa_enabled INTEGER DEFAULT 0
     )
   `);
 
@@ -213,6 +215,68 @@ async function initDatabase() {
     CREATE TABLE IF NOT EXISTS analytics_sent (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       sent_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // ── INTAKE SUBMISSIONS (pre-assessment project questionnaire) ──
+  db.run(`
+    CREATE TABLE IF NOT EXISTS intake_submissions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ref_code TEXT UNIQUE NOT NULL,
+      status TEXT DEFAULT 'pending',
+      project_name TEXT NOT NULL,
+      project_description TEXT,
+      department TEXT,
+      branch TEXT,
+      target_date TEXT,
+      user_count TEXT,
+      app_type TEXT,
+      data_classification TEXT DEFAULT 'protected-b',
+      pii_types TEXT DEFAULT '[]',
+      has_pii INTEGER DEFAULT 0,
+      atip_subject TEXT,
+      pia_completed TEXT,
+      hosting_type TEXT,
+      hosting_region TEXT,
+      technologies TEXT DEFAULT '[]',
+      other_tech TEXT,
+      has_apis TEXT,
+      gc_interconnections TEXT,
+      interconnections TEXT,
+      mobile_access TEXT,
+      external_users TEXT,
+      completed_activities TEXT DEFAULT '[]',
+      owner_name TEXT,
+      owner_email TEXT,
+      owner_title TEXT,
+      tech_lead_name TEXT,
+      tech_lead_email TEXT,
+      tech_lead_title TEXT,
+      authority_name TEXT,
+      authority_email TEXT,
+      authority_title TEXT,
+      additional_notes TEXT,
+      assessor_notes TEXT,
+      assessor_description TEXT,
+      decline_reason TEXT,
+      project_id INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES projects(id)
+    )
+  `);
+
+  // ── INTAKE ATTACHMENTS ──
+  db.run(`
+    CREATE TABLE IF NOT EXISTS intake_attachments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      intake_id INTEGER NOT NULL,
+      filename TEXT NOT NULL,
+      original_name TEXT NOT NULL,
+      mime_type TEXT,
+      size INTEGER,
+      uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (intake_id) REFERENCES intake_submissions(id) ON DELETE CASCADE
     )
   `);
 

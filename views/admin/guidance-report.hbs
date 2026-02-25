@@ -1,0 +1,150 @@
+<div class="container">
+  <div class="d-flex align-items-center mb-4">
+    <a href="/admin/projects/{{project.id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
+    <div class="flex-grow-1">
+      <h1 class="mb-0">{{project.name}}</h1>
+      <p class="text-muted mb-0">GC Web Standards &amp; Guidance Report</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button onclick="window.print()" class="btn btn-outline-primary"><i class="bi bi-printer me-1"></i>Print</button>
+      <a href="/admin/projects/{{project.id}}/guidance-pdf" class="btn btn-primary"><i class="bi bi-download me-1"></i>Export PDF</a>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="card mb-4" style="border-left:4px solid var(--cs-success)">
+    <div class="card-body">
+      <div class="d-flex align-items-start gap-3">
+        <div style="width:48px;height:48px;border-radius:12px;background:#d4edda;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="bi bi-check-circle-fill text-success" style="font-size:1.5rem"></i>
+        </div>
+        <div>
+          <h4 class="mb-2 text-success">{{guidance.summary.title}}</h4>
+          <p class="mb-2">{{guidance.summary.description}}</p>
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            <span class="badge bg-light text-dark border"><i class="bi bi-database me-1"></i>{{project.data_classification}}</span>
+            <span class="badge bg-light text-dark border"><i class="bi bi-globe me-1"></i>{{project.app_type}}</span>
+            {{#if project.hosting_type}}<span class="badge bg-light text-dark border"><i class="bi bi-cloud me-1"></i>{{project.hosting_type}}</span>{{/if}}
+            <span class="badge bg-success"><i class="bi bi-shield-check me-1"></i>No PII</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-info mb-4">
+    <i class="bi bi-info-circle me-2"></i>
+    <strong>{{totalRequired}} required</strong> and <strong>{{totalRecommended}} recommended</strong> items across {{guidance.categories.length}} categories.
+    All <span class="badge bg-danger badge-sm">Required</span> items must be addressed before launch.
+  </div>
+
+  <!-- Categories -->
+  {{#each guidance.categories}}
+  <div class="form-section mb-4" id="cat-{{this.id}}">
+    <div class="section-header">
+      <h3 class="section-title">
+        <i class="bi bi-{{this.icon}} me-2" style="color:var(--cs-accent)"></i>
+        {{this.title}}
+      </h3>
+      <p class="section-description">{{this.description}}</p>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th style="width:40px"></th>
+            <th>Requirement</th>
+            <th style="width:100px" class="text-center">Level</th>
+            <th style="width:100px" class="text-center">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each this.items}}
+          <tr>
+            <td class="text-center">
+              <input type="checkbox" class="form-check-input guidance-check" data-id="{{this.id}}"
+                {{#if this.checked}}checked{{/if}}>
+            </td>
+            <td>{{this.text}}</td>
+            <td class="text-center">
+              {{#if this.required}}
+                <span class="badge bg-danger">Required</span>
+              {{else}}
+                <span class="badge bg-info">Recommended</span>
+              {{/if}}
+            </td>
+            <td class="text-center">
+              <select class="form-select form-select-sm guidance-status" data-id="{{this.id}}" style="font-size:0.8rem">
+                <option value="pending">Pending</option>
+                <option value="met">Met</option>
+                <option value="in-progress">In Progress</option>
+                <option value="na">N/A</option>
+              </select>
+            </td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {{/each}}
+
+  <!-- Additional Considerations -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <i class="bi bi-lightbulb me-2"></i>Additional Considerations
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <h6><i class="bi bi-exclamation-triangle text-warning me-2"></i>When a Full SA&amp;A Becomes Required</h6>
+          <ul class="small mb-0">
+            <li>Data classification increases to Protected A or B</li>
+            <li>Personal information (PII) is collected or processed</li>
+            <li>User authentication or accounts are introduced</li>
+            <li>Integration with other GC systems or databases</li>
+            <li>Payment processing or financial transactions</li>
+            <li>The application scope expands beyond static content</li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <h6><i class="bi bi-link-45deg text-primary me-2"></i>Reference Links</h6>
+          <ul class="small mb-0">
+            <li><a href="https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601" target="_blank">Standard on Web Accessibility</a></li>
+            <li><a href="https://www.w3.org/WAI/WCAG21/quickref/" target="_blank">WCAG 2.1 Quick Reference</a></li>
+            <li><a href="https://design.canada.ca/" target="_blank">Canada.ca Design System</a></li>
+            <li><a href="https://www.canada.ca/en/government/system/digital-government/guideline-service-digital.html" target="_blank">GC Digital Standards</a></li>
+            <li><a href="https://www.cyber.gc.ca/en/guidance/itsg-33-it-security-risk-management" target="_blank">ITSG-33 Framework</a></li>
+            <li><a href="https://wet-boew.github.io/wet-boew/index-en.html" target="_blank">Web Experience Toolkit (WET)</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Notice -->
+  <div class="alert alert-warning mb-5">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    {{guidance.summary.footer}}
+  </div>
+
+  <!-- Assessor Notes -->
+  <div class="card mb-5">
+    <div class="card-header"><i class="bi bi-pencil-square me-2"></i>Assessor Notes</div>
+    <div class="card-body">
+      <form method="POST" action="/admin/projects/{{project.id}}/guidance-notes">
+        <textarea class="form-control mb-3" name="notes" rows="4" placeholder="Add any assessor notes for this guidance report...">{{project.assessor_notes}}</textarea>
+        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save me-1"></i>Save Notes</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  @media print {
+    .guidance-status { display: none !important; }
+    .btn, form, .alert-warning { display: none !important; }
+    .card { break-inside: avoid; }
+  }
+</style>

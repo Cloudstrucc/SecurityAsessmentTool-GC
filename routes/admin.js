@@ -3,7 +3,7 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { run, runBatch, all, get } = require('../models/database');
 const { passport, ensureAuthenticated } = require('../config/passport');
-const { getRecommendedControls, groupByFamily, COMMON_TECHNOLOGIES, CONTROL_FAMILIES } = require('../config/itsg33-controls');
+const { getRecommendedControls, assessSAARequirement, groupByFamily, COMMON_TECHNOLOGIES, CONTROL_FAMILIES, CONTROLS, GC_WEB_GUIDANCE } = require('../config/itsg33-controls');
 const emailService = require('../utils/emailService');
 const pdfExport = require('../utils/pdfExport');
 const path = require('path');
@@ -79,10 +79,10 @@ router.post('/projects/new', ensureAuthenticated, (req, res) => {
       technologies, specifications, project_owner_name, project_owner_email, project_authority_name, 
       project_authority_email, cio_name, cio_email, status, created_by)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)`,
-      [name, slug, description, data_classification || 'protected-b', hosting_type, app_type,
-        has_pii ? 1 : 0, JSON.stringify(techArray), specifications,
-        project_owner_name, project_owner_email, project_authority_name, project_authority_email,
-        cio_name, cio_email, req.user.id]);
+      [name, slug, description || '', data_classification || 'protected-b', hosting_type || '', app_type || '',
+        has_pii ? 1 : 0, JSON.stringify(techArray), specifications || '',
+        project_owner_name || '', project_owner_email || '', project_authority_name || '', project_authority_email || '',
+        cio_name || '', cio_email || '', req.user.id]);
 
     req.flash('success', 'Project created successfully');
     res.redirect('/admin/projects');
@@ -116,15 +116,23 @@ router.get('/projects/:projectId/assessments/new', ensureAuthenticated, (req, re
   let techs = [];
   try { techs = JSON.parse(project.technologies || '[]'); } catch(e) {}
 
-  const controls = getRecommendedControls({
+  const projectInfo = {
     dataClassification: project.data_classification,
     hostingType: project.hosting_type,
     appType: project.app_type,
     hasPII: !!project.has_pii,
     technologies: techs,
     description: project.description
-  });
+  };
 
+  // Check if SA&A is required
+  const saaCheck = assessSAARequirement(projectInfo);
+  if (!saaCheck.requiresSAA && !req.query.force) {
+    // Redirect to guidance report instead
+    return res.redirect(`/admin/projects/${project.id}/guidance`);
+  }
+
+  const controls = getRecommendedControls(projectInfo);
   const families = groupByFamily(controls);
 
   // Check for reusable templates
@@ -146,7 +154,8 @@ router.get('/projects/:projectId/assessments/new', ensureAuthenticated, (req, re
 
   res.render('admin/assessment-new', {
     title: 'New Assessment', isAdmin: true, isProjects: true,
-    admin: req.user, project, families, controlCount: controls.length
+    admin: req.user, project, families, controlCount: controls.length,
+    saaReason: saaCheck.reason
   });
 });
 
@@ -466,6 +475,386 @@ router.get('/settings', ensureAuthenticated, (req, res) => {
   res.render('admin/settings', {
     title: 'Settings', isAdmin: true, isSettings: true, admin: req.user
   });
+});
+
+// ── INTAKE MANAGEMENT ──
+
+const PII_LABELS = {
+  'name-address': 'Name, Address & Contact Info',
+  'sin': 'Social Insurance Number (SIN)',
+  'financial': 'Financial Information',
+  'health': 'Health / Medical Records',
+  'biometric': 'Biometric Data',
+  'employment': 'Employment / HR Records',
+  'immigration': 'Immigration / Citizenship',
+  'law-enforcement': 'Law Enforcement / Criminal Records',
+  'indigenous': 'Indigenous / Treaty Data'
+};
+
+const ACTIVITY_LABELS = {
+  'tra': 'Threat & Risk Assessment (TRA)',
+  'pia': 'Privacy Impact Assessment (PIA)',
+  'ssp': 'System Security Plan (SSP)',
+  'vapt': 'Vulnerability Assessment / Pen Test',
+  'network-diagram': 'Network / Architecture Diagram',
+  'previous-sa': 'Previous SA&A / ATO'
+};
+
+// List all intakes
+router.get('/intakes', ensureAuthenticated, (req, res) => {
+  const intakes = all('SELECT * FROM intake_submissions ORDER BY created_at DESC');
+  const pending = all("SELECT COUNT(*) as c FROM intake_submissions WHERE status = 'pending'")[0]?.c || 0;
+  const accepted = all("SELECT COUNT(*) as c FROM intake_submissions WHERE status = 'accepted'")[0]?.c || 0;
+  const inReview = all("SELECT COUNT(*) as c FROM intake_submissions WHERE status = 'in-review'")[0]?.c || 0;
+
+  res.render('admin/intakes', {
+    title: 'Intake Submissions', isAdmin: true,
+    user: req.user, intakes,
+    stats: { total: intakes.length, pending, accepted, inReview }
+  });
+});
+
+// Review a single intake
+router.get('/intakes/:id', ensureAuthenticated, (req, res) => {
+  const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
+  if (!intake) { req.flash('error', 'Intake not found'); return res.redirect('/admin/intakes'); }
+
+  const piiTypes = JSON.parse(intake.pii_types || '[]');
+  const technologies = JSON.parse(intake.technologies || '[]');
+  const activities = JSON.parse(intake.completed_activities || '[]');
+
+  const attachments = all('SELECT * FROM intake_attachments WHERE intake_id = ?', [intake.id]);
+  attachments.forEach(a => {
+    a.size_display = a.size > 1048576 ? (a.size / 1048576).toFixed(1) + ' MB' : (a.size / 1024).toFixed(0) + ' KB';
+  });
+
+  const allTechnologies = Object.entries(COMMON_TECHNOLOGIES).map(([key, val]) => ({
+    key, name: val.name, alreadySelected: technologies.includes(key)
+  }));
+
+  // Engine preview
+  let engineDesc = intake.project_description || '';
+  if (intake.interconnections) engineDesc += ' integration interconnect API ' + intake.interconnections;
+  if (intake.mobile_access === 'yes') engineDesc += ' mobile byod';
+  if (intake.external_users === 'yes') engineDesc += ' external public';
+
+  const recommended = getRecommendedControls({
+    dataClassification: intake.data_classification, hostingType: intake.hosting_type,
+    appType: intake.app_type, hasPII: intake.has_pii === 1,
+    technologies, description: engineDesc
+  });
+
+  const saaCheck = assessSAARequirement({
+    dataClassification: intake.data_classification, hasPII: intake.has_pii === 1,
+    description: engineDesc, appType: intake.app_type
+  });
+
+  res.render('admin/intake-review', {
+    title: 'Review: ' + intake.project_name, isAdmin: true,
+    user: req.user, intake, attachments,
+    piiList: piiTypes.filter(p => p !== 'none').map(p => PII_LABELS[p] || p),
+    techList: technologies.map(t => COMMON_TECHNOLOGIES[t]?.name || t),
+    activityList: activities.map(a => ACTIVITY_LABELS[a] || a),
+    allTechnologies,
+    controlCount: recommended.length,
+    p1Count: recommended.filter(c => c.priority === 'P1').length,
+    p2Count: recommended.filter(c => c.priority === 'P2').length,
+    p3Count: recommended.filter(c => c.priority === 'P3').length,
+    inheritedCount: recommended.filter(c => c.isInherited).length,
+    saaRequired: saaCheck.requiresSAA,
+    saaReason: saaCheck.reason
+  });
+});
+
+// Update intake status
+router.post('/intakes/:id/status', ensureAuthenticated, (req, res) => {
+  const { status, declineReason } = req.body;
+  if (declineReason) {
+    run('UPDATE intake_submissions SET status = ?, decline_reason = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [status, declineReason, req.params.id]);
+  } else {
+    run('UPDATE intake_submissions SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [status, req.params.id]);
+  }
+  req.flash('success', 'Intake status updated to ' + status);
+  res.redirect('/admin/intakes/' + req.params.id);
+});
+
+// Create project + assessment from intake
+router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
+  try {
+    const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
+    if (!intake) { req.flash('error', 'Intake not found'); return res.redirect('/admin/intakes'); }
+
+    const submittedTech = JSON.parse(intake.technologies || '[]');
+    const additionalTech = Array.isArray(req.body.additionalTech) ? req.body.additionalTech : (req.body.additionalTech ? [req.body.additionalTech] : []);
+    const allTech = [...new Set([...submittedTech, ...additionalTech])];
+
+    const classification = req.body.overrideClassification || intake.data_classification;
+    const appType = req.body.overrideAppType || intake.app_type;
+
+    let fullDescription = intake.project_description || '';
+    if (intake.interconnections) fullDescription += '\nInterconnections: ' + intake.interconnections;
+    if (intake.mobile_access === 'yes') fullDescription += '\nMobile/BYOD access required.';
+    if (intake.external_users === 'yes') fullDescription += '\nExternal users will access the system.';
+    if (req.body.assessorDescription) fullDescription += '\n' + req.body.assessorDescription;
+
+    const slug = intake.project_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now().toString(36);
+
+    const projectId = run(
+      `INSERT INTO projects (name, slug, description, data_classification, hosting_type, app_type,
+        has_pii, technologies, specifications, project_owner_name, project_owner_email,
+        project_authority_name, project_authority_email, status, created_by
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [intake.project_name, slug, fullDescription, classification, intake.hosting_type, appType,
+        intake.has_pii, JSON.stringify(allTech), intake.other_tech || '',
+        intake.owner_name, intake.owner_email,
+        intake.authority_name || '', intake.authority_email || '', 'active', req.user.id]
+    );
+
+    // Check if SA&A is required
+    const saaCheck = assessSAARequirement({
+      dataClassification: classification, hasPII: intake.has_pii === 1,
+      description: fullDescription, appType
+    });
+
+    if (!saaCheck.requiresSAA) {
+      // No SA&A needed — redirect to guidance report
+      run(`UPDATE intake_submissions SET status = 'accepted', project_id = ?, assessor_notes = ?,
+        assessor_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        [projectId, req.body.assessorNotes || '', req.body.assessorDescription || '', req.params.id]);
+
+      req.flash('success', `Project "${intake.project_name}" created. No formal SA&A required — a GC Web Guidance Report has been generated.`);
+      return res.redirect('/admin/projects/' + projectId + '/guidance');
+    }
+
+    const recommended = getRecommendedControls({
+      dataClassification: classification, hostingType: intake.hosting_type,
+      appType, hasPII: intake.has_pii === 1, technologies: allTech, description: fullDescription
+    });
+
+    const inviteCode = uuidv4().substring(0, 8).toUpperCase();
+    const assessmentId = run(
+      `INSERT INTO assessments (project_id, type, status, invite_code, created_by) VALUES (?,?,?,?,?)`,
+      [projectId, req.body.assessmentType || 'initial', 'draft', inviteCode, req.user.id]
+    );
+
+    const grouped = groupByFamily(recommended);
+    grouped.forEach(family => {
+      family.controls.forEach(control => {
+        run(
+          `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title, description,
+            tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority
+          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+          [assessmentId, control.id, control.family, control.familyName, control.title, control.description,
+            control.tailoredDescription, control.evidenceGuidance,
+            control.isInherited ? 1 : 0, control.inheritedFrom.join(', '), 1, control.priority]
+        );
+      });
+    });
+
+    run(`UPDATE intake_submissions SET status = 'accepted', project_id = ?, assessor_notes = ?,
+      assessor_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [projectId, req.body.assessorNotes || '', req.body.assessorDescription || '', req.params.id]);
+
+    req.flash('success', `Project "${intake.project_name}" created with ${recommended.length} controls.`);
+    res.redirect('/admin/assessments/' + assessmentId);
+  } catch (err) {
+    console.error('Create project from intake error:', err);
+    req.flash('error', 'Failed to create project: ' + err.message);
+    res.redirect('/admin/intakes/' + req.params.id);
+  }
+});
+
+// Download intake attachment
+router.get('/intakes/attachment/:id', ensureAuthenticated, (req, res) => {
+  const attachment = get('SELECT * FROM intake_attachments WHERE id = ?', [req.params.id]);
+  if (!attachment) { req.flash('error', 'Attachment not found'); return res.redirect('/admin/intakes'); }
+  res.download(path.join(__dirname, '..', 'uploads', 'intakes', attachment.filename), attachment.original_name);
+});
+
+// ══════════════════════════════════════════════════════
+// GC WEB GUIDANCE REPORT (no-assessment-required path)
+// ══════════════════════════════════════════════════════
+
+router.get('/projects/:projectId/guidance', ensureAuthenticated, (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+
+  let totalRequired = 0, totalRecommended = 0;
+  GC_WEB_GUIDANCE.categories.forEach(cat => {
+    cat.items.forEach(item => {
+      if (item.required) totalRequired++;
+      else totalRecommended++;
+    });
+  });
+
+  res.render('admin/guidance-report', {
+    title: 'GC Web Guidance Report',
+    isAdmin: true, isProjects: true,
+    admin: req.user, project,
+    guidance: GC_WEB_GUIDANCE,
+    totalRequired, totalRecommended
+  });
+});
+
+router.post('/projects/:projectId/guidance-notes', ensureAuthenticated, (req, res) => {
+  run('UPDATE projects SET description = description, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [req.params.projectId]);
+  // Store notes in a simple way — use the assessor_description field or a notes column
+  // For now we'll append to description with a separator
+  req.flash('success', 'Notes saved.');
+  res.redirect(`/admin/projects/${req.params.projectId}/guidance`);
+});
+
+router.get('/projects/:projectId/guidance-pdf', ensureAuthenticated, (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+
+  let totalRequired = 0, totalRecommended = 0;
+  GC_WEB_GUIDANCE.categories.forEach(cat => {
+    cat.items.forEach(item => {
+      if (item.required) totalRequired++;
+      else totalRecommended++;
+    });
+  });
+
+  // Generate simple text-based PDF
+  let html = `<h1>${project.name}</h1>`;
+  html += `<h2>GC Web Standards & Guidance Report</h2>`;
+  html += `<p><strong>${GC_WEB_GUIDANCE.summary.title}</strong></p>`;
+  html += `<p>${GC_WEB_GUIDANCE.summary.description}</p>`;
+  html += `<p><strong>${totalRequired}</strong> required items | <strong>${totalRecommended}</strong> recommended items</p><hr>`;
+
+  GC_WEB_GUIDANCE.categories.forEach(cat => {
+    html += `<h3>${cat.title}</h3><p>${cat.description}</p><ul>`;
+    cat.items.forEach(item => {
+      const level = item.required ? '(REQUIRED)' : '(Recommended)';
+      html += `<li>${level} ${item.text}</li>`;
+    });
+    html += '</ul>';
+  });
+  html += `<hr><p><em>${GC_WEB_GUIDANCE.summary.footer}</em></p>`;
+
+  res.setHeader('Content-Type', 'text/html');
+  res.setHeader('Content-Disposition', `attachment; filename="${project.name.replace(/[^a-zA-Z0-9]/g,'-')}-GC-Web-Guidance.html"`);
+  res.send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${project.name} - GC Web Guidance</title>
+    <style>body{font-family:Arial,sans-serif;max-width:800px;margin:2rem auto;line-height:1.6}
+    h1{color:#26374A}h2,h3{color:#2B4380}ul{margin-bottom:1.5rem}li{margin-bottom:0.5rem}</style></head><body>${html}</body></html>`);
+});
+
+// ══════════════════════════════════════════════════════
+// CONTROL MANAGEMENT (add/remove/update on assessments)
+// ══════════════════════════════════════════════════════
+
+router.get('/assessments/:id/manage-controls', ensureAuthenticated, (req, res) => {
+  const assessment = get(`
+    SELECT a.*, p.name as project_name, p.data_classification, p.app_type
+    FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?
+  `, [req.params.id]);
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+
+  // Current controls in this assessment
+  const currentControls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessment.id]);
+  const currentIds = new Set(currentControls.map(c => c.control_id));
+
+  // Group current controls by family
+  const currentGrouped = {};
+  currentControls.forEach(c => {
+    if (!currentGrouped[c.family]) {
+      currentGrouped[c.family] = { code: c.family, name: c.family_name || CONTROL_FAMILIES[c.family], controls: [] };
+    }
+    currentGrouped[c.family].controls.push(c);
+  });
+  const currentFamilies = Object.values(currentGrouped);
+
+  // All ITSG-33 controls grouped by family, marking which are already added
+  const allControlsMarked = CONTROLS.map(c => ({
+    ...c,
+    familyName: CONTROL_FAMILIES[c.family],
+    alreadyAdded: currentIds.has(c.id)
+  }));
+  const allGrouped = {};
+  allControlsMarked.forEach(c => {
+    if (!allGrouped[c.family]) {
+      allGrouped[c.family] = { code: c.family, name: CONTROL_FAMILIES[c.family], controls: [] };
+    }
+    allGrouped[c.family].controls.push(c);
+  });
+  const allFamilies = Object.values(allGrouped);
+
+  res.render('admin/manage-controls', {
+    title: 'Manage Controls', isAdmin: true, isAssessments: true,
+    admin: req.user, assessment,
+    currentFamilies, currentCount: currentControls.length,
+    allFamilies, availableCount: CONTROLS.length - currentIds.size
+  });
+});
+
+// Add controls to an existing assessment
+router.post('/assessments/:id/add-controls', ensureAuthenticated, (req, res) => {
+  const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+
+  const addIds = req.body.add_control_ids || [];
+  const idList = Array.isArray(addIds) ? addIds : [addIds];
+
+  // Get existing control IDs to avoid duplicates
+  const existing = new Set(all('SELECT control_id FROM assessment_controls WHERE assessment_id = ?', [assessment.id]).map(c => c.control_id));
+
+  const statements = [];
+  idList.forEach(cid => {
+    if (existing.has(cid)) return; // skip duplicates
+    const ctrl = CONTROLS.find(c => c.id === cid);
+    if (!ctrl) return;
+    const family = cid.split('-')[0];
+    statements.push({
+      sql: `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title, 
+        description, tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      params: [assessment.id, cid, family, CONTROL_FAMILIES[family] || family,
+        ctrl.title, ctrl.description, '', ctrl.evidenceGuidance || '', 0, '', 1, ctrl.priority]
+    });
+  });
+
+  if (statements.length > 0) {
+    runBatch(statements);
+    req.flash('success', `Added ${statements.length} control(s) to the assessment.`);
+  } else {
+    req.flash('info', 'No new controls to add.');
+  }
+  res.redirect(`/admin/assessments/${assessment.id}/manage-controls`);
+});
+
+// Remove a control from an assessment
+router.post('/assessments/:id/remove-control/:controlId', ensureAuthenticated, (req, res) => {
+  const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+
+  const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?',
+    [req.params.controlId, assessment.id]);
+  if (!control) { req.flash('error', 'Control not found'); return res.redirect(`/admin/assessments/${assessment.id}/manage-controls`); }
+
+  run('DELETE FROM assessment_controls WHERE id = ? AND assessment_id = ?', [req.params.controlId, assessment.id]);
+  req.flash('success', `Removed ${control.control_id} — ${control.title}`);
+  res.redirect(`/admin/assessments/${assessment.id}/manage-controls`);
+});
+
+// Update a control on an assessment (tailored description, guidance, applicability, inheritance)
+router.post('/assessments/:id/update-control/:controlId', ensureAuthenticated, (req, res) => {
+  const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+
+  const { tailored_description, evidence_guidance, is_applicable, is_inherited, inherited_from } = req.body;
+  run(`UPDATE assessment_controls SET 
+    tailored_description = ?, evidence_guidance = ?, is_applicable = ?, 
+    is_inherited = ?, inherited_from = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ? AND assessment_id = ?`,
+    [tailored_description || '', evidence_guidance || '',
+     is_applicable === '0' ? 0 : 1, is_inherited === '1' ? 1 : 0,
+     inherited_from || '', req.params.controlId, assessment.id]);
+
+  req.flash('success', 'Control updated.');
+  res.redirect(`/admin/assessments/${assessment.id}/manage-controls`);
 });
 
 module.exports = router;

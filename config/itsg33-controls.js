@@ -1577,6 +1577,151 @@ const CONTROLS = [
 /**
  * Get recommended controls based on project characteristics
  */
+/**
+ * GC Web Standards & Guidance Checklist
+ * For low-risk / unclassified projects that don't require a full SA&A
+ * but still need to meet Government of Canada web standards
+ */
+const GC_WEB_GUIDANCE = {
+  categories: [
+    {
+      id: 'wcag',
+      title: 'Web Accessibility — WCAG 2.1 Level AA',
+      icon: 'universal-access',
+      description: 'All GC web content must meet WCAG 2.1 Level AA per the Standard on Web Accessibility and the Accessible Canada Act.',
+      items: [
+        { id: 'wcag-1', text: 'All pages conform to WCAG 2.1 Level AA success criteria', required: true },
+        { id: 'wcag-2', text: 'Automated accessibility testing has been performed (e.g. axe, WAVE, Pa11y)', required: true },
+        { id: 'wcag-3', text: 'Manual keyboard navigation testing completed — all interactive elements reachable', required: true },
+        { id: 'wcag-4', text: 'All images include meaningful alt text (or empty alt for decorative images)', required: true },
+        { id: 'wcag-5', text: 'Colour contrast ratios meet 4.5:1 for normal text and 3:1 for large text', required: true },
+        { id: 'wcag-6', text: 'Content is presented in both official languages (English and French)', required: true },
+        { id: 'wcag-7', text: 'Forms include visible labels, error identification, and clear instructions', required: true },
+        { id: 'wcag-8', text: 'Screen reader testing performed with NVDA, JAWS, or VoiceOver', recommended: true },
+        { id: 'wcag-9', text: 'Pages function correctly at 200% zoom without horizontal scrolling', required: true },
+        { id: 'wcag-10', text: 'Skip navigation links are provided on all pages', required: true }
+      ]
+    },
+    {
+      id: 'gc-web',
+      title: 'GC Web Standards & Design',
+      icon: 'layout-text-window',
+      description: 'Compliance with the Standard on Web Interoperability, Standard on Web Usability, and Canada.ca design system.',
+      items: [
+        { id: 'gc-web-1', text: 'Follows Canada.ca design system (WET-BOEW) or GC Web theme', required: true },
+        { id: 'gc-web-2', text: 'Official Government of Canada header with FIP signature displayed', required: true },
+        { id: 'gc-web-3', text: 'Standard GC footer with required links (Terms, Privacy, etc.)', required: true },
+        { id: 'gc-web-4', text: 'Privacy Notice Statement posted if any information is collected', required: true },
+        { id: 'gc-web-5', text: 'Content is available in both official languages with equal quality', required: true },
+        { id: 'gc-web-6', text: 'Uses responsive design — functional on mobile, tablet, and desktop', required: true },
+        { id: 'gc-web-7', text: 'Web analytics implemented per GC Digital Analytics Program (e.g. Adobe Analytics)', recommended: true },
+        { id: 'gc-web-8', text: 'Content follows Canada.ca Content Style Guide', recommended: true }
+      ]
+    },
+    {
+      id: 'hosting',
+      title: 'Hosting & DNS Requirements',
+      icon: 'hdd-network',
+      description: 'All GC web assets must be hosted on approved infrastructure with agency-managed DNS.',
+      items: [
+        { id: 'host-1', text: 'Website is hosted through the department\'s approved hosting service or SSC', required: true },
+        { id: 'host-2', text: 'DNS records are managed through the department\'s official DNS services', required: true },
+        { id: 'host-3', text: 'Domain uses gc.ca or canada.ca namespace as appropriate', required: true },
+        { id: 'host-4', text: 'All data resides in Canada (Canadian data residency requirement)', required: true },
+        { id: 'host-5', text: 'TLS 1.2 or higher is enforced — HTTPS only, HTTP redirects to HTTPS', required: true },
+        { id: 'host-6', text: 'HSTS (Strict-Transport-Security) header is configured', required: true },
+        { id: 'host-7', text: 'Content Delivery Network (CDN), if used, is on the approved vendor list', recommended: true },
+        { id: 'host-8', text: 'Hosting provider has a valid SOC 2 Type II or equivalent certification', recommended: true }
+      ]
+    },
+    {
+      id: 'web-security',
+      title: 'Basic Web Security',
+      icon: 'shield-check',
+      description: 'Baseline security requirements for all public-facing GC web properties.',
+      items: [
+        { id: 'sec-1', text: 'Security headers configured: X-Content-Type-Options, X-Frame-Options, CSP', required: true },
+        { id: 'sec-2', text: 'Web Application Firewall (WAF) or equivalent perimeter protection enabled', required: true },
+        { id: 'sec-3', text: 'DDoS protection in place (CloudFlare, Azure Front Door, AWS Shield, or equivalent)', required: true },
+        { id: 'sec-4', text: 'Vulnerability scan completed with no critical/high findings', required: true },
+        { id: 'sec-5', text: 'Third-party libraries and CMS components are up to date', required: true },
+        { id: 'sec-6', text: 'No sensitive data (API keys, credentials) exposed in client-side code or source', required: true },
+        { id: 'sec-7', text: 'Admin / CMS login pages are restricted (IP allowlist, VPN, or MFA)', recommended: true },
+        { id: 'sec-8', text: 'Regular patching schedule established for CMS / server components', recommended: true }
+      ]
+    },
+    {
+      id: 'forms-captcha',
+      title: 'Forms, CAPTCHA & Bot Protection',
+      icon: 'robot',
+      description: 'Required when the site includes any user input (contact forms, feedback, search).',
+      items: [
+        { id: 'form-1', text: 'CAPTCHA or equivalent bot protection on all public-facing forms', required: true },
+        { id: 'form-2', text: 'CAPTCHA solution is accessible (audio alternative or accessible challenge)', required: true },
+        { id: 'form-3', text: 'Rate limiting applied to form submission endpoints', required: true },
+        { id: 'form-4', text: 'Form input is validated and sanitized server-side to prevent XSS/injection', required: true },
+        { id: 'form-5', text: 'Email/notification endpoints protected against abuse (spam relay)', recommended: true },
+        { id: 'form-6', text: 'Privacy notice displayed before data collection per Privacy Act', required: true },
+        { id: 'form-7', text: 'If collecting personal information, PIA screening completed', required: true }
+      ]
+    },
+    {
+      id: 'maintenance',
+      title: 'Ongoing Maintenance & Monitoring',
+      icon: 'graph-up',
+      description: 'Operational requirements to maintain the site post-launch.',
+      items: [
+        { id: 'maint-1', text: 'Uptime monitoring configured with appropriate alerting', recommended: true },
+        { id: 'maint-2', text: 'Broken link checking performed regularly', recommended: true },
+        { id: 'maint-3', text: 'Content review schedule established (minimum annual)', recommended: true },
+        { id: 'maint-4', text: 'Incident response contact identified for the web property', required: true },
+        { id: 'maint-5', text: 'Backup and recovery procedures documented', recommended: true },
+        { id: 'maint-6', text: 'SSL/TLS certificates monitored for expiry', required: true }
+      ]
+    }
+  ],
+  summary: {
+    title: 'No Formal SA&A Required',
+    description: 'Based on the project profile (unclassified data, no PII, limited scope), a full ITSG-33 Security Assessment & Authorization is not required. However, the project must still comply with the Government of Canada web standards and security baselines listed below before going live.',
+    footer: 'This guidance report is provided in lieu of a formal SA&A assessment. If the project scope changes (e.g., PII collection begins, classification increases, or user authentication is added), a reassessment of SA&A requirements should be conducted.'
+  }
+};
+
+/**
+ * Determine if a project requires a full SA&A or just web guidance
+ * Returns: { requiresSAA: boolean, reason: string }
+ */
+function assessSAARequirement(projectInfo) {
+  const { dataClassification = '', hasPII = false, description = '', appType = '' } = projectInfo;
+  const descLower = (description || '').toLowerCase();
+
+  // Always requires SA&A
+  if (dataClassification === 'protected-b' || dataClassification === 'protected-a') {
+    return { requiresSAA: true, reason: 'Data classification is ' + dataClassification };
+  }
+  if (hasPII) {
+    return { requiresSAA: true, reason: 'Project handles personal information (PII)' };
+  }
+
+  // Check for complexity indicators even for unclassified
+  const complexityIndicators = [
+    'authentication', 'login', 'user accounts', 'database', 'api',
+    'integration', 'payment', 'transaction', 'interconnect', 'saas',
+    'portal', 'application', 'app'
+  ];
+  const hasComplexity = complexityIndicators.some(kw => descLower.includes(kw));
+
+  if (dataClassification === 'unclassified' && !hasComplexity) {
+    return {
+      requiresSAA: false,
+      reason: 'Unclassified static/informational web content with no PII, authentication, or system integrations'
+    };
+  }
+
+  // Unclassified but with complexity still gets SA&A with minimal baseline controls
+  return { requiresSAA: true, reason: 'Unclassified with application complexity' };
+}
+
 function getRecommendedControls(projectInfo) {
   const {
     dataClassification = 'protected-b',
@@ -1604,21 +1749,47 @@ function getRecommendedControls(projectInfo) {
     allTags.push('device', 'byod', 'external');
   }
 
+  // For unclassified projects: use a minimal baseline of essential web security controls
+  const isUnclassified = dataClassification === 'unclassified';
+
+  // Essential control IDs for any web-facing project (even unclassified)
+  const BASIC_WEB_CONTROLS = [
+    'AC-1',   // Access Control Policy
+    'CA-1',   // Security Assessment Policy
+    'CM-1',   // Configuration Management Policy
+    'CM-6',   // Configuration Settings
+    'IR-1',   // Incident Response Policy
+    'IR-6',   // Incident Reporting
+    'PL-1',   // Security Planning Policy
+    'RA-1',   // Risk Assessment Policy
+    'RA-5',   // Vulnerability Scanning
+    'SA-1',   // System Acquisition Policy
+    'SA-9',   // External Information System Services
+    'SC-1',   // System Communications Policy
+    'SC-5',   // Denial of Service Protection
+    'SC-7',   // Boundary Protection
+    'SC-8',   // Transmission Confidentiality (TLS)
+    'SC-13',  // Cryptographic Protection
+    'SC-20',  // Secure Name Resolution
+    'SI-1',   // System Integrity Policy
+    'SI-2',   // Flaw Remediation (patching)
+    'SI-3',   // Malicious Code Protection
+    'SI-5',   // Security Alerts
+    'SI-10',  // Information Input Validation
+  ];
+
   return CONTROLS.map(control => {
     let relevanceScore = 0;
+    let techTagMatches = 0;
     let inheritedFrom = [];
     let tailoredDescription = control.description;
-
-    // Base relevance from priority
-    if (control.priority === 'P1') relevanceScore += 3;
-    else if (control.priority === 'P2') relevanceScore += 2;
-    else relevanceScore += 1;
 
     // Check for technology inheritance
     technologies.forEach(tech => {
       if (control.commonInheritance.includes(tech)) {
         inheritedFrom.push(COMMON_TECHNOLOGIES[tech]?.name || tech);
         relevanceScore += 1;
+        techTagMatches++;
       }
     });
 
@@ -1626,12 +1797,37 @@ function getRecommendedControls(projectInfo) {
     allTags.forEach(tag => {
       if (control.tags.includes(tag)) {
         relevanceScore += 2;
+        techTagMatches++;
       }
     });
 
-    // All PBMM controls are relevant for Protected B
-    if (dataClassification === 'protected-b' && control.profile === 'PBMM') {
+    // Profile match
+    const profileMatch =
+      (dataClassification === 'protected-b' && control.profile === 'PBMM') ||
+      (dataClassification === 'protected-a' && (control.profile === 'PBMM' || control.profile === 'LOW'));
+    if (profileMatch) {
       relevanceScore += 2;
+    }
+
+    // Priority bonus
+    if (control.priority === 'P1') relevanceScore += 3;
+    else if (control.priority === 'P2') relevanceScore += 2;
+    else relevanceScore += 1;
+
+    // Inclusion rules:
+    let include;
+    if (isUnclassified) {
+      // For unclassified: include the basic web security baseline,
+      // plus any controls matched by tech/tag (for projects with some complexity)
+      include =
+        BASIC_WEB_CONTROLS.includes(control.id) ||
+        techTagMatches >= 1;
+    } else {
+      // Protected A/B: existing logic
+      include =
+        (control.priority === 'P1' && profileMatch) ||
+        (control.priority === 'P2' && profileMatch && techTagMatches > 0) ||
+        (control.priority === 'P3' && techTagMatches >= 2);
     }
 
     return {
@@ -1640,11 +1836,11 @@ function getRecommendedControls(projectInfo) {
       relevanceScore,
       inheritedFrom,
       isInherited: inheritedFrom.length > 0,
-      tailoredDescription
+      tailoredDescription,
+      _include: include
     };
-  }).filter(c => c.relevanceScore > 0)
+  }).filter(c => c._include)
     .sort((a, b) => {
-      // Sort by family, then by ID
       if (a.family !== b.family) return a.family.localeCompare(b.family);
       return a.id.localeCompare(b.id);
     });
@@ -1672,6 +1868,8 @@ module.exports = {
   CONTROL_FAMILIES,
   COMMON_TECHNOLOGIES,
   CONTROLS,
+  GC_WEB_GUIDANCE,
   getRecommendedControls,
+  assessSAARequirement,
   groupByFamily
 };

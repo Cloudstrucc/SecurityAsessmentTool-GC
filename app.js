@@ -163,7 +163,19 @@ app.use((req, res, next) => {
     warning: req.flash('warning'),
     info: req.flash('info')
   };
+  // Passport user (admin/assessor)
   res.locals.user = req.user;
+  // Client session user (for intake portal)
+  if (!req.user && req.session && req.session.clientId) {
+    try {
+      const { get: dbGet } = require('./models/database');
+      const clientUser = dbGet('SELECT id, email, name, role, organization FROM users WHERE id = ?', [req.session.clientId]);
+      if (clientUser) {
+        res.locals.user = clientUser;
+        req.clientUser = clientUser;
+      }
+    } catch (e) { /* db not ready yet */ }
+  }
   next();
 });
 

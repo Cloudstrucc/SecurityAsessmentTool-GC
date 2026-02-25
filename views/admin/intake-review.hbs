@@ -1,0 +1,394 @@
+<div class="mb-4">
+  <a href="/admin/intakes" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i> Back to Intakes</a>
+</div>
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <h2>{{intake.project_name}}</h2>
+    <div class="d-flex gap-2 align-items-center">
+      <code>{{intake.ref_code}}</code>
+      {{#if (eq intake.status 'pending')}}<span class="badge bg-warning">Pending Review</span>
+      {{else if (eq intake.status 'in-review')}}<span class="badge bg-info">In Review</span>
+      {{else if (eq intake.status 'accepted')}}<span class="badge bg-success">Accepted</span>
+      {{else}}<span class="badge bg-secondary">{{intake.status}}</span>{{/if}}
+      <span class="text-muted small">Submitted {{formatDate intake.created_at}}</span>
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    {{#if (eq intake.status 'pending')}}
+    <form method="POST" action="/admin/intakes/{{intake.id}}/status" style="display:inline;">
+      <input type="hidden" name="status" value="in-review">
+      <button type="submit" class="btn btn-outline-info"><i class="bi bi-eye me-1"></i>Mark In Review</button>
+    </form>
+    {{/if}}
+    {{#if intake.project_id}}
+    <a href="/admin/projects/{{intake.project_id}}" class="btn btn-success"><i class="bi bi-folder me-1"></i>View Project</a>
+    {{/if}}
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- Left column: Submitted information -->
+  <div class="col-lg-8">
+
+    <!-- Project Info -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">1</span> Project Information</h4>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label small text-muted">Department / Agency</label>
+          <div class="fw-bold">{{intake.department}}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small text-muted">Branch / Directorate</label>
+          <div>{{#if intake.branch}}{{intake.branch}}{{else}}<span class="text-muted">—</span>{{/if}}</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Application Type</label>
+          <div>
+            {{#if (eq intake.app_type 'internal')}}<span class="badge bg-light text-dark"><i class="bi bi-lock me-1"></i>Internal Only</span>
+            {{else if (eq intake.app_type 'external')}}<span class="badge bg-warning"><i class="bi bi-globe me-1"></i>External / Public</span>
+            {{else if (eq intake.app_type 'hybrid')}}<span class="badge bg-info"><i class="bi bi-arrow-left-right me-1"></i>Hybrid</span>
+            {{else}}{{intake.app_type}}{{/if}}
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Target Go-Live</label>
+          <div>{{#if intake.target_date}}{{intake.target_date}}{{else}}<span class="text-muted">—</span>{{/if}}</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Estimated Users</label>
+          <div>{{#if intake.user_count}}{{intake.user_count}}{{else}}<span class="text-muted">—</span>{{/if}}</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label small text-muted">Project Description</label>
+          <div class="p-3 bg-light rounded" style="white-space:pre-wrap;">{{intake.project_description}}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Classification & PII -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">2</span> Data Sensitivity & Classification</h4>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Classification</label>
+          <div>
+            {{#if (eq intake.data_classification 'protected-b')}}<span class="badge bg-danger" style="font-size:0.9rem;">Protected B</span>
+            {{else if (eq intake.data_classification 'protected-a')}}<span class="badge bg-warning" style="font-size:0.9rem;">Protected A</span>
+            {{else}}<span class="badge bg-secondary" style="font-size:0.9rem;">{{intake.data_classification}}</span>{{/if}}
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">ATIP Subject</label>
+          <div>{{#if intake.atip_subject}}{{intake.atip_subject}}{{else}}—{{/if}}</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">PIA Status</label>
+          <div>{{#if intake.pia_completed}}{{intake.pia_completed}}{{else}}—{{/if}}</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label small text-muted">PII Types Identified</label>
+          {{#if intake.has_pii}}
+          <div class="d-flex flex-wrap gap-2 mt-1">
+            {{#each piiList}}
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25" style="font-size:0.85rem;">
+              <i class="bi bi-exclamation-triangle me-1"></i>{{this}}
+            </span>
+            {{/each}}
+          </div>
+          {{else}}
+          <div class="text-muted">No PII identified</div>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+
+    <!-- Hosting & Technology -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">3</span> Hosting & Technology</h4>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label small text-muted">Hosting</label>
+          <div><span class="badge bg-info" style="font-size:0.85rem;">{{intake.hosting_type}}</span></div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small text-muted">Data Residency</label>
+          <div>{{#if intake.hosting_region}}{{intake.hosting_region}}{{else}}—{{/if}}</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label small text-muted">Technologies</label>
+          <div class="d-flex flex-wrap gap-2 mt-1">
+            {{#each techList}}
+            <span class="badge bg-light text-dark border" style="font-size:0.85rem;"><i class="bi bi-gear me-1"></i>{{this}}</span>
+            {{/each}}
+          </div>
+        </div>
+        {{#if intake.other_tech}}
+        <div class="col-12">
+          <label class="form-label small text-muted">Other Technologies</label>
+          <div class="p-2 bg-light rounded small">{{intake.other_tech}}</div>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+
+    <!-- Architecture & Integrations -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">4</span> Architecture & Integrations</h4>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small text-muted">APIs</label>
+          <div>{{#if intake.has_apis}}{{intake.has_apis}}{{else}}—{{/if}}</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">GC Interconnections</label>
+          <div>{{#if intake.gc_interconnections}}{{intake.gc_interconnections}}{{else}}—{{/if}}</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Mobile / BYOD</label>
+          <div>{{#if intake.mobile_access}}{{intake.mobile_access}}{{else}}—{{/if}}</div>
+        </div>
+        {{#if intake.interconnections}}
+        <div class="col-12">
+          <label class="form-label small text-muted">Listed Interconnections</label>
+          <div class="p-2 bg-light rounded small" style="white-space:pre-wrap;">{{intake.interconnections}}</div>
+        </div>
+        {{/if}}
+        <div class="col-md-6">
+          <label class="form-label small text-muted">External Users</label>
+          <div>{{#if intake.external_users}}{{intake.external_users}}{{else}}—{{/if}}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security Posture -->
+    {{#if intake.completed_activities}}
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">5</span> Existing Security Activities</h4>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        {{#each activityList}}
+        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size:0.85rem;">
+          <i class="bi bi-check-circle me-1"></i>{{this}}
+        </span>
+        {{/each}}
+      </div>
+    </div>
+    {{/if}}
+
+    <!-- Contacts -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">6</span> Key Contacts</h4>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Project Owner</label>
+          <div class="fw-bold">{{intake.owner_name}}</div>
+          <div class="small"><a href="mailto:{{intake.owner_email}}">{{intake.owner_email}}</a></div>
+          {{#if intake.owner_title}}<div class="small text-muted">{{intake.owner_title}}</div>{{/if}}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Technical Lead</label>
+          {{#if intake.tech_lead_name}}
+          <div class="fw-bold">{{intake.tech_lead_name}}</div>
+          <div class="small"><a href="mailto:{{intake.tech_lead_email}}">{{intake.tech_lead_email}}</a></div>
+          {{#if intake.tech_lead_title}}<div class="small text-muted">{{intake.tech_lead_title}}</div>{{/if}}
+          {{else}}<div class="text-muted">—</div>{{/if}}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Authorizing Official</label>
+          {{#if intake.authority_name}}
+          <div class="fw-bold">{{intake.authority_name}}</div>
+          <div class="small"><a href="mailto:{{intake.authority_email}}">{{intake.authority_email}}</a></div>
+          {{#if intake.authority_title}}<div class="small text-muted">{{intake.authority_title}}</div>{{/if}}
+          {{else}}<div class="text-muted">—</div>{{/if}}
+        </div>
+      </div>
+    </div>
+
+    <!-- Attachments -->
+    {{#if attachments.length}}
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">7</span> Attachments ({{attachments.length}})</h4>
+      </div>
+      <div class="list-group">
+        {{#each attachments}}
+        <a href="/admin/intakes/attachment/{{this.id}}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+          <div>
+            <i class="bi bi-file-earmark me-2"></i>{{this.original_name}}
+          </div>
+          <span class="badge bg-light text-muted">{{this.size_display}}</span>
+        </a>
+        {{/each}}
+      </div>
+    </div>
+    {{/if}}
+
+    <!-- Additional Notes -->
+    {{#if intake.additional_notes}}
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">8</span> Additional Notes</h4>
+      </div>
+      <div class="p-3 bg-light rounded" style="white-space:pre-wrap;">{{intake.additional_notes}}</div>
+    </div>
+    {{/if}}
+  </div>
+
+  <!-- Right column: Assessor context & actions -->
+  <div class="col-lg-4">
+    <div class="position-sticky" style="top:100px;">
+
+      <!-- Recommendation Preview -->
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-cpu me-2"></i>Engine Preview</div>
+        <div class="card-body">
+          {{#if saaRequired}}
+            <div class="alert alert-warning small py-1 px-2 mb-2">
+              <i class="bi bi-shield-exclamation me-1"></i><strong>SA&amp;A Required</strong>
+            </div>
+          {{else}}
+            <div class="alert alert-success small py-1 px-2 mb-2">
+              <i class="bi bi-check-circle me-1"></i><strong>No SA&amp;A Required</strong><br>
+              <small>GC Web Guidance Report will be generated</small>
+            </div>
+          {{/if}}
+          <div class="small text-muted mb-2">{{saaReason}}</div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">Estimated controls:</span>
+            <span class="fw-bold">{{controlCount}}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">P1 (mandatory):</span>
+            <span>{{p1Count}}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">P2 (conditional):</span>
+            <span>{{p2Count}}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">P3 (situational):</span>
+            <span>{{p3Count}}</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted small">Inherited controls:</span>
+            <span>{{inheritedCount}}</span>
+          </div>
+          <hr>
+          <small class="text-muted">Based on submitted project details. Adjust below to refine.</small>
+        </div>
+      </div>
+
+      <!-- Assessor Actions -->
+      {{#if (neq intake.status 'accepted')}}
+      <div class="card mb-3">
+        <div class="card-header bg-light" style="color:var(--cs-text);"><i class="bi bi-pencil-square me-2"></i>Assessor Context</div>
+        <div class="card-body">
+          <form method="POST" action="/admin/intakes/{{intake.id}}/create-project" id="createProjectForm">
+            <p class="small text-muted mb-3">Add context or adjust details before creating the project and assessment. These overrides feed into the recommendation engine.</p>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Override Classification</label>
+              <select class="form-select form-select-sm" name="overrideClassification">
+                <option value="">Use submitted ({{intake.data_classification}})</option>
+                <option value="unclassified">Unclassified</option>
+                <option value="protected-a">Protected A</option>
+                <option value="protected-b">Protected B</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Override App Type</label>
+              <select class="form-select form-select-sm" name="overrideAppType">
+                <option value="">Use submitted ({{intake.app_type}})</option>
+                <option value="internal">Internal</option>
+                <option value="external">External</option>
+                <option value="hybrid">Hybrid</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Additional Technologies</label>
+              <p class="text-muted small mb-1">Add technologies the client may not have listed.</p>
+              <div class="row g-1">
+                {{#each allTechnologies}}
+                <div class="col-12">
+                  <div class="form-check form-check-sm">
+                    <input class="form-check-input" type="checkbox" name="additionalTech" value="{{this.key}}" id="addtech-{{this.key}}"
+                      {{#if this.alreadySelected}} checked disabled{{/if}}>
+                    <label class="form-check-label small" for="addtech-{{this.key}}">
+                      {{this.name}} {{#if this.alreadySelected}}<span class="text-muted">(already selected)</span>{{/if}}
+                    </label>
+                  </div>
+                </div>
+                {{/each}}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Additional Description Context</label>
+              <textarea class="form-control form-control-sm" name="assessorDescription" rows="3" placeholder="Add keywords for the engine: e.g. 'API gateway, microservices, containerized, data lake'"></textarea>
+              <small class="text-muted">Appended to the project description for the recommendation engine.</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Assessor Notes (internal)</label>
+              <textarea class="form-control form-control-sm" name="assessorNotes" rows="3" placeholder="Internal notes about this intake (not shared with client)..."></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Assessment Type</label>
+              <select class="form-select form-select-sm" name="assessmentType">
+                <option value="initial">Initial Assessment</option>
+                <option value="renewal">Renewal</option>
+                <option value="reassessment">Reassessment</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100" onclick="return confirm('This will create a new Project and Assessment from this intake. Continue?')">
+              <i class="bi bi-plus-circle me-1"></i>Create Project & Assessment
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Decline -->
+      <div class="card">
+        <div class="card-body">
+          <form method="POST" action="/admin/intakes/{{intake.id}}/status">
+            <input type="hidden" name="status" value="declined">
+            <div class="mb-2">
+              <textarea class="form-control form-control-sm" name="declineReason" rows="2" placeholder="Reason for declining (optional)"></textarea>
+            </div>
+            <button type="submit" class="btn btn-outline-danger btn-sm w-100" onclick="return confirm('Decline this intake?')">
+              <i class="bi bi-x-circle me-1"></i>Decline Intake
+            </button>
+          </form>
+        </div>
+      </div>
+      {{else}}
+      <div class="alert alert-success">
+        <i class="bi bi-check-circle me-2"></i><strong>Accepted</strong><br>
+        Project created from this intake.
+        {{#if intake.project_id}}
+        <a href="/admin/projects/{{intake.project_id}}" class="d-block mt-2">View Project <i class="bi bi-arrow-right"></i></a>
+        {{/if}}
+      </div>
+      {{/if}}
+
+    </div>
+  </div>
+</div>

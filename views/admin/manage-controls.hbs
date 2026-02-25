@@ -1,0 +1,226 @@
+<div class="container">
+  <div class="d-flex align-items-center mb-4">
+    <a href="/admin/assessments/{{assessment.id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
+    <div class="flex-grow-1">
+      <h1 class="mb-0">Manage Controls</h1>
+      <p class="text-muted mb-0">{{assessment.project_name}} — Add, remove, or update assessment controls</p>
+    </div>
+    <div>
+      <span class="badge bg-primary fs-6" id="currentCount">{{currentCount}} controls</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item">
+      <a class="nav-link active" data-bs-toggle="tab" href="#tab-current">
+        <i class="bi bi-list-check me-1"></i>Current Controls <span class="badge bg-primary ms-1">{{currentCount}}</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-bs-toggle="tab" href="#tab-add">
+        <i class="bi bi-plus-circle me-1"></i>Add Controls <span class="badge bg-secondary ms-1">{{availableCount}}</span>
+      </a>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- ═══ CURRENT CONTROLS TAB ═══ -->
+    <div class="tab-pane fade show active" id="tab-current">
+      <div class="alert alert-info small mb-3">
+        <i class="bi bi-info-circle me-1"></i>
+        These controls are currently in this assessment. You can remove controls or update their tailored descriptions and evidence guidance.
+        {{#eq assessment.status "draft"}}
+        Changes can be made freely while the assessment is in <strong>Draft</strong> status.
+        {{/eq}}
+      </div>
+
+      {{#each currentFamilies}}
+      <div class="form-section mb-3">
+        <div class="section-header d-flex justify-content-between align-items-center">
+          <h5 class="section-title mb-0">
+            <span class="section-number">{{this.code}}</span> {{this.name}}
+            <span class="badge bg-light text-dark ms-2">{{this.controls.length}}</span>
+          </h5>
+        </div>
+
+        {{#each this.controls}}
+        <div class="control-card position-relative" id="current-{{this.control_id}}">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="d-flex align-items-center gap-2">
+              <span class="control-id">{{this.control_id}}</span>
+              <span class="control-title">{{this.title}}</span>
+            </div>
+            <div class="d-flex gap-1 align-items-center">
+              <span class="badge bg-secondary">{{this.priority}}</span>
+              {{#if this.is_inherited}}<span class="badge bg-info">Inherited</span>{{/if}}
+              <form method="POST" action="/admin/assessments/{{../../assessment.id}}/remove-control/{{this.id}}"
+                class="d-inline ms-2" onsubmit="return confirm('Remove {{this.control_id}} — {{this.title}}?')">
+                <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="Remove from assessment">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <p class="control-desc mb-2 small">{{this.description}}</p>
+
+          <!-- Inline edit -->
+          <div class="collapse" id="edit-{{this.id}}">
+            <form method="POST" action="/admin/assessments/{{../../assessment.id}}/update-control/{{this.id}}">
+              <div class="row g-2 mt-1">
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Tailored Description</label>
+                  <textarea class="form-control form-control-sm" name="tailored_description" rows="3"
+                    placeholder="Project-specific description...">{{this.tailored_description}}</textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Evidence Guidance</label>
+                  <textarea class="form-control form-control-sm" name="evidence_guidance" rows="3"
+                    placeholder="What evidence should be provided...">{{this.evidence_guidance}}</textarea>
+                </div>
+              </div>
+              <div class="row g-2 mt-1">
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold">Applicability</label>
+                  <select class="form-select form-select-sm" name="is_applicable">
+                    <option value="1" {{#if this.is_applicable}}selected{{/if}}>In Scope</option>
+                    <option value="0" {{#unless this.is_applicable}}selected{{/unless}}>Out of Scope</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold">Inherited</label>
+                  <select class="form-select form-select-sm" name="is_inherited">
+                    <option value="0" {{#unless this.is_inherited}}selected{{/unless}}>No</option>
+                    <option value="1" {{#if this.is_inherited}}selected{{/if}}>Yes</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold">Inherited From</label>
+                  <input type="text" class="form-control form-control-sm" name="inherited_from"
+                    value="{{this.inherited_from}}" placeholder="e.g. Azure, SSC">
+                </div>
+              </div>
+              <div class="mt-2">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save me-1"></i>Save Changes</button>
+              </div>
+            </form>
+          </div>
+
+          <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 mt-1"
+            data-bs-toggle="collapse" data-bs-target="#edit-{{this.id}}">
+            <i class="bi bi-pencil-square me-1"></i>Edit
+          </button>
+        </div>
+        {{/each}}
+      </div>
+      {{/each}}
+
+      {{#unless currentFamilies}}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-inbox" style="font-size:3rem"></i>
+          <p class="mt-2">No controls in this assessment yet. Use the <strong>Add Controls</strong> tab to add from the ITSG-33 catalog.</p>
+        </div>
+      {{/unless}}
+    </div>
+
+    <!-- ═══ ADD CONTROLS TAB ═══ -->
+    <div class="tab-pane fade" id="tab-add">
+      <div class="alert alert-info small mb-3">
+        <i class="bi bi-info-circle me-1"></i>
+        Select controls from the full ITSG-33 catalog to add to this assessment. Controls already included are shown as disabled.
+      </div>
+
+      <form method="POST" action="/admin/assessments/{{assessment.id}}/add-controls" id="addControlsForm">
+        <!-- Sticky toolbar -->
+        <div class="progress-sticky">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <span class="fw-semibold" id="addCount">0</span> controls selected to add
+            </div>
+            <div class="d-flex gap-2">
+              <input type="text" class="form-control form-control-sm" id="controlSearch"
+                placeholder="Filter by ID or keyword..." style="max-width:220px" oninput="filterControls(this.value)">
+              <select class="form-select form-select-sm" id="familyFilter" style="max-width:160px" onchange="filterByFamily(this.value)">
+                <option value="">All Families</option>
+                {{#each allFamilies}}
+                  <option value="{{this.code}}">{{this.code}} — {{this.name}}</option>
+                {{/each}}
+              </select>
+              <button type="submit" class="btn btn-primary btn-sm" id="addBtn" disabled>
+                <i class="bi bi-plus-circle me-1"></i>Add Selected
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {{#each allFamilies}}
+        <div class="form-section mb-3 family-section" data-family="{{this.code}}">
+          <div class="section-header">
+            <h5 class="section-title mb-0">
+              <span class="section-number">{{this.code}}</span> {{this.name}}
+              <span class="badge bg-light text-dark ms-2">{{this.controls.length}}</span>
+            </h5>
+          </div>
+
+          {{#each this.controls}}
+          <div class="control-card control-catalog-item {{#if this.alreadyAdded}}bg-light{{/if}}" 
+            data-id="{{this.id}}" data-family="{{this.family}}" data-search="{{this.id}} {{this.title}} {{this.description}}">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="d-flex align-items-center gap-2">
+                <input type="checkbox" class="form-check-input add-toggle" name="add_control_ids"
+                  value="{{this.id}}" id="add-{{this.id}}"
+                  {{#if this.alreadyAdded}}disabled checked{{/if}}
+                  onchange="updateAddCount()">
+                <label for="add-{{this.id}}" class="control-id mb-0 {{#if this.alreadyAdded}}text-muted{{/if}}">
+                  {{this.id}}
+                </label>
+                <span class="control-title {{#if this.alreadyAdded}}text-muted{{/if}}">{{this.title}}</span>
+              </div>
+              <div class="d-flex gap-1">
+                <span class="badge bg-secondary">{{this.priority}}</span>
+                {{#if this.alreadyAdded}}
+                  <span class="badge bg-success"><i class="bi bi-check me-1"></i>Added</span>
+                {{/if}}
+              </div>
+            </div>
+            <p class="control-desc mb-0 small {{#if this.alreadyAdded}}text-muted{{/if}}">{{this.description}}</p>
+          </div>
+          {{/each}}
+        </div>
+        {{/each}}
+
+        <div class="text-center mt-3 mb-5">
+          <button type="submit" class="btn btn-primary" id="addBtnBottom" disabled>
+            <i class="bi bi-plus-circle me-1"></i>Add Selected Controls
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function updateAddCount() {
+  const checked = document.querySelectorAll('.add-toggle:checked:not(:disabled)').length;
+  document.getElementById('addCount').textContent = checked;
+  document.getElementById('addBtn').disabled = checked === 0;
+  document.getElementById('addBtnBottom').disabled = checked === 0;
+}
+
+function filterControls(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('.control-catalog-item').forEach(el => {
+    const text = el.dataset.search.toLowerCase();
+    el.style.display = text.includes(q) ? '' : 'none';
+  });
+}
+
+function filterByFamily(family) {
+  document.querySelectorAll('.family-section').forEach(el => {
+    el.style.display = (!family || el.dataset.family === family) ? '' : 'none';
+  });
+}
+</script>

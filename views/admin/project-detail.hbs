@@ -5,15 +5,20 @@
       <h1 class="mb-0">{{project.name}}</h1>
       <p class="text-muted mb-0">Project Details & Assessments</p>
     </div>
-    <a href="/admin/projects/{{project.id}}/assessments/new" class="btn btn-primary">
-      <i class="bi bi-plus-lg me-1"></i>New Assessment
-    </a>
-    <form action="/admin/projects/{{project.id}}/delete" method="POST" class="d-inline ms-2"
-      onsubmit="return confirm('Delete this project and all its draft assessments? This cannot be undone.')">
-      <button type="submit" class="btn btn-outline-danger">
-        <i class="bi bi-trash me-1"></i>Delete Project
-      </button>
-    </form>
+    <div class="d-flex gap-2">
+      <a href="/admin/projects/{{project.id}}/guidance" class="btn btn-outline-success">
+        <i class="bi bi-file-text me-1"></i>Web Guidance
+      </a>
+      <a href="/admin/projects/{{project.id}}/assessments/new" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>New Assessment
+      </a>
+      <form action="/admin/projects/{{project.id}}/delete" method="POST" class="d-inline"
+        onsubmit="return confirm('Delete this project and all its draft assessments? This cannot be undone.')">
+        <button type="submit" class="btn btn-outline-danger">
+          <i class="bi bi-trash me-1"></i>Delete Project
+        </button>
+      </form>
+    </div>
   </div>
 
   <div class="row g-4">

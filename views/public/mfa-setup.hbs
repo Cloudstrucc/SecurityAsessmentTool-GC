@@ -1,0 +1,46 @@
+<div class="container py-5" style="max-width:520px;">
+  <div class="text-center mb-4">
+    <div style="width:56px;height:56px;border-radius:14px;background:var(--cs-warning);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+      <i class="bi bi-shield-lock text-white" style="font-size:1.5rem;"></i>
+    </div>
+    <h3>Set Up Multi-Factor Authentication</h3>
+    <p class="text-muted">MFA is required to access the intake portal. Scan the QR code below with your authenticator app.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-body p-4">
+      <div class="alert alert-info small">
+        <i class="bi bi-info-circle me-1"></i>
+        Use an authenticator app such as <strong>Microsoft Authenticator</strong>, <strong>Google Authenticator</strong>, or <strong>Authy</strong>.
+      </div>
+
+      <div class="text-center mb-4">
+        <p class="fw-bold small text-muted mb-2">Step 1: Scan this QR code</p>
+        <div class="p-3 bg-white d-inline-block rounded border">
+          <img src="{{qrCodeUrl}}" alt="MFA QR Code" style="width:200px;height:200px;">
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <p class="fw-bold small text-muted mb-1">Can't scan? Enter this key manually:</p>
+        <div class="bg-light p-2 rounded text-center" style="font-family:'Courier New',monospace;font-size:0.9rem;letter-spacing:2px;word-break:break-all;">
+          {{secret}}
+        </div>
+      </div>
+
+      <form method="POST" action="/client/mfa-setup">
+        <input type="hidden" name="userId" value="{{userId}}">
+        <div class="mb-3">
+          <label class="form-label fw-bold">Step 2: Enter the 6-digit code from your app</label>
+          <input type="text" class="form-control form-control-lg text-center" name="token"
+            required maxlength="6" pattern="[0-9]{6}" placeholder="000000"
+            style="letter-spacing:6px;font-family:'Courier New',monospace;font-weight:700;font-size:1.5rem;"
+            autocomplete="one-time-code" inputmode="numeric">
+        </div>
+        <button type="submit" class="btn btn-primary w-100 py-2">
+          <i class="bi bi-check-circle me-2"></i>Verify & Activate MFA
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,514 @@
+<div class="container py-4" style="max-width: 900px;">
+
+  <!-- Header -->
+  <div class="text-center mb-4">
+    <div style="width:64px;height:64px;border-radius:16px;background:var(--cs-accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+      <i class="bi bi-clipboard2-data text-white" style="font-size:1.75rem;"></i>
+    </div>
+    <h2>Security Assessment Intake</h2>
+    <p class="text-muted">Provide details about your project so our security assessment team can prepare a tailored ITSG-33 control set. All fields marked <span class="text-danger">*</span> are required.</p>
+  </div>
+
+  {{#if success}}
+  <div class="alert alert-success">
+    <i class="bi bi-check-circle me-2"></i>
+    <strong>Intake submitted successfully!</strong> Your submission reference is <strong>{{refCode}}</strong>. Our assessment team will review your submission and reach out to the project owner within 3–5 business days.
+  </div>
+  {{else}}
+
+  <form method="POST" action="/intake" enctype="multipart/form-data" id="intakeForm">
+
+    <!-- ─── Section 1: Project Information ─── -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">1</span> Project Information</h4>
+        <p class="section-description">Tell us about your project or system that requires a security assessment.</p>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="projectName">Project / System Name <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="projectName" name="projectName" required placeholder="e.g. HR Case Management Portal">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="projectDescription">Project Description <span class="text-danger">*</span></label>
+        <textarea class="form-control" id="projectDescription" name="projectDescription" rows="4" required placeholder="Describe the purpose, scope, and key features of the system..."></textarea>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label" for="department">Department / Agency <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="department" name="department" required placeholder="e.g. Employment and Social Development Canada">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="branch">Branch / Directorate</label>
+          <input type="text" class="form-control" id="branch" name="branch" placeholder="e.g. Innovation, Information and Technology Branch">
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label" for="targetDate">Target Go-Live Date</label>
+          <input type="date" class="form-control" id="targetDate" name="targetDate">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="userCount">Estimated User Count</label>
+          <select class="form-select" id="userCount" name="userCount">
+            <option value="">Select...</option>
+            <option value="1-50">1 – 50</option>
+            <option value="51-500">51 – 500</option>
+            <option value="501-5000">501 – 5,000</option>
+            <option value="5001+">5,000+</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="appType">Application Accessibility <span class="text-danger">*</span></label>
+          <select class="form-select" id="appType" name="appType" required>
+            <option value="">Select...</option>
+            <option value="internal">Internal Only (GC network)</option>
+            <option value="external">External / Public-Facing</option>
+            <option value="hybrid">Hybrid (both internal & external)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Section 2: Data Sensitivity & Classification ─── -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">2</span> Data Sensitivity & Classification</h4>
+        <p class="section-description">Identify the types of sensitive data your system will process, store, or transmit. Check all that apply.</p>
+      </div>
+
+      <!-- Info callout with definitions -->
+      <div class="alert alert-info mb-4" style="font-size:0.9rem;">
+        <h6 class="fw-bold mb-2"><i class="bi bi-info-circle me-1"></i> GC Data Classification Definitions</h6>
+        <div class="mb-2">
+          <strong>Protected A</strong> — Information that, if compromised, could cause <em>limited or minor</em> injury to an individual, organization, or government. Examples: employee performance reviews, internal memos with low-sensitivity advice.
+        </div>
+        <div class="mb-2">
+          <strong>Protected B</strong> — Information that, if compromised, could cause <em>serious</em> injury. This includes most personal information collected by the GC. Examples: Social Insurance Numbers (SIN), medical records, tax information, immigration files, financial records.
+        </div>
+        <div>
+          <strong>Personal Information (PII)</strong> — Any recorded information about an identifiable individual as defined by the <em>Privacy Act</em>: name, address, date of birth, SIN, biometric data, medical records, employment history, financial information, opinions or views about the individual, etc.
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="dataClassification">Data Classification Level <span class="text-danger">*</span></label>
+        <select class="form-select" id="dataClassification" name="dataClassification" required>
+          <option value="">Select the highest classification level...</option>
+          <option value="unclassified">Unclassified</option>
+          <option value="protected-a">Protected A</option>
+          <option value="protected-b" selected>Protected B</option>
+        </select>
+      </div>
+
+      <!-- PII Checklist -->
+      <div class="mb-3">
+        <label class="form-label fw-bold">Personal Information (PII) Checklist</label>
+        <p class="text-muted small mb-2">Does your system collect, process, store, or transmit any of the following? Check all that apply.</p>
+
+        <div class="row g-2">
+          <div class="col-md-6">
+            <div class="form-check p-3 rounded border bg-white mb-1">
+              <input class="form-check-input" type="checkbox" name="piiTypes" value="name-address" id="pii-name">
+              <label class="form-check-label" for="pii-name">
+                <strong>Name, address, or contact info</strong>
+                <small class="d-block text-muted">Full name, home/work address, phone, email</small>
+              </label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check p-3 rounded border bg-white mb-1">
+              <input class="form-check-input" type="checkbox" name="piiTypes" value="sin" id="pii-sin">
+              <label class="form-check-label" for="pii-sin">
+                <strong>Social Insurance Number (SIN)</strong>
+                <small class="d-block text-muted">SIN or business number</small>
+              </label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check p-3 rounded border bg-white mb-1">
+              <input class="form-check-input" type="checkbox" name="piiTypes" value="financial" id="pii-financial">
+              <label class="form-check-label" for="pii-financial">
+                <strong>Financial information</strong>
+                <small class="d-block text-muted">Bank accounts, tax records, pay info, CRA data</small>
+              </label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check p-3 rounded border bg-white mb-1">
+              <input class="form-check-input" type="checkbox" name="piiTypes" value="health" id="pii-health">
+              <label class="form-check-label" for="pii-health">
+                <strong>Health / Medical records</strong>
+                <small class="d-block text-muted">Medical history, disability, mental health info</small>
+              </label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check p-3 rounded border bg-white mb-1">
+              <input class="form-check-input" type="checkbox" name="piiTypes" value="biometric" id="pii-bio">
+              <label class="form-check-label" for="pii-bio">
+                <strong>Biometric data</strong>
+                <small class="d-block text-muted">Fingerprints, facial recognition, voice prints</small>
+              </label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check p-3 rounded border bg-white mb-1">
+              <input class="form-check-input" type="checkbox" name="piiTypes" value="employment" id="pii-emp">
+              <label class="form-check-label" for="pii-emp">
+                <strong>Employment / HR records</strong>
+                <small class="d-block text-muted">Performance reviews, staffing actions, leave, grievances</small>
+              </label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check p-3 rounded border bg-white mb-1">
+              <input class="form-check-input" type="checkbox" name="piiTypes" value="immigration" id="pii-imm">
+              <label class="form-check-label" for="pii-imm">
+                <strong>Immigration / Citizenship data</strong>
+                <small class="d-block text-muted">Visa applications, travel documents, citizenship status</small>
+              </label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check p-3 rounded border bg-white mb-1">
+              <input class="form-check-input" type="checkbox" name="piiTypes" value="law-enforcement" id="pii-law">
+              <label class="form-check-label" for="pii-law">
+                <strong>Law enforcement / Criminal records</strong>
+                <small class="d-block text-muted">Case files, criminal history, investigations</small>
+              </label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check p-3 rounded border bg-white mb-1">
+              <input class="form-check-input" type="checkbox" name="piiTypes" value="indigenous" id="pii-indig">
+              <label class="form-check-label" for="pii-indig">
+                <strong>Indigenous / Treaty data</strong>
+                <small class="d-block text-muted">Band membership, treaty info, land claims</small>
+              </label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check p-3 rounded border bg-white mb-1">
+              <input class="form-check-input" type="checkbox" name="piiTypes" value="none" id="pii-none">
+              <label class="form-check-label" for="pii-none">
+                <strong>None of the above</strong>
+                <small class="d-block text-muted">No personal information is collected or stored</small>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional data sensitivity questions -->
+      <div class="row g-3 mt-2">
+        <div class="col-md-6">
+          <label class="form-label">Does the system process data subject to <strong>ATIP</strong> requests?</label>
+          <select class="form-select" name="atipSubject">
+            <option value="">Select...</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="unsure">Unsure</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Has a <strong>Privacy Impact Assessment (PIA)</strong> been completed?</label>
+          <select class="form-select" name="piaCompleted">
+            <option value="">Select...</option>
+            <option value="yes">Yes — completed</option>
+            <option value="in-progress">In progress</option>
+            <option value="no">No — not started</option>
+            <option value="not-required">Not required</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Section 3: Hosting & Technology ─── -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">3</span> Hosting & Technology Stack</h4>
+        <p class="section-description">Where will the system be hosted, and which technologies are planned or already in use?</p>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label" for="hostingType">Primary Hosting Environment <span class="text-danger">*</span></label>
+          <select class="form-select" id="hostingType" name="hostingType" required>
+            <option value="">Select...</option>
+            <option value="azure">Microsoft Azure</option>
+            <option value="aws">Amazon Web Services (AWS)</option>
+            <option value="gcp">Google Cloud Platform</option>
+            <option value="ssc">SSC Data Centre (On-Premises)</option>
+            <option value="hybrid">Hybrid (Cloud + On-Premises)</option>
+            <option value="saas">SaaS (Third-Party Hosted)</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="hostingRegion">Data Residency</label>
+          <select class="form-select" id="hostingRegion" name="hostingRegion">
+            <option value="">Select...</option>
+            <option value="canada-only" selected>Canada Only</option>
+            <option value="canada-primary">Canada Primary (some US failover)</option>
+            <option value="north-america">North America</option>
+            <option value="global">Global</option>
+            <option value="unsure">Unsure</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-bold">Technology Stack</label>
+        <p class="text-muted small mb-2">Check all technologies that are part of this implementation.</p>
+
+        <h6 class="text-muted small text-uppercase mt-3 mb-2">Identity & Access</h6>
+        <div class="row g-2">
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="entra-id" id="tech-entra"><label class="form-check-label" for="tech-entra">Microsoft Entra ID (Azure AD)</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="active-directory" id="tech-ad"><label class="form-check-label" for="tech-ad">Active Directory (On-Prem)</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="mfa" id="tech-mfa"><label class="form-check-label" for="tech-mfa">Multi-Factor Authentication</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="pim" id="tech-pim"><label class="form-check-label" for="tech-pim">Privileged Identity Management</label></div></div>
+        </div>
+
+        <h6 class="text-muted small text-uppercase mt-3 mb-2">Cloud & Infrastructure</h6>
+        <div class="row g-2">
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="azure" id="tech-azure"><label class="form-check-label" for="tech-azure">Microsoft Azure</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="aws" id="tech-aws"><label class="form-check-label" for="tech-aws">Amazon Web Services</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gcp" id="tech-gcp"><label class="form-check-label" for="tech-gcp">Google Cloud Platform</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="ssc-dc" id="tech-ssc"><label class="form-check-label" for="tech-ssc">SSC Data Centre</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gc-network" id="tech-gcnet"><label class="form-check-label" for="tech-gcnet">GC Network (GCNet)</label></div></div>
+        </div>
+
+        <h6 class="text-muted small text-uppercase mt-3 mb-2">Security & Monitoring</h6>
+        <div class="row g-2">
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="siem-sentinel" id="tech-sentinel"><label class="form-check-label" for="tech-sentinel">Microsoft Sentinel (SIEM)</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="siem-splunk" id="tech-splunk"><label class="form-check-label" for="tech-splunk">Splunk (SIEM)</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="defender" id="tech-defender"><label class="form-check-label" for="tech-defender">Microsoft Defender</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="crowdstrike" id="tech-cs"><label class="form-check-label" for="tech-cs">CrowdStrike Falcon</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gc-cse" id="tech-cse"><label class="form-check-label" for="tech-cse">CSE / CCCS Services</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="waf" id="tech-waf"><label class="form-check-label" for="tech-waf">Web Application Firewall</label></div></div>
+        </div>
+
+        <h6 class="text-muted small text-uppercase mt-3 mb-2">DevOps, Encryption & Management</h6>
+        <div class="row g-2">
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="azure-devops" id="tech-ado"><label class="form-check-label" for="tech-ado">Azure DevOps</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="github" id="tech-gh"><label class="form-check-label" for="tech-gh">GitHub Enterprise</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="intune" id="tech-intune"><label class="form-check-label" for="tech-intune">Microsoft Intune (MDM)</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="key-vault" id="tech-kv"><label class="form-check-label" for="tech-kv">Azure Key Vault</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="aws-kms" id="tech-kms"><label class="form-check-label" for="tech-kms">AWS KMS</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="ssl-tls" id="tech-tls"><label class="form-check-label" for="tech-tls">TLS 1.2 / 1.3</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="backup-azure" id="tech-backup"><label class="form-check-label" for="tech-backup">Azure Backup</label></div></div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="otherTech">Other Technologies / Notes</label>
+        <textarea class="form-control" id="otherTech" name="otherTech" rows="2" placeholder="List any technologies not covered above (e.g. Oracle DB, SAP, Dynamics 365, Power Platform, etc.)"></textarea>
+      </div>
+    </div>
+
+    <!-- ─── Section 4: System Architecture & Integrations ─── -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">4</span> Architecture & Integrations</h4>
+        <p class="section-description">Help us understand how the system connects to other systems and the internet.</p>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Does the system expose or consume <strong>APIs</strong>?</label>
+          <select class="form-select" name="hasAPIs">
+            <option value="">Select...</option>
+            <option value="exposes">Yes — exposes APIs</option>
+            <option value="consumes">Yes — consumes external APIs</option>
+            <option value="both">Yes — both</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Does the system connect to other <strong>GC systems</strong>?</label>
+          <select class="form-select" name="gcInterconnections">
+            <option value="">Select...</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="planned">Planned</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="interconnections">List Known Interconnections / Integrations</label>
+        <textarea class="form-control" id="interconnections" name="interconnections" rows="3" placeholder="e.g. GCcase (via API), SAP (file transfer), GCDOCS (document storage), Canada.ca (public portal)..."></textarea>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Will the system support <strong>mobile / BYOD</strong> access?</label>
+          <select class="form-select" name="mobileAccess">
+            <option value="">Select...</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="planned">Planned for future</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Will <strong>external users</strong> (non-GC) access the system?</label>
+          <select class="form-select" name="externalUsers">
+            <option value="">Select...</option>
+            <option value="yes">Yes — public or partner access</option>
+            <option value="no">No — GC employees only</option>
+            <option value="contractors">Contractors / consultants only</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Section 5: Existing Security Posture ─── -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">5</span> Existing Security Posture</h4>
+        <p class="section-description">Let us know what security work has already been completed.</p>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-bold">Completed Security Activities</label>
+        <p class="text-muted small mb-2">Check all that have been completed or are in progress.</p>
+        <div class="row g-2">
+          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="tra" id="act-tra"><label class="form-check-label" for="act-tra"><strong>Threat & Risk Assessment (TRA)</strong></label></div></div>
+          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="pia" id="act-pia"><label class="form-check-label" for="act-pia"><strong>Privacy Impact Assessment (PIA)</strong></label></div></div>
+          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="ssp" id="act-ssp"><label class="form-check-label" for="act-ssp"><strong>System Security Plan (SSP)</strong></label></div></div>
+          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="vapt" id="act-vapt"><label class="form-check-label" for="act-vapt"><strong>Vulnerability Assessment / Pen Test</strong></label></div></div>
+          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="network-diagram" id="act-nd"><label class="form-check-label" for="act-nd"><strong>Network / Architecture Diagram</strong></label></div></div>
+          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="previous-sa" id="act-sa"><label class="form-check-label" for="act-sa"><strong>Previous SA&A / ATO</strong></label></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Section 6: Key Contacts ─── -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">6</span> Key Contacts</h4>
+        <p class="section-description">Provide contact details for the people involved in this assessment.</p>
+      </div>
+
+      <h6 class="fw-bold mb-2">Project Owner / Submitter <span class="text-danger">*</span></h6>
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <input type="text" class="form-control" name="ownerName" required placeholder="Full name">
+        </div>
+        <div class="col-md-4">
+          <input type="email" class="form-control" name="ownerEmail" required placeholder="Email address">
+        </div>
+        <div class="col-md-4">
+          <input type="text" class="form-control" name="ownerTitle" placeholder="Title / Role">
+        </div>
+      </div>
+
+      <h6 class="fw-bold mb-2">Technical Lead</h6>
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <input type="text" class="form-control" name="techLeadName" placeholder="Full name">
+        </div>
+        <div class="col-md-4">
+          <input type="email" class="form-control" name="techLeadEmail" placeholder="Email address">
+        </div>
+        <div class="col-md-4">
+          <input type="text" class="form-control" name="techLeadTitle" placeholder="Title / Role">
+        </div>
+      </div>
+
+      <h6 class="fw-bold mb-2">Authorizing Official (DG / Director)</h6>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <input type="text" class="form-control" name="authorityName" placeholder="Full name">
+        </div>
+        <div class="col-md-4">
+          <input type="email" class="form-control" name="authorityEmail" placeholder="Email address">
+        </div>
+        <div class="col-md-4">
+          <input type="text" class="form-control" name="authorityTitle" placeholder="Title / Role">
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Section 7: Attachments ─── -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">7</span> Supporting Documents</h4>
+        <p class="section-description">Upload any existing documentation that will help our assessment team. Accepted formats: PDF, Word, Excel, PowerPoint, images, Visio. Max 25 MB per file.</p>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Attachments</label>
+        <input type="file" class="form-control" name="attachments" id="attachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.pptx,.ppt,.png,.jpg,.jpeg,.gif,.vsdx,.vsd,.txt,.md,.csv">
+        <small class="text-muted">You can select multiple files. Examples: architecture diagrams, TRA reports, SSP documents, network diagrams, previous ATO letters.</small>
+      </div>
+
+      <div id="fileList" class="mb-3" style="display:none;">
+        <label class="form-label fw-bold small text-muted">Selected files:</label>
+        <div id="fileListContent"></div>
+      </div>
+    </div>
+
+    <!-- ─── Section 8: Additional Context ─── -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">8</span> Additional Context</h4>
+        <p class="section-description">Any other information that would help us prepare your assessment.</p>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="additionalNotes">Notes / Questions / Special Considerations</label>
+        <textarea class="form-control" id="additionalNotes" name="additionalNotes" rows="4" placeholder="e.g. tight deadline, need iATO first, migrating from legacy system, specific compliance requirements..."></textarea>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-5">
+      <a href="/" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Back</a>
+      <button type="submit" class="btn btn-primary btn-lg px-5" id="submitBtn">
+        <i class="bi bi-send me-2"></i>Submit Intake
+      </button>
+    </div>
+  </form>
+
+  <script>
+    // File list preview
+    document.getElementById('attachments').addEventListener('change', function() {
+      const list = document.getElementById('fileList');
+      const content = document.getElementById('fileListContent');
+      if (this.files.length > 0) {
+        list.style.display = 'block';
+        content.innerHTML = Array.from(this.files).map(f =>
+          '<div class="d-flex align-items-center gap-2 py-1"><i class="bi bi-file-earmark text-muted"></i><span class="small">' + f.name + '</span><span class="badge bg-light text-muted">' + (f.size / 1024 / 1024).toFixed(2) + ' MB</span></div>'
+        ).join('');
+      } else {
+        list.style.display = 'none';
+      }
+    });
+
+    // "None of the above" exclusive toggle
+    document.getElementById('pii-none').addEventListener('change', function() {
+      if (this.checked) {
+        document.querySelectorAll('input[name="piiTypes"]:not(#pii-none)').forEach(cb => cb.checked = false);
+      }
+    });
+    document.querySelectorAll('input[name="piiTypes"]:not(#pii-none)').forEach(cb => {
+      cb.addEventListener('change', function() {
+        if (this.checked) document.getElementById('pii-none').checked = false;
+      });
+    });
+
+    // Submit protection
+    document.getElementById('intakeForm').addEventListener('submit', function() {
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
+    });
+  </script>
+
+  {{/if}}
+</div>

@@ -1,0 +1,55 @@
+<div class="container py-5" style="max-width:520px;">
+  <div class="text-center mb-4">
+    <div style="width:56px;height:56px;border-radius:14px;background:var(--cs-accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+      <i class="bi bi-box-arrow-in-right text-white" style="font-size:1.5rem;"></i>
+    </div>
+    <h3>Client Sign In</h3>
+    <p class="text-muted">Sign in to submit or view your security assessment intakes.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-body p-4">
+
+      {{#unless mfaStep}}
+      <!-- Step 1: Email + Password -->
+      <form method="POST" action="/client/login">
+        <div class="mb-3">
+          <label class="form-label" for="email">Email Address</label>
+          <input type="email" class="form-control" id="email" name="email" required placeholder="your.name@agency.gc.ca" autofocus>
+        </div>
+        <div class="mb-4">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 py-2">
+          <i class="bi bi-arrow-right me-2"></i>Continue
+        </button>
+      </form>
+      {{else}}
+      <!-- Step 2: MFA Code -->
+      <div class="alert alert-info small mb-3">
+        <i class="bi bi-shield-lock me-1"></i>
+        Enter the 6-digit code from your authenticator app.
+      </div>
+      <form method="POST" action="/client/login/mfa">
+        <input type="hidden" name="userId" value="{{userId}}">
+        <div class="mb-4">
+          <label class="form-label fw-bold">Authentication Code</label>
+          <input type="text" class="form-control form-control-lg text-center" name="token"
+            required maxlength="6" pattern="[0-9]{6}" placeholder="000000"
+            style="letter-spacing:6px;font-family:'Courier New',monospace;font-weight:700;font-size:1.5rem;"
+            autocomplete="one-time-code" inputmode="numeric" autofocus>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 py-2">
+          <i class="bi bi-check-circle me-2"></i>Verify & Sign In
+        </button>
+      </form>
+      {{/unless}}
+    </div>
+  </div>
+
+  <div class="text-center mt-3">
+    <span class="text-muted">Don't have an account?</span>
+    <a href="/client/register">Register here</a>
+  </div>
+</div>
