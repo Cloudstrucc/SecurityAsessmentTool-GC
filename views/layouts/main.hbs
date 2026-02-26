@@ -1,228 +1,294 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="no-js" lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{#if title}}{{title}} | {{/if}}GC SA&A Portal</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{#if title}}{{title}} - {{/if}}GC SA&amp;A Portal - Canada.ca</title>
+  <meta name="description" content="Government of Canada Security Assessment &amp; Authorization Tool — ITSG-33">
+  <meta name="dcterms.title" content="GC SA&amp;A Portal">
+  <meta name="dcterms.language" title="ISO639-2/T" content="eng">
+  <meta name="dcterms.creator" content="Government of Canada">
+  <meta name="theme-color" content="#26374a">
+
+  <!-- GCWeb: Noto Sans + Lato (Canada.ca standard fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 + Icons (app internals) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Raleway:wght@500;600;700&display=swap" rel="stylesheet">
+
   <style>
+    /* ═══ Canada.ca / GCWeb Design System — SA&A Tool ═══════════════════════ */
     :root {
-      --cs-primary: #26374a;
-      --cs-secondary: #335075;
-      --cs-accent: #2572b4;
-      --cs-accent-hover: #1a5a96;
-      --cs-light: #f8f9fa;
-      --cs-dark: #26374a;
-      --cs-success: #278400;
-      --cs-warning: #ee7100;
-      --cs-danger: #d3080c;
-      --cs-border: #dcdee1;
-      --cs-text: #333;
-      --cs-text-muted: #6c757d;
-      --cs-gc-red: #af3c43;
+      --gc-nav:#26374a; --gc-nav-hover:#1c2c3d;
+      --gc-link:#2b4380; --gc-link-hover:#0535d2; --gc-visited:#7834bc;
+      --gc-blue:#26374a; --gc-red:#af3c43;
+      --gc-white:#fff; --gc-light:#f8f8f8; --gc-border:#dcdee1;
+      --gc-text:#333; --gc-muted:#595959;
+      --gc-success:#278400; --gc-warning:#ee7100; --gc-danger:#d3080c; --gc-info:#269abc;
+      --gc-accent:#2572b4; --gc-accent-dk:#1c578a;
     }
-    * { font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
-    h1,h2,h3,h4,h5,h6 { font-family: 'Raleway','Open Sans',sans-serif; font-weight: 600; }
-    body { background-color: #f5f7fa; color: var(--cs-text); min-height: 100vh; display: flex; flex-direction: column; }
-
-    /* GC-style top bar */
-    .gc-bar { background: var(--cs-primary); height: 4px; }
-
-    .navbar-sa {
-      background: #ffffff;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      padding: 0.75rem 0;
+    body {
+      font-family:'Noto Sans',sans-serif; font-size:1rem; line-height:1.65;
+      color:var(--gc-text); background:var(--gc-light); margin:0;
+      min-height:100vh; display:flex; flex-direction:column;
     }
-    .navbar-sa .navbar-brand {
-      font-family: 'Raleway',sans-serif; font-weight: 700; font-size: 1.4rem;
-      color: var(--cs-primary) !important; display: flex; align-items: center; gap: 0.5rem;
+    h1,h2,h3,h4,h5,h6 { font-family:'Lato','Noto Sans',sans-serif; font-weight:700; color:var(--gc-blue); line-height:1.2; }
+    a { color:var(--gc-link); }
+    a:hover { color:var(--gc-link-hover); }
+    a:focus { outline:3px solid #ffbf47; outline-offset:0; }
+
+    /* ── Skip links (WCAG 2.4.1) ── */
+    .gc-skip {
+      position:absolute; width:1px; height:1px; overflow:hidden;
+      clip:rect(0,0,0,0); white-space:nowrap;
     }
-    .navbar-sa .navbar-brand .brand-icon { color: var(--cs-gc-red); font-size: 1.5rem; }
-    .navbar-sa .nav-link { color: var(--cs-accent) !important; font-weight: 500; font-size: 0.9375rem; padding: 0.5rem 1rem !important; transition: color 0.2s; }
-    .navbar-sa .nav-link:hover { color: var(--cs-accent-hover) !important; }
-    .navbar-sa .nav-link.active { color: var(--cs-accent-hover) !important; font-weight: 600; border-bottom: 2px solid var(--cs-accent); }
-    .navbar-sa .dropdown-menu { border: 1px solid var(--cs-border); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    .navbar-sa .dropdown-item:hover { background: #f5f7fa; color: var(--cs-accent); }
+    .gc-skip:focus {
+      position:fixed; top:0; left:0; z-index:9999;
+      width:auto; height:auto; clip:auto;
+      padding:.75rem 1.5rem; background:#ffbf47; color:#000;
+      font-weight:700; text-decoration:none; outline:3px solid #000;
+    }
 
-    .main-content { flex: 1; padding: 2rem 0; }
+    /* ── GC FIP bar ── */
+    .gc-fip { background:var(--gc-nav); }
+    .gc-fip-inner { display:flex; align-items:center; justify-content:space-between; padding:.5rem 0; }
+    .gc-sig { display:flex; align-items:center; gap:.5rem; text-decoration:none; }
+    .gc-sig img { height:28px; filter:brightness(0) invert(1); }
+    .gc-lang a { color:#fff; font-size:.875rem; text-decoration:underline; }
 
-    .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden; }
-    .card-header { background: var(--cs-primary); color: white; font-weight: 600; padding: 1rem 1.5rem; border-bottom: none; }
-    .card-header.bg-light { background: var(--cs-light) !important; color: var(--cs-text); }
+    /* ── App bar ── */
+    .gc-app-bar { background:#fff; border-bottom:3px solid var(--gc-red); }
+    .gc-app-inner { display:flex; align-items:center; justify-content:space-between; padding:.5rem 0; flex-wrap:wrap; gap:.5rem; }
+    .gc-app-title {
+      font-family:'Lato',sans-serif; font-weight:700; font-size:1.2rem;
+      color:var(--gc-blue); text-decoration:none; display:flex; align-items:center; gap:.5rem;
+    }
+    .gc-app-title:hover,.gc-app-title:visited { color:var(--gc-blue); text-decoration:none; }
+    .gc-app-title .brand-icon { color:var(--gc-red); font-size:1.4rem; }
 
-    .btn-primary { background: var(--cs-accent); border-color: var(--cs-accent); font-weight: 500; padding: 0.5rem 1.25rem; border-radius: 6px; transition: all 0.2s; }
-    .btn-primary:hover,.btn-primary:focus { background: var(--cs-accent-hover); border-color: var(--cs-accent-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,114,180,0.3); }
-    .btn-outline-primary { color: var(--cs-accent); border-color: var(--cs-accent); }
-    .btn-outline-primary:hover { background: var(--cs-accent); border-color: var(--cs-accent); }
-    .btn-dark { background: var(--cs-primary); border-color: var(--cs-primary); }
+    .gc-app-nav { display:flex; align-items:center; gap:0; list-style:none; margin:0; padding:0; flex-wrap:wrap; }
+    .gc-app-nav li a, .gc-app-nav li > span {
+      display:block; padding:.5rem .75rem; font-size:.9rem; font-weight:500;
+      color:var(--gc-link); text-decoration:none; border-bottom:3px solid transparent;
+      transition:border-color .2s, background .2s;
+    }
+    .gc-app-nav li a:visited { color:var(--gc-link); }
+    .gc-app-nav li a:hover { background:#f5f5f5; border-bottom-color:var(--gc-accent); }
+    .gc-app-nav li a.active { border-bottom-color:var(--gc-red); font-weight:600; color:var(--gc-nav); }
+    .gc-app-nav .dropdown-menu { border:1px solid var(--gc-border); border-radius:4px; box-shadow:0 4px 12px rgba(0,0,0,.1); }
+    .gc-app-nav .dropdown-item:hover { background:#f5f5f5; }
 
-    .form-control,.form-select { border-radius: 6px; border: 1px solid var(--cs-border); padding: 0.625rem 1rem; transition: border-color 0.2s, box-shadow 0.2s; }
-    .form-control:focus,.form-select:focus { border-color: var(--cs-accent); box-shadow: 0 0 0 3px rgba(37,114,180,0.15); }
-    .form-label { font-weight: 500; color: var(--cs-text); margin-bottom: 0.375rem; }
+    .gc-menu-btn { display:none; background:none; border:1px solid var(--gc-border); border-radius:4px; padding:.3rem .6rem; cursor:pointer; font-size:1rem; color:var(--gc-text); }
+    @media(max-width:991px) {
+      .gc-menu-btn { display:block; }
+      .gc-app-nav { display:none; width:100%; flex-direction:column; }
+      .gc-app-nav.show { display:flex; }
+      .gc-app-nav li a { border-bottom:none; border-left:3px solid transparent; }
+      .gc-app-nav li a.active { border-left-color:var(--gc-red); border-bottom:none; }
+    }
+
+    /* ── Main ── */
+    .gc-main { flex:1; padding:1.5rem 0; }
+
+    /* ── GC Footer ── */
+    .gc-footer-main { background:var(--gc-nav); color:rgba(255,255,255,.8); padding:1.25rem 0; }
+    .gc-footer-main a { color:#9cb4d8; }
+    .gc-footer-main a:hover { color:#fff; }
+    .gc-footer-links { list-style:none; padding:0; margin:0 0 .75rem; display:flex; flex-wrap:wrap; gap:.25rem 1.5rem; }
+    .gc-footer-links a { font-size:.875rem; }
+    .gc-footer-sub { background:#eaebed; padding:.75rem 0; }
+    .gc-footer-sub-inner { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem; }
+    .gc-modified { font-size:.8125rem; color:var(--gc-muted); }
+    .gc-wmms { height:28px; }
+
+    /* ═══ App components ════════════════════════════════════════════════════ */
+    .card { border:1px solid var(--gc-border); border-radius:4px; box-shadow:0 1px 4px rgba(0,0,0,.04); }
+    .card-header { background:var(--gc-nav); color:#fff; font-weight:600; padding:.875rem 1.25rem; border-bottom:none; border-radius:0; }
+    .card-header.bg-light { background:var(--gc-light)!important; color:var(--gc-text); }
+
+    .btn-primary { background:var(--gc-accent); border-color:var(--gc-accent); font-weight:500; }
+    .btn-primary:hover,.btn-primary:focus { background:var(--gc-accent-dk); border-color:var(--gc-accent-dk); }
+    .btn-outline-primary { color:var(--gc-accent); border-color:var(--gc-accent); }
+    .btn-outline-primary:hover { background:var(--gc-accent); border-color:var(--gc-accent); }
+    .btn-dark { background:var(--gc-nav); border-color:var(--gc-nav); }
+
+    .form-control,.form-select { border-radius:4px; border:1px solid var(--gc-border); }
+    .form-control:focus,.form-select:focus { border-color:var(--gc-accent); box-shadow:0 0 0 3px rgba(37,114,180,.2); }
+    .form-label { font-weight:500; color:var(--gc-text); margin-bottom:.3rem; }
 
     .form-section {
-      background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06); border-left: 4px solid var(--cs-accent);
+      background:#fff; border-radius:4px; padding:1.5rem; margin-bottom:1.5rem;
+      border:1px solid var(--gc-border); border-left:4px solid var(--gc-accent);
     }
-    .section-header { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--cs-border); }
-    .section-title { display: flex; align-items: center; gap: 0.75rem; margin: 0; font-size: 1.25rem; }
-    .section-number {
-      background: var(--cs-accent); color: white; min-width: 32px; height: 32px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600;
-    }
-    .section-description { color: var(--cs-text-muted); margin-top: 0.5rem; font-size: 0.9375rem; }
+    .section-header { margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:1px solid var(--gc-border); }
+    .section-title { display:flex; align-items:center; gap:.75rem; margin:0; font-size:1.2rem; }
+    .section-number { background:var(--gc-accent); color:#fff; min-width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:600; }
+    .section-description { color:var(--gc-muted); margin-top:.5rem; font-size:.9375rem; }
 
-    .progress { height: 8px; border-radius: 4px; background: #e9ecef; }
-    .progress-bar { background: linear-gradient(90deg, var(--cs-accent) 0%, #00b4d8 100%); border-radius: 4px; }
+    .progress { height:8px; border-radius:4px; }
+    .progress-bar { background:linear-gradient(90deg,var(--gc-accent),var(--gc-info)); border-radius:4px; }
 
     .stat-card {
-      background: white; border-radius: 12px; padding: 1.5rem; text-align: center;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06); transition: transform 0.2s;
+      background:#fff; border-radius:4px; padding:1.25rem; text-align:center;
+      border:1px solid var(--gc-border); transition:box-shadow .2s;
     }
-    .stat-card:hover { transform: translateY(-2px); }
-    .stat-card .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 1rem; }
-    .stat-card .stat-number { font-size: 2rem; font-weight: 700; color: var(--cs-primary); line-height: 1; margin-bottom: 0.25rem; }
-    .stat-card .stat-label { font-size: 0.875rem; color: var(--cs-text-muted); }
+    .stat-card:hover { box-shadow:0 2px 8px rgba(0,0,0,.1); }
+    .stat-card .stat-icon { width:48px; height:48px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin:0 auto .75rem; }
+    .stat-card .stat-number { font-size:2rem; font-weight:700; color:var(--gc-nav); line-height:1; margin-bottom:.25rem; }
+    .stat-card .stat-label { font-size:.875rem; color:var(--gc-muted); }
 
-    .alert { border: none; border-radius: 8px; padding: 1rem 1.25rem; }
-    .alert-success { background: #d8eeca; color: #1e4d00; border-left: 4px solid var(--cs-success); }
-    .alert-danger { background: #f8d7da; color: #721c24; border-left: 4px solid var(--cs-danger); }
-    .alert-warning { background: #fff3cd; color: #856404; border-left: 4px solid var(--cs-warning); }
-    .alert-info { background: #e7f1fb; color: var(--cs-secondary); border-left: 4px solid var(--cs-accent); }
+    .alert { border:none; border-radius:4px; }
+    .alert-success { background:#d8eeca; color:#1e4d00; border-left:4px solid var(--gc-success); }
+    .alert-danger { background:#f8d7da; color:#721c24; border-left:4px solid var(--gc-danger); }
+    .alert-warning { background:#fff3cd; color:#856404; border-left:4px solid var(--gc-warning); }
+    .alert-info { background:#d7faff; color:#004d66; border-left:4px solid var(--gc-info); }
 
-    .table thead th { background: var(--cs-light); border-bottom: 2px solid var(--cs-border); font-weight: 600; font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cs-text-muted); }
-    .table td { vertical-align: middle; }
+    .table thead th { background:var(--gc-light); border-bottom:2px solid var(--gc-border); font-weight:600; font-size:.8125rem; text-transform:uppercase; letter-spacing:.5px; color:var(--gc-muted); }
+    .table td { vertical-align:middle; }
 
-    .badge { font-weight: 500; padding: 0.375rem 0.75rem; border-radius: 50px; }
-    .badge.bg-success { background: var(--cs-success) !important; }
-    .badge.bg-warning { background: var(--cs-warning) !important; color: #fff !important; }
-    .badge.bg-danger { background: var(--cs-danger) !important; }
-    .badge.bg-info { background: var(--cs-accent) !important; }
+    .badge { font-weight:500; padding:.35rem .65rem; border-radius:4px; }
+    .badge.bg-success { background:var(--gc-success)!important; }
+    .badge.bg-warning { background:var(--gc-warning)!important; color:#fff!important; }
+    .badge.bg-danger { background:var(--gc-danger)!important; }
+    .badge.bg-info { background:var(--gc-accent)!important; }
 
-    /* Control card */
-    .control-card {
-      background: white; border: 1px solid var(--cs-border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem;
-      transition: border-color 0.2s; position: relative;
-    }
-    .control-card:hover { border-color: var(--cs-accent); }
-    .control-card.inherited { border-left: 4px solid #17a2b8; background: #f0f9ff; }
-    .control-card .control-id { font-family: 'Courier New', monospace; font-weight: 700; color: var(--cs-primary); font-size: 0.9375rem; }
-    .control-card .control-title { font-weight: 600; margin-bottom: 0.25rem; }
-    .control-card .control-desc { font-size: 0.875rem; color: var(--cs-text-muted); }
+    .control-card { background:#fff; border:1px solid var(--gc-border); border-radius:4px; padding:1.25rem; margin-bottom:1rem; transition:border-color .2s; }
+    .control-card:hover { border-color:var(--gc-accent); }
+    .control-card.inherited { border-left:4px solid var(--gc-info); background:#f0f9ff; }
+    .control-card .control-id { font-family:monospace; font-weight:700; color:var(--gc-nav); }
+    .control-card .control-title { font-weight:600; margin-bottom:.25rem; }
+    .control-card .control-desc { font-size:.875rem; color:var(--gc-muted); }
 
-    /* Comment thread */
-    .comment-thread { max-height: 300px; overflow-y: auto; }
-    .comment-item { padding: 0.5rem; border-bottom: 1px solid #f0f0f0; font-size: 0.875rem; }
-    .comment-item:last-child { border-bottom: none; }
-    .comment-author { font-weight: 600; color: var(--cs-primary); }
-    .comment-time { font-size: 0.75rem; color: var(--cs-text-muted); }
+    .comment-thread { max-height:300px; overflow-y:auto; }
+    .comment-item { padding:.5rem; border-bottom:1px solid #f0f0f0; font-size:.875rem; }
+    .comment-item:last-child { border-bottom:none; }
+    .comment-author { font-weight:600; color:var(--gc-nav); }
+    .comment-time { font-size:.75rem; color:var(--gc-muted); }
 
-    /* Rich text editor area */
-    .evidence-editor {
-      min-height: 150px; border: 1px solid var(--cs-border); border-radius: 6px; padding: 1rem;
-      background: white; transition: border-color 0.2s;
-    }
-    .evidence-editor:focus { border-color: var(--cs-accent); outline: none; box-shadow: 0 0 0 3px rgba(37,114,180,0.15); }
-    .evidence-editor[contenteditable] { cursor: text; }
+    .evidence-editor { min-height:150px; border:1px solid var(--gc-border); border-radius:4px; padding:1rem; background:#fff; }
+    .evidence-editor:focus { border-color:var(--gc-accent); outline:none; box-shadow:0 0 0 3px rgba(37,114,180,.2); }
 
-    /* Progress sticky */
-    .progress-sticky {
-      position: sticky; top: 0; z-index: 100; background: white; padding: 1rem;
-      border-radius: 0 0 12px 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 1.5rem;
-    }
+    .progress-sticky { position:sticky; top:0; z-index:100; background:#fff; padding:1rem; border-radius:0 0 4px 4px; box-shadow:0 4px 12px rgba(0,0,0,.1); margin-bottom:1.5rem; }
 
-    .footer { background: var(--cs-primary); color: rgba(255,255,255,0.7); padding: 1.5rem 0; text-align: center; font-size: 0.875rem; }
-    .footer a { color: #8bb9fe; text-decoration: none; }
-    .footer a:hover { text-decoration: underline; }
+    .audit-btn { width:40px; height:40px; border-radius:50%; border:2px solid; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; background:transparent; }
+    .audit-btn.met { border-color:var(--gc-success); color:var(--gc-success); }
+    .audit-btn.met.active { background:var(--gc-success); color:#fff; }
+    .audit-btn.partial { border-color:var(--gc-warning); color:var(--gc-warning); }
+    .audit-btn.partial.active { background:var(--gc-warning); color:#fff; }
+    .audit-btn.not-met { border-color:var(--gc-danger); color:var(--gc-danger); }
+    .audit-btn.not-met.active { background:var(--gc-danger); color:#fff; }
 
-    /* Audit controls */
-    .audit-row { display: flex; gap: 1rem; align-items: center; padding: 0.5rem 0; }
-    .audit-btn { width: 40px; height: 40px; border-radius: 50%; border: 2px solid; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
-    .audit-btn.met { border-color: var(--cs-success); color: var(--cs-success); }
-    .audit-btn.met.active { background: var(--cs-success); color: white; }
-    .audit-btn.partial { border-color: var(--cs-warning); color: var(--cs-warning); }
-    .audit-btn.partial.active { background: var(--cs-warning); color: white; }
-    .audit-btn.not-met { border-color: var(--cs-danger); color: var(--cs-danger); }
-    .audit-btn.not-met.active { background: var(--cs-danger); color: white; }
-
-    @media (max-width: 768px) {
-      .main-content { padding: 1rem 0; }
-      .form-section { padding: 1rem; border-radius: 8px; }
-      .section-title { font-size: 1.1rem; }
-      .stat-card { padding: 1rem; }
-      .stat-card .stat-number { font-size: 1.5rem; }
+    @media(max-width:768px) {
+      .gc-main { padding:1rem 0; }
+      .form-section { padding:1rem; }
+      .stat-card .stat-number { font-size:1.5rem; }
     }
     @media print {
-      .navbar-sa,.footer,.btn,.progress-sticky,.gc-bar { display: none !important; }
-      .form-section { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; }
+      .gc-fip,.gc-app-bar,.gc-footer-main,.gc-footer-sub,.btn,.progress-sticky,.gc-skip { display:none!important; }
+      .form-section { break-inside:avoid; box-shadow:none; border:1px solid #ddd; }
+      body { background:#fff; }
     }
   </style>
   {{#if extraStyles}}{{{extraStyles}}}{{/if}}
 </head>
-<body>
-  <div class="gc-bar"></div>
+<body vocab="http://schema.org/" typeof="WebPage">
 
-  <nav class="navbar navbar-expand-lg navbar-sa">
-    <div class="container">
-      <a class="navbar-brand" href="{{#if isAdmin}}/admin/dashboard{{else}}/{{/if}}">
-        <i class="bi bi-shield-lock-fill brand-icon"></i>
-        GC SA&A Portal
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
+  <!-- Skip links (WCAG 2.4.1) -->
+  <a class="gc-skip" href="#main-content">Skip to main content</a>
+  <a class="gc-skip" href="#gc-footer">Skip to footer</a>
+
+  <!-- ═══ GC Header ═══ -->
+  <header role="banner">
+    <div class="gc-fip">
+      <div class="container gc-fip-inner">
+        <a class="gc-sig" href="https://www.canada.ca/en.html">
+          <img src="https://wet-boew.github.io/themes-dist/GCWeb/GCWeb/assets/sig-blk-en.svg" alt="Government of Canada / Gouvernement du Canada" height="28">
+        </a>
+        <div class="gc-lang"><a href="#" lang="fr">Français</a></div>
+      </div>
+    </div>
+
+    <nav class="gc-app-bar" aria-label="Application navigation">
+      <div class="container gc-app-inner">
+        <a class="gc-app-title" href="{{#if isAdmin}}/admin/dashboard{{else}}/{{/if}}">
+          <i class="bi bi-shield-lock-fill brand-icon" aria-hidden="true"></i>
+          Security Assessment &amp; Authorization
+        </a>
+        <button class="gc-menu-btn" onclick="document.getElementById('gcNav').classList.toggle('show')" aria-label="Toggle navigation">
+          <i class="bi bi-list" aria-hidden="true"></i> Menu
+        </button>
+        <ul class="gc-app-nav" id="gcNav">
           {{#if isAdmin}}
-            <li class="nav-item"><a class="nav-link {{#if isDashboard}}active{{/if}}" href="/admin/dashboard"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link {{#if isProjects}}active{{/if}}" href="/admin/projects"><i class="bi bi-folder2-open me-1"></i>Projects</a></li>
-            <li class="nav-item"><a class="nav-link {{#if isAssessments}}active{{/if}}" href="/admin/assessments"><i class="bi bi-clipboard-check me-1"></i>Assessments</a></li>
-            <li class="nav-item"><a class="nav-link {{#if isIntakes}}active{{/if}}" href="/admin/intakes"><i class="bi bi-inbox me-1"></i>Intakes</a></li>
-            <li class="nav-item"><a class="nav-link {{#if isSettings}}active{{/if}}" href="/admin/settings"><i class="bi bi-gear me-1"></i>Settings</a></li>
+            <li><a class="{{#if isDashboard}}active{{/if}}" href="/admin/dashboard"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>Dashboard</a></li>
+            <li><a class="{{#if isProjects}}active{{/if}}" href="/admin/projects"><i class="bi bi-folder2-open me-1" aria-hidden="true"></i>Projects</a></li>
+            <li><a class="{{#if isAssessments}}active{{/if}}" href="/admin/assessments"><i class="bi bi-clipboard-check me-1" aria-hidden="true"></i>Assessments</a></li>
+            <li><a class="{{#if isIntakes}}active{{/if}}" href="/admin/intakes"><i class="bi bi-inbox me-1" aria-hidden="true"></i>Intakes</a></li>
+            <li><a class="{{#if isSettings}}active{{/if}}" href="/admin/settings"><i class="bi bi-gear me-1" aria-hidden="true"></i>Settings</a></li>
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                <i class="bi bi-person-circle me-1"></i>{{admin.name}}
+              <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{admin.name}}
               </a>
               <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="/admin/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                <li><a class="dropdown-item" href="/admin/logout"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Sign out</a></li>
               </ul>
             </li>
           {{else}}
             {{#if user}}
               {{#if (eq user.role 'client')}}
-              <li class="nav-item"><a class="nav-link" href="/intake"><i class="bi bi-clipboard-plus me-1"></i>Intake</a></li>
+              <li><a href="/intake"><i class="bi bi-clipboard-plus me-1" aria-hidden="true"></i>Intake</a></li>
               <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                  <i class="bi bi-person-circle me-1"></i>{{user.name}}
+                <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{user.name}}
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li><span class="dropdown-item-text small text-muted">{{user.email}}</span></li>
                   <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" href="/client/logout"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+                  <li><a class="dropdown-item" href="/client/logout"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Sign out</a></li>
                 </ul>
               </li>
               {{/if}}
             {{/if}}
             {{#if clientName}}
-              <li class="nav-item"><span class="nav-link"><i class="bi bi-person me-1"></i>{{clientName}}</span></li>
+              <li><span style="padding:.5rem .75rem;color:var(--gc-muted);font-size:.9rem;"><i class="bi bi-person me-1" aria-hidden="true"></i>{{clientName}}</span></li>
             {{/if}}
           {{/if}}
         </ul>
       </div>
+    </nav>
+  </header>
+
+  {{#if messages.success}}<div class="container mt-3" role="alert"><div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2" aria-hidden="true"></i>{{messages.success}}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div></div>{{/if}}
+  {{#if messages.error}}<div class="container mt-3" role="alert"><div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-circle me-2" aria-hidden="true"></i>{{messages.error}}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div></div>{{/if}}
+  {{#if messages.warning}}<div class="container mt-3" role="alert"><div class="alert alert-warning alert-dismissible fade show"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>{{messages.warning}}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div></div>{{/if}}
+
+  <main class="gc-main" id="main-content" role="main" property="mainContentOfPage">
+    {{{body}}}
+  </main>
+
+  <footer id="gc-footer" role="contentinfo">
+    <div class="gc-footer-main">
+      <div class="container">
+        <nav aria-label="About this site">
+          <h2 class="visually-hidden">About this site</h2>
+          <ul class="gc-footer-links">
+            <li><a href="https://www.canada.ca/en/contact.html">Contact information</a></li>
+            <li><a href="https://www.canada.ca/en/transparency/terms.html">Terms and conditions</a></li>
+            <li><a href="https://www.canada.ca/en/transparency/privacy.html">Privacy</a></li>
+            <li><a href="https://www.canada.ca/en/transparency/accessibility.html">Accessibility</a></li>
+          </ul>
+        </nav>
+        <p style="font-size:.8125rem;margin:0;opacity:.7;">&copy; {{currentYear}} His Majesty the King in Right of Canada — Security Assessment &amp; Authorization Tool &middot; ITSG-33</p>
+      </div>
     </div>
-  </nav>
-
-  {{#if messages.success}}<div class="container mt-3"><div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2"></i>{{messages.success}}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div></div>{{/if}}
-  {{#if messages.error}}<div class="container mt-3"><div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-circle me-2"></i>{{messages.error}}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div></div>{{/if}}
-  {{#if messages.warning}}<div class="container mt-3"><div class="alert alert-warning alert-dismissible fade show"><i class="bi bi-exclamation-triangle me-2"></i>{{messages.warning}}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div></div>{{/if}}
-
-  <main class="main-content">{{{body}}}</main>
-
-  <footer class="footer">
-    <div class="container">
-      <p class="mb-0">&copy; {{currentYear}} Government of Canada – Security Assessment & Authorization Tool | ITSG-33 / Protected B</p>
+    <div class="gc-footer-sub">
+      <div class="container gc-footer-sub-inner">
+        <div class="gc-modified">Date modified: <time>{{currentDate}}</time></div>
+        <a href="https://www.canada.ca/en.html">
+          <img class="gc-wmms" src="https://wet-boew.github.io/themes-dist/GCWeb/GCWeb/assets/wmms-blk.svg" alt="Symbol of the Government of Canada" height="28">
+        </a>
+      </div>
     </div>
   </footer>
 

@@ -2,7 +2,7 @@
 
   <!-- Header -->
   <div class="text-center mb-4">
-    <div style="width:64px;height:64px;border-radius:16px;background:var(--cs-accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+    <div style="width:64px;height:64px;border-radius:16px;background:var(--gc-accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
       <i class="bi bi-clipboard2-data text-white" style="font-size:1.75rem;"></i>
     </div>
     <h2>Security Assessment Intake</h2>
@@ -717,11 +717,21 @@
   // ═══════════════════════════════════════════════════════════════════════════
 
   // Enable/disable AI buttons based on input
-  document.getElementById('aiDocUpload').addEventListener('change', function() {
-    document.getElementById('aiDocParseBtn').disabled = !this.files.length;
-  });
-  document.getElementById('aiPlainDesc').addEventListener('input', function() {
-    document.getElementById('aiSuggestBtn').disabled = this.value.trim().length < 20;
+  document.addEventListener('DOMContentLoaded', function() {
+    var docUpload = document.getElementById('aiDocUpload');
+    var parseBtn = document.getElementById('aiDocParseBtn');
+    var descBox = document.getElementById('aiPlainDesc');
+    var suggestBtn = document.getElementById('aiSuggestBtn');
+    if (docUpload && parseBtn) {
+      docUpload.addEventListener('change', function() {
+        parseBtn.disabled = !this.files.length;
+      });
+    }
+    if (descBox && suggestBtn) {
+      descBox.addEventListener('input', function() {
+        suggestBtn.disabled = this.value.trim().length < 20;
+      });
+    }
   });
 
   function aiShowStatus(msg, type = 'info') {

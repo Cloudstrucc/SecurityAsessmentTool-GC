@@ -157,6 +157,7 @@ app.use(flash());
 
 app.use((req, res, next) => {
   res.locals.currentYear = new Date().getFullYear();
+  res.locals.currentDate = new Date().toISOString().split('T')[0];
   res.locals.messages = {
     success: req.flash('success'),
     error: req.flash('error'),

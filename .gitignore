@@ -10,7 +10,7 @@ uploads/*
 
 # PDF exports
 data/exports/
-
+git rm --cached .env
 # Environment
 .env
 

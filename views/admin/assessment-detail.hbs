@@ -133,7 +133,7 @@
     </div>
     <div class="col-6 col-lg">
       <div class="stat-card">
-        <div class="stat-number" style="color:var(--cs-warning)">{{stats.partiallyMet}}</div>
+        <div class="stat-number" style="color:var(--gc-warning)">{{stats.partiallyMet}}</div>
         <div class="stat-label">Partially Met</div>
       </div>
     </div>
@@ -156,14 +156,14 @@
         <div class="progress" style="height:12px">
           <div class="progress-bar bg-success" style="width:{{percentage stats.met stats.applicable}}%"
             title="Met: {{stats.met}}"></div>
-          <div class="progress-bar" style="width:{{percentage stats.partiallyMet stats.applicable}}%;background:var(--cs-warning)"
+          <div class="progress-bar" style="width:{{percentage stats.partiallyMet stats.applicable}}%;background:var(--gc-warning)"
             title="Partially Met: {{stats.partiallyMet}}"></div>
           <div class="progress-bar bg-danger" style="width:{{percentage stats.notMet stats.applicable}}%"
             title="Not Met: {{stats.notMet}}"></div>
         </div>
         <div class="d-flex gap-3 mt-2 small">
           <span><i class="bi bi-circle-fill text-success"></i> Met ({{stats.met}})</span>
-          <span><i class="bi bi-circle-fill" style="color:var(--cs-warning)"></i> Partial ({{stats.partiallyMet}})</span>
+          <span><i class="bi bi-circle-fill" style="color:var(--gc-warning)"></i> Partial ({{stats.partiallyMet}})</span>
           <span><i class="bi bi-circle-fill text-danger"></i> Not Met ({{stats.notMet}})</span>
           <span><i class="bi bi-circle-fill text-secondary"></i> Pending ({{stats.pending}})</span>
         </div>
@@ -174,7 +174,7 @@
   <!-- iATO Checklist Section -->
   {{#eq assessment.result "iato"}}
     <div class="card mb-4">
-      <div class="card-header" style="background:var(--cs-warning)">
+      <div class="card-header" style="background:var(--gc-warning)">
         <i class="bi bi-list-check me-2"></i>iATO Remediation Checklist
       </div>
       <div class="card-body">
@@ -568,4 +568,16 @@ async function aiRunBulk(count) {
   progressEl.innerHTML = `
     <div class="small text-success"><i class="bi bi-check-circle me-1"></i>Generated ${btns.length} evidence narratives. Scroll through the assessment to review each one.</div>`;
 }
+
+// Override AI FAB button to open bulk evidence generator
+document.addEventListener('DOMContentLoaded', function() {
+  var fab = document.getElementById('aiTriggerBtn');
+  if (fab) {
+    fab.onclick = function(e) {
+      e.preventDefault();
+      aiBulkEvidence();
+    };
+    fab.title = 'AI: Generate Evidence Narratives';
+  }
+});
 </script>

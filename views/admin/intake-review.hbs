@@ -336,7 +336,7 @@
       <!-- Assessor Actions -->
       {{#if (neq intake.status 'accepted')}}
       <div class="card mb-3">
-        <div class="card-header bg-light" style="color:var(--cs-text);"><i class="bi bi-pencil-square me-2"></i>Assessor Context</div>
+        <div class="card-header bg-light" style="color:var(--gc-text);"><i class="bi bi-pencil-square me-2"></i>Assessor Context</div>
         <div class="card-body">
           <form method="POST" action="/admin/intakes/{{intake.id}}/create-project" id="createProjectForm">
             <p class="small text-muted mb-3">Add context or adjust details before creating the project and assessment. These overrides feed into the recommendation engine.</p>
@@ -729,4 +729,16 @@ async function aiSuggestControls() {
     AIPanel.showError(err.message);
   }
 }
+
+// Override AI FAB button to trigger intake review
+document.addEventListener('DOMContentLoaded', function() {
+  var fab = document.getElementById('aiTriggerBtn');
+  if (fab) {
+    fab.onclick = function(e) {
+      e.preventDefault();
+      aiReviewIntake();
+    };
+    fab.title = 'AI: Review This Intake';
+  }
+});
 </script>

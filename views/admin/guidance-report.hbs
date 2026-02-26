@@ -77,7 +77,7 @@
   {{#if report}}
     {{#ifCond report.status '==' 'submitted'}}
       <div class="card mb-4 border-warning">
-        <div class="card-header" style="background:var(--cs-warning)">
+        <div class="card-header" style="background:var(--gc-warning)">
           <i class="bi bi-clipboard-check me-2"></i>Review &amp; Validate
         </div>
         <div class="card-body">
@@ -138,7 +138,7 @@
   {{/if}}
 
   <!-- Summary -->
-  <div class="card mb-4" style="border-left:4px solid var(--cs-success)">
+  <div class="card mb-4" style="border-left:4px solid var(--gc-success)">
     <div class="card-body">
       <div class="d-flex align-items-start gap-3">
         <div style="width:48px;height:48px;border-radius:12px;background:#d4edda;display:flex;align-items:center;justify-content:center;flex-shrink:0">
@@ -169,7 +169,7 @@
   <div class="form-section mb-4" id="cat-{{this.id}}">
     <div class="section-header">
       <h3 class="section-title">
-        <i class="bi bi-{{this.icon}} me-2" style="color:var(--cs-accent)"></i>
+        <i class="bi bi-{{this.icon}} me-2" style="color:var(--gc-accent)"></i>
         {{this.title}}
       </h3>
       <p class="section-description">{{this.description}}</p>

@@ -526,8 +526,8 @@ router.get('/intakes', ensureAuthenticated, (req, res) => {
   const inReview = all("SELECT COUNT(*) as c FROM intake_submissions WHERE status = 'in-review'")[0]?.c || 0;
 
   res.render('admin/intakes', {
-    title: 'Intake Submissions', isAdmin: true,
-    user: req.user, intakes,
+    title: 'Intake Submissions', isAdmin: true, isIntakes: true,
+    admin: req.user, intakes,
     stats: { total: intakes.length, pending, accepted, inReview }
   });
 });
