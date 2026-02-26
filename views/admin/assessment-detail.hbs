@@ -236,6 +236,20 @@
     </div>
   {{/eq}}
 
+  <!-- Layout: Controls + Family Nav -->
+  <div class="row">
+    <div class="col-lg-9">
+
+  <!-- Mobile Family Nav -->
+  <div class="d-lg-none family-nav-mobile">
+    {{#each families}}
+      <a href="#family-{{this.code}}" class="family-nav-item" data-family="{{this.code}}">
+        <span class="family-nav-code">{{this.code}}</span>
+        <span class="family-nav-count">{{this.controls.length}}</span>
+      </a>
+    {{/each}}
+  </div>
+
   <!-- Control Families -->
   {{#each families}}
     <div class="form-section" id="family-{{this.code}}">
@@ -363,7 +377,43 @@
       {{/each}}
     </div>
   {{/each}}
-</div>
+
+    </div><!-- end col-lg-9 -->
+
+    <!-- Family Navigation Sidebar -->
+    <div class="col-lg-3 d-none d-lg-block">
+      <div class="family-nav" id="familyNav">
+        <div class="family-nav-header">
+          <i class="bi bi-list-nested me-1"></i>Control Families
+        </div>
+        <div class="family-nav-filter mb-2">
+          <input type="text" class="form-control form-control-sm" id="familyFilter"
+            placeholder="Filter families..." style="font-size:.75rem;">
+        </div>
+        <div class="family-nav-list" id="familyNavList">
+          {{#each families}}
+            <a href="#family-{{this.code}}" class="family-nav-item" data-family="{{this.code}}" title="{{this.name}}">
+              <span class="family-nav-code">{{this.code}}</span>
+              <span class="family-nav-name">{{this.name}}</span>
+              <span class="family-nav-count">{{this.controls.length}}</span>
+            </a>
+          {{/each}}
+        </div>
+        <div class="family-nav-footer mt-2">
+          <div class="d-flex justify-content-between small text-muted px-1">
+            <span>{{stats.total}} controls</span>
+            <span class="text-success">{{stats.met}} met</span>
+          </div>
+          <div class="progress mt-1" style="height:4px;">
+            <div class="progress-bar bg-success" style="width:{{percentage stats.met stats.applicable}}%"></div>
+            <div class="progress-bar" style="width:{{percentage stats.partiallyMet stats.applicable}}%;background:var(--gc-warning)"></div>
+            <div class="progress-bar bg-danger" style="width:{{percentage stats.notMet stats.applicable}}%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- end row -->
+</div><!-- end container -->
 
 <script>
 async function auditControl(controlId, assessmentId, result, btn, comments) {
@@ -579,5 +629,153 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     fab.title = 'AI: Generate Evidence Narratives';
   }
+
+  // ── Family Nav: scroll spy + filter ──
+  const familySections = document.querySelectorAll('[id^="family-"]');
+  const navItems = document.querySelectorAll('.family-nav-item');
+  const filterInput = document.getElementById('familyFilter');
+
+  // Scroll spy
+  if (familySections.length && navItems.length) {
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          navItems.forEach(item => {
+            item.classList.toggle('active', item.getAttribute('href') === '#' + id);
+          });
+        }
+      });
+    }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+
+    familySections.forEach(sec => observer.observe(sec));
+
+    // Smooth scroll
+    navItems.forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Offset for fixed header
+          setTimeout(() => window.scrollBy(0, -80), 300);
+        }
+      });
+    });
+  }
+
+  // Family filter
+  if (filterInput) {
+    filterInput.addEventListener('input', function() {
+      const q = this.value.toLowerCase();
+      navItems.forEach(item => {
+        const code = item.dataset.family || '';
+        const name = item.querySelector('.family-nav-name')?.textContent || '';
+        item.style.display = (code.toLowerCase().includes(q) || name.toLowerCase().includes(q)) ? '' : 'none';
+      });
+    });
+  }
 });
 </script>
+
+<style>
+/* Family Navigation Sidebar */
+.family-nav {
+  position: sticky;
+  top: 80px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: .82rem;
+}
+.family-nav::-webkit-scrollbar { width: 4px; }
+.family-nav::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+.family-nav-header {
+  font-weight: 700;
+  font-size: .85rem;
+  color: var(--gc-nav, #333);
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--gc-red, #af3c43);
+  margin-bottom: 8px;
+}
+.family-nav-list {
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+}
+.family-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #333;
+  font-size: .78rem;
+  transition: all .15s;
+  border-left: 3px solid transparent;
+}
+.family-nav-item:hover {
+  background: #f0f4f8;
+  color: var(--gc-link, #2b4380);
+}
+.family-nav-item.active {
+  background: #e8f0fe;
+  border-left-color: var(--gc-link, #2b4380);
+  font-weight: 600;
+  color: var(--gc-link, #2b4380);
+}
+.family-nav-code {
+  font-family: monospace;
+  font-weight: 700;
+  font-size: .75rem;
+  min-width: 28px;
+  color: #555;
+}
+.family-nav-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.family-nav-count {
+  font-size: .7rem;
+  background: #e9ecef;
+  border-radius: 10px;
+  padding: 1px 6px;
+  color: #666;
+  min-width: 20px;
+  text-align: center;
+}
+.family-nav-item.active .family-nav-count {
+  background: var(--gc-link, #2b4380);
+  color: white;
+}
+.family-nav-footer {
+  border-top: 1px solid #dee2e6;
+  padding-top: 8px;
+}
+/* Mobile: show as horizontal strip */
+@media (max-width: 991.98px) {
+  .family-nav-mobile {
+    display: flex;
+    overflow-x: auto;
+    gap: 4px;
+    padding: 8px 0;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #dee2e6;
+  }
+  .family-nav-mobile .family-nav-item {
+    white-space: nowrap;
+    flex-shrink: 0;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+  }
+  .family-nav-mobile .family-nav-item.active {
+    border-bottom-color: var(--gc-link, #2b4380);
+    border-left: none;
+  }
+}
+</style>

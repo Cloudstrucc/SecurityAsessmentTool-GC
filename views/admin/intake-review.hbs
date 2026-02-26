@@ -433,6 +433,35 @@
               </select>
             </div>
 
+            <!-- Control Selection Options -->
+            <div class="card bg-light border-0 mb-3">
+              <div class="card-body py-2 px-3">
+                <small class="fw-bold d-block mb-2"><i class="bi bi-funnel me-1"></i>Control Selection</small>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span>Profile: <strong>{{profileId}}</strong></span>
+                  <span>Controls: <strong>{{controlCount}}</strong></span>
+                </div>
+                <div class="d-flex flex-wrap gap-2 small mb-2">
+                  <span class="badge bg-danger">P1: {{p1Count}}</span>
+                  <span class="badge bg-warning text-dark">P2: {{p2Count}}</span>
+                  <span class="badge bg-secondary">P3: {{p3Count}}</span>
+                  <span class="badge bg-info">Inherited: {{inheritedCount}}</span>
+                </div>
+                <div class="form-check form-check-sm mb-1">
+                  <input class="form-check-input" type="checkbox" name="excludeInherited" value="1" id="excludeInherited">
+                  <label class="form-check-label small" for="excludeInherited">
+                    Exclude fully inherited controls (reduce to ~{{nonInheritedCount}} controls)
+                  </label>
+                </div>
+                <div class="form-check form-check-sm">
+                  <input class="form-check-input" type="checkbox" name="onlyP1P2" value="1" id="onlyP1P2">
+                  <label class="form-check-label small" for="onlyP1P2">
+                    Include only P1 &amp; P2 priority controls
+                  </label>
+                </div>
+              </div>
+            </div>
+
             <button type="submit" class="btn btn-primary w-100" onclick="return confirm('This will create a new Project and Assessment from this intake. Continue?')">
               <i class="bi bi-plus-circle me-1"></i>Create Project & Assessment
             </button>

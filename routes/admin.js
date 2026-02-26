@@ -597,6 +597,8 @@ router.get('/intakes/:id', ensureAuthenticated, (req, res) => {
     p2Count: recommended.filter(c => c.priority === 'P2').length,
     p3Count: recommended.filter(c => c.priority === 'P3').length,
     inheritedCount: recommended.filter(c => c.isInherited).length,
+    nonInheritedCount: recommended.filter(c => !c.isInherited).length,
+    profileId: profileResult.profile.id,
     saaRequired: saaCheck.requiresSAA,
     saaReason: saaCheck.reason,
     catLabel, catFullLabel,
@@ -639,13 +641,17 @@ router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
     const avaLevel = req.body.overrideAvailability || intake.availability_level || 'medium';
     const isHVA = req.body.overrideHVA ? 1 : (intake.is_hva || 0);
 
-    // Determine profile using the full C/I/A engine
+    // Determine profile using the full C/I/A engine (with any admin overrides)
     const profileResult = determineProfile({
       confidentiality: confLevel, integrity: intLevel, availability: avaLevel,
       hasPII: intake.has_pii === 1, isHVA: isHVA === 1,
       hasComplexity: detectComplexity(intake.project_description || '')
     });
-    const securityProfile = intake.security_profile || profileResult.profile.id;
+    const securityProfile = profileResult.profile.id;
+
+    console.log('[Intake→Project] C/I/A:', confLevel, intLevel, avaLevel,
+      'HVA:', isHVA, 'PII:', intake.has_pii,
+      '→ Profile:', securityProfile, '(' + profileResult.reason + ')');
 
     let fullDescription = intake.project_description || '';
     if (intake.interconnections) fullDescription += '\nInterconnections: ' + intake.interconnections;
@@ -693,13 +699,28 @@ router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
       securityProfile: securityProfile, isHVA: isHVA === 1
     });
 
+    // Apply admin filtering options
+    let filtered = recommended;
+    if (req.body.excludeInherited === '1') {
+      filtered = filtered.filter(c => !c.isInherited);
+    }
+    if (req.body.onlyP1P2 === '1') {
+      filtered = filtered.filter(c => c.priority === 'P1' || c.priority === 'P2');
+    }
+
+    console.log('[Intake→Project] Profile:', securityProfile,
+      'Recommended:', recommended.length,
+      'After filters:', filtered.length,
+      '(excludeInherited:', req.body.excludeInherited || 'no',
+      'onlyP1P2:', req.body.onlyP1P2 || 'no', ')');
+
     const inviteCode = uuidv4().substring(0, 8).toUpperCase();
     const assessmentId = run(
       `INSERT INTO assessments (project_id, type, status, invite_code, created_by) VALUES (?,?,?,?,?)`,
       [projectId, req.body.assessmentType || 'initial', 'draft', inviteCode, req.user.id]
     );
 
-    const grouped = groupByFamily(recommended);
+    const grouped = groupByFamily(filtered);
     grouped.forEach(family => {
       family.controls.forEach(control => {
         run(
@@ -717,7 +738,7 @@ router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
       assessor_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
       [projectId, req.body.assessorNotes || '', req.body.assessorDescription || '', req.params.id]);
 
-    req.flash('success', `Project "${intake.project_name}" created with ${recommended.length} controls.`);
+    req.flash('success', `Project "${intake.project_name}" created with ${filtered.length} controls (profile: ${securityProfile}).`);
     res.redirect('/admin/assessments/' + assessmentId);
   } catch (err) {
     console.error('Create project from intake error:', err);
