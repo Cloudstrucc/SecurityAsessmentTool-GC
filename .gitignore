@@ -27,4 +27,5 @@ Thumbs.db
 npm-debug.log*
 
 # Session files
-cookies.txt
+cookies.txt.env
+.env

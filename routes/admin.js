@@ -233,7 +233,9 @@ router.get('/assessments', ensureAuthenticated, (req, res) => {
 router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
   const assessment = get(`
     SELECT a.*, p.name as project_name, p.project_owner_name, p.project_owner_email,
-      p.data_classification, p.hosting_type, p.app_type
+      p.data_classification, p.hosting_type, p.app_type,
+      p.description as project_description, p.technologies, p.confidentiality_level,
+      p.integrity_level, p.availability_level, p.security_profile
     FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?
   `, [req.params.id]);
   if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
@@ -263,7 +265,17 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     title: `Assessment: ${assessment.project_name}`,
     isAdmin: true, isAssessments: true,
     admin: req.user, assessment,
-    families: Object.values(families), controls, stats, checklistItems
+    families: Object.values(families), controls, stats, checklistItems,
+    projectContextJSON: JSON.stringify({
+      name: assessment.project_name,
+      description: assessment.project_description || '',
+      technologies: assessment.technologies || '',
+      hosting_type: assessment.hosting_type || '',
+      confidentiality_level: assessment.confidentiality_level || 'protected-b',
+      integrity_level: assessment.integrity_level || 'medium',
+      availability_level: assessment.availability_level || 'medium',
+      security_profile: assessment.security_profile || 'PBMM'
+    })
   });
 });
 

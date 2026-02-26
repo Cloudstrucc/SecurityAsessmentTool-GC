@@ -318,6 +318,37 @@ async function initDatabase() {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@youragency.gc.ca';
   const adminPassword = process.env.ADMIN_PASSWORD || 'ChangeThisPassword123!';
 
+  // ── SCHEMA MIGRATIONS (safely add columns missing from older databases) ──
+  const migrations = [
+    ['users', 'totp_secret', 'ALTER TABLE users ADD COLUMN totp_secret TEXT'],
+    ['users', 'mfa_enabled', 'ALTER TABLE users ADD COLUMN mfa_enabled INTEGER DEFAULT 0'],
+    ['projects', 'confidentiality_level', "ALTER TABLE projects ADD COLUMN confidentiality_level TEXT DEFAULT 'protected-b'"],
+    ['projects', 'integrity_level', "ALTER TABLE projects ADD COLUMN integrity_level TEXT DEFAULT 'medium'"],
+    ['projects', 'availability_level', "ALTER TABLE projects ADD COLUMN availability_level TEXT DEFAULT 'medium'"],
+    ['projects', 'security_profile', "ALTER TABLE projects ADD COLUMN security_profile TEXT DEFAULT 'PBMM'"],
+    ['projects', 'is_hva', 'ALTER TABLE projects ADD COLUMN is_hva INTEGER DEFAULT 0'],
+    ['intake_submissions', 'confidentiality_level', "ALTER TABLE intake_submissions ADD COLUMN confidentiality_level TEXT DEFAULT 'protected-b'"],
+    ['intake_submissions', 'integrity_level', "ALTER TABLE intake_submissions ADD COLUMN integrity_level TEXT DEFAULT 'medium'"],
+    ['intake_submissions', 'availability_level', "ALTER TABLE intake_submissions ADD COLUMN availability_level TEXT DEFAULT 'medium'"],
+    ['intake_submissions', 'security_profile', "ALTER TABLE intake_submissions ADD COLUMN security_profile TEXT DEFAULT 'PBMM'"],
+    ['intake_submissions', 'is_hva', 'ALTER TABLE intake_submissions ADD COLUMN is_hva INTEGER DEFAULT 0'],
+    ['projects', 'description', 'ALTER TABLE projects ADD COLUMN description TEXT'],
+    ['projects', 'technologies', "ALTER TABLE projects ADD COLUMN technologies TEXT DEFAULT '[]'"],
+  ];
+
+  migrations.forEach(([table, column, sql]) => {
+    try {
+      const cols = db.exec(`PRAGMA table_info(${table})`);
+      const hasCol = cols.length && cols[0].values.some(row => row[1] === column);
+      if (!hasCol) {
+        db.run(sql);
+        console.log(`Migration: added ${table}.${column}`);
+      }
+    } catch (e) {
+      // Table might not exist yet, that's fine — CREATE TABLE handles it
+    }
+  });
+
   const existingAdmin = db.exec(`SELECT id FROM users WHERE email = '${adminEmail}'`);
   if (!existingAdmin.length || !existingAdmin[0].values.length) {
     const hashedPassword = bcrypt.hashSync(adminPassword, 10);

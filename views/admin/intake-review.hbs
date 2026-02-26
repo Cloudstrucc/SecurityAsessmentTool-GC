@@ -15,6 +15,11 @@
     </div>
   </div>
   <div class="d-flex gap-2">
+    {{#if (neq intake.status 'accepted')}}
+    <button type="button" class="btn text-white" style="background:#8b5cf6;" onclick="aiReviewIntake()">
+      <i class="bi bi-stars me-1"></i>AI Review
+    </button>
+    {{/if}}
     {{#if (eq intake.status 'pending')}}
     <form method="POST" action="/admin/intakes/{{intake.id}}/status" style="display:inline;">
       <input type="hidden" name="status" value="in-review">
@@ -133,7 +138,7 @@
           {{#if intake.has_pii}}
           <div class="d-flex flex-wrap gap-2 mt-1">
             {{#each piiList}}
-            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25" style="font-size:0.85rem;">
+            <span class="badge bg-danger text-white" style="font-size:0.85rem;">
               <i class="bi bi-exclamation-triangle me-1"></i>{{this}}
             </span>
             {{/each}}
@@ -215,7 +220,7 @@
       </div>
       <div class="d-flex flex-wrap gap-2">
         {{#each activityList}}
-        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size:0.85rem;">
+        <span class="badge bg-success text-white" style="font-size:0.85rem;">
           <i class="bi bi-check-circle me-1"></i>{{this}}
         </span>
         {{/each}}
@@ -462,3 +467,266 @@
     </div>
   </div>
 </div>
+
+{{> ai-panel }}
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN AI REVIEW INTEGRATION
+// ═══════════════════════════════════════════════════════════════════════════════
+const INTAKE_ID = '{{intake.id}}';
+
+function riskBadge(level) {
+  const map = { low: 'ai-badge-low', medium: 'ai-badge-medium', high: 'ai-badge-high', critical: 'ai-badge-critical' };
+  return '<span class="ai-badge ' + (map[level] || 'ai-badge-medium') + '">' + (level || 'unknown').toUpperCase() + '</span>';
+}
+
+function scoreColor(score) {
+  if (score >= 8) return '#16a34a';
+  if (score >= 5) return '#d97706';
+  return '#dc2626';
+}
+
+// ── Full AI Review ──────────────────────────────────────────────────────────
+async function aiReviewIntake() {
+  AIPanel.open({ title: 'AI Intake Review', subtitle: 'Analyzing submission...' });
+  AIPanel.showLoading('Analyzing intake submission for risks, gaps, and recommendations...');
+
+  try {
+    const resp = await fetch('/api/ai/review-intake/' + INTAKE_ID, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error || 'Review failed');
+
+    const r = data.review;
+    window._aiReview = r;
+
+    // Build the review body
+    let html = '';
+
+    // Summary + score
+    html += `
+      <div class="ai-section">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="ai-section-title mb-0">Executive Summary</div>
+          <div class="d-flex align-items-center gap-2">
+            ${riskBadge(r.riskLevel)}
+            <div class="ai-score" style="background:${scoreColor(r.readinessScore)}20; color:${scoreColor(r.readinessScore)}; border:2px solid ${scoreColor(r.readinessScore)}">${r.readinessScore}</div>
+          </div>
+        </div>
+        <div class="small">${r.summary}</div>
+      </div>`;
+
+    // Profile assessment
+    if (r.profileAssessment) {
+      html += `
+        <div class="ai-section">
+          <div class="ai-section-title">Profile Assessment</div>
+          <div class="small p-2 rounded" style="background:#f0f9ff; border:1px solid #bae6fd;">${r.profileAssessment}</div>
+        </div>`;
+    }
+
+    // Suggested overrides
+    const overrides = r.suggestedOverrides || {};
+    const hasOverrides = Object.values(overrides).some(v => v && v !== 'null');
+    if (hasOverrides) {
+      let overrideCards = '';
+      if (overrides.confidentiality && overrides.confidentiality !== 'null') {
+        overrideCards += `
+          <div class="ai-card" id="ai-ov-conf">
+            <div class="d-flex justify-content-between align-items-start">
+              <div><div class="fw-bold small">Override Confidentiality</div><div class="small text-muted">${overrides.confidentiality}</div></div>
+              <button class="ai-accept-btn" onclick="aiApplyOverride('overrideClassification', '${(overrides.confidentiality.match(/unclassified|protected-a|protected-b|protected-c|confidential|secret|top-secret/) || [''])[0]}'); this.closest('.ai-card').classList.add('accepted');">
+                <i class="bi bi-check2 me-1"></i>Apply
+              </button>
+            </div>
+          </div>`;
+      }
+      if (overrides.integrity && overrides.integrity !== 'null') {
+        overrideCards += `
+          <div class="ai-card" id="ai-ov-integ">
+            <div class="d-flex justify-content-between align-items-start">
+              <div><div class="fw-bold small">Override Integrity</div><div class="small text-muted">${overrides.integrity}</div></div>
+              <button class="ai-accept-btn" onclick="aiApplyOverride('overrideIntegrity', '${(overrides.integrity.match(/low|medium|high/) || [''])[0]}'); this.closest('.ai-card').classList.add('accepted');">
+                <i class="bi bi-check2 me-1"></i>Apply
+              </button>
+            </div>
+          </div>`;
+      }
+      if (overrides.availability && overrides.availability !== 'null') {
+        overrideCards += `
+          <div class="ai-card" id="ai-ov-avail">
+            <div class="d-flex justify-content-between align-items-start">
+              <div><div class="fw-bold small">Override Availability</div><div class="small text-muted">${overrides.availability}</div></div>
+              <button class="ai-accept-btn" onclick="aiApplyOverride('overrideAvailability', '${(overrides.availability.match(/low|medium|high/) || [''])[0]}'); this.closest('.ai-card').classList.add('accepted');">
+                <i class="bi bi-check2 me-1"></i>Apply
+              </button>
+            </div>
+          </div>`;
+      }
+      if (overrides.isHVA && overrides.isHVA !== 'null') {
+        overrideCards += `
+          <div class="ai-card" id="ai-ov-hva">
+            <div class="d-flex justify-content-between align-items-start">
+              <div><div class="fw-bold small">High Value Asset</div><div class="small text-muted">${overrides.isHVA}</div></div>
+              <button class="ai-accept-btn" onclick="document.getElementById('overrideHVA').checked = ${String(overrides.isHVA).includes('true')}; this.closest('.ai-card').classList.add('accepted');">
+                <i class="bi bi-check2 me-1"></i>Apply
+              </button>
+            </div>
+          </div>`;
+      }
+      if (overrideCards) {
+        html += `<div class="ai-section"><div class="ai-section-title">Suggested Overrides</div>${overrideCards}</div>`;
+      }
+    }
+
+    // Risk factors + concerns
+    if (r.riskFactors && r.riskFactors.length) {
+      html += `<div class="ai-section"><div class="ai-section-title">Risk Factors</div>`;
+      r.riskFactors.forEach(f => { html += `<div class="small mb-1"><i class="bi bi-exclamation-triangle text-warning me-1"></i>${f}</div>`; });
+      html += `</div>`;
+    }
+    if (r.concerns && r.concerns.length) {
+      html += `<div class="ai-section"><div class="ai-section-title">Concerns</div>`;
+      r.concerns.forEach(c => { html += `<div class="small mb-1"><i class="bi bi-flag text-danger me-1"></i>${c}</div>`; });
+      html += `</div>`;
+    }
+
+    // Strengths
+    if (r.strengths && r.strengths.length) {
+      html += `<div class="ai-section"><div class="ai-section-title">Strengths</div>`;
+      r.strengths.forEach(s => { html += `<div class="small mb-1"><i class="bi bi-check-circle text-success me-1"></i>${s}</div>`; });
+      html += `</div>`;
+    }
+
+    // Questions for submitter
+    if (r.questionsForSubmitter && r.questionsForSubmitter.length) {
+      html += `<div class="ai-section"><div class="ai-section-title">Suggested Questions for Submitter</div>`;
+      r.questionsForSubmitter.forEach((q, i) => {
+        html += `
+          <div class="ai-question-item">
+            <div class="d-flex justify-content-between">
+              <div class="fw-bold small">${q.question}</div>
+              <button class="ai-accept-btn flex-shrink-0 ms-2" onclick="aiCopyQuestion(this, ${i})"><i class="bi bi-clipboard me-1"></i>Copy</button>
+            </div>
+            <div class="small text-muted mt-1"><em>${q.reason}</em></div>
+          </div>`;
+      });
+      html += `</div>`;
+    }
+
+    // Recommendations
+    if (r.recommendations && r.recommendations.length) {
+      html += `<div class="ai-section"><div class="ai-section-title">Recommendations</div>`;
+      r.recommendations.forEach(rec => { html += `<div class="small mb-1"><i class="bi bi-lightbulb text-info me-1"></i>${rec}</div>`; });
+      html += `</div>`;
+    }
+
+    AIPanel.open({
+      title: 'AI Intake Review',
+      subtitle: 'Risk Level: ' + (r.riskLevel || 'unknown').toUpperCase(),
+      body: html,
+      footer: `
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm flex-fill text-white" style="background:#8b5cf6;" onclick="aiSuggestControls()">
+            <i class="bi bi-shield-plus me-1"></i>Suggest Controls
+          </button>
+          <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="AIPanel.close()">Close</button>
+        </div>`
+    });
+  } catch (err) {
+    AIPanel.showError(err.message);
+  }
+}
+
+// ── Apply override to form ──────────────────────────────────────────────────
+function aiApplyOverride(fieldName, value) {
+  if (!value) return;
+  const el = document.querySelector('[name="' + fieldName + '"]');
+  if (el) {
+    el.value = value;
+    el.style.boxShadow = '0 0 0 2px #c4b5fd';
+  }
+}
+
+// ── Copy question to clipboard ──────────────────────────────────────────────
+function aiCopyQuestion(btn, index) {
+  const q = window._aiReview.questionsForSubmitter[index];
+  navigator.clipboard.writeText(q.question).then(() => {
+    btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Copied!';
+    setTimeout(() => { btn.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy'; }, 2000);
+  });
+}
+
+// ── Suggest additional controls ─────────────────────────────────────────────
+async function aiSuggestControls() {
+  AIPanel.open({ title: 'Control Suggestions', subtitle: 'Analyzing against catalogue...' });
+  AIPanel.showLoading('Comparing project context against ITSG-33 catalogue...');
+
+  try {
+    const resp = await fetch('/api/ai/suggest-controls/' + INTAKE_ID, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error || 'Failed');
+
+    const s = data.suggestions;
+    let html = '';
+
+    // Tailoring notes
+    if (s.tailoringNotes) {
+      html += `<div class="ai-section"><div class="ai-section-title">Tailoring Guidance</div><div class="small p-2 rounded" style="background:#f5f3ff;">${s.tailoringNotes}</div></div>`;
+    }
+
+    // Suggested additional controls
+    if (s.suggestedControls && s.suggestedControls.length) {
+      html += `<div class="ai-section"><div class="ai-section-title">Suggested Additional Controls (${s.suggestedControls.length})</div>`;
+      s.suggestedControls.forEach((c, i) => {
+        const pColor = c.priority === 'P1' ? '#dc2626' : c.priority === 'P2' ? '#d97706' : '#6b7280';
+        html += `
+          <div class="ai-card" id="ai-ctrl-${i}">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="fw-bold small">
+                  <code>${c.controlId}</code>
+                  <span class="ms-1" style="color:${pColor}; font-size:0.7rem;">${c.priority}</span>
+                </div>
+                <div class="small text-muted">${c.reason}</div>
+              </div>
+            </div>
+          </div>`;
+      });
+      html += `</div>`;
+    }
+
+    // Controls to emphasize
+    if (s.controlsToEmphasize && s.controlsToEmphasize.length) {
+      html += `<div class="ai-section"><div class="ai-section-title">Controls Needing Extra Attention</div>`;
+      s.controlsToEmphasize.forEach(c => {
+        html += `<div class="small mb-2"><code class="me-1">${c.controlId}</code> ${c.reason}</div>`;
+      });
+      html += `</div>`;
+    }
+
+    if (!html) html = '<div class="text-center text-muted py-4">No additional controls suggested — the baseline appears comprehensive.</div>';
+
+    AIPanel.open({
+      title: 'Control Suggestions',
+      subtitle: (s.suggestedControls || []).length + ' additional controls suggested',
+      body: html,
+      footer: `
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm flex-fill text-white" style="background:#8b5cf6;" onclick="aiReviewIntake()">
+            <i class="bi bi-arrow-left me-1"></i>Back to Review
+          </button>
+          <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="AIPanel.close()">Close</button>
+        </div>`
+    });
+  } catch (err) {
+    AIPanel.showError(err.message);
+  }
+}
+</script>

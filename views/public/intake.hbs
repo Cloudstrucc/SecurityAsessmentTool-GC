@@ -18,6 +18,47 @@
 
   <form method="POST" action="/intake" enctype="multipart/form-data" id="intakeForm">
 
+    <!-- ─── AI Quick Start ─── -->
+    <div class="form-section" style="border-left:3px solid #8b5cf6; background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);">
+      <div class="section-header" style="border-bottom-color:#e9d5ff;">
+        <h4 class="section-title" style="color:#6d28d9;"><i class="bi bi-stars me-2"></i>AI-Assisted Intake <span class="badge bg-purple text-white" style="font-size:0.65rem; background:#8b5cf6 !important; vertical-align:middle;">BETA</span></h4>
+        <p class="section-description">Upload a project document or describe your system in plain language and AI will suggest how to fill out this form.</p>
+      </div>
+
+      <div class="row g-3">
+        <!-- Option A: Upload Document -->
+        <div class="col-md-6">
+          <div class="card h-100" style="border-color:#e9d5ff;">
+            <div class="card-body">
+              <h6 class="fw-bold mb-2"><i class="bi bi-file-earmark-arrow-up me-1 text-purple" style="color:#8b5cf6;"></i> Upload a Document</h6>
+              <p class="text-muted small mb-2">Upload a design doc, SA, PIA, architecture diagram, or project charter (PDF, TXT, DOCX, PNG/JPG).</p>
+              <input type="file" class="form-control form-control-sm" id="aiDocUpload" accept=".pdf,.txt,.md,.doc,.docx,.png,.jpg,.jpeg">
+              <button type="button" class="btn btn-sm w-100 mt-2 text-white" style="background:#8b5cf6;" id="aiDocParseBtn" disabled onclick="aiParseDocument()">
+                <i class="bi bi-stars me-1"></i>Analyze & Pre-fill
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Option B: Plain Language -->
+        <div class="col-md-6">
+          <div class="card h-100" style="border-color:#e9d5ff;">
+            <div class="card-body">
+              <h6 class="fw-bold mb-2"><i class="bi bi-chat-text me-1 text-purple" style="color:#8b5cf6;"></i> Describe Your Project</h6>
+              <p class="text-muted small mb-2">Describe what your system does, who uses it, and what data it handles.</p>
+              <textarea class="form-control form-control-sm" id="aiPlainDesc" rows="3" placeholder="e.g. We're building a portal for tax professionals to submit client returns. It connects to CRA mainframe and handles SIN, financial data. Hosted on Azure in Canada..."></textarea>
+              <button type="button" class="btn btn-sm w-100 mt-2 text-white" style="background:#8b5cf6;" id="aiSuggestBtn" disabled onclick="aiSuggestFromDescription()">
+                <i class="bi bi-stars me-1"></i>Get Suggestions
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI status message -->
+      <div id="aiIntakeStatus" class="mt-2" style="display:none;"></div>
+    </div>
+
     <!-- ─── Section 1: Project Information ─── -->
     <div class="form-section">
       <div class="section-header">
@@ -667,6 +708,297 @@
     // Initial render
     updateProfilePreview();
   </script>
+
+  {{> ai-panel }}
+
+  <script>
+  // ═══════════════════════════════════════════════════════════════════════════
+  // INTAKE AI INTEGRATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Enable/disable AI buttons based on input
+  document.getElementById('aiDocUpload').addEventListener('change', function() {
+    document.getElementById('aiDocParseBtn').disabled = !this.files.length;
+  });
+  document.getElementById('aiPlainDesc').addEventListener('input', function() {
+    document.getElementById('aiSuggestBtn').disabled = this.value.trim().length < 20;
+  });
+
+  function aiShowStatus(msg, type = 'info') {
+    const el = document.getElementById('aiIntakeStatus');
+    el.style.display = 'block';
+    el.className = 'mt-2 alert alert-' + type + ' small py-2';
+    el.innerHTML = msg;
+  }
+
+  function aiHideStatus() {
+    document.getElementById('aiIntakeStatus').style.display = 'none';
+  }
+
+  // Field mapping from AI response to form elements
+  const AI_FIELD_MAP = {
+    // Section 1: Project Information
+    projectName: { type: 'input', id: 'projectName' },
+    projectDescription: { type: 'textarea', id: 'projectDescription' },
+    department: { type: 'input', id: 'department' },
+    branch: { type: 'input', id: 'branch' },
+    userCount: { type: 'select', id: 'userCount' },
+    appType: { type: 'select', id: 'appType' },
+    // Section 2: Security Categorization
+    confidentialityLevel: { type: 'select', id: 'confidentialityLevel' },
+    integrityLevel: { type: 'select', id: 'integrityLevel' },
+    availabilityLevel: { type: 'select', id: 'availabilityLevel' },
+    isHVA: { type: 'checkbox', id: 'hvaCheck' },
+    atipSubject: { type: 'selectByName', name: 'atipSubject' },
+    piaCompleted: { type: 'selectByName', name: 'piaCompleted' },
+    // Section 3: Hosting & Technology
+    hostingType: { type: 'select', id: 'hostingType' },
+    hostingRegion: { type: 'select', id: 'hostingRegion' },
+    otherTech: { type: 'textarea', id: 'otherTech' },
+    // Section 4: Architecture & Integrations
+    hasAPIs: { type: 'selectByName', name: 'hasAPIs' },
+    gcInterconnections: { type: 'selectByName', name: 'gcInterconnections' },
+    interconnections: { type: 'textarea', id: 'interconnections' },
+    mobileAccess: { type: 'selectByName', name: 'mobileAccess' },
+    externalUsers: { type: 'selectByName', name: 'externalUsers' }
+  };
+
+  function aiApplyField(key, value) {
+    if (value === null || value === undefined) return;
+    const map = AI_FIELD_MAP[key];
+    if (!map) return;
+
+    if (map.type === 'input' || map.type === 'textarea') {
+      const el = document.getElementById(map.id);
+      if (el) { el.value = value; el.classList.add('ai-highlighted'); }
+    } else if (map.type === 'select') {
+      const el = document.getElementById(map.id);
+      if (el) {
+        for (let opt of el.options) {
+          if (opt.value === value) { el.value = value; el.classList.add('ai-highlighted'); break; }
+        }
+      }
+    } else if (map.type === 'selectByName') {
+      const el = document.querySelector('select[name="' + map.name + '"]');
+      if (el) {
+        for (let opt of el.options) {
+          if (opt.value === value) { el.value = value; el.classList.add('ai-highlighted'); break; }
+        }
+      }
+    } else if (map.type === 'checkbox') {
+      const el = document.getElementById(map.id);
+      if (el) { el.checked = !!value; el.classList.add('ai-highlighted'); }
+    }
+  }
+
+  function aiApplyPiiTypes(types) {
+    if (!types || !types.length) return;
+    // Uncheck "none" first
+    const noneEl = document.getElementById('pii-none');
+    if (noneEl) noneEl.checked = false;
+    types.forEach(t => {
+      if (t === 'none') {
+        const nEl = document.getElementById('pii-none');
+        if (nEl) { nEl.checked = true; nEl.classList.add('ai-highlighted'); }
+        return;
+      }
+      const el = document.querySelector('input[name="piiTypes"][value="' + t + '"]');
+      if (el) { el.checked = true; el.classList.add('ai-highlighted'); }
+    });
+  }
+
+  function aiApplyTechnologies(techs) {
+    if (!techs || !techs.length) return;
+    techs.forEach(t => {
+      const el = document.querySelector('input[name="technologies"][value="' + t + '"]');
+      if (el) { el.checked = true; el.classList.add('ai-highlighted'); }
+    });
+  }
+
+  function aiApplyCompletedActivities(activities) {
+    if (!activities || !activities.length) return;
+    activities.forEach(a => {
+      const el = document.querySelector('input[name="completedActivities"][value="' + a + '"]');
+      if (el) { el.checked = true; el.classList.add('ai-highlighted'); }
+    });
+  }
+
+  function aiApplyAllFields(fields) {
+    let applied = 0;
+    // Apply simple fields
+    Object.keys(AI_FIELD_MAP).forEach(key => {
+      if (fields[key] !== null && fields[key] !== undefined) {
+        aiApplyField(key, fields[key]);
+        applied++;
+      }
+    });
+    // Apply array fields
+    if (fields.piiTypes) { aiApplyPiiTypes(fields.piiTypes); applied++; }
+    if (fields.technologies) { aiApplyTechnologies(fields.technologies); applied++; }
+    if (fields.completedActivities) { aiApplyCompletedActivities(fields.completedActivities); applied++; }
+    // Trigger profile recalculation
+    updateProfilePreview();
+    return applied;
+  }
+
+  // Show results in AI panel with accept/reject per field
+  function aiShowResults(fields, reasoning) {
+    const labelMap = {
+      // Section 1
+      projectName: 'Project Name', projectDescription: 'Description', department: 'Department',
+      branch: 'Branch', userCount: 'User Count', appType: 'App Type',
+      // Section 2
+      confidentialityLevel: 'Confidentiality', integrityLevel: 'Integrity',
+      availabilityLevel: 'Availability', isHVA: 'High Value Asset',
+      piiTypes: 'PII Types', atipSubject: 'ATIP Subject', piaCompleted: 'PIA Status',
+      // Section 3
+      hostingType: 'Hosting Environment', hostingRegion: 'Data Residency',
+      technologies: 'Technologies', otherTech: 'Other Technologies',
+      // Section 4
+      hasAPIs: 'APIs', gcInterconnections: 'GC Interconnections',
+      interconnections: 'Interconnections', mobileAccess: 'Mobile/BYOD', externalUsers: 'External Users',
+      // Section 5
+      completedActivities: 'Completed Security Activities'
+    };
+
+    // Section grouping for organized display
+    const sectionGroups = [
+      { title: '1 — Project Information', keys: ['projectName','projectDescription','department','branch','userCount','appType'] },
+      { title: '2 — Security Categorization', keys: ['confidentialityLevel','integrityLevel','availabilityLevel','isHVA','piiTypes','atipSubject','piaCompleted'] },
+      { title: '3 — Hosting & Technology', keys: ['hostingType','hostingRegion','technologies','otherTech'] },
+      { title: '4 — Architecture & Integrations', keys: ['hasAPIs','gcInterconnections','interconnections','mobileAccess','externalUsers'] },
+      { title: '5 — Security Posture', keys: ['completedActivities'] }
+    ];
+
+    let cardsHtml = '';
+    let cardIndex = 0;
+    const allFieldKeys = Object.keys(fields).filter(k => k !== 'reasoning' && fields[k] !== null && fields[k] !== undefined);
+
+    sectionGroups.forEach(section => {
+      const sectionKeys = section.keys.filter(k => allFieldKeys.includes(k));
+      if (!sectionKeys.length) return;
+
+      cardsHtml += `<div class="ai-section-title mt-3">${section.title}</div>`;
+
+      sectionKeys.forEach(key => {
+        const val = fields[key];
+        const displayVal = Array.isArray(val) ? val.join(', ') : (typeof val === 'boolean' ? (val ? 'Yes' : 'No') : String(val));
+        const i = cardIndex++;
+        cardsHtml += `
+        <div class="ai-card" id="ai-intake-card-${i}">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-bold small">${labelMap[key] || key}</div>
+              <div class="small text-muted" style="word-break:break-word;">${displayVal.substring(0, 200)}${displayVal.length > 200 ? '...' : ''}</div>
+            </div>
+            <div class="d-flex gap-1 flex-shrink-0 ms-2">
+              <button class="ai-accept-btn" onclick="aiAcceptSingle('${key}', window._aiFields); this.closest('.ai-card').classList.add('accepted');">
+                <i class="bi bi-check2"></i>
+              </button>
+              <button class="ai-reject-btn" onclick="this.closest('.ai-card').classList.add('rejected');">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+          </div>
+        </div>`;
+      });
+    });
+
+    AIPanel.open({
+      title: 'AI Suggestions',
+      subtitle: 'Review and accept individual fields',
+      body: `
+        ${reasoning ? `<div class="ai-section"><div class="ai-section-title">AI Reasoning</div><div class="small text-muted p-2 rounded" style="background:#f5f3ff;">${reasoning}</div></div>` : ''}
+        <div class="ai-section">
+          <div class="ai-section-title">Suggested Fields (${allFieldKeys.length})</div>
+          ${cardsHtml}
+        </div>`,
+      footer: `
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm flex-fill text-white" style="background:#8b5cf6;" onclick="aiAcceptAll()"><i class="bi bi-check-all me-1"></i>Accept All</button>
+          <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="AIPanel.close()">Close</button>
+        </div>`
+    });
+  }
+
+  function aiAcceptSingle(key, fields) {
+    if (key === 'piiTypes') { aiApplyPiiTypes(fields[key]); }
+    else if (key === 'technologies') { aiApplyTechnologies(fields[key]); }
+    else if (key === 'completedActivities') { aiApplyCompletedActivities(fields[key]); }
+    else { aiApplyField(key, fields[key]); }
+    updateProfilePreview();
+  }
+
+  function aiAcceptAll() {
+    if (window._aiFields) {
+      const n = aiApplyAllFields(window._aiFields);
+      aiShowStatus('<i class="bi bi-check-circle me-1"></i>Applied ' + n + ' AI suggestions. Review the form and adjust as needed.', 'success');
+      AIPanel.close();
+    }
+  }
+
+  // ── Upload document and parse ──────────────────────────────────────────────
+  async function aiParseDocument() {
+    const file = document.getElementById('aiDocUpload').files[0];
+    if (!file) return;
+
+    aiShowStatus('<i class="bi bi-hourglass-split me-1"></i>Uploading and analyzing document... this may take 10-15 seconds.', 'info');
+    AIPanel.open({ title: 'Analyzing Document', subtitle: file.name });
+    AIPanel.showLoading('Reading and analyzing your document...');
+
+    try {
+      const formData = new FormData();
+      formData.append('document', file);
+      const resp = await fetch('/api/ai/parse-document', { method: 'POST', body: formData });
+      const data = await resp.json();
+
+      if (!data.success) throw new Error(data.error || 'Analysis failed');
+
+      window._aiFields = data.fields;
+      aiHideStatus();
+      aiShowResults(data.fields, data.fields.reasoning);
+    } catch (err) {
+      aiShowStatus('<i class="bi bi-exclamation-triangle me-1"></i>' + err.message, 'danger');
+      AIPanel.showError(err.message);
+    }
+  }
+
+  // ── Suggest from plain language ────────────────────────────────────────────
+  async function aiSuggestFromDescription() {
+    const desc = document.getElementById('aiPlainDesc').value.trim();
+    if (desc.length < 20) return;
+
+    aiShowStatus('<i class="bi bi-hourglass-split me-1"></i>Analyzing your description...', 'info');
+    AIPanel.open({ title: 'Analyzing Description', subtitle: 'Plain language intake' });
+    AIPanel.showLoading('Determining security categorization...');
+
+    try {
+      const resp = await fetch('/api/ai/suggest-from-description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: desc })
+      });
+      const data = await resp.json();
+
+      if (!data.success) throw new Error(data.error || 'Suggestion failed');
+
+      window._aiFields = data.suggestions;
+      aiHideStatus();
+      aiShowResults(data.suggestions, data.suggestions.reasoning);
+    } catch (err) {
+      aiShowStatus('<i class="bi bi-exclamation-triangle me-1"></i>' + err.message, 'danger');
+      AIPanel.showError(err.message);
+    }
+  }
+  </script>
+
+  <style>
+    .ai-highlighted {
+      box-shadow: 0 0 0 2px #c4b5fd !important;
+      transition: box-shadow 0.3s;
+    }
+    .ai-highlighted:focus { box-shadow: 0 0 0 3px #8b5cf6 !important; }
+  </style>
 
   {{/if}}
 </div>
