@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const { run, runBatch, all, get } = require('../models/database');
 const { passport, ensureAuthenticated } = require('../config/passport');
 const { determineProfile, detectComplexity, categorizationLabel, categorizationFullLabel, SECURITY_PROFILES, CONFIDENTIALITY_LEVELS, INTEGRITY_LEVELS, AVAILABILITY_LEVELS } = require('../config/security-profiles');
-const { getRecommendedControls, assessSAARequirement, groupByFamily, COMMON_TECHNOLOGIES, CONTROL_FAMILIES, CONTROLS, GC_WEB_GUIDANCE } = require('../config/itsg33-controls');
+const { getRecommendedControls, assessSAARequirement, groupByFamily, COMMON_TECHNOLOGIES, CONTROL_FAMILIES, CONTROLS, GC_WEB_GUIDANCE, computeRiskLevel } = require('../config/itsg33-controls');
 const emailService = require('../utils/emailService');
 const pdfExport = require('../utils/pdfExport');
 const path = require('path');
@@ -189,8 +189,8 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
       const family = cid.split('-')[0];
       return {
         sql: `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title, 
-          description, tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          description, tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority, risk_level)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         params: [assessmentId, cid, family, CONTROL_FAMILIES[family] || family,
           req.body[`title_${cid}`] || cid,
           req.body[`desc_${cid}`] || '',
@@ -199,7 +199,8 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
           inherited[cid] ? 1 : 0,
           inheritedFrom[cid] || '',
           applicable[cid] !== '0' ? 1 : 0,
-          req.body[`priority_${cid}`] || 'P1'
+          req.body[`priority_${cid}`] || 'P1',
+          computeRiskLevel({ family, priority: req.body[`priority_${cid}`] || 'P1' })
         ]
       };
     });
@@ -255,17 +256,35 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     met: controls.filter(c => c.audit_result === 'met').length,
     partiallyMet: controls.filter(c => c.audit_result === 'partially-met').length,
     notMet: controls.filter(c => c.audit_result === 'not-met').length,
-    pending: controls.filter(c => !c.audit_result || c.audit_result === 'pending').length
+    pending: controls.filter(c => !c.audit_result || c.audit_result === 'pending').length,
+    highRisk: controls.filter(c => (c.risk_level || computeRiskLevel(c)) === 'high').length,
+    mediumRisk: controls.filter(c => (c.risk_level || computeRiskLevel(c)) === 'medium').length,
+    lowRisk: controls.filter(c => (c.risk_level || computeRiskLevel(c)) === 'low').length,
+    highRiskNotMet: controls.filter(c => (c.risk_level || computeRiskLevel(c)) === 'high' && (c.audit_result === 'not-met' || c.audit_result === 'partially-met')).length
   };
   stats.score = stats.applicable > 0 ? Math.round((stats.met + stats.partiallyMet * 0.5) / stats.applicable * 100) : 0;
 
-  const checklistItems = all('SELECT * FROM iato_checklist WHERE assessment_id = ? ORDER BY deadline', [assessment.id]);
+  // Compute risk level for controls that don't have one
+  controls.forEach(c => { if (!c.risk_level) c.risk_level = computeRiskLevel(c); });
+
+  const checklistItems = all('SELECT * FROM iato_checklist WHERE assessment_id = ? ORDER BY CASE risk_level WHEN \'high\' THEN 0 WHEN \'medium\' THEN 1 ELSE 2 END, deadline', [assessment.id]);
+  const poamStats = {
+    total: checklistItems.length,
+    open: checklistItems.filter(i => i.status === 'open').length,
+    inProgress: checklistItems.filter(i => i.status === 'in-progress').length,
+    completed: checklistItems.filter(i => i.status === 'completed').length,
+    verified: checklistItems.filter(i => i.status === 'verified').length,
+    overdue: checklistItems.filter(i => i.status !== 'completed' && i.status !== 'verified' && i.deadline && new Date(i.deadline) < new Date()).length,
+    highCount: checklistItems.filter(i => i.risk_level === 'high').length,
+    mediumCount: checklistItems.filter(i => i.risk_level === 'medium').length,
+    lowCount: checklistItems.filter(i => i.risk_level === 'low').length
+  };
 
   res.render('admin/assessment-detail', {
     title: `Assessment: ${assessment.project_name}`,
     isAdmin: true, isAssessments: true,
     admin: req.user, assessment,
-    families: Object.values(families), controls, stats, checklistItems,
+    families: Object.values(families), controls, stats, checklistItems, poamStats,
     projectContextJSON: JSON.stringify({
       name: assessment.project_name,
       description: assessment.project_description || '',
@@ -297,7 +316,7 @@ router.post('/assessments/:id/send-invite', ensureAuthenticated, async (req, res
       [expiresAt.toISOString(), assessment.id]);
 
     const baseUrl = `${req.protocol}://${req.get('host')}`;
-    await emailService.sendInvite({
+    const emailResult = await emailService.sendInvite({
       to: assessment.project_owner_email,
       recipientName: assessment.project_owner_name,
       projectName: assessment.project_name,
@@ -307,7 +326,11 @@ router.post('/assessments/:id/send-invite', ensureAuthenticated, async (req, res
       baseUrl
     });
 
-    req.flash('success', `Invite sent to ${assessment.project_owner_email} with code: ${assessment.invite_code}`);
+    if (emailResult.sent) {
+      req.flash('success', `Invite emailed to ${assessment.project_owner_email} with code: ${assessment.invite_code}`);
+    } else {
+      req.flash('success', `Assessment activated with code: ${assessment.invite_code}. Email could not be sent (${emailResult.error || 'not configured'}) — share the code manually.`);
+    }
     res.redirect(`/admin/assessments/${assessment.id}`);
   } catch (err) {
     console.error(err);
@@ -337,24 +360,79 @@ router.post('/assessments/:id/complete-audit', ensureAuthenticated, (req, res) =
   const controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? AND is_applicable = 1', [req.params.id]);
   const met = controls.filter(c => c.audit_result === 'met').length;
   const partial = controls.filter(c => c.audit_result === 'partially-met').length;
+  const notMet = controls.filter(c => c.audit_result === 'not-met').length;
   const total = controls.length;
   const score = total > 0 ? Math.round((met + partial * 0.5) / total * 100) : 0;
 
-  let result, atoType;
-  // GC scoring: 100% met = ATO, >=80% with no critical = iATO, <80% = denied
-  if (met === total) {
-    result = 'ato'; atoType = 'ato';
-  } else if (score >= 80) {
-    result = 'iato'; atoType = 'iato';
+  // Assessor can override the result or let the engine decide
+  let result = req.body.overrideResult || null;
+  let atoType = null;
+
+  if (!result) {
+    // GC scoring: 100% met = ATO, >=80% with no critical = iATO, <80% = denied
+    // TBS additional check: any HIGH risk not-met controls = cannot grant full ATO
+    const highRiskNotMet = controls.filter(c =>
+      (c.audit_result === 'not-met') &&
+      (c.risk_level === 'high' || computeRiskLevel(c) === 'high'));
+
+    if (met === total) {
+      result = 'ato'; atoType = 'ato';
+    } else if (score >= 80 && highRiskNotMet.length === 0) {
+      result = 'ato'; atoType = 'ato';
+    } else if (score >= 60) {
+      result = 'iato'; atoType = 'iato';
+    } else {
+      result = 'denied'; atoType = null;
+    }
   } else {
-    result = 'denied'; atoType = null;
+    atoType = (result === 'ato') ? 'ato' : (result === 'iato') ? 'iato' : null;
+  }
+
+  // Set expiry for iATO (default 90 days if not specified)
+  let expiryDate = null;
+  if (atoType === 'iato') {
+    if (req.body.atoExpiryDate) {
+      expiryDate = req.body.atoExpiryDate;
+    } else {
+      const d = new Date(); d.setDate(d.getDate() + 90);
+      expiryDate = d.toISOString().split('T')[0];
+    }
   }
 
   run(`UPDATE assessments SET status = 'completed', audit_completed_at = CURRENT_TIMESTAMP, 
-    overall_score = ?, result = ?, ato_type = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-    [score, result, atoType, req.params.id]);
+    overall_score = ?, result = ?, ato_type = ?, ato_expiry_date = ?,
+    risk_acceptance_statement = ?, poam_notes = ?,
+    updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+    [score, result, atoType, expiryDate,
+     req.body.riskAcceptance || '', req.body.poamNotes || '',
+     req.params.id]);
 
-  // Save templates for reuse (req #11)
+  // Auto-populate POA&M items for not-met/partially-met controls
+  const findings = controls.filter(c => c.audit_result === 'not-met' || c.audit_result === 'partially-met');
+  if (atoType === 'iato' && findings.length > 0) {
+    const existing = all('SELECT control_id FROM iato_checklist WHERE assessment_id = ?', [req.params.id]);
+    const existingIds = new Set(existing.map(e => e.control_id));
+
+    findings.forEach(c => {
+      if (!existingIds.has(c.control_id)) {
+        const riskLevel = c.risk_level || computeRiskLevel(c);
+        const defaultDeadline = new Date();
+        defaultDeadline.setDate(defaultDeadline.getDate() + (riskLevel === 'high' ? 30 : riskLevel === 'medium' ? 60 : 90));
+
+        run(`INSERT INTO iato_checklist (assessment_id, control_id, description, risk_level,
+          original_finding, deadline, status, created_by)
+          VALUES (?, ?, ?, ?, ?, ?, 'open', ?)`,
+          [req.params.id, c.control_id,
+           `Remediate ${c.control_id} — ${c.title} (${c.audit_result === 'not-met' ? 'Not Met' : 'Partially Met'})`,
+           riskLevel,
+           c.audit_comments || `Control ${c.audit_result}: ${c.title}`,
+           defaultDeadline.toISOString().split('T')[0],
+           req.user.id]);
+      }
+    });
+  }
+
+  // Save templates for reuse
   const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
   const project = get('SELECT * FROM projects WHERE id = ?', [assessment.project_id]);
   controls.filter(c => c.audit_result === 'met' && c.evidence_text).forEach(c => {
@@ -371,17 +449,83 @@ router.post('/assessments/:id/complete-audit', ensureAuthenticated, (req, res) =
     }
   });
 
-  req.flash('success', `Audit completed. Score: ${score}%. Result: ${(result || '').toUpperCase()}`);
+  req.flash('success', `Audit completed. Score: ${score}%. Result: ${(result || '').toUpperCase()}.${atoType === 'iato' ? ' POA&M items auto-generated for ' + findings.length + ' findings.' : ''}`);
   res.redirect(`/admin/assessments/${req.params.id}`);
 });
 
-// ── iATO CHECKLIST ──
+// ── POA&M MANAGEMENT ──
 router.post('/assessments/:id/checklist/add', ensureAuthenticated, (req, res) => {
-  const { description, deadline, control_id, assigned_to } = req.body;
-  run(`INSERT INTO iato_checklist (assessment_id, control_id, description, deadline, assigned_to, created_by)
-    VALUES (?, ?, ?, ?, ?, ?)`,
-    [req.params.id, control_id, description, deadline, assigned_to, req.user.id]);
-  req.flash('success', 'Checklist item added');
+  const { description, deadline, control_id, assigned_to, risk_level, remediation_plan, milestone } = req.body;
+  run(`INSERT INTO iato_checklist (assessment_id, control_id, description, risk_level,
+    remediation_plan, milestone, deadline, assigned_to, created_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [req.params.id, control_id, description, risk_level || 'medium',
+     remediation_plan || '', milestone || '', deadline, assigned_to, req.user.id]);
+  req.flash('success', 'POA&M item added');
+  res.redirect(`/admin/assessments/${req.params.id}`);
+});
+
+router.post('/assessments/:id/poam/:itemId/update', ensureAuthenticated, (req, res) => {
+  const { status, risk_level, assigned_to, deadline, remediation_plan, milestone, evidence_text } = req.body;
+  const updates = [];
+  const params = [];
+
+  if (status) { updates.push('status = ?'); params.push(status); }
+  if (risk_level) { updates.push('risk_level = ?'); params.push(risk_level); }
+  if (assigned_to !== undefined) { updates.push('assigned_to = ?'); params.push(assigned_to); }
+  if (deadline) { updates.push('deadline = ?'); params.push(deadline); }
+  if (remediation_plan !== undefined) { updates.push('remediation_plan = ?'); params.push(remediation_plan); }
+  if (milestone !== undefined) { updates.push('milestone = ?'); params.push(milestone); }
+  if (evidence_text !== undefined) { updates.push('evidence_text = ?'); params.push(evidence_text); }
+
+  if (status === 'completed') {
+    updates.push('completed_at = CURRENT_TIMESTAMP');
+  }
+  if (status === 'verified') {
+    updates.push('verified_at = CURRENT_TIMESTAMP');
+    updates.push('verified_by = ?'); params.push(req.user.id);
+  }
+
+  if (updates.length) {
+    params.push(req.params.itemId, req.params.id);
+    run(`UPDATE iato_checklist SET ${updates.join(', ')} WHERE id = ? AND assessment_id = ?`, params);
+  }
+  if (req.xhr || req.headers.accept?.includes('json')) {
+    return res.json({ success: true });
+  }
+  req.flash('success', 'POA&M item updated');
+  res.redirect(`/admin/assessments/${req.params.id}`);
+});
+
+router.post('/assessments/:id/poam/:itemId/delete', ensureAuthenticated, (req, res) => {
+  run('DELETE FROM iato_checklist WHERE id = ? AND assessment_id = ?', [req.params.itemId, req.params.id]);
+  req.flash('success', 'POA&M item removed');
+  res.redirect(`/admin/assessments/${req.params.id}`);
+});
+
+router.post('/assessments/:id/poam/auto-populate', ensureAuthenticated, (req, res) => {
+  const controls = all(`SELECT * FROM assessment_controls WHERE assessment_id = ? AND is_applicable = 1 
+    AND (audit_result = 'not-met' OR audit_result = 'partially-met')`, [req.params.id]);
+  const existing = all('SELECT control_id FROM iato_checklist WHERE assessment_id = ?', [req.params.id]);
+  const existingIds = new Set(existing.map(e => e.control_id));
+  let added = 0;
+
+  controls.forEach(c => {
+    if (!existingIds.has(c.control_id)) {
+      const riskLevel = c.risk_level || computeRiskLevel(c);
+      const defaultDeadline = new Date();
+      defaultDeadline.setDate(defaultDeadline.getDate() + (riskLevel === 'high' ? 30 : riskLevel === 'medium' ? 60 : 90));
+      run(`INSERT INTO iato_checklist (assessment_id, control_id, description, risk_level,
+        original_finding, deadline, status, created_by)
+        VALUES (?, ?, ?, ?, ?, ?, 'open', ?)`,
+        [req.params.id, c.control_id,
+         `Remediate ${c.control_id} — ${c.title}`,
+         riskLevel, c.audit_comments || `${c.audit_result}: ${c.title}`,
+         defaultDeadline.toISOString().split('T')[0], req.user.id]);
+      added++;
+    }
+  });
+  req.flash('success', `Auto-populated ${added} POA&M items from ${controls.length} findings (${existing.length} already existed).`);
   res.redirect(`/admin/assessments/${req.params.id}`);
 });
 
@@ -423,7 +567,11 @@ router.get('/assessments/:id/generate-ato', ensureAuthenticated, async (req, res
     const atoType = assessment.ato_type || 'ato';
     const outputPath = path.join(outputDir, `${atoType}-${assessment.id}-${Date.now()}.pdf`);
 
-    await pdfExport.generateATODocument(assessment, assessment, atoType, controls, outputPath);
+    await pdfExport.generateATODocument(assessment, assessment, atoType, controls, outputPath, {
+      poamItems: all('SELECT * FROM iato_checklist WHERE assessment_id = ? ORDER BY CASE risk_level WHEN \'high\' THEN 0 WHEN \'medium\' THEN 1 ELSE 2 END, deadline', [assessment.id]),
+      riskAcceptance: assessment.risk_acceptance_statement || '',
+      poamNotes: assessment.poam_notes || ''
+    });
     
     run(`UPDATE assessments SET ato_generated_at = CURRENT_TIMESTAMP WHERE id = ?`, [assessment.id]);
     res.download(outputPath);
@@ -725,11 +873,12 @@ router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
       family.controls.forEach(control => {
         run(
           `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title, description,
-            tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority
-          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+            tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority, risk_level
+          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
           [assessmentId, control.id, control.family, control.familyName, control.title, control.description,
             control.tailoredDescription, control.evidenceGuidance,
-            control.isInherited ? 1 : 0, control.inheritedFrom.join(', '), 1, control.priority]
+            control.isInherited ? 1 : 0, control.inheritedFrom.join(', '), 1, control.priority,
+            computeRiskLevel(control)]
         );
       });
     });

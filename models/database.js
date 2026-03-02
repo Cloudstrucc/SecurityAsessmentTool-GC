@@ -170,10 +170,18 @@ async function initDatabase() {
       assessment_id INTEGER NOT NULL,
       control_id TEXT,
       description TEXT NOT NULL,
+      risk_level TEXT DEFAULT 'medium',
+      original_finding TEXT,
+      remediation_plan TEXT,
+      milestone TEXT,
       deadline DATETIME,
       status TEXT DEFAULT 'open',
       assigned_to TEXT,
+      estimated_cost TEXT,
+      resources_required TEXT,
       completed_at DATETIME,
+      verified_at DATETIME,
+      verified_by INTEGER,
       evidence_text TEXT,
       created_by INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -181,6 +189,24 @@ async function initDatabase() {
       FOREIGN KEY (created_by) REFERENCES users(id)
     )
   `);
+
+  // ── Add POA&M columns to existing tables (safe migration) ──
+  const poamCols = [
+    ['iato_checklist', 'risk_level', "TEXT DEFAULT 'medium'"],
+    ['iato_checklist', 'original_finding', 'TEXT'],
+    ['iato_checklist', 'remediation_plan', 'TEXT'],
+    ['iato_checklist', 'milestone', 'TEXT'],
+    ['iato_checklist', 'estimated_cost', 'TEXT'],
+    ['iato_checklist', 'resources_required', 'TEXT'],
+    ['iato_checklist', 'verified_at', 'DATETIME'],
+    ['iato_checklist', 'verified_by', 'INTEGER'],
+    ['assessments', 'poam_notes', 'TEXT'],
+    ['assessments', 'risk_acceptance_statement', 'TEXT'],
+    ['assessment_controls', 'risk_level', 'TEXT']
+  ];
+  poamCols.forEach(([table, col, type]) => {
+    try { db.run(`ALTER TABLE ${table} ADD COLUMN ${col} ${type}`); } catch(e) { /* already exists */ }
+  });
 
   // ── GUIDANCE REPORTS (no-SA&A web guidance checklist) ──
   db.run(`

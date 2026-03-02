@@ -32,29 +32,42 @@ async function callClaude(system, userContent, { maxTokens = 4096, temperature =
 
   const messages = [{ role: 'user', content }];
 
-  const response = await fetch(ANTHROPIC_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': API_KEY(),
-      'anthropic-version': '2023-06-01'
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: maxTokens,
-      temperature,
-      system,
-      messages
-    })
-  });
+  const MAX_RETRIES = 3;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const response = await fetch(ANTHROPIC_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY(),
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: maxTokens,
+        temperature,
+        system,
+        messages
+      })
+    });
 
-  if (!response.ok) {
-    const errBody = await response.text();
-    throw new Error(`Anthropic API error (${response.status}): ${errBody}`);
+    if (response.status === 429 && attempt < MAX_RETRIES) {
+      // Rate limited — wait with exponential backoff
+      const retryAfter = response.headers.get('retry-after');
+      const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : Math.min(2000 * Math.pow(2, attempt), 30000);
+      console.log(`[AI] Rate limited (429), retry ${attempt + 1}/${MAX_RETRIES} in ${waitMs}ms...`);
+      await new Promise(resolve => setTimeout(resolve, waitMs));
+      continue;
+    }
+
+    if (!response.ok) {
+      const errBody = await response.text();
+      throw new Error(`Anthropic API error (${response.status}): ${errBody}`);
+    }
+
+    const data = await response.json();
+    return data.content[0].text;
   }
-
-  const data = await response.json();
-  return data.content[0].text;
+  throw new Error('Anthropic API rate limit exceeded after retries. Please wait a moment and try again.');
 }
 
 /**
@@ -362,6 +375,40 @@ ${controlList}`;
   return parseJSON(result);
 }
 
+/**
+ * Generate evidence guidance for a control — tells the CLIENT what they need to provide.
+ * This is used by the assessor to populate the evidence_guidance field.
+ */
+async function generateEvidenceGuidance(control, projectContext) {
+  const system = `You are a GC IT Security Assessor writing evidence guidance for a client who needs to provide evidence for an ITSG-33 SA&A assessment. Your job is to tell them EXACTLY what documentation, screenshots, configurations, or artifacts they need to provide to demonstrate compliance.
+
+Write clear, actionable guidance that a non-security person can follow. Include:
+- Specific documents or artifacts needed (e.g. "Provide the approved Access Control Policy document with version number and approval date")
+- Screenshots or exports requested (e.g. "Export Azure AD Conditional Access policies showing MFA enforcement")
+- Configuration evidence (e.g. "Provide screenshot of WAF rules from the cloud console")
+- Process evidence (e.g. "Provide the incident response runbook and evidence of the last tabletop exercise")
+- Reference the project's specific technologies where possible
+
+Format as a concise bulleted list of 3-6 items. Start each with an action verb. Write at a professional but accessible level.
+Do NOT write the evidence itself — write what the client needs to PROVIDE.
+Respond with ONLY the guidance text, no JSON or markdown headers.`;
+
+  const userContent = `
+CONTROL: ${control.control_id} — ${control.title}
+Description: ${control.description}
+
+PROJECT CONTEXT:
+- Name: ${projectContext.name || 'N/A'}
+- Technologies: ${projectContext.technologies || 'N/A'}
+- Hosting: ${projectContext.hosting_type || 'N/A'}
+- Classification: ${projectContext.confidentiality_level || 'Protected B'} / ${projectContext.integrity_level || 'Medium'} / ${projectContext.availability_level || 'Medium'}
+- Profile: ${projectContext.security_profile || 'PBMM'}
+
+Write evidence guidance for this control:`;
+
+  return await callClaude(system, userContent, { maxTokens: 800, temperature: 0.3 });
+}
+
 module.exports = {
   isConfigured,
   callClaude,
@@ -370,5 +417,6 @@ module.exports = {
   reviewIntake,
   suggestAdditionalControls,
   generateEvidenceNarrative,
-  generateBulkEvidence
+  generateBulkEvidence,
+  generateEvidenceGuidance
 };

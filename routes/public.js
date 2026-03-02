@@ -173,7 +173,7 @@ router.post('/respond/:code/submit', (req, res) => {
       assessorEmail: assessor.email,
       projectName: assessment.project_name,
       submitterName: assessment.project_owner_name
-    });
+    }).catch(err => console.error('[Email] Notification failed:', err.message));
   }
 
   res.render('public/success', {

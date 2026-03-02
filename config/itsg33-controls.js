@@ -712,6 +712,22 @@ function groupByFamily(controls) {
   return Object.values(grouped);
 }
 
+/**
+ * Compute TBS/GoC risk level for a control per Treasury Board ITSG-33 policy.
+ * High  = P1 in critical security families (boundary, authentication, integrity, audit)
+ * Medium = P1 in other families, or P2 in critical families
+ * Low   = P2 in non-critical families, or P3
+ */
+const CRITICAL_FAMILIES = ['AC', 'AU', 'IA', 'SC', 'SI', 'CP', 'IR', 'PE'];
+function computeRiskLevel(control) {
+  const family = (control.family || control.control_id?.split('-')[0] || '').toUpperCase();
+  const priority = control.priority || 'P1';
+  const isCritical = CRITICAL_FAMILIES.includes(family);
+  if (priority === 'P1' && isCritical) return 'high';
+  if (priority === 'P1' || (priority === 'P2' && isCritical)) return 'medium';
+  return 'low';
+}
+
 module.exports = {
   CONTROL_FAMILIES,
   COMMON_TECHNOLOGIES,
@@ -719,5 +735,7 @@ module.exports = {
   GC_WEB_GUIDANCE,
   getRecommendedControls,
   assessSAARequirement,
-  groupByFamily
+  groupByFamily,
+  computeRiskLevel,
+  CRITICAL_FAMILIES
 };

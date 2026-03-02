@@ -150,19 +150,26 @@ router.post('/ai/suggest-controls/:id', ensureAuthenticated, express.json(), asy
     const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
     if (!intake) return res.status(404).json({ error: 'Intake not found' });
 
-    const { ITSG33_CONTROLS } = require('../config/itsg33-controls');
-    const { recommendControls } = require('../config/security-profiles');
+    const { CONTROLS, getRecommendedControls } = require('../config/itsg33-controls');
 
-    const profile = intake.security_profile || 'PBMM';
-    // Get current baseline controls
-    const currentControls = recommendControls(profile, intake.confidentiality_level || 'protected-b', {
+    let techs = [];
+    try { techs = JSON.parse(intake.technologies || '[]'); } catch(e) {}
+
+    // Get current baseline controls using the real recommendation engine
+    const currentControls = getRecommendedControls({
+      dataClassification: intake.data_classification,
+      confidentiality: intake.confidentiality_level || intake.data_classification,
+      hostingType: intake.hosting_type,
+      appType: intake.app_type || 'internal',
+      hasPII: intake.has_pii === 1,
+      technologies: techs,
       description: intake.project_description || '',
-      technologies: intake.technologies || '',
-      appType: intake.app_type || 'internal'
+      securityProfile: intake.security_profile || 'PBMM',
+      isHVA: intake.is_hva === 1
     });
     const currentIds = currentControls.map(c => c.id);
 
-    const result = await ai.suggestAdditionalControls(intake, currentIds, ITSG33_CONTROLS);
+    const result = await ai.suggestAdditionalControls(intake, currentIds, CONTROLS);
     res.json({ success: true, suggestions: result });
   } catch (err) {
     console.error('AI suggest-controls error:', err);
@@ -184,6 +191,38 @@ router.post('/ai/evidence-narrative', ensureAuthenticated, express.json(), async
     res.json({ success: true, narrative: result });
   } catch (err) {
     console.error('AI evidence error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── AI Evidence Guidance (assessor generates guidance for the client) ────────
+router.post('/ai/evidence-guidance', ensureAuthenticated, express.json(), async (req, res) => {
+  try {
+    if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
+    const { controlId, controlTitle, controlDescription, projectContext } = req.body;
+    if (!controlId) return res.status(400).json({ error: 'Control ID required' });
+
+    const result = await ai.generateEvidenceGuidance(
+      { control_id: controlId, title: controlTitle, description: controlDescription },
+      projectContext || {}
+    );
+    res.json({ success: true, guidance: result });
+  } catch (err) {
+    console.error('AI guidance error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Save evidence guidance to a control ─────────────────────────────────────
+router.post('/ai/save-guidance/:controlDbId', ensureAuthenticated, express.json(), async (req, res) => {
+  try {
+    const { guidance } = req.body;
+    const { run } = require('../models/database');
+    run('UPDATE assessment_controls SET evidence_guidance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [guidance, req.params.controlDbId]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Save guidance error:', err);
     res.status(500).json({ error: err.message });
   }
 });

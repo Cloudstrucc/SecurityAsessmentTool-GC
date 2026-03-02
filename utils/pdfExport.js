@@ -161,6 +161,8 @@ function drawControlDetail(doc, control, verbose) {
   // Badges line
   doc.fontSize(8).fillColor(COLORS.muted);
   let badges = `Priority: ${control.priority || 'P1'}`;
+  const riskLvl = control.risk_level || 'medium';
+  badges += `   |   TBS Risk: ${riskLvl.toUpperCase()}`;
   if (control.is_inherited) badges += `   |   Inherited: ${control.inherited_from || 'Shared services'}`;
   if (!control.is_applicable) badges += `   |   NOT APPLICABLE`;
   doc.text(badges, { indent: 15 });
@@ -291,7 +293,7 @@ function generateAssessmentReport(assessment, controls, project, outputPath) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // ATO / iATO DOCUMENT PDF
 // ═══════════════════════════════════════════════════════════════════════════════
-function generateATODocument(assessment, project, atoType, controls, outputPath) {
+function generateATODocument(assessment, project, atoType, controls, outputPath, extras = {}) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 50, size: 'LETTER', bufferPages: true });
     const stream = fs.createWriteStream(outputPath);
@@ -300,6 +302,7 @@ function generateATODocument(assessment, project, atoType, controls, outputPath)
     const isIATO = atoType === 'iato';
     const title = isIATO ? 'Interim Authority to Operate (iATO)' : 'Authority to Operate (ATO)';
     const stats = computeStats(controls);
+    const { poamItems = [], riskAcceptance = '', poamNotes = '' } = extras;
 
     // ── Official header ──
     doc.rect(0, 0, doc.page.width, 90).fill(COLORS.navy);
@@ -372,6 +375,11 @@ function generateATODocument(assessment, project, atoType, controls, outputPath)
         `may result in revocation of this authorization.`,
         { lineGap: 2 }
       );
+      if (riskAcceptance) {
+        doc.moveDown(0.5);
+        doc.fontSize(10).fillColor(COLORS.navy).text('Risk Acceptance:', { underline: false });
+        doc.fontSize(10).fillColor(COLORS.text).text(riskAcceptance, { lineGap: 2, indent: 10 });
+      }
     }
 
     // ── Findings (Not Met / Partially Met) ──
@@ -382,6 +390,65 @@ function generateATODocument(assessment, project, atoType, controls, outputPath)
         `${findings.length} controls require attention`);
 
       findings.forEach(c => drawControlDetail(doc, c, true));
+    }
+
+    // ── POA&M Section (for iATO) ──
+    if (isIATO && poamItems.length > 0) {
+      doc.addPage();
+      pageHeader(doc, 'Plan of Action & Milestones (POA&M)',
+        `${poamItems.length} remediation items — TBS Directive on Security Management`);
+
+      if (riskAcceptance) {
+        doc.fontSize(10).fillColor(COLORS.navy).text('Risk Acceptance Statement:', { underline: false });
+        doc.moveDown(0.2);
+        doc.fontSize(9).fillColor(COLORS.text).text(riskAcceptance, { indent: 10 });
+        doc.moveDown(0.5);
+      }
+
+      if (poamNotes) {
+        doc.fontSize(9).fillColor(COLORS.muted).text('Notes: ' + poamNotes);
+        doc.moveDown(0.5);
+      }
+
+      // POA&M summary
+      const poamHigh = poamItems.filter(i => i.risk_level === 'high').length;
+      const poamMed = poamItems.filter(i => i.risk_level === 'medium').length;
+      const poamLow = poamItems.filter(i => i.risk_level === 'low').length;
+      const poamOpen = poamItems.filter(i => i.status === 'open').length;
+      const poamCompleted = poamItems.filter(i => i.status === 'completed' || i.status === 'verified').length;
+      doc.fontSize(9).fillColor(COLORS.text);
+      doc.text(`Total Items: ${poamItems.length}   |   High: ${poamHigh}   |   Medium: ${poamMed}   |   Low: ${poamLow}   |   Open: ${poamOpen}   |   Completed: ${poamCompleted}`);
+      doc.moveDown(0.5);
+
+      // POA&M table
+      poamItems.forEach((item, idx) => {
+        if (doc.y > 660) doc.addPage();
+
+        const riskColor = item.risk_level === 'high' ? COLORS.danger
+          : item.risk_level === 'medium' ? COLORS.warning : '#17a2b8';
+        const statusLabel = (item.status || 'open').toUpperCase().replace('-', ' ');
+
+        doc.fontSize(9).fillColor(riskColor).text(`[${(item.risk_level || 'medium').toUpperCase()}] `, { continued: true });
+        doc.fillColor(COLORS.navy).text(`${idx + 1}. ${item.description}`);
+
+        doc.fontSize(8).fillColor(COLORS.muted);
+        let meta = [];
+        if (item.control_id) meta.push('Control: ' + item.control_id);
+        if (item.deadline) meta.push('Deadline: ' + new Date(item.deadline).toLocaleDateString('en-CA'));
+        if (item.assigned_to) meta.push('Assigned: ' + item.assigned_to);
+        meta.push('Status: ' + statusLabel);
+        doc.text(meta.join('   |   '), { indent: 15 });
+
+        if (item.original_finding) {
+          doc.fontSize(8).fillColor(COLORS.muted).text('Finding: ' + truncate(item.original_finding, 300), { indent: 15 });
+        }
+        if (item.remediation_plan) {
+          doc.fontSize(8).fillColor(COLORS.link).text('Remediation Plan: ' + truncate(item.remediation_plan, 300), { indent: 15 });
+        }
+        doc.moveDown(0.3);
+        doc.rect(65, doc.y, doc.page.width - 130, 0.3).fill('#e9ecef');
+        doc.moveDown(0.2);
+      });
     }
 
     // ── Full Control Evidence Appendix ──
