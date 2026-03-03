@@ -1,4 +1,3 @@
-
 # GC Security Assessment & Authorization (SA&A) Tool
 
 A web-based tool for Government of Canada security practitioners to conduct ITSG-33 security assessments, manage evidence gathering, perform audits, and generate ATO/iATO authorization packages with Plan of Action & Milestones (POA&M).
@@ -19,8 +18,8 @@ Built with the GCWeb (WET) design system, Node.js, Express, Handlebars, Bootstra
 ### 1. Install & Run
 
 ```bash
-git clone 
-cd [SecurityAssessmentsTool](https://github.com/Cloudstrucc/SecurityAsessmentTool-GC.git)
+git clone https://github.com/Cloudstrucc/SecurityAsessmentTool-GC.git 
+cd SecurityAssessmentsTool
 npm install
 cp .env.example .env    # Edit with your settings
 npm start
@@ -32,11 +31,13 @@ The app starts at  **http://localhost:3000** .
 
 Create a `.env` file in the project root:
 
+
+
 ```env
 # ── Server ──
 PORT=3000
 NODE_ENV=development
-SESSION_SECRET=change-this-to-a-random-secret-string
+SESSION_SECRET=change-this-to-a-random-secret-string # example way to generate random secure secure from your terminal (bash) openssl rand -base64 32
 
 # ── Admin Credentials ──
 # The default assessor account is created on first startup.
