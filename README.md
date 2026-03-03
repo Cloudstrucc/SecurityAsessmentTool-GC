@@ -1,236 +1,498 @@
-# GC Security Assessment & Authorization (SA&A) Tool — Requirements Breakdown
 
-## Overview
+# GC Security Assessment & Authorization (SA&A) Tool
 
-A web-based tool for Government of Canada security practitioners to conduct ITSG-33 / Protected B / PII security assessments, manage evidence gathering, perform audits, and generate ATO/iATO authorization packages. Styled and architected like the Cloudstrucc BA Questionnaire App (Node.js, Express, Handlebars, Bootstrap 5, sql.js).
+A web-based tool for Government of Canada security practitioners to conduct ITSG-33 security assessments, manage evidence gathering, perform audits, and generate ATO/iATO authorization packages with Plan of Action & Milestones (POA&M).
 
----
-
-## Phase 1 — Project & Control Setup (Assessor Side)
-
-### 1.1 Assessor Authentication
-
-- Login page for security practitioners (email/password)
-- Session-based auth with Passport.js
-- Role: `assessor` (admin of the tool)
-
-### 1.2 Project Creation
-
-- Form fields: project name, description (plain text or markdown upload), department/agency
-- Classification level dropdown: Unclassified, Protected A, **Protected B**
-- Hosting environment checkboxes: Azure, AWS, GCP, IBM Cloud, SSC Data Centre, On-Premises, Hybrid
-- Application type: Internal-facing, External-facing, Both
-- Data collected: Free text + PII flag (yes/no)
-- Technology stack checkboxes: Active Directory, Entra ID, MFA, Azure PIM, Defender, CrowdStrike, Splunk, Sentinel, GitHub Enterprise, Azure DevOps, WAF, TLS/SSL, Key Vault, KMS, etc.
-
-### 1.3 Automatic Control Recommendation
-
-- Based on project characteristics (classification, hosting, app type, PII, tech stack), the system auto-recommends relevant ITSG-33 controls
-- Controls displayed grouped by family (AC, AU, CA, CM, IA, IR, SC, SI, etc.)
-- Each control shows: Family, Control ID, Title, Standard Description, **Tailored Description** (auto-generated first pass), Evidence Guidance
-- Priority tagging: P1 (critical), P2 (important), P3 (recommended)
-
-### 1.4 Inherited Control Detection
-
-- System flags controls that may be **inherited** from existing agency technologies (e.g., AD handles IA-2, Entra ID handles IA-5, Azure handles PE-family)
-- Practitioner can confirm/reject inheritance per control
-- Inherited controls still appear in the package but marked as "Inherited — [Technology Name]"
-
-### 1.5 Control Tailoring
-
-- Practitioner can edit: tailored description, evidence guidance, priority, applicability (in-scope / out-of-scope)
-- Ability to add/remove controls from the recommended set
-- Save as draft; finalize when ready to send
+Built with the GCWeb (WET) design system, Node.js, Express, Handlebars, Bootstrap 5, and sql.js.
 
 ---
 
-## Phase 2 — Invite & Evidence Gathering (Project Owner Side)
+## Quick Start
 
-### 2.1 Invite System
+### Prerequisites
 
-- Practitioner generates an invite link with a unique access code
-- Configurable expiry (default 30 days)
-- Email notification sent to project owner with link + code
-- Landing page: enter access code to access the assessment
+* **Node.js** 18+ (LTS recommended)
+* **npm** 9+
+* **Anthropic API key** (optional — for AI features)
+* **Microsoft 365 SMTP** credentials (optional — for email notifications)
 
-### 2.2 Evidence Submission Portal
+### 1. Install & Run
 
-- Project owner sees controls organized by family with progress indicators
-- Each control shows: ID, title, tailored description, evidence guidance, inheritance status
-- **Rich text editor** per control for evidence input (bold, italic, lists, headings, links)
-- Auto-save on each control's evidence field
-- File/video attachment upload per control (max 25MB per file)
-- Visual progress bar: X of Y controls addressed
+```bash
+git clone 
+cd [SecurityAssessmentsTool](https://github.com/Cloudstrucc/SecurityAsessmentTool-GC.git)
+npm install
+cp .env.example .env    # Edit with your settings
+npm start
+```
 
-### 2.3 Comment Threads
+The app starts at  **http://localhost:3000** .
 
-- Each control has a collapsible comment thread
-- Both practitioner and project owner can post comments
-- Timestamped, author-labeled messages
-- Unobtrusive — collapsed by default, badge shows unread count
+### 2. Configure Environment
 
-### 2.4 Submission & Locking
+Create a `.env` file in the project root:
 
-- "Submit All Evidence" button with confirmation dialog
-- On submission: all evidence fields lock (read-only), timestamp recorded
-- Email notification sent to practitioner
-- Practitioner can **reactivate** the submission to allow edits
+```env
+# ── Server ──
+PORT=3000
+NODE_ENV=development
+SESSION_SECRET=change-this-to-a-random-secret-string
 
----
+# ── Admin Credentials ──
+# The default assessor account is created on first startup.
+# Delete data/sa-tool.db and restart to recreate with new credentials.
+ADMIN_EMAIL=admin@youragency.gc.ca
+ADMIN_PASSWORD=ChangeThisPassword123!
+ADMIN_NAME=Security Assessor
 
-## Phase 3 — Audit & Scoring (Assessor Side)
+# ── Email (Microsoft 365 SMTP) ──
+# Option 1: App Password (recommended for M365)
+#   Create at https://account.microsoft.com/security → App Passwords
+SMTP_HOST=smtp.office365.com
+SMTP_PORT=587
+SMTP_USER=sa-tool@youragency.gc.ca
+SMTP_PASSWORD=your-16-char-app-password
+EMAIL_FROM="GC SA&A Tool <sa-tool@youragency.gc.ca>"
 
-### 3.1 Audit Interface
+# Option 2: OAuth2 (for orgs that disable App Passwords)
+# SMTP_OAUTH_CLIENT_ID=your-azure-ad-app-client-id
+# SMTP_OAUTH_CLIENT_SECRET=your-client-secret
+# SMTP_OAUTH_REFRESH_TOKEN=your-refresh-token
 
-- Practitioner sees each control with the submitted evidence
-- Per control: **Met / Partially Met / Not Met** radio buttons
-- Auditor comments field per control
-- Ability to view attachments inline or download
-- Filter/sort by: family, status (met/partial/not-met/unreviewed), priority
+# ── AI (Anthropic Claude) ──
+ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_MODEL=claude-sonnet-4-20250514
 
-### 3.2 Scoring Engine
+# ── File Uploads ──
+MAX_FILE_SIZE_MB=25
+```
 
-- Auto-calculates score: Met = 1.0, Partially Met = 0.5, Not Met = 0.0
-- Score = (total points / applicable controls) × 100
-- Thresholds (aligned to GC SA&A guidelines):
-  - **ATO**: 100% met (all controls fully satisfied)
-  - **iATO**: ≥ 80% with no critical (P1) gaps
-  - **Denied**: < 80% or critical gaps present
-- Visual score dashboard: pie/bar chart, family-level breakdown
+> **Note:** If SMTP is not configured or authentication fails, the app continues to function — emails are logged to the console instead. Invite codes are always displayed in the UI so they can be shared manually.
 
-### 3.3 Assessment Completion
+### 3. Default Login
 
-- Practitioner finalizes audit, system determines ATO/iATO/Denied
-- Summary page with overall score, per-family scores, gap list
-- Option to save met controls as **reusable templates** for future assessments
+| Role             | URL               | Email                                   | Password                    |
+| ---------------- | ----------------- | --------------------------------------- | --------------------------- |
+| Assessor (Admin) | `/admin/login`  | Value of `ADMIN_EMAIL`                | Value of `ADMIN_PASSWORD` |
+| Client           | `/client/login` | Self-registered at `/client/register` | Client-chosen               |
 
----
+### 4. Seed Sample Data
 
-## Phase 4 — Authorization Package (ATO / iATO)
+The project includes a browser console script that creates 7 diverse intake submissions spanning all security profiles.
 
-### 4.1 ATO Document Generation
+1. Register a client account at `http://localhost:3000/client/register`
+2. Log in as the client
+3. Open browser DevTools (F12) → Console
+4. Paste the contents of **`seed-intakes.js`** and press Enter
+5. Log in as the assessor at `/admin/login` and check `/admin/intakes`
 
-- PDF generated with: project details, control summary, audit results, score, authorization statement
-- Signature blocks: Assessor → Project Authority → CIO
-- Timestamp and unique document ID
+The 7 sample intakes cover:
 
-### 4.2 iATO with Remediation Checklist
+| # | Project                | Classification            | Expected Profile | Controls |
+| - | ---------------------- | ------------------------- | ---------------- | -------- |
+| 1 | Canada.ca Landing Page | Unclassified / L / L      | NONE (No SA&A)   | 0        |
+| 2 | Staff Directory        | Protected A / L / L       | CCCS_LOW         | 112      |
+| 3 | Immigration Case Mgmt  | Protected B / M / M       | PBMM             | 305      |
+| 4 | CRA MyAccount Portal   | Protected B / M / M + HVA | PBMM_HVA         | 342      |
+| 5 | Health Surveillance    | Protected B / H / H       | PB_HIGH          | 342      |
+| 6 | Witness Protection     | Protected C / M / M       | PC_BASELINE      | 342+     |
+| 7 | Intel Collaboration    | Secret / M / M            | SECRET_MM        | 342      |
 
-- If iATO: practitioner creates a checklist of remediation items
-- Each item: description, linked control(s), deadline, assigned to, status
-- Checklist visible to project owner via their access code
-- Project owner can update status; practitioner validates
+### 5. Deploy to Azure
 
-### 4.3 iATO → ATO Upgrade Path
+```bash
+chmod +x deploy-azure.sh
+az login
+./deploy-azure.sh
+```
 
-- Once all checklist items addressed, practitioner triggers a new audit round
-- Same audit interface (3.1) focused on previously not-met/partially-met controls
-- If all pass → ATO generated, file closed
-- If gaps remain → updated iATO or denied
-
-### 4.4 Signature Workflow
-
-- Generated document sent to assessor for digital signature (or checkbox acknowledgment v1)
-- Then to project authority, then CIO
-- Each signer notified by email
-- Final signed document stored and downloadable
-
----
-
-## Phase 5 — Reusability & Templates
-
-### 5.1 Save Control Templates
-
-- When an assessment achieves ATO, met controls can be saved as templates
-- Template includes: tailored description, evidence guidance, example evidence text, technology tags
-
-### 5.2 Template Reuse on New Assessments
-
-- When creating a new assessment, system checks for matching templates based on tech stack overlap
-- Practitioner can apply templates to pre-fill tailored descriptions and evidence guidance
-- Example evidence from past assessments shown as reference (not auto-filled for the project owner)
+The script auto-detects existing resources or creates new ones. Supports `--update-only` for code-only deploys and `--settings-only` for env var updates. Set API keys via Azure App Settings or the script's interactive prompts.
 
 ---
 
-## Phase 6 — Exports & Reporting
+## Architecture
 
-### 6.1 PDF Export — Assessment Report
+### Project Structure
 
-- Full report: project details, all controls with evidence, audit results, scoring, comments
-- Formatted for GC standards (Government of Canada branding)
+```
+├── app.js                          # Express app entry point
+├── package.json
+├── .env                            # Environment configuration
+├── deploy-azure.sh                 # Azure App Service deployment
+├── seed-intakes.js                 # Browser console sample data seeder
+│
+├── config/
+│   ├── ai-service.js               # Anthropic Claude API integration
+│   ├── itsg33-controls.js          # 342 ITSG-33 controls catalogue
+│   ├── passport.js                 # Authentication (Passport.js + MFA)
+│   └── security-profiles.js        # 7-level C/I/A categorization engine
+│
+├── models/
+│   └── database.js                 # SQLite schema & initialization
+│
+├── routes/
+│   ├── admin.js                    # Assessor routes (dashboard, projects, assessments, POA&M)
+│   ├── api.js                      # API routes (AI endpoints, control updates)
+│   └── public.js                   # Public routes (intake, client portal, evidence submission)
+│
+├── utils/
+│   ├── emailService.js             # Microsoft 365 SMTP with OAuth2 + App Password
+│   └── pdfExport.js                # Assessment & ATO/iATO PDF generation
+│
+├── views/
+│   ├── layouts/main.hbs            # GCWeb layout (FIP header, Canada wordmark)
+│   ├── admin/                      # 13 assessor views
+│   │   ├── dashboard.hbs
+│   │   ├── intakes.hbs
+│   │   ├── intake-review.hbs
+│   │   ├── projects.hbs
+│   │   ├── project-detail.hbs
+│   │   ├── assessments.hbs
+│   │   ├── assessment-detail.hbs   # Main audit view with POA&M + family nav
+│   │   ├── assessment-new.hbs
+│   │   ├── manage-controls.hbs
+│   │   ├── guidance-report.hbs
+│   │   ├── login.hbs
+│   │   └── settings.hbs
+│   └── public/                     # 9 client/public views
+│       ├── intake.hbs              # 8-section intake form with AI doc parsing
+│       ├── respond.hbs             # Evidence submission portal
+│       ├── checklist.hbs           # iATO remediation checklist (client view)
+│       ├── register.hbs / client-login.hbs / mfa-setup.hbs
+│       └── guidance-portal.hbs / guidance-submitted.hbs / success.hbs
+│
+├── data/
+│   └── sa-tool.db                  # SQLite database (auto-created on startup)
+└── uploads/                        # File attachments
+```
 
-### 6.2 PDF Export — ATO/iATO Document
+### Tech Stack
 
-- Authorization document with signature blocks
-- Executive summary, risk posture, conditions (for iATO)
-
-### 6.3 Dashboard & Analytics
-
-- Assessor dashboard: total projects, active assessments, pending audits, ATO/iATO counts
-- Per-project status at a glance
+| Component   | Technology                                                                |
+| ----------- | ------------------------------------------------------------------------- |
+| Runtime     | Node.js 18+ / Express 4                                                   |
+| Templates   | Handlebars (.hbs) with 33+ custom helpers                                 |
+| Database    | sql.js (SQLite, file-backed)                                              |
+| Auth        | Passport.js (local strategy) + TOTP MFA (otplib + qrcode)                 |
+| UI          | Bootstrap 5.3 + Bootstrap Icons + GCWeb theme                             |
+| PDF         | PDFKit (assessment reports, ATO/iATO documents)                           |
+| Email       | Nodemailer (M365 SMTP with OAuth2 / App Password)                         |
+| AI          | Anthropic Claude API (document parsing, evidence guidance, intake review) |
+| File Upload | Multer (25MB max per file)                                                |
 
 ---
 
-## Phase 7 — Future Enhancements (Post-MVP)
+## Feature Reference
 
-### 7.1 LLM Integration for Evidence Refinement
+### Phase 1 — Intake & Project Setup
 
-- Project owner can click "Refine with AI" on evidence text
-- LLM rewrites/improves text, references official GC documentation
-- Practitioner can also use LLM to generate tailored descriptions
+#### 1.1 Client Intake Form
 
-### 7.2 Markdown Upload for Project Specs
+Eight-section intake form with real-time profile preview:
 
-- Accept .md file upload at project creation for detailed specs
-- Parse and display as project context alongside controls
+1. **Project Information** — name, description, department, branch, go-live date, user count, app type
+2. **Security Categorization** — three-axis C/I/A classification (7 confidentiality levels from Unclassified to Top Secret, 3 integrity levels, 3 availability levels), HVA designation, PII types (10 categories including Indigenous data)
+3. **Privacy & ATIP** — PIA status, ATIP subject
+4. **Hosting & Technology** — hosting type, region, 21 technology checkboxes (Azure, AWS, GCP, Entra ID, Sentinel, CrowdStrike, etc.), free-text for others
+5. **Interconnections** — APIs, GC system interconnections, mobile access, external users
+6. **Completed Activities** — TRA, PIA, SSP, VAPT, network diagrams, previous SA&A
+7. **Contacts** — project owner, tech lead, authorizing official
+8. **Attachments & Notes** — file uploads, additional context
 
-### 7.3 Video Attachment Support
+**AI-Powered Document Parsing:** Upload a project spec (PDF, DOCX, etc.) and AI auto-suggests values for all form fields.
 
-- Upload and inline preview for video evidence
+**Real-Time Profile Preview:** Side panel updates as you fill the form, showing the determined security profile and estimated control count.
 
-### 7.4 Advanced Signature Capture
+#### 1.2 Security Profile Engine
 
-- Digital signature pad or integration with GC signing tools
+Seven-level categorization engine per TBS Directive on Security Management:
 
-### 7.5 Multi-Assessor Collaboration
+| Profile         | Trigger                                         | Controls             |
+| --------------- | ----------------------------------------------- | -------------------- |
+| `NONE`        | Unclassified, no PII, low I/A                   | 0 (no SA&A required) |
+| `CCCS_LOW`    | Protected A / Low, or Unclassified with PII     | 112                  |
+| `PBMM`        | Protected B / Medium / Medium                   | 305                  |
+| `PBMM_HVA`    | Protected B / M / M + HVA designation           | 342                  |
+| `PB_HIGH`     | Protected B with High integrity or availability | 342 (enhanced)       |
+| `PC_BASELINE` | Protected C (tailored above PBMM)               | 342+                 |
+| `SECRET_MM`   | Secret / Medium / Medium (ITSG-33 Profile 3)    | 342                  |
 
-- Multiple practitioners on a single assessment with role assignments
+#### 1.3 Admin Intake Review
+
+* AI-powered review summary with risk flags and recommended questions
+* AI-suggested additional controls based on project description
+* Engine Preview panel showing profile, control count, P1/P2/P3 breakdown
+* Accept → creates project + assessment with filtered controls
+* Control filtering options: exclude inherited controls, include only P1/P2
+
+#### 1.4 Automatic Control Recommendation
+
+342 ITSG-33 controls catalogued across 18 families, with:
+
+* Profile-based filtering (CCCS_LOW gets 112, PBMM gets 305, etc.)
+* Technology-based inheritance detection (e.g., Entra ID → IA family, Azure → PE family)
+* Priority tagging: P1 (mandatory), P2 (conditional)
+* Tailored descriptions per control based on project context
+* Evidence guidance per control
+
+#### 1.5 TBS Risk Categorization
+
+Every control is classified by risk level per Treasury Board policy:
+
+* **High** — P1 in critical families (AC, AU, IA, SC, SI, CP, IR, PE)
+* **Medium** — P1 in other families, or P2 in critical families
+* **Low** — P2 in non-critical families
+
+Risk levels drive POA&M deadlines, ATO determination logic, and PDF report formatting.
+
+### Phase 2 — Evidence Gathering (Client Side)
+
+#### 2.1 Invite System
+
+* Assessor generates invite with unique access code
+* Email sent via Microsoft 365 SMTP (falls back to console log if SMTP unavailable)
+* 30-day configurable expiry
+* Flash message shows code for manual sharing if email fails
+
+#### 2.2 Evidence Submission Portal
+
+* Controls grouped by family with progress indicators
+* Rich text editor (contenteditable) per control with formatting toolbar
+* Auto-save (1.5s debounce) — no submit-per-control needed
+* File attachment upload per control (25MB max)
+* **AI Evidence Guidance** displayed per control — tells the client exactly what to provide (generated by the assessor via AI)
+* Comment threads per control (client ↔ assessor)
+* Global progress bar: X of Y controls addressed
+* "Submit All Evidence" with confirmation → locks form, notifies assessor
+
+#### 2.3 Submission Reactivation
+
+Assessor can reactivate a submitted assessment to allow client edits.
+
+### Phase 3 — Audit & Scoring
+
+#### 3.1 Assessment Detail (Assessor View)
+
+* Controls displayed with family navigation sidebar (sticky, with scroll-spy)
+* Mobile-responsive: horizontal scrollable family strip on small screens
+* Per control: Met / Partially Met / Not Met radio buttons + auditor comments
+* TBS risk level badge (High/Medium/Low) on every control
+* Filter input for family codes
+* Progress indicators in sidebar
+
+#### 3.2 AI Evidence Guidance
+
+Refactored workflow: the AI generates **guidance for the client** (not the evidence itself):
+
+* Assessor clicks "AI Evidence Guidance" on any control
+* AI produces an actionable bullet list (e.g., "Export Azure AD Conditional Access policies showing MFA enforcement")
+* "Save to Control" writes guidance to the `evidence_guidance` field
+* Client sees guidance in their evidence submission portal with a lightbulb icon
+* Bulk mode: generate guidance for 5/10/20 controls at once via FAB button
+
+#### 3.3 Scoring Engine
+
+* Met = 1.0, Partially Met = 0.5, Not Met = 0.0
+* Score = (total points / applicable controls) × 100
+* TBS-aligned thresholds:
+  * **ATO** : ≥80% with no high-risk findings
+  * **iATO** : ≥60% (POA&M auto-generated)
+  * **Denied** : <60% or assessor override
+
+#### 3.4 Complete Audit Panel
+
+Expanded form with:
+
+* TBS risk summary (high-risk findings count, met/partial/not-met)
+* TBS policy alert if high-risk controls are not met
+* Override option (auto-calculate, force ATO, force iATO, force Denied)
+* iATO expiry date (default 90 days)
+* Risk acceptance statement (required for iATO per TBS Directive)
+* POA&M notes
+
+### Phase 4 — Authorization Packages
+
+#### 4.1 ATO Document (PDF)
+
+* Title page: "Government of Canada — Authority to Operate"
+* System details: name, classification, profile, C/I/A, hosting
+* Compliance summary: score, visual bar, met/partial/not-met/pending counts
+* Family breakdown table (9 columns)
+* Full control evidence appendix
+* Signature page: 4 blocks (Assessor, Project Authority, CIO, DSO)
+* Footer: page numbers, project name, document type
+
+#### 4.2 iATO with POA&M
+
+Full Plan of Action & Milestones system per TBS Directive on Security Management:
+
+* **Auto-populate** from audit findings (not-met / partially-met controls)
+* **Risk-based deadlines** : High = 30 days, Medium = 60 days, Low = 90 days
+* **Status workflow** : Open → In Progress → Completed → Verified
+* **Per-item tracking** : description, linked control, risk level, assigned-to, deadline, remediation plan, milestone, evidence
+* **Progress visualization** : color-coded progress bar, overdue alerts
+* **Risk acceptance statement** : documented residual risk per TBS policy
+* **iATO expiry date** : visible in both UI and PDF
+* **PDF appendix** : full POA&M table with risk levels and remediation plans
+
+#### 4.3 iATO → ATO Upgrade Path
+
+* Assessor reactivates submission for client updates
+* New audit round focused on previously not-met/partially-met controls
+* If all pass → full ATO generated
+* If gaps remain → updated iATO or denied
+
+#### 4.4 Assessment Report (PDF)
+
+* Project info, classification, score
+* Compliance summary with visual score bar
+* Family breakdown table
+* Detailed controls with evidence text, guidance, auditor comments
+* TBS risk level per control
+* Page headers/footers with GC branding
+
+### Phase 5 — Reusability & Templates
+
+* Met controls automatically saved as templates on ATO
+* Templates include: tailored description, evidence guidance, example evidence, technology tags
+* New assessments check for matching templates based on tech stack overlap
+* Template reuse pre-fills descriptions and guidance (evidence not auto-filled for client)
+
+### Phase 6 — Guidance Workflow (Non-SA&A)
+
+* Lightweight GC web standards compliance checklist
+* Invite-based portal for project owners
+* Assessor validates and approves
+* PDF export of guidance report
+
+### Phase 7 — Dashboard & Analytics
+
+* 5-tile dashboard: total projects, active assessments, pending audits, ATO count, iATO count
+* Per-project status at a glance
+* Quick links to recent assessments and pending items
 
 ---
 
-## Technical Stack
+## AI Integration
 
-| Component | Technology |
-|-----------|-----------|
-| Server | Node.js + Express |
-| Templates | Handlebars (.hbs) |
-| Database | sql.js (SQLite in-memory/file) |
-| Auth | Passport.js (local strategy) |
-| UI Framework | Bootstrap 5.3 + Bootstrap Icons |
-| Rich Text | TinyMCE or Quill (embedded in forms) |
-| File Upload | Multer |
-| PDF Generation | PDFKit |
-| Email | Nodemailer |
-| Styling | Cloudstrucc-style (Open Sans/Raleway, GC blue/red accent palette) |
+All AI features use the Anthropic Claude API and require `ANTHROPIC_API_KEY` in `.env`.
+
+| Feature             | Endpoint                                | Description                                              |
+| ------------------- | --------------------------------------- | -------------------------------------------------------- |
+| Document Parsing    | `POST /api/ai/parse-document`         | Upload project specs → AI suggests intake form values   |
+| Intake Review       | `POST /api/ai/review-intake/:id`      | AI summary of intake with risk flags and questions       |
+| Control Suggestions | `POST /api/ai/suggest-controls/:id`   | AI suggests additional controls based on project         |
+| Evidence Guidance   | `POST /api/ai/evidence-guidance`      | AI generates actionable guidance for clients             |
+| Save Guidance       | `POST /api/ai/save-guidance/:id`      | Saves AI guidance to a control's evidence_guidance field |
+| Evidence Narrative  | `POST /api/ai/evidence-narrative`     | AI drafts evidence narrative (assessor use)              |
+| Bulk Evidence       | `POST /api/ai/generate-bulk-evidence` | Batch evidence guidance for multiple controls            |
+
+Rate limiting: automatic retry with exponential backoff (2s → 4s → 8s) on 429 responses.
 
 ---
 
-## Build Order (Step by Step)
+## Email Configuration
 
-| Step | Scope | Depends On |
-|------|-------|-----------|
-| **1** | Project creation + auth (1.1, 1.2) | — |
-| **2** | Control catalog + recommendation engine (1.3) | Step 1 |
-| **3** | Inherited control detection (1.4) | Step 2 |
-| **4** | Control tailoring UI (1.5) | Step 3 |
-| **5** | Invite system + access code (2.1) | Step 4 |
-| **6** | Evidence submission portal + rich text (2.2) | Step 5 |
-| **7** | Comment threads (2.3) | Step 6 |
-| **8** | Submission locking + reactivation (2.4) | Step 7 |
-| **9** | Audit interface + scoring (3.1, 3.2) | Step 8 |
-| **10** | ATO/iATO determination + doc gen (3.3, 4.1, 4.2) | Step 9 |
-| **11** | iATO checklist + upgrade path (4.2, 4.3) | Step 10 |
-| **12** | Signature workflow (4.4) | Step 11 |
-| **13** | Template reuse (5.1, 5.2) | Step 10 |
-| **14** | PDF exports + dashboard (6.1–6.3) | Step 10 |
-| **15** | LLM integration + enhancements (7.x) | All above |
+The tool supports two Microsoft 365 SMTP authentication methods:
+
+### App Password (Simplest)
+
+1. Go to [account.microsoft.com/security](https://account.microsoft.com/security)
+2. **Security** → **Advanced security options** → **App Passwords** → create one
+3. Set `SMTP_PASSWORD` to the generated 16-character password
+
+### OAuth2 (For Orgs That Disable App Passwords)
+
+1. Register an Azure AD app with Mail.Send permission
+2. Set `SMTP_OAUTH_CLIENT_ID`, `SMTP_OAUTH_CLIENT_SECRET`, `SMTP_OAUTH_REFRESH_TOKEN`
+
+### Fallback
+
+If SMTP is not configured or authentication fails, the app:
+
+* Logs a warning at startup with troubleshooting instructions
+* Continues to function normally — emails are logged to console
+* Shows invite codes in the UI flash message for manual sharing
+* Never crashes on email failure (all sends wrapped in try/catch)
+
+---
+
+## GCWeb Theme
+
+The UI implements the Government of Canada Web Experience Toolkit (WET) design:
+
+* **FIP Header** : Canada wordmark, bilingual Government of Canada signature
+* **Canada Wordmark Footer** : official footer with landscape links
+* **WCAG 2.0 AA** : accessible color contrast, skip links, ARIA roles
+* **Typography** : Noto Sans / Lato (GC standard)
+* **Color Palette** : Navy (#26374a), Red (#af3c43), Link Blue (#2b4380)
+* **CSS Variables** : all themed via `--gc-*` custom properties
+
+---
+
+## Database
+
+SQLite database (`data/sa-tool.db`) auto-created on first startup. Delete to reset.
+
+**Tables:** users, intake_submissions, intake_attachments, projects, assessments, assessment_controls, comments, attachments, iato_checklist (POA&M), control_templates, guidance_reports
+
+**Schema migrations** run automatically — new columns added via `ALTER TABLE` with safe try/catch.
+
+---
+
+## Security Considerations
+
+* Session-based auth with Passport.js + optional TOTP MFA
+* Helmet.js for HTTP security headers
+* CSRF protection via session tokens
+* File upload validation (type, size)
+* Input sanitization on all form fields
+* Rate-limited AI calls with retry logic
+* **Not for production classified data** — this is an assessment management tool, not a classified data store. The tool tracks the assessment process; actual classified documents should remain in approved GC systems.
+
+---
+
+## Build Order Reference
+
+| Step | Scope                                        | Status                               |
+| ---- | -------------------------------------------- | ------------------------------------ |
+| 1    | Project creation + auth                      | ✅ Complete                          |
+| 2    | ITSG-33 control catalogue (342 controls)     | ✅ Complete                          |
+| 3    | Inherited control detection                  | ✅ Complete                          |
+| 4    | Control tailoring UI                         | ✅ Complete                          |
+| 5    | Invite system + access code                  | ✅ Complete                          |
+| 6    | Evidence submission portal + rich text       | ✅ Complete                          |
+| 7    | Comment threads                              | ✅ Complete                          |
+| 8    | Submission locking + reactivation            | ✅ Complete                          |
+| 9    | Audit interface + scoring                    | ✅ Complete                          |
+| 10   | ATO/iATO determination + PDF generation      | ✅ Complete                          |
+| 11   | iATO POA&M + upgrade path                    | ✅ Complete                          |
+| 12   | Signature workflow                           | ⬜ Checkbox v1 (digital sig pending) |
+| 13   | Template reuse                               | ✅ Complete                          |
+| 14   | PDF exports + dashboard                      | ✅ Complete                          |
+| 15   | AI integration (doc parse, guidance, review) | ✅ Complete                          |
+| 16   | Three-axis C/I/A categorization (7 levels)   | ✅ Complete                          |
+| 17   | TBS risk categorization (High/Medium/Low)    | ✅ Complete                          |
+| 18   | GCWeb theme (FIP, WET, WCAG 2.0 AA)          | ✅ Complete                          |
+| 19   | Client registration + MFA                    | ✅ Complete                          |
+| 20   | Family navigation sidebar + scroll-spy       | ✅ Complete                          |
+| 21   | POA&M with risk-based deadlines              | ✅ Complete                          |
+| 22   | Email service (M365 OAuth2 + App Password)   | ✅ Complete                          |
+
+---
+
+## Future Enhancements
+
+* Digital signature capture (signature pad or GC signing integration)
+* Multi-assessor collaboration with role assignments
+* Video attachment support with inline preview
+* Markdown upload for project specs
+* Continuous monitoring dashboard
+* SCAP/OSCAL export format
+* Bilingual (English/French) support
+
+---
+
+## License
+
+Internal Government of Canada tool. Not for public distribution.
