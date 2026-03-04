@@ -107,7 +107,7 @@
             </div>
           </div>
           <hr>
-          <form method="POST" action="/admin/projects/{{project.id}}/guidance/validate">
+          <form method="POST" action="/admin/projects/{{project.id}}/guidance/validate" class="">
             <div class="mb-3">
               <label class="form-label small fw-semibold">Reviewer Notes</label>
               <textarea class="form-control" name="reviewer_notes" rows="3"
@@ -270,7 +270,7 @@
   <div class="card mb-5">
     <div class="card-header"><i class="bi bi-pencil-square me-2"></i>Assessor Notes</div>
     <div class="card-body">
-      <form method="POST" action="/admin/projects/{{project.id}}/guidance-notes">
+      <form method="POST" action="/admin/projects/{{project.id}}/guidance-notes" class="">
         <textarea class="form-control mb-3" name="notes" rows="4" placeholder="Add any assessor notes for this guidance report...">{{project.assessor_notes}}</textarea>
         <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save me-1"></i>Save Notes</button>
       </form>

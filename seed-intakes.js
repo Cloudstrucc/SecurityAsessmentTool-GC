@@ -1,3 +1,33 @@
+/**
+ * GC SA&A Tool — Sample Intake Seeder (v8.3)
+ * 
+ * Paste this into the browser console while logged in as a client.
+ * It submits 7 diverse intakes spanning all security profiles:
+ *   NONE, CCCS_LOW, PBMM, PBMM_HVA, PB_HIGH, PC_BASELINE, SECRET_MM
+ *
+ * Usage:
+ *   1. Go to your app URL and register/log in as a client
+ *   2. Open browser DevTools (F12) → Console
+ *   3. Paste this entire script and press Enter
+ *   4. Check /admin/intakes to review results
+ *
+ * Valid field values (for reference):
+ *   confidentialityLevel: unclassified, protected-a, protected-b, protected-c, confidential, secret, top-secret
+ *   integrityLevel:       low, medium, high
+ *   availabilityLevel:    low, medium, high
+ *   appType:              internal, external, hybrid
+ *   hostingType:          cloud-public, cloud-gc, ssc-dc, on-premises, hybrid-cloud
+ *   hostingRegion:        canada, us, eu, other
+ *   piiTypes:             name-address, sin, financial, health, biometric, employment, immigration, law-enforcement, indigenous, none
+ *   technologies:         entra-id, active-directory, mfa, pim, azure, aws, gcp, ssc-dc, gc-network,
+ *                         siem-sentinel, siem-splunk, defender, crowdstrike, gc-cse, waf,
+ *                         azure-devops, github, intune, key-vault, aws-kms, ssl-tls, backup-azure
+ *   completedActivities:  tra, pia, ssp, vapt, network-diagram, previous-sa
+ *   hasAPIs / gcInterconnections / mobileAccess / externalUsers: yes, no
+ *   atipSubject:          yes, no
+ *   piaCompleted:         yes, in-progress, no, not-required
+ */
+
 (async function seedIntakes() {
   const intakes = [
 

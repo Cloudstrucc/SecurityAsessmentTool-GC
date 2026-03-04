@@ -26,24 +26,50 @@
         </button>
       </form>
       {{else}}
-      <!-- Step 2: MFA Code -->
-      <div class="alert alert-info small mb-3">
-        <i class="bi bi-shield-lock me-1"></i>
-        Enter the 6-digit code from your authenticator app.
-      </div>
-      <form method="POST" action="/client/login/mfa">
-        <input type="hidden" name="userId" value="{{userId}}">
-        <div class="mb-4">
-          <label class="form-label fw-bold">Authentication Code</label>
-          <input type="text" class="form-control form-control-lg text-center" name="token"
-            required maxlength="6" pattern="[0-9]{6}" placeholder="000000"
-            style="letter-spacing:6px;font-family:'Courier New',monospace;font-weight:700;font-size:1.5rem;"
-            autocomplete="one-time-code" inputmode="numeric" autofocus>
+      <!-- Step 2: MFA -->
+
+      {{#if hasWebAuthn}}
+      <!-- Passkey option (primary) -->
+      <div id="passkeyLoginSection">
+        <div class="text-center mb-3">
+          <i class="bi bi-person-bounding-box" style="font-size:3rem;color:var(--gc-nav,#26374a)"></i>
         </div>
-        <button type="submit" class="btn btn-primary w-100 py-2">
-          <i class="bi bi-check-circle me-2"></i>Verify & Sign In
+        <p class="text-center text-muted small mb-3">Approve with your passkey (Face ID, Touch ID, or Windows Hello).</p>
+        <div id="passkeyError" class="alert alert-danger small py-2 d-none"></div>
+        <button class="btn btn-primary w-100 py-2 mb-3" id="passkeyLoginBtn" data-user-id="{{userId}}">
+          <i class="bi bi-person-bounding-box me-1"></i>Sign In with Passkey
         </button>
-      </form>
+        <div class="text-center">
+          <a href="#" class="small text-muted" id="switchToTotpBtn"><i class="bi bi-key me-1"></i>Use TOTP code instead</a>
+        </div>
+      </div>
+      {{/if}}
+
+      <!-- TOTP option -->
+      <div id="totpLoginSection" {{#if hasWebAuthn}}class="d-none"{{/if}}>
+        <div class="alert alert-info small mb-3">
+          <i class="bi bi-shield-lock me-1"></i>Enter the 6-digit code from your authenticator app.
+        </div>
+        <form method="POST" action="/client/login/mfa">
+          <input type="hidden" name="userId" value="{{userId}}">
+          <div class="mb-4">
+            <label class="form-label fw-bold">Authentication Code</label>
+            <input type="text" class="form-control form-control-lg text-center" name="token"
+              required maxlength="6" pattern="[0-9]{6}" placeholder="000000"
+              style="letter-spacing:6px;font-family:'Courier New',monospace;font-weight:700;font-size:1.5rem;"
+              autocomplete="one-time-code" inputmode="numeric" {{#unless hasWebAuthn}}autofocus{{/unless}}>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 py-2">
+            <i class="bi bi-check-circle me-2"></i>Verify & Sign In
+          </button>
+        </form>
+        {{#if hasWebAuthn}}
+        <div class="text-center mt-3">
+          <a href="#" class="small text-muted" id="switchToPasskeyBtn"><i class="bi bi-person-bounding-box me-1"></i>Use passkey instead</a>
+        </div>
+        {{/if}}
+      </div>
+
       {{/unless}}
     </div>
   </div>
@@ -53,3 +79,76 @@
     <a href="/client/register">Register here</a>
   </div>
 </div>
+
+{{#if mfaStep}}
+<script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@11/dist/bundle/index.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Toggle between passkey and TOTP
+  const switchToTotp = document.getElementById('switchToTotpBtn');
+  const switchToPasskey = document.getElementById('switchToPasskeyBtn');
+  if (switchToTotp) {
+    switchToTotp.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.getElementById('passkeyLoginSection').classList.add('d-none');
+      document.getElementById('totpLoginSection').classList.remove('d-none');
+      document.querySelector('#totpLoginSection input[name="token"]')?.focus();
+    });
+  }
+  if (switchToPasskey) {
+    switchToPasskey.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.getElementById('totpLoginSection').classList.add('d-none');
+      document.getElementById('passkeyLoginSection').classList.remove('d-none');
+    });
+  }
+
+  // Passkey login
+  const passkeyBtn = document.getElementById('passkeyLoginBtn');
+  if (passkeyBtn) {
+    passkeyBtn.addEventListener('click', async function() {
+      const userId = this.dataset.userId;
+      const errEl = document.getElementById('passkeyError');
+      this.disabled = true;
+      this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Waiting for biometric...';
+      errEl.classList.add('d-none');
+
+      try {
+        const optResp = await fetch('/api/webauthn/auth-options', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: parseInt(userId) })
+        });
+        const opts = await optResp.json();
+        if (opts.error) throw new Error(opts.error);
+
+        const authResult = await SimpleWebAuthnBrowser.startAuthentication({ optionsJSON: opts });
+
+        const verifyResp = await fetch('/api/webauthn/auth-verify', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...authResult, _userId: userId })
+        });
+        const verifyData = await verifyResp.json();
+
+        if (verifyData.success && verifyData.sig_token) {
+          // Submit login form with sig_token
+          const form = document.createElement('form');
+          form.method = 'POST'; form.action = '/client/login/webauthn';
+          const hidden = document.createElement('input');
+          hidden.type = 'hidden'; hidden.name = '_sig_token'; hidden.value = verifyData.sig_token;
+          form.appendChild(hidden);
+          document.body.appendChild(form);
+          form.submit();
+          return;
+        }
+        throw new Error(verifyData.error || 'Verification failed');
+      } catch (err) {
+        errEl.textContent = err.name === 'NotAllowedError' ? 'Cancelled. Click to try again.' : err.message;
+        errEl.classList.remove('d-none');
+        this.disabled = false;
+        this.innerHTML = '<i class="bi bi-person-bounding-box me-1"></i>Try Again';
+      }
+    });
+  }
+});
+</script>
+{{/if}}

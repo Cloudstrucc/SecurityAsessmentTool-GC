@@ -409,6 +409,67 @@ Write evidence guidance for this control:`;
   return await callClaude(system, userContent, { maxTokens: 800, temperature: 0.3 });
 }
 
+/**
+ * Elaborate on plain-text input — expand brief notes into detailed, professional text.
+ * Used by both assessors (feedback) and clients (evidence descriptions).
+ */
+async function elaborateText(inputText, context = {}) {
+  const system = `You are a Government of Canada security assessment writing assistant.
+Your job is to take brief, plain-language notes and expand them into clear, detailed, professional text 
+suitable for a security assessment document. Maintain the original meaning and intent.
+Keep the tone formal but accessible. Use specific security terminology where appropriate.
+Do NOT add information that wasn't implied by the input — only elaborate and clarify what was written.
+Return ONLY the elaborated text, no preamble or explanation.`;
+
+  const contextStr = context.controlId ? `\nContext: Control ${context.controlId} - ${context.controlTitle || ''}` : '';
+  const roleStr = context.role === 'assessor' ? '\nThis is assessor feedback requesting evidence from a client.' : 
+                  context.role === 'client' ? '\nThis is a client describing evidence or remediation actions taken.' : '';
+  
+  const userMsg = `Elaborate on the following text into detailed, professional language:${contextStr}${roleStr}
+
+Input: "${inputText}"`;
+
+  return await callClaude(system, userMsg, { maxTokens: 1024, temperature: 0.3 });
+}
+
+/**
+ * AI pre-review of submitted evidence for all controls in an assessment.
+ * Returns an array of { controlDbId, result, comments } objects.
+ */
+async function reviewSubmittedEvidence(controls, projectContext = {}) {
+  const system = `You are a Government of Canada ITSG-33 security control assessor performing a preliminary evidence review.
+For each control, evaluate the submitted evidence against the control requirements and evidence guidance.
+Determine a preliminary result:
+- "met" — Evidence adequately demonstrates the control is implemented and effective
+- "partial" — Some evidence provided but gaps exist; specify what's missing
+- "not-met" — Evidence is insufficient or unrelated to the control requirements
+
+Be fair but thorough. Consider the control description and any evidence guidance when evaluating.
+Respond ONLY with a JSON array (no markdown fences, no preamble). Each element:
+{ "controlDbId": <number>, "result": "met"|"partial"|"not-met", "comments": "<1-3 sentence justification>" }`;
+
+  const controlsSummary = controls.map(c => ({
+    controlDbId: c.id,
+    controlId: c.control_id,
+    title: c.title,
+    description: (c.description || '').substring(0, 200),
+    evidenceGuidance: (c.evidence_guidance || '').substring(0, 200),
+    submittedEvidence: (c.evidence_text || '').substring(0, 500),
+    hasAttachments: (JSON.parse(c.attachments || '[]')).length > 0
+  }));
+
+  const userMsg = `Project: ${projectContext.name || 'Unknown'} (${projectContext.classification || 'Protected B'})
+
+Review the following ${controlsSummary.length} controls and their submitted evidence:
+
+${JSON.stringify(controlsSummary, null, 2)}
+
+Return a JSON array with your preliminary assessment for each control.`;
+
+  const result = await callClaude(system, userMsg, { maxTokens: 4096, temperature: 0.2 });
+  return parseJSON(result);
+}
+
 module.exports = {
   isConfigured,
   callClaude,
@@ -418,5 +479,7 @@ module.exports = {
   suggestAdditionalControls,
   generateEvidenceNarrative,
   generateBulkEvidence,
-  generateEvidenceGuidance
+  generateEvidenceGuidance,
+  elaborateText,
+  reviewSubmittedEvidence
 };

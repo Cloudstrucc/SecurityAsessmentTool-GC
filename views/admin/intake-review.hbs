@@ -22,7 +22,7 @@
     </button>
     {{/if}}
     {{#if (eq intake.status 'pending')}}
-    <form method="POST" action="/admin/intakes/{{intake.id}}/status" style="display:inline;">
+    <form method="POST" action="/admin/intakes/{{intake.id}}/status" style="display:inline;" class="">
       <input type="hidden" name="status" value="in-review">
       <button type="submit" class="btn btn-outline-info"><i class="bi bi-eye me-1"></i>Mark In Review</button>
     </form>
@@ -339,7 +339,7 @@
       <div class="card mb-3">
         <div class="card-header bg-light" style="color:var(--gc-text);"><i class="bi bi-pencil-square me-2"></i>Assessor Context</div>
         <div class="card-body">
-          <form method="POST" action="/admin/intakes/{{intake.id}}/create-project" id="createProjectForm">
+          <form method="POST" action="/admin/intakes/{{intake.id}}/create-project" id="createProjectForm" class="mfa-protected" data-mfa-label="Accepting intake and creating project">
             <p class="small text-muted mb-3">Add context or adjust details before creating the project and assessment. These overrides feed into the recommendation engine.</p>
 
             <div class="mb-3">
@@ -416,13 +416,13 @@
 
             <div class="mb-3">
               <label class="form-label small fw-bold">Additional Description Context</label>
-              <textarea class="form-control form-control-sm" name="assessorDescription" rows="3" placeholder="Add keywords for the engine: e.g. 'API gateway, microservices, containerized, data lake'"></textarea>
+              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="assessorDescription" id="assessorDescription" rows="3" placeholder="Add keywords for the engine: e.g. 'API gateway, microservices, containerized, data lake'"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="assessorDescription"><i class="bi bi-stars"></i></button></div>
               <small class="text-muted">Appended to the project description for the recommendation engine.</small>
             </div>
 
             <div class="mb-3">
               <label class="form-label small fw-bold">Assessor Notes (internal)</label>
-              <textarea class="form-control form-control-sm" name="assessorNotes" rows="3" placeholder="Internal notes about this intake (not shared with client)..."></textarea>
+              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="assessorNotes" id="assessorNotes" rows="3" placeholder="Internal notes about this intake (not shared with client)..."></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="assessorNotes"><i class="bi bi-stars"></i></button></div>
             </div>
 
             <div class="mb-3">
@@ -433,6 +433,97 @@
                 <option value="reassessment">Reassessment</option>
               </select>
             </div>
+
+            <!-- Client's Selected Regions -->
+            {{#if intakeRegions.length}}
+            <div class="card bg-light border-primary border-opacity-25 mb-3">
+              <div class="card-body py-2 px-3">
+                <small class="fw-bold d-block mb-1"><i class="bi bi-globe me-1 text-primary"></i>Client's Operating Regions</small>
+                <div class="d-flex flex-wrap gap-1">
+                  {{#each intakeRegions}}
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary">{{this}}</span>
+                  {{/each}}
+                </div>
+                <small class="text-muted d-block mt-1">Frameworks below have been pre-selected based on these regions.</small>
+              </div>
+            </div>
+            {{/if}}
+
+            <!-- Framework Scope Selection -->
+            <div class="card bg-light border-0 mb-3">
+              <div class="card-body py-2 px-3">
+                <small class="fw-bold d-block mb-2"><i class="bi bi-shield-check me-1"></i>Security Frameworks in Scope</small>
+                <small class="text-muted d-block mb-2">ITSG-33 is always included. Select additional frameworks to generate cross-mapped controls.</small>
+                
+                {{#each frameworkCategories}}
+                <div class="mb-2">
+                  <small class="fw-semibold text-primary d-block mb-1">{{this.category}}</small>
+                  {{#each this.frameworks}}
+                  <div class="form-check form-check-sm mb-1">
+                    <input class="form-check-input fw-checkbox" type="checkbox" name="selectedFrameworks" value="{{this.id}}" id="fw-{{this.id}}"
+                      {{#if (eq this.id 'ITSG-33')}}checked disabled{{/if}}
+                      data-country="{{this.country}}" data-sector="{{this.sector}}">
+                    <label class="form-check-label small" for="fw-{{this.id}}">
+                      <strong>{{this.name}}</strong>
+                      <span class="text-muted ms-1">{{this.country}} · {{this.sector}}</span>
+                      {{#if this.mandatory}}<span class="badge bg-danger bg-opacity-75 ms-1" style="font-size:0.6rem">Mandatory</span>{{/if}}
+                      {{#unless this.mandatory}}<span class="badge bg-secondary bg-opacity-50 ms-1" style="font-size:0.6rem">{{this.mandatoryNote}}</span>{{/unless}}
+                    </label>
+                  </div>
+                  {{/each}}
+                </div>
+                {{/each}}
+
+                <!-- Hidden field to ensure ITSG-33 always submitted -->
+                <input type="hidden" name="selectedFrameworks" value="ITSG-33">
+
+                <div class="mt-2 small" id="fwSummary">
+                  <span class="badge bg-primary">1 framework selected</span>
+                </div>
+              </div>
+            </div>
+
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+              const fwBoxes = document.querySelectorAll('.fw-checkbox:not(:disabled)');
+              const summaryEl = document.getElementById('fwSummary');
+              function updateFwSummary() {
+                const checked = document.querySelectorAll('.fw-checkbox:checked');
+                const count = checked.length;
+                summaryEl.innerHTML = '<span class="badge bg-primary">' + count + ' framework' + (count !== 1 ? 's' : '') + ' selected</span>';
+                // Show selected names
+                const names = [];
+                checked.forEach(cb => {
+                  const label = cb.parentElement.querySelector('strong');
+                  if (label) names.push(label.textContent);
+                });
+                if (names.length > 1) {
+                  summaryEl.innerHTML += ' <small class="text-muted ms-1">' + names.join(', ') + '</small>';
+                }
+              }
+              fwBoxes.forEach(cb => cb.addEventListener('change', updateFwSummary));
+
+              // Auto-check frameworks based on client's selected regions
+              const regionMap = {
+                'canada': ['ITSG-33','CCCS-MEDIUM'], 'canada-finance': ['OSFI-B13'],
+                'usa': ['NIST-800-53','FEDRAMP'], 'usa-defense': ['CMMC'], 'usa-state': ['STATERAMP'], 'usa-finance': ['NYDFS-500'],
+                'eu': ['NIS2'], 'eu-finance': ['DORA'],
+                'germany': ['BSI-GRUNDSCHUTZ'], 'france': ['ANSSI-RGS'], 'uk': ['NCSC-CAF'], 'spain': ['ENS'],
+                'australia': ['ASD-ISM','ASD-E8'], 'australia-finance': ['APRA-CPS234'],
+                'global': ['ISO-27001'], 'soc2': ['SOC2'], 'pci': ['PCI-DSS']
+              };
+              const intakeRegions = {{{json intakeRegions}}};
+              if (intakeRegions && intakeRegions.length) {
+                const autoFws = new Set();
+                intakeRegions.forEach(r => (regionMap[r] || []).forEach(f => autoFws.add(f)));
+                fwBoxes.forEach(cb => {
+                  if (autoFws.has(cb.value)) cb.checked = true;
+                });
+              }
+
+              updateFwSummary();
+            });
+            </script>
 
             <!-- Control Selection Options -->
             <div class="card bg-light border-0 mb-3">
@@ -473,10 +564,10 @@
       <!-- Decline -->
       <div class="card">
         <div class="card-body">
-          <form method="POST" action="/admin/intakes/{{intake.id}}/status">
+          <form method="POST" action="/admin/intakes/{{intake.id}}/status" class="">
             <input type="hidden" name="status" value="declined">
             <div class="mb-2">
-              <textarea class="form-control form-control-sm" name="declineReason" rows="2" placeholder="Reason for declining (optional)"></textarea>
+              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="declineReason" id="declineReason" rows="2" placeholder="Reason for declining (optional)"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="declineReason"><i class="bi bi-stars"></i></button></div>
             </div>
             <button type="submit" class="btn btn-outline-danger btn-sm w-100" onclick="return confirm('Decline this intake?')">
               <i class="bi bi-x-circle me-1"></i>Decline Intake

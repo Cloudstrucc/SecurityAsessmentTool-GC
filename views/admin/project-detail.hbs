@@ -12,7 +12,7 @@
       <a href="/admin/projects/{{project.id}}/assessments/new" class="btn btn-primary">
         <i class="bi bi-plus-lg me-1"></i>New Assessment
       </a>
-      <form action="/admin/projects/{{project.id}}/delete" method="POST" class="d-inline"
+      <form action="/admin/projects/{{project.id}}/delete" method="POST" class="d-inline mfa-protected" data-mfa-label="Deleting this record permanently"
         onsubmit="return confirm('Delete this project and all its draft assessments? This cannot be undone.')">
         <button type="submit" class="btn btn-outline-danger">
           <i class="bi bi-trash me-1"></i>Delete Project
@@ -153,7 +153,7 @@
                           <i class="bi bi-eye"></i>
                         </a>
                         {{#if (eq this.status 'draft')}}
-                          <form action="/admin/assessments/{{this.id}}/delete" method="POST" class="d-inline ms-1"
+                          <form action="/admin/assessments/{{this.id}}/delete" method="POST" class="d-inline ms-1 mfa-protected" data-mfa-label="Deleting this record permanently"
                             onsubmit="return confirm('Delete this draft assessment? This cannot be undone.')">
                             <input type="hidden" name="return_to" value="/admin/projects/{{../project.id}}">
                             <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete draft">

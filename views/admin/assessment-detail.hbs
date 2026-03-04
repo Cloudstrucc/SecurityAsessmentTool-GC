@@ -55,7 +55,7 @@
               <form method="POST" action="/admin/assessments/{{assessment.id}}/send-invite" class="d-inline">
                 <button class="btn btn-primary"><i class="bi bi-send me-1"></i>Send Invite</button>
               </form>
-              <form method="POST" action="/admin/assessments/{{assessment.id}}/delete" class="d-inline"
+              <form method="POST" action="/admin/assessments/{{assessment.id}}/delete" class="d-inline mfa-protected" data-mfa-label="Deleting assessment permanently"
                 onsubmit="return confirm('Delete this draft assessment? This cannot be undone.')">
                 <input type="hidden" name="return_to" value="/admin/projects/{{assessment.project_id}}">
                 <button class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete</button>
@@ -75,12 +75,21 @@
             {{/eq}}
 
             {{#eq assessment.status "submitted"}}
+              <button class="btn btn-info me-1" id="aiReviewBtn" data-assessment-id="{{assessment.id}}">
+                <i class="bi bi-stars me-1"></i>AI Pre-Review Evidence
+              </button>
               <form method="POST" action="/admin/assessments/{{assessment.id}}/start-audit" class="d-inline">
                 <button class="btn btn-warning"><i class="bi bi-search me-1"></i>Start Audit</button>
               </form>
-              <form method="POST" action="/admin/assessments/{{assessment.id}}/reactivate" class="d-inline">
+              <form method="POST" action="/admin/assessments/{{assessment.id}}/reactivate" class="d-inline mfa-protected" data-mfa-label="Reactivating assessment for client edits">
                 <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-unlock me-1"></i>Reactivate</button>
               </form>
+            {{/eq}}
+
+            {{#eq assessment.status "audit"}}
+              <button class="btn btn-info btn-sm me-1" id="aiReviewBtn" data-assessment-id="{{assessment.id}}">
+                <i class="bi bi-stars me-1"></i>AI Pre-Review
+              </button>
             {{/eq}}
 
             {{#eq assessment.status "audit"}}
@@ -150,6 +159,27 @@
     </div>
   </div>
 
+  {{#if multiFramework}}
+  <!-- Multi-Framework Scope -->
+  <div class="card mb-4 border-primary">
+    <div class="card-body py-2">
+      <div class="d-flex align-items-center mb-2">
+        <i class="bi bi-shield-check text-primary me-2 fs-5"></i>
+        <strong class="small">Frameworks in Scope ({{frameworkSummary.length}})</strong>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        {{#each frameworkSummary}}
+        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-2 py-1" style="font-size:0.8rem">
+          <strong>{{this.name}}</strong>
+          <span class="text-muted ms-1">{{this.country}}</span>
+          <span class="badge bg-primary ms-1" style="font-size:0.65rem">{{this.controlCount}} ctrl</span>
+        </span>
+        {{/each}}
+      </div>
+    </div>
+  </div>
+  {{/if}}
+
   {{!-- Score Bar (when audit is done or in progress) --}}
   {{#or stats.met stats.partiallyMet stats.notMet}}
     <div class="card mb-4">
@@ -185,7 +215,7 @@
       </div>
       <div class="card-body">
         <form method="POST" action="/admin/assessments/{{assessment.id}}/complete-audit"
-          onsubmit="return confirm('Complete the audit and issue the authorization decision?')">
+          onsubmit="return confirm('Complete the audit and issue the authorization decision?')" class="mfa-protected" data-mfa-label="Completing audit — ATO determination">
           <div class="row g-3 mb-3">
             <div class="col-6 col-md-3">
               <div class="p-2 rounded text-center" style="background:#fef2f2">
@@ -356,7 +386,7 @@
         <!-- Add POA&M Item -->
         <hr>
         <h6 class="fw-semibold mb-3"><i class="bi bi-plus-circle me-1"></i>Add POA&M Item</h6>
-        <form method="POST" action="/admin/assessments/{{assessment.id}}/checklist/add">
+        <form method="POST" action="/admin/assessments/{{assessment.id}}/checklist/add" class="">
           <div class="row g-2 mb-2">
             <div class="col-md-4">
               <input type="text" class="form-control form-control-sm" name="description" placeholder="Remediation item description" required>
@@ -438,6 +468,18 @@
               {{#if this.is_inherited}}
                 <span class="badge bg-info mb-1"><i class="bi bi-arrow-left-right me-1"></i>Inherited: {{this.inherited_from}}</span>
               {{/if}}
+              {{#if ../../multiFramework}}
+                <div class="d-flex flex-wrap gap-1 mt-1">
+                  {{#each (parseJson this.frameworks)}}
+                    <span class="badge bg-primary bg-opacity-10 text-primary border" style="font-size:0.65rem">{{this}}</span>
+                  {{/each}}
+                  {{#if this.source_framework}}
+                    {{#neq this.source_framework 'ITSG-33'}}
+                      <span class="badge bg-warning text-dark" style="font-size:0.65rem"><i class="bi bi-plus-circle me-1"></i>{{this.source_framework}}</span>
+                    {{/neq}}
+                  {{/if}}
+                </div>
+              {{/if}}
             </div>
             <div class="d-flex gap-1">
               <span class="badge bg-secondary">{{this.priority}}</span>
@@ -489,6 +531,14 @@
 
           {{!-- Audit controls (only in audit status) --}}
           {{#eq ../../assessment.status "audit"}}
+            {{#if this.ai_review_result}}
+            <div class="small mt-2 mb-1 px-2">
+              <span class="badge {{#if (eq this.ai_review_result 'met')}}bg-success{{else if (eq this.ai_review_result 'partial')}}bg-warning text-dark{{else}}bg-danger{{/if}} me-1">
+                <i class="bi bi-stars me-1"></i>AI: {{this.ai_review_result}}
+              </span>
+              <span class="text-muted">{{this.ai_review_comments}}</span>
+            </div>
+            {{/if}}
             <div class="audit-row mt-3 p-2 rounded" style="background:#f5f7fa">
               <div class="d-flex gap-2 align-items-center flex-wrap">
                 <span class="small fw-semibold text-muted me-2">Audit:</span>
@@ -504,10 +554,16 @@
                   onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'not-met', this)" title="Not Met">
                   <i class="bi bi-x-lg"></i>
                 </button>
-                <input type="text" class="form-control form-control-sm flex-grow-1"
-                  id="audit-comment-{{this.id}}" placeholder="Auditor comments..."
-                  value="{{this.audit_comments}}"
-                  onchange="auditControl({{this.id}}, '{{../../assessment.id}}', null, null, this.value)">
+                <div class="flex-grow-1 position-relative">
+                  <input type="text" class="form-control form-control-sm pe-5"
+                    id="audit-comment-{{this.id}}" placeholder="Auditor comments..."
+                    value="{{this.audit_comments}}"
+                    onchange="auditControl({{this.id}}, '{{../../assessment.id}}', null, null, this.value)">
+                  <button type="button" class="btn btn-sm position-absolute ai-elaborate-btn" style="top:1px;right:2px;padding:2px 6px;z-index:2" title="AI: Elaborate"
+                    data-target="audit-comment-{{this.id}}">
+                    <i class="bi bi-stars" style="font-size:0.85rem"></i>
+                  </button>
+                </div>
               </div>
             </div>
           {{/eq}}
@@ -871,7 +927,73 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<style>
+<script>
+// AI Evidence Pre-Review
+document.addEventListener('DOMContentLoaded', function() {
+  const aiBtn = document.getElementById('aiReviewBtn');
+  if (aiBtn) {
+    aiBtn.addEventListener('click', async function() {
+      const assessmentId = this.dataset.assessmentId;
+      const origHTML = this.innerHTML;
+      this.disabled = true;
+      this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>AI Reviewing Evidence...';
+
+      try {
+        const resp = await fetch('/api/ai/review-evidence/' + assessmentId, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await resp.json();
+
+        if (data.success && data.reviews) {
+          // Auto-populate audit results from AI review
+          let populated = 0;
+          data.reviews.forEach(r => {
+            // Map AI result to audit result
+            let auditResult = null;
+            if (r.result === 'met') auditResult = 'met';
+            else if (r.result === 'partial') auditResult = 'partially-met';
+            else if (r.result === 'not-met') auditResult = 'not-met';
+
+            if (auditResult) {
+              // Find the audit buttons for this control and click the right one
+              const commentInput = document.getElementById('audit-comment-' + r.controlDbId);
+              if (commentInput) {
+                // Set comment
+                commentInput.value = '[AI] ' + (r.comments || '');
+                // Trigger the audit API call
+                auditControl(r.controlDbId, assessmentId, auditResult, null, commentInput.value);
+                // Highlight the active button
+                const row = commentInput.closest('.audit-row');
+                if (row) {
+                  row.querySelectorAll('.audit-btn').forEach(b => b.classList.remove('active'));
+                  if (auditResult === 'met') row.querySelector('.audit-btn.met')?.classList.add('active');
+                  else if (auditResult === 'partially-met') row.querySelector('.audit-btn.partial')?.classList.add('active');
+                  else if (auditResult === 'not-met') row.querySelector('.audit-btn.not-met')?.classList.add('active');
+                }
+                populated++;
+              }
+            }
+          });
+
+          this.className = 'btn btn-success me-1';
+          this.innerHTML = '<i class="bi bi-check-circle me-1"></i>AI Reviewed ' + populated + '/' + data.total + ' Controls';
+          setTimeout(() => {
+            this.className = 'btn btn-info me-1 btn-sm';
+            this.innerHTML = origHTML;
+            this.disabled = false;
+          }, 5000);
+        } else {
+          alert(data.error || 'AI review failed.');
+          this.innerHTML = origHTML; this.disabled = false;
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+        this.innerHTML = origHTML; this.disabled = false;
+      }
+    });
+  }
+});
+</script><style>
 /* Family Navigation Sidebar */
 .family-nav {
   position: sticky;

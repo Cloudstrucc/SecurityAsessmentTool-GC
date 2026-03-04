@@ -1,0 +1,158 @@
+<div class="container py-4" style="max-width:800px">
+  <h1 class="mb-1">Settings</h1>
+  <p class="text-muted mb-4">Account & security preferences</p>
+
+  <div class="form-section">
+    <div class="section-header">
+      <h3 class="section-title">
+        <span class="section-number"><i class="bi bi-person"></i></span>
+        Account
+      </h3>
+    </div>
+    <table class="table table-borderless mb-0">
+      <tr><td class="fw-semibold text-muted" style="width:35%">Name</td><td>{{clientUser.name}}</td></tr>
+      <tr><td class="fw-semibold text-muted">Email</td><td>{{clientUser.email}}</td></tr>
+    </table>
+  </div>
+
+  <!-- ══ Login MFA (always required) ══ -->
+  <div class="form-section">
+    <div class="section-header">
+      <h3 class="section-title">
+        <span class="section-number"><i class="bi bi-shield-check"></i></span>
+        Login MFA (Always Required)
+      </h3>
+    </div>
+    {{#if mfaEnabled}}
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <span class="badge bg-success me-2"><i class="bi bi-check-circle me-1"></i>TOTP Enabled</span>
+          <span class="text-muted small">Authenticator app configured</span>
+        </div>
+      </div>
+      <p class="small text-muted mt-2 mb-0"><i class="bi bi-lock-fill me-1"></i>Login always requires MFA regardless of the state-change setting below.</p>
+    {{else}}
+      <div class="alert alert-warning mb-2">
+        <i class="bi bi-exclamation-triangle me-2"></i><strong>MFA not configured.</strong>
+      </div>
+    {{/if}}
+  </div>
+
+  <!-- ══ State-Change MFA Mode ══ -->
+  <div class="form-section">
+    <div class="section-header">
+      <h3 class="section-title">
+        <span class="section-number"><i class="bi bi-fingerprint"></i></span>
+        State-Change Verification
+      </h3>
+    </div>
+    <p class="small text-muted mb-3">Controls how critical actions (submitting intakes, evidence, guidance) are verified.</p>
+
+    <div class="d-flex flex-column gap-2" id="mfaModeOptions">
+      <label class="card p-3 d-flex flex-row align-items-start gap-3 mb-0 border-2 {{#if (eq mfaMode 'push')}}border-primary{{/if}}" style="cursor:pointer" id="mfaModeCard-push">
+        <input type="radio" name="mfa_mode" value="push" class="form-check-input mt-1" {{#if (eq mfaMode 'push')}}checked{{/if}} {{#unless hasWebAuthn}}disabled{{/unless}}>
+        <div class="flex-grow-1">
+          <div class="fw-semibold"><i class="bi bi-hand-index-thumb me-1"></i>Biometric / Passkey Push</div>
+          <div class="small text-muted">Approve with Face ID, Touch ID, or Windows Hello — no code to type.</div>
+          {{#unless hasWebAuthn}}<div class="small text-danger mt-1"><i class="bi bi-exclamation-circle me-1"></i>Register a passkey below to enable this option.</div>{{/unless}}
+        </div>
+      </label>
+
+      <label class="card p-3 d-flex flex-row align-items-start gap-3 mb-0 border-2 {{#if (eq mfaMode 'totp')}}border-primary{{/if}}" style="cursor:pointer" id="mfaModeCard-totp">
+        <input type="radio" name="mfa_mode" value="totp" class="form-check-input mt-1" {{#if (eq mfaMode 'totp')}}checked{{/if}}>
+        <div class="flex-grow-1">
+          <div class="fw-semibold"><i class="bi bi-key me-1"></i>TOTP Code</div>
+          <div class="small text-muted">Enter a 6-digit code from your authenticator app for each critical action.</div>
+        </div>
+      </label>
+
+      <label class="card p-3 d-flex flex-row align-items-start gap-3 mb-0 border-2 {{#if (eq mfaMode 'none')}}border-primary{{/if}}" style="cursor:pointer" id="mfaModeCard-none">
+        <input type="radio" name="mfa_mode" value="none" class="form-check-input mt-1" {{#if (eq mfaMode 'none')}}checked{{/if}}>
+        <div class="flex-grow-1">
+          <div class="fw-semibold"><i class="bi bi-shield-slash me-1"></i>No Additional Verification</div>
+          <div class="small text-muted">Critical actions proceed without MFA challenge. Actions are still logged.</div>
+        </div>
+      </label>
+    </div>
+    <div id="mfaModeStatus" class="small mt-2 d-none"></div>
+  </div>
+
+  <!-- ══ Passkey / Biometric ══ -->
+  <div class="form-section">
+    <div class="section-header">
+      <h3 class="section-title">
+        <span class="section-number"><i class="bi bi-person-bounding-box"></i></span>
+        Passkey / Biometric
+      </h3>
+    </div>
+    {{#if hasWebAuthn}}
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <span class="badge bg-success me-2"><i class="bi bi-check-circle me-1"></i>Registered</span>
+          <span class="text-muted small">Passkey enrolled — Face ID / Touch ID / Windows Hello</span>
+        </div>
+        <button class="btn btn-outline-secondary btn-sm" id="registerWebAuthn"><i class="bi bi-arrow-repeat me-1"></i>Re-register</button>
+      </div>
+    {{else}}
+      <p class="small text-muted mb-3">Register a passkey to enable biometric verification for login and critical actions.</p>
+      <button class="btn btn-primary btn-sm" id="registerWebAuthn"><i class="bi bi-person-bounding-box me-1"></i>Register Passkey</button>
+    {{/if}}
+    <div id="webauthnStatus" class="small mt-2 d-none"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@11/dist/bundle/index.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // ── MFA Mode Toggle ──
+  document.querySelectorAll('input[name="mfa_mode"]').forEach(radio => {
+    radio.addEventListener('change', async function() {
+      const mode = this.value;
+      const statusEl = document.getElementById('mfaModeStatus');
+      statusEl.className = 'small mt-2 text-muted'; statusEl.textContent = 'Saving...'; statusEl.classList.remove('d-none');
+      try {
+        const resp = await fetch('/api/mfa-mode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode }) });
+        const data = await resp.json();
+        if (data.success) {
+          statusEl.className = 'small mt-2 text-success';
+          statusEl.innerHTML = '<i class="bi bi-check-circle me-1"></i>Updated to <strong>' + (mode === 'push' ? 'Biometric Push' : mode === 'totp' ? 'TOTP Code' : 'No Verification') + '</strong>';
+          document.querySelectorAll('[id^="mfaModeCard-"]').forEach(c => c.classList.remove('border-primary'));
+          document.getElementById('mfaModeCard-' + mode)?.classList.add('border-primary');
+        } else {
+          statusEl.className = 'small mt-2 text-danger';
+          statusEl.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i>' + (data.error || 'Failed');
+        }
+      } catch (err) { statusEl.className = 'small mt-2 text-danger'; statusEl.textContent = 'Network error.'; }
+    });
+  });
+
+  // ── WebAuthn Registration ──
+  document.getElementById('registerWebAuthn')?.addEventListener('click', async function() {
+    const btn = this;
+    const statusEl = document.getElementById('webauthnStatus');
+    btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Starting...';
+    statusEl.className = 'small mt-2 text-muted'; statusEl.textContent = 'Waiting for biometric...'; statusEl.classList.remove('d-none');
+    try {
+      const optResp = await fetch('/api/webauthn/register-options', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+      const opts = await optResp.json();
+      if (opts.error) throw new Error(opts.error);
+      const regResult = await SimpleWebAuthnBrowser.startRegistration({ optionsJSON: opts });
+      const verifyResp = await fetch('/api/webauthn/register-verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(regResult) });
+      const verifyData = await verifyResp.json();
+      if (verifyData.success) {
+        statusEl.className = 'small mt-2 text-success';
+        statusEl.innerHTML = '<i class="bi bi-check-circle me-1"></i><strong>Passkey registered!</strong> You can now select Biometric Push mode.';
+        const pushRadio = document.querySelector('input[name="mfa_mode"][value="push"]');
+        if (pushRadio) pushRadio.disabled = false;
+        const dangerMsg = document.getElementById('mfaModeCard-push')?.querySelector('.text-danger');
+        if (dangerMsg) dangerMsg.remove();
+        btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Registered'; btn.className = 'btn btn-success btn-sm';
+      } else throw new Error(verifyData.error || 'Failed');
+    } catch (err) {
+      statusEl.className = 'small mt-2 text-danger';
+      statusEl.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i>' + (err.name === 'NotAllowedError' ? 'Cancelled.' : err.message);
+      btn.disabled = false; btn.innerHTML = '<i class="bi bi-person-bounding-box me-1"></i>Try Again';
+    }
+  });
+});
+</script>

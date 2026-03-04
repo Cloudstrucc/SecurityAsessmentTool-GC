@@ -9,6 +9,7 @@ const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
 const QRCode = require('qrcode');
+const { requireSignature } = require('../config/mfa-signature');
 
 const upload = multer({
   dest: path.join(__dirname, '..', 'uploads'),
@@ -47,18 +48,13 @@ router.get('/respond/:code', (req, res) => {
   
   const assessment = get(`
     SELECT a.*, p.name as project_name, p.description as project_description,
-      p.project_owner_name, p.data_classification
+      p.project_owner_name, p.project_owner_email, p.data_classification
     FROM assessments a JOIN projects p ON a.project_id = p.id 
     WHERE UPPER(TRIM(a.invite_code)) = ?
   `, [code]);
 
   if (!assessment) {
     console.log('[Public] No assessment found for code:', code);
-    // Debug: check if any assessment has this code at all
-    const raw = get('SELECT id, status, invite_code FROM assessments WHERE invite_code = ?', [code]);
-    if (raw) {
-      console.log('[Public] Found raw match:', raw);
-    }
     return res.render('error', { title: 'Invalid Code', message: 'The access code is not valid. Please check the code and try again.', showAccessForm: true });
   }
   
@@ -68,6 +64,23 @@ router.get('/respond/:code', (req, res) => {
   }
   if (assessment.invite_expires_at && new Date(assessment.invite_expires_at) < new Date()) {
     return res.render('error', { title: 'Expired', message: 'This invitation has expired.', showAccessForm: false });
+  }
+
+  // ── Require client login ──
+  if (!req.session.clientId) {
+    req.session.pendingInviteCode = code;
+    req.flash('info', 'Please sign in to access this assessment. Use the email address associated with your intake submission.');
+    return res.redirect('/client/login');
+  }
+
+  // ── Verify email matches ──
+  const clientUser = get('SELECT email FROM users WHERE id = ?', [req.session.clientId]);
+  const expectedEmail = (assessment.client_email || assessment.project_owner_email || '').toLowerCase().trim();
+  const clientEmail = (clientUser?.email || '').toLowerCase().trim();
+
+  if (expectedEmail && clientEmail !== expectedEmail) {
+    req.flash('error', 'This assessment is assigned to a different account (' + expectedEmail + '). Please sign in with that email address.');
+    return res.redirect('/client/login');
   }
 
   const controls = all(`
@@ -87,6 +100,8 @@ router.get('/respond/:code', (req, res) => {
   const isSubmitted = assessment.status === 'submitted' || assessment.status === 'audit' || assessment.status === 'completed';
   const isReadOnly = isSubmitted;
 
+  const poamCount = get('SELECT COUNT(*) as c FROM iato_checklist WHERE assessment_id = ?', [assessment.id])?.c || 0;
+
   res.render('public/respond', {
     title: `Evidence Submission – ${assessment.project_name}`,
     assessment, inviteCode: code,
@@ -94,7 +109,9 @@ router.get('/respond/:code', (req, res) => {
     families: Object.values(families),
     controls, total, provided,
     progress: total > 0 ? Math.round(provided / total * 100) : 0,
-    isSubmitted, isReadOnly
+    isSubmitted, isReadOnly,
+    hasPoamItems: poamCount > 0,
+    isIATO: assessment.ato_type === 'iato'
   });
 });
 
@@ -153,7 +170,7 @@ router.post('/respond/:code/comment/:controlId', express.json(), (req, res) => {
 });
 
 // Submit all evidence
-router.post('/respond/:code/submit', (req, res) => {
+router.post('/respond/:code/submit', requireSignature('evidence.submit', 'Submitted all evidence for assessment', 'assessment'), (req, res) => {
   const code = req.params.code.toUpperCase();
   const assessment = get(`
     SELECT a.*, p.name as project_name, p.project_owner_name, p.project_owner_email
@@ -309,8 +326,18 @@ router.post('/client/mfa-setup', (req, res) => {
 
   // Log them in
   req.session.clientId = user.id;
-  req.flash('success', 'Account created and MFA enabled! You can now submit intakes.');
-  res.redirect('/intake');
+  req.flash('success', 'MFA enabled! You can optionally register a passkey for faster sign-in.');
+  res.redirect('/client/passkey-setup');
+});
+
+// ── PASSKEY SETUP (optional, after MFA) ──
+router.get('/client/passkey-setup', (req, res) => {
+  if (!req.session.clientId) return res.redirect('/client/login');
+  const user = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [req.session.clientId]);
+  res.render('public/passkey-setup', {
+    title: 'Register Passkey',
+    hasWebAuthn: !!user?.webauthn_credential_id
+  });
 });
 
 // ── CLIENT LOGIN ──
@@ -340,7 +367,8 @@ router.post('/client/login', (req, res) => {
   res.render('public/client-login', {
     title: 'Verify MFA',
     mfaStep: true,
-    userId: user.id
+    userId: user.id,
+    hasWebAuthn: !!user.webauthn_credential_id
   });
 });
 
@@ -368,8 +396,43 @@ router.post('/client/login/mfa', (req, res) => {
   req.session.clientId = user.id;
   run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
 
+  // Redirect to pending invite if they came from an invite link
+  if (req.session.pendingInviteCode) {
+    const code = req.session.pendingInviteCode;
+    delete req.session.pendingInviteCode;
+    req.flash('success', 'Welcome back, ' + user.name + '!');
+    return res.redirect('/respond/' + code);
+  }
+
   req.flash('success', 'Welcome back, ' + user.name + '!');
-  res.redirect('/intake');
+  res.redirect('/client/dashboard');
+});
+
+// ── CLIENT LOGIN VIA WEBAUTHN ──
+router.post('/client/login/webauthn', (req, res) => {
+  const userId = req.session.pendingLoginUserId;
+  if (!userId) { req.flash('error', 'Session expired.'); return res.redirect('/client/login'); }
+  const user = get('SELECT id, name, mfa_enabled, webauthn_credential_id FROM users WHERE id = ? AND mfa_enabled = 1', [userId]);
+  if (!user || !user.webauthn_credential_id) { req.flash('error', 'Passkey not available.'); return res.redirect('/client/login'); }
+
+  // The sig_token was already verified by /api/webauthn/auth-verify
+  const { consumeToken } = require('../config/mfa-signature');
+  const tokenUserId = consumeToken(req.body._sig_token);
+  if (!tokenUserId || tokenUserId !== userId) { req.flash('error', 'Verification failed.'); return res.redirect('/client/login'); }
+
+  delete req.session.pendingLoginUserId;
+  req.session.clientId = user.id;
+  run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
+
+  if (req.session.pendingInviteCode) {
+    const code = req.session.pendingInviteCode;
+    delete req.session.pendingInviteCode;
+    req.flash('success', 'Welcome back, ' + user.name + '!');
+    return res.redirect('/respond/' + code);
+  }
+
+  req.flash('success', 'Welcome back, ' + user.name + '!');
+  res.redirect('/client/dashboard');
 });
 
 // ── CLIENT LOGOUT ──
@@ -382,6 +445,49 @@ router.get('/client/logout', (req, res) => {
   res.redirect('/');
 });
 
+// ── CLIENT DASHBOARD ──
+
+router.get('/client/dashboard', ensureClientAuth, (req, res) => {
+  const clientUser = get('SELECT * FROM users WHERE id = ?', [req.session.clientId]);
+  if (!clientUser) { req.flash('error', 'Session expired.'); return res.redirect('/client/login'); }
+
+  // Get intakes submitted by this user (by user_id or email match)
+  const intakes = all(`
+    SELECT * FROM intake_submissions 
+    WHERE submitted_by_user_id = ? OR LOWER(owner_email) = LOWER(?)
+    ORDER BY created_at DESC
+  `, [clientUser.id, clientUser.email]);
+
+  // Get assessments scoped to this client (by client_email or project owner email)
+  const assessments = all(`
+    SELECT a.*, p.name as project_name, p.project_owner_email
+    FROM assessments a JOIN projects p ON a.project_id = p.id
+    WHERE LOWER(a.client_email) = LOWER(?) OR LOWER(p.project_owner_email) = LOWER(?)
+    ORDER BY a.created_at DESC
+  `, [clientUser.email, clientUser.email]);
+
+  res.render('public/client-dashboard', {
+    title: 'My Dashboard',
+    clientUser,
+    intakes,
+    assessments
+  });
+});
+
+// ── CLIENT SETTINGS ──
+
+router.get('/client/settings', ensureClientAuth, (req, res) => {
+  const clientUser = get('SELECT * FROM users WHERE id = ?', [req.session.clientId]);
+  if (!clientUser) { req.flash('error', 'Session expired.'); return res.redirect('/client/login'); }
+  res.render('public/client-settings', {
+    title: 'Settings',
+    clientUser,
+    mfaEnabled: clientUser.mfa_enabled === 1,
+    mfaMode: clientUser.mfa_mode || 'totp',
+    hasWebAuthn: !!clientUser.webauthn_credential_id
+  });
+});
+
 // ── INTAKE FORM (protected) ──
 
 // GET /intake — Show the intake form
@@ -392,7 +498,7 @@ router.get('/intake', ensureClientAuth, (req, res) => {
 });
 
 // POST /intake — Process intake submission
-router.post('/intake', ensureClientAuth, intakeUpload.array('attachments', 10), (req, res) => {
+router.post('/intake', ensureClientAuth, intakeUpload.array('attachments', 10), requireSignature('intake.submit', 'Submitted intake form', 'intake'), (req, res) => {
   try {
     const refCode = 'INT-' + uuidv4().substring(0, 8).toUpperCase();
 
@@ -427,8 +533,8 @@ router.post('/intake', ensureClientAuth, intakeUpload.array('attachments', 10), 
         owner_name, owner_email, owner_title,
         tech_lead_name, tech_lead_email, tech_lead_title,
         authority_name, authority_email, authority_title,
-        additional_notes
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        additional_notes, submitted_by_user_id, selected_regions
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         refCode, req.body.projectName || '', req.body.projectDescription || '',
         req.body.department || '', req.body.branch || '',
@@ -446,7 +552,9 @@ router.post('/intake', ensureClientAuth, intakeUpload.array('attachments', 10), 
         req.body.ownerName || '', req.body.ownerEmail || '', req.body.ownerTitle || '',
         req.body.techLeadName || '', req.body.techLeadEmail || '', req.body.techLeadTitle || '',
         req.body.authorityName || '', req.body.authorityEmail || '', req.body.authorityTitle || '',
-        req.body.additionalNotes || ''
+        req.body.additionalNotes || '',
+        req.session.clientId || null,
+        req.body.selectedRegions || '[]'
       ]
     );
 
@@ -471,6 +579,86 @@ router.post('/intake', ensureClientAuth, intakeUpload.array('attachments', 10), 
     req.flash('error', 'Failed to submit intake. Please try again.');
     res.redirect('/intake');
   }
+});
+
+// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// CLIENT POA&M REMEDIATION (for iATO assessments)
+// ══════════════════════════════════════════════════
+
+router.get('/respond/:code/poam', (req, res) => {
+  const code = req.params.code.toUpperCase().trim();
+  if (!req.session.clientId) {
+    req.session.pendingInviteCode = code;
+    req.flash('info', 'Please sign in to access remediation items.');
+    return res.redirect('/client/login');
+  }
+
+  const assessment = get(`
+    SELECT a.*, p.name as project_name, p.project_owner_email
+    FROM assessments a JOIN projects p ON a.project_id = p.id 
+    WHERE UPPER(TRIM(a.invite_code)) = ?
+  `, [code]);
+
+  if (!assessment) return res.render('error', { title: 'Invalid Code', message: 'Access code not valid.', showAccessForm: true });
+
+  // Verify email
+  const clientUser = get('SELECT email FROM users WHERE id = ?', [req.session.clientId]);
+  const expectedEmail = (assessment.client_email || assessment.project_owner_email || '').toLowerCase().trim();
+  const clientEmail = (clientUser?.email || '').toLowerCase().trim();
+  if (expectedEmail && clientEmail !== expectedEmail) {
+    req.flash('error', 'This assessment is assigned to a different account.');
+    return res.redirect('/client/login');
+  }
+
+  const poamItems = all('SELECT * FROM iato_checklist WHERE assessment_id = ? ORDER BY CASE risk_level WHEN \'high\' THEN 0 WHEN \'medium\' THEN 1 ELSE 2 END, deadline', [assessment.id]);
+
+  const stats = {
+    total: poamItems.length,
+    open: poamItems.filter(i => i.status === 'open').length,
+    inProgress: poamItems.filter(i => i.status === 'in-progress').length,
+    completed: poamItems.filter(i => i.status === 'completed').length,
+    verified: poamItems.filter(i => i.status === 'verified').length,
+    clientSubmitted: poamItems.filter(i => i.client_evidence_status === 'submitted').length,
+    overdue: poamItems.filter(i => i.status !== 'completed' && i.status !== 'verified' && i.deadline && new Date(i.deadline) < new Date()).length,
+  };
+
+  res.render('public/poam-remediation', {
+    title: `POA&M Remediation – ${assessment.project_name}`,
+    assessment, inviteCode: code, poamItems, stats,
+    isCompleted: assessment.result === 'ato'
+  });
+});
+
+// Save remediation evidence for a POA&M item
+router.post('/respond/:code/poam/:itemId/save', express.json({ limit: '5mb' }), (req, res) => {
+  if (!req.session.clientId) return res.status(401).json({ error: 'Not authenticated' });
+  const code = req.params.code.toUpperCase().trim();
+  const assessment = get('SELECT id FROM assessments WHERE UPPER(TRIM(invite_code)) = ?', [code]);
+  if (!assessment) return res.status(404).json({ error: 'Assessment not found' });
+
+  const item = get('SELECT id FROM iato_checklist WHERE id = ? AND assessment_id = ?', [req.params.itemId, assessment.id]);
+  if (!item) return res.status(404).json({ error: 'POA&M item not found' });
+
+  const { evidence } = req.body;
+  run('UPDATE iato_checklist SET client_evidence = ?, client_evidence_status = ? WHERE id = ?',
+    [evidence || '', evidence ? 'draft' : 'pending', item.id]);
+  res.json({ success: true });
+});
+
+// Submit all remediation evidence
+router.post('/respond/:code/poam/submit', requireSignature('poam.client_submit', 'Submitted POA&M remediation evidence', 'assessment'), (req, res) => {
+  if (!req.session.clientId) { req.flash('error', 'Not authenticated'); return res.redirect('/client/login'); }
+  const code = req.params.code.toUpperCase().trim();
+  const assessment = get('SELECT id FROM assessments WHERE UPPER(TRIM(invite_code)) = ?', [code]);
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/client/dashboard'); }
+
+  // Mark all items with evidence as submitted
+  run(`UPDATE iato_checklist SET client_evidence_status = 'submitted', client_submitted_at = CURRENT_TIMESTAMP 
+    WHERE assessment_id = ? AND client_evidence IS NOT NULL AND client_evidence != ''`, [assessment.id]);
+
+  req.flash('success', 'Remediation evidence submitted for assessor review.');
+  res.redirect('/respond/' + code + '/poam');
 });
 
 // ══════════════════════════════════════════════════
@@ -541,7 +729,7 @@ router.post('/guidance/:code/save', express.json({ limit: '1mb' }), (req, res) =
   res.json({ ok: true });
 });
 
-router.post('/guidance/:code/submit', (req, res) => {
+router.post('/guidance/:code/submit', requireSignature('guidance.submit', 'Submitted guidance checklist', 'project'), (req, res) => {
   const report = get(`
     SELECT g.*, p.name as project_name
     FROM guidance_reports g JOIN projects p ON g.project_id = p.id

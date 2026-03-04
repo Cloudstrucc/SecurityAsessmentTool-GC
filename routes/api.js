@@ -2,8 +2,172 @@ const express = require('express');
 const router = express.Router();
 const { run, all, get } = require('../models/database');
 const { ensureAuthenticated } = require('../config/passport');
+const { verifyMfaAndIssueToken, issueToken, getUserMfaMode, storeChallenge, getChallenge } = require('../config/mfa-signature');
+const { generateRegistrationOptions, verifyRegistrationResponse, generateAuthenticationOptions, verifyAuthenticationResponse } = require('@simplewebauthn/server');
+const { isoBase64URL } = require('@simplewebauthn/server/helpers');
 
-// Get comments for a control
+// WebAuthn config — set in .env for production
+const RP_NAME = 'GC SA&A Tool';
+const RP_ID = process.env.WEBAUTHN_RP_ID || 'localhost';
+const ORIGIN = process.env.WEBAUTHN_ORIGIN || `http://localhost:${process.env.PORT || 3000}`;
+
+function getAuthUserId(req) {
+  if (req.user) return req.user.id;
+  if (req.session?.clientId) return req.session.clientId;
+  return null;
+}
+
+// ── MFA SIGNATURE VERIFICATION (TOTP) ───────────────────────────────────────
+router.post('/verify-mfa', express.json(), (req, res) => {
+  const userId = getAuthUserId(req);
+  if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+  const { token } = req.body;
+  if (!token || token.length !== 6) return res.status(400).json({ error: 'Please enter a 6-digit code' });
+  const result = verifyMfaAndIssueToken(userId, token);
+  if (!result.valid) return res.status(403).json({ error: result.error || 'Invalid code' });
+  res.json({ success: true, sig_token: result.token });
+});
+
+// ── MFA MODE ────────────────────────────────────────────────────────────────
+router.get('/mfa-mode', (req, res) => {
+  const userId = getAuthUserId(req);
+  if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+  const mode = getUserMfaMode(userId);
+  const user = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [userId]);
+  res.json({ mfa_mode: mode, has_webauthn: !!user?.webauthn_credential_id });
+});
+
+router.post('/mfa-mode', express.json(), (req, res) => {
+  const userId = getAuthUserId(req);
+  if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+  const { mode } = req.body;
+  if (!['totp', 'push', 'none'].includes(mode)) return res.status(400).json({ error: 'Invalid mode' });
+  if (mode === 'push') {
+    const user = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [userId]);
+    if (!user?.webauthn_credential_id) return res.status(400).json({ error: 'Register a passkey first.' });
+  }
+  run('UPDATE users SET mfa_mode = ? WHERE id = ?', [mode, userId]);
+  res.json({ success: true, mfa_mode: mode });
+});
+
+// ── WEBAUTHN REGISTRATION ───────────────────────────────────────────────────
+router.post('/webauthn/register-options', express.json(), async (req, res) => {
+  const userId = getAuthUserId(req);
+  if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+  const user = get('SELECT id, email, name FROM users WHERE id = ?', [userId]);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  try {
+    const opts = await generateRegistrationOptions({
+      rpName: RP_NAME, rpID: RP_ID,
+      userName: user.email, userDisplayName: user.name || user.email,
+      authenticatorSelection: { residentKey: 'preferred', userVerification: 'required' },
+      attestationType: 'none',
+    });
+    storeChallenge(userId, opts.challenge);
+    res.json(opts);
+  } catch (err) {
+    console.error('[WebAuthn] Reg options error:', err);
+    res.status(500).json({ error: 'Failed to generate registration options: ' + err.message });
+  }
+});
+
+router.post('/webauthn/register-verify', express.json(), async (req, res) => {
+  const userId = getAuthUserId(req);
+  if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+  const expectedChallenge = getChallenge(userId);
+  if (!expectedChallenge) return res.status(400).json({ error: 'Challenge expired. Please try again.' });
+
+  try {
+    const verification = await verifyRegistrationResponse({
+      response: req.body, expectedChallenge,
+      expectedOrigin: ORIGIN, expectedRPID: RP_ID,
+      requireUserVerification: true,
+    });
+
+    if (verification.verified && verification.registrationInfo) {
+      const { credential } = verification.registrationInfo;
+      // credential.id = base64url string, credential.publicKey = Uint8Array
+      const pubKeyB64 = isoBase64URL.fromBuffer(credential.publicKey);
+      run('UPDATE users SET webauthn_credential_id = ?, webauthn_public_key = ?, webauthn_counter = ?, mfa_mode = ? WHERE id = ?',
+        [credential.id, pubKeyB64, credential.counter, 'push', userId]);
+      res.json({ success: true, verified: true });
+    } else {
+      res.status(400).json({ error: 'Verification failed' });
+    }
+  } catch (err) {
+    console.error('[WebAuthn] Reg verify error:', err);
+    res.status(400).json({ error: err.message || 'Registration verification failed' });
+  }
+});
+
+// ── WEBAUTHN AUTHENTICATION (for signature + login) ─────────────────────────
+router.post('/webauthn/auth-options', express.json(), async (req, res) => {
+  // Can pass userId in body for login flow (before session exists)
+  let userId = getAuthUserId(req);
+  if (!userId && req.body.userId) userId = req.body.userId;
+  if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+
+  const user = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [userId]);
+  if (!user?.webauthn_credential_id) return res.status(400).json({ error: 'No passkey registered. Use TOTP instead.' });
+
+  try {
+    // v11: allowCredentials[].id is a base64url string
+    const opts = await generateAuthenticationOptions({
+      rpID: RP_ID,
+      allowCredentials: [{ id: user.webauthn_credential_id }],
+      userVerification: 'required',
+    });
+    storeChallenge(userId, opts.challenge);
+    res.json(opts);
+  } catch (err) {
+    console.error('[WebAuthn] Auth options error:', err);
+    res.status(500).json({ error: 'Failed to generate authentication options: ' + err.message });
+  }
+});
+
+router.post('/webauthn/auth-verify', express.json(), async (req, res) => {
+  let userId = getAuthUserId(req);
+  if (!userId && req.body._userId) userId = parseInt(req.body._userId);
+  if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+
+  const expectedChallenge = getChallenge(userId);
+  if (!expectedChallenge) return res.status(400).json({ error: 'Challenge expired' });
+
+  const user = get('SELECT webauthn_credential_id, webauthn_public_key, webauthn_counter FROM users WHERE id = ?', [userId]);
+  if (!user?.webauthn_credential_id) return res.status(400).json({ error: 'No passkey registered' });
+
+  try {
+    // v11: credential.id = base64url string, credential.publicKey = Uint8Array
+    const pubKeyBytes = isoBase64URL.toBuffer(user.webauthn_public_key);
+
+    const verification = await verifyAuthenticationResponse({
+      response: req.body,
+      expectedChallenge,
+      expectedOrigin: ORIGIN,
+      expectedRPID: RP_ID,
+      requireUserVerification: true,
+      credential: {
+        id: user.webauthn_credential_id,
+        publicKey: pubKeyBytes,
+        counter: user.webauthn_counter || 0,
+      },
+    });
+
+    if (verification.verified) {
+      run('UPDATE users SET webauthn_counter = ? WHERE id = ?', [verification.authenticationInfo.newCounter, userId]);
+      const sigToken = issueToken(userId);
+      res.json({ success: true, sig_token: sigToken, verified: true });
+    } else {
+      res.status(403).json({ error: 'Biometric verification failed' });
+    }
+  } catch (err) {
+    console.error('[WebAuthn] Auth verify error:', err);
+    res.status(400).json({ error: err.message || 'Authentication failed' });
+  }
+});
+
+// ── Comments, Audit, AI, etc. ───────────────────────────────────────────────
 router.get('/comments/:controlId', (req, res) => {
   const comments = all('SELECT * FROM comments WHERE assessment_control_id = ? ORDER BY created_at ASC', [req.params.controlId]);
   res.json({ success: true, comments });
@@ -243,4 +407,70 @@ router.post('/ai/generate-bulk-evidence', ensureAuthenticated, express.json(), a
 });
 
 
+
+// Middleware: allow either admin (passport) or client (session) auth
+function ensureAnyAuth(req, res, next) {
+  if (req.isAuthenticated()) return next();
+  if (req.session?.clientId) return next();
+  return res.status(401).json({ error: 'Not authenticated' });
+}
+
+// ── AI Text Elaboration (available to both assessors and clients) ────────────
+router.post('/ai/elaborate', ensureAnyAuth, express.json(), async (req, res) => {
+  try {
+    if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
+    const { text, context } = req.body;
+    if (!text || text.trim().length < 3) return res.status(400).json({ error: 'Please type at least a few words before using AI elaboration.' });
+    const role = req.user ? 'assessor' : 'client';
+    const result = await ai.elaborateText(text, { ...context, role });
+    res.json({ success: true, elaborated: result });
+  } catch (err) {
+    console.error('AI elaborate error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── AI Evidence Pre-Review (assessor triggers after client submits) ──────────
+router.post('/ai/review-evidence/:assessmentId', ensureAuthenticated, express.json(), async (req, res) => {
+  try {
+    if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
+    const assessmentId = req.params.assessmentId;
+    const { all: dbAll, get: dbGet, run: dbRun } = require('../models/database');
+
+    const assessment = dbGet(`
+      SELECT a.*, p.name as project_name, p.data_classification
+      FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?
+    `, [assessmentId]);
+    if (!assessment) return res.status(404).json({ error: 'Assessment not found' });
+
+    const controls = dbAll(`
+      SELECT * FROM assessment_controls 
+      WHERE assessment_id = ? AND is_applicable = 1 AND evidence_status = 'provided'
+      ORDER BY family, control_id
+    `, [assessmentId]);
+
+    if (!controls.length) return res.status(400).json({ error: 'No submitted evidence to review.' });
+
+    const reviews = await ai.reviewSubmittedEvidence(controls, {
+      name: assessment.project_name,
+      classification: assessment.data_classification
+    });
+
+    if (!Array.isArray(reviews)) return res.status(500).json({ error: 'AI returned invalid response format.' });
+
+    let updated = 0;
+    reviews.forEach(r => {
+      if (r.controlDbId && r.result && r.comments) {
+        dbRun(`UPDATE assessment_controls SET ai_review_result = ?, ai_review_comments = ?, ai_reviewed_at = CURRENT_TIMESTAMP WHERE id = ? AND assessment_id = ?`,
+          [r.result, r.comments, r.controlDbId, assessmentId]);
+        updated++;
+      }
+    });
+
+    res.json({ success: true, reviewed: updated, total: controls.length, reviews });
+  } catch (err) {
+    console.error('AI evidence review error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

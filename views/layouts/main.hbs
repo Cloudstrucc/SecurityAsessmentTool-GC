@@ -231,13 +231,16 @@
                 <i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{admin.name}}
               </a>
               <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/admin/audit-log"><i class="bi bi-fingerprint me-2" aria-hidden="true"></i>Audit Log</a></li>
+                <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="/admin/logout"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Sign out</a></li>
               </ul>
             </li>
           {{else}}
             {{#if user}}
               {{#if (eq user.role 'client')}}
-              <li><a href="/intake"><i class="bi bi-clipboard-plus me-1" aria-hidden="true"></i>Intake</a></li>
+              <li><a href="/client/dashboard"><i class="bi bi-house me-1" aria-hidden="true"></i>Dashboard</a></li>
+              <li><a href="/intake"><i class="bi bi-clipboard-plus me-1" aria-hidden="true"></i>New Intake</a></li>
               <li class="nav-item dropdown">
                 <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                   <i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{user.name}}
@@ -245,6 +248,7 @@
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li><span class="dropdown-item-text small text-muted">{{user.email}}</span></li>
                   <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/client/settings"><i class="bi bi-gear me-2" aria-hidden="true"></i>Settings</a></li>
                   <li><a class="dropdown-item" href="/client/logout"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Sign out</a></li>
                 </ul>
               </li>
@@ -292,7 +296,240 @@
     </div>
   </footer>
 
+  <!-- MFA Signature Modal -->
+  <div class="modal fade" id="mfaSignatureModal" tabindex="-1" aria-labelledby="mfaSignatureLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+      <div class="modal-content">
+        <div class="modal-header border-0 pb-0">
+          <div class="text-center w-100">
+            <i class="bi bi-shield-lock" style="font-size:2rem;color:var(--gc-red,#af3c43)" id="mfaModalIcon"></i>
+            <h5 class="modal-title mt-2" id="mfaSignatureLabel">Verification Required</h5>
+          </div>
+        </div>
+        <div class="modal-body pt-1">
+          <p class="text-center text-muted small mb-3" id="mfaActionLabel">This action requires verification.</p>
+          <div id="mfaError" class="alert alert-danger small py-2 d-none"></div>
+          <!-- TOTP input (shown for totp mode) -->
+          <div class="mb-3" id="mfaTotpSection">
+            <label for="mfaTokenInput" class="form-label small fw-semibold">6-Digit Code</label>
+            <input type="text" class="form-control form-control-lg text-center font-monospace" 
+              id="mfaTokenInput" pattern="[0-9]{6}" maxlength="6" inputmode="numeric"
+              placeholder="000000" autocomplete="one-time-code">
+          </div>
+          <!-- WebAuthn push (shown for push mode) -->
+          <div class="text-center d-none" id="mfaPushSection">
+            <div class="mb-3">
+              <i class="bi bi-person-bounding-box" style="font-size:3rem;color:var(--gc-nav,#26374a)"></i>
+            </div>
+            <p class="text-muted small">Approve the prompt on your device using Face ID, Touch ID, or Windows Hello.</p>
+            <div id="mfaPushSpinner" class="d-none">
+              <div class="spinner-border text-primary spinner-border-sm me-1"></div>
+              <span class="small text-muted">Waiting for biometric...</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0 d-flex gap-2">
+          <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary flex-fill" id="mfaVerifyBtn">
+            <i class="bi bi-shield-check me-1"></i>Verify &amp; Sign
+          </button>
+        </div>
+        <div class="px-3 pb-3">
+          <p class="text-muted text-center mb-0" style="font-size:0.7rem">
+            <i class="bi bi-fingerprint me-1"></i>This action will be logged to the audit trail.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@11/dist/bundle/index.umd.min.js"></script>
+
+  <!-- MFA Signature Interception -->
+  <script>
+  (function() {
+    let pendingForm = null;
+    let mfaModal = null;
+    let currentMfaMode = 'totp'; // Will be fetched
+    const modalEl = document.getElementById('mfaSignatureModal');
+    if (modalEl) mfaModal = new bootstrap.Modal(modalEl);
+
+    // Fetch user's MFA mode once on page load
+    fetch('/api/mfa-mode').then(r => r.json()).then(d => {
+      if (d.mfa_mode) currentMfaMode = d.mfa_mode;
+    }).catch(() => {});
+
+    function appendTokenAndSubmit(sigToken) {
+      if (!pendingForm) return;
+      const hidden = document.createElement('input');
+      hidden.type = 'hidden'; hidden.name = '_sig_token'; hidden.value = sigToken;
+      pendingForm.appendChild(hidden);
+      if (mfaModal) mfaModal.hide();
+      pendingForm.submit();
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('mfaError');
+      el.textContent = msg; el.classList.remove('d-none');
+    }
+
+    // Intercept .mfa-protected form submissions
+    document.addEventListener('submit', function(e) {
+      const form = e.target;
+      if (!form.classList.contains('mfa-protected')) return;
+      if (form.querySelector('input[name="_sig_token"]')) return;
+
+      e.preventDefault();
+      pendingForm = form;
+
+      const label = form.dataset.mfaLabel || 'This action requires verification.';
+      document.getElementById('mfaActionLabel').textContent = label;
+      document.getElementById('mfaError').classList.add('d-none');
+
+      if (currentMfaMode === 'push') {
+        // WebAuthn push mode — show biometric section, auto-trigger
+        document.getElementById('mfaTotpSection').classList.add('d-none');
+        document.getElementById('mfaPushSection').classList.remove('d-none');
+        document.getElementById('mfaVerifyBtn').classList.add('d-none');
+        document.getElementById('mfaModalIcon').className = 'bi bi-person-bounding-box';
+        document.getElementById('mfaSignatureLabel').textContent = 'Biometric Verification';
+        if (mfaModal) mfaModal.show();
+        // Auto-trigger WebAuthn after modal animation
+        setTimeout(doWebAuthnVerify, 400);
+      } else {
+        // TOTP mode — show code input
+        document.getElementById('mfaTotpSection').classList.remove('d-none');
+        document.getElementById('mfaPushSection').classList.add('d-none');
+        document.getElementById('mfaVerifyBtn').classList.remove('d-none');
+        document.getElementById('mfaModalIcon').className = 'bi bi-shield-lock';
+        document.getElementById('mfaSignatureLabel').textContent = 'MFA Verification Required';
+        document.getElementById('mfaTokenInput').value = '';
+        if (mfaModal) mfaModal.show();
+        setTimeout(() => document.getElementById('mfaTokenInput')?.focus(), 300);
+      }
+    });
+
+    // TOTP verify
+    const verifyBtn = document.getElementById('mfaVerifyBtn');
+    if (verifyBtn) verifyBtn.addEventListener('click', doTotpVerify);
+    const tokenInput = document.getElementById('mfaTokenInput');
+    if (tokenInput) tokenInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); doTotpVerify(); } });
+
+    async function doTotpVerify() {
+      const token = document.getElementById('mfaTokenInput').value.trim();
+      if (!token || token.length !== 6 || !/^\d{6}$/.test(token)) { showError('Please enter a valid 6-digit code.'); return; }
+
+      const btn = document.getElementById('mfaVerifyBtn');
+      const origText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Verifying...';
+      document.getElementById('mfaError').classList.add('d-none');
+
+      try {
+        const resp = await fetch('/api/verify-mfa', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) });
+        const data = await resp.json();
+        if (data.success && data.sig_token) { appendTokenAndSubmit(data.sig_token); return; }
+        if (resp.status === 401) {
+          showError('You must be signed in. Refresh the page and try again.');
+        } else {
+          showError(data.error || 'Verification failed.');
+          document.getElementById('mfaTokenInput').value = '';
+          document.getElementById('mfaTokenInput').focus();
+        }
+      } catch (err) { showError('Network error. Please try again.'); }
+      btn.disabled = false; btn.innerHTML = origText;
+    }
+
+    // WebAuthn push verify
+    async function doWebAuthnVerify() {
+      const spinner = document.getElementById('mfaPushSpinner');
+      spinner.classList.remove('d-none');
+      document.getElementById('mfaError').classList.add('d-none');
+
+      try {
+        // 1. Get authentication options
+        const optResp = await fetch('/api/webauthn/auth-options', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const opts = await optResp.json();
+        if (opts.error) throw new Error(opts.error);
+
+        // 2. Browser prompts biometric (Face ID / Touch ID / Windows Hello)
+        const authResult = await SimpleWebAuthnBrowser.startAuthentication({ optionsJSON: opts });
+
+        // 3. Verify with server
+        const verifyResp = await fetch('/api/webauthn/auth-verify', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(authResult)
+        });
+        const verifyData = await verifyResp.json();
+
+        if (verifyData.success && verifyData.sig_token) {
+          appendTokenAndSubmit(verifyData.sig_token);
+          return;
+        }
+        throw new Error(verifyData.error || 'Verification failed');
+      } catch (err) {
+        spinner.classList.add('d-none');
+        if (err.name === 'NotAllowedError') {
+          showError('Biometric cancelled. Click Verify to try again or switch to TOTP in Settings.');
+          // Show a retry button
+          document.getElementById('mfaVerifyBtn').classList.remove('d-none');
+          document.getElementById('mfaVerifyBtn').innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Retry Biometric';
+          document.getElementById('mfaVerifyBtn').onclick = function() { this.classList.add('d-none'); doWebAuthnVerify(); };
+        } else {
+          showError(err.message || 'Biometric verification failed.');
+        }
+      }
+    }
+  })();
+  </script>
+
+  <!-- AI Text Elaboration (global) -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Attach to all .ai-elaborate-btn buttons
+    document.querySelectorAll('.ai-elaborate-btn').forEach(btn => {
+      btn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        const targetId = this.dataset.target;
+        const textarea = document.getElementById(targetId);
+        if (!textarea) return;
+        const text = textarea.value.trim();
+        if (text.length < 3) { alert('Please type at least a few words before using AI elaboration.'); return; }
+
+        const origHTML = this.innerHTML;
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+        try {
+          const context = {};
+          if (this.dataset.controlId) context.controlId = this.dataset.controlId;
+          if (this.dataset.controlTitle) context.controlTitle = this.dataset.controlTitle;
+
+          const resp = await fetch('/api/ai/elaborate', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, context })
+          });
+          const data = await resp.json();
+          if (data.success && data.elaborated) {
+            textarea.value = data.elaborated;
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+            this.innerHTML = '<i class="bi bi-check text-success"></i>';
+            setTimeout(() => { this.innerHTML = origHTML; }, 2000);
+          } else {
+            alert(data.error || 'AI elaboration failed.');
+            this.innerHTML = origHTML;
+          }
+        } catch (err) {
+          alert('Network error: ' + err.message);
+          this.innerHTML = origHTML;
+        }
+        this.disabled = false;
+      });
+    });
+  });
+  </script>
+
   {{#if extraScripts}}{{{extraScripts}}}{{/if}}
 </body>
 </html>

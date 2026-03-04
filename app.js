@@ -66,6 +66,8 @@ app.engine('hbs', engine({
       return args.every(Boolean) ? options.fn(this) : options.inverse(this);
     },
     json: obj => JSON.stringify(obj),
+    parseJson: function(str) { try { return JSON.parse(str || '[]'); } catch(e) { return []; } },
+    length: function(arr) { if (Array.isArray(arr)) return arr.length; return 0; },
     formatDate: function(date) {
       if (!date) return '';
       return new Date(date).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -76,6 +78,7 @@ app.engine('hbs', engine({
     },
     currentYear: () => new Date().getFullYear(),
     inc: v => parseInt(v) + 1,
+    dateOverdue: function(date) { if (!date) return false; return new Date(date) < new Date(); },
     percentage: (a, b) => b > 0 ? Math.round((a / b) * 100) : 0,
     statusBadge: function(status) {
       const badges = {
@@ -126,6 +129,16 @@ app.engine('hbs', engine({
     includes: function(str, substr) {
       if (!str || !substr) return false;
       return str.includes(substr);
+    },
+    math: function(a, op, b) {
+      a = parseFloat(a); b = parseFloat(b);
+      switch (op) {
+        case '+': return a + b;
+        case '-': return a - b;
+        case '*': return a * b;
+        case '/': return b !== 0 ? a / b : 0;
+        default: return 0;
+      }
     }
   }
 }));

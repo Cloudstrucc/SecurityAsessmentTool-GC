@@ -101,7 +101,8 @@
     <div class="card-header"><i class="bi bi-send me-2"></i>Submit Checklist for Review</div>
     <div class="card-body">
       <p class="text-muted small">Once you've addressed the items above, submit for the security assessor to validate. You'll be able to make updates until the assessor approves.</p>
-      <form method="POST" action="/guidance/{{report.invite_code}}/submit" id="submitForm">
+      <form method="POST" action="/guidance/{{report.invite_code}}/submit" id="submitForm" class="mfa-protected"
+        data-mfa-label="Submit guidance checklist for assessor validation">
         <input type="hidden" name="checklist_json" id="checklistJson" value="">
         <div class="row g-3 mb-3">
           <div class="col-md-6">

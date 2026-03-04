@@ -340,6 +340,27 @@ async function initDatabase() {
     )
   `);
 
+  // ── AUDIT SIGNATURES (MFA-verified action log) ──
+  db.run(`
+    CREATE TABLE IF NOT EXISTS audit_signatures (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      user_email TEXT NOT NULL,
+      user_name TEXT,
+      user_role TEXT NOT NULL,
+      action TEXT NOT NULL,
+      action_label TEXT,
+      entity_type TEXT,
+      entity_id INTEGER,
+      entity_name TEXT,
+      details TEXT,
+      ip_address TEXT,
+      user_agent TEXT,
+      mfa_method TEXT DEFAULT 'totp',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   // Create default admin
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@youragency.gc.ca';
   const adminPassword = process.env.ADMIN_PASSWORD || 'ChangeThisPassword123!';
@@ -360,6 +381,29 @@ async function initDatabase() {
     ['intake_submissions', 'is_hva', 'ALTER TABLE intake_submissions ADD COLUMN is_hva INTEGER DEFAULT 0'],
     ['projects', 'description', 'ALTER TABLE projects ADD COLUMN description TEXT'],
     ['projects', 'technologies', "ALTER TABLE projects ADD COLUMN technologies TEXT DEFAULT '[]'"],
+    // WebAuthn (biometric push) + MFA mode
+    ['users', 'webauthn_credential_id', 'ALTER TABLE users ADD COLUMN webauthn_credential_id TEXT'],
+    ['users', 'webauthn_public_key', 'ALTER TABLE users ADD COLUMN webauthn_public_key TEXT'],
+    ['users', 'webauthn_counter', 'ALTER TABLE users ADD COLUMN webauthn_counter INTEGER DEFAULT 0'],
+    ['users', 'mfa_mode', "ALTER TABLE users ADD COLUMN mfa_mode TEXT DEFAULT 'totp'"],
+    // Client scoping
+    ['intake_submissions', 'submitted_by_user_id', 'ALTER TABLE intake_submissions ADD COLUMN submitted_by_user_id INTEGER'],
+    ['assessments', 'client_email', 'ALTER TABLE assessments ADD COLUMN client_email TEXT'],
+    // POA&M client remediation evidence
+    ['iato_checklist', 'client_evidence', 'ALTER TABLE iato_checklist ADD COLUMN client_evidence TEXT'],
+    ['iato_checklist', 'client_evidence_status', "ALTER TABLE iato_checklist ADD COLUMN client_evidence_status TEXT DEFAULT 'pending'"],
+    ['iato_checklist', 'client_submitted_at', 'ALTER TABLE iato_checklist ADD COLUMN client_submitted_at DATETIME'],
+    // AI pre-review fields on assessment_controls
+    ['assessment_controls', 'ai_review_result', 'ALTER TABLE assessment_controls ADD COLUMN ai_review_result TEXT'],
+    ['assessment_controls', 'ai_review_comments', 'ALTER TABLE assessment_controls ADD COLUMN ai_review_comments TEXT'],
+    ['assessment_controls', 'ai_reviewed_at', 'ALTER TABLE assessment_controls ADD COLUMN ai_reviewed_at DATETIME'],
+    // Multi-framework support
+    ['assessments', 'selected_frameworks', "ALTER TABLE assessments ADD COLUMN selected_frameworks TEXT DEFAULT '[]'"],
+    ['assessment_controls', 'frameworks', "ALTER TABLE assessment_controls ADD COLUMN frameworks TEXT DEFAULT '[]'"],
+    ['assessment_controls', 'source_framework', 'ALTER TABLE assessment_controls ADD COLUMN source_framework TEXT'],
+    ['assessment_controls', 'framework_refs', "ALTER TABLE assessment_controls ADD COLUMN framework_refs TEXT DEFAULT '[]'"],
+    // Region/jurisdiction support for intake
+    ['intake_submissions', 'selected_regions', "ALTER TABLE intake_submissions ADD COLUMN selected_regions TEXT DEFAULT '[]'"],
   ];
 
   migrations.forEach(([table, column, sql]) => {

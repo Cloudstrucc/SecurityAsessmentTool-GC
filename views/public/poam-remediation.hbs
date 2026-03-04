@@ -1,0 +1,115 @@
+<div class="container py-4" style="max-width:960px">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <div>
+      <h1 class="mb-1">POA&M Remediation</h1>
+      <p class="text-muted mb-0">{{assessment.project_name}} — Address findings to achieve full ATO</p>
+    </div>
+    <a href="/respond/{{inviteCode}}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to Evidence</a>
+  </div>
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card text-center p-2"><div class="small text-muted">Total Items</div><div class="fw-bold fs-5">{{stats.total}}</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center p-2"><div class="small text-muted">Open</div><div class="fw-bold fs-5 text-warning">{{stats.open}}</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center p-2"><div class="small text-muted">Your Submissions</div><div class="fw-bold fs-5 text-info">{{stats.clientSubmitted}}</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center p-2"><div class="small text-muted">Verified</div><div class="fw-bold fs-5 text-success">{{stats.verified}}</div></div>
+    </div>
+  </div>
+
+  {{#if stats.overdue}}
+  <div class="alert alert-danger small mb-4"><i class="bi bi-exclamation-triangle me-1"></i><strong>{{stats.overdue}} items are overdue.</strong> Please address high-priority items first.</div>
+  {{/if}}
+
+  <!-- POA&M Items -->
+  {{#each poamItems}}
+  <div class="card mb-3 {{#if (eq this.status 'verified')}}border-success{{else if (eq this.client_evidence_status 'submitted')}}border-info{{/if}}">
+    <div class="card-header d-flex justify-content-between align-items-center py-2">
+      <div>
+        <span class="badge {{#if (eq this.risk_level 'high')}}bg-danger{{else if (eq this.risk_level 'medium')}}bg-warning text-dark{{else}}bg-info{{/if}} me-2">{{this.risk_level}}</span>
+        {{#if this.control_id}}<code class="small me-2">{{this.control_id}}</code>{{/if}}
+        <strong>{{this.description}}</strong>
+      </div>
+      <span class="badge {{#if (eq this.status 'open')}}bg-secondary{{else if (eq this.status 'in-progress')}}bg-warning text-dark{{else if (eq this.status 'completed')}}bg-success{{else if (eq this.status 'verified')}}bg-success{{/if}}">{{this.status}}</span>
+    </div>
+    <div class="card-body">
+      {{#if this.original_finding}}
+      <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Original Finding</label>
+        <div class="bg-light p-2 rounded small">{{this.original_finding}}</div>
+      </div>
+      {{/if}}
+      {{#if this.remediation_plan}}
+      <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Required Remediation</label>
+        <div class="bg-light p-2 rounded small">{{this.remediation_plan}}</div>
+      </div>
+      {{/if}}
+      {{#if this.deadline}}
+      <div class="mb-3">
+        <span class="small text-muted"><i class="bi bi-calendar me-1"></i>Deadline: <strong class="{{#if (dateOverdue this.deadline)}}text-danger{{/if}}">{{this.deadline}}</strong></span>
+      </div>
+      {{/if}}
+
+      {{#unless (eq this.status 'verified')}}
+      <div class="mb-2">
+        <label class="form-label small fw-semibold">Your Remediation Evidence</label>
+        <div class="position-relative">
+          <textarea class="form-control ai-expandable" rows="4" placeholder="Describe what was done to remediate this finding, including evidence of completion..."
+            data-item-id="{{this.id}}" id="poamEvidence-{{this.id}}">{{this.client_evidence}}</textarea>
+          <button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate on your text"
+            data-target="poamEvidence-{{this.id}}">
+            <i class="bi bi-stars"></i>
+          </button>
+        </div>
+        {{#if (eq this.client_evidence_status 'submitted')}}
+          <span class="small text-success mt-1 d-block"><i class="bi bi-check-circle me-1"></i>Submitted for review</span>
+        {{/if}}
+      </div>
+      <button class="btn btn-sm btn-outline-primary poam-save-btn" data-item-id="{{this.id}}">
+        <i class="bi bi-save me-1"></i>Save Draft
+      </button>
+      {{else}}
+      <div class="alert alert-success small mb-0"><i class="bi bi-check-circle me-1"></i>Verified by assessor{{#if this.verified_at}} on {{this.verified_at}}{{/if}}</div>
+      {{/unless}}
+    </div>
+  </div>
+  {{/each}}
+
+  {{#unless isCompleted}}
+  <div class="text-end mt-4">
+    <form method="POST" action="/respond/{{inviteCode}}/poam/submit" class="d-inline mfa-protected" data-mfa-label="Submit all POA&M remediation evidence">
+      <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-send me-1"></i>Submit All Remediation Evidence</button>
+    </form>
+  </div>
+  {{/unless}}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Save individual POA&M evidence
+  document.querySelectorAll('.poam-save-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const itemId = this.dataset.itemId;
+      const textarea = document.getElementById('poamEvidence-' + itemId);
+      const evidence = textarea.value;
+      this.disabled = true; this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+      try {
+        const resp = await fetch('/respond/{{inviteCode}}/poam/' + itemId + '/save', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ evidence })
+        });
+        const data = await resp.json();
+        if (data.success) { this.innerHTML = '<i class="bi bi-check me-1"></i>Saved'; setTimeout(() => { this.innerHTML = '<i class="bi bi-save me-1"></i>Save Draft'; this.disabled = false; }, 1500); }
+        else throw new Error(data.error);
+      } catch (err) { this.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i>Error'; this.disabled = false; }
+    });
+  });
+});
+</script>

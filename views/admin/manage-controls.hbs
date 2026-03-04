@@ -56,7 +56,7 @@
               <span class="badge bg-secondary">{{this.priority}}</span>
               {{#if this.is_inherited}}<span class="badge bg-info">Inherited</span>{{/if}}
               <form method="POST" action="/admin/assessments/{{../../assessment.id}}/remove-control/{{this.id}}"
-                class="d-inline ms-2" onsubmit="return confirm('Remove {{this.control_id}} — {{this.title}}?')">
+                class="d-inline ms-2" data-removed-label="Remove control {{this.control_id}} from assessment">>
                 <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="Remove from assessment">
                   <i class="bi bi-x-lg"></i>
                 </button>
@@ -132,7 +132,7 @@
         Select controls from the full ITSG-33 catalog to add to this assessment. Controls already included are shown as disabled.
       </div>
 
-      <form method="POST" action="/admin/assessments/{{assessment.id}}/add-controls" id="addControlsForm">
+      <form method="POST" action="/admin/assessments/{{assessment.id}}/add-controls" id="addControlsForm" class="">
         <!-- Sticky toolbar -->
         <div class="progress-sticky">
           <div class="d-flex justify-content-between align-items-center">

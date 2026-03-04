@@ -41,7 +41,7 @@
                     <a href="/admin/projects/{{this.id}}" class="btn btn-sm btn-outline-primary">
                       <i class="bi bi-eye"></i>
                     </a>
-                    <form action="/admin/projects/{{this.id}}/delete" method="POST" class="d-inline ms-1"
+                    <form action="/admin/projects/{{this.id}}/delete" method="POST" class="d-inline ms-1 mfa-protected" data-mfa-label="Deleting project permanently"
                       onsubmit="return confirm('Delete this project? Only works if all assessments are in draft status.')">
                       <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete project">
                         <i class="bi bi-trash"></i>

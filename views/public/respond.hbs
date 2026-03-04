@@ -18,6 +18,18 @@
     </div>
   {{/if}}
 
+  {{#if hasPoamItems}}
+    <div class="alert alert-warning d-flex justify-content-between align-items-center">
+      <div>
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        {{#if isIATO}}<strong>Interim ATO Issued</strong> — Remediation items require your attention.
+        {{else}}<strong>POA&M Items</strong> — Action items have been identified for this assessment.
+        {{/if}}
+      </div>
+      <a href="/respond/{{inviteCode}}/poam" class="btn btn-warning btn-sm"><i class="bi bi-list-check me-1"></i>View POA&M Items</a>
+    </div>
+  {{/if}}
+
   <!-- Progress bar (sticky) -->
   <div class="progress-sticky">
     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -29,8 +41,8 @@
     </div>
     {{#unless isReadOnly}}
       <div class="text-end mt-2">
-        <form method="POST" action="/respond/{{inviteCode}}/submit" class="d-inline"
-          onsubmit="return confirm('Submit all evidence? This will lock the form and notify your assessor. You will not be able to make changes unless the assessor reactivates your submission.')">
+        <form method="POST" action="/respond/{{inviteCode}}/submit" class="d-inline mfa-protected"
+          data-mfa-label="Submit all evidence — this will lock the form and notify your assessor.">>
           <button class="btn btn-primary" id="submitBtn" {{#ifCond progress '<' 1}}disabled{{/ifCond}}>
             <i class="bi bi-send me-1"></i>Submit All Evidence
           </button>
@@ -93,6 +105,17 @@
             </div>
           {{/if}}
 
+          {{#if this.frameworks}}
+            {{#if (gt (length (parseJson this.frameworks)) 1)}}
+            <div class="mb-2">
+              <small class="text-muted"><i class="bi bi-shield-check me-1"></i>Addresses:</small>
+              {{#each (parseJson this.frameworks)}}
+                <span class="badge bg-primary bg-opacity-10 text-primary border" style="font-size:0.65rem">{{this}}</span>
+              {{/each}}
+            </div>
+            {{/if}}
+          {{/if}}
+
           <!-- Evidence Editor -->
           <div class="mb-2">
             <label class="form-label small fw-semibold">Your Evidence</label>
@@ -112,6 +135,9 @@
                   <button type="button" class="btn btn-outline-secondary" onclick="execCmd('italic')" title="Italic"><i class="bi bi-type-italic"></i></button>
                   <button type="button" class="btn btn-outline-secondary" onclick="execCmd('insertUnorderedList')" title="Bullet List"><i class="bi bi-list-ul"></i></button>
                   <button type="button" class="btn btn-outline-secondary" onclick="execCmd('insertOrderedList')" title="Numbered List"><i class="bi bi-list-ol"></i></button>
+                  <button type="button" class="btn btn-outline-secondary ai-editor-elaborate" 
+                    data-editor-id="editor-{{this.id}}" data-control-id="{{this.control_id}}" data-control-title="{{this.title}}" 
+                    title="AI: Elaborate on your text"><i class="bi bi-stars"></i></button>
                 </div>
                 <small class="text-muted" id="saveStatus-{{this.id}}"></small>
               </div>
@@ -162,8 +188,8 @@
 
   {{#unless isReadOnly}}
     <div class="text-center mb-5 mt-4">
-      <form method="POST" action="/respond/{{inviteCode}}/submit"
-        onsubmit="return confirm('Submit all evidence? This will lock the form and notify your assessor.')">
+      <form method="POST" action="/respond/{{inviteCode}}/submit" class="mfa-protected"
+        data-mfa-label="Submit all evidence — this will lock the form and notify your assessor.">>
         <button class="btn btn-primary btn-lg"><i class="bi bi-send me-2"></i>Submit All Evidence</button>
       </form>
     </div>
@@ -275,4 +301,43 @@ async function addComment(controlId) {
     loadComments(controlId);
   } catch(e) { console.error(e); }
 }
+
+// AI Elaborate for contenteditable evidence editors
+document.querySelectorAll('.ai-editor-elaborate').forEach(btn => {
+  btn.addEventListener('click', async function() {
+    const editorId = this.dataset.editorId;
+    const editor = document.getElementById(editorId);
+    if (!editor) return;
+    const text = editor.innerText.trim();
+    if (text.length < 3) { alert('Please type at least a few words before using AI elaboration.'); return; }
+
+    const origHTML = this.innerHTML;
+    this.disabled = true;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+    try {
+      const resp = await fetch('/api/ai/elaborate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, context: { controlId: this.dataset.controlId, controlTitle: this.dataset.controlTitle } })
+      });
+      const data = await resp.json();
+      if (data.success && data.elaborated) {
+        // Replace content preserving as plain text (user can format)
+        editor.innerText = data.elaborated;
+        // Trigger autosave
+        const controlDbId = editor.dataset.controlId;
+        if (controlDbId) autoSave(parseInt(controlDbId));
+        this.innerHTML = '<i class="bi bi-check text-success"></i>';
+        setTimeout(() => { this.innerHTML = origHTML; }, 2000);
+      } else {
+        alert(data.error || 'AI elaboration failed.');
+        this.innerHTML = origHTML;
+      }
+    } catch (err) {
+      alert('Network error: ' + err.message);
+      this.innerHTML = origHTML;
+    }
+    this.disabled = false;
+  });
+});
 </script>

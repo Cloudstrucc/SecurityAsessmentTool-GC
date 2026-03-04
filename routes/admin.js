@@ -2,32 +2,224 @@ const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { run, runBatch, all, get } = require('../models/database');
-const { passport, ensureAuthenticated } = require('../config/passport');
+const { passport } = require('../config/passport');
 const { determineProfile, detectComplexity, categorizationLabel, categorizationFullLabel, SECURITY_PROFILES, CONFIDENTIALITY_LEVELS, INTEGRITY_LEVELS, AVAILABILITY_LEVELS } = require('../config/security-profiles');
 const { getRecommendedControls, assessSAARequirement, groupByFamily, COMMON_TECHNOLOGIES, CONTROL_FAMILIES, CONTROLS, GC_WEB_GUIDANCE, computeRiskLevel } = require('../config/itsg33-controls');
+const { FRAMEWORKS, getFrameworksByCategory, generateMultiFrameworkControls, getFrameworkCoverageSummary } = require('../config/security-frameworks');
 const emailService = require('../utils/emailService');
 const pdfExport = require('../utils/pdfExport');
 const path = require('path');
 const fs = require('fs');
 
+const { requireSignature, logSignature, userHasMfa, getUserMfaMode, userHasWebAuthn } = require('../config/mfa-signature');
+const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
+const QRCode = require('qrcode');
+
 // ── AUTH ──
 router.get('/login', (req, res) => {
-  if (req.isAuthenticated()) return res.redirect('/admin/dashboard');
+  if (req.isAuthenticated() && req.session.adminMfaVerified) return res.redirect('/admin/dashboard');
+  // If authenticated but MFA not verified, show MFA step
+  if (req.isAuthenticated() && !req.session.adminMfaVerified) {
+    const user = get('SELECT mfa_enabled FROM users WHERE id = ?', [req.user.id]);
+    if (user && user.mfa_enabled) {
+      return res.render('admin/login', { title: 'Verify MFA', layout: 'main', mfaStep: true });
+    }
+  }
   res.render('admin/login', { title: 'Assessor Login', layout: 'main' });
 });
 
-router.post('/login', passport.authenticate('local', {
-  successRedirect: '/admin/dashboard',
-  failureRedirect: '/admin/login',
-  failureFlash: true
-}));
+router.post('/login', (req, res, next) => {
+  // If this is the WebAuthn verification step
+  if (req.body._webauthn_step && req.isAuthenticated()) {
+    const { consumeToken } = require('../config/mfa-signature');
+    const tokenUserId = consumeToken(req.body._sig_token);
+    if (!tokenUserId || tokenUserId !== req.user.id) {
+      req.flash('error', 'Passkey verification failed. Please try again.');
+      const dbUser = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [req.user.id]);
+      return res.render('admin/login', { title: 'Verify MFA', layout: 'main', mfaStep: true, hasWebAuthn: !!dbUser?.webauthn_credential_id });
+    }
+    req.session.adminMfaVerified = true;
+    logSignature({
+      userId: req.user.id, userEmail: req.user.email, userName: req.user.name,
+      userRole: 'assessor', action: 'auth.login', actionLabel: 'Assessor login with passkey',
+      entityType: 'session', ipAddress: req.ip, userAgent: (req.headers['user-agent'] || '').substring(0, 200),
+      mfaMethod: 'push'
+    });
+    return res.redirect('/admin/dashboard');
+  }
+
+  // If this is the TOTP MFA verification step
+  if (req.body._mfa_step && req.isAuthenticated()) {
+    const user = get('SELECT id, totp_secret, mfa_enabled FROM users WHERE id = ?', [req.user.id]);
+    if (!user || !user.mfa_enabled) {
+      return res.redirect('/admin/mfa-setup');
+    }
+    const isValid = otpVerify({ secret: user.totp_secret, token: req.body.token, window: 1 }).valid;
+    if (!isValid) {
+      req.flash('error', 'Invalid authentication code. Please try again.');
+      const dbUser = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [req.user.id]);
+      return res.render('admin/login', { title: 'Verify MFA', layout: 'main', mfaStep: true, hasWebAuthn: !!dbUser?.webauthn_credential_id });
+    }
+    req.session.adminMfaVerified = true;
+    logSignature({
+      userId: user.id, userEmail: req.user.email, userName: req.user.name,
+      userRole: 'assessor', action: 'auth.login', actionLabel: 'Assessor login with MFA',
+      entityType: 'session', ipAddress: req.ip, userAgent: (req.headers['user-agent'] || '').substring(0, 200)
+    });
+    return res.redirect('/admin/dashboard');
+  }
+
+  // Standard password auth
+  passport.authenticate('local', (err, user, info) => {
+    if (err) return next(err);
+    if (!user) {
+      req.flash('error', info?.message || 'Invalid credentials');
+      return res.redirect('/admin/login');
+    }
+    req.logIn(user, (err) => {
+      if (err) return next(err);
+
+      // Check if MFA is set up
+      const dbUser = get('SELECT mfa_enabled, totp_secret, webauthn_credential_id FROM users WHERE id = ?', [user.id]);
+      if (!dbUser || !dbUser.mfa_enabled || !dbUser.totp_secret) {
+        return res.redirect('/admin/mfa-setup');
+      }
+
+      // Show MFA verification step
+      req.session.adminMfaVerified = false;
+      return res.render('admin/login', { title: 'Verify MFA', layout: 'main', mfaStep: true, hasWebAuthn: !!dbUser.webauthn_credential_id });
+    });
+  })(req, res, next);
+});
 
 router.get('/logout', (req, res) => {
+  delete req.session.adminMfaVerified;
   req.logout(() => res.redirect('/admin/login'));
 });
 
+// ── ADMIN MFA SETUP ──
+router.get('/mfa-setup', (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/admin/login');
+
+  const user = get('SELECT id, email, totp_secret, mfa_enabled FROM users WHERE id = ?', [req.user.id]);
+  if (!user) return res.redirect('/admin/login');
+
+  // Generate new secret if none exists
+  let secret = user.totp_secret;
+  if (!secret) {
+    secret = otpGenerateSecret();
+    run('UPDATE users SET totp_secret = ? WHERE id = ?', [secret, user.id]);
+  }
+
+  const otpauth = otpGenerateURI({ issuer: 'GC SA&A Tool', label: user.email, secret });
+
+  QRCode.toDataURL(otpauth).then(qrCodeUrl => {
+    res.render('admin/login', {
+      title: 'MFA Setup',
+      layout: 'main',
+      mfaSetup: true,
+      qrCodeUrl,
+      secret,
+      mfaAlreadyEnabled: user.mfa_enabled === 1
+    });
+  }).catch(err => {
+    console.error('QR code error:', err);
+    req.flash('error', 'Failed to generate QR code.');
+    res.redirect('/admin/login');
+  });
+});
+
+router.post('/mfa-setup', (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/admin/login');
+
+  const user = get('SELECT id, email, name, totp_secret FROM users WHERE id = ?', [req.user.id]);
+  if (!user || !user.totp_secret) {
+    req.flash('error', 'Setup failed. Please try again.');
+    return res.redirect('/admin/mfa-setup');
+  }
+
+  const isValid = otpVerify({ secret: user.totp_secret, token: req.body.token, window: 1 }).valid;
+  if (!isValid) {
+    req.flash('error', 'Invalid code. Make sure your authenticator clock is synced and try again.');
+    return res.redirect('/admin/mfa-setup');
+  }
+
+  run('UPDATE users SET mfa_enabled = 1 WHERE id = ?', [user.id]);
+  req.session.adminMfaVerified = true;
+
+  logSignature({
+    userId: user.id, userEmail: user.email, userName: user.name,
+    userRole: 'assessor', action: 'auth.mfa_setup', actionLabel: 'Assessor MFA enrollment completed',
+    entityType: 'user', entityId: user.id,
+    ipAddress: req.ip, userAgent: (req.headers['user-agent'] || '').substring(0, 200)
+  });
+
+  req.flash('success', 'MFA enabled! You can optionally register a passkey for biometric sign-in.');
+  res.redirect('/admin/passkey-setup');
+});
+
+// ── Ensure admin has completed MFA for this session ──
+// ── ADMIN PASSKEY SETUP (optional, after MFA enrollment) ──
+router.get('/passkey-setup', (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/admin/login');
+  const user = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [req.user.id]);
+  res.render('admin/passkey-setup', {
+    title: 'Register Passkey', layout: 'main',
+    hasWebAuthn: !!user?.webauthn_credential_id
+  });
+});
+
+function ensureAdminMfa(req, res, next) {
+  if (!req.isAuthenticated()) {
+    req.flash('error', 'Please log in to access the admin area');
+    return res.redirect('/admin/login');
+  }
+  // Check MFA enrollment
+  const user = get('SELECT mfa_enabled FROM users WHERE id = ?', [req.user.id]);
+  if (!user || !user.mfa_enabled) {
+    return res.redirect('/admin/mfa-setup');
+  }
+  // Check MFA verification for this session
+  if (!req.session.adminMfaVerified) {
+    return res.render('admin/login', { title: 'Verify MFA', layout: 'main', mfaStep: true });
+  }
+  return next();
+}
+
+// ── AUDIT LOG ──
+router.get('/audit-log', ensureAdminMfa, (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = 50;
+  const offset = (page - 1) * limit;
+  const entityFilter = req.query.entity || '';
+  const actionFilter = req.query.action || '';
+
+  let where = '1=1';
+  const params = [];
+  if (entityFilter) { where += ' AND entity_type = ?'; params.push(entityFilter); }
+  if (actionFilter) { where += ' AND action LIKE ?'; params.push(`%${actionFilter}%`); }
+
+  const total = get(`SELECT COUNT(*) as c FROM audit_signatures WHERE ${where}`, params)?.c || 0;
+  const signatures = all(`SELECT * FROM audit_signatures WHERE ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`, [...params, limit, offset]);
+  const pages = Math.ceil(total / limit);
+
+  // Get summary stats
+  const todayCount = get("SELECT COUNT(*) as c FROM audit_signatures WHERE date(created_at) = date('now')")?.c || 0;
+  const uniqueUsers = get('SELECT COUNT(DISTINCT user_id) as c FROM audit_signatures')?.c || 0;
+
+  res.render('admin/audit-log', {
+    title: 'Audit Signature Log',
+    isAdmin: true, isAuditLog: true,
+    admin: req.user,
+    signatures,
+    stats: { total, todayCount, uniqueUsers },
+    pagination: { page, pages, total, limit },
+    filters: { entity: entityFilter, action: actionFilter }
+  });
+});
+
 // ── DASHBOARD ──
-router.get('/dashboard', ensureAuthenticated, (req, res) => {
+router.get('/dashboard', ensureAdminMfa, (req, res) => {
   const projects = all('SELECT * FROM projects ORDER BY updated_at DESC LIMIT 10');
   const assessments = all(`
     SELECT a.*, p.name as project_name 
@@ -53,7 +245,7 @@ router.get('/dashboard', ensureAuthenticated, (req, res) => {
 });
 
 // ── PROJECTS ──
-router.get('/projects', ensureAuthenticated, (req, res) => {
+router.get('/projects', ensureAdminMfa, (req, res) => {
   const projects = all('SELECT * FROM projects ORDER BY updated_at DESC');
   res.render('admin/projects', {
     title: 'Projects', isAdmin: true, isProjects: true,
@@ -61,7 +253,7 @@ router.get('/projects', ensureAuthenticated, (req, res) => {
   });
 });
 
-router.get('/projects/new', ensureAuthenticated, (req, res) => {
+router.get('/projects/new', ensureAdminMfa, (req, res) => {
   res.render('admin/project-new', {
     title: 'New Project', isAdmin: true, isProjects: true,
     admin: req.user,
@@ -69,7 +261,7 @@ router.get('/projects/new', ensureAuthenticated, (req, res) => {
   });
 });
 
-router.post('/projects/new', ensureAuthenticated, (req, res) => {
+router.post('/projects/new', ensureAdminMfa, (req, res) => {
   try {
     const { name, description, data_classification, hosting_type, app_type, has_pii,
       technologies, specifications, project_owner_name, project_owner_email,
@@ -96,7 +288,7 @@ router.post('/projects/new', ensureAuthenticated, (req, res) => {
   }
 });
 
-router.get('/projects/:id', ensureAuthenticated, (req, res) => {
+router.get('/projects/:id', ensureAdminMfa, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
   if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
@@ -112,7 +304,7 @@ router.get('/projects/:id', ensureAuthenticated, (req, res) => {
 });
 
 // ── ASSESSMENTS ──
-router.get('/projects/:projectId/assessments/new', ensureAuthenticated, (req, res) => {
+router.get('/projects/:projectId/assessments/new', ensureAdminMfa, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
   if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
@@ -165,14 +357,17 @@ router.get('/projects/:projectId/assessments/new', ensureAuthenticated, (req, re
   });
 });
 
-router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, res) => {
+router.post('/projects/:projectId/assessments/new', ensureAdminMfa, (req, res) => {
   try {
     const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
     if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
     const inviteCode = uuidv4().substring(0, 8).toUpperCase();
-    const assessmentId = run(`INSERT INTO assessments (project_id, type, status, invite_code, created_by)
-      VALUES (?, 'initial', 'draft', ?, ?)`, [project.id, inviteCode, req.user.id]);
+    const selectedFrameworks = req.body.selectedFrameworks 
+      ? (Array.isArray(req.body.selectedFrameworks) ? req.body.selectedFrameworks : [req.body.selectedFrameworks])
+      : ['ITSG-33'];
+    const assessmentId = run(`INSERT INTO assessments (project_id, type, status, invite_code, created_by, client_email, selected_frameworks)
+      VALUES (?, 'initial', 'draft', ?, ?, ?, ?)`, [project.id, inviteCode, req.user.id, project.project_owner_email || '', JSON.stringify(selectedFrameworks)]);
 
     console.log('[Assessment] Created assessment ID:', assessmentId, 'invite:', inviteCode);
 
@@ -219,7 +414,7 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
   }
 });
 
-router.get('/assessments', ensureAuthenticated, (req, res) => {
+router.get('/assessments', ensureAdminMfa, (req, res) => {
   const assessments = all(`
     SELECT a.*, p.name as project_name 
     FROM assessments a JOIN projects p ON a.project_id = p.id 
@@ -231,7 +426,7 @@ router.get('/assessments', ensureAuthenticated, (req, res) => {
   });
 });
 
-router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
+router.get('/assessments/:id', ensureAdminMfa, (req, res) => {
   const assessment = get(`
     SELECT a.*, p.name as project_name, p.project_owner_name, p.project_owner_email,
       p.data_classification, p.hosting_type, p.app_type,
@@ -280,11 +475,27 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     lowCount: checklistItems.filter(i => i.risk_level === 'low').length
   };
 
+  // Parse selected frameworks for display
+  const selectedFrameworks = JSON.parse(assessment.selected_frameworks || '["ITSG-33"]');
+  const frameworkSummary = {};
+  selectedFrameworks.forEach(fwId => {
+    const fw = FRAMEWORKS[fwId];
+    if (fw) {
+      const fwControls = controls.filter(c => {
+        const cfw = JSON.parse(c.frameworks || '[]');
+        return cfw.includes(fwId);
+      });
+      frameworkSummary[fwId] = { ...fw, id: fwId, controlCount: fwControls.length };
+    }
+  });
+
   res.render('admin/assessment-detail', {
     title: `Assessment: ${assessment.project_name}`,
     isAdmin: true, isAssessments: true,
     admin: req.user, assessment,
     families: Object.values(families), controls, stats, checklistItems, poamStats,
+    selectedFrameworks, frameworkSummary: Object.values(frameworkSummary),
+    multiFramework: selectedFrameworks.length > 1,
     projectContextJSON: JSON.stringify({
       name: assessment.project_name,
       description: assessment.project_description || '',
@@ -299,7 +510,7 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
 });
 
 // ── SEND INVITE ──
-router.post('/assessments/:id/send-invite', ensureAuthenticated, async (req, res) => {
+router.post('/assessments/:id/send-invite', ensureAdminMfa, async (req, res) => {
   try {
     const assessment = get(`
       SELECT a.*, p.project_owner_name, p.project_owner_email, p.name as project_name
@@ -340,14 +551,14 @@ router.post('/assessments/:id/send-invite', ensureAuthenticated, async (req, res
 });
 
 // ── AUDIT ──
-router.post('/assessments/:id/start-audit', ensureAuthenticated, (req, res) => {
+router.post('/assessments/:id/start-audit', ensureAdminMfa, (req, res) => {
   run(`UPDATE assessments SET status = 'audit', audit_started_at = CURRENT_TIMESTAMP, 
     updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [req.params.id]);
   req.flash('success', 'Audit started');
   res.redirect(`/admin/assessments/${req.params.id}`);
 });
 
-router.post('/assessments/:id/audit-control/:controlId', ensureAuthenticated, (req, res) => {
+router.post('/assessments/:id/audit-control/:controlId', ensureAdminMfa, (req, res) => {
   const { result, comments } = req.body;
   run(`UPDATE assessment_controls SET audit_result = ?, audit_comments = ?, 
     audit_reviewed_at = CURRENT_TIMESTAMP, audit_reviewed_by = ?, updated_at = CURRENT_TIMESTAMP 
@@ -356,7 +567,7 @@ router.post('/assessments/:id/audit-control/:controlId', ensureAuthenticated, (r
   res.json({ success: true });
 });
 
-router.post('/assessments/:id/complete-audit', ensureAuthenticated, (req, res) => {
+router.post('/assessments/:id/complete-audit', ensureAdminMfa, requireSignature('audit.complete', 'Completed audit — ATO determination', 'assessment'), (req, res) => {
   const controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? AND is_applicable = 1', [req.params.id]);
   const met = controls.filter(c => c.audit_result === 'met').length;
   const partial = controls.filter(c => c.audit_result === 'partially-met').length;
@@ -454,7 +665,7 @@ router.post('/assessments/:id/complete-audit', ensureAuthenticated, (req, res) =
 });
 
 // ── POA&M MANAGEMENT ──
-router.post('/assessments/:id/checklist/add', ensureAuthenticated, (req, res) => {
+router.post('/assessments/:id/checklist/add', ensureAdminMfa, (req, res) => {
   const { description, deadline, control_id, assigned_to, risk_level, remediation_plan, milestone } = req.body;
   run(`INSERT INTO iato_checklist (assessment_id, control_id, description, risk_level,
     remediation_plan, milestone, deadline, assigned_to, created_by)
@@ -465,7 +676,7 @@ router.post('/assessments/:id/checklist/add', ensureAuthenticated, (req, res) =>
   res.redirect(`/admin/assessments/${req.params.id}`);
 });
 
-router.post('/assessments/:id/poam/:itemId/update', ensureAuthenticated, (req, res) => {
+router.post('/assessments/:id/poam/:itemId/update', ensureAdminMfa, (req, res) => {
   const { status, risk_level, assigned_to, deadline, remediation_plan, milestone, evidence_text } = req.body;
   const updates = [];
   const params = [];
@@ -497,13 +708,13 @@ router.post('/assessments/:id/poam/:itemId/update', ensureAuthenticated, (req, r
   res.redirect(`/admin/assessments/${req.params.id}`);
 });
 
-router.post('/assessments/:id/poam/:itemId/delete', ensureAuthenticated, (req, res) => {
+router.post('/assessments/:id/poam/:itemId/delete', ensureAdminMfa, (req, res) => {
   run('DELETE FROM iato_checklist WHERE id = ? AND assessment_id = ?', [req.params.itemId, req.params.id]);
   req.flash('success', 'POA&M item removed');
   res.redirect(`/admin/assessments/${req.params.id}`);
 });
 
-router.post('/assessments/:id/poam/auto-populate', ensureAuthenticated, (req, res) => {
+router.post('/assessments/:id/poam/auto-populate', ensureAdminMfa, (req, res) => {
   const controls = all(`SELECT * FROM assessment_controls WHERE assessment_id = ? AND is_applicable = 1 
     AND (audit_result = 'not-met' OR audit_result = 'partially-met')`, [req.params.id]);
   const existing = all('SELECT control_id FROM iato_checklist WHERE assessment_id = ?', [req.params.id]);
@@ -530,7 +741,7 @@ router.post('/assessments/:id/poam/auto-populate', ensureAuthenticated, (req, re
 });
 
 // ── REACTIVATE SUBMISSION ──
-router.post('/assessments/:id/reactivate', ensureAuthenticated, (req, res) => {
+router.post('/assessments/:id/reactivate', ensureAdminMfa, requireSignature('assessment.reactivate', 'Reactivated assessment for edits', 'assessment'), (req, res) => {
   run(`UPDATE assessments SET status = 'evidence-gathering', submitted_at = NULL, 
     updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [req.params.id]);
   run(`UPDATE assessment_controls SET evidence_status = 'pending' WHERE assessment_id = ?`, [req.params.id]);
@@ -539,7 +750,7 @@ router.post('/assessments/:id/reactivate', ensureAuthenticated, (req, res) => {
 });
 
 // ── PDF EXPORT ──
-router.get('/assessments/:id/export-pdf', ensureAuthenticated, async (req, res) => {
+router.get('/assessments/:id/export-pdf', ensureAdminMfa, async (req, res) => {
   try {
     const assessment = get(`SELECT a.*, p.* FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?`, [req.params.id]);
     const controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessment.id]);
@@ -557,7 +768,7 @@ router.get('/assessments/:id/export-pdf', ensureAuthenticated, async (req, res) 
   }
 });
 
-router.get('/assessments/:id/generate-ato', ensureAuthenticated, async (req, res) => {
+router.get('/assessments/:id/generate-ato', ensureAdminMfa, async (req, res) => {
   try {
     const assessment = get(`SELECT a.*, p.* FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?`, [req.params.id]);
     const controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessment.id]);
@@ -583,7 +794,7 @@ router.get('/assessments/:id/generate-ato', ensureAuthenticated, async (req, res
 });
 
 // ── DELETE ASSESSMENT (Draft only) ──
-router.post('/assessments/:id/delete', ensureAuthenticated, (req, res) => {
+router.post('/assessments/:id/delete', ensureAdminMfa, requireSignature('assessment.delete', 'Deleted assessment', 'assessment'), (req, res) => {
   const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
   if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
   if (assessment.status !== 'draft') {
@@ -603,7 +814,7 @@ router.post('/assessments/:id/delete', ensureAuthenticated, (req, res) => {
 });
 
 // ── DELETE PROJECT ──
-router.post('/projects/:id/delete', ensureAuthenticated, (req, res) => {
+router.post('/projects/:id/delete', ensureAdminMfa, requireSignature('project.delete', 'Deleted project', 'project'), (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
   if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
@@ -637,9 +848,13 @@ router.post('/projects/:id/delete', ensureAuthenticated, (req, res) => {
 });
 
 // ── SETTINGS ──
-router.get('/settings', ensureAuthenticated, (req, res) => {
+router.get('/settings', ensureAdminMfa, (req, res) => {
+  const user = get('SELECT mfa_enabled, mfa_mode, webauthn_credential_id FROM users WHERE id = ?', [req.user.id]);
   res.render('admin/settings', {
-    title: 'Settings', isAdmin: true, isSettings: true, admin: req.user
+    title: 'Settings', isAdmin: true, isSettings: true, admin: req.user,
+    mfaEnabled: user && user.mfa_enabled === 1,
+    mfaMode: user?.mfa_mode || 'totp',
+    hasWebAuthn: !!user?.webauthn_credential_id
   });
 });
 
@@ -667,7 +882,7 @@ const ACTIVITY_LABELS = {
 };
 
 // List all intakes
-router.get('/intakes', ensureAuthenticated, (req, res) => {
+router.get('/intakes', ensureAdminMfa, (req, res) => {
   const intakes = all('SELECT * FROM intake_submissions ORDER BY created_at DESC');
   const pending = all("SELECT COUNT(*) as c FROM intake_submissions WHERE status = 'pending'")[0]?.c || 0;
   const accepted = all("SELECT COUNT(*) as c FROM intake_submissions WHERE status = 'accepted'")[0]?.c || 0;
@@ -681,7 +896,7 @@ router.get('/intakes', ensureAuthenticated, (req, res) => {
 });
 
 // Review a single intake
-router.get('/intakes/:id', ensureAuthenticated, (req, res) => {
+router.get('/intakes/:id', ensureAdminMfa, (req, res) => {
   const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
   if (!intake) { req.flash('error', 'Intake not found'); return res.redirect('/admin/intakes'); }
 
@@ -754,12 +969,16 @@ router.get('/intakes/:id', ensureAuthenticated, (req, res) => {
     profileShortName: profileResult.profile.shortName,
     profileReason: profileResult.reason,
     tailoringNotes: profileResult.tailoringNotes,
-    profileColor: profileResult.profile.color
+    profileColor: profileResult.profile.color,
+    frameworkCategories: getFrameworksByCategory(),
+    frameworksJson: JSON.stringify(FRAMEWORKS),
+    intakeRegions: JSON.parse(intake.selected_regions || '[]'),
+    intakeRegionsJson: intake.selected_regions || '[]'
   });
 });
 
 // Update intake status
-router.post('/intakes/:id/status', ensureAuthenticated, (req, res) => {
+router.post('/intakes/:id/status', ensureAdminMfa, (req, res) => {
   const { status, declineReason } = req.body;
   if (declineReason) {
     run('UPDATE intake_submissions SET status = ?, decline_reason = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
@@ -773,7 +992,7 @@ router.post('/intakes/:id/status', ensureAuthenticated, (req, res) => {
 });
 
 // Create project + assessment from intake
-router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
+router.post('/intakes/:id/create-project', ensureAdminMfa, requireSignature('intake.accept', 'Accepted intake and created project', 'intake'), (req, res) => {
   try {
     const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
     if (!intake) { req.flash('error', 'Intake not found'); return res.redirect('/admin/intakes'); }
@@ -856,16 +1075,46 @@ router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
       filtered = filtered.filter(c => c.priority === 'P1' || c.priority === 'P2');
     }
 
+    // Multi-framework support — parse selected frameworks
+    let selectedFrameworks = [];
+    if (req.body.selectedFrameworks) {
+      selectedFrameworks = Array.isArray(req.body.selectedFrameworks)
+        ? req.body.selectedFrameworks
+        : [req.body.selectedFrameworks];
+    }
+    // Always include ITSG-33 as the primary baseline
+    if (!selectedFrameworks.includes('ITSG-33')) {
+      selectedFrameworks.unshift('ITSG-33');
+    }
+
+    // Generate multi-framework controls if additional frameworks selected
+    if (selectedFrameworks.length > 1) {
+      filtered = generateMultiFrameworkControls(selectedFrameworks, filtered, {
+        name: intake.project_name,
+        classification: classification
+      });
+    } else {
+      // Single framework (ITSG-33 only) — add default framework tags
+      filtered = filtered.map(c => ({
+        ...c,
+        frameworks: ['ITSG-33'],
+        frameworkRefs: [{ frameworkId: 'ITSG-33', frameworkName: 'ITSG-33', reference: c.id }],
+        isFrameworkSpecific: false,
+        sourceFramework: 'ITSG-33'
+      }));
+    }
+
     console.log('[Intake→Project] Profile:', securityProfile,
       'Recommended:', recommended.length,
       'After filters:', filtered.length,
+      'Frameworks:', selectedFrameworks.join(', '),
       '(excludeInherited:', req.body.excludeInherited || 'no',
       'onlyP1P2:', req.body.onlyP1P2 || 'no', ')');
 
     const inviteCode = uuidv4().substring(0, 8).toUpperCase();
     const assessmentId = run(
-      `INSERT INTO assessments (project_id, type, status, invite_code, created_by) VALUES (?,?,?,?,?)`,
-      [projectId, req.body.assessmentType || 'initial', 'draft', inviteCode, req.user.id]
+      `INSERT INTO assessments (project_id, type, status, invite_code, created_by, client_email, selected_frameworks) VALUES (?,?,?,?,?,?,?)`,
+      [projectId, req.body.assessmentType || 'initial', 'draft', inviteCode, req.user.id, intake.owner_email || '', JSON.stringify(selectedFrameworks)]
     );
 
     const grouped = groupByFamily(filtered);
@@ -873,12 +1122,16 @@ router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
       family.controls.forEach(control => {
         run(
           `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title, description,
-            tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority, risk_level
-          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-          [assessmentId, control.id, control.family, control.familyName, control.title, control.description,
-            control.tailoredDescription, control.evidenceGuidance,
-            control.isInherited ? 1 : 0, control.inheritedFrom.join(', '), 1, control.priority,
-            computeRiskLevel(control)]
+            tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority, risk_level,
+            frameworks, source_framework, framework_refs
+          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+          [assessmentId, control.id, control.family, control.familyName || family.name, control.title, control.description,
+            control.tailoredDescription || '', control.evidenceGuidance || '',
+            control.isInherited ? 1 : 0, (control.inheritedFrom || []).join(', '), 1, control.priority,
+            computeRiskLevel(control),
+            JSON.stringify(control.frameworks || ['ITSG-33']),
+            control.sourceFramework || 'ITSG-33',
+            JSON.stringify(control.frameworkRefs || [])]
         );
       });
     });
@@ -897,7 +1150,7 @@ router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
 });
 
 // Download intake attachment
-router.get('/intakes/attachment/:id', ensureAuthenticated, (req, res) => {
+router.get('/intakes/attachment/:id', ensureAdminMfa, (req, res) => {
   const attachment = get('SELECT * FROM intake_attachments WHERE id = ?', [req.params.id]);
   if (!attachment) { req.flash('error', 'Attachment not found'); return res.redirect('/admin/intakes'); }
   res.download(path.join(__dirname, '..', 'uploads', 'intakes', attachment.filename), attachment.original_name);
@@ -907,7 +1160,7 @@ router.get('/intakes/attachment/:id', ensureAuthenticated, (req, res) => {
 // GC WEB GUIDANCE REPORT (no-assessment-required path)
 // ══════════════════════════════════════════════════════
 
-router.get('/projects/:projectId/guidance', ensureAuthenticated, (req, res) => {
+router.get('/projects/:projectId/guidance', ensureAdminMfa, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
   if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
@@ -960,7 +1213,7 @@ router.get('/projects/:projectId/guidance', ensureAuthenticated, (req, res) => {
   });
 });
 
-router.post('/projects/:projectId/guidance/send-invite', ensureAuthenticated, (req, res) => {
+router.post('/projects/:projectId/guidance/send-invite', ensureAdminMfa, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
   if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
@@ -993,7 +1246,7 @@ router.post('/projects/:projectId/guidance/send-invite', ensureAuthenticated, (r
   res.redirect(`/admin/projects/${project.id}/guidance`);
 });
 
-router.post('/projects/:projectId/guidance/validate', ensureAuthenticated, (req, res) => {
+router.post('/projects/:projectId/guidance/validate', ensureAdminMfa, (req, res) => {
   const report = get('SELECT * FROM guidance_reports WHERE project_id = ?', [req.params.projectId]);
   if (!report) { req.flash('error', 'Guidance report not found'); return res.redirect('/admin/projects'); }
 
@@ -1014,12 +1267,12 @@ router.post('/projects/:projectId/guidance/validate', ensureAuthenticated, (req,
   res.redirect(`/admin/projects/${req.params.projectId}/guidance`);
 });
 
-router.post('/projects/:projectId/guidance-notes', ensureAuthenticated, (req, res) => {
+router.post('/projects/:projectId/guidance-notes', ensureAdminMfa, (req, res) => {
   req.flash('success', 'Notes saved.');
   res.redirect(`/admin/projects/${req.params.projectId}/guidance`);
 });
 
-router.get('/projects/:projectId/guidance-pdf', ensureAuthenticated, (req, res) => {
+router.get('/projects/:projectId/guidance-pdf', ensureAdminMfa, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
   if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
@@ -1059,7 +1312,7 @@ router.get('/projects/:projectId/guidance-pdf', ensureAuthenticated, (req, res) 
 // CONTROL MANAGEMENT (add/remove/update on assessments)
 // ══════════════════════════════════════════════════════
 
-router.get('/assessments/:id/manage-controls', ensureAuthenticated, (req, res) => {
+router.get('/assessments/:id/manage-controls', ensureAdminMfa, (req, res) => {
   const assessment = get(`
     SELECT a.*, p.name as project_name, p.data_classification, p.app_type
     FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?
@@ -1104,7 +1357,7 @@ router.get('/assessments/:id/manage-controls', ensureAuthenticated, (req, res) =
 });
 
 // Add controls to an existing assessment
-router.post('/assessments/:id/add-controls', ensureAuthenticated, (req, res) => {
+router.post('/assessments/:id/add-controls', ensureAdminMfa, (req, res) => {
   const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
   if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
 
@@ -1139,7 +1392,7 @@ router.post('/assessments/:id/add-controls', ensureAuthenticated, (req, res) => 
 });
 
 // Remove a control from an assessment
-router.post('/assessments/:id/remove-control/:controlId', ensureAuthenticated, (req, res) => {
+router.post('/assessments/:id/remove-control/:controlId', ensureAdminMfa, (req, res) => {
   const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
   if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
 
@@ -1153,7 +1406,7 @@ router.post('/assessments/:id/remove-control/:controlId', ensureAuthenticated, (
 });
 
 // Update a control on an assessment (tailored description, guidance, applicability, inheritance)
-router.post('/assessments/:id/update-control/:controlId', ensureAuthenticated, (req, res) => {
+router.post('/assessments/:id/update-control/:controlId', ensureAdminMfa, (req, res) => {
   const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
   if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
 

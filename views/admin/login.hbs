@@ -3,30 +3,126 @@
     <div class="col-lg-5">
       <div class="text-center mb-4">
         <i class="bi bi-shield-lock-fill" style="font-size:3rem;color:var(--gc-red)"></i>
-        <h2 class="mt-2" style="color:var(--gc-nav)">Assessor Login</h2>
-        <p class="text-muted">Security Assessment &amp; Authorization Portal</p>
+        {{#if mfaSetup}}
+          <h2 class="mt-2" style="color:var(--gc-nav)">MFA Setup Required</h2>
+          <p class="text-muted">Scan the QR code with your authenticator app to enable MFA.</p>
+        {{else if mfaStep}}
+          <h2 class="mt-2" style="color:var(--gc-nav)">Verify Identity</h2>
+          <p class="text-muted">Confirm your identity to continue.</p>
+        {{else}}
+          <h2 class="mt-2" style="color:var(--gc-nav)">Assessor Login</h2>
+          <p class="text-muted">Security Assessment &amp; Authorization Portal</p>
+        {{/if}}
       </div>
       <div class="card">
         <div class="card-body p-4">
-          <form action="/admin/login" method="POST">
+
+          {{!-- ══ MFA SETUP ══ --}}
+          {{#if mfaSetup}}
+            {{#if mfaAlreadyEnabled}}
+              <div class="alert alert-info small"><i class="bi bi-info-circle me-1"></i>MFA is already enabled. Re-scan to update your authenticator.</div>
+            {{/if}}
+            <div class="text-center mb-3">
+              <img src="{{qrCodeUrl}}" alt="QR Code" class="img-fluid" style="max-width:220px">
+            </div>
             <div class="mb-3">
-              <label for="email" class="form-label">Email Address</label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                <input type="email" class="form-control" id="email" name="email" required autofocus placeholder="assessor@agency.gc.ca">
+              <label class="form-label small fw-semibold text-muted">Manual Entry Key</label>
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control font-monospace" value="{{secret}}" readonly id="mfa-secret">
+                <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('mfa-secret').value);this.innerHTML='<i class=\'bi bi-check\'></i>'">
+                  <i class="bi bi-clipboard"></i>
+                </button>
+              </div>
+              <div class="form-text">Use Google Authenticator, Microsoft Authenticator, or Authy.</div>
+            </div>
+            <form action="/admin/mfa-setup" method="POST">
+              <div class="mb-3">
+                <label for="token" class="form-label">Verification Code</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-key"></i></span>
+                  <input type="text" class="form-control form-control-lg text-center font-monospace" 
+                    id="token" name="token" required autofocus
+                    pattern="[0-9]{6}" maxlength="6" inputmode="numeric"
+                    placeholder="000000" autocomplete="one-time-code">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100 py-2">
+                <i class="bi bi-shield-check me-2"></i>Verify &amp; Enable MFA
+              </button>
+            </form>
+
+          {{!-- ══ MFA VERIFICATION STEP ══ --}}
+          {{else if mfaStep}}
+
+            {{#if hasWebAuthn}}
+            <!-- Passkey option (primary) -->
+            <div id="adminPasskeySection">
+              <div class="text-center mb-3">
+                <i class="bi bi-person-bounding-box" style="font-size:3rem;color:var(--gc-nav,#26374a)"></i>
+              </div>
+              <p class="text-center text-muted small mb-3">Approve with your passkey (Face ID, Touch ID, or Windows Hello).</p>
+              <div id="adminPasskeyError" class="alert alert-danger small py-2 d-none"></div>
+              <button class="btn btn-primary w-100 py-2 mb-3" id="adminPasskeyBtn">
+                <i class="bi bi-person-bounding-box me-1"></i>Sign In with Passkey
+              </button>
+              <div class="text-center">
+                <a href="#" class="small text-muted" id="adminSwitchToTotp"><i class="bi bi-key me-1"></i>Use TOTP code instead</a>
               </div>
             </div>
-            <div class="mb-4">
-              <label for="password" class="form-label">Password</label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                <input type="password" class="form-control" id="password" name="password" required placeholder="Enter password">
+            {{/if}}
+
+            <!-- TOTP option -->
+            <div id="adminTotpSection" {{#if hasWebAuthn}}class="d-none"{{/if}}>
+              <form action="/admin/login" method="POST">
+                <input type="hidden" name="_mfa_step" value="1">
+                <div class="mb-3">
+                  <label for="token" class="form-label">Authentication Code</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-key"></i></span>
+                    <input type="text" class="form-control form-control-lg text-center font-monospace"
+                      id="token" name="token" required {{#unless hasWebAuthn}}autofocus{{/unless}}
+                      pattern="[0-9]{6}" maxlength="6" inputmode="numeric"
+                      placeholder="000000" autocomplete="one-time-code">
+                  </div>
+                  <div class="form-text">Enter the 6-digit code from your authenticator app.</div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2">
+                  <i class="bi bi-box-arrow-in-right me-2"></i>Verify &amp; Sign In
+                </button>
+              </form>
+              {{#if hasWebAuthn}}
+              <div class="text-center mt-3">
+                <a href="#" class="small text-muted" id="adminSwitchToPasskey"><i class="bi bi-person-bounding-box me-1"></i>Use passkey instead</a>
               </div>
+              {{/if}}
             </div>
-            <button type="submit" class="btn btn-primary w-100 py-2">
-              <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
-            </button>
-          </form>
+            <div class="text-center mt-3">
+              <a href="/admin/logout" class="text-muted small"><i class="bi bi-arrow-left me-1"></i>Sign in as different user</a>
+            </div>
+
+          {{!-- ══ STANDARD LOGIN ══ --}}
+          {{else}}
+            <form action="/admin/login" method="POST">
+              <div class="mb-3">
+                <label for="email" class="form-label">Email Address</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                  <input type="email" class="form-control" id="email" name="email" required autofocus placeholder="assessor@agency.gc.ca">
+                </div>
+              </div>
+              <div class="mb-4">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                  <input type="password" class="form-control" id="password" name="password" required placeholder="Enter password">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100 py-2">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+              </button>
+            </form>
+          {{/if}}
+
         </div>
       </div>
       <div class="text-center mt-3">
@@ -35,3 +131,68 @@
     </div>
   </div>
 </div>
+
+{{#if mfaStep}}
+<script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@11/dist/bundle/index.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Toggle between passkey and TOTP
+  const switchToTotp = document.getElementById('adminSwitchToTotp');
+  const switchToPasskey = document.getElementById('adminSwitchToPasskey');
+  if (switchToTotp) switchToTotp.addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('adminPasskeySection').classList.add('d-none');
+    document.getElementById('adminTotpSection').classList.remove('d-none');
+    document.getElementById('token')?.focus();
+  });
+  if (switchToPasskey) switchToPasskey.addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('adminTotpSection').classList.add('d-none');
+    document.getElementById('adminPasskeySection').classList.remove('d-none');
+  });
+
+  // Passkey login
+  const passkeyBtn = document.getElementById('adminPasskeyBtn');
+  if (passkeyBtn) {
+    passkeyBtn.addEventListener('click', async function() {
+      const errEl = document.getElementById('adminPasskeyError');
+      this.disabled = true;
+      this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Waiting for biometric...';
+      errEl.classList.add('d-none');
+
+      try {
+        const optResp = await fetch('/api/webauthn/auth-options', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const opts = await optResp.json();
+        if (opts.error) throw new Error(opts.error);
+
+        const authResult = await SimpleWebAuthnBrowser.startAuthentication({ optionsJSON: opts });
+
+        const verifyResp = await fetch('/api/webauthn/auth-verify', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(authResult)
+        });
+        const verifyData = await verifyResp.json();
+
+        if (verifyData.success && verifyData.sig_token) {
+          const form = document.createElement('form');
+          form.method = 'POST'; form.action = '/admin/login';
+          ['_webauthn_step', '_sig_token'].forEach((name, i) => {
+            const h = document.createElement('input');
+            h.type = 'hidden'; h.name = name; h.value = i === 0 ? '1' : verifyData.sig_token;
+            form.appendChild(h);
+          });
+          document.body.appendChild(form);
+          form.submit();
+          return;
+        }
+        throw new Error(verifyData.error || 'Verification failed');
+      } catch (err) {
+        errEl.textContent = err.name === 'NotAllowedError' ? 'Cancelled. Click to try again.' : err.message;
+        errEl.classList.remove('d-none');
+        this.disabled = false;
+        this.innerHTML = '<i class="bi bi-person-bounding-box me-1"></i>Try Again';
+      }
+    });
+  }
+});
+</script>
+{{/if}}
