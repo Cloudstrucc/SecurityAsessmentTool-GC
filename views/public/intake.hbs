@@ -269,11 +269,11 @@
 
       <div class="row g-3 mb-3">
         <div class="col-md-6">
-          <label class="form-label" for="department">Department / Agency <span class="text-danger">*</span></label>
+          <label class="form-label" for="department" id="lbl-department">Department / Agency <span class="text-danger">*</span></label>
           <input type="text" class="form-control" id="department" name="department" required placeholder="e.g. Employment and Social Development Canada">
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="branch">Branch / Directorate</label>
+          <label class="form-label" for="branch" id="lbl-branch">Branch / Directorate</label>
           <input type="text" class="form-control" id="branch" name="branch" placeholder="e.g. Innovation, Information and Technology Branch">
         </div>
       </div>
@@ -297,7 +297,7 @@
           <label class="form-label" for="appType">Application Accessibility <span class="text-danger">*</span></label>
           <select class="form-select" id="appType" name="appType" required>
             <option value="">Select...</option>
-            <option value="internal">Internal Only (GC network)</option>
+            <option value="internal" id="appType-internal">Internal Only (GC network)</option>
             <option value="external">External / Public-Facing</option>
             <option value="hybrid">Hybrid (both internal & external)</option>
           </select>
@@ -306,27 +306,27 @@
     </div>
 
     <!-- ─── Section 2: Security Categorization ─── -->
-    <div class="form-section">
+    <div class="form-section" id="sec-categorization">
       <div class="section-header">
-        <h4 class="section-title"><span class="section-number">2</span> Security Categorization</h4>
-        <p class="section-description">Categorize your system across three independent security dimensions per the <strong>TBS Directive on Security Management (Appendix J)</strong> and <strong>ITSG-33</strong>. The tool will automatically determine the applicable security control profile.</p>
+        <h4 class="section-title" id="sec2-title"><span class="section-number">2</span> Security Categorization</h4>
+        <p class="section-description" id="sec2-desc">Categorize your system across three independent security dimensions per the <strong>TBS Directive on Security Management (Appendix J)</strong> and <strong>ITSG-33</strong>. The tool will automatically determine the applicable security control profile.</p>
       </div>
 
       <!-- ── 2A: Confidentiality ── -->
       <div class="card mb-3 border-0 bg-light">
         <div class="card-body">
-          <h6 class="fw-bold mb-1"><i class="bi bi-shield-lock me-1"></i> Confidentiality Level <span class="text-danger">*</span></h6>
-          <p class="text-muted small mb-2">What is the highest sensitivity of information the system will process, store, or transmit?</p>
+          <h6 class="fw-bold mb-1" id="conf-heading"><i class="bi bi-shield-lock me-1"></i> Confidentiality Level <span class="text-danger">*</span></h6>
+          <p class="text-muted small mb-2" id="conf-help">What is the highest sensitivity of information the system will process, store, or transmit?</p>
 
           <select class="form-select cia-input" id="confidentialityLevel" name="confidentialityLevel" required>
             <option value="">Select confidentiality level...</option>
-            <optgroup label="Non-National Interest (Protected)">
+            <optgroup label="Non-National Interest (Protected)" id="conf-group-std">
               <option value="unclassified">Unclassified — No injury expected from disclosure</option>
-              <option value="protected-a">Protected A — Limited injury (e.g., internal memos, routine performance feedback)</option>
-              <option value="protected-b" selected>Protected B — Serious injury (e.g., SIN, medical/tax/financial records, most PII)</option>
-              <option value="protected-c">Protected C — Extremely grave injury (e.g., witness protection, informant IDs)</option>
+              <option value="protected-a" id="conf-pa">Protected A — Limited injury (e.g., internal memos, routine performance feedback)</option>
+              <option value="protected-b" selected id="conf-pb">Protected B — Serious injury (e.g., SIN, medical/tax/financial records, most PII)</option>
+              <option value="protected-c" id="conf-pc">Protected C — Extremely grave injury (e.g., witness protection, informant IDs)</option>
             </optgroup>
-            <optgroup label="National Interest (Classified)">
+            <optgroup label="National Interest (Classified)" id="conf-group-cls">
               <option value="confidential">Confidential — Limited injury to national interest</option>
               <option value="secret">Secret — Serious injury to national interest</option>
               <option value="top-secret">Top Secret — Exceptionally grave injury to national interest</option>
@@ -340,12 +340,12 @@
       <div class="card mb-3 border-0 bg-light">
         <div class="card-body">
           <h6 class="fw-bold mb-1"><i class="bi bi-check2-square me-1"></i> Integrity Level <span class="text-danger">*</span></h6>
-          <p class="text-muted small mb-2">What is the expected injury if data is modified, corrupted, or destroyed without authorization?</p>
+          <p class="text-muted small mb-2">What is the expected impact if data is modified, corrupted, or destroyed without authorization?</p>
 
           <select class="form-select cia-input" id="integrityLevel" name="integrityLevel" required>
-            <option value="low">Low — Limited injury; minor data corruption tolerable with manual workarounds</option>
-            <option value="medium" selected>Medium — Serious injury; data must be reliable, unauthorized changes significantly impact operations</option>
-            <option value="high">High — Very grave injury; data accuracy is critical, corruption could endanger life/health/safety</option>
+            <option value="low">Low — Limited impact; minor data corruption tolerable with manual workarounds</option>
+            <option value="medium" selected>Medium — Serious impact; data must be reliable, unauthorized changes significantly impact operations</option>
+            <option value="high">High — Very serious impact; data accuracy is critical, corruption could endanger life/health/safety</option>
           </select>
         </div>
       </div>
@@ -354,22 +354,22 @@
       <div class="card mb-3 border-0 bg-light">
         <div class="card-body">
           <h6 class="fw-bold mb-1"><i class="bi bi-clock-history me-1"></i> Availability Level <span class="text-danger">*</span></h6>
-          <p class="text-muted small mb-2">What is the expected injury if the system is unavailable or disrupted?</p>
+          <p class="text-muted small mb-2">What is the expected impact if the system is unavailable or disrupted?</p>
 
           <select class="form-select cia-input" id="availabilityLevel" name="availabilityLevel" required>
             <option value="low">Low — Extended outages (days) tolerable; alternative processes exist</option>
-            <option value="medium" selected>Medium — Disruptions of hours could cause serious injury; system supports important operations</option>
-            <option value="high">High — Even brief outages (minutes) cause grave injury; mission-critical or life/safety system</option>
+            <option value="medium" selected>Medium — Disruptions of hours could cause serious impact; system supports important operations</option>
+            <option value="high">High — Even brief outages (minutes) cause grave impact; mission-critical or life/safety system</option>
           </select>
         </div>
       </div>
 
       <!-- ── 2D: High Value Asset ── -->
-      <div class="card mb-3 border-0 bg-light">
+      <div class="card mb-3 border-0 bg-light" id="hva-card">
         <div class="card-body">
           <div class="form-check">
             <input class="form-check-input cia-input" type="checkbox" id="isHVA" name="isHVA" value="1">
-            <label class="form-check-label" for="isHVA">
+            <label class="form-check-label" for="isHVA" id="hva-label">
               <strong><i class="bi bi-star me-1"></i> High Value Asset (HVA)</strong>
               <small class="d-block text-muted">Check if this system supports delivery of services at a national scale, is determined to be a significant solution handling sensitive information, or has been designated as a High Value Asset by your department. Adds the <strong>PBHVA overlay</strong> (137 additional controls).</small>
             </label>
@@ -377,7 +377,7 @@
         </div>
       </div>
 
-      <!-- ── Live Profile Preview ── -->
+      <!-- ── Live Profile Preview ── (hidden from client — assessor-only) -->
       <div id="profilePreview" class="alert alert-secondary mb-3" style="display:none;">
         <div class="d-flex align-items-center mb-2">
           <i class="bi bi-cpu fs-5 me-2"></i>
@@ -398,8 +398,8 @@
       <hr class="my-3">
 
       <!-- ── 2E: PII Checklist ── -->
-      <div class="mb-3">
-        <label class="form-label fw-bold">Personal Information (PII) Checklist</label>
+      <div class="mb-3" id="pii-section">
+        <label class="form-label fw-bold" id="pii-heading">Personal Information (PII) Checklist</label>
         <p class="text-muted small mb-2">Does your system collect, process, store, or transmit any of the following? Check all that apply.</p>
 
         <div class="row g-2">
@@ -412,10 +412,10 @@
               </label>
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-6" id="pii-sin-wrap">
             <div class="form-check p-3 rounded border bg-white mb-1">
               <input class="form-check-input" type="checkbox" name="piiTypes" value="sin" id="pii-sin">
-              <label class="form-check-label" for="pii-sin">
+              <label class="form-check-label" for="pii-sin" id="pii-sin-label">
                 <strong>Social Insurance Number (SIN)</strong>
                 <small class="d-block text-muted">SIN or business number</small>
               </label>
@@ -424,7 +424,7 @@
           <div class="col-md-6">
             <div class="form-check p-3 rounded border bg-white mb-1">
               <input class="form-check-input" type="checkbox" name="piiTypes" value="financial" id="pii-financial">
-              <label class="form-check-label" for="pii-financial">
+              <label class="form-check-label" for="pii-financial" id="pii-financial-label">
                 <strong>Financial information</strong>
                 <small class="d-block text-muted">Bank accounts, tax records, pay info, CRA data</small>
               </label>
@@ -457,7 +457,7 @@
               </label>
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-6 gc-only-pii" id="pii-imm-wrap">
             <div class="form-check p-3 rounded border bg-white mb-1">
               <input class="form-check-input" type="checkbox" name="piiTypes" value="immigration" id="pii-imm">
               <label class="form-check-label" for="pii-imm">
@@ -475,7 +475,7 @@
               </label>
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-6 gc-only-pii" id="pii-indig-wrap">
             <div class="form-check p-3 rounded border bg-white mb-1">
               <input class="form-check-input" type="checkbox" name="piiTypes" value="indigenous" id="pii-indig">
               <label class="form-check-label" for="pii-indig">
@@ -497,19 +497,19 @@
       </div>
 
       <!-- Additional data sensitivity questions -->
-      <div class="row g-3 mt-2">
-        <div class="col-md-6">
-          <label class="form-label">Does the system process data subject to <strong>ATIP</strong> requests?</label>
-          <select class="form-select" name="atipSubject">
+      <div class="row g-3 mt-2" id="data-sensitivity-row">
+        <div class="col-md-6" id="atip-wrap">
+          <label class="form-label" id="atip-label">Does the system process data subject to <strong>ATIP</strong> requests?</label>
+          <select class="form-select" name="atipSubject" id="atipSubject">
             <option value="">Select...</option>
             <option value="yes">Yes</option>
             <option value="no">No</option>
             <option value="unsure">Unsure</option>
           </select>
         </div>
-        <div class="col-md-6">
-          <label class="form-label">Has a <strong>Privacy Impact Assessment (PIA)</strong> been completed?</label>
-          <select class="form-select" name="piaCompleted">
+        <div class="col-md-6" id="pia-wrap">
+          <label class="form-label" id="pia-label">Has a <strong>Privacy Impact Assessment (PIA)</strong> been completed?</label>
+          <select class="form-select" name="piaCompleted" id="piaCompleted">
             <option value="">Select...</option>
             <option value="yes">Yes — completed</option>
             <option value="in-progress">In progress</option>
@@ -535,7 +535,7 @@
             <option value="azure">Microsoft Azure</option>
             <option value="aws">Amazon Web Services (AWS)</option>
             <option value="gcp">Google Cloud Platform</option>
-            <option value="ssc">SSC Data Centre (On-Premises)</option>
+            <option value="ssc" id="host-ssc">SSC Data Centre (On-Premises)</option>
             <option value="hybrid">Hybrid (Cloud + On-Premises)</option>
             <option value="saas">SaaS (Third-Party Hosted)</option>
             <option value="other">Other</option>
@@ -571,8 +571,8 @@
           <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="azure" id="tech-azure"><label class="form-check-label" for="tech-azure">Microsoft Azure</label></div></div>
           <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="aws" id="tech-aws"><label class="form-check-label" for="tech-aws">Amazon Web Services</label></div></div>
           <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gcp" id="tech-gcp"><label class="form-check-label" for="tech-gcp">Google Cloud Platform</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="ssc-dc" id="tech-ssc"><label class="form-check-label" for="tech-ssc">SSC Data Centre</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gc-network" id="tech-gcnet"><label class="form-check-label" for="tech-gcnet">GC Network (GCNet)</label></div></div>
+          <div class="col-md-4" id="tech-ssc-wrap"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="ssc-dc" id="tech-ssc"><label class="form-check-label" for="tech-ssc">SSC Data Centre</label></div></div>
+          <div class="col-md-4" id="tech-gcnet-wrap"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gc-network" id="tech-gcnet"><label class="form-check-label" for="tech-gcnet">GC Network (GCNet)</label></div></div>
         </div>
 
         <h6 class="text-muted small text-uppercase mt-3 mb-2">Security & Monitoring</h6>
@@ -581,7 +581,7 @@
           <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="siem-splunk" id="tech-splunk"><label class="form-check-label" for="tech-splunk">Splunk (SIEM)</label></div></div>
           <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="defender" id="tech-defender"><label class="form-check-label" for="tech-defender">Microsoft Defender</label></div></div>
           <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="crowdstrike" id="tech-cs"><label class="form-check-label" for="tech-cs">CrowdStrike Falcon</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gc-cse" id="tech-cse"><label class="form-check-label" for="tech-cse">CSE / CCCS Services</label></div></div>
+          <div class="col-md-4" id="tech-cse-wrap"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gc-cse" id="tech-cse"><label class="form-check-label" for="tech-cse">CSE / CCCS Services</label></div></div>
           <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="waf" id="tech-waf"><label class="form-check-label" for="tech-waf">Web Application Firewall</label></div></div>
         </div>
 
@@ -622,7 +622,7 @@
           </select>
         </div>
         <div class="col-md-6">
-          <label class="form-label">Does the system connect to other <strong>GC systems</strong>?</label>
+          <label class="form-label" id="lbl-gc-interconnect">Does the system connect to other <strong>GC systems</strong>?</label>
           <select class="form-select" name="gcInterconnections">
             <option value="">Select...</option>
             <option value="yes">Yes</option>
@@ -648,11 +648,11 @@
           </select>
         </div>
         <div class="col-md-6">
-          <label class="form-label">Will <strong>external users</strong> (non-GC) access the system?</label>
-          <select class="form-select" name="externalUsers">
+          <label class="form-label" id="lbl-ext-users">Will <strong>external users</strong> (non-GC) access the system?</label>
+          <select class="form-select" name="externalUsers" id="externalUsers">
             <option value="">Select...</option>
             <option value="yes">Yes — public or partner access</option>
-            <option value="no">No — GC employees only</option>
+            <option value="no" id="extusers-no">No — GC employees only</option>
             <option value="contractors">Contractors / consultants only</option>
           </select>
         </div>
@@ -675,7 +675,7 @@
           <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="ssp" id="act-ssp"><label class="form-check-label" for="act-ssp"><strong>System Security Plan (SSP)</strong></label></div></div>
           <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="vapt" id="act-vapt"><label class="form-check-label" for="act-vapt"><strong>Vulnerability Assessment / Pen Test</strong></label></div></div>
           <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="network-diagram" id="act-nd"><label class="form-check-label" for="act-nd"><strong>Network / Architecture Diagram</strong></label></div></div>
-          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="previous-sa" id="act-sa"><label class="form-check-label" for="act-sa"><strong>Previous SA&A / ATO</strong></label></div></div>
+          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="previous-sa" id="act-sa"><label class="form-check-label" for="act-sa" id="lbl-previous-sa"><strong>Previous SA&A / ATO</strong></label></div></div>
         </div>
       </div>
     </div>
@@ -713,7 +713,7 @@
         </div>
       </div>
 
-      <h6 class="fw-bold mb-2">Authorizing Official (DG / Director)</h6>
+      <h6 class="fw-bold mb-2" id="lbl-authority">Authorizing Official (DG / Director)</h6>
       <div class="row g-3">
         <div class="col-md-4">
           <input type="text" class="form-control" name="authorityName" placeholder="Full name">
@@ -737,7 +737,7 @@
       <div class="mb-3">
         <label class="form-label">Attachments</label>
         <input type="file" class="form-control" name="attachments" id="attachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.pptx,.ppt,.png,.jpg,.jpeg,.gif,.vsdx,.vsd,.txt,.md,.csv">
-        <small class="text-muted">You can select multiple files. Examples: architecture diagrams, TRA reports, SSP documents, network diagrams, previous ATO letters.</small>
+        <small class="text-muted" id="attachments-help">You can select multiple files. Examples: architecture diagrams, TRA reports, SSP documents, network diagrams, previous ATO letters.</small>
       </div>
 
       <div id="fileList" class="mb-3" style="display:none;">
@@ -801,46 +801,6 @@
       'pci':             { label: 'PCI DSS', group: 'international' }
     };
 
-    // Adaptation text for different contexts
-    const ADAPTATIONS = {
-      sec2_title: {
-        canada_only: 'Security Categorization',
-        international: 'Security Classification & Impact Assessment'
-      },
-      sec2_desc: {
-        canada_only: 'Categorize your system across three independent security dimensions per the <strong>TBS Directive on Security Management (Appendix J)</strong> and <strong>ITSG-33</strong>. The tool will automatically determine the applicable security control profile.',
-        international: 'Assess the security impact across three dimensions: Confidentiality, Integrity, and Availability. This assessment determines which security controls and frameworks apply to your system.'
-      },
-      conf_label: {
-        canada_only: 'Confidentiality Level',
-        international: 'Data Sensitivity / Confidentiality Level'
-      },
-      hva_label: {
-        canada_only: '<strong><i class="bi bi-star me-1"></i> High Value Asset (HVA)</strong><small class="d-block text-muted">Check if this system supports delivery of services at a national scale, is determined to be a significant solution handling sensitive information, or has been designated as a High Value Asset by your department. Adds the <strong>PBHVA overlay</strong> (137 additional controls).</small>',
-        international: '<strong><i class="bi bi-star me-1"></i> Critical / High-Value System</strong><small class="d-block text-muted">Check if this system is critical infrastructure, supports essential services at national scale, or processes highly sensitive data requiring enhanced security controls.</small>'
-      },
-      gc_interconnect_label: {
-        canada_only: 'Does the system connect to other <strong>GC systems</strong>?',
-        international: 'Does the system connect to other <strong>government or enterprise systems</strong>?'
-      },
-      ext_users_label: {
-        canada_only: 'Will <strong>external users</strong> (non-GC) access the system?',
-        international: 'Will <strong>external users</strong> access the system?'
-      },
-      ext_users_no: {
-        canada_only: 'No — GC employees only',
-        international: 'No — Internal staff only'
-      },
-      interconnect_placeholder: {
-        canada_only: 'e.g. GCcase (via API), SAP (file transfer), GCDOCS (document storage), Canada.ca (public portal)...',
-        international: 'e.g. ERP system (via API), CRM (file transfer), Document management (storage), Public portal...'
-      },
-      sin_label: {
-        canada_only: '<strong>Social Insurance Number (SIN)</strong><small class="d-block text-muted">SIN or business number</small>',
-        international: '<strong>National ID / Tax ID / SSN</strong><small class="d-block text-muted">Social Security Number, Tax Identification Number, National Insurance Number, etc.</small>'
-      }
-    };
-
     // ── DOM Elements ────────────────────────────────────────────
     const step1 = document.getElementById('wizardStep1');
     const step2 = document.getElementById('wizardStep2');
@@ -851,68 +811,65 @@
     const contextLabels = document.getElementById('regionContextLabels');
     const regionChecks = document.querySelectorAll('.region-check');
 
-    // ── Step Navigation ────────────────────────────────────────
+    // ── Continue: Step 1 → Step 2 ──────────────────────────────
     continueBtn.addEventListener('click', function() {
-      // Collect selections
       selectedRegions = [];
       selectedFrameworks = new Set();
-      regionChecks.forEach(cb => {
+      regionChecks.forEach(function(cb) {
         if (cb.checked) {
           selectedRegions.push(cb.value);
-          const fws = cb.dataset.frameworks || '';
-          fws.split(',').forEach(f => { if (f) selectedFrameworks.add(f); });
+          var fws = cb.dataset.frameworks || '';
+          fws.split(',').forEach(function(f) { if (f) selectedFrameworks.add(f); });
         }
       });
-
       if (selectedRegions.length === 0) return;
 
-      // Populate context bar
-      const labels = selectedRegions.map(r => REGION_CONFIG[r]?.label || r);
-      contextLabels.innerHTML = labels.map(l => '<span class="badge bg-light text-primary border ms-1">' + l + '</span>').join(' ');
+      // Populate context bar badges
+      var labels = selectedRegions.map(function(r) { return REGION_CONFIG[r] ? REGION_CONFIG[r].label : r; });
+      contextLabels.innerHTML = labels.map(function(l) { return '<span class="badge bg-light text-primary border ms-1">' + l + '</span>'; }).join(' ');
 
-      // Inject hidden fields into the form
+      // Inject hidden field into form
       injectHiddenFields();
 
-      // Adapt form content
+      // Adapt all form sections to the selected regions
       adaptFormToRegions();
 
-      // Transition
+      // Transition to Step 2
       step1.style.display = 'none';
       step2.style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
+    // ── Back: Step 2 → Step 1 ──────────────────────────────────
     backBtn.addEventListener('click', function() {
       step2.style.display = 'none';
       step1.style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-    // ── Region Check Handlers ──────────────────────────────────
-    regionChecks.forEach(cb => {
+    // ── Region Checkbox Handlers ───────────────────────────────
+    regionChecks.forEach(function(cb) {
       cb.addEventListener('change', function() {
-        // Show/hide sub-regions
-        const subs = document.querySelectorAll('.region-sub[data-parent="' + this.value + '"]');
-        subs.forEach(sub => {
-          sub.style.display = this.checked ? 'block' : 'none';
-          if (!this.checked) {
-            const subCb = sub.querySelector('input');
+        // Show/hide sub-region checkboxes
+        var subs = document.querySelectorAll('.region-sub[data-parent="' + this.value + '"]');
+        subs.forEach(function(sub) {
+          sub.style.display = cb.checked ? 'block' : 'none';
+          if (!cb.checked) {
+            var subCb = sub.querySelector('input');
             if (subCb) subCb.checked = false;
           }
         });
-
         updateSummary();
       });
     });
 
+    // ── Summary Bar Update ─────────────────────────────────────
     function updateSummary() {
-      const checked = document.querySelectorAll('.region-check:checked');
-      const count = checked.length;
-      const fws = new Set();
-      const labels = [];
-      checked.forEach(cb => {
-        labels.push(REGION_CONFIG[cb.value]?.label || cb.value);
-        (cb.dataset.frameworks || '').split(',').forEach(f => { if (f) fws.add(f); });
+      var checked = document.querySelectorAll('.region-check:checked');
+      var count = checked.length;
+      var fws = new Set();
+      checked.forEach(function(cb) {
+        (cb.dataset.frameworks || '').split(',').forEach(function(f) { if (f) fws.add(f); });
       });
 
       if (count === 0) {
@@ -920,155 +877,223 @@
         fwList.textContent = '';
         continueBtn.disabled = true;
       } else {
-        summaryText.innerHTML = '<strong>' + count + '</strong> region' + (count > 1 ? 's' : '') + ' selected — <strong>' + fws.size + '</strong> framework' + (fws.size > 1 ? 's' : '') + ' will apply';
-        fwList.innerHTML = [...fws].map(f => '<span class="badge bg-primary bg-opacity-75 ms-1" style="font-size:0.65rem">' + f + '</span>').join(' ');
+        summaryText.innerHTML = '<strong>' + count + '</strong> region' + (count > 1 ? 's' : '') +
+          ' selected — <strong>' + fws.size + '</strong> framework' + (fws.size > 1 ? 's' : '') + ' will apply';
+        fwList.innerHTML = Array.from(fws).map(function(f) {
+          return '<span class="badge bg-primary bg-opacity-75 ms-1" style="font-size:0.65rem">' + f + '</span>';
+        }).join(' ');
         continueBtn.disabled = false;
       }
     }
 
-    // ── Inject Hidden Fields ────────────────────────────────────
+    // ── Hidden Field Injection ──────────────────────────────────
     function injectHiddenFields() {
-      // Remove any previously injected
-      document.querySelectorAll('.wizard-hidden').forEach(el => el.remove());
-
-      const form = document.getElementById('intakeForm');
+      document.querySelectorAll('.wizard-hidden').forEach(function(el) { el.remove(); });
+      var form = document.getElementById('intakeForm');
       if (!form) return;
-
-      // Selected regions JSON
-      const regInput = document.createElement('input');
-      regInput.type = 'hidden'; regInput.name = 'selectedRegions';
-      regInput.value = JSON.stringify(selectedRegions);
-      regInput.className = 'wizard-hidden';
-      form.appendChild(regInput);
+      var inp = document.createElement('input');
+      inp.type = 'hidden';
+      inp.name = 'selectedRegions';
+      inp.value = JSON.stringify(selectedRegions);
+      inp.className = 'wizard-hidden';
+      form.appendChild(inp);
     }
 
-    // ── Form Adaptation ─────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════
+    //  FORM ADAPTATION ENGINE
+    //  Transforms every section based on selected regions
+    // ═══════════════════════════════════════════════════════════
     function adaptFormToRegions() {
-      const hasCanada = selectedRegions.some(r => r === 'canada' || r === 'canada-finance');
-      const hasNonCanada = selectedRegions.some(r => !REGION_CONFIG[r]?.isCanada);
-      const onlyCanada = hasCanada && !hasNonCanada;
-      const mode = onlyCanada ? 'canada_only' : 'international';
+      var hasCanada = selectedRegions.some(function(r) { return r === 'canada' || r === 'canada-finance'; });
+      var hasNonCanada = selectedRegions.some(function(r) { return !(REGION_CONFIG[r] && REGION_CONFIG[r].isCanada); });
+      var onlyCanada = hasCanada && !hasNonCanada;
+      var noCanada = !hasCanada;
+      var intl = !onlyCanada; // any non-Canada region present
 
-      // ── Section 2: Security Categorization ──
-      const sec2Title = document.querySelector('.form-section:nth-of-type(3) .section-title');
-      const sec2Desc = document.querySelector('.form-section:nth-of-type(3) .section-description');
-      if (sec2Title) sec2Title.innerHTML = '<span class="section-number">2</span> ' + ADAPTATIONS.sec2_title[mode];
-      if (sec2Desc) sec2Desc.innerHTML = ADAPTATIONS.sec2_desc[mode];
+      // ─── ALWAYS: suppress profile preview from client ────────
+      var profileEl = document.getElementById('profilePreview');
+      if (profileEl) profileEl.style.display = 'none';
+      window._disableProfilePreview = true;
 
-      // Confidentiality dropdown — add international equivalents for non-Canada
-      const confSelect = document.getElementById('confidentialityLevel');
-      if (confSelect && !onlyCanada) {
-        // Insert international options at the top of each optgroup
-        const existingOptgroups = confSelect.querySelectorAll('optgroup');
-        if (existingOptgroups.length >= 1) {
-          existingOptgroups[0].label = hasCanada ? 'Non-National Interest (Protected) / Standard Classification' : 'Standard Classification';
-          if (existingOptgroups.length >= 2) {
-            existingOptgroups[1].label = hasCanada ? 'National Interest (Classified)' : 'Classified / Restricted';
-          }
+      // ─── SECTION 1: Project Information ──────────────────────
+      var deptLabel = document.getElementById('lbl-department');
+      var deptInput = document.getElementById('department');
+      var branchLabel = document.getElementById('lbl-branch');
+      var branchInput = document.getElementById('branch');
+      var appInternal = document.getElementById('appType-internal');
+
+      if (noCanada) {
+        if (deptLabel) deptLabel.innerHTML = 'Organization <span class="text-danger">*</span>';
+        if (deptInput) deptInput.placeholder = 'e.g. Acme Corporation, Ministry of Finance';
+        if (branchLabel) branchLabel.textContent = 'Division / Business Unit';
+        if (branchInput) branchInput.placeholder = 'e.g. IT Security Division';
+        if (appInternal) appInternal.textContent = 'Internal Only (corporate network)';
+      } else if (intl) {
+        if (deptLabel) deptLabel.innerHTML = 'Department / Organization <span class="text-danger">*</span>';
+        if (deptInput) deptInput.placeholder = 'e.g. Employment and Social Development Canada';
+        if (appInternal) appInternal.textContent = 'Internal Only (government / corporate network)';
+      }
+
+      // ─── SECTION 2: Security Categorization ──────────────────
+      var sec2Title = document.getElementById('sec2-title');
+      var sec2Desc = document.getElementById('sec2-desc');
+      var confHeading = document.getElementById('conf-heading');
+      var confGroupStd = document.getElementById('conf-group-std');
+      var confGroupCls = document.getElementById('conf-group-cls');
+      var confPA = document.getElementById('conf-pa');
+      var confPB = document.getElementById('conf-pb');
+      var confPC = document.getElementById('conf-pc');
+      var hvaLabel = document.getElementById('hva-label');
+      var hvaCard = document.getElementById('hva-card');
+
+      if (noCanada) {
+        // Full international mode — no GoC references at all
+        if (sec2Title) sec2Title.innerHTML = '<span class="section-number">2</span> Data Sensitivity & Impact Assessment';
+        if (sec2Desc) sec2Desc.innerHTML = 'Assess the sensitivity of data handled by this system and the potential impact of a security breach. This determines which security controls apply.';
+        if (confHeading) confHeading.innerHTML = '<i class="bi bi-shield-lock me-1"></i> Data Sensitivity Level <span class="text-danger">*</span>';
+        if (confGroupStd) confGroupStd.label = 'Standard Classification';
+        if (confGroupCls) confGroupCls.label = 'Classified / Restricted';
+        if (confPA) confPA.textContent = 'Low Sensitivity — Limited impact from disclosure (e.g., internal memos)';
+        if (confPB) confPB.textContent = 'Moderate Sensitivity — Serious impact from disclosure (e.g., PII, financial records)';
+        if (confPC) confPC.textContent = 'High Sensitivity — Extremely grave impact from unauthorized disclosure';
+        if (hvaLabel) hvaLabel.innerHTML = '<strong><i class="bi bi-star me-1"></i> Critical / High-Value System</strong><small class="d-block text-muted">Check if this system is critical infrastructure, supports essential or national-scale services, or processes highly sensitive data requiring enhanced security controls.</small>';
+      } else if (intl) {
+        // Mixed: keep GoC terms but add international context
+        if (sec2Title) sec2Title.innerHTML = '<span class="section-number">2</span> Security Categorization & Impact Assessment';
+        if (sec2Desc) sec2Desc.innerHTML = 'Categorize your system\'s data sensitivity and assess the impact of a security breach. For Canadian government systems, this aligns with TBS Appendix J.';
+        if (hvaLabel) hvaLabel.innerHTML = '<strong><i class="bi bi-star me-1"></i> High Value Asset / Critical System</strong><small class="d-block text-muted">Check if this system is critical infrastructure, supports national-scale services, or has been designated as a high-value asset.</small>';
+      }
+
+      // ─── SECTION 2: PII Checklist ────────────────────────────
+      var sinLabel = document.getElementById('pii-sin-label');
+      var finLabel = document.getElementById('pii-financial-label');
+      var immWrap = document.getElementById('pii-imm-wrap');
+      var indigWrap = document.getElementById('pii-indig-wrap');
+      var atipWrap = document.getElementById('atip-wrap');
+      var atipLabel = document.getElementById('atip-label');
+      var piaLabel = document.getElementById('pia-label');
+
+      if (noCanada) {
+        // Replace GoC-specific PII items
+        if (sinLabel) sinLabel.innerHTML = '<strong>National ID / Tax ID / SSN</strong><small class="d-block text-muted">Social Security Number, Tax ID, National Insurance Number, etc.</small>';
+        if (finLabel) finLabel.innerHTML = '<strong>Financial information</strong><small class="d-block text-muted">Bank accounts, tax records, payroll data</small>';
+        // Hide GoC-only PII categories
+        if (immWrap) immWrap.style.display = 'none';
+        if (indigWrap) indigWrap.style.display = 'none';
+        // Replace ATIP with FOI
+        if (atipLabel) atipLabel.innerHTML = 'Is the data subject to <strong>Freedom of Information / Subject Access</strong> requests?';
+        if (piaLabel) piaLabel.innerHTML = 'Has a <strong>Data Protection / Privacy Impact Assessment</strong> been completed?';
+      } else if (intl) {
+        // Mixed: broaden labels
+        if (sinLabel) sinLabel.innerHTML = '<strong>SIN / National ID / Tax ID</strong><small class="d-block text-muted">Social Insurance Number, SSN, Tax Identification Number, etc.</small>';
+        if (finLabel) finLabel.innerHTML = '<strong>Financial information</strong><small class="d-block text-muted">Bank accounts, tax records, payroll, CRA or equivalent data</small>';
+        if (atipLabel) atipLabel.innerHTML = 'Is the data subject to <strong>ATIP / Freedom of Information</strong> requests?';
+        if (piaLabel) piaLabel.innerHTML = 'Has a <strong>Privacy Impact Assessment (PIA / DPIA)</strong> been completed?';
+      }
+
+      // ─── SECTION 3: Hosting & Technology ─────────────────────
+      var hostSSC = document.getElementById('host-ssc');
+      var techSSCWrap = document.getElementById('tech-ssc-wrap');
+      var techGCNetWrap = document.getElementById('tech-gcnet-wrap');
+      var techCSEWrap = document.getElementById('tech-cse-wrap');
+      var hostRegion = document.getElementById('hostingRegion');
+
+      if (noCanada) {
+        if (hostSSC) hostSSC.style.display = 'none';
+        if (techSSCWrap) techSSCWrap.style.display = 'none';
+        if (techGCNetWrap) techGCNetWrap.style.display = 'none';
+        if (techCSEWrap) techCSEWrap.style.display = 'none';
+      } else if (intl) {
+        if (hostSSC) hostSSC.textContent = 'SSC / Government Data Centre (On-Premises)';
+      }
+
+      // Data residency dropdown — rebuild based on regions
+      if (hostRegion) {
+        var curVal = hostRegion.value;
+        hostRegion.innerHTML = '<option value="">Select...</option>';
+        if (hasCanada) hostRegion.add(new Option('Canada Only', 'canada-only'));
+        var hasUSA = selectedRegions.indexOf('usa') !== -1;
+        var hasEU = selectedRegions.some(function(r) { return ['eu','germany','france','spain'].indexOf(r) !== -1; });
+        var hasUK = selectedRegions.indexOf('uk') !== -1;
+        var hasAU = selectedRegions.indexOf('australia') !== -1;
+        if (hasCanada && hasUSA) hostRegion.add(new Option('Canada Primary (US failover)', 'canada-primary'));
+        if (hasUSA) hostRegion.add(new Option('United States', 'usa'));
+        if (hasEU) hostRegion.add(new Option('EU / EEA', 'eu'));
+        if (hasUK) hostRegion.add(new Option('United Kingdom', 'uk'));
+        if (hasAU) hostRegion.add(new Option('Australia', 'australia'));
+        hostRegion.add(new Option('Multi-Region', 'multi-region'));
+        hostRegion.add(new Option('Global', 'global'));
+        hostRegion.add(new Option('Unsure', 'unsure'));
+        if (curVal) hostRegion.value = curVal;
+        if (!hostRegion.value) {
+          if (onlyCanada) hostRegion.value = 'canada-only';
+          else if (selectedRegions.length === 1 && hasEU) hostRegion.value = 'eu';
+          else if (selectedRegions.length === 1 && hasUSA) hostRegion.value = 'usa';
         }
-        // Update option text to include international equivalents
-        confSelect.querySelectorAll('option').forEach(opt => {
-          if (opt.value === 'unclassified') opt.textContent = hasCanada ? opt.textContent : 'Public / Unclassified — No injury expected from disclosure';
-          if (opt.value === 'protected-a') opt.textContent = hasCanada ? opt.textContent : 'Internal / Low Sensitivity — Limited injury (e.g., internal memos)';
-          if (opt.value === 'protected-b') opt.textContent = hasCanada ? opt.textContent : 'Sensitive / Moderate Sensitivity — Serious injury (e.g., PII, financial records)';
-          if (opt.value === 'protected-c') opt.textContent = hasCanada ? opt.textContent : 'Highly Sensitive — Extremely grave injury from disclosure';
-          if (opt.value === 'confidential') opt.textContent = hasCanada ? opt.textContent : 'Confidential / Restricted — Limited national security impact';
-          if (opt.value === 'secret') opt.textContent = hasCanada ? opt.textContent : 'Secret — Serious national security impact';
-          if (opt.value === 'top-secret') opt.textContent = hasCanada ? opt.textContent : 'Top Secret — Exceptionally grave national security impact';
-        });
       }
 
-      // HVA label
-      const hvaLabel = document.querySelector('label[for="isHVA"]');
-      if (hvaLabel) hvaLabel.innerHTML = ADAPTATIONS.hva_label[mode];
+      // ─── SECTION 4: Architecture & Integrations ──────────────
+      var gcInterLabel = document.getElementById('lbl-gc-interconnect');
+      var extUsersLabel = document.getElementById('lbl-ext-users');
+      var extUsersNo = document.getElementById('extusers-no');
+      var interText = document.getElementById('interconnections');
 
-      // SIN / National ID
-      const sinLabel = document.querySelector('label[for="pii-sin"]');
-      if (sinLabel) sinLabel.innerHTML = ADAPTATIONS.sin_label[mode];
-
-      // Section 4 — GC interconnections
-      adaptLabel('gcInterconnections', 'gc_interconnect_label', mode);
-      adaptLabel('externalUsers', 'ext_users_label', mode);
-
-      // External users "No" option text
-      const extSelect = document.querySelector('select[name="externalUsers"]');
-      if (extSelect) {
-        extSelect.querySelectorAll('option').forEach(opt => {
-          if (opt.value === 'no') opt.textContent = ADAPTATIONS.ext_users_no[mode];
-        });
+      if (noCanada) {
+        if (gcInterLabel) gcInterLabel.innerHTML = 'Does the system connect to other <strong>enterprise or government systems</strong>?';
+        if (extUsersLabel) extUsersLabel.innerHTML = 'Will <strong>external users</strong> access the system?';
+        if (extUsersNo) extUsersNo.textContent = 'No — internal staff only';
+        if (interText) interText.placeholder = 'e.g. ERP system (via API), CRM (data sync), document management, public-facing website...';
+      } else if (intl) {
+        if (gcInterLabel) gcInterLabel.innerHTML = 'Does the system connect to other <strong>GC / enterprise systems</strong>?';
+        if (extUsersLabel) extUsersLabel.innerHTML = 'Will <strong>external users</strong> (non-government) access the system?';
+        if (extUsersNo) extUsersNo.textContent = 'No — internal / government staff only';
+        if (interText) interText.placeholder = 'e.g. GCcase, SAP, CRM, document management, public portal...';
       }
 
-      // Interconnections placeholder
-      const interText = document.getElementById('interconnections');
-      if (interText) interText.placeholder = ADAPTATIONS.interconnect_placeholder[mode];
-
-      // ── Hosting dropdown — adapt for non-Canada ──
-      const hostSelect = document.querySelector('select[name="hostingType"]');
-      if (hostSelect && !onlyCanada) {
-        hostSelect.querySelectorAll('option').forEach(opt => {
-          if (opt.value === 'gc-cloud') opt.textContent = hasCanada ? opt.textContent : 'Government Cloud';
-          if (opt.value === 'ssc') opt.textContent = hasCanada ? opt.textContent : 'Government Data Centre (On-Premises)';
-        });
+      // ─── SECTION 5: Existing Security Posture ────────────────
+      var prevSALabel = document.getElementById('lbl-previous-sa');
+      if (prevSALabel) {
+        if (noCanada) prevSALabel.innerHTML = '<strong>Previous Security Assessment / Authorization</strong>';
+        else if (intl) prevSALabel.innerHTML = '<strong>Previous SA&A / Security Authorization</strong>';
       }
 
-      // Data residency — adapt for selected regions
-      const resSelect = document.getElementById('hostingRegion');
-      if (resSelect && !onlyCanada) {
-        const currentVal = resSelect.value;
-        resSelect.innerHTML = '<option value="">Select...</option>';
-        if (hasCanada) resSelect.add(new Option('Canada Only', 'canada-only'));
-        selectedRegions.forEach(r => {
-          const cfg = REGION_CONFIG[r];
-          if (cfg && !cfg.parent && r !== 'global' && r !== 'soc2' && r !== 'pci') {
-            resSelect.add(new Option(cfg.label + ' Only', r + '-only'));
-          }
-        });
-        resSelect.add(new Option('Multi-Region', 'multi-region'));
-        resSelect.add(new Option('Global', 'global'));
-        resSelect.add(new Option('Unsure', 'unsure'));
-        // Try to restore previous value
-        if (currentVal) resSelect.value = currentVal;
+      // ─── SECTION 6: Key Contacts ─────────────────────────────
+      var authorityLabel = document.getElementById('lbl-authority');
+      if (authorityLabel) {
+        if (noCanada) authorityLabel.textContent = 'Authorizing Official / Senior Management';
+        else if (intl) authorityLabel.textContent = 'Authorizing Official (DG / Director / Senior Manager)';
       }
 
-      // ── Show/hide GoC-specific elements ──
-      document.querySelectorAll('.goc-specific').forEach(el => {
-        el.style.display = hasCanada ? '' : 'none';
-      });
-      document.querySelectorAll('.intl-specific').forEach(el => {
-        el.style.display = hasNonCanada ? '' : 'none';
-      });
+      // ─── SECTION 7: Attachments ──────────────────────────────
+      var attachHelp = document.getElementById('attachments-help');
+      if (attachHelp) {
+        if (noCanada) attachHelp.textContent = 'You can select multiple files. Examples: architecture diagrams, risk assessments, security plans, network diagrams, previous authorization letters.';
+        else if (intl) attachHelp.textContent = 'You can select multiple files. Examples: architecture diagrams, TRA/risk reports, SSP documents, network diagrams, previous SA&A / authorization letters.';
+      }
 
-      // ── Region-specific compliance questions ──
+      // ─── DYNAMIC REGION QUESTIONS ────────────────────────────
       showRegionQuestions();
     }
 
-    function adaptLabel(selectName, adaptKey, mode) {
-      const select = document.querySelector('select[name="' + selectName + '"]');
-      if (!select) return;
-      const label = select.closest('.col-md-6')?.querySelector('.form-label');
-      if (label && ADAPTATIONS[adaptKey]) label.innerHTML = ADAPTATIONS[adaptKey][mode];
-    }
-
-    // ── Region-Specific Questions ───────────────────────────────
+    // ═══════════════════════════════════════════════════════════
+    //  REGION-SPECIFIC QUESTIONS
+    // ═══════════════════════════════════════════════════════════
     function showRegionQuestions() {
-      // Remove any previous region questions
-      document.querySelectorAll('.region-question-section').forEach(el => el.remove());
+      document.querySelectorAll('.region-question-section').forEach(function(el) { el.remove(); });
 
-      const regionQs = [];
-      const hasCanada = selectedRegions.includes('canada');
-      const hasUSA = selectedRegions.includes('usa');
-      const hasEU = selectedRegions.includes('eu');
-      const hasFrance = selectedRegions.includes('france');
-      const hasGermany = selectedRegions.includes('germany');
-      const hasUK = selectedRegions.includes('uk');
-      const hasAustralia = selectedRegions.includes('australia');
-      const hasPCI = selectedRegions.includes('pci');
-      const hasSOC2 = selectedRegions.includes('soc2');
+      var regionQs = [];
+      var hasEU = selectedRegions.indexOf('eu') !== -1;
+      var hasFrance = selectedRegions.indexOf('france') !== -1;
+      var hasGermany = selectedRegions.indexOf('germany') !== -1;
+      var hasUSA = selectedRegions.indexOf('usa') !== -1;
+      var hasUK = selectedRegions.indexOf('uk') !== -1;
+      var hasAU = selectedRegions.indexOf('australia') !== -1;
+      var hasPCI = selectedRegions.indexOf('pci') !== -1;
+      var hasSOC2 = selectedRegions.indexOf('soc2') !== -1;
 
       if (hasEU || hasFrance || hasGermany) {
         regionQs.push({
-          title: 'EU / GDPR Compliance',
-          icon: 'bi-flag',
+          title: 'EU / GDPR Compliance', icon: 'bi-flag',
           questions: [
             { label: 'Does the system process personal data of EU/EEA residents?', name: 'gdprApplies', type: 'select', options: ['Yes', 'No', 'Unsure'] },
             { label: 'Has a Data Protection Impact Assessment (DPIA) been completed?', name: 'dpiaCompleted', type: 'select', options: ['Yes', 'No', 'In progress', 'Not required'] },
@@ -1077,23 +1102,19 @@
           ]
         });
       }
-
-      if (hasEU && selectedRegions.includes('eu-finance')) {
+      if (hasEU && selectedRegions.indexOf('eu-finance') !== -1) {
         regionQs.push({
-          title: 'DORA — Digital Operational Resilience',
-          icon: 'bi-bank',
+          title: 'DORA — Digital Operational Resilience', icon: 'bi-bank',
           questions: [
-            { label: 'Is the organization classified as a financial entity under DORA?', name: 'doraEntity', type: 'select', options: ['Yes — credit institution', 'Yes — investment firm', 'Yes — insurance', 'Yes — payment provider', 'Yes — other', 'No'] },
+            { label: 'Is the organization a financial entity under DORA?', name: 'doraEntity', type: 'select', options: ['Yes — credit institution', 'Yes — investment firm', 'Yes — insurance', 'Yes — payment provider', 'Yes — other', 'No'] },
             { label: 'Have critical ICT third-party providers been identified?', name: 'doraTPP', type: 'select', options: ['Yes', 'No', 'In progress'] },
             { label: 'Has Threat-Led Penetration Testing (TLPT) been performed?', name: 'doraTLPT', type: 'select', options: ['Yes', 'No', 'Planned'] }
           ]
         });
       }
-
       if (hasUSA) {
         regionQs.push({
-          title: 'US Federal Compliance',
-          icon: 'bi-flag',
+          title: 'US Federal Compliance', icon: 'bi-flag',
           questions: [
             { label: 'Does the system store or process Federal information (FISMA scope)?', name: 'fismaScope', type: 'select', options: ['Yes', 'No', 'Unsure'] },
             { label: 'Is a FedRAMP authorization required?', name: 'fedrampRequired', type: 'select', options: ['Yes', 'No', 'Considering it'] },
@@ -1101,34 +1122,28 @@
           ]
         });
       }
-
-      if (selectedRegions.includes('usa-defense')) {
+      if (selectedRegions.indexOf('usa-defense') !== -1) {
         regionQs.push({
-          title: 'CMMC — Defense Supply Chain',
-          icon: 'bi-shield-shaded',
+          title: 'CMMC — Defense Supply Chain', icon: 'bi-shield-shaded',
           questions: [
-            { label: 'What CMMC level is required for this contract?', name: 'cmmcLevel', type: 'select', options: ['Level 1 (Foundational)', 'Level 2 (Advanced)', 'Level 3 (Expert)', 'Not determined yet'] },
+            { label: 'What CMMC level is required?', name: 'cmmcLevel', type: 'select', options: ['Level 1 (Foundational)', 'Level 2 (Advanced)', 'Level 3 (Expert)', 'Not determined yet'] },
             { label: 'Has a System Security Plan (SSP) been documented?', name: 'cmmcSSP', type: 'select', options: ['Yes', 'No', 'In progress'] }
           ]
         });
       }
-
-      if (hasAustralia) {
+      if (hasAU) {
         regionQs.push({
-          title: 'Australian Government Compliance',
-          icon: 'bi-flag',
+          title: 'Australian Government Compliance', icon: 'bi-flag',
           questions: [
-            { label: 'Does the system fall under the Protective Security Policy Framework (PSPF)?', name: 'pspfApplies', type: 'select', options: ['Yes', 'No', 'Unsure'] },
-            { label: 'What ASD Essential Eight maturity level is targeted?', name: 'e8Level', type: 'select', options: ['Maturity Level 1', 'Maturity Level 2', 'Maturity Level 3', 'Not applicable'] },
+            { label: 'Does the system fall under PSPF?', name: 'pspfApplies', type: 'select', options: ['Yes', 'No', 'Unsure'] },
+            { label: 'What Essential Eight maturity level is targeted?', name: 'e8Level', type: 'select', options: ['Maturity Level 1', 'Maturity Level 2', 'Maturity Level 3', 'Not applicable'] },
             { label: 'Is IRAP assessment required?', name: 'irapRequired', type: 'select', options: ['Yes', 'No', 'Unsure'] }
           ]
         });
       }
-
       if (hasPCI) {
         regionQs.push({
-          title: 'PCI DSS — Payment Card Security',
-          icon: 'bi-credit-card',
+          title: 'PCI DSS — Payment Card Security', icon: 'bi-credit-card',
           questions: [
             { label: 'Does the system store, process, or transmit cardholder data?', name: 'pciCHD', type: 'select', options: ['Yes — stores CHD', 'Yes — processes only', 'Yes — transmits only', 'No direct CHD exposure'] },
             { label: 'What SAQ type applies?', name: 'pciSAQ', type: 'select', options: ['SAQ A', 'SAQ A-EP', 'SAQ B', 'SAQ C', 'SAQ D', 'Unsure'] },
@@ -1136,81 +1151,87 @@
           ]
         });
       }
-
       if (hasSOC2) {
         regionQs.push({
-          title: 'SOC 2 — Trust Service Criteria',
-          icon: 'bi-patch-check',
+          title: 'SOC 2 — Trust Service Criteria', icon: 'bi-patch-check',
           questions: [
             { label: 'Which Trust Service Criteria are in scope?', name: 'soc2Criteria', type: 'multi', options: ['Security', 'Availability', 'Processing Integrity', 'Confidentiality', 'Privacy'] },
             { label: 'Is this for a Type I or Type II audit?', name: 'soc2Type', type: 'select', options: ['Type I (point in time)', 'Type II (period of time)', 'Not yet determined'] }
           ]
         });
       }
-
       if (hasUK) {
         regionQs.push({
-          title: 'UK — NIS & NCSC Compliance',
-          icon: 'bi-flag',
+          title: 'UK — NIS & NCSC Compliance', icon: 'bi-flag',
           questions: [
-            { label: 'Is the system part of Critical National Infrastructure (CNI)?', name: 'ukCNI', type: 'select', options: ['Yes — Operator of Essential Services', 'Yes — Relevant Digital Service Provider', 'No'] },
+            { label: 'Is the system part of Critical National Infrastructure?', name: 'ukCNI', type: 'select', options: ['Yes — Operator of Essential Services', 'Yes — Digital Service Provider', 'No'] },
             { label: 'Has a NCSC CAF assessment been performed?', name: 'ukCAF', type: 'select', options: ['Yes', 'No', 'Planned'] }
           ]
         });
       }
+      if (hasFrance) {
+        regionQs.push({
+          title: 'France — ANSSI Compliance', icon: 'bi-flag',
+          questions: [
+            { label: 'Is the system an Operator of Vital Importance (OIV) or Essential Service?', name: 'frOIV', type: 'select', options: ['Yes — OIV', 'Yes — Essential Service', 'No'] },
+            { label: 'Is ANSSI homologation (security accreditation) required?', name: 'frHomologation', type: 'select', options: ['Yes', 'No', 'Unsure'] }
+          ]
+        });
+      }
+      if (hasGermany) {
+        regionQs.push({
+          title: 'Germany — BSI Compliance', icon: 'bi-flag',
+          questions: [
+            { label: 'Is the system operated by or for a federal authority?', name: 'deFederalAuthority', type: 'select', options: ['Yes', 'No'] },
+            { label: 'Is BSI IT-Grundschutz certification required?', name: 'deGrundschutzCert', type: 'select', options: ['Yes — Basic', 'Yes — Standard', 'Yes — Core', 'No'] }
+          ]
+        });
+      }
 
-      // Insert region-specific sections before Section 5 (Existing Security Posture)
+      // Insert before "Existing Security Posture"
       if (regionQs.length > 0) {
-        const sec5 = document.querySelectorAll('.form-section');
-        // Section 5 is the 6th form-section (AI + Sections 1-4 = 5 sections, so index 5)
-        let insertBefore = null;
-        sec5.forEach((sec, i) => {
-          const title = sec.querySelector('.section-title');
-          if (title && title.textContent.includes('Existing Security Posture')) insertBefore = sec;
+        var insertBefore = null;
+        document.querySelectorAll('.form-section').forEach(function(sec) {
+          var t = sec.querySelector('.section-title');
+          if (t && t.textContent.indexOf('Existing Security Posture') !== -1) insertBefore = sec;
         });
 
-        regionQs.forEach(rq => {
-          const section = document.createElement('div');
+        regionQs.forEach(function(rq) {
+          var section = document.createElement('div');
           section.className = 'form-section region-question-section';
           section.style.borderLeft = '3px solid #0d6efd';
           section.style.background = 'linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%)';
 
-          let html = '<div class="section-header" style="border-bottom-color:#b6d0fe;">';
+          var html = '<div class="section-header" style="border-bottom-color:#b6d0fe;">';
           html += '<h4 class="section-title" style="color:#0d6efd"><i class="bi ' + rq.icon + ' me-2"></i>' + rq.title + '</h4>';
-          html += '<p class="section-description">Additional questions based on your selected operating regions.</p>';
-          html += '</div>';
+          html += '<p class="section-description">Based on your selected operating regions.</p>';
+          html += '</div><div class="row g-3">';
 
-          html += '<div class="row g-3">';
-          rq.questions.forEach(q => {
+          rq.questions.forEach(function(q) {
             if (q.type === 'multi') {
-              html += '<div class="col-12"><label class="form-label fw-bold">' + q.label + '</label>';
-              html += '<div class="d-flex flex-wrap gap-2">';
-              q.options.forEach(o => {
-                const cbId = q.name + '-' + o.toLowerCase().replace(/\s+/g, '-');
-                html += '<div class="form-check"><input class="form-check-input" type="checkbox" name="' + q.name + '" value="' + o + '" id="' + cbId + '">';
-                html += '<label class="form-check-label" for="' + cbId + '">' + o + '</label></div>';
+              html += '<div class="col-12"><label class="form-label fw-bold">' + q.label + '</label><div class="d-flex flex-wrap gap-3">';
+              q.options.forEach(function(o) {
+                var cbId = q.name + '-' + o.toLowerCase().replace(/\s+/g, '-');
+                html += '<div class="form-check"><input class="form-check-input" type="checkbox" name="' + q.name + '" value="' + o + '" id="' + cbId + '"><label class="form-check-label" for="' + cbId + '">' + o + '</label></div>';
               });
               html += '</div></div>';
             } else {
-              html += '<div class="col-md-6"><label class="form-label">' + q.label + '</label>';
-              html += '<select class="form-select" name="' + q.name + '"><option value="">Select...</option>';
-              q.options.forEach(o => html += '<option value="' + o.toLowerCase().replace(/[^a-z0-9]/g, '-') + '">' + o + '</option>');
+              html += '<div class="col-md-6"><label class="form-label">' + q.label + '</label><select class="form-select" name="' + q.name + '"><option value="">Select...</option>';
+              q.options.forEach(function(o) { html += '<option value="' + o.toLowerCase().replace(/[^a-z0-9]/g, '-') + '">' + o + '</option>'; });
               html += '</select></div>';
             }
           });
           html += '</div>';
-
           section.innerHTML = html;
           if (insertBefore) insertBefore.parentNode.insertBefore(section, insertBefore);
         });
       }
     }
 
-    // Initialize summary
+    // Initialize
     updateSummary();
   })();
   </script>
-
   <script>
     // File list preview
     document.getElementById('attachments').addEventListener('change', function() {
@@ -1313,6 +1334,8 @@
     }
 
     function updateProfilePreview() {
+      // Suppress profile preview for clients — the assessor determines the profile
+      if (window._disableProfilePreview) return;
       const result = determineProfileClient();
       const preview = document.getElementById('profilePreview');
       if (!result) { preview.style.display = 'none'; return; }

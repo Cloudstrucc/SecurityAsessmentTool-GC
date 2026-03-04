@@ -332,6 +332,7 @@ if $RESET; then
     "WEBAUTHN_ORIGIN=$R_ORIGIN"
     "WEBSITE_NODE_DEFAULT_VERSION=~20"
     "WEBSITES_ENABLE_APP_SERVICE_STORAGE=true"
+    "SCM_DO_BUILD_DURING_DEPLOYMENT=true"
   )
 
   # Secrets — only include if they have actual values (don't blank existing)
@@ -423,6 +424,7 @@ if ! $UPDATE_ONLY && ! $RESET; then
         WEBAUTHN_ORIGIN="https://$DOMAIN" \
         WEBSITE_NODE_DEFAULT_VERSION="~20" \
         WEBSITES_ENABLE_APP_SERVICE_STORAGE="true" \
+        SCM_DO_BUILD_DURING_DEPLOYMENT="true" \
       --output none
     log "App settings configured"
 
@@ -504,12 +506,10 @@ info "Packaging application for deployment..."
 
 mkdir -p data uploads uploads/intakes
 
-npm install --omit=dev --quiet 2>/dev/null
-
 DEPLOY_ZIP="/tmp/gc-sa-tool-deploy-$(date +%s).zip"
 zip -r "$DEPLOY_ZIP" . \
   -x "*.git*" \
-  -x "node_modules/.cache/*" \
+  -x "node_modules/*" \
   -x "*.env" \
   -x ".env.*" \
   -x "deploy-azure.sh" \
@@ -523,7 +523,7 @@ zip -r "$DEPLOY_ZIP" . \
 DEPLOY_SIZE=$(du -sh "$DEPLOY_ZIP" | cut -f1)
 log "Deployment package ready ($DEPLOY_SIZE)"
 
-info "Deploying to Azure (this may take 2-5 minutes)..."
+info "Deploying to Azure (this may take 3-8 minutes — Azure will run npm install)..."
 az webapp deploy \
   --name "$APP_NAME" \
   --resource-group "$RESOURCE_GROUP" \
