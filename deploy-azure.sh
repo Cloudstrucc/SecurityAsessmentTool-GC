@@ -275,6 +275,18 @@ if $RESET; then
   R_MAX_FILE=$(read_setting       "MAX_FILE_SIZE_MB"   "Max file size (MB)"   "25")
   echo ""
 
+  # Provisioning settings (root site only)
+  echo -e "${CYAN}[→]${NC}   Provisioning / Root Site Settings:" >&2
+  R_PROVISIONING=$(read_setting   "PROVISIONING_ENABLED" "Enable provisioning? (true/false)" "false")
+  if [ "$R_PROVISIONING" = "true" ]; then
+    R_AZ_TENANT=$(read_setting    "AZURE_TENANT_ID"       "Azure Tenant ID"         "")
+    R_AZ_CLIENT=$(read_setting    "AZURE_CLIENT_ID"       "Azure Client ID (SP)"    "")
+    R_AZ_SECRET=$(read_setting    "AZURE_CLIENT_SECRET"   "Azure Client Secret"     "" true)
+    R_AZ_SUB=$(read_setting       "AZURE_SUBSCRIPTION_ID" "Azure Subscription ID"   "$(az account show --query id -o tsv 2>/dev/null || true)")
+    R_ALTCHA_SECRET=$(read_setting "ALTCHA_HMAC_SECRET"   "ALTCHA HMAC Secret"      "" true)
+  fi
+  echo ""
+
   # ── 2. Stop the app ──────────────────────────────────────────────────────
   info "Stopping app..."
   az webapp stop --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" --output none 2>/dev/null || true
@@ -301,7 +313,7 @@ if $RESET; then
     *)
       warn "Kudu returned HTTP $DB_HTTP — setting startup cleanup fallback"
       az webapp config set --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
-        --startup-file "rm -f /home/site/wwwroot/data/sa-tool.db && node app.js" \
+        --startup-file "rm -f /home/site/wwwroot/data/sa-tool.db; [ -L node_modules ] && rm -f node_modules || true; [ -d _del_node_modules ] && mv _del_node_modules node_modules || true; rm -f oryx-manifest.toml node_modules.tar.gz .oryx_all_node_modules_copied_marker; node app.js" \
         --output none
       ;;
   esac
@@ -332,7 +344,7 @@ if $RESET; then
     "WEBAUTHN_ORIGIN=$R_ORIGIN"
     "WEBSITE_NODE_DEFAULT_VERSION=~20"
     "WEBSITES_ENABLE_APP_SERVICE_STORAGE=true"
-    "SCM_DO_BUILD_DURING_DEPLOYMENT=true"
+    "SCM_DO_BUILD_DURING_DEPLOYMENT=false"
   )
 
   # Secrets — only include if they have actual values (don't blank existing)
@@ -342,14 +354,24 @@ if $RESET; then
   [ -n "$R_OAUTH_SEC" ]     && SETTINGS_CMD+=("SMTP_OAUTH_CLIENT_SECRET=$R_OAUTH_SEC")
   [ -n "$R_OAUTH_REF" ]     && SETTINGS_CMD+=("SMTP_OAUTH_REFRESH_TOKEN=$R_OAUTH_REF")
 
+  # Provisioning settings (root site)
+  if [ "$R_PROVISIONING" = "true" ]; then
+    SETTINGS_CMD+=("PROVISIONING_ENABLED=true")
+    [ -n "$R_AZ_TENANT" ]      && SETTINGS_CMD+=("AZURE_TENANT_ID=$R_AZ_TENANT")
+    [ -n "$R_AZ_CLIENT" ]      && SETTINGS_CMD+=("AZURE_CLIENT_ID=$R_AZ_CLIENT")
+    [ -n "$R_AZ_SECRET" ]      && SETTINGS_CMD+=("AZURE_CLIENT_SECRET=$R_AZ_SECRET")
+    [ -n "$R_AZ_SUB" ]         && SETTINGS_CMD+=("AZURE_SUBSCRIPTION_ID=$R_AZ_SUB")
+    [ -n "$R_ALTCHA_SECRET" ]  && SETTINGS_CMD+=("ALTCHA_HMAC_SECRET=$R_ALTCHA_SECRET")
+  fi
+
   az webapp config appsettings set \
     --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
     --settings "${SETTINGS_CMD[@]}" --output none
   log "All settings applied (${#SETTINGS_CMD[@]} variables)"
 
-  # Ensure startup command is clean (reverts fallback if set above)
+  # Ensure startup command cleans Oryx artifacts and starts app
   az webapp config set --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
-    --startup-file "node app.js" --output none
+    --startup-file "[ -L node_modules ] && rm -f node_modules || true; [ -d _del_node_modules ] && mv _del_node_modules node_modules || true; rm -f oryx-manifest.toml node_modules.tar.gz .oryx_all_node_modules_copied_marker; node app.js" --output none
 
   info "Proceeding to code deployment..."
   echo ""
@@ -410,21 +432,53 @@ if ! $UPDATE_ONLY && ! $RESET; then
     read -p "  Admin display name [Administrator]: " ADMIN_NAME
     ADMIN_NAME="${ADMIN_NAME:-Administrator}"
 
+    echo ""
+    read -p "  Is this the root provisioning site? (y/N) " -n 1 -r IS_ROOT
+    echo ""
+
+    FIRST_DEPLOY_SETTINGS=(
+        "NODE_ENV=production"
+        "PORT=8080"
+        "SESSION_SECRET=$SESSION_SECRET"
+        "ADMIN_EMAIL=$ADMIN_EMAIL"
+        "ADMIN_PASSWORD=$ADMIN_PASSWORD"
+        "ADMIN_NAME=$ADMIN_NAME"
+        "WEBAUTHN_RP_ID=$DOMAIN"
+        "WEBAUTHN_ORIGIN=https://$DOMAIN"
+        "WEBSITE_NODE_DEFAULT_VERSION=~20"
+        "WEBSITES_ENABLE_APP_SERVICE_STORAGE=true"
+        "SCM_DO_BUILD_DURING_DEPLOYMENT=false"
+    )
+
+    if [[ "$IS_ROOT" =~ ^[Yy]$ ]]; then
+      echo ""
+      info "Configuring provisioning (Service Principal required)..."
+      echo ""
+
+      AZ_SUB_DEFAULT=$(az account show --query id -o tsv 2>/dev/null || true)
+      read -p "  Azure Tenant ID: " P_TENANT_ID
+      read -p "  Azure Client ID (Service Principal): " P_CLIENT_ID
+      read -sp "  Azure Client Secret: " P_CLIENT_SECRET; echo ""
+      read -p "  Azure Subscription ID [$AZ_SUB_DEFAULT]: " P_SUB_ID
+      P_SUB_ID="${P_SUB_ID:-$AZ_SUB_DEFAULT}"
+      read -sp "  ALTCHA HMAC Secret (blank to auto-generate): " P_ALTCHA_SECRET; echo ""
+      if [ -z "$P_ALTCHA_SECRET" ]; then
+        P_ALTCHA_SECRET=$(openssl rand -base64 32)
+        echo "    → Auto-generated ALTCHA secret"
+      fi
+
+      FIRST_DEPLOY_SETTINGS+=("PROVISIONING_ENABLED=true")
+      [ -n "$P_TENANT_ID" ]      && FIRST_DEPLOY_SETTINGS+=("AZURE_TENANT_ID=$P_TENANT_ID")
+      [ -n "$P_CLIENT_ID" ]      && FIRST_DEPLOY_SETTINGS+=("AZURE_CLIENT_ID=$P_CLIENT_ID")
+      [ -n "$P_CLIENT_SECRET" ]  && FIRST_DEPLOY_SETTINGS+=("AZURE_CLIENT_SECRET=$P_CLIENT_SECRET")
+      [ -n "$P_SUB_ID" ]         && FIRST_DEPLOY_SETTINGS+=("AZURE_SUBSCRIPTION_ID=$P_SUB_ID")
+      [ -n "$P_ALTCHA_SECRET" ]  && FIRST_DEPLOY_SETTINGS+=("ALTCHA_HMAC_SECRET=$P_ALTCHA_SECRET")
+    fi
+
     az webapp config appsettings set \
       --name "$APP_NAME" \
       --resource-group "$RESOURCE_GROUP" \
-      --settings \
-        NODE_ENV="production" \
-        PORT="8080" \
-        SESSION_SECRET="$SESSION_SECRET" \
-        ADMIN_EMAIL="$ADMIN_EMAIL" \
-        ADMIN_PASSWORD="$ADMIN_PASSWORD" \
-        ADMIN_NAME="$ADMIN_NAME" \
-        WEBAUTHN_RP_ID="$DOMAIN" \
-        WEBAUTHN_ORIGIN="https://$DOMAIN" \
-        WEBSITE_NODE_DEFAULT_VERSION="~20" \
-        WEBSITES_ENABLE_APP_SERVICE_STORAGE="true" \
-        SCM_DO_BUILD_DURING_DEPLOYMENT="true" \
+      --settings "${FIRST_DEPLOY_SETTINGS[@]}" \
       --output none
     log "App settings configured"
 
@@ -432,7 +486,7 @@ if ! $UPDATE_ONLY && ! $RESET; then
     az webapp config set \
       --name "$APP_NAME" \
       --resource-group "$RESOURCE_GROUP" \
-      --startup-file "node app.js" \
+      --startup-file "[ -L node_modules ] && rm -f node_modules || true; [ -d _del_node_modules ] && mv _del_node_modules node_modules || true; rm -f oryx-manifest.toml node_modules.tar.gz .oryx_all_node_modules_copied_marker; node app.js" \
       --output none
     log "Startup command set"
 
@@ -502,6 +556,10 @@ if $SETTINGS_ONLY; then
 fi
 
 # ── Deploy code via ZIP ────────────────────────────────────────────────────────
+info "Installing dependencies locally..."
+npm install --production --no-audit --no-fund > /dev/null 2>&1
+log "Dependencies installed ($(ls node_modules | wc -l | tr -d ' ') packages)"
+
 info "Packaging application for deployment..."
 
 mkdir -p data uploads uploads/intakes
@@ -509,28 +567,55 @@ mkdir -p data uploads uploads/intakes
 DEPLOY_ZIP="/tmp/gc-sa-tool-deploy-$(date +%s).zip"
 zip -r "$DEPLOY_ZIP" . \
   -x "*.git*" \
-  -x "node_modules/*" \
   -x "*.env" \
   -x ".env.*" \
   -x "deploy-azure.sh" \
+  -x "provision-tenant.sh" \
   -x "data/*.db" \
   -x "uploads/*" \
   -x "*.tar.gz" \
   -x "cookies.txt" \
   -x ".DS_Store" \
+  -x "provisioning-status/*" \
   > /dev/null
 
 DEPLOY_SIZE=$(du -sh "$DEPLOY_ZIP" | cut -f1)
-log "Deployment package ready ($DEPLOY_SIZE)"
+log "Deployment package ready ($DEPLOY_SIZE — includes node_modules)"
 
-info "Deploying to Azure (this may take 3-8 minutes — Azure will run npm install)..."
+info "Deploying to Azure (this may take 2-5 minutes)..."
 az webapp deploy \
   --name "$APP_NAME" \
   --resource-group "$RESOURCE_GROUP" \
   --src-path "$DEPLOY_ZIP" \
   --type zip \
+  --async true \
   --output none
-log "Deployment complete"
+
+# Wait for deployment to finish (poll Kudu)
+info "Waiting for deployment to complete..."
+KUDU_CREDS=$(az webapp deployment list-publishing-credentials \
+  --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
+  --query "{u:publishingUserName,p:publishingPassword}" -o tsv 2>/dev/null)
+KUDU_AUTH=$(echo "$KUDU_CREDS" | tr '\t' ':')
+DEPLOY_DONE=false
+for i in $(seq 1 30); do
+  sleep 10
+  STATUS=$(curl -s -u "$KUDU_AUTH" \
+    "https://${APP_NAME}.scm.azurewebsites.net/api/deployments/latest" 2>/dev/null \
+    | grep -o '"status":[0-9]*' | head -1 | cut -d: -f2 || echo "")
+  if [ "$STATUS" = "4" ]; then
+    DEPLOY_DONE=true; break
+  elif [ "$STATUS" = "3" ]; then
+    err "Deployment failed. Check: az webapp log tail --name $APP_NAME -g $RESOURCE_GROUP"
+  fi
+  printf "."
+done
+echo ""
+if $DEPLOY_DONE; then
+  log "Deployment complete"
+else
+  warn "Deployment may still be in progress — check logs"
+fi
 
 rm -f "$DEPLOY_ZIP"
 

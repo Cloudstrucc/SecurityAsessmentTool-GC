@@ -1,0 +1,81 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# GC Security Assessment & Authorization (SA&A) Tool
+# Environment Configuration
+# ═══════════════════════════════════════════════════════════════════════════════
+# Copy this file to .env and update the values for your environment.
+#   cp .env.example .env
+#
+# Required: ADMIN_EMAIL, ADMIN_PASSWORD, SESSION_SECRET
+# Optional: SMTP_*, ANTHROPIC_* (features degrade gracefully without them)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── Server ────────────────────────────────────────────────────────────────────
+PORT=3000
+NODE_ENV=development
+SESSION_SECRET=CHANGE-ME-to-a-random-64-char-string
+
+# ── Admin Credentials ─────────────────────────────────────────────────────────
+# The default assessor account is created on first startup.
+# To change credentials: update these values, delete data/sa-tool.db, restart.
+ADMIN_EMAIL=admin@youragency.gc.ca
+ADMIN_PASSWORD=ChangeThisPassword123!
+ADMIN_NAME=Security Assessor
+
+# ── Email (Microsoft 365 SMTP) ───────────────────────────────────────────────
+# If not configured, emails are logged to console and invite codes shown in UI.
+#
+# Option 1: App Password (simplest — recommended)
+#   Create at https://account.microsoft.com/security → App Passwords
+SMTP_HOST=smtp.office365.com
+SMTP_PORT=587
+SMTP_USER=sa-tool@youragency.gc.ca
+SMTP_PASSWORD=your-16-char-app-password
+EMAIL_FROM="GC SA&A Tool <sa-tool@youragency.gc.ca>"
+
+# Option 2: OAuth2 (for orgs that disable App Passwords)
+#   Register an Azure AD app with Mail.Send permission.
+# SMTP_OAUTH_CLIENT_ID=your-azure-ad-app-client-id
+# SMTP_OAUTH_CLIENT_SECRET=your-client-secret
+# SMTP_OAUTH_REFRESH_TOKEN=your-refresh-token
+# SMTP_OAUTH_ACCESS_TOKEN=
+
+# ── AI (Anthropic Claude API) ────────────────────────────────────────────────
+# Powers: document parsing, intake review, evidence guidance, control suggestions.
+# If not set, AI buttons are hidden and all features work without AI.
+ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
+ANTHROPIC_MODEL=claude-sonnet-4-20250514
+
+# ── File Uploads ──────────────────────────────────────────────────────────────
+MAX_FILE_SIZE_MB=25
+
+# ── WebAuthn / Passkey (Biometric Push MFA) ──────────────────────────────────
+# Required for biometric push verification (Face ID / Touch ID / Windows Hello).
+# For local dev these defaults work. For production, set to your real domain.
+#
+# Local development:
+WEBAUTHN_RP_ID=localhost
+WEBAUTHN_ORIGIN=http://localhost:3000
+#
+# Azure production example (uncomment and set):
+# WEBAUTHN_RP_ID=gc-sa-tool-9060bceb.azurewebsites.net
+# WEBAUTHN_ORIGIN=https://gc-sa-tool-9060bceb.azurewebsites.net
+
+# ── ALTCHA (Bot Protection) ──────────────────────────────────────────────────
+# Self-hosted proof-of-work captcha. No external service, no API keys needed.
+# If not set, falls back to SESSION_SECRET. Set a unique value in production.
+# ALTCHA_HMAC_SECRET=CHANGE-ME-to-a-random-64-char-string
+
+# ── Azure Provisioning (Root Site Only) ──────────────────────────────────────
+# Only needed on the root provisioning site that creates tenant instances.
+# Tenant instances do NOT need these variables.
+#
+# Set PROVISIONING_ENABLED=true to show signup page at / instead of the portal.
+# PROVISIONING_ENABLED=true
+#
+# Service Principal credentials (create with az ad sp create-for-rbac):
+# AZURE_TENANT_ID=your-azure-tenant-id
+# AZURE_CLIENT_ID=your-service-principal-app-id
+# AZURE_CLIENT_SECRET=your-service-principal-password
+# AZURE_SUBSCRIPTION_ID=your-subscription-id
+# AZURE_LOCATION=canadacentral
+# AZURE_PROVISIONING_SKU=B1

@@ -29,3 +29,5 @@ npm-debug.log*
 # Session files
 cookies.txt.env
 .env
+.env.production
+.env*.local

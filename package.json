@@ -8,11 +8,16 @@
     "dev": "NODE_ENV=development node app.js"
   },
   "dependencies": {
+    "@azure/arm-appservice": "^14.1.0",
+    "@azure/arm-resources": "^5.2.0",
+    "@azure/identity": "^4.0.0",
     "@simplewebauthn/server": "^11.0.0",
+    "altcha-lib": "^1.4.1",
+    "archiver": "^6.0.0",
     "bcryptjs": "^2.4.3",
     "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.6",
-    "dotenv": "^16.3.1",
+    "dotenv": "^17.3.1",
     "express": "^4.18.2",
     "express-handlebars": "^7.1.2",
     "express-session": "^1.17.3",

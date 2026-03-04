@@ -25,19 +25,32 @@ const intakeUpload = multer({
 
 // Home page
 router.get('/', (req, res) => {
-  res.render('index', { title: 'GC Security Assessment Portal' });
+  if (process.env.PROVISIONING_ENABLED === 'true') {
+    // Root site — show product signup
+    return res.render('public/product-signup', {
+      title: 'Vanguard Cloud Services — SA&A Platform',
+      layout: 'minimal'
+    });
+  }
+  // Tenant instance — show portal
+  res.render('index', { title: 'SA&A Platform Portal' });
+});
+
+// App portal — login / access code / assessor entry
+router.get('/portal', (req, res) => {
+  res.render('index', { title: 'SA&A Platform Portal' });
 });
 
 // Access via code
 router.get('/access', (req, res) => {
   const { code } = req.query;
-  if (!code) { req.flash('error', 'Please enter an access code'); return res.redirect('/'); }
+  if (!code) { req.flash('error', 'Please enter an access code'); return res.redirect('/portal'); }
   res.redirect('/respond/' + code.toUpperCase().trim());
 });
 
 router.post('/respond/access', (req, res) => {
   const { code } = req.body;
-  if (!code) { req.flash('error', 'Please enter an access code'); return res.redirect('/'); }
+  if (!code) { req.flash('error', 'Please enter an access code'); return res.redirect('/portal'); }
   res.redirect('/respond/' + code.toUpperCase().trim());
 });
 
@@ -178,7 +191,7 @@ router.post('/respond/:code/submit', requireSignature('evidence.submit', 'Submit
     WHERE a.invite_code = ?
   `, [code]);
 
-  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/'); }
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/portal'); }
 
   run(`UPDATE assessments SET status = 'submitted', submitted_at = CURRENT_TIMESTAMP, 
     updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [assessment.id]);
@@ -471,7 +484,7 @@ router.get('/client/logout', (req, res) => {
   delete req.session.pendingLoginUserId;
   delete req.session.pendingMfaUserId;
   req.flash('success', 'You have been signed out.');
-  res.redirect('/');
+  res.redirect('/portal');
 });
 
 // ── CLIENT DASHBOARD ──
@@ -919,7 +932,7 @@ router.post('/guidance/:code/submit', requireSignature('guidance.submit', 'Submi
     FROM guidance_reports g JOIN projects p ON g.project_id = p.id
     WHERE g.invite_code = ?
   `, [req.params.code.toUpperCase()]);
-  if (!report) { req.flash('error', 'Invalid code'); return res.redirect('/'); }
+  if (!report) { req.flash('error', 'Invalid code'); return res.redirect('/portal'); }
   if (report.status === 'validated') { req.flash('error', 'Already validated'); return res.redirect('/guidance/' + req.params.code); }
 
   const { respondent_name, respondent_email, respondent_notes } = req.body;
@@ -937,6 +950,177 @@ router.post('/guidance/:code/submit', requireSignature('guidance.submit', 'Submi
     title: 'Checklist Submitted',
     projectName: report.project_name,
     code: report.invite_code
+  });
+});
+
+// ══════════════════════════════════════════════════════════════
+// PRODUCT SIGNUP — Self-service tenant provisioning (Azure SDK)
+// ══════════════════════════════════════════════════════════════
+
+const provisionStatusDir = path.join(__dirname, '..', 'provisioning-status');
+if (!fs.existsSync(provisionStatusDir)) fs.mkdirSync(provisionStatusDir, { recursive: true });
+
+// Lazy-load provisioning service (only needed on root site)
+let provisioningService = null;
+function getProvisioningService() {
+  if (!provisioningService) {
+    try {
+      provisioningService = require('../utils/provisioningService');
+    } catch (e) {
+      console.error('[Provision] Failed to load provisioning service:', e.message);
+    }
+  }
+  return provisioningService;
+}
+
+// ── ALTCHA challenge endpoint (self-hosted, no external service) ──
+router.get('/api/altcha-challenge', async (req, res) => {
+  try {
+    const { createChallenge } = require('altcha-lib');
+    const hmacKey = process.env.ALTCHA_HMAC_SECRET || process.env.SESSION_SECRET || 'vcs-default-altcha-key';
+    const challenge = await createChallenge({
+      hmacKey,
+      maxNumber: 50000,
+      algorithm: 'SHA-256'
+    });
+    res.json(challenge);
+  } catch (e) {
+    console.error('ALTCHA challenge error:', e);
+    res.status(500).json({ error: 'Failed to create challenge' });
+  }
+});
+
+// GET /product-signup — Show the signup form
+router.get('/product-signup', (req, res) => {
+  res.render('public/product-signup', {
+    title: 'Start Your Free Trial — Vanguard Cloud Services',
+    layout: 'minimal'
+  });
+});
+
+// POST /product-signup — Process signup and begin provisioning
+router.post('/product-signup', async (req, res) => {
+  try {
+    const { first_name, last_name, email, organization, country, password, confirm_password } = req.body;
+    const altchaPayload = req.body['altcha'];
+
+    // ── Validate ──
+    if (!first_name || !last_name || !email || !organization || !password) {
+      req.flash('error', 'All fields are required.');
+      return res.redirect('/product-signup');
+    }
+    if (password.length < 10) {
+      req.flash('error', 'Password must be at least 10 characters.');
+      return res.redirect('/product-signup');
+    }
+    if (password !== confirm_password) {
+      req.flash('error', 'Passwords do not match.');
+      return res.redirect('/product-signup');
+    }
+
+    // ── Check provisioning is configured ──
+    const svc = getProvisioningService();
+    if (!svc || !svc.isConfigured()) {
+      console.error('[Provision] Azure SDK credentials not configured');
+      req.flash('error', 'Provisioning is not available. Please contact support.');
+      return res.redirect('/product-signup');
+    }
+
+    // ── Verify ALTCHA proof-of-work ──
+    if (altchaPayload) {
+      try {
+        const { verifySolution } = require('altcha-lib');
+        const hmacKey = process.env.ALTCHA_HMAC_SECRET || process.env.SESSION_SECRET || 'vcs-default-altcha-key';
+        const ok = await verifySolution(altchaPayload, hmacKey);
+        if (!ok) {
+          req.flash('error', 'Verification failed. Please try again.');
+          return res.redirect('/product-signup');
+        }
+      } catch (e) {
+        console.error('ALTCHA verification error:', e);
+        req.flash('error', 'Verification error. Please try again.');
+        return res.redirect('/product-signup');
+      }
+    }
+
+    // ── Check for duplicate org slug ──
+    const orgSlug = organization.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').substring(0, 24);
+    const existingJob = get("SELECT id FROM provisioning_jobs WHERE app_name = ?", [`vcs-sa-${orgSlug}`]);
+    if (existingJob) {
+      req.flash('error', 'An instance for this organization name already exists. Please choose a different name or contact support.');
+      return res.redirect('/product-signup');
+    }
+
+    // ── Create job record ──
+    const jobId = uuidv4().substring(0, 12).replace(/-/g, '');
+    const adminName = `${first_name} ${last_name}`;
+    const passwordHash = bcrypt.hashSync(password, 12);
+
+    run(`INSERT INTO provisioning_jobs (job_id, status, progress, step, org_name, admin_email, admin_name, admin_password_hash, plan, app_name)
+         VALUES (?, 'queued', 0, 'Queued...', ?, ?, ?, ?, 'trial', ?)`,
+      [jobId, organization, email, adminName, passwordHash, `vcs-sa-${orgSlug}`]);
+
+    // Write initial status file
+    fs.writeFileSync(path.join(provisionStatusDir, `${jobId}.json`), JSON.stringify({
+      job_id: jobId, status: 'queued', progress: 0, step: 'Queued...',
+      app_name: `vcs-sa-${orgSlug}`, instance_url: '', error: ''
+    }));
+
+    // ── Fire-and-forget: start provisioning in background ──
+    svc.provisionTenant(jobId, orgSlug, email, password, adminName)
+      .catch(err => console.error(`[Provision] Background error for ${jobId}:`, err));
+
+    // ── Redirect to status page immediately ──
+    res.redirect(`/product-signup/status/${jobId}`);
+
+  } catch (err) {
+    console.error('Product signup error:', err);
+    req.flash('error', 'An error occurred. Please try again.');
+    res.redirect('/product-signup');
+  }
+});
+
+// GET /product-signup/status/:jobId — Provisioning progress page
+router.get('/product-signup/status/:jobId', (req, res) => {
+  const job = get('SELECT * FROM provisioning_jobs WHERE job_id = ?', [req.params.jobId]);
+  if (!job) {
+    req.flash('error', 'Provisioning job not found.');
+    return res.redirect('/product-signup');
+  }
+  res.render('public/provision-status', {
+    title: 'Deploying Your Instance — Vanguard Cloud Services',
+    jobId: job.job_id,
+    orgName: job.org_name,
+    adminEmail: job.admin_email,
+    layout: 'minimal'
+  });
+});
+
+// API: Poll provisioning status
+router.get('/api/provision-status/:jobId', (req, res) => {
+  const statusFile = path.join(provisionStatusDir, `${req.params.jobId}.json`);
+  
+  // Try file first (fastest)
+  if (fs.existsSync(statusFile)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(statusFile, 'utf8'));
+      return res.json(data);
+    } catch(e) {}
+  }
+  
+  // Fall back to database
+  const job = get('SELECT * FROM provisioning_jobs WHERE job_id = ?', [req.params.jobId]);
+  if (!job) return res.status(404).json({ error: 'Job not found' });
+  
+  res.json({
+    job_id: job.job_id,
+    status: job.status,
+    progress: job.progress,
+    step: job.step,
+    app_name: job.app_name,
+    instance_url: job.instance_url,
+    error: job.error_message || ''
   });
 });
 

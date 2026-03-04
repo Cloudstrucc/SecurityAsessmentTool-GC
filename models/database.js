@@ -429,6 +429,26 @@ async function initDatabase() {
     ['intake_submissions', 'submitted_by_user_id', 'ALTER TABLE intake_submissions ADD COLUMN submitted_by_user_id INTEGER'],
     ['intake_submissions', 'created_by_assessor_id', 'ALTER TABLE intake_submissions ADD COLUMN created_by_assessor_id INTEGER'],
     ['intake_submissions', 'assigned_to_email', 'ALTER TABLE intake_submissions ADD COLUMN assigned_to_email TEXT'],
+    
+    // Provisioning jobs for self-service tenant deployment
+    ['provisioning_jobs', null, `CREATE TABLE IF NOT EXISTS provisioning_jobs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      job_id TEXT UNIQUE NOT NULL,
+      status TEXT DEFAULT 'queued',
+      progress INTEGER DEFAULT 0,
+      step TEXT DEFAULT 'Initializing...',
+      org_name TEXT,
+      admin_email TEXT,
+      admin_name TEXT,
+      admin_password_hash TEXT,
+      plan TEXT DEFAULT 'trial',
+      app_name TEXT,
+      instance_url TEXT,
+      error_message TEXT,
+      log_output TEXT DEFAULT '',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      completed_at DATETIME
+    )`],
     ['assessments', 'client_email', 'ALTER TABLE assessments ADD COLUMN client_email TEXT'],
     // POA&M client remediation evidence
     ['iato_checklist', 'client_evidence', 'ALTER TABLE iato_checklist ADD COLUMN client_evidence TEXT'],
