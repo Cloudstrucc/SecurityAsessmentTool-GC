@@ -31,6 +31,7 @@ const FRAMEWORKS = {
   'ISO-27001':        { name: 'ISO 27001:2022', fullName: 'ISO/IEC 27001:2022', country: 'Global', level: '—', sector: 'All', controlCount: '93 (Annex A)', riskLevels: 'Risk-based', atoEquivalent: 'Certificate', mandatory: false, mandatoryNote: 'Voluntary/Referenced', category: 'international' },
   'SOC2':             { name: 'SOC 2 Type II', fullName: 'SOC 2 Type II', country: 'Global', level: '—', sector: 'Service Orgs', controlCount: '5 TSC', riskLevels: '—', atoEquivalent: 'SOC 2 Report', mandatory: false, mandatoryNote: 'Contractual', category: 'international' },
   'PCI-DSS':          { name: 'PCI DSS 4.0', fullName: 'PCI DSS v4.0', country: 'Global', level: '—', sector: 'Payments', controlCount: '12 requirements', riskLevels: '—', atoEquivalent: 'AoC', mandatory: false, mandatoryNote: 'Contractual', category: 'international' },
+  'CIS-CONTROLS':     { name: 'CIS Controls v8.1', fullName: 'CIS Critical Security Controls v8.1', country: 'Global', level: '—', sector: 'All', controlCount: '153 safeguards', riskLevels: 'IG1/IG2/IG3', atoEquivalent: 'Self-Assessment', mandatory: false, mandatoryNote: 'Best practice / Municipal', category: 'international' },
 };
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -96,6 +97,7 @@ const FRAMEWORK_DOMAIN_MAP = {
   'ASD-ISM':     { PL:'ISM-Gov', AC:'ISM-Access', IA:'ISM-Auth', AU:'ISM-Monitoring', CM:'ISM-SystemHard', CP:'ISM-DataBackup', IR:'ISM-Incident', PE:'ISM-Physical', SC:'ISM-Comms', CT:'ISM-Crypto', PS:'ISM-Personnel', AT:'ISM-Training', NW:'ISM-Network', VN:'ISM-Patching', SD:'ISM-DevSec', AM:'ISM-AssetMgmt', MP:'ISM-Media' },
   'ASD-E8':      { VN:'E8-Patch-Apps,E8-Patch-OS', AC:'E8-Admin-Priv,E8-App-Control', IA:'E8-MFA', CM:'E8-Harden-Apps,E8-Macro', CP:'E8-Backup' },
   'APRA-CPS234': { PL:'CPS234.8-11', AC:'CPS234.25', IA:'CPS234.25', AU:'CPS234.33-36', IR:'CPS234.28-30', RA:'CPS234.15-16', TM:'CPS234.17-24', AT:'CPS234.26-27', SI:'CPS234.31-32' },
+  'CIS-CONTROLS': { AM:'CIS-1,CIS-2', AC:'CIS-3,CIS-5,CIS-6', CM:'CIS-4', VN:'CIS-7', AU:'CIS-8', AT:'CIS-14', SC:'CIS-12,CIS-13', IR:'CIS-17', NW:'CIS-9,CIS-12,CIS-13', PT:'CIS-3', SD:'CIS-16', TM:'CIS-15', CP:'CIS-11', SI:'CIS-10' },
 };
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -201,6 +203,27 @@ const FRAMEWORK_SPECIFIC_CONTROLS = {
   'ENS': [
     { id: 'ENS-org.1', family: 'PL', title: 'Security Policy', description: 'Formal information security policy approved by management.', evidenceGuidance: 'Security policy document, approval records, review schedule.' },
     { id: 'ENS-op.acc.5', family: 'AC', title: 'Authentication Mechanisms', description: 'Authentication mechanisms commensurate with the system category.', evidenceGuidance: 'Authentication configuration, MFA evidence for medium/high categories.' },
+  ],
+
+  'CIS-CONTROLS': [
+    { id: 'CIS-1', family: 'AM', title: 'CIS 1: Inventory & Control of Enterprise Assets', description: 'Actively manage all enterprise assets connected to the infrastructure.', evidenceGuidance: 'Asset inventory tool, discovery scan results, CMDB export, process for new asset onboarding.' },
+    { id: 'CIS-2', family: 'AM', title: 'CIS 2: Inventory & Control of Software Assets', description: 'Actively manage all software on the network so only authorized software is installed.', evidenceGuidance: 'Software inventory, allowlisting/blocklisting policy, unauthorized software detection process.' },
+    { id: 'CIS-3', family: 'PT', title: 'CIS 3: Data Protection', description: 'Develop processes and technical controls to identify, classify, securely handle, retain and dispose of data.', evidenceGuidance: 'Data classification policy, DLP configuration, encryption standards, retention schedule.' },
+    { id: 'CIS-4', family: 'CM', title: 'CIS 4: Secure Configuration of Enterprise Assets & Software', description: 'Establish and maintain secure configuration of enterprise assets and software.', evidenceGuidance: 'CIS Benchmark compliance scans, hardening standards, GPO/Intune configuration evidence.' },
+    { id: 'CIS-5', family: 'AC', title: 'CIS 5: Account Management', description: 'Use processes and tools to assign and manage authorization to credentials for user and service accounts.', evidenceGuidance: 'Account lifecycle procedures, access review records, dormant account report, service account inventory.' },
+    { id: 'CIS-6', family: 'AC', title: 'CIS 6: Access Control Management', description: 'Use processes and tools to create, assign, manage, and revoke access credentials and privileges.', evidenceGuidance: 'RBAC matrix, least privilege evidence, access certification reports, PAM tool configuration.' },
+    { id: 'CIS-7', family: 'VN', title: 'CIS 7: Continuous Vulnerability Management', description: 'Develop a plan to continuously assess and remediate software vulnerabilities.', evidenceGuidance: 'Vulnerability scan reports, patching SLAs, remediation timelines, exception process.' },
+    { id: 'CIS-8', family: 'AU', title: 'CIS 8: Audit Log Management', description: 'Collect, alert, review, and retain audit logs of events that could help detect or recover from an attack.', evidenceGuidance: 'Log collection architecture, SIEM configuration, log retention policy, alert rules.' },
+    { id: 'CIS-9', family: 'NW', title: 'CIS 9: Email & Web Browser Protections', description: 'Improve protections and detections of threats from email and web vectors.', evidenceGuidance: 'Email gateway configuration, URL filtering, browser hardening, phishing protection evidence.' },
+    { id: 'CIS-10', family: 'SI', title: 'CIS 10: Malware Defenses', description: 'Prevent or control installation, execution, and spread of malicious applications.', evidenceGuidance: 'Anti-malware deployment, EDR/XDR configuration, signature update process, quarantine procedures.' },
+    { id: 'CIS-11', family: 'CP', title: 'CIS 11: Data Recovery', description: 'Establish and maintain data recovery practices sufficient to restore in-scope assets to pre-incident state.', evidenceGuidance: 'Backup policy, backup schedule evidence, restoration test results, offsite/air-gapped copies.' },
+    { id: 'CIS-12', family: 'NW', title: 'CIS 12: Network Infrastructure Management', description: 'Establish, implement and actively manage network devices to prevent attackers from exploiting vulnerable services.', evidenceGuidance: 'Network device inventory, firmware versions, secure config baselines, network diagrams.' },
+    { id: 'CIS-13', family: 'NW', title: 'CIS 13: Network Monitoring & Defense', description: 'Operate processes and tooling to establish and maintain comprehensive network monitoring and defense.', evidenceGuidance: 'IDS/IPS configuration, network flow monitoring, firewall rules, segmentation evidence.' },
+    { id: 'CIS-14', family: 'AT', title: 'CIS 14: Security Awareness & Skills Training', description: 'Establish and maintain a security awareness program to influence behavior among the workforce.', evidenceGuidance: 'Training programme, completion rates, phishing simulation results, role-based training evidence.' },
+    { id: 'CIS-15', family: 'TM', title: 'CIS 15: Service Provider Management', description: 'Develop a process to evaluate service providers who hold sensitive data or manage critical IT.', evidenceGuidance: 'Vendor risk assessment process, service provider inventory, contractual security requirements.' },
+    { id: 'CIS-16', family: 'SD', title: 'CIS 16: Application Software Security', description: 'Manage the security lifecycle of in-house developed, hosted, or acquired software.', evidenceGuidance: 'SDLC documentation, code review process, SAST/DAST results, dependency scanning.' },
+    { id: 'CIS-17', family: 'IR', title: 'CIS 17: Incident Response Management', description: 'Establish a program to develop and maintain an incident response capability.', evidenceGuidance: 'IR plan, defined roles, tabletop exercise records, post-incident reviews, communication procedures.' },
+    { id: 'CIS-18', family: 'RA', title: 'CIS 18: Penetration Testing', description: 'Test effectiveness and resiliency of enterprise assets through simulated attacks.', evidenceGuidance: 'Penetration test reports, scope documentation, remediation evidence, re-test results.' },
   ],
 };
 
@@ -362,7 +385,7 @@ function getFrameworksByCategory() {
     'BSI-GRUNDSCHUTZ': 'Europe National', 'ANSSI-RGS': 'Europe National', 'ENS': 'Europe National',
     'NCSC-CAF': 'UK',
     'ASD-ISM': 'Australia', 'ASD-E8': 'Australia', 'APRA-CPS234': 'Australia',
-    'ISO-27001': 'Global / International', 'SOC2': 'Global / International', 'PCI-DSS': 'Global / International'
+    'ISO-27001': 'Global / International', 'SOC2': 'Global / International', 'PCI-DSS': 'Global / International', 'CIS-CONTROLS': 'Global / International'
   };
 
   for (const [fwId, fw] of Object.entries(FRAMEWORKS)) {

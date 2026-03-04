@@ -10,12 +10,28 @@
   <div class="card">
     <div class="card-body p-4">
       <form method="POST" action="/client/register">
+        {{#if inviteCode}}
+        <div class="mb-3">
+          <label class="form-label" for="invite_code">Invite Code</label>
+          <input type="text" class="form-control form-control-lg text-center fw-bold" id="invite_code" name="invite_code"
+            value="{{inviteCode}}" style="letter-spacing:3px;text-transform:uppercase;" readonly>
+          <small class="text-success"><i class="bi bi-check-circle me-1"></i>Invitation detected — you must register with the invited email.</small>
+        </div>
+        <hr>
+        {{else}}
+        <div class="mb-3">
+          <label class="form-label" for="invite_code">Invite Code <small class="text-muted">(if you have one)</small></label>
+          <input type="text" class="form-control text-center" id="invite_code" name="invite_code"
+            placeholder="Enter code from invitation email" style="letter-spacing:2px;text-transform:uppercase;">
+          <small class="text-muted">If you received an invitation from an assessor, enter the code here.</small>
+        </div>
+        {{/if}}
         <div class="mb-3">
           <label class="form-label" for="name">Full Name <span class="text-danger">*</span></label>
           <input type="text" class="form-control" id="name" name="name" required placeholder="e.g. Jane Doe" value="{{formData.name}}">
         </div>
         <div class="mb-3">
-          <label class="form-label" for="email">Government Email <span class="text-danger">*</span></label>
+          <label class="form-label" for="email">Email <span class="text-danger">*</span></label>
           <input type="email" class="form-control" id="email" name="email" required placeholder="e.g. jane.doe@agency.gc.ca" value="{{formData.email}}">
           <small class="text-muted">Use your department or agency email address.</small>
         </div>

@@ -2,10 +2,10 @@
   <div class="row justify-content-center mt-5">
     <div class="col-lg-8 text-center mb-5">
       <div class="mb-4">
-        <i class="bi bi-shield-lock-fill" style="font-size:4rem;color:var(--gc-red)"></i>
+        <i class="bi bi-shield-lock-fill" style="font-size:4rem;color:var(--cs-accent)"></i>
       </div>
-      <h1 class="mb-3" style="color:var(--gc-nav)">GC Security Assessment &amp; Authorization</h1>
-      <p class="lead text-muted">ITSG-33 / Protected B Compliance Portal for Government of Canada</p>
+      <h1 class="mb-3">Security Assessment &amp; Authorization</h1>
+      <p class="lead text-muted">Multi-Framework Compliance &amp; Risk Management Platform by <strong>Vanguard Cloud Services Inc.</strong></p>
     </div>
   </div>
 
@@ -13,11 +13,11 @@
     <!-- Intake -->
     <div class="col-lg-4">
       <div class="card h-100">
-        <div class="card-header" style="background:var(--gc-accent);">
+        <div class="card-header" style="background:var(--cs-accent);">
           <i class="bi bi-clipboard2-data me-2"></i>Submit an Intake
         </div>
         <div class="card-body p-4 d-flex flex-column">
-          <p class="text-muted mb-3">Starting a new project? Submit a security assessment intake form with your project details, data classification, and technology stack.</p>
+          <p class="text-muted mb-3">Starting a new project? Submit a security assessment intake with your project details, data classification, and operating regions. The system will determine the right frameworks automatically.</p>
           <p class="small text-muted mb-3"><i class="bi bi-shield-lock me-1"></i>Account with MFA required.</p>
           <div class="mt-auto">
             {{#if user}}
@@ -63,7 +63,7 @@
     <!-- Assessor -->
     <div class="col-lg-4">
       <div class="card h-100">
-        <div class="card-header bg-light" style="background:var(--gc-light)!important;color:var(--gc-nav)">
+        <div class="card-header bg-light" style="background:var(--cs-light)!important;color:var(--cs-nav)">
           <i class="bi bi-person-badge me-2"></i>Security Practitioner
         </div>
         <div class="card-body p-4 d-flex flex-column">
@@ -72,16 +72,98 @@
             <a href="/admin/login" class="btn btn-dark w-100 py-2">
               <i class="bi bi-shield-check me-2"></i>Assessor Login
             </a>
+            <a href="/admin/register" class="btn btn-outline-secondary w-100 py-2 mt-2">
+              <i class="bi bi-person-plus me-2"></i>Register with Invite Code
+            </a>
           </div>
-          <hr class="my-3">
-          <div class="small text-muted">
-            <p class="mb-2"><strong>This portal supports:</strong></p>
-            <ul class="ps-3 mb-0">
-              <li>ITSG-33 Control Framework</li>
-              <li>Protected B / PBMM Profile</li>
-              <li>SA&amp;A Lifecycle Management</li>
-              <li>ATO / iATO Generation</li>
-            </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supported Frameworks & Features -->
+  <div class="row justify-content-center mt-5 mb-5">
+    <div class="col-lg-10">
+      <div class="card h-100">
+        <div class="card-header">
+          <i class="bi bi-grid-3x3-gap me-2"></i>Platform Capabilities
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-4">
+            <div class="col-md-4">
+              <h5 class="fw-bold"><i class="bi bi-globe2 me-2 text-primary"></i>Multi-Region Compliance</h5>
+              <p class="text-muted mb-3">Supports 17+ regions and jurisdictions with automatic framework selection based on where your application operates.</p>
+              <div class="d-flex flex-wrap gap-1">
+                <span class="badge bg-light text-dark border">ITSG-33</span>
+                <span class="badge bg-light text-dark border">NIST 800-53</span>
+                <span class="badge bg-light text-dark border">ISO 27001</span>
+                <span class="badge bg-light text-dark border">NIS2</span>
+                <span class="badge bg-light text-dark border">CIS Controls v8.1</span>
+                <span class="badge bg-light text-dark border">NCSC CAF</span>
+                <span class="badge bg-light text-dark border">ASD ISM</span>
+                <span class="badge bg-light text-dark border">BSI</span>
+                <span class="badge bg-light text-dark border">ANSSI</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <h5 class="fw-bold"><i class="bi bi-clipboard-check me-2 text-primary"></i>Assessment &amp; Authorization</h5>
+              <p class="text-muted mb-3">Full SA&amp;A lifecycle with control tailoring, evidence collection, AI-assisted guidance, and compliance scoring.</p>
+              <div class="d-flex flex-wrap gap-1">
+                <span class="badge bg-light text-dark border">SA&amp;A Lifecycle</span>
+                <span class="badge bg-light text-dark border">ATO / iATO</span>
+                <span class="badge bg-light text-dark border">POA&amp;M</span>
+                <span class="badge bg-light text-dark border">Risk Categorization</span>
+                <span class="badge bg-light text-dark border">AI Evidence Guidance</span>
+                <span class="badge bg-light text-dark border">PDF Reports</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <h5 class="fw-bold"><i class="bi bi-award me-2 text-primary"></i>Industry Standards</h5>
+              <p class="text-muted mb-3">Built-in support for sector-specific compliance frameworks and industry certifications.</p>
+              <div class="d-flex flex-wrap gap-1">
+                <span class="badge bg-light text-dark border">SOC 2</span>
+                <span class="badge bg-light text-dark border">PCI DSS</span>
+                <span class="badge bg-light text-dark border">CMMC</span>
+                <span class="badge bg-light text-dark border">FedRAMP</span>
+                <span class="badge bg-light text-dark border">DORA</span>
+                <span class="badge bg-light text-dark border">Essential Eight</span>
+                <span class="badge bg-light text-dark border">PBMM / PBHVA</span>
+                <span class="badge bg-light text-dark border">FISMA</span>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="row g-3 text-center">
+            <div class="col-6 col-md-3">
+              <div class="p-2">
+                <i class="bi bi-people-fill text-primary" style="font-size:2rem"></i>
+                <div class="fw-bold mt-2">Team Collaboration</div>
+                <div class="text-muted small">Invite clients &amp; peer assessors</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="p-2">
+                <i class="bi bi-shield-fill-check text-primary" style="font-size:2rem"></i>
+                <div class="fw-bold mt-2">MFA + Passkeys</div>
+                <div class="text-muted small">TOTP, biometric, WebAuthn</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="p-2">
+                <i class="bi bi-robot text-primary" style="font-size:2rem"></i>
+                <div class="fw-bold mt-2">AI-Powered</div>
+                <div class="text-muted small">Evidence guidance &amp; elaboration</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="p-2">
+                <i class="bi bi-fingerprint text-primary" style="font-size:2rem"></i>
+                <div class="fw-bold mt-2">Audit Trail</div>
+                <div class="text-muted small">MFA-signed actions &amp; logs</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -1,169 +1,945 @@
-<div class="container" style="max-width: 960px;">
+<div class="container py-4" style="max-width: 960px;">
+
+  <!-- Header -->
   <div class="d-flex align-items-center mb-4">
     <a href="/admin/projects" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
     <div>
       <h1 class="mb-0">New Project</h1>
-      <p class="text-muted mb-0">Define the IM/IT project for security assessment</p>
+      <p class="text-muted mb-0">Create a security assessment project using the guided wizard</p>
     </div>
   </div>
 
-  <form method="POST" action="/admin/projects/new" id="projectForm" class="">
-
-    <!-- Section 1: Project Information -->
-    <div class="form-section">
-      <div class="section-header">
-        <h3 class="section-title">
-          <span class="section-number">1</span>
-          Project Information
-        </h3>
-        <p class="section-description">Basic details about the IM/IT system or application</p>
-      </div>
-      <div class="mb-3">
-        <label class="form-label" for="name">Project Name <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" id="name" name="name" required placeholder="e.g., HR Case Management System">
-      </div>
-      <div class="mb-3">
-        <label class="form-label" for="description">Project Description <span class="text-danger">*</span></label>
-        <textarea class="form-control" id="description" name="description" rows="4" required
-          placeholder="Describe the system's purpose, users, data flows, and key functionality..."></textarea>
-        <div class="form-text">Provide enough detail for the system to recommend appropriate ITSG-33 controls.</div>
-      </div>
-      <div class="mb-3">
-        <label class="form-label" for="specifications">Technical Specifications (optional)</label>
-        <textarea class="form-control" id="specifications" name="specifications" rows="3"
-          placeholder="Architecture details, integration points, APIs, etc. Markdown supported."></textarea>
-      </div>
+  <!-- Progress Bar -->
+  <div class="mb-4" id="wizardProgress">
+    <div class="d-flex justify-content-between mb-2">
+      <span class="badge bg-primary" id="prog1"><i class="bi bi-globe me-1"></i>1. Regions & Frameworks</span>
+      <span class="badge bg-secondary" id="prog2"><i class="bi bi-file-earmark-text me-1"></i>2. Project Details</span>
+      <span class="badge bg-secondary" id="prog3"><i class="bi bi-person-plus me-1"></i>3. Client Assignment</span>
     </div>
-
-    <!-- Section 2: Classification & Data -->
-    <div class="form-section">
-      <div class="section-header">
-        <h3 class="section-title">
-          <span class="section-number">2</span>
-          Classification & Data Sensitivity
-        </h3>
-        <p class="section-description">Security classification and data handling requirements</p>
-      </div>
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label" for="data_classification">Data Classification <span class="text-danger">*</span></label>
-          <select class="form-select" id="data_classification" name="data_classification" required>
-            <option value="unclassified">Unclassified</option>
-            <option value="protected-a">Protected A</option>
-            <option value="protected-b" selected>Protected B</option>
-          </select>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label" for="app_type">Application Type <span class="text-danger">*</span></label>
-          <select class="form-select" id="app_type" name="app_type" required>
-            <option value="internal">Internal-Facing</option>
-            <option value="external">External-Facing (Public)</option>
-            <option value="both">Both Internal & External</option>
-          </select>
-        </div>
-      </div>
-      <div class="mt-3">
-        <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" id="has_pii" name="has_pii" value="1" checked>
-          <label class="form-check-label fw-semibold" for="has_pii">
-            <i class="bi bi-person-badge me-1"></i>System processes Personally Identifiable Information (PII)
-          </label>
-          <div class="form-text ms-4">Enabling this adds privacy-specific controls (e.g., AP, UL, DM families)</div>
-        </div>
-      </div>
+    <div class="progress" style="height:4px">
+      <div class="progress-bar" id="progBar" role="progressbar" style="width:33%"></div>
     </div>
+  </div>
 
-    <!-- Section 3: Hosting Environment -->
-    <div class="form-section">
-      <div class="section-header">
-        <h3 class="section-title">
-          <span class="section-number">3</span>
-          Hosting Environment
-        </h3>
-        <p class="section-description">Where the system is deployed and operated</p>
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- STEP 1: Region & Jurisdiction Selection                    -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div id="wizardStep1">
+    <div class="card border-primary mb-4">
+      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <strong><i class="bi bi-globe me-2"></i>Step 1 of 3 — Where Does This Application Operate?</strong>
+        <span class="badge bg-light text-primary">Optional</span>
       </div>
-      <div class="mb-3">
-        <label class="form-label" for="hosting_type">Primary Hosting <span class="text-danger">*</span></label>
-        <select class="form-select" id="hosting_type" name="hosting_type" required>
-          <option value="azure">Microsoft Azure (GC Cloud)</option>
-          <option value="aws">Amazon Web Services (GC Cloud)</option>
-          <option value="gcp">Google Cloud Platform</option>
-          <option value="ibm">IBM Cloud</option>
-          <option value="ssc">SSC Data Centre</option>
-          <option value="on-premises">On-Premises</option>
-          <option value="hybrid">Hybrid (Cloud + On-Premises)</option>
-          <option value="saas">SaaS / Third-Party Hosted</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Section 4: Technology Stack -->
-    <div class="form-section">
-      <div class="section-header">
-        <h3 class="section-title">
-          <span class="section-number">4</span>
-          Technology Stack
-        </h3>
-        <p class="section-description">Select all technologies currently in use. These help identify inherited security controls.</p>
-      </div>
-
-      <div class="row g-2" id="techGrid">
-        {{#each technologies}}
-          <div class="col-md-4 col-6">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="technologies" value="{{@key}}" id="tech-{{@key}}">
-              <label class="form-check-label" for="tech-{{@key}}">
-                {{this.name}}
-                <span class="badge bg-light text-muted ms-1" style="font-size:0.65rem">{{this.type}}</span>
-              </label>
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <p class="text-muted mb-0">Select all regions and jurisdictions where this application will be deployed, store data, or serve users. This determines which security frameworks and compliance requirements apply.</p>
+          <button class="btn btn-outline-success btn-sm ms-3 text-nowrap" id="skipToStep3FromTop1" type="button">
+            <i class="bi bi-skip-end me-1"></i>Skip to Client Assignment
+          </button>
+        </div>
+        <div class="row g-4">
+          <!-- North America -->
+          <div class="col-md-6">
+            <div class="card h-100">
+              <div class="card-header py-2 bg-light"><strong class="small"><i class="bi bi-geo-alt me-1"></i>North America</strong></div>
+              <div class="card-body py-2">
+                <div class="form-check mb-1">
+                  <input class="form-check-input region-check" type="checkbox" value="canada" id="reg-canada" data-frameworks="ITSG-33,CCCS-MEDIUM" data-label="Canada (Federal)">
+                  <label class="form-check-label" for="reg-canada"><strong>Canada (Federal)</strong> <small class="text-muted">— ITSG-33</small></label>
+                </div>
+                <div class="form-check mb-1 ms-4">
+                  <input class="form-check-input region-check" type="checkbox" value="canada-finance" id="reg-canada-fin" data-frameworks="OSFI-B13" data-label="Canada (Financial)">
+                  <label class="form-check-label" for="reg-canada-fin"><strong>Canada (Financial)</strong> <small class="text-muted">— OSFI B-13</small></label>
+                </div>
+                <div class="form-check mb-1">
+                  <input class="form-check-input region-check" type="checkbox" value="usa" id="reg-usa" data-frameworks="NIST-800-53,FEDRAMP" data-label="United States">
+                  <label class="form-check-label" for="reg-usa"><strong>United States</strong> <small class="text-muted">— NIST 800-53</small></label>
+                </div>
+                <div class="form-check mb-1 ms-4">
+                  <input class="form-check-input region-check" type="checkbox" value="usa-defense" id="reg-usa-def" data-frameworks="CMMC" data-label="US Defense">
+                  <label class="form-check-label" for="reg-usa-def"><strong>US Defense</strong> <small class="text-muted">— CMMC</small></label>
+                </div>
+                <div class="form-check mb-1 ms-4">
+                  <input class="form-check-input region-check" type="checkbox" value="usa-state" id="reg-usa-state" data-frameworks="STATERAMP" data-label="US State/Local">
+                  <label class="form-check-label" for="reg-usa-state"><strong>US State/Local</strong> <small class="text-muted">— StateRAMP</small></label>
+                </div>
+                <div class="form-check mb-1 ms-4">
+                  <input class="form-check-input region-check" type="checkbox" value="usa-finance" id="reg-usa-fin" data-frameworks="NYDFS-500" data-label="US Financial">
+                  <label class="form-check-label" for="reg-usa-fin"><strong>US Financial</strong> <small class="text-muted">— NYDFS 500</small></label>
+                </div>
+              </div>
             </div>
           </div>
-        {{/each}}
-      </div>
-    </div>
+          <!-- Europe -->
+          <div class="col-md-6">
+            <div class="card h-100">
+              <div class="card-header py-2 bg-light"><strong class="small"><i class="bi bi-geo-alt me-1"></i>Europe</strong></div>
+              <div class="card-body py-2">
+                <div class="form-check mb-1">
+                  <input class="form-check-input region-check" type="checkbox" value="eu" id="reg-eu" data-frameworks="NIS2" data-label="European Union">
+                  <label class="form-check-label" for="reg-eu"><strong>European Union</strong> <small class="text-muted">— NIS2 / GDPR</small></label>
+                </div>
+                <div class="form-check mb-1 ms-4">
+                  <input class="form-check-input region-check" type="checkbox" value="eu-finance" id="reg-eu-fin" data-frameworks="DORA" data-label="EU Financial">
+                  <label class="form-check-label" for="reg-eu-fin"><strong>EU Financial</strong> <small class="text-muted">— DORA</small></label>
+                </div>
+                <div class="form-check mb-1 ms-4">
+                  <input class="form-check-input region-check" type="checkbox" value="germany" id="reg-germany" data-frameworks="BSI-GRUNDSCHUTZ" data-label="Germany">
+                  <label class="form-check-label" for="reg-germany"><strong>Germany</strong> <small class="text-muted">— BSI IT-Grundschutz</small></label>
+                </div>
+                <div class="form-check mb-1 ms-4">
+                  <input class="form-check-input region-check" type="checkbox" value="france" id="reg-france" data-frameworks="ANSSI-RGS" data-label="France">
+                  <label class="form-check-label" for="reg-france"><strong>France</strong> <small class="text-muted">— ANSSI RGS</small></label>
+                </div>
+                <div class="form-check mb-1 ms-4">
+                  <input class="form-check-input region-check" type="checkbox" value="uk" id="reg-uk" data-frameworks="NCSC-CAF" data-label="United Kingdom">
+                  <label class="form-check-label" for="reg-uk"><strong>United Kingdom</strong> <small class="text-muted">— NCSC CAF</small></label>
+                </div>
+                <div class="form-check mb-1 ms-4">
+                  <input class="form-check-input region-check" type="checkbox" value="spain" id="reg-spain" data-frameworks="ENS" data-label="Spain">
+                  <label class="form-check-label" for="reg-spain"><strong>Spain</strong> <small class="text-muted">— ENS</small></label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Asia-Pacific -->
+          <div class="col-md-6">
+            <div class="card h-100">
+              <div class="card-header py-2 bg-light"><strong class="small"><i class="bi bi-geo-alt me-1"></i>Asia-Pacific</strong></div>
+              <div class="card-body py-2">
+                <div class="form-check mb-1">
+                  <input class="form-check-input region-check" type="checkbox" value="australia" id="reg-australia" data-frameworks="ASD-ISM,ASD-E8" data-label="Australia">
+                  <label class="form-check-label" for="reg-australia"><strong>Australia</strong> <small class="text-muted">— ASD ISM / Essential Eight</small></label>
+                </div>
+                <div class="form-check mb-1 ms-4">
+                  <input class="form-check-input region-check" type="checkbox" value="australia-finance" id="reg-au-fin" data-frameworks="APRA-CPS234" data-label="Australia Financial">
+                  <label class="form-check-label" for="reg-au-fin"><strong>Australia Financial</strong> <small class="text-muted">— APRA CPS 234</small></label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- International Standards -->
+          <div class="col-md-6">
+            <div class="card h-100">
+              <div class="card-header py-2 bg-light"><strong class="small"><i class="bi bi-award me-1"></i>International Standards</strong></div>
+              <div class="card-body py-2">
+                <div class="form-check mb-1">
+                  <input class="form-check-input region-check" type="checkbox" value="global" id="reg-global" data-frameworks="ISO-27001" data-label="Global">
+                  <label class="form-check-label" for="reg-global"><strong>Global</strong> <small class="text-muted">— ISO 27001</small></label>
+                </div>
+                <div class="form-check mb-1">
+                  <input class="form-check-input region-check" type="checkbox" value="soc2" id="reg-soc2" data-frameworks="SOC2" data-label="SOC 2">
+                  <label class="form-check-label" for="reg-soc2"><strong>SOC 2</strong> <small class="text-muted">— Trust Service Criteria</small></label>
+                </div>
+                <div class="form-check mb-1">
+                  <input class="form-check-input region-check" type="checkbox" value="pci" id="reg-pci" data-frameworks="PCI-DSS" data-label="PCI DSS">
+                  <label class="form-check-label" for="reg-pci"><strong>PCI DSS</strong> <small class="text-muted">— Payment Card Security</small></label>
+                </div>
+                <div class="form-check mb-1">
+                  <input class="form-check-input region-check" type="checkbox" value="cis" id="reg-cis" data-frameworks="CIS-CONTROLS" data-label="CIS Controls">
+                  <label class="form-check-label" for="reg-cis">
+                    <strong>CIS Controls</strong> <small class="text-muted">— v8.1 (Municipal / General)</small>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-    <!-- Section 5: Contacts -->
-    <div class="form-section">
-      <div class="section-header">
-        <h3 class="section-title">
-          <span class="section-number">5</span>
-          Key Contacts
-        </h3>
-        <p class="section-description">Individuals involved in the assessment and authorization process</p>
-      </div>
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Project Owner / Architect Name <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" name="project_owner_name" required placeholder="Full name">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Project Owner / Architect Email <span class="text-danger">*</span></label>
-          <input type="email" class="form-control" name="project_owner_email" required placeholder="name@agency.gc.ca">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Project Authority Name</label>
-          <input type="text" class="form-control" name="project_authority_name" placeholder="Full name">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Project Authority Email</label>
-          <input type="email" class="form-control" name="project_authority_email" placeholder="name@agency.gc.ca">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">CIO / Delegated Authority Name</label>
-          <input type="text" class="form-control" name="cio_name" placeholder="Full name">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">CIO / Delegated Authority Email</label>
-          <input type="email" class="form-control" name="cio_email" placeholder="name@agency.gc.ca">
+        <!-- Summary -->
+        <div class="mt-4 p-3 bg-light rounded" id="regionSummary">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <strong class="small text-muted" id="summaryText"><i class="bi bi-info-circle me-1"></i>Select at least one region to continue</strong>
+              <div id="frameworkList" class="mt-1"></div>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-success btn-sm" id="skipToStep3From1" type="button">
+                Skip to Client Assignment <i class="bi bi-skip-end ms-1"></i>
+              </button>
+              <button class="btn btn-primary" id="continueBtn" disabled type="button">
+                Continue to Details <i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="d-flex justify-content-between align-items-center mt-4 mb-5">
-      <a href="/admin/projects" class="btn btn-outline-secondary"><i class="bi bi-x-lg me-1"></i>Cancel</a>
-      <button type="submit" class="btn btn-primary btn-lg">
-        <i class="bi bi-folder-plus me-2"></i>Create Project
-      </button>
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- STEP 2 + STEP 3 inside one <form>                         -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <form method="POST" action="/admin/projects/new" id="projectForm">
+    <input type="hidden" name="selectedRegions" id="hiddenRegions" value="[]">
+    <input type="hidden" name="selectedFrameworks" id="hiddenFrameworks" value="[]">
+
+    <div id="wizardStep2" style="display:none">
+      <!-- Context badges -->
+      <div class="mb-3 d-flex flex-wrap gap-2" id="contextLabels"></div>
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="backBtn">
+          <i class="bi bi-arrow-left me-1"></i>Back to Region Selection
+        </button>
+        <button type="button" class="btn btn-outline-success btn-sm" id="skipToStep3FromTop2">
+          <i class="bi bi-skip-end me-1"></i>Skip to Client Assignment
+        </button>
+      </div>
+
+      <!-- Section 1: Project Information -->
+      <div class="form-section">
+        <div class="section-header">
+          <h3 class="section-title"><span class="section-number">1</span> Project Information</h3>
+          <p class="section-description">Basic details about the system or application</p>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="name">Project Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="name" name="name" placeholder="e.g., HR Case Management System">
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="description">Project Description <span class="text-danger">*</span></label>
+          <textarea class="form-control" id="description" name="description" rows="4"
+            placeholder="Describe the system's purpose, users, data flows, and key functionality..."></textarea>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label" id="lbl-department" for="department">Department / Agency</label>
+            <input type="text" class="form-control" id="department" name="department" placeholder="Employment and Social Development Canada">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" id="lbl-branch" for="branch">Branch / Directorate</label>
+            <input type="text" class="form-control" id="branch" name="branch" placeholder="Innovation, Information and Technology Branch">
+          </div>
+        </div>
+        <div class="mt-3">
+          <label class="form-label" for="specifications">Technical Specifications (optional)</label>
+          <textarea class="form-control" id="specifications" name="specifications" rows="3"
+            placeholder="Architecture details, integration points, APIs, etc."></textarea>
+        </div>
+        <div class="mt-3 row g-3">
+          <div class="col-md-6">
+            <label class="form-label" for="app_type">Application Type <span class="text-danger">*</span></label>
+            <select class="form-select" id="app_type" name="app_type">
+              <option value="internal" id="appType-internal">Internal Only (GC network)</option>
+              <option value="external">External-Facing (Public)</option>
+              <option value="both">Both Internal &amp; External</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Security Categorization -->
+      <div class="form-section">
+        <div class="section-header">
+          <h3 class="section-title" id="sec2-title"><span class="section-number">2</span> Security Categorization</h3>
+          <p class="section-description" id="sec2-desc">Classify data sensitivity using the TBS standard / ITSG-33 framework</p>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label" id="conf-heading" for="data_classification">Confidentiality Level <span class="text-danger">*</span></label>
+            <select class="form-select" id="data_classification" name="data_classification">
+              <option value="unclassified">Unclassified</option>
+              <option value="protected-a" id="conf-pa">Protected A — Limited injury</option>
+              <option value="protected-b" id="conf-pb" selected>Protected B — Serious injury</option>
+              <option value="protected-c" id="conf-pc">Protected C — Extremely grave</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="integrity_level">Integrity Level <span class="text-danger">*</span></label>
+            <select class="form-select" id="integrity_level" name="integrity_level">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="availability_level">Availability Level <span class="text-danger">*</span></label>
+            <select class="form-select" id="availability_level" name="availability_level">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-3">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="is_hva" name="is_hva" value="1">
+            <label class="form-check-label fw-semibold" for="is_hva" id="hva-label">
+              <i class="bi bi-exclamation-diamond me-1"></i>High Value Asset (HVA)
+            </label>
+            <div class="form-text ms-4">Applies additional controls for critical systems</div>
+          </div>
+        </div>
+        <div class="mt-3">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="has_pii" name="has_pii" value="1" checked>
+            <label class="form-check-label fw-semibold" for="has_pii">
+              <i class="bi bi-person-badge me-1"></i>System processes Personally Identifiable Information (PII)
+            </label>
+          </div>
+        </div>
+        <!-- Security Profile Preview -->
+        <div class="mt-3 p-3 bg-light rounded" id="profilePreview">
+          <strong class="small text-muted"><i class="bi bi-shield-check me-1"></i>Determined Profile: </strong>
+          <span class="badge bg-primary" id="profileBadge">PBMM</span>
+          <input type="hidden" name="security_profile" id="security_profile" value="PBMM">
+        </div>
+      </div>
+
+      <!-- Section 3: Hosting & Technology -->
+      <div class="form-section">
+        <div class="section-header">
+          <h3 class="section-title"><span class="section-number">3</span> Hosting &amp; Technology</h3>
+          <p class="section-description">Where the system is deployed and what technologies are in use</p>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="hosting_type">Primary Hosting <span class="text-danger">*</span></label>
+          <select class="form-select" id="hosting_type" name="hosting_type">
+            <option value="azure">Microsoft Azure</option>
+            <option value="aws">Amazon Web Services</option>
+            <option value="gcp">Google Cloud Platform</option>
+            <option value="ibm">IBM Cloud</option>
+            <option value="ssc" id="host-ssc">SSC Data Centre (On-Premises)</option>
+            <option value="on-premises">On-Premises</option>
+            <option value="hybrid">Hybrid (Cloud + On-Premises)</option>
+            <option value="saas">SaaS / Third-Party Hosted</option>
+          </select>
+        </div>
+        <div class="row g-2" id="techGrid">
+          {{#each technologies}}
+            <div class="col-md-4 col-6">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="technologies" value="{{@key}}" id="tech-{{@key}}">
+                <label class="form-check-label" for="tech-{{@key}}">
+                  {{this.name}}
+                  <span class="badge bg-light text-muted ms-1" style="font-size:0.65rem">{{this.type}}</span>
+                </label>
+              </div>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+
+      <!-- Section 4: Key Contacts -->
+      <div class="form-section">
+        <div class="section-header">
+          <h3 class="section-title"><span class="section-number">4</span> Key Contacts</h3>
+          <p class="section-description">Individuals involved in the assessment and authorization process</p>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Project Owner Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="project_owner_name" placeholder="Full name">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Project Owner Email <span class="text-danger">*</span></label>
+            <input type="email" class="form-control" name="project_owner_email" placeholder="name@agency.gc.ca">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" id="lbl-authority">Authorizing Official (DG / Director)</label>
+            <input type="text" class="form-control" name="project_authority_name" placeholder="Full name">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Authority Email</label>
+            <input type="email" class="form-control" name="project_authority_email" placeholder="name@agency.gc.ca">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">CIO / Delegated Authority Name</label>
+            <input type="text" class="form-control" name="cio_name" placeholder="Full name">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">CIO / Delegated Authority Email</label>
+            <input type="email" class="form-control" name="cio_email" placeholder="name@agency.gc.ca">
+          </div>
+        </div>
+      </div>
+
+      <!-- Region-specific questions injected here -->
+      <div id="regionQuestionsContainer"></div>
+
+      <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+        <button type="button" class="btn btn-outline-secondary" id="backBtn2">
+          <i class="bi bi-arrow-left me-1"></i>Back to Regions
+        </button>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-success" id="skipToStep3From2">
+            Skip to Client Assignment <i class="bi bi-skip-end ms-1"></i>
+          </button>
+          <button type="button" class="btn btn-primary btn-lg" id="toStep3Btn">
+            Continue to Client Assignment <i class="bi bi-arrow-right ms-2"></i>
+          </button>
+        </div>
+      </div>
     </div>
+    <!-- /wizardStep2 -->
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- STEP 3: Client Assignment                                  -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <div id="wizardStep3" style="display:none">
+      <div class="card border-success mb-4">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+          <strong><i class="bi bi-person-plus me-2"></i>Step 3 of 3 — Client Assignment</strong>
+          <span class="badge bg-light text-success">Required</span>
+        </div>
+        <div class="card-body">
+          <p class="text-muted mb-3">Assign this project to a client user. They will receive a draft intake to complete with their project details, submit evidence, and respond to controls in the client portal.</p>
+
+          <div class="alert alert-info small mb-3">
+            <i class="bi bi-info-circle me-1"></i><strong>How it works:</strong> Once created, a draft intake is automatically generated. The assigned client will see it in their dashboard and can complete the project details and submit for your review.
+          </div>
+
+          <!-- Options -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <div class="card h-100 border-2 client-option" data-action="existing" style="cursor:pointer">
+                <div class="card-body text-center py-4">
+                  <i class="bi bi-person-check" style="font-size:2rem;color:#198754"></i>
+                  <h6 class="mt-2 mb-1">Existing Client</h6>
+                  <small class="text-muted">Choose a registered client</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card h-100 border-2 client-option" data-action="invite" style="cursor:pointer">
+                <div class="card-body text-center py-4">
+                  <i class="bi bi-envelope-plus" style="font-size:2rem;color:#0d6efd"></i>
+                  <h6 class="mt-2 mb-1">Invite New Client</h6>
+                  <small class="text-muted">Send a registration invite</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <input type="hidden" name="client_action" id="clientAction" value="">
+
+          <!-- Existing Client Panel -->
+          <div id="existingClientPanel" style="display:none" class="p-3 bg-light rounded mb-3">
+            <h6 class="mb-3"><i class="bi bi-person-check me-1"></i>Select a Registered Client</h6>
+            {{#if clients.length}}
+              <div class="list-group">
+                {{#each clients}}
+                <label class="list-group-item list-group-item-action d-flex align-items-center" style="cursor:pointer">
+                  <input type="radio" name="client_user_id" value="{{this.id}}" class="form-check-input me-3">
+                  <div>
+                    <strong>{{this.name}}</strong>
+                    <small class="text-muted d-block">{{this.email}}{{#if this.organization}} — {{this.organization}}{{/if}}</small>
+                  </div>
+                </label>
+                {{/each}}
+              </div>
+            {{else}}
+              <div class="text-muted text-center py-3">
+                <i class="bi bi-people" style="font-size:2rem;opacity:0.3"></i>
+                <p class="mt-2 mb-0">No registered clients yet. Use "Invite New Client" to send an invitation.</p>
+              </div>
+            {{/if}}
+
+            {{#if pendingInvites.length}}
+              <div class="mt-3">
+                <h6 class="small text-muted"><i class="bi bi-hourglass-split me-1"></i>Pending Invitations</h6>
+                {{#each pendingInvites}}
+                <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                  <small>{{this.email}} — Code: <code>{{this.invite_code}}</code></small>
+                  <span class="badge bg-warning text-dark">Pending</span>
+                </div>
+                {{/each}}
+              </div>
+            {{/if}}
+          </div>
+
+          <!-- Invite New Client Panel -->
+          <div id="inviteClientPanel" style="display:none" class="p-3 bg-light rounded mb-3">
+            <h6 class="mb-3"><i class="bi bi-envelope-plus me-1"></i>Send Client Registration Invite</h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Email Address <span class="text-danger">*</span></label>
+                <input type="email" class="form-control" name="invite_email" id="inviteEmail" placeholder="client@organization.com">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Full Name</label>
+                <input type="text" class="form-control" name="invite_name" placeholder="Jane Smith">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Organization</label>
+                <input type="text" class="form-control" name="invite_org" placeholder="Acme Corp">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Message (optional)</label>
+                <input type="text" class="form-control" name="invite_message" placeholder="Welcome to the assessment portal">
+              </div>
+            </div>
+            <div class="alert alert-info mt-3 small mb-0">
+              <i class="bi bi-info-circle me-1"></i>An invite code will be generated and emailed to the client. They must register with this exact email address.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="clientValidationError" class="alert alert-danger d-none mb-3">
+        <i class="bi bi-exclamation-triangle me-1"></i>Please select an existing client or invite a new one to continue.
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mb-5">
+        <button type="button" class="btn btn-outline-secondary" id="backToStep2Btn">
+          <i class="bi bi-arrow-left me-1"></i>Back to Previous Step
+        </button>
+        <button type="submit" class="btn btn-success btn-lg" id="createProjectBtn">
+          <i class="bi bi-folder-plus me-2"></i>Create Project & Send Intake
+        </button>
+      </div>
+    </div>
+    <!-- /wizardStep3 -->
   </form>
+
 </div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ── STATE ────────────────────────────────────────────────────
+  var selectedRegions = [];
+
+  var REGION_CONFIG = {
+    'canada':           { label: 'Canada (Federal)', isCanada: true },
+    'canada-finance':   { label: 'Canada (Financial)', isCanada: true },
+    'usa':              { label: 'United States' },
+    'usa-defense':      { label: 'US Defense' },
+    'usa-state':        { label: 'US State/Local' },
+    'usa-finance':      { label: 'US Financial' },
+    'eu':               { label: 'European Union' },
+    'eu-finance':       { label: 'EU Financial' },
+    'germany':          { label: 'Germany' },
+    'france':           { label: 'France' },
+    'uk':               { label: 'United Kingdom' },
+    'spain':            { label: 'Spain' },
+    'australia':        { label: 'Australia' },
+    'australia-finance':{ label: 'Australia Financial' },
+    'global':           { label: 'Global (ISO 27001)' },
+    'soc2':             { label: 'SOC 2' },
+    'pci':              { label: 'PCI DSS' },
+    'cis':              { label: 'CIS Controls' }
+  };
+
+  // ── DOM REFS ─────────────────────────────────────────────────
+  var step1 = document.getElementById('wizardStep1');
+  var step2 = document.getElementById('wizardStep2');
+  var step3 = document.getElementById('wizardStep3');
+  var continueBtn = document.getElementById('continueBtn');
+  var backBtn = document.getElementById('backBtn');
+  var backBtn2 = document.getElementById('backBtn2');
+  var toStep3Btn = document.getElementById('toStep3Btn');
+  var backToStep2Btn = document.getElementById('backToStep2Btn');
+  var skipToStep3From1 = document.getElementById('skipToStep3From1');
+  var skipToStep3From2 = document.getElementById('skipToStep3From2');
+  var skipToStep3FromTop1 = document.getElementById('skipToStep3FromTop1');
+  var skipToStep3FromTop2 = document.getElementById('skipToStep3FromTop2');
+  var summaryText = document.getElementById('summaryText');
+  var fwList = document.getElementById('frameworkList');
+  var contextLabels = document.getElementById('contextLabels');
+  var regionChecks = document.querySelectorAll('.region-check');
+  var cameToStep3From = 2; // Track where we came from for back button
+
+  // ── REGION CHECKBOX HANDLERS ─────────────────────────────────
+  regionChecks.forEach(function(cb) { cb.addEventListener('change', updateSummary); });
+
+  function updateSummary() {
+    var checked = document.querySelectorAll('.region-check:checked');
+    var frameworks = new Set();
+    checked.forEach(function(cb) {
+      (cb.dataset.frameworks || '').split(',').filter(Boolean).forEach(function(f) { frameworks.add(f); });
+    });
+    if (checked.length > 0) {
+      summaryText.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i>' + checked.length + ' region(s) selected — ' + frameworks.size + ' framework(s)';
+      fwList.innerHTML = Array.from(frameworks).map(function(f) {
+        return '<span class="badge bg-primary me-1 mb-1">' + f + '</span>';
+      }).join('');
+      continueBtn.disabled = false;
+    } else {
+      summaryText.innerHTML = '<i class="bi bi-info-circle me-1"></i>Select at least one region to continue';
+      fwList.innerHTML = '';
+      continueBtn.disabled = true;
+    }
+  }
+
+  // ── STEP 1 → STEP 2 ─────────────────────────────────────────
+  continueBtn.addEventListener('click', function() {
+    collectRegions();
+    if (selectedRegions.length === 0) return;
+
+    var frameworks = new Set();
+    document.querySelectorAll('.region-check:checked').forEach(function(cb) {
+      (cb.dataset.frameworks || '').split(',').filter(Boolean).forEach(function(f) { frameworks.add(f); });
+    });
+
+    // Context badges
+    var labels = selectedRegions.map(function(r) { return REGION_CONFIG[r] ? REGION_CONFIG[r].label : r; });
+    contextLabels.innerHTML = labels.map(function(l) {
+      return '<span class="badge bg-primary"><i class="bi bi-geo-alt me-1"></i>' + l + '</span>';
+    }).join('') + Array.from(frameworks).map(function(f) {
+      return '<span class="badge bg-info text-white"><i class="bi bi-award me-1"></i>' + f + '</span>';
+    }).join('');
+
+    adaptFormToRegions();
+    showRegionQuestions();
+
+    step1.style.display = 'none';
+    step2.style.display = '';
+    step3.style.display = 'none';
+    setProgress(2);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ── BACK: Step 2 → Step 1 ───────────────────────────────────
+  function goBackToStep1() {
+    step1.style.display = '';
+    step2.style.display = 'none';
+    step3.style.display = 'none';
+    setProgress(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  backBtn.addEventListener('click', goBackToStep1);
+  backBtn2.addEventListener('click', goBackToStep1);
+
+  // ── STEP 2 → STEP 3 ─────────────────────────────────────────
+  toStep3Btn.addEventListener('click', function() {
+    var nameEl = document.getElementById('name');
+    var descEl = document.getElementById('description');
+    if (!nameEl.value.trim()) { nameEl.focus(); nameEl.reportValidity(); return; }
+    if (!descEl.value.trim()) { descEl.focus(); descEl.reportValidity(); return; }
+
+    cameToStep3From = 2;
+    step2.style.display = 'none';
+    step3.style.display = '';
+    setProgress(3);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ── SKIP: Step 2 → Step 3 (no validation) ──────────────────
+  skipToStep3From2.addEventListener('click', function() {
+    cameToStep3From = 2;
+    step2.style.display = 'none';
+    step3.style.display = '';
+    setProgress(3);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // Top-of-step skip for Step 2
+  skipToStep3FromTop2.addEventListener('click', function() {
+    cameToStep3From = 2;
+    step2.style.display = 'none';
+    step3.style.display = '';
+    setProgress(3);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ── SKIP: Step 1 → Step 3 directly ────────────────────────
+  function doSkipFromStep1() {
+    collectRegions();
+    cameToStep3From = 1;
+    step1.style.display = 'none';
+    step2.style.display = 'none';
+    step3.style.display = '';
+    setProgress(3);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  skipToStep3From1.addEventListener('click', doSkipFromStep1);
+  skipToStep3FromTop1.addEventListener('click', doSkipFromStep1);
+
+  // ── BACK: Step 3 → wherever we came from ───────────────────
+  backToStep2Btn.addEventListener('click', function() {
+    step3.style.display = 'none';
+    document.getElementById('clientValidationError').classList.add('d-none');
+    if (cameToStep3From === 1) {
+      step1.style.display = '';
+      setProgress(1);
+    } else {
+      step2.style.display = '';
+      toStep3Btn.style.display = '';
+      setProgress(2);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ── PROGRESS BAR ─────────────────────────────────────────────
+  function setProgress(s) {
+    document.getElementById('prog1').className = 'badge ' + (s >= 1 ? 'bg-primary' : 'bg-secondary');
+    document.getElementById('prog2').className = 'badge ' + (s >= 2 ? 'bg-primary' : 'bg-secondary');
+    document.getElementById('prog3').className = 'badge ' + (s >= 3 ? 'bg-success' : 'bg-secondary');
+    document.getElementById('progBar').style.width = Math.min(s * 33.3, 100) + '%';
+  }
+
+  // ── COLLECT REGIONS (shared helper) ──────────────────────────
+  function collectRegions() {
+    selectedRegions = [];
+    var frameworks = new Set();
+    document.querySelectorAll('.region-check:checked').forEach(function(cb) {
+      selectedRegions.push(cb.value);
+      (cb.dataset.frameworks || '').split(',').filter(Boolean).forEach(function(f) { frameworks.add(f); });
+    });
+    document.getElementById('hiddenRegions').value = JSON.stringify(selectedRegions);
+    document.getElementById('hiddenFrameworks').value = JSON.stringify(Array.from(frameworks));
+  }
+
+  // ── FORM SUBMIT VALIDATION ─────────────────────────────────
+  document.getElementById('projectForm').addEventListener('submit', function(e) {
+    var action = document.getElementById('clientAction').value;
+    if (action !== 'existing' && action !== 'invite') {
+      e.preventDefault();
+      document.getElementById('clientValidationError').classList.remove('d-none');
+      document.getElementById('clientValidationError').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+    if (action === 'invite') {
+      var emailEl = document.getElementById('inviteEmail');
+      if (!emailEl.value.trim()) {
+        e.preventDefault();
+        emailEl.focus();
+        emailEl.reportValidity();
+        return false;
+      }
+    }
+    if (action === 'existing') {
+      var checked = document.querySelector('input[name="client_user_id"]:checked');
+      if (!checked) {
+        e.preventDefault();
+        document.getElementById('clientValidationError').classList.remove('d-none');
+        document.getElementById('clientValidationError').textContent = 'Please select a client from the list.';
+        document.getElementById('clientValidationError').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+      }
+    }
+    // Also collect regions in case they skipped
+    collectRegions();
+    // Set a default project name if skipped Step 2
+    var nameEl = document.getElementById('name');
+    if (!nameEl.value.trim()) {
+      nameEl.value = 'Untitled Project';
+    }
+  });
+
+  // ── CLIENT OPTION CARDS ──────────────────────────────────────
+  document.querySelectorAll('.client-option').forEach(function(card) {
+    card.addEventListener('click', function() {
+      document.querySelectorAll('.client-option').forEach(function(c) {
+        c.classList.remove('border-primary', 'bg-primary-subtle');
+      });
+      card.classList.add('border-primary', 'bg-primary-subtle');
+      var action = card.dataset.action;
+      document.getElementById('clientAction').value = action;
+      document.getElementById('existingClientPanel').style.display = (action === 'existing') ? '' : 'none';
+      document.getElementById('inviteClientPanel').style.display = (action === 'invite') ? '' : 'none';
+      document.getElementById('clientValidationError').classList.add('d-none');
+    });
+  });
+
+  // ── SECURITY PROFILE ────────────────────────────────────────
+  function updateProfile() {
+    var conf = document.getElementById('data_classification').value;
+    var integ = document.getElementById('integrity_level').value;
+    var avail = document.getElementById('availability_level').value;
+    var hva = document.getElementById('is_hva').checked;
+    var profile = 'PBMM';
+    if (conf === 'unclassified' && integ === 'low' && avail === 'low') profile = 'Unclassified-Low';
+    else if (conf === 'protected-a' && integ === 'low' && avail === 'low') profile = 'PA-Low';
+    else if (hva) profile = 'PBHVA';
+    else if (conf === 'protected-c' || integ === 'high' || avail === 'high') profile = 'PB-High';
+    document.getElementById('profileBadge').textContent = profile;
+    document.getElementById('security_profile').value = profile;
+  }
+  ['data_classification','integrity_level','availability_level'].forEach(function(id) {
+    document.getElementById(id).addEventListener('change', updateProfile);
+  });
+  document.getElementById('is_hva').addEventListener('change', updateProfile);
+
+  // ── FORM ADAPTATION ENGINE ───────────────────────────────────
+  function adaptFormToRegions() {
+    var hasCanada = selectedRegions.some(function(r) { return r === 'canada' || r === 'canada-finance'; });
+    var hasNonCanada = selectedRegions.some(function(r) { return !(REGION_CONFIG[r] && REGION_CONFIG[r].isCanada); });
+    var onlyCanada = hasCanada && !hasNonCanada;
+    var noCanada = !hasCanada;
+    var intl = !onlyCanada;
+
+    // Section 1
+    var lblDept = document.getElementById('lbl-department');
+    var dept = document.getElementById('department');
+    var lblBranch = document.getElementById('lbl-branch');
+    var appInternal = document.getElementById('appType-internal');
+    if (noCanada) {
+      if (lblDept) lblDept.textContent = 'Organization';
+      if (dept) dept.placeholder = 'Acme Corporation, Ministry of Finance';
+      if (lblBranch) lblBranch.textContent = 'Division / Business Unit';
+      if (appInternal) appInternal.textContent = 'Internal Only (corporate network)';
+    } else if (intl) {
+      if (lblDept) lblDept.textContent = 'Department / Organization';
+      if (appInternal) appInternal.textContent = 'Internal Only (government / corporate network)';
+    }
+
+    // Section 2
+    var sec2Title = document.getElementById('sec2-title');
+    var sec2Desc = document.getElementById('sec2-desc');
+    var confHeading = document.getElementById('conf-heading');
+    var confPa = document.getElementById('conf-pa');
+    var confPb = document.getElementById('conf-pb');
+    var confPc = document.getElementById('conf-pc');
+    var hvaLabel = document.getElementById('hva-label');
+    if (noCanada) {
+      if (sec2Title) sec2Title.innerHTML = '<span class="section-number">2</span> Data Sensitivity & Impact Assessment';
+      if (sec2Desc) sec2Desc.textContent = 'Assess the sensitivity of data and the potential impact of a security breach';
+      if (confHeading) confHeading.textContent = 'Data Sensitivity Level';
+      if (confPa) confPa.textContent = 'Low Sensitivity — Limited impact from disclosure';
+      if (confPb) confPb.textContent = 'Moderate Sensitivity — Serious impact from disclosure';
+      if (confPc) confPc.textContent = 'High Sensitivity — Extremely grave impact';
+      if (hvaLabel) hvaLabel.innerHTML = '<i class="bi bi-exclamation-diamond me-1"></i>Critical / High-Value System';
+    } else if (intl) {
+      if (sec2Title) sec2Title.innerHTML = '<span class="section-number">2</span> Security Categorization & Impact Assessment';
+    }
+
+    // Section 3
+    var hostSSC = document.getElementById('host-ssc');
+    if (noCanada && hostSSC) hostSSC.style.display = 'none';
+    else if (intl && hostSSC) hostSSC.textContent = 'SSC / Government Data Centre (On-Premises)';
+
+    // Section 4
+    var lblAuth = document.getElementById('lbl-authority');
+    if (noCanada && lblAuth) lblAuth.textContent = 'Authorizing Official / Senior Management';
+    else if (intl && lblAuth) lblAuth.textContent = 'Authorizing Official (DG / Director / Senior Manager)';
+  }
+
+  // ── REGION-SPECIFIC QUESTIONS ────────────────────────────────
+  function showRegionQuestions() {
+    var container = document.getElementById('regionQuestionsContainer');
+    container.innerHTML = '';
+    var sections = [];
+
+    if (selectedRegions.indexOf('cis') !== -1) {
+      sections.push({
+        title: 'CIS Controls — Implementation Group', icon: 'bi-shield-check',
+        questions: [
+          { label: 'Which CIS Implementation Group (IG) best describes the target?', name: 'cisIG', type: 'select', options: ['IG1 — Essential Cyber Hygiene (small org, limited IT)', 'IG2 — Expanded controls (dedicated IT staff, sensitive data)', 'IG3 — Mature organization (security experts, significant risk)'] },
+          { label: 'Has a CIS Controls self-assessment been performed?', name: 'cisSelfAssessment', type: 'select', options: ['Yes — using CIS-CAT Pro', 'Yes — manual assessment', 'No', 'Planned'] },
+          { label: 'Are CIS Benchmarks applied to infrastructure?', name: 'cisBenchmarks', type: 'select', options: ['Yes — Level 1', 'Yes — Level 2', 'Partially', 'No'] }
+        ]
+      });
+    }
+    if (selectedRegions.some(function(r) { return ['eu','germany','france','spain','eu-finance'].indexOf(r) !== -1; })) {
+      sections.push({
+        title: 'EU / GDPR Compliance', icon: 'bi-shield-lock',
+        questions: [
+          { label: 'Has a DPIA been completed?', name: 'dpiaCompleted', type: 'select', options: ['Yes', 'In Progress', 'No', 'Not Required'] },
+          { label: 'Is a DPO appointed?', name: 'dpoAppointed', type: 'select', options: ['Yes', 'No', 'Not Required'] },
+          { label: 'Will data be transferred outside the EU/EEA?', name: 'dataTransferOutEU', type: 'select', options: ['Yes — adequacy decision', 'Yes — SCCs/BCRs', 'No', 'Unsure'] }
+        ]
+      });
+    }
+    if (selectedRegions.indexOf('eu-finance') !== -1) {
+      sections.push({
+        title: 'DORA — Digital Operational Resilience', icon: 'bi-bank',
+        questions: [
+          { label: 'Is the organization a financial entity under DORA?', name: 'doraEntity', type: 'select', options: ['Yes — regulated', 'Yes — TPP', 'No'] },
+          { label: 'Is TLPT planned?', name: 'doraTLPT', type: 'select', options: ['Yes', 'Planned', 'No'] }
+        ]
+      });
+    }
+    if (selectedRegions.indexOf('usa') !== -1) {
+      sections.push({
+        title: 'US Federal Compliance', icon: 'bi-flag',
+        questions: [
+          { label: 'FISMA impact level?', name: 'fismaLevel', type: 'select', options: ['Low', 'Moderate', 'High'] },
+          { label: 'FedRAMP authorization?', name: 'fedrampStatus', type: 'select', options: ['Authorized', 'In Process', 'Not Started', 'N/A'] },
+          { label: 'Does the system process CUI?', name: 'handlesCUI', type: 'select', options: ['Yes', 'No', 'Unsure'] }
+        ]
+      });
+    }
+    if (selectedRegions.indexOf('usa-defense') !== -1) {
+      sections.push({
+        title: 'CMMC — Defense Supply Chain', icon: 'bi-shield-fill-exclamation',
+        questions: [
+          { label: 'Target CMMC level?', name: 'cmmcLevel', type: 'select', options: ['Level 1 — Foundational', 'Level 2 — Advanced', 'Level 3 — Expert'] },
+          { label: 'Existing System Security Plan?', name: 'cmmcSSP', type: 'select', options: ['Yes', 'In Development', 'No'] }
+        ]
+      });
+    }
+    if (selectedRegions.indexOf('australia') !== -1) {
+      sections.push({
+        title: 'Australian Government Compliance', icon: 'bi-shield-check',
+        questions: [
+          { label: 'PSPF classification?', name: 'pspfClass', type: 'select', options: ['OFFICIAL', 'OFFICIAL:Sensitive', 'PROTECTED', 'Other'] },
+          { label: 'Essential Eight maturity?', name: 'e8Maturity', type: 'select', options: ['Level 0', 'Level 1', 'Level 2', 'Level 3', 'Unknown'] },
+          { label: 'IRAP assessment completed?', name: 'irapComplete', type: 'select', options: ['Yes', 'In Progress', 'No', 'N/A'] }
+        ]
+      });
+    }
+    if (selectedRegions.indexOf('pci') !== -1) {
+      sections.push({
+        title: 'PCI DSS — Payment Card Security', icon: 'bi-credit-card-2-front',
+        questions: [
+          { label: 'Does the system handle cardholder data?', name: 'pciCHD', type: 'select', options: ['Yes', 'Connected to CHD systems', 'No'] },
+          { label: 'SAQ type?', name: 'pciSAQ', type: 'select', options: ['SAQ A', 'SAQ A-EP', 'SAQ B', 'SAQ C', 'SAQ D', 'Unsure', 'N/A'] }
+        ]
+      });
+    }
+    if (selectedRegions.indexOf('soc2') !== -1) {
+      sections.push({
+        title: 'SOC 2 — Trust Service Criteria', icon: 'bi-patch-check',
+        questions: [
+          { label: 'Which Trust Service Criteria apply?', name: 'soc2Criteria', type: 'multi', options: ['Security', 'Availability', 'Processing Integrity', 'Confidentiality', 'Privacy'] },
+          { label: 'SOC 2 report type?', name: 'soc2Type', type: 'select', options: ['Type I (point in time)', 'Type II (over a period)', 'Not yet determined'] }
+        ]
+      });
+    }
+    if (selectedRegions.indexOf('uk') !== -1) {
+      sections.push({
+        title: 'UK — NIS & NCSC Compliance', icon: 'bi-shield-lock',
+        questions: [
+          { label: 'Part of Critical National Infrastructure?', name: 'ukCNI', type: 'select', options: ['Yes', 'No', 'Unsure'] },
+          { label: 'NCSC CAF applied?', name: 'ukCAF', type: 'select', options: ['Yes', 'In Progress', 'No', 'N/A'] }
+        ]
+      });
+    }
+    if (selectedRegions.indexOf('france') !== -1) {
+      sections.push({
+        title: 'France — ANSSI Compliance', icon: 'bi-shield-lock',
+        questions: [
+          { label: 'Is the organization an OIV?', name: 'frOIV', type: 'select', options: ['Yes', 'No', 'Unsure'] },
+          { label: 'ANSSI homologation started?', name: 'frHomologation', type: 'select', options: ['Yes', 'In Progress', 'No'] }
+        ]
+      });
+    }
+    if (selectedRegions.indexOf('germany') !== -1) {
+      sections.push({
+        title: 'Germany — BSI Compliance', icon: 'bi-shield-lock',
+        questions: [
+          { label: 'Federal authority?', name: 'deFederal', type: 'select', options: ['Yes', 'No'] },
+          { label: 'IT-Grundschutz certification?', name: 'deGrundschutz', type: 'select', options: ['Yes', 'Planned', 'No'] }
+        ]
+      });
+    }
+
+    sections.forEach(function(section) {
+      var html = '<div class="form-section" style="background:linear-gradient(135deg,#e8f0fe 0%,#f1f3f9 100%);border-left:4px solid #0d6efd;padding:1.5rem;border-radius:0.5rem;margin-bottom:1.5rem">';
+      html += '<h5 class="mb-3"><i class="bi ' + section.icon + ' me-2 text-primary"></i>' + section.title + '</h5>';
+      section.questions.forEach(function(q) {
+        if (q.type === 'select') {
+          html += '<div class="mb-3"><label class="form-label">' + q.label + '</label>';
+          html += '<select class="form-select" name="' + q.name + '"><option value="">— Select —</option>';
+          q.options.forEach(function(opt) { html += '<option value="' + opt + '">' + opt + '</option>'; });
+          html += '</select></div>';
+        } else if (q.type === 'multi') {
+          html += '<div class="mb-3"><label class="form-label">' + q.label + '</label>';
+          q.options.forEach(function(opt) {
+            var safeId = q.name + '-' + opt.replace(/\s/g,'');
+            html += '<div class="form-check"><input class="form-check-input" type="checkbox" name="' + q.name + '" value="' + opt + '" id="' + safeId + '"><label class="form-check-label" for="' + safeId + '">' + opt + '</label></div>';
+          });
+          html += '</div>';
+        }
+      });
+      html += '</div>';
+      container.insertAdjacentHTML('beforeend', html);
+    });
+  }
+
+})();
+</script>

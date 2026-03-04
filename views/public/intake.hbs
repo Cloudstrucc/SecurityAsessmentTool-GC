@@ -16,6 +16,19 @@
   </div>
   {{else}}
 
+  {{#if editMode}}
+  <div class="alert alert-info mb-4">
+    <div class="d-flex align-items-start gap-3">
+      <i class="bi bi-pencil-square" style="font-size:1.5rem;margin-top:2px"></i>
+      <div>
+        <strong>Complete Your Intake</strong>
+        <p class="mb-1">Your security assessor has created this project and assigned it to you. Please complete the details below and submit for review.</p>
+        <small class="text-muted">Reference: <code>{{editData.ref_code}}</code>{{#if editData.project_name}} — Project: <strong>{{editData.project_name}}</strong>{{/if}}</small>
+      </div>
+    </div>
+  </div>
+  {{/if}}
+
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- STEP 1: Region & Jurisdiction Selection                    -->
   <!-- ═══════════════════════════════════════════════════════════ -->
@@ -163,6 +176,12 @@
                     <strong>Handles Payment Cards</strong> <small class="text-muted">— PCI DSS 4.0</small>
                   </label>
                 </div>
+                <div class="form-check mb-2">
+                  <input class="form-check-input region-check" type="checkbox" value="cis" id="reg-cis" data-frameworks="CIS-CONTROLS" data-label="CIS Controls">
+                  <label class="form-check-label" for="reg-cis">
+                    <strong>CIS Controls</strong> <small class="text-muted">— v8.1 (Municipal / General)</small>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
@@ -207,7 +226,7 @@
       </button>
     </div>
 
-  <form method="POST" action="/intake" enctype="multipart/form-data" id="intakeForm" class="mfa-protected" data-mfa-label="Submitting security intake form">
+  <form method="POST" action="{{#if editMode}}/intake/{{editData.ref_code}}/edit{{else}}/intake{{/if}}" enctype="multipart/form-data" id="intakeForm" class="mfa-protected" data-mfa-label="Submitting security intake form">
 
     <!-- ─── AI Quick Start ─── -->
     <div class="form-section" style="border-left:3px solid #8b5cf6; background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);">
@@ -798,7 +817,8 @@
       'australia-finance': { label: 'Australia (Financial)', group: 'asia-pacific', parent: 'australia' },
       'global':          { label: 'Global', group: 'international' },
       'soc2':            { label: 'SOC 2', group: 'international' },
-      'pci':             { label: 'PCI DSS', group: 'international' }
+      'pci':             { label: 'PCI DSS', group: 'international' },
+      'cis':             { label: 'CIS Controls', group: 'international' }
     };
 
     // ── DOM Elements ────────────────────────────────────────────
@@ -1184,6 +1204,17 @@
           questions: [
             { label: 'Is the system operated by or for a federal authority?', name: 'deFederalAuthority', type: 'select', options: ['Yes', 'No'] },
             { label: 'Is BSI IT-Grundschutz certification required?', name: 'deGrundschutzCert', type: 'select', options: ['Yes — Basic', 'Yes — Standard', 'Yes — Core', 'No'] }
+          ]
+        });
+      }
+      var hasCIS = selectedRegions.indexOf('cis') !== -1;
+      if (hasCIS) {
+        regionQs.push({
+          title: 'CIS Controls — Implementation Group', icon: 'bi-shield-check',
+          questions: [
+            { label: 'Which CIS Implementation Group (IG) best describes your organization?', name: 'cisIG', type: 'select', options: ['IG1 — Essential Cyber Hygiene (small org, limited IT)', 'IG2 — Expanded controls (dedicated IT staff, sensitive data)', 'IG3 — Mature organization (security experts, significant risk)'] },
+            { label: 'Have you performed a CIS Controls self-assessment?', name: 'cisSelfAssessment', type: 'select', options: ['Yes — using CIS-CAT Pro', 'Yes — manual assessment', 'No', 'Planned'] },
+            { label: 'Are CIS Benchmarks applied to your infrastructure?', name: 'cisBenchmarks', type: 'select', options: ['Yes — Level 1', 'Yes — Level 2', 'Partially', 'No'] }
           ]
         });
       }
@@ -1666,6 +1697,104 @@
     }
     .ai-highlighted:focus { box-shadow: 0 0 0 3px #8b5cf6 !important; }
   </style>
+
+  {{#if editMode}}
+  <!-- Pre-fill fields for draft intake editing -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var ed = {{{json editData}}};
+    if (!ed) return;
+
+    // Helper to set field value
+    function setVal(id, val) {
+      var el = document.getElementById(id);
+      if (el && val) {
+        el.value = val;
+        // Trigger change for selects
+        if (el.tagName === 'SELECT') el.dispatchEvent(new Event('change'));
+      }
+    }
+    function setCheck(id, val) {
+      var el = document.getElementById(id);
+      if (el) el.checked = !!val;
+    }
+
+    // Section 1: Project Information
+    setVal('projectName', ed.project_name);
+    setVal('projectDescription', ed.project_description);
+    setVal('department', ed.department);
+    setVal('branch', ed.branch);
+    setVal('targetDate', ed.target_date);
+    setVal('userCount', ed.user_count);
+    setVal('appType', ed.app_type);
+
+    // Section 2: Security Categorization
+    setVal('confidentialityLevel', ed.confidentiality_level);
+    setVal('integrityLevel', ed.integrity_level);
+    setVal('availabilityLevel', ed.availability_level);
+    setCheck('isHVA', ed.is_hva == 1);
+
+    // PII
+    if (ed.piiTypesArray && ed.piiTypesArray.length > 0) {
+      ed.piiTypesArray.forEach(function(t) {
+        var cb = document.querySelector('input[name="piiTypes"][value="' + t + '"]');
+        if (cb) cb.checked = true;
+      });
+    }
+    setVal('atipSubject', ed.atip_subject);
+    setVal('piaCompleted', ed.pia_completed);
+
+    // Section 3: Hosting & Technology
+    setVal('hostingType', ed.hosting_type);
+    setVal('hostingRegion', ed.hosting_region);
+    setVal('otherTech', ed.other_tech);
+    if (ed.technologiesArray && ed.technologiesArray.length > 0) {
+      ed.technologiesArray.forEach(function(t) {
+        var cb = document.querySelector('input[name="technologies"][value="' + t + '"]');
+        if (cb) cb.checked = true;
+      });
+    }
+    setVal('hasAPIs', ed.has_apis);
+    setVal('gcInterconnections', ed.gc_interconnections);
+    setVal('interconnections', ed.interconnections);
+    setVal('mobileAccess', ed.mobile_access);
+    setVal('externalUsers', ed.external_users);
+
+    // Section 5: Key Contacts
+    setVal('ownerName', ed.owner_name);
+    setVal('ownerEmail', ed.owner_email);
+    setVal('ownerTitle', ed.owner_title);
+    setVal('techLeadName', ed.tech_lead_name);
+    setVal('techLeadEmail', ed.tech_lead_email);
+    setVal('techLeadTitle', ed.tech_lead_title);
+    setVal('authorityName', ed.authority_name);
+    setVal('authorityEmail', ed.authority_email);
+    setVal('authorityTitle', ed.authority_title);
+
+    // Activities
+    if (ed.activitiesArray && ed.activitiesArray.length > 0) {
+      ed.activitiesArray.forEach(function(a) {
+        var cb = document.querySelector('input[name="completedActivities"][value="' + a + '"]');
+        if (cb) cb.checked = true;
+      });
+    }
+
+    // Additional notes
+    setVal('additionalNotes', ed.additional_notes);
+
+    // Region wizard: pre-select regions and auto-advance
+    if (ed.regionsArray && ed.regionsArray.length > 0) {
+      ed.regionsArray.forEach(function(r) {
+        var cb = document.querySelector('.region-check[value="' + r + '"]');
+        if (cb) { cb.checked = true; cb.dispatchEvent(new Event('change')); }
+      });
+      // Auto-advance past region step if regions already selected
+      var contBtn = document.getElementById('wizardContinueBtn');
+      if (contBtn) setTimeout(function() { contBtn.click(); }, 300);
+    }
+  });
+  </script>
+  {{/if}}
 
   {{/if}}
 </div>

@@ -119,4 +119,93 @@ async function sendATONotification({ to, projectName, atoType, message }) {
   });
 }
 
-module.exports = { initialize, sendInvite, sendSubmissionNotification, sendATONotification };
+async function sendClientRegistrationInvite({ to, recipientName, inviteCode, assessorName, organization, baseUrl, message }) {
+  const url = `${baseUrl}/client/register?invite=${inviteCode}`;
+  return safeSend({
+    from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+    to,
+    subject: `You're Invited — Security Assessment Portal Registration`,
+    html: `
+      <div style="font-family: 'Noto Sans', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #26374a; color: white; padding: 24px; border-radius: 8px 8px 0 0;">
+          <h2 style="margin:0;">Security Assessment Portal</h2>
+        </div>
+        <div style="padding: 24px; background: #f8f9fa; border: 1px solid #e0e0e0;">
+          <p>Dear ${recipientName || 'Colleague'},</p>
+          <p><strong>${assessorName}</strong>${organization ? ' from <strong>' + organization + '</strong>' : ''} has invited you to register on the Security Assessment Portal.</p>
+          ${message ? '<p style="background:white;padding:12px;border-left:4px solid #2b4380;border-radius:4px;"><em>' + message + '</em></p>' : ''}
+          <p>Once registered, you will be able to submit security assessment intakes and provide evidence for your projects.</p>
+          <p><strong>Your Invite Code:</strong></p>
+          <div style="background: white; border: 2px solid #2b4380; border-radius: 8px; padding: 16px; text-align: center; font-size: 24px; font-weight: 700; letter-spacing: 4px; margin: 16px 0;">
+            ${inviteCode}
+          </div>
+          <p style="text-align:center;">
+            <a href="${url}" style="display: inline-block; background: #2b4380; color: white; padding: 14px 32px; border-radius: 6px; text-decoration: none; font-weight: 600;">Register Now</a>
+          </p>
+          <p style="color: #6c757d; font-size: 13px;">You must register using this exact email address: <strong>${to}</strong></p>
+          <p style="color: #6c757d; font-size: 13px;">This invitation expires in 7 days. If you have questions, contact ${assessorName}.</p>
+        </div>
+        <div style="padding: 16px; text-align: center; color: #6c757d; font-size: 12px;">
+          SA&A Security Assessment Tool
+        </div>
+      </div>
+    `
+  });
+}
+
+async function sendAssessorInvite({ to, recipientName, inviteCode, assessorName, organization, baseUrl, message }) {
+  const url = `${baseUrl}/admin/register?invite=${inviteCode}`;
+  return safeSend({
+    from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+    to,
+    subject: `Assessor Invitation — Security Assessment Portal`,
+    html: `
+      <div style="font-family: 'Noto Sans', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #1a3c5e; color: white; padding: 24px; border-radius: 8px 8px 0 0;">
+          <h2 style="margin:0;"><i class="bi bi-shield-lock"></i> Security Assessment Portal — Assessor Access</h2>
+        </div>
+        <div style="padding: 24px; background: #f8f9fa; border: 1px solid #e0e0e0;">
+          <p>Dear ${recipientName || 'Colleague'},</p>
+          <p><strong>${assessorName}</strong>${organization ? ' from <strong>' + organization + '</strong>' : ''} has invited you to join the Security Assessment Portal as a <strong>peer assessor / practitioner</strong>.</p>
+          ${message ? '<p style="background:white;padding:12px;border-left:4px solid #1a3c5e;border-radius:4px;"><em>' + message + '</em></p>' : ''}
+          <p>As a peer assessor, you will be able to collaborate on security assessments that are assigned to you by ${assessorName}.</p>
+          <p><strong>Your Invite Code:</strong></p>
+          <div style="background: white; border: 2px solid #1a3c5e; border-radius: 8px; padding: 16px; text-align: center; font-size: 24px; font-weight: 700; letter-spacing: 4px; margin: 16px 0;">
+            ${inviteCode}
+          </div>
+          <p style="text-align:center;">
+            <a href="${url}" style="display: inline-block; background: #1a3c5e; color: white; padding: 14px 32px; border-radius: 6px; text-decoration: none; font-weight: 600;">Register as Assessor</a>
+          </p>
+          <p style="color: #6c757d; font-size: 13px;">You must register using this exact email address: <strong>${to}</strong></p>
+          <p style="color: #6c757d; font-size: 13px;">This invitation expires in 7 days.</p>
+        </div>
+        <div style="padding: 16px; text-align: center; color: #6c757d; font-size: 12px;">
+          SA&A Security Assessment Tool
+        </div>
+      </div>
+    `
+  });
+}
+
+async function sendAssignmentNotification({ to, recipientName, entityType, entityName, assignedByName, baseUrl, message }) {
+  return safeSend({
+    from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+    to,
+    subject: `Assessment Assigned — ${entityName}`,
+    html: `
+      <div style="font-family: 'Noto Sans', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #26374a; color: white; padding: 24px; border-radius: 8px 8px 0 0;">
+          <h2 style="margin:0;">Assessment Assignment</h2>
+        </div>
+        <div style="padding: 24px; background: #f8f9fa; border: 1px solid #e0e0e0;">
+          <p>Dear ${recipientName},</p>
+          <p><strong>${assignedByName}</strong> has assigned you to the ${entityType}: <strong>${entityName}</strong>.</p>
+          ${message ? '<p style="background:white;padding:12px;border-left:4px solid #2b4380;border-radius:4px;"><em>' + message + '</em></p>' : ''}
+          <p><a href="${baseUrl}/admin/dashboard" style="display: inline-block; background: #2b4380; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">Open Portal</a></p>
+        </div>
+      </div>
+    `
+  });
+}
+
+module.exports = { initialize, sendInvite, sendSubmissionNotification, sendATONotification, sendClientRegistrationInvite, sendAssessorInvite, sendAssignmentNotification };

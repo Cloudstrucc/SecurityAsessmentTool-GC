@@ -1,0 +1,53 @@
+<div class="container py-5" style="max-width:520px;">
+  <div class="text-center mb-4">
+    <div style="width:56px;height:56px;border-radius:14px;background:#1a3c5e;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+      <i class="bi bi-shield-lock text-white" style="font-size:1.5rem;"></i>
+    </div>
+    <h3>Assessor Registration</h3>
+    <p class="text-muted">Register as a peer assessor / practitioner. You must have a valid invite code.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-body p-4">
+      <form method="POST" action="/admin/register">
+        <div class="mb-3">
+          <label class="form-label" for="invite_code">Invite Code <span class="text-danger">*</span></label>
+          <input type="text" class="form-control form-control-lg text-center fw-bold" id="invite_code" name="invite_code" required
+            placeholder="XXXXXXXX" value="{{inviteCode}}" style="letter-spacing:3px;text-transform:uppercase;">
+          <small class="text-muted">Enter the code from your invitation email.</small>
+        </div>
+        <hr>
+        <div class="mb-3">
+          <label class="form-label" for="name">Full Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="name" name="name" required placeholder="e.g. Jane Doe" value="{{formData.name}}">
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="email">Email <span class="text-danger">*</span></label>
+          <input type="email" class="form-control" id="email" name="email" required placeholder="Must match the invited email" value="{{formData.email}}">
+          <small class="text-muted">You must use the email address the invitation was sent to.</small>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="organization">Organization</label>
+          <input type="text" class="form-control" id="organization" name="organization" placeholder="Your organization" value="{{formData.organization}}">
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
+          <input type="password" class="form-control" id="password" name="password" required minlength="10" placeholder="Minimum 10 characters">
+          <small class="text-muted">At least 10 characters with a mix of upper/lowercase, numbers, and symbols.</small>
+        </div>
+        <div class="mb-4">
+          <label class="form-label" for="confirmPassword">Confirm Password <span class="text-danger">*</span></label>
+          <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required minlength="10">
+        </div>
+        <button type="submit" class="btn btn-dark w-100 py-2">
+          <i class="bi bi-arrow-right me-2"></i>Continue to MFA Setup
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="text-center mt-3">
+    <span class="text-muted">Already have an account?</span>
+    <a href="/admin/login">Sign in</a>
+  </div>
+</div>

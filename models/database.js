@@ -361,6 +361,45 @@ async function initDatabase() {
     )
   `);
 
+  // ── INVITATIONS (for both client and assessor invites) ──
+  db.run(`
+    CREATE TABLE IF NOT EXISTS invitations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT NOT NULL DEFAULT 'client',
+      email TEXT NOT NULL,
+      name TEXT,
+      organization TEXT,
+      invite_code TEXT UNIQUE NOT NULL,
+      invited_by INTEGER NOT NULL,
+      status TEXT DEFAULT 'pending',
+      message TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      expires_at DATETIME NOT NULL,
+      accepted_at DATETIME,
+      accepted_by_user_id INTEGER,
+      FOREIGN KEY (invited_by) REFERENCES users(id),
+      FOREIGN KEY (accepted_by_user_id) REFERENCES users(id)
+    )
+  `);
+
+  // ── ASSESSMENT ASSIGNMENTS (scoped access for peer assessors) ──
+  db.run(`
+    CREATE TABLE IF NOT EXISTS assessment_assignments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      entity_type TEXT NOT NULL DEFAULT 'assessment',
+      entity_id INTEGER NOT NULL,
+      assigned_to INTEGER NOT NULL,
+      assigned_by INTEGER NOT NULL,
+      role TEXT DEFAULT 'assigned',
+      status TEXT DEFAULT 'active',
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      revoked_at DATETIME,
+      FOREIGN KEY (assigned_to) REFERENCES users(id),
+      FOREIGN KEY (assigned_by) REFERENCES users(id)
+    )
+  `);
+
   // Create default admin
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@youragency.gc.ca';
   const adminPassword = process.env.ADMIN_PASSWORD || 'ChangeThisPassword123!';
@@ -388,6 +427,8 @@ async function initDatabase() {
     ['users', 'mfa_mode', "ALTER TABLE users ADD COLUMN mfa_mode TEXT DEFAULT 'totp'"],
     // Client scoping
     ['intake_submissions', 'submitted_by_user_id', 'ALTER TABLE intake_submissions ADD COLUMN submitted_by_user_id INTEGER'],
+    ['intake_submissions', 'created_by_assessor_id', 'ALTER TABLE intake_submissions ADD COLUMN created_by_assessor_id INTEGER'],
+    ['intake_submissions', 'assigned_to_email', 'ALTER TABLE intake_submissions ADD COLUMN assigned_to_email TEXT'],
     ['assessments', 'client_email', 'ALTER TABLE assessments ADD COLUMN client_email TEXT'],
     // POA&M client remediation evidence
     ['iato_checklist', 'client_evidence', 'ALTER TABLE iato_checklist ADD COLUMN client_evidence TEXT'],
@@ -404,6 +445,12 @@ async function initDatabase() {
     ['assessment_controls', 'framework_refs', "ALTER TABLE assessment_controls ADD COLUMN framework_refs TEXT DEFAULT '[]'"],
     // Region/jurisdiction support for intake
     ['intake_submissions', 'selected_regions', "ALTER TABLE intake_submissions ADD COLUMN selected_regions TEXT DEFAULT '[]'"],
+    // Region/framework/client support for projects
+    ['projects', 'selected_regions', "ALTER TABLE projects ADD COLUMN selected_regions TEXT DEFAULT '[]'"],
+    ['projects', 'selected_frameworks', "ALTER TABLE projects ADD COLUMN selected_frameworks TEXT DEFAULT '[]'"],
+    ['projects', 'client_user_id', 'ALTER TABLE projects ADD COLUMN client_user_id INTEGER'],
+    ['projects', 'department', 'ALTER TABLE projects ADD COLUMN department TEXT'],
+    ['projects', 'branch', 'ALTER TABLE projects ADD COLUMN branch TEXT'],
   ];
 
   migrations.forEach(([table, column, sql]) => {

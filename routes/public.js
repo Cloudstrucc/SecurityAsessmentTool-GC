@@ -230,32 +230,55 @@ function ensureClientAuth(req, res, next) {
 // ── CLIENT REGISTRATION ──
 
 router.get('/client/register', (req, res) => {
-  res.render('public/register', { title: 'Register', formData: {} });
+  const inviteCode = req.query.invite || '';
+  res.render('public/register', { title: 'Register', formData: {}, inviteCode });
 });
 
 router.post('/client/register', (req, res) => {
   try {
-    const { name, email, organization, password, confirmPassword } = req.body;
+    const { name, email, organization, password, confirmPassword, invite_code } = req.body;
 
     if (!name || !email || !organization || !password) {
       req.flash('error', 'All fields are required.');
-      return res.render('public/register', { title: 'Register', formData: req.body });
+      return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code || '' });
     }
 
     if (password.length < 10) {
       req.flash('error', 'Password must be at least 10 characters.');
-      return res.render('public/register', { title: 'Register', formData: req.body });
+      return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code || '' });
     }
 
     if (password !== confirmPassword) {
       req.flash('error', 'Passwords do not match.');
-      return res.render('public/register', { title: 'Register', formData: req.body });
+      return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code || '' });
     }
 
-    const existing = get('SELECT id FROM users WHERE email = ?', [email]);
+    // Validate invite code if provided, or require it
+    let invite = null;
+    if (invite_code && invite_code.trim()) {
+      invite = get(
+        "SELECT * FROM invitations WHERE invite_code = ? AND type = 'client' AND status = 'pending'",
+        [invite_code.trim().toUpperCase()]
+      );
+      if (!invite) {
+        req.flash('error', 'Invalid or expired invite code.');
+        return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code });
+      }
+      if (new Date(invite.expires_at) < new Date()) {
+        req.flash('error', 'This invitation has expired. Please request a new one.');
+        return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code });
+      }
+      // Enforce email match
+      if (email.toLowerCase().trim() !== invite.email.toLowerCase().trim()) {
+        req.flash('error', `You must register with the email address the invitation was sent to (${invite.email}).`);
+        return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code });
+      }
+    }
+
+    const existing = get('SELECT id FROM users WHERE email = ?', [email.toLowerCase().trim()]);
     if (existing) {
       req.flash('error', 'An account with this email already exists.');
-      return res.render('public/register', { title: 'Register', formData: req.body });
+      return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code || '' });
     }
 
     const hashedPassword = bcrypt.hashSync(password, 12);
@@ -264,8 +287,14 @@ router.post('/client/register', (req, res) => {
     const userId = run(
       `INSERT INTO users (email, password, name, role, organization, totp_secret, mfa_enabled, is_active)
        VALUES (?,?,?,?,?,?,?,?)`,
-      [email, hashedPassword, name, 'client', organization, secret, 0, 1]
+      [email.toLowerCase().trim(), hashedPassword, name, 'client', organization, secret, 0, 1]
     );
+
+    // Mark invitation as accepted if one was used
+    if (invite) {
+      run("UPDATE invitations SET status = 'accepted', accepted_at = CURRENT_TIMESTAMP, accepted_by_user_id = ? WHERE id = ?",
+        [userId, invite.id]);
+    }
 
     // Redirect to MFA setup
     req.session.pendingMfaUserId = userId;
@@ -451,12 +480,12 @@ router.get('/client/dashboard', ensureClientAuth, (req, res) => {
   const clientUser = get('SELECT * FROM users WHERE id = ?', [req.session.clientId]);
   if (!clientUser) { req.flash('error', 'Session expired.'); return res.redirect('/client/login'); }
 
-  // Get intakes submitted by this user (by user_id or email match)
+  // Get intakes submitted by this user OR assigned to them by an assessor
   const intakes = all(`
     SELECT * FROM intake_submissions 
-    WHERE submitted_by_user_id = ? OR LOWER(owner_email) = LOWER(?)
+    WHERE submitted_by_user_id = ? OR LOWER(owner_email) = LOWER(?) OR LOWER(assigned_to_email) = LOWER(?)
     ORDER BY created_at DESC
-  `, [clientUser.id, clientUser.email]);
+  `, [clientUser.id, clientUser.email, clientUser.email]);
 
   // Get assessments scoped to this client (by client_email or project owner email)
   const assessments = all(`
@@ -578,6 +607,161 @@ router.post('/intake', ensureClientAuth, intakeUpload.array('attachments', 10), 
     console.error('Intake submission error:', err);
     req.flash('error', 'Failed to submit intake. Please try again.');
     res.redirect('/intake');
+  }
+});
+
+// ══════════════════════════════════════════════════
+// EDIT DRAFT INTAKE (client completes assessor-created intake)
+// ══════════════════════════════════════════════════
+
+router.get('/intake/:refCode/edit', ensureClientAuth, (req, res) => {
+  const intake = get('SELECT * FROM intake_submissions WHERE ref_code = ?', [req.params.refCode]);
+  if (!intake) { req.flash('error', 'Intake not found.'); return res.redirect('/client/dashboard'); }
+  
+  // Verify access: client must be the assignee or owner
+  const clientUser = get('SELECT * FROM users WHERE id = ?', [req.session.clientId]);
+  if (!clientUser) { return res.redirect('/client/login'); }
+  const email = clientUser.email.toLowerCase().trim();
+  const isOwner = (intake.owner_email || '').toLowerCase().trim() === email;
+  const isAssigned = (intake.assigned_to_email || '').toLowerCase().trim() === email;
+  const isSubmitter = intake.submitted_by_user_id === clientUser.id;
+  if (!isOwner && !isAssigned && !isSubmitter) {
+    req.flash('error', 'You do not have access to this intake.');
+    return res.redirect('/client/dashboard');
+  }
+  
+  // Only allow editing draft intakes
+  if (intake.status !== 'draft') {
+    req.flash('info', 'This intake has already been submitted and cannot be edited.');
+    return res.redirect('/client/dashboard');
+  }
+  
+  // Parse JSON fields for the template
+  let techs = [], regions = [], piiTypes = [], activities = [];
+  try { techs = JSON.parse(intake.technologies || '[]'); } catch(e) {}
+  try { regions = JSON.parse(intake.selected_regions || '[]'); } catch(e) {}
+  try { piiTypes = JSON.parse(intake.pii_types || '[]'); } catch(e) {}
+  try { activities = JSON.parse(intake.completed_activities || '[]'); } catch(e) {}
+  
+  res.render('public/intake', {
+    title: 'Complete Security Assessment Intake',
+    editMode: true,
+    editData: {
+      ...intake,
+      technologiesArray: techs,
+      regionsArray: regions,
+      piiTypesArray: piiTypes,
+      activitiesArray: activities
+    }
+  });
+});
+
+router.post('/intake/:refCode/edit', ensureClientAuth, intakeUpload.array('attachments', 10), requireSignature('intake.submit', 'Submitted intake form', 'intake'), (req, res) => {
+  try {
+    const intake = get('SELECT * FROM intake_submissions WHERE ref_code = ?', [req.params.refCode]);
+    if (!intake || intake.status !== 'draft') {
+      req.flash('error', 'Intake not found or already submitted.');
+      return res.redirect('/client/dashboard');
+    }
+    
+    const clientUser = get('SELECT * FROM users WHERE id = ?', [req.session.clientId]);
+    if (!clientUser) { return res.redirect('/client/login'); }
+    const email = clientUser.email.toLowerCase().trim();
+    const isOwner = (intake.owner_email || '').toLowerCase().trim() === email;
+    const isAssigned = (intake.assigned_to_email || '').toLowerCase().trim() === email;
+    if (!isOwner && !isAssigned && intake.submitted_by_user_id !== clientUser.id) {
+      req.flash('error', 'You do not have access to this intake.');
+      return res.redirect('/client/dashboard');
+    }
+
+    const piiTypes = Array.isArray(req.body.piiTypes) ? req.body.piiTypes : (req.body.piiTypes ? [req.body.piiTypes] : []);
+    const technologies = Array.isArray(req.body.technologies) ? req.body.technologies : (req.body.technologies ? [req.body.technologies] : []);
+    const activities = Array.isArray(req.body.completedActivities) ? req.body.completedActivities : (req.body.completedActivities ? [req.body.completedActivities] : []);
+    const hasPII = piiTypes.length > 0 && !piiTypes.includes('none') ? 1 : 0;
+
+    const { determineProfile, detectComplexity } = require('../config/security-profiles');
+    const confLevel = req.body.confidentialityLevel || intake.confidentiality_level || 'protected-b';
+    const intLevel = req.body.integrityLevel || intake.integrity_level || 'medium';
+    const avaLevel = req.body.availabilityLevel || intake.availability_level || 'medium';
+    const isHVA = req.body.isHVA ? 1 : 0;
+    const hasComplexity = detectComplexity(req.body.projectDescription || '');
+    const profileResult = determineProfile({
+      confidentiality: confLevel, integrity: intLevel, availability: avaLevel,
+      hasPII: hasPII === 1, isHVA: isHVA === 1, hasComplexity
+    });
+
+    run(`UPDATE intake_submissions SET
+      status = 'pending',
+      project_name = ?, project_description = ?, department = ?, branch = ?,
+      target_date = ?, user_count = ?, app_type = ?, data_classification = ?,
+      confidentiality_level = ?, integrity_level = ?, availability_level = ?, is_hva = ?,
+      security_profile = ?,
+      pii_types = ?, has_pii = ?, atip_subject = ?, pia_completed = ?,
+      hosting_type = ?, hosting_region = ?, technologies = ?, other_tech = ?,
+      has_apis = ?, gc_interconnections = ?, interconnections = ?, mobile_access = ?, external_users = ?,
+      completed_activities = ?,
+      owner_name = ?, owner_email = ?, owner_title = ?,
+      tech_lead_name = ?, tech_lead_email = ?, tech_lead_title = ?,
+      authority_name = ?, authority_email = ?, authority_title = ?,
+      additional_notes = ?, submitted_by_user_id = ?, selected_regions = ?,
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?`,
+    [
+      req.body.projectName || intake.project_name || '', req.body.projectDescription || '',
+      req.body.department || '', req.body.branch || '',
+      req.body.targetDate || '', req.body.userCount || '', req.body.appType || '',
+      confLevel,
+      confLevel, intLevel, avaLevel, isHVA,
+      profileResult.profile.id,
+      JSON.stringify(piiTypes), hasPII,
+      req.body.atipSubject || '', req.body.piaCompleted || '',
+      req.body.hostingType || '', req.body.hostingRegion || '',
+      JSON.stringify(technologies), req.body.otherTech || '',
+      req.body.hasAPIs || '', req.body.gcInterconnections || '',
+      req.body.interconnections || '', req.body.mobileAccess || '', req.body.externalUsers || '',
+      JSON.stringify(activities),
+      req.body.ownerName || '', req.body.ownerEmail || clientUser.email, req.body.ownerTitle || '',
+      req.body.techLeadName || '', req.body.techLeadEmail || '', req.body.techLeadTitle || '',
+      req.body.authorityName || '', req.body.authorityEmail || '', req.body.authorityTitle || '',
+      req.body.additionalNotes || '',
+      clientUser.id,
+      req.body.selectedRegions || intake.selected_regions || '[]',
+      intake.id
+    ]);
+
+    // Save uploaded files
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        run(
+          `INSERT INTO intake_attachments (intake_id, filename, original_name, mime_type, size) VALUES (?,?,?,?,?)`,
+          [intake.id, file.filename, file.originalname, file.mimetype, file.size]
+        );
+      });
+    }
+
+    // Notify the assessor
+    if (intake.created_by_assessor_id) {
+      const assessor = get('SELECT name, email FROM users WHERE id = ?', [intake.created_by_assessor_id]);
+      if (assessor) {
+        const emailService = require('../utils/emailService');
+        emailService.sendSubmissionNotification({
+          assessorEmail: assessor.email,
+          projectName: req.body.projectName || intake.project_name,
+          submitterName: clientUser.name
+        });
+      }
+    }
+
+    res.render('public/intake', {
+      title: 'Intake Submitted',
+      success: true,
+      refCode: intake.ref_code
+    });
+
+  } catch (err) {
+    console.error('Intake edit error:', err);
+    req.flash('error', 'Failed to submit intake. Please try again.');
+    res.redirect(`/intake/${req.params.refCode}/edit`);
   }
 });
 

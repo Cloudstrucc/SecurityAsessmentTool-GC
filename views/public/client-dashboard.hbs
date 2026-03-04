@@ -82,6 +82,7 @@
             <th>Status</th>
             <th>Department</th>
             <th>Submitted</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -90,7 +91,8 @@
             <td><code class="small">{{this.ref_code}}</code></td>
             <td class="fw-semibold">{{this.project_name}}</td>
             <td>
-              {{#if (eq this.status 'pending')}}<span class="badge bg-warning text-dark">Pending Review</span>
+              {{#if (eq this.status 'draft')}}<span class="badge bg-dark"><i class="bi bi-pencil me-1"></i>Draft — Needs Completion</span>
+              {{else if (eq this.status 'pending')}}<span class="badge bg-warning text-dark">Pending Review</span>
               {{else if (eq this.status 'in-review')}}<span class="badge bg-info">In Review</span>
               {{else if (eq this.status 'accepted')}}<span class="badge bg-success">Accepted</span>
               {{else if (eq this.status 'declined')}}<span class="badge bg-danger">Declined</span>
@@ -99,6 +101,11 @@
             </td>
             <td class="small text-muted">{{this.department}}</td>
             <td class="small text-muted">{{this.created_at}}</td>
+            <td>
+              {{#if (eq this.status 'draft')}}
+                <a href="/intake/{{this.ref_code}}/edit" class="btn btn-sm btn-primary"><i class="bi bi-pencil-square me-1"></i>Complete Intake</a>
+              {{/if}}
+            </td>
           </tr>
           {{/each}}
         </tbody>
