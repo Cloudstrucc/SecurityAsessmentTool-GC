@@ -71,30 +71,18 @@ async function createDeployZip() {
   const zipPath = `/tmp/vcs-tenant-deploy-${Date.now()}.zip`;
   const appRoot = path.join(__dirname, '..');
 
-  // Verify node_modules exists (critical — tenant won't start without it)
-  const nodeModulesPath = path.join(appRoot, 'node_modules');
-  if (!fs.existsSync(nodeModulesPath)) {
-    throw new Error(`node_modules not found at ${nodeModulesPath} — cannot create tenant deploy zip`);
-  }
-
-  // Sanity check a key dependency
-  if (!fs.existsSync(path.join(nodeModulesPath, 'dotenv'))) {
-    throw new Error('node_modules/dotenv missing — npm install may not have run on root site');
-  }
-
   console.log(`[Provision] Creating deploy zip from: ${appRoot}`);
-  console.log(`[Provision] node_modules exists: true (${fs.readdirSync(nodeModulesPath).length} top-level packages)`);
+  console.log(`[Provision] node_modules excluded — tenant will run npm install via Oryx`);
 
   // Include node_modules to avoid npm install during deploy (causes 504 on B1).
   // Exclude Azure SDK packages — tenant instances don't provision, only the root site does.
   const excludeDirs = new Set([
     '.git', 'data', 'uploads',
     'provisioning-status',
-    '_del_node_modules'  // Oryx artifact — stale node_modules moved aside
+    'node_modules',        // Excluded — tenant runs npm install via Oryx on deploy
+    '_del_node_modules'
   ]);
-  const excludeNodeModules = new Set([
-    '@azure', // ~54MB of SDK packages not needed on tenant instances
-  ]);
+  const excludeNodeModules = new Set(); // Not used — node_modules excluded entirely
   const excludeFiles = new Set([
     'deploy-azure.sh', 'provision-tenant.sh',
     '.DS_Store', 'cookies.txt',
@@ -143,8 +131,6 @@ async function createDeployZip() {
 
         if (isDir) {
           if (excludeDirs.has(entry.name)) continue;
-          // Inside node_modules, skip Azure SDK packages (not needed on tenant)
-          if (archivePath === 'node_modules' && excludeNodeModules.has(entry.name)) continue;
           if (entry.name === 'node_modules') nodeModulesIncluded = true;
           addDir(fullPath, arcPath);
         } else {
@@ -324,7 +310,7 @@ async function provisionTenant(jobId, orgSlug, adminEmail, adminPassword, adminN
       serverFarmId: `/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${resourceGroup}/providers/Microsoft.Web/serverfarms/${planName}`,
       siteConfig: {
         linuxFxVersion: 'NODE|20-lts',
-        appCommandLine: 'rm -f /home/site/wwwroot/node_modules.tar.gz /home/site/wwwroot/oryx-manifest.toml /home/site/wwwroot/.oryx_all_node_modules_copied_marker && node app.js',
+        appCommandLine: 'node app.js',
         alwaysOn: false,
         httpLoggingEnabled: true,
         detailedErrorLoggingEnabled: true
@@ -352,7 +338,8 @@ async function provisionTenant(jobId, orgSlug, adminEmail, adminPassword, adminN
         WEBAUTHN_ORIGIN: instanceUrl,
         WEBSITE_NODE_DEFAULT_VERSION: '~20',
         WEBSITES_ENABLE_APP_SERVICE_STORAGE: 'true',
-        SCM_DO_BUILD_DURING_DEPLOYMENT: 'false',
+        SCM_DO_BUILD_DURING_DEPLOYMENT: 'true',
+        ORYX_BUILD_ARGS: 'compress_node_modules=false',
         PLAN_TIER: 'trial',
         MAX_ASSESSMENTS: '3',
         DAILY_ASSESSMENT_LIMIT: '1',
