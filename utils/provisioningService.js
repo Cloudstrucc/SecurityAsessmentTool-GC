@@ -118,14 +118,30 @@ async function createDeployZip() {
     let fileCount = 0;
     let nodeModulesIncluded = false;
 
-    // Walk directory and add files
+    // Walk directory and add files — handles symlinks correctly
     function addDir(dirPath, archivePath) {
-      const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+      let entries;
+      try {
+        entries = fs.readdirSync(dirPath, { withFileTypes: true });
+      } catch (e) {
+        return; // Skip unreadable directories
+      }
+
       for (const entry of entries) {
         const fullPath = path.join(dirPath, entry.name);
         const arcPath = archivePath ? `${archivePath}/${entry.name}` : entry.name;
 
-        if (entry.isDirectory()) {
+        // Resolve symlinks — treat symlinked dirs as dirs, symlinked files as files
+        let isDir = entry.isDirectory();
+        if (!isDir && entry.isSymbolicLink()) {
+          try {
+            isDir = fs.statSync(fullPath).isDirectory();
+          } catch (e) {
+            continue; // Skip broken symlinks
+          }
+        }
+
+        if (isDir) {
           if (excludeDirs.has(entry.name)) continue;
           // Inside node_modules, skip Azure SDK packages (not needed on tenant)
           if (archivePath === 'node_modules' && excludeNodeModules.has(entry.name)) continue;
@@ -324,6 +340,13 @@ async function provisionTenant(jobId, orgSlug, adminEmail, adminPassword, adminN
       applicationLogs: { fileSystem: { level: 'Information' } },
       httpLogs: { fileSystem: { enabled: true, retentionInDays: 7, retentionInMb: 35 } }
     });
+
+    // ── Wait for SCM container to settle after settings update ──
+    // Applying app settings triggers an SCM container restart. If we deploy
+    // immediately, Oryx intercepts the zip and wipes node_modules.
+    console.log(`[Provision] ${jobId}: Waiting 30s for SCM container to settle...`);
+    updateStatus(jobId, 'running', 60, 'Waiting for environment to stabilize...', { appName, instanceUrl });
+    await new Promise(r => setTimeout(r, 30000));
 
     // ═══ STEP 5: Package & Deploy Code ═══
     updateStatus(jobId, 'running', 65, 'Packaging application code...', { appName, instanceUrl });
