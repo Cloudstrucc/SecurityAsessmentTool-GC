@@ -404,6 +404,44 @@ async function provisionTenant(jobId, orgSlug, adminEmail, adminPassword, adminN
       await new Promise(r => setTimeout(r, 20000));
     }
 
+    // ═══ CLEAN ROOT APP ORYX ARTIFACTS ═══
+    // Deploying to the tenant can cause Azure to regenerate Oryx build artifacts
+    // on the root app's wwwroot. On next restart, Oryx extracts a stale tar.gz
+    // and wipes the real node_modules. Use the same Azure credential to clean up.
+    try {
+      const rootSiteName = process.env.WEBSITE_SITE_NAME;
+      if (rootSiteName) {
+        const rootKuduBase = `https://${rootSiteName}.scm.azurewebsites.net`;
+        // Get Azure AD token — Kudu accepts Bearer tokens for management.azure.com
+        const tokenResp = await clients.credential.getToken('https://management.azure.com/.default');
+        const kuduAuth = `Bearer ${tokenResp.token}`;
+        const rootOryxArtifacts = [
+          'oryx-manifest.toml',
+          'node_modules.tar.gz',
+          '.oryx_all_node_modules_copied_marker'
+        ];
+        for (const artifact of rootOryxArtifacts) {
+          try {
+            const resp = await fetch(`${rootKuduBase}/api/vfs/site/wwwroot/${artifact}`, {
+              method: 'DELETE',
+              headers: { 'Authorization': kuduAuth, 'If-Match': '*' }
+            });
+            if (resp.status === 200 || resp.status === 204) {
+              console.log(`[Provision] ${jobId}: Cleaned root app Oryx artifact: ${artifact}`);
+            } else if (resp.status === 404) {
+              // Not present — nothing to clean
+            } else {
+              console.warn(`[Provision] ${jobId}: Could not clean root ${artifact}: HTTP ${resp.status}`);
+            }
+          } catch (e) {
+            console.warn(`[Provision] ${jobId}: Error cleaning root ${artifact}:`, e.message);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn(`[Provision] ${jobId}: Root app Oryx cleanup skipped:`, e.message);
+    }
+
     // ═══ DONE ═══
     updateStatus(jobId, 'completed', 100, 'Your instance is ready!', { appName, instanceUrl });
     console.log(`[Provision] ${jobId}: Complete — ${instanceUrl}`);
