@@ -311,9 +311,10 @@ if $RESET; then
     200|204) log "Database deleted via Kudu" ;;
     404)     log "Database already absent (clean)" ;;
     *)
-      warn "Kudu returned HTTP $DB_HTTP — setting startup cleanup fallback"
-      az webapp config set --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
-        --startup-file "rm -f /home/site/wwwroot/data/sa-tool.db; [ -L node_modules ] && rm -f node_modules || true; [ -d _del_node_modules ] && mv _del_node_modules node_modules || true; rm -f oryx-manifest.toml node_modules.tar.gz .oryx_all_node_modules_copied_marker; node app.js" \
+      warn "Kudu returned HTTP $DB_HTTP — setting startup command as fallback"
+      az webapp config set \
+        --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
+        --startup-file "node app.js" \
         --output none
       ;;
   esac
@@ -344,7 +345,8 @@ if $RESET; then
     "WEBAUTHN_ORIGIN=$R_ORIGIN"
     "WEBSITE_NODE_DEFAULT_VERSION=~20"
     "WEBSITES_ENABLE_APP_SERVICE_STORAGE=true"
-    "SCM_DO_BUILD_DURING_DEPLOYMENT=false"
+    "SCM_DO_BUILD_DURING_DEPLOYMENT=true"
+    "ORYX_BUILD_ARGS=compress_node_modules=false"
   )
 
   # Secrets — only include if they have actual values (don't blank existing)
@@ -369,9 +371,11 @@ if $RESET; then
     --settings "${SETTINGS_CMD[@]}" --output none
   log "All settings applied (${#SETTINGS_CMD[@]} variables)"
 
-  # Ensure startup command cleans Oryx artifacts and starts app
-  az webapp config set --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
-    --startup-file "[ -L node_modules ] && rm -f node_modules || true; [ -d _del_node_modules ] && mv _del_node_modules node_modules || true; rm -f oryx-manifest.toml node_modules.tar.gz .oryx_all_node_modules_copied_marker; node app.js" --output none
+  # Set clean startup command
+  az webapp config set \
+    --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
+    --startup-file "node app.js" \
+    --output none
 
   info "Proceeding to code deployment..."
   echo ""
@@ -447,7 +451,8 @@ if ! $UPDATE_ONLY && ! $RESET; then
         "WEBAUTHN_ORIGIN=https://$DOMAIN"
         "WEBSITE_NODE_DEFAULT_VERSION=~20"
         "WEBSITES_ENABLE_APP_SERVICE_STORAGE=true"
-        "SCM_DO_BUILD_DURING_DEPLOYMENT=false"
+        "SCM_DO_BUILD_DURING_DEPLOYMENT=true"
+        "ORYX_BUILD_ARGS=compress_node_modules=false"
     )
 
     if [[ "$IS_ROOT" =~ ^[Yy]$ ]]; then
@@ -486,7 +491,7 @@ if ! $UPDATE_ONLY && ! $RESET; then
     az webapp config set \
       --name "$APP_NAME" \
       --resource-group "$RESOURCE_GROUP" \
-      --startup-file "[ -L node_modules ] && rm -f node_modules || true; [ -d _del_node_modules ] && mv _del_node_modules node_modules || true; rm -f oryx-manifest.toml node_modules.tar.gz .oryx_all_node_modules_copied_marker; node app.js" \
+      --startup-file "node app.js" \
       --output none
     log "Startup command set"
 
@@ -556,10 +561,6 @@ if $SETTINGS_ONLY; then
 fi
 
 # ── Deploy code via ZIP ────────────────────────────────────────────────────────
-info "Installing dependencies locally..."
-npm install --production --no-audit --no-fund > /dev/null 2>&1
-log "Dependencies installed ($(ls node_modules | wc -l | tr -d ' ') packages)"
-
 info "Packaging application for deployment..."
 
 mkdir -p data uploads uploads/intakes
@@ -577,10 +578,11 @@ zip -r "$DEPLOY_ZIP" . \
   -x "cookies.txt" \
   -x ".DS_Store" \
   -x "provisioning-status/*" \
+  -x "node_modules/*" \
   > /dev/null
 
 DEPLOY_SIZE=$(du -sh "$DEPLOY_ZIP" | cut -f1)
-log "Deployment package ready ($DEPLOY_SIZE — includes node_modules)"
+log "Deployment package ready ($DEPLOY_SIZE)"
 
 info "Deploying to Azure (this may take 2-5 minutes)..."
 az webapp deploy \
