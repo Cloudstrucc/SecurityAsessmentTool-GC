@@ -345,8 +345,7 @@ if $RESET; then
     "WEBAUTHN_ORIGIN=$R_ORIGIN"
     "WEBSITE_NODE_DEFAULT_VERSION=~20"
     "WEBSITES_ENABLE_APP_SERVICE_STORAGE=true"
-    "SCM_DO_BUILD_DURING_DEPLOYMENT=true"
-    "ORYX_BUILD_ARGS=compress_node_modules=false"
+    "SCM_DO_BUILD_DURING_DEPLOYMENT=false"
   )
 
   # Secrets — only include if they have actual values (don't blank existing)
@@ -376,6 +375,9 @@ if $RESET; then
     --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
     --startup-file "node app.js" \
     --output none
+
+  info "Waiting 30s for SCM container to settle after settings update..."
+  sleep 30
 
   info "Proceeding to code deployment..."
   echo ""
@@ -451,8 +453,7 @@ if ! $UPDATE_ONLY && ! $RESET; then
         "WEBAUTHN_ORIGIN=https://$DOMAIN"
         "WEBSITE_NODE_DEFAULT_VERSION=~20"
         "WEBSITES_ENABLE_APP_SERVICE_STORAGE=true"
-        "SCM_DO_BUILD_DURING_DEPLOYMENT=true"
-        "ORYX_BUILD_ARGS=compress_node_modules=false"
+        "SCM_DO_BUILD_DURING_DEPLOYMENT=false"
     )
 
     if [[ "$IS_ROOT" =~ ^[Yy]$ ]]; then
@@ -561,6 +562,10 @@ if $SETTINGS_ONLY; then
 fi
 
 # ── Deploy code via ZIP ────────────────────────────────────────────────────────
+info "Installing dependencies locally..."
+npm install --omit=dev --no-audit --no-fund > /dev/null 2>&1
+log "Dependencies installed ($(ls node_modules | wc -l | tr -d ' ') packages)"
+
 info "Packaging application for deployment..."
 
 mkdir -p data uploads uploads/intakes
@@ -578,11 +583,10 @@ zip -r "$DEPLOY_ZIP" . \
   -x "cookies.txt" \
   -x ".DS_Store" \
   -x "provisioning-status/*" \
-  -x "node_modules/*" \
   > /dev/null
 
 DEPLOY_SIZE=$(du -sh "$DEPLOY_ZIP" | cut -f1)
-log "Deployment package ready ($DEPLOY_SIZE)"
+log "Deployment package ready ($DEPLOY_SIZE — includes node_modules)"
 
 info "Deploying to Azure (this may take 2-5 minutes)..."
 az webapp deploy \

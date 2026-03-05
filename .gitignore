@@ -3,16 +3,18 @@ node_modules/
 
 # Database
 data/*.db
+data/exports/
 
 # Uploaded files
 uploads/*
 !uploads/.gitkeep
 
-# PDF exports
-data/exports/
-git rm --cached .env
-# Environment
+# Environment files
 .env
+.env.production
+.env.local
+.env*.local
+.env.*
 
 # OS files
 .DS_Store
@@ -26,8 +28,10 @@ Thumbs.db
 *.log
 npm-debug.log*
 
-# Session files
-cookies.txt.env
-.env
-.env.production
-.env*.local
+# Session / temp files
+cookies.txt
+
+# Deployment artifacts
+provisioning-status/
+*.tar.gz
+*.zip
