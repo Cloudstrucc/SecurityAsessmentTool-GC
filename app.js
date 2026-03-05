@@ -200,7 +200,7 @@ app.use('/api', apiRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime() });
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime(), version: process.env.APP_VERSION || 'unknown' });
 });
 
 // 404

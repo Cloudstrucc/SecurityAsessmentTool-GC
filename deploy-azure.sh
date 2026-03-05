@@ -370,10 +370,10 @@ if $RESET; then
     --settings "${SETTINGS_CMD[@]}" --output none
   log "All settings applied (${#SETTINGS_CMD[@]} variables)"
 
-  # Set clean startup command
+  # Set clean startup command (also removes any leftover Oryx tar.gz on boot)
   az webapp config set \
     --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
-    --startup-file "node app.js" \
+    --startup-file "rm -f /home/site/wwwroot/node_modules.tar.gz /home/site/wwwroot/oryx-manifest.toml /home/site/wwwroot/.oryx_all_node_modules_copied_marker && node app.js" \
     --output none
 
   info "Waiting 30s for SCM container to settle after settings update..."
@@ -492,7 +492,7 @@ if ! $UPDATE_ONLY && ! $RESET; then
     az webapp config set \
       --name "$APP_NAME" \
       --resource-group "$RESOURCE_GROUP" \
-      --startup-file "node app.js" \
+      --startup-file "rm -f /home/site/wwwroot/node_modules.tar.gz /home/site/wwwroot/oryx-manifest.toml /home/site/wwwroot/.oryx_all_node_modules_copied_marker && node app.js" \
       --output none
     log "Startup command set"
 
@@ -561,6 +561,33 @@ if $SETTINGS_ONLY; then
   exit 0
 fi
 
+# ── Pre-deploy cleanup: remove leftover Oryx artifacts from Azure ─────────────
+info "Removing leftover Oryx artifacts from Azure (if any)..."
+KUDU_CREDS_PRE=$(az webapp deployment list-publishing-credentials \
+  --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
+  --query "{u:publishingUserName,p:publishingPassword}" -o tsv 2>/dev/null)
+KUDU_USER_PRE=$(echo "$KUDU_CREDS_PRE" | cut -f1)
+KUDU_PASS_PRE=$(echo "$KUDU_CREDS_PRE" | cut -f2)
+for ARTIFACT in "node_modules.tar.gz" "oryx-manifest.toml" ".oryx_all_node_modules_copied_marker"; do
+  HTTP=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE \
+    -u "${KUDU_USER_PRE}:${KUDU_PASS_PRE}" \
+    "https://${APP_NAME}.scm.azurewebsites.net/api/vfs/site/wwwroot/${ARTIFACT}" \
+    -H "If-Match: *" 2>/dev/null || echo "000")
+  case "$HTTP" in
+    200|204) log "Removed $ARTIFACT" ;;
+    404)     log "$ARTIFACT not present (clean)" ;;
+    *)       warn "Could not remove $ARTIFACT (HTTP $HTTP) — startup command will handle it" ;;
+  esac
+done
+
+# ── Stamp git commit into app settings for version validation ──────────────────
+GIT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+az webapp config appsettings set \
+  --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
+  --settings "APP_VERSION=$GIT_SHA" \
+  --output none 2>/dev/null
+log "Version stamp: $GIT_SHA"
+
 # ── Deploy code via ZIP ────────────────────────────────────────────────────────
 info "Installing dependencies locally..."
 npm install --omit=dev --no-audit --no-fund > /dev/null 2>&1
@@ -624,6 +651,20 @@ else
 fi
 
 rm -f "$DEPLOY_ZIP"
+
+# ── Version validation ─────────────────────────────────────────────────────────
+info "Validating deployed version..."
+sleep 10
+DEPLOYED_VERSION=$(curl -s "https://${APP_NAME}.azurewebsites.net/health" 2>/dev/null \
+  | grep -o '"version":"[^"]*"' | cut -d'"' -f4 || echo "")
+if [ "$DEPLOYED_VERSION" = "$GIT_SHA" ]; then
+  log "Version validated: $GIT_SHA is live ✓"
+elif [ -n "$DEPLOYED_VERSION" ]; then
+  warn "Version mismatch — live: $DEPLOYED_VERSION, expected: $GIT_SHA"
+  warn "App may still be restarting. Re-check: curl https://${APP_NAME}.azurewebsites.net/health"
+else
+  warn "Could not reach /health yet — app may still be starting up"
+fi
 
 # ── Start app + health check (reset mode stopped it earlier) ──────────────────
 if $RESET; then

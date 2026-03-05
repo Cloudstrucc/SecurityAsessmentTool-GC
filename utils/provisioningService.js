@@ -298,7 +298,7 @@ async function provisionTenant(jobId, orgSlug, adminEmail, adminPassword, adminN
       serverFarmId: `/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${resourceGroup}/providers/Microsoft.Web/serverfarms/${planName}`,
       siteConfig: {
         linuxFxVersion: 'NODE|20-lts',
-        appCommandLine: 'node app.js',
+        appCommandLine: 'rm -f /home/site/wwwroot/node_modules.tar.gz /home/site/wwwroot/oryx-manifest.toml /home/site/wwwroot/.oryx_all_node_modules_copied_marker && node app.js',
         alwaysOn: false,
         httpLoggingEnabled: true,
         detailedErrorLoggingEnabled: true
