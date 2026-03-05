@@ -215,6 +215,32 @@ async function deployZipToApp(webClient, resourceGroup, appName, zipPath) {
         // status: 0=pending, 1=building, 2=deploying, 3=failed, 4=success
         if (deploy.status === 4) {
           console.log(`[Provision] Kudu deploy succeeded after ${(i + 1) * 15}s`);
+          // Delete Oryx artifacts immediately after deploy succeeds.
+          // If left in place, Oryx reads oryx-manifest.toml on next container
+          // start, generates a startup script that extracts node_modules.tar.gz,
+          // and wipes our real node_modules BEFORE the custom appCommandLine runs.
+          const oryxArtifacts = [
+            'oryx-manifest.toml',
+            'node_modules.tar.gz',
+            '.oryx_all_node_modules_copied_marker'
+          ];
+          for (const artifact of oryxArtifacts) {
+            try {
+              const delResp = await fetch(`${kuduBase}/api/vfs/site/wwwroot/${artifact}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': authHeader, 'If-Match': '*' }
+              });
+              if (delResp.status === 200 || delResp.status === 204) {
+                console.log(`[Provision] Deleted Oryx artifact: ${artifact}`);
+              } else if (delResp.status === 404) {
+                console.log(`[Provision] Oryx artifact not present: ${artifact}`);
+              } else {
+                console.warn(`[Provision] Could not delete ${artifact}: HTTP ${delResp.status}`);
+              }
+            } catch (e) {
+              console.warn(`[Provision] Error deleting ${artifact}:`, e.message);
+            }
+          }
           return;
         }
         if (deploy.status === 3) {
