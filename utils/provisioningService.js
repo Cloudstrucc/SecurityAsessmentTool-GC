@@ -282,7 +282,7 @@ async function provisionTenant(jobId, orgSlug, adminEmail, adminPassword, adminN
       serverFarmId: `/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${resourceGroup}/providers/Microsoft.Web/serverfarms/${planName}`,
       siteConfig: {
         linuxFxVersion: 'NODE|20-lts',
-        appCommandLine: '[ -L node_modules ] && rm -f node_modules || true; [ -d _del_node_modules ] && mv _del_node_modules node_modules || true; rm -f oryx-manifest.toml node_modules.tar.gz .oryx_all_node_modules_copied_marker; node app.js',
+        appCommandLine: 'node app.js',
         alwaysOn: false,
         httpLoggingEnabled: true,
         detailedErrorLoggingEnabled: true
