@@ -563,21 +563,17 @@ fi
 
 # ── Pre-deploy cleanup: remove leftover Oryx artifacts from Azure ─────────────
 info "Removing leftover Oryx artifacts from Azure (if any)..."
-KUDU_CREDS_PRE=$(az webapp deployment list-publishing-credentials \
-  --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
-  --query "{u:publishingUserName,p:publishingPassword}" -o tsv 2>/dev/null)
-KUDU_USER_PRE=$(echo "$KUDU_CREDS_PRE" | cut -f1)
-KUDU_PASS_PRE=$(echo "$KUDU_CREDS_PRE" | cut -f2)
 for ARTIFACT in "node_modules.tar.gz" "oryx-manifest.toml" ".oryx_all_node_modules_copied_marker"; do
-  HTTP=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE \
-    -u "${KUDU_USER_PRE}:${KUDU_PASS_PRE}" \
-    "https://${APP_NAME}.scm.azurewebsites.net/api/vfs/site/wwwroot/${ARTIFACT}" \
-    -H "If-Match: *" 2>/dev/null || echo "000")
-  case "$HTTP" in
-    200|204) log "Removed $ARTIFACT" ;;
-    404)     log "$ARTIFACT not present (clean)" ;;
-    *)       warn "Could not remove $ARTIFACT (HTTP $HTTP) — startup command will handle it" ;;
-  esac
+  RESULT=$(az rest --method DELETE \
+    --url "https://${APP_NAME}.scm.azurewebsites.net/api/vfs/site/wwwroot/${ARTIFACT}" \
+    --headers "If-Match=*" 2>&1 || true)
+  if echo "$RESULT" | grep -q "404\|ResourceNotFound\|does not exist"; then
+    log "$ARTIFACT not present (clean)"
+  elif echo "$RESULT" | grep -q "error\|Error"; then
+    warn "Could not remove $ARTIFACT — startup command will handle it"
+  else
+    log "Removed $ARTIFACT"
+  fi
 done
 
 # ── Stamp git commit into app settings for version validation ──────────────────
@@ -610,6 +606,8 @@ zip -r "$DEPLOY_ZIP" . \
   -x "cookies.txt" \
   -x ".DS_Store" \
   -x "provisioning-status/*" \
+  -x "oryx-manifest.toml" \
+  -x ".oryx_all_node_modules_copied_marker" \
   > /dev/null
 
 DEPLOY_SIZE=$(du -sh "$DEPLOY_ZIP" | cut -f1)
