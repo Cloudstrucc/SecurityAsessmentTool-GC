@@ -72,17 +72,16 @@ async function createDeployZip() {
   const appRoot = path.join(__dirname, '..');
 
   console.log(`[Provision] Creating deploy zip from: ${appRoot}`);
-  console.log(`[Provision] node_modules excluded — tenant will run npm install via Oryx`);
 
-  // Include node_modules to avoid npm install during deploy (causes 504 on B1).
-  // Exclude Azure SDK packages — tenant instances don't provision, only the root site does.
+  // node_modules IS included in the ZIP. The root app's node_modules may be a
+  // symlink to /node_modules — addDir() follows symlinks via fs.statSync so it
+  // reads the real files. Bundling avoids any reliance on Oryx or npm install
+  // on tenant startup (which risks the 230s container timeout on B1 instances).
   const excludeDirs = new Set([
     '.git', 'data', 'uploads',
     'provisioning-status',
-    'node_modules',        // Excluded — tenant runs npm install via Oryx on deploy
     '_del_node_modules'
   ]);
-  const excludeNodeModules = new Set(); // Not used — node_modules excluded entirely
   const excludeFiles = new Set([
     'deploy-azure.sh', 'provision-tenant.sh',
     '.DS_Store', 'cookies.txt',
@@ -338,8 +337,10 @@ async function provisionTenant(jobId, orgSlug, adminEmail, adminPassword, adminN
         WEBAUTHN_ORIGIN: instanceUrl,
         WEBSITE_NODE_DEFAULT_VERSION: '~20',
         WEBSITES_ENABLE_APP_SERVICE_STORAGE: 'true',
-        SCM_DO_BUILD_DURING_DEPLOYMENT: 'true',
-        ORYX_BUILD_ARGS: 'compress_node_modules=false',
+        SCM_DO_BUILD_DURING_DEPLOYMENT: 'false',
+        // AI — inherit from root app so tenants share the same API key
+        ...(process.env.ANTHROPIC_API_KEY && { ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY }),
+        ...(process.env.ANTHROPIC_MODEL   && { ANTHROPIC_MODEL:   process.env.ANTHROPIC_MODEL }),
         PLAN_TIER: 'trial',
         MAX_ASSESSMENTS: '3',
         DAILY_ASSESSMENT_LIMIT: '1',
