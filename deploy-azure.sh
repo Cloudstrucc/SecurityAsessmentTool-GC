@@ -365,9 +365,28 @@ if $RESET; then
     [ -n "$R_ALTCHA_SECRET" ]  && SETTINGS_CMD+=("ALTCHA_HMAC_SECRET=$R_ALTCHA_SECRET")
   fi
 
-  az webapp config appsettings set \
+  # Write settings to a temp JSON file to safely handle special characters
+  # (EMAIL_FROM contains <, >, &, spaces which break inline az CLI args)
+  SETTINGS_JSON=$(mktemp /tmp/az-settings-XXXXXX.json)
+  python3 -c "
+import json, sys
+pairs = sys.argv[1:]
+settings = []
+for p in pairs:
+    k, _, v = p.partition('=')
+    settings.append({'name': k, 'value': v})
+print(json.dumps(settings))
+" "${SETTINGS_CMD[@]}" > "$SETTINGS_JSON"
+
+  if ! az webapp config appsettings set \
     --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
-    --settings "${SETTINGS_CMD[@]}" --output none
+    --settings @"$SETTINGS_JSON" --output none; then
+    warn "appsettings set failed. Settings JSON:"
+    cat "$SETTINGS_JSON" >&2
+    rm -f "$SETTINGS_JSON"
+    exit 1
+  fi
+  rm -f "$SETTINGS_JSON"
   log "All settings applied (${#SETTINGS_CMD[@]} variables)"
 
   # Set clean startup command (also removes any leftover Oryx tar.gz on boot)
