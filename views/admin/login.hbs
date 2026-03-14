@@ -102,19 +102,19 @@
 
           {{!-- ══ STANDARD LOGIN ══ --}}
           {{else}}
-            <form action="/admin/login" method="POST">
+            <form action="/admin/login" method="POST" autocomplete="on">
               <div class="mb-3">
                 <label for="email" class="form-label">Email Address</label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                  <input type="email" class="form-control" id="email" name="email" required autofocus placeholder="assessor@agency.gc.ca">
+                  <input type="email" class="form-control" id="email" name="email" required autofocus placeholder="assessor@agency.gc.ca" autocomplete="username">
                 </div>
               </div>
               <div class="mb-4">
                 <label for="password" class="form-label">Password</label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                  <input type="password" class="form-control" id="password" name="password" required placeholder="Enter password">
+                  <input type="password" class="form-control" id="password" name="password" required placeholder="Enter password" autocomplete="current-password">
                 </div>
               </div>
               <button type="submit" class="btn btn-primary w-100 py-2">

@@ -311,10 +311,9 @@ if $RESET; then
     200|204) log "Database deleted via Kudu" ;;
     404)     log "Database already absent (clean)" ;;
     *)
-      warn "Kudu returned HTTP $DB_HTTP — setting startup command as fallback"
-      az webapp config set \
-        --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
-        --startup-file "node app.js" \
+      warn "Kudu returned HTTP $DB_HTTP — setting startup cleanup fallback"
+      az webapp config set --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
+        --startup-file "rm -f /home/site/wwwroot/data/sa-tool.db; node app.js" \
         --output none
       ;;
   esac
@@ -365,38 +364,14 @@ if $RESET; then
     [ -n "$R_ALTCHA_SECRET" ]  && SETTINGS_CMD+=("ALTCHA_HMAC_SECRET=$R_ALTCHA_SECRET")
   fi
 
-  # Write settings to a temp JSON file to safely handle special characters
-  # (EMAIL_FROM contains <, >, &, spaces which break inline az CLI args)
-  SETTINGS_JSON=$(mktemp /tmp/az-settings-XXXXXX.json)
-  python3 -c "
-import json, sys
-pairs = sys.argv[1:]
-settings = []
-for p in pairs:
-    k, _, v = p.partition('=')
-    settings.append({'name': k, 'value': v})
-print(json.dumps(settings))
-" "${SETTINGS_CMD[@]}" > "$SETTINGS_JSON"
-
-  if ! az webapp config appsettings set \
+  az webapp config appsettings set \
     --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
-    --settings @"$SETTINGS_JSON" --output none; then
-    warn "appsettings set failed. Settings JSON:"
-    cat "$SETTINGS_JSON" >&2
-    rm -f "$SETTINGS_JSON"
-    exit 1
-  fi
-  rm -f "$SETTINGS_JSON"
+    --settings "${SETTINGS_CMD[@]}" --output none
   log "All settings applied (${#SETTINGS_CMD[@]} variables)"
 
-  # Set clean startup command (also removes any leftover Oryx tar.gz on boot)
-  az webapp config set \
-    --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
-    --startup-file "rm -f /home/site/wwwroot/node_modules.tar.gz /home/site/wwwroot/oryx-manifest.toml /home/site/wwwroot/.oryx_all_node_modules_copied_marker && node app.js" \
-    --output none
-
-  info "Waiting 30s for SCM container to settle after settings update..."
-  sleep 30
+  # Ensure startup command cleans Oryx artifacts and starts app
+  az webapp config set --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
+    --startup-file "node app.js" --output none
 
   info "Proceeding to code deployment..."
   echo ""
@@ -511,7 +486,7 @@ if ! $UPDATE_ONLY && ! $RESET; then
     az webapp config set \
       --name "$APP_NAME" \
       --resource-group "$RESOURCE_GROUP" \
-      --startup-file "rm -f /home/site/wwwroot/node_modules.tar.gz /home/site/wwwroot/oryx-manifest.toml /home/site/wwwroot/.oryx_all_node_modules_copied_marker && node app.js" \
+      --startup-file "node app.js" \
       --output none
     log "Startup command set"
 
@@ -580,32 +555,9 @@ if $SETTINGS_ONLY; then
   exit 0
 fi
 
-# ── Pre-deploy cleanup: remove leftover Oryx artifacts from Azure ─────────────
-info "Removing leftover Oryx artifacts from Azure (if any)..."
-for ARTIFACT in "node_modules.tar.gz" "oryx-manifest.toml" ".oryx_all_node_modules_copied_marker"; do
-  RESULT=$(az rest --method DELETE \
-    --url "https://${APP_NAME}.scm.azurewebsites.net/api/vfs/site/wwwroot/${ARTIFACT}" \
-    --headers "If-Match=*" 2>&1 || true)
-  if echo "$RESULT" | grep -q "404\|ResourceNotFound\|does not exist"; then
-    log "$ARTIFACT not present (clean)"
-  elif echo "$RESULT" | grep -q "error\|Error"; then
-    warn "Could not remove $ARTIFACT — startup command will handle it"
-  else
-    log "Removed $ARTIFACT"
-  fi
-done
-
-# ── Stamp git commit into app settings for version validation ──────────────────
-GIT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-az webapp config appsettings set \
-  --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
-  --settings "APP_VERSION=$GIT_SHA" \
-  --output none 2>/dev/null
-log "Version stamp: $GIT_SHA"
-
 # ── Deploy code via ZIP ────────────────────────────────────────────────────────
 info "Installing dependencies locally..."
-npm install --omit=dev --no-audit --no-fund > /dev/null 2>&1
+npm install --production --no-audit --no-fund > /dev/null 2>&1
 log "Dependencies installed ($(ls node_modules | wc -l | tr -d ' ') packages)"
 
 info "Packaging application for deployment..."
@@ -625,8 +577,6 @@ zip -r "$DEPLOY_ZIP" . \
   -x "cookies.txt" \
   -x ".DS_Store" \
   -x "provisioning-status/*" \
-  -x "oryx-manifest.toml" \
-  -x ".oryx_all_node_modules_copied_marker" \
   > /dev/null
 
 DEPLOY_SIZE=$(du -sh "$DEPLOY_ZIP" | cut -f1)
@@ -669,18 +619,62 @@ fi
 
 rm -f "$DEPLOY_ZIP"
 
-# ── Version validation ─────────────────────────────────────────────────────────
-info "Validating deployed version..."
-sleep 10
-DEPLOYED_VERSION=$(curl -s "https://${APP_NAME}.azurewebsites.net/health" 2>/dev/null \
-  | grep -o '"version":"[^"]*"' | cut -d'"' -f4 || echo "")
-if [ "$DEPLOYED_VERSION" = "$GIT_SHA" ]; then
-  log "Version validated: $GIT_SHA is live ✓"
-elif [ -n "$DEPLOYED_VERSION" ]; then
-  warn "Version mismatch — live: $DEPLOYED_VERSION, expected: $GIT_SHA"
-  warn "App may still be restarting. Re-check: curl https://${APP_NAME}.azurewebsites.net/health"
-else
-  warn "Could not reach /health yet — app may still be starting up"
+# ── Auto-sync .env settings to Azure (skip for --reset which handles its own) ──
+if ! $RESET && [ -f ".env" ]; then
+  info "Syncing .env settings to Azure..."
+
+  # Keys to skip (dev-only or managed by Azure)
+  SKIP_KEYS="PORT|NODE_ENV|UPLOAD_DIR|ANALYTICS_INTERVAL_HOURS|ADMIN_NOTIFY_EMAIL"
+
+  # Build settings JSON file to avoid special char issues with <> & in CLI
+  SETTINGS_JSON=$(mktemp /tmp/az-settings-XXXXX.json)
+  python3 -c "
+import json, re, sys
+settings = []
+skip = set('$SKIP_KEYS'.split('|'))
+with open('.env') as f:
+    for line in f:
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        m = re.match(r'^([A-Za-z_][A-Za-z0-9_]*)=(.*)', line)
+        if not m:
+            continue
+        key, val = m.group(1), m.group(2)
+        # Strip surrounding quotes
+        if (val.startswith('\"') and val.endswith('\"')) or (val.startswith(\"'\") and val.endswith(\"'\")):
+            val = val[1:-1]
+        # Skip dev-only keys and placeholders
+        if key in skip:
+            continue
+        if 'your-' in val or 'CHANGE-ME' in val or 'ChangeThis' in val:
+            continue
+        # Override dev values for production
+        if key == 'WEBAUTHN_RP_ID' and ('localhost' in val):
+            continue
+        if key == 'WEBAUTHN_ORIGIN' and ('localhost' in val):
+            continue
+        settings.append({'name': key, 'value': val, 'slotSetting': False})
+# Always ensure production values
+settings.append({'name': 'NODE_ENV', 'value': 'production', 'slotSetting': False})
+settings.append({'name': 'PORT', 'value': '8080', 'slotSetting': False})
+settings.append({'name': 'SCM_DO_BUILD_DURING_DEPLOYMENT', 'value': 'false', 'slotSetting': False})
+settings.append({'name': 'WEBSITES_ENABLE_APP_SERVICE_STORAGE', 'value': 'true', 'slotSetting': False})
+settings.append({'name': 'WEBSITE_NODE_DEFAULT_VERSION', 'value': '~20', 'slotSetting': False})
+json.dump(settings, open('$SETTINGS_JSON', 'w'))
+print(f'{len(settings)} settings prepared')
+" 2>&1
+  SETTING_COUNT=$(python3 -c "import json; print(len(json.load(open('$SETTINGS_JSON'))))" 2>/dev/null || echo "0")
+
+  if [ "$SETTING_COUNT" -gt 0 ]; then
+    az webapp config appsettings set \
+      --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
+      --settings "@${SETTINGS_JSON}" --output none 2>&1
+    log "Synced $SETTING_COUNT settings from .env to Azure"
+  else
+    warn "No settings to sync"
+  fi
+  rm -f "$SETTINGS_JSON"
 fi
 
 # ── Start app + health check (reset mode stopped it earlier) ──────────────────

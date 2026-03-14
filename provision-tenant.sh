@@ -163,7 +163,7 @@ az webapp config appsettings set \
 az webapp config set \
   --name "$APP_NAME" \
   --resource-group "$RESOURCE_GROUP" \
-  --startup-file "[ -L node_modules ] && rm -f node_modules || true; [ -d _del_node_modules ] && mv _del_node_modules node_modules || true; rm -f oryx-manifest.toml node_modules.tar.gz .oryx_all_node_modules_copied_marker; node app.js" \
+  --startup-file "node app.js" \
   --output none 2>&1
 
 # ── Enable logging ──

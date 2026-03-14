@@ -71,16 +71,29 @@ async function createDeployZip() {
   const zipPath = `/tmp/vcs-tenant-deploy-${Date.now()}.zip`;
   const appRoot = path.join(__dirname, '..');
 
-  console.log(`[Provision] Creating deploy zip from: ${appRoot}`);
+  // Verify node_modules exists (critical — tenant won't start without it)
+  const nodeModulesPath = path.join(appRoot, 'node_modules');
+  if (!fs.existsSync(nodeModulesPath)) {
+    throw new Error(`node_modules not found at ${nodeModulesPath} — cannot create tenant deploy zip`);
+  }
 
-  // node_modules IS included in the ZIP. The root app's node_modules may be a
-  // symlink to /node_modules — addDir() follows symlinks via fs.statSync so it
-  // reads the real files. Bundling avoids any reliance on Oryx or npm install
-  // on tenant startup (which risks the 230s container timeout on B1 instances).
+  // Sanity check a key dependency
+  if (!fs.existsSync(path.join(nodeModulesPath, 'dotenv'))) {
+    throw new Error('node_modules/dotenv missing — npm install may not have run on root site');
+  }
+
+  console.log(`[Provision] Creating deploy zip from: ${appRoot}`);
+  console.log(`[Provision] node_modules exists: true (${fs.readdirSync(nodeModulesPath).length} top-level packages)`);
+
+  // Include node_modules to avoid npm install during deploy (causes 504 on B1).
+  // Exclude Azure SDK packages — tenant instances don't provision, only the root site does.
   const excludeDirs = new Set([
     '.git', 'data', 'uploads',
     'provisioning-status',
-    '_del_node_modules'
+    '_del_node_modules'  // Oryx artifact — stale node_modules moved aside
+  ]);
+  const excludeNodeModules = new Set([
+    '@azure', // ~54MB of SDK packages not needed on tenant instances
   ]);
   const excludeFiles = new Set([
     'deploy-azure.sh', 'provision-tenant.sh',
@@ -105,31 +118,17 @@ async function createDeployZip() {
     let fileCount = 0;
     let nodeModulesIncluded = false;
 
-    // Walk directory and add files — handles symlinks correctly
+    // Walk directory and add files
     function addDir(dirPath, archivePath) {
-      let entries;
-      try {
-        entries = fs.readdirSync(dirPath, { withFileTypes: true });
-      } catch (e) {
-        return; // Skip unreadable directories
-      }
-
+      const entries = fs.readdirSync(dirPath, { withFileTypes: true });
       for (const entry of entries) {
         const fullPath = path.join(dirPath, entry.name);
         const arcPath = archivePath ? `${archivePath}/${entry.name}` : entry.name;
 
-        // Resolve symlinks — treat symlinked dirs as dirs, symlinked files as files
-        let isDir = entry.isDirectory();
-        if (!isDir && entry.isSymbolicLink()) {
-          try {
-            isDir = fs.statSync(fullPath).isDirectory();
-          } catch (e) {
-            continue; // Skip broken symlinks
-          }
-        }
-
-        if (isDir) {
+        if (entry.isDirectory()) {
           if (excludeDirs.has(entry.name)) continue;
+          // Inside node_modules, skip Azure SDK packages (not needed on tenant)
+          if (archivePath === 'node_modules' && excludeNodeModules.has(entry.name)) continue;
           if (entry.name === 'node_modules') nodeModulesIncluded = true;
           addDir(fullPath, arcPath);
         } else {
@@ -200,32 +199,6 @@ async function deployZipToApp(webClient, resourceGroup, appName, zipPath) {
         // status: 0=pending, 1=building, 2=deploying, 3=failed, 4=success
         if (deploy.status === 4) {
           console.log(`[Provision] Kudu deploy succeeded after ${(i + 1) * 15}s`);
-          // Delete Oryx artifacts immediately after deploy succeeds.
-          // If left in place, Oryx reads oryx-manifest.toml on next container
-          // start, generates a startup script that extracts node_modules.tar.gz,
-          // and wipes our real node_modules BEFORE the custom appCommandLine runs.
-          const oryxArtifacts = [
-            'oryx-manifest.toml',
-            'node_modules.tar.gz',
-            '.oryx_all_node_modules_copied_marker'
-          ];
-          for (const artifact of oryxArtifacts) {
-            try {
-              const delResp = await fetch(`${kuduBase}/api/vfs/site/wwwroot/${artifact}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': authHeader, 'If-Match': '*' }
-              });
-              if (delResp.status === 200 || delResp.status === 204) {
-                console.log(`[Provision] Deleted Oryx artifact: ${artifact}`);
-              } else if (delResp.status === 404) {
-                console.log(`[Provision] Oryx artifact not present: ${artifact}`);
-              } else {
-                console.warn(`[Provision] Could not delete ${artifact}: HTTP ${delResp.status}`);
-              }
-            } catch (e) {
-              console.warn(`[Provision] Error deleting ${artifact}:`, e.message);
-            }
-          }
           return;
         }
         if (deploy.status === 3) {
@@ -338,9 +311,6 @@ async function provisionTenant(jobId, orgSlug, adminEmail, adminPassword, adminN
         WEBSITE_NODE_DEFAULT_VERSION: '~20',
         WEBSITES_ENABLE_APP_SERVICE_STORAGE: 'true',
         SCM_DO_BUILD_DURING_DEPLOYMENT: 'false',
-        // AI — inherit from root app so tenants share the same API key
-        ...(process.env.ANTHROPIC_API_KEY && { ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY }),
-        ...(process.env.ANTHROPIC_MODEL   && { ANTHROPIC_MODEL:   process.env.ANTHROPIC_MODEL }),
         PLAN_TIER: 'trial',
         MAX_ASSESSMENTS: '3',
         DAILY_ASSESSMENT_LIMIT: '1',
@@ -354,13 +324,6 @@ async function provisionTenant(jobId, orgSlug, adminEmail, adminPassword, adminN
       applicationLogs: { fileSystem: { level: 'Information' } },
       httpLogs: { fileSystem: { enabled: true, retentionInDays: 7, retentionInMb: 35 } }
     });
-
-    // ── Wait for SCM container to settle after settings update ──
-    // Applying app settings triggers an SCM container restart. If we deploy
-    // immediately, Oryx intercepts the zip and wipes node_modules.
-    console.log(`[Provision] ${jobId}: Waiting 30s for SCM container to settle...`);
-    updateStatus(jobId, 'running', 60, 'Waiting for environment to stabilize...', { appName, instanceUrl });
-    await new Promise(r => setTimeout(r, 30000));
 
     // ═══ STEP 5: Package & Deploy Code ═══
     updateStatus(jobId, 'running', 65, 'Packaging application code...', { appName, instanceUrl });
@@ -403,44 +366,6 @@ async function provisionTenant(jobId, orgSlug, adminEmail, adminPassword, adminN
       // Not necessarily an error — app might just need more startup time
       updateStatus(jobId, 'running', 95, 'Instance deployed — finalizing startup...', { appName, instanceUrl });
       await new Promise(r => setTimeout(r, 20000));
-    }
-
-    // ═══ CLEAN ROOT APP ORYX ARTIFACTS ═══
-    // Deploying to the tenant can cause Azure to regenerate Oryx build artifacts
-    // on the root app's wwwroot. On next restart, Oryx extracts a stale tar.gz
-    // and wipes the real node_modules. Use the same Azure credential to clean up.
-    try {
-      const rootSiteName = process.env.WEBSITE_SITE_NAME;
-      if (rootSiteName) {
-        const rootKuduBase = `https://${rootSiteName}.scm.azurewebsites.net`;
-        // Get Azure AD token — Kudu accepts Bearer tokens for management.azure.com
-        const tokenResp = await clients.credential.getToken('https://management.azure.com/.default');
-        const kuduAuth = `Bearer ${tokenResp.token}`;
-        const rootOryxArtifacts = [
-          'oryx-manifest.toml',
-          'node_modules.tar.gz',
-          '.oryx_all_node_modules_copied_marker'
-        ];
-        for (const artifact of rootOryxArtifacts) {
-          try {
-            const resp = await fetch(`${rootKuduBase}/api/vfs/site/wwwroot/${artifact}`, {
-              method: 'DELETE',
-              headers: { 'Authorization': kuduAuth, 'If-Match': '*' }
-            });
-            if (resp.status === 200 || resp.status === 204) {
-              console.log(`[Provision] ${jobId}: Cleaned root app Oryx artifact: ${artifact}`);
-            } else if (resp.status === 404) {
-              // Not present — nothing to clean
-            } else {
-              console.warn(`[Provision] ${jobId}: Could not clean root ${artifact}: HTTP ${resp.status}`);
-            }
-          } catch (e) {
-            console.warn(`[Provision] ${jobId}: Error cleaning root ${artifact}:`, e.message);
-          }
-        }
-      }
-    } catch (e) {
-      console.warn(`[Provision] ${jobId}: Root app Oryx cleanup skipped:`, e.message);
     }
 
     // ═══ DONE ═══

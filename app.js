@@ -1,4 +1,8 @@
-require('dotenv').config();
+// Load environment: .env.dev for local development, .env for production
+const fs = require('fs');
+const dotenvPath = fs.existsSync('.env.dev') && process.env.NODE_ENV !== 'production' ? '.env.dev' : '.env';
+require('dotenv').config({ path: dotenvPath });
+if (dotenvPath === '.env.dev') console.log('[config] Loaded .env.dev (development mode)');
 const express = require('express');
 const { engine } = require('express-handlebars');
 const session = require('express-session');
@@ -200,7 +204,7 @@ app.use('/api', apiRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime(), version: process.env.APP_VERSION || 'unknown' });
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime() });
 });
 
 // 404

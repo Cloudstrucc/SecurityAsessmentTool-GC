@@ -1746,7 +1746,7 @@ const bcryptAdmin = require('bcryptjs');
 
 router.get('/register', (req, res) => {
   const inviteCode = req.query.invite || '';
-  res.render('admin/register', { title: 'Assessor Registration', layout: 'main', inviteCode, formData: {} });
+  res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode, formData: {} });
 });
 
 router.post('/register', (req, res) => {
@@ -1754,55 +1754,63 @@ router.post('/register', (req, res) => {
     const { name, email, organization, password, confirmPassword, invite_code } = req.body;
     if (!name || !email || !password || !invite_code) {
       req.flash('error', 'All fields are required.');
-      return res.render('admin/register', { title: 'Assessor Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+      return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
     }
     if (password.length < 10) {
       req.flash('error', 'Password must be at least 10 characters.');
-      return res.render('admin/register', { title: 'Assessor Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+      return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
     }
     if (password !== confirmPassword) {
       req.flash('error', 'Passwords do not match.');
-      return res.render('admin/register', { title: 'Assessor Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+      return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
     }
     // Validate invite code
     const invite = get(
-      "SELECT * FROM invitations WHERE invite_code = ? AND type = 'assessor' AND status = 'pending'",
+      "SELECT * FROM invitations WHERE invite_code = ? AND type IN ('assessor','admin','client') AND status = 'pending'",
       [invite_code.trim().toUpperCase()]
     );
     if (!invite) {
       req.flash('error', 'Invalid or expired invite code.');
-      return res.render('admin/register', { title: 'Assessor Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+      return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
     }
     if (new Date(invite.expires_at) < new Date()) {
       req.flash('error', 'This invitation has expired. Please request a new one from the assessor.');
-      return res.render('admin/register', { title: 'Assessor Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+      return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
     }
     // Enforce email match
     if (email.toLowerCase().trim() !== invite.email.toLowerCase().trim()) {
       req.flash('error', `You must register with the email address the invitation was sent to (${invite.email}).`);
-      return res.render('admin/register', { title: 'Assessor Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+      return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
     }
     // Check existing user
     const existing = get('SELECT id FROM users WHERE email = ?', [email.toLowerCase().trim()]);
     if (existing) {
       req.flash('error', 'An account with this email already exists.');
-      return res.render('admin/register', { title: 'Assessor Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+      return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
     }
+    const assignedRole = invite.type; // admin, assessor, or client
     const hashedPassword = bcryptAdmin.hashSync(password, 12);
     const secret = otpGenerateSecret();
     const userId = run(
       `INSERT INTO users (email, password, name, role, organization, totp_secret, mfa_enabled, is_active)
        VALUES (?,?,?,?,?,?,?,?)`,
-      [email.toLowerCase().trim(), hashedPassword, name, 'assessor', organization || invite.organization || '', secret, 0, 1]
+      [email.toLowerCase().trim(), hashedPassword, name, assignedRole, organization || invite.organization || '', secret, 0, 1]
     );
     // Mark invitation as accepted
     run("UPDATE invitations SET status = 'accepted', accepted_at = CURRENT_TIMESTAMP, accepted_by_user_id = ? WHERE id = ?",
       [userId, invite.id]);
-    // Redirect to MFA setup via admin login flow
+
+    // Clients skip MFA — redirect to client login
+    if (assignedRole === 'client') {
+      req.flash('success', 'Account created! You can now sign in.');
+      return res.redirect(303, '/client/login');
+    }
+
+    // Admin/assessor — redirect to MFA setup
     req.session.pendingAssessorMfaUserId = userId;
     res.redirect(303, '/admin/assessor-mfa-setup');
   } catch (err) {
-    console.error('Assessor registration error:', err);
+    console.error('Registration error:', err);
     req.flash('error', 'Registration failed. Please try again.');
     res.redirect('/admin/register');
   }
