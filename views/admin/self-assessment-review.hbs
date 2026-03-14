@@ -179,7 +179,7 @@
         <div class="card-header"><i class="bi bi-pencil me-2"></i>Admin Notes</div>
         <div class="card-body">
           <form action="/admin/self-assessments/{{sa.id}}/review" method="POST">
-            <textarea name="admin_notes" class="form-control mb-2" rows="3" placeholder="Internal notes about this submission...">{{sa.admin_notes}}</textarea>
+            <textarea name="admin_notes" class="form-control mb-2" rows="3" placeholder="{{t 'admin.self_assessment_review.ph.internal_notes_about_this'}}">{{sa.admin_notes}}</textarea>
             <button type="submit" class="btn btn-sm btn-outline-primary w-100">
               <i class="bi bi-check me-1"></i>{{#if (eq sa.status 'submitted')}}Mark as Reviewed{{else}}Update Notes{{/if}}
             </button>
@@ -246,20 +246,20 @@
           <form action="/admin/self-assessments/{{sa.id}}/create-intake" method="POST" id="intakeForm">
             <div class="intake-form-section">
               <div class="mb-2">
-                <label class="form-label">Project Name</label>
-                <input type="text" class="form-control" name="project_name" id="if_project_name" value="" placeholder="e.g. Citizen Feedback Portal">
+                <label class="form-label">{{t 'admin.self_assessment_review.label.project_name'}}</label>
+                <input type="text" class="form-control" name="project_name" id="if_project_name" value="" placeholder="{{t 'admin.self_assessment_review.ph.eg_citizen_feedback_portal'}}">
               </div>
               <div class="mb-2">
-                <label class="form-label">Description</label>
-                <textarea class="form-control" name="project_description" id="if_project_description" rows="2" placeholder="Brief description of the system..."></textarea>
+                <label class="form-label">{{t 'admin.self_assessment_review.label.description'}}</label>
+                <textarea class="form-control" name="project_description" id="if_project_description" rows="2" placeholder="{{t 'admin.self_assessment_review.ph.brief_description_of_the'}}"></textarea>
               </div>
               <div class="mb-2">
-                <label class="form-label">Department</label>
+                <label class="form-label">{{t 'admin.self_assessment_review.label.department'}}</label>
                 <input type="text" class="form-control" name="department" id="if_department" value="">
               </div>
               <div class="row g-2 mb-2">
                 <div class="col-6">
-                  <label class="form-label">App Type</label>
+                  <label class="form-label">{{t 'admin.self_assessment_review.label.app_type'}}</label>
                   <select class="form-select" name="app_type" id="if_app_type">
                     <option value="">—</option>
                     <option value="web">Web Application</option>
@@ -271,7 +271,7 @@
                   </select>
                 </div>
                 <div class="col-6">
-                  <label class="form-label">Data Classification</label>
+                  <label class="form-label">{{t 'admin.self_assessment_review.label.data_classification'}}</label>
                   <select class="form-select" name="data_classification" id="if_data_classification">
                     <option value="unclassified">Unclassified</option>
                     <option value="protected-a">Protected A</option>
@@ -282,7 +282,7 @@
               </div>
               <div class="row g-2 mb-2">
                 <div class="col-4">
-                  <label class="form-label">Confidentiality</label>
+                  <label class="form-label">{{t 'admin.self_assessment_review.label.confidentiality'}}</label>
                   <select class="form-select" name="confidentiality_level" id="if_confidentiality">
                     <option value="low">Low</option>
                     <option value="medium" selected>Medium</option>
@@ -290,7 +290,7 @@
                   </select>
                 </div>
                 <div class="col-4">
-                  <label class="form-label">Integrity</label>
+                  <label class="form-label">{{t 'admin.self_assessment_review.label.integrity'}}</label>
                   <select class="form-select" name="integrity_level" id="if_integrity">
                     <option value="low">Low</option>
                     <option value="medium" selected>Medium</option>
@@ -298,7 +298,7 @@
                   </select>
                 </div>
                 <div class="col-4">
-                  <label class="form-label">Availability</label>
+                  <label class="form-label">{{t 'admin.self_assessment_review.label.availability'}}</label>
                   <select class="form-select" name="availability_level" id="if_availability">
                     <option value="low">Low</option>
                     <option value="medium" selected>Medium</option>
@@ -308,14 +308,14 @@
               </div>
               <div class="row g-2 mb-2">
                 <div class="col-6">
-                  <label class="form-label">Contains PII?</label>
+                  <label class="form-label">{{t 'admin.self_assessment_review.label.contains_pii'}}</label>
                   <select class="form-select" name="has_pii" id="if_has_pii">
                     <option value="false">No</option>
                     <option value="true" selected>Yes</option>
                   </select>
                 </div>
                 <div class="col-6">
-                  <label class="form-label">PIA Completed?</label>
+                  <label class="form-label">{{t 'admin.self_assessment_review.label.pia_completed'}}</label>
                   <select class="form-select" name="pia_completed" id="if_pia_completed">
                     <option value="unknown">Unknown</option>
                     <option value="no">No</option>
@@ -325,7 +325,7 @@
               </div>
               <div class="row g-2 mb-2">
                 <div class="col-6">
-                  <label class="form-label">Hosting</label>
+                  <label class="form-label">{{t 'admin.self_assessment_review.label.hosting'}}</label>
                   <select class="form-select" name="hosting_type" id="if_hosting_type">
                     <option value="">—</option>
                     <option value="on-premises">On-Premises</option>
@@ -335,12 +335,12 @@
                   </select>
                 </div>
                 <div class="col-6">
-                  <label class="form-label">Hosting Region</label>
-                  <input type="text" class="form-control" name="hosting_region" id="if_hosting_region" value="" placeholder="e.g. Canada">
+                  <label class="form-label">{{t 'admin.self_assessment_review.label.hosting_region'}}</label>
+                  <input type="text" class="form-control" name="hosting_region" id="if_hosting_region" value="" placeholder="{{t 'admin.self_assessment_review.ph.eg_canada'}}">
                 </div>
               </div>
               <div class="mb-2">
-                <label class="form-label">Security Profile</label>
+                <label class="form-label">{{t 'admin.self_assessment_review.label.security_profile'}}</label>
                 <select class="form-select" name="security_profile" id="if_security_profile">
                   <option value="PBMM">PBMM</option>
                   <option value="standard">Standard</option>
@@ -348,8 +348,8 @@
                 </select>
               </div>
               <div class="mb-2">
-                <label class="form-label">Additional Notes</label>
-                <textarea class="form-control" name="additional_notes" id="if_additional_notes" rows="2" placeholder="Key findings, notes for the client..."></textarea>
+                <label class="form-label">{{t 'admin.self_assessment_review.label.additional_notes'}}</label>
+                <textarea class="form-control" name="additional_notes" id="if_additional_notes" rows="2" placeholder="{{t 'admin.self_assessment_review.ph.key_findings_notes_for'}}"></textarea>
               </div>
             </div>
 

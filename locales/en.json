@@ -175,5 +175,706 @@
   "bq.sns": "System & Network Security",
   "bq.mir": "Monitoring & Incident Response",
   "bq.gpa": "Governance, Policy & Awareness",
-  "bq.ssc": "System-Specific Considerations"
+  "bq.ssc": "System-Specific Considerations",
+  "admin": {
+    "assessment_detail": {
+      "th": {
+        "risk": "Risk",
+        "item": "Item",
+        "control": "Control",
+        "deadline": "Deadline",
+        "assigned": "Assigned",
+        "status": "Status"
+      },
+      "label": {
+        "assign_peer_assessor": "Assign Peer Assessor",
+        "override_result": "Override Result",
+        "iato_expiry_date": "iATO Expiry Date",
+        "poam_notes": "POA&M Notes"
+      },
+      "stat": {
+        "total_controls": "Total Controls",
+        "inherited": "Inherited",
+        "evidence_provided": "Evidence Provided",
+        "met": "Met",
+        "partially_met": "Partially Met",
+        "not_met": "Not Met",
+        "high_risk_tbs": "High Risk (TBS)"
+      },
+      "ph": {
+        "notes_optional": "Notes (optional)",
+        "poam_context_notes": "POA&M context notes...",
+        "document_residual_risk_acceptance": "Document residual risk acceptance rationale per TBS Directive on Security Management...",
+        "remediation_item_description": "Remediation item description",
+        "assigned_to": "Assigned to",
+        "remediation_plan_optional": "Remediation plan (optional)",
+        "milestone_optional": "Milestone (optional)",
+        "auditor_comments": "Auditor comments...",
+        "add_a_comment": "Add a comment...",
+        "filter_families": "Filter families..."
+      }
+    },
+    "assessment_new": {
+      "title": {
+        "new_assessment": "New Assessment"
+      },
+      "label": {
+        "tailored_description": "Tailored Description",
+        "evidence_guidance": "Evidence Guidance",
+        "applicability": "Applicability"
+      },
+      "ph": {
+        "projectspecific_description_for_this": "Project-specific description for this control...",
+        "what_evidence_the_project": "What evidence the project owner should provide..."
+      }
+    },
+    "assessments": {
+      "title": {
+        "assessments": "Assessments"
+      },
+      "th": {
+        "project": "Project",
+        "type": "Type",
+        "status": "Status",
+        "score": "Score",
+        "result": "Result",
+        "invite_code": "Invite Code",
+        "created": "Created",
+        "updated": "Updated"
+      }
+    },
+    "assessor_mfa_setup": {
+      "title": {
+        "set_up_multifactor_authentication": "Set Up Multi-Factor Authentication"
+      },
+      "label": {
+        "step_2_enter_the": "Step 2: Enter the 6-digit code from your app"
+      }
+    },
+    "audit_log": {
+      "th": {
+        "timestamp": "Timestamp",
+        "user": "User",
+        "role": "Role",
+        "action": "Action",
+        "entity": "Entity",
+        "mfa": "MFA"
+      },
+      "label": {
+        "entity_type": "Entity Type",
+        "action": "Action"
+      },
+      "ph": {
+        "eg_auditcomplete": "e.g. audit.complete"
+      }
+    },
+    "dashboard": {
+      "title": {
+        "dashboard": "Dashboard"
+      },
+      "th": {
+        "name": "Name",
+        "classification": "Classification",
+        "status": "Status",
+        "updated": "Updated",
+        "project": "Project",
+        "result": "Result",
+        "ref": "Ref",
+        "department": "Department",
+        "submitted": "Submitted"
+      },
+      "stat": {
+        "total_projects": "Total Projects",
+        "active_assessments": "Active Assessments",
+        "pending_audits": "Pending Audits",
+        "active_atos": "Active ATOs",
+        "pending_intakes": "Pending Intakes",
+        "preassessments": "Pre-Assessments"
+      }
+    },
+    "guidance_report": {
+      "th": {
+        "requirement": "Requirement",
+        "level": "Level",
+        "status": "Status",
+        "notes": "Notes"
+      },
+      "label": {
+        "reviewer_notes": "Reviewer Notes"
+      },
+      "ph": {
+        "notes_for_the_project": "Notes for the project owner (visible if returned)...",
+        "add_any_assessor_notes": "Add any assessor notes for this guidance report..."
+      }
+    },
+    "intake_review": {
+      "label": {
+        "department_agency": "Department / Agency",
+        "branch_directorate": "Branch / Directorate",
+        "application_type": "Application Type",
+        "target_golive": "Target Go-Live",
+        "estimated_users": "Estimated Users",
+        "project_description": "Project Description",
+        "atip_subject": "ATIP Subject",
+        "pia_status": "PIA Status",
+        "contains_pii": "Contains PII",
+        "pii_types_identified": "PII Types Identified",
+        "hosting": "Hosting",
+        "data_residency": "Data Residency",
+        "technologies": "Technologies",
+        "other_technologies": "Other Technologies",
+        "apis": "APIs",
+        "gc_interconnections": "GC Interconnections",
+        "mobile_byod": "Mobile / BYOD",
+        "listed_interconnections": "Listed Interconnections",
+        "external_users": "External Users",
+        "project_owner": "Project Owner",
+        "technical_lead": "Technical Lead",
+        "authorizing_official": "Authorizing Official",
+        "override_confidentiality": "Override Confidentiality",
+        "override_integrity": "Override Integrity",
+        "override_availability": "Override Availability",
+        "high_value_asset_hva": "High Value Asset (HVA)",
+        "override_app_type": "Override App Type",
+        "additional_technologies": "Additional Technologies",
+        "additional_description_context": "Additional Description Context",
+        "assessor_notes_internal": "Assessor Notes (internal)",
+        "assessment_type": "Assessment Type",
+        "include_only_p1_amp": "Include only P1 &amp; P2 priority controls"
+      },
+      "ph": {
+        "add_keywords_for_the": "Add keywords for the engine: e.g. 'API gateway, microservices, containerized, data lake'",
+        "internal_notes_about_this": "Internal notes about this intake (not shared with client)...",
+        "reason_for_declining_optional": "Reason for declining (optional)"
+      }
+    },
+    "intakes": {
+      "title": {
+        "no_intake_submissions_yet": "No intake submissions yet"
+      },
+      "th": {
+        "ref": "Ref",
+        "project_name": "Project Name",
+        "department": "Department",
+        "classification": "Classification",
+        "pii": "PII",
+        "hosting": "Hosting",
+        "submitted_by": "Submitted By",
+        "status": "Status",
+        "date": "Date"
+      },
+      "stat": {
+        "total_submissions": "Total Submissions",
+        "pending_review": "Pending Review",
+        "accepted": "Accepted",
+        "in_review": "In Review"
+      }
+    },
+    "invitations": {
+      "title": {
+        "team_invitations": "Team & Invitations"
+      },
+      "th": {
+        "email": "Email",
+        "name": "Name",
+        "code": "Code",
+        "status": "Status",
+        "sent": "Sent",
+        "expires": "Expires",
+        "organization": "Organization",
+        "joined": "Joined",
+        "last_login": "Last Login"
+      },
+      "label": {
+        "name": "Name",
+        "organization": "Organization"
+      },
+      "ph": {
+        "jane_doe": "Jane Doe",
+        "client_organization_name": "Client Organization Name",
+        "brief_note_to_include": "Brief note to include in the email",
+        "john_smith": "John Smith",
+        "organization": "Organization",
+        "brief_note_about_the": "Brief note about the collaboration"
+      }
+    },
+    "login": {
+      "title": {
+        "mfa_setup_required": "MFA Setup Required",
+        "verify_identity": "Verify Identity",
+        "assessor_login": "Assessor Login"
+      },
+      "label": {
+        "manual_entry_key": "Manual Entry Key",
+        "verification_code": "Verification Code",
+        "authentication_code": "Authentication Code",
+        "email_address": "Email Address",
+        "password": "Password"
+      },
+      "ph": {
+        "enter_password": "Enter password"
+      }
+    },
+    "manage_controls": {
+      "title": {
+        "manage_controls": "Manage Controls"
+      },
+      "label": {
+        "tailored_description": "Tailored Description",
+        "evidence_guidance": "Evidence Guidance",
+        "applicability": "Applicability",
+        "inherited": "Inherited",
+        "inherited_from": "Inherited From"
+      },
+      "ph": {
+        "projectspecific_description": "Project-specific description...",
+        "what_evidence_should_be": "What evidence should be provided...",
+        "eg_azure_ssc": "e.g. Azure, SSC",
+        "filter_by_id_or": "Filter by ID or keyword..."
+      }
+    },
+    "passkey_setup": {
+      "title": {
+        "register_a_passkey": "Register a Passkey"
+      }
+    },
+    "project_detail": {
+      "title": {
+        "description": "Description",
+        "technology_stack": "Technology Stack"
+      },
+      "th": {
+        "type": "Type",
+        "status": "Status",
+        "score": "Score",
+        "result": "Result",
+        "invite_code": "Invite Code",
+        "updated": "Updated"
+      }
+    },
+    "project_new": {
+      "title": {
+        "new_project": "New Project",
+        "existing_client": "Existing Client",
+        "invite_new_client": "Invite New Client"
+      },
+      "label": {
+        "department_agency": "Department / Agency",
+        "branch_directorate": "Branch / Directorate",
+        "technical_specifications_optional": "Technical Specifications (optional)",
+        "authorizing_official_dg_director": "Authorizing Official (DG / Director)",
+        "authority_email": "Authority Email",
+        "cio_delegated_authority_name": "CIO / Delegated Authority Name",
+        "cio_delegated_authority_email": "CIO / Delegated Authority Email",
+        "full_name": "Full Name",
+        "organization": "Organization",
+        "message_optional": "Message (optional)"
+      },
+      "ph": {
+        "eg_hr_case_management": "e.g., HR Case Management System",
+        "describe_the_systems_purpose": "Describe the system's purpose, users, data flows, and key functionality...",
+        "employment_and_social_development": "Employment and Social Development Canada",
+        "innovation_information_and_technology": "Innovation, Information and Technology Branch",
+        "architecture_details_integration_points": "Architecture details, integration points, APIs, etc.",
+        "full_name": "Full name",
+        "jane_smith": "Jane Smith",
+        "acme_corp": "Acme Corp",
+        "welcome_to_the_assessment": "Welcome to the assessment portal"
+      }
+    },
+    "projects": {
+      "title": {
+        "projects": "Projects",
+        "no_projects_yet": "No projects yet"
+      },
+      "th": {
+        "project_name": "Project Name",
+        "classification": "Classification",
+        "hosting": "Hosting",
+        "owner": "Owner",
+        "status": "Status",
+        "created": "Created"
+      }
+    },
+    "register": {
+      "title": {
+        "account_registration": "Account Registration"
+      },
+      "label": {
+        "organization": "Organization"
+      },
+      "ph": {
+        "xxxxxxxx": "XXXXXXXX",
+        "eg_jane_doe": "e.g. Jane Doe",
+        "must_match_the_invited": "Must match the invited email",
+        "your_organization": "Your organization",
+        "minimum_10_characters": "Minimum 10 characters"
+      }
+    },
+    "self_assessment_review": {
+      "label": {
+        "project_name": "Project Name",
+        "description": "Description",
+        "department": "Department",
+        "app_type": "App Type",
+        "data_classification": "Data Classification",
+        "confidentiality": "Confidentiality",
+        "integrity": "Integrity",
+        "availability": "Availability",
+        "contains_pii": "Contains PII?",
+        "pia_completed": "PIA Completed?",
+        "hosting": "Hosting",
+        "hosting_region": "Hosting Region",
+        "security_profile": "Security Profile",
+        "additional_notes": "Additional Notes"
+      },
+      "ph": {
+        "internal_notes_about_this": "Internal notes about this submission...",
+        "eg_citizen_feedback_portal": "e.g. Citizen Feedback Portal",
+        "brief_description_of_the": "Brief description of the system...",
+        "eg_canada": "e.g. Canada",
+        "key_findings_notes_for": "Key findings, notes for the client..."
+      }
+    },
+    "self_assessments": {
+      "title": {
+        "preintake_selfassessments": "Pre-Intake Self-Assessments"
+      },
+      "th": {
+        "ref": "Ref",
+        "submitter": "Submitter",
+        "system": "System",
+        "jurisdiction": "Jurisdiction",
+        "score": "Score",
+        "status": "Status",
+        "submitted": "Submitted",
+        "name": "Name",
+        "email": "Email",
+        "organization": "Organization",
+        "reason": "Reason",
+        "requested": "Requested"
+      }
+    },
+    "settings": {
+      "title": {
+        "settings": "Settings"
+      }
+    }
+  },
+  "error": {
+    "ph": {
+      "access_code": "Access Code"
+    }
+  },
+  "layout": {
+    "main": {
+      "title": {
+        "about_this_site": "About this site",
+        "verification_required": "Verification Required"
+      }
+    }
+  },
+  "partial": {
+    "ai_panel": {
+      "title": {
+        "ai_assistant": "AI Assistant"
+      }
+    }
+  },
+  "checklist": {
+    "title": {
+      "iato_remediation_checklist": "iATO Remediation Checklist"
+    },
+    "th": {
+      "description": "Description",
+      "control": "Control",
+      "deadline": "Deadline",
+      "assigned_to": "Assigned To",
+      "status": "Status"
+    }
+  },
+  "client_dashboard": {
+    "title": {
+      "my_dashboard": "My Dashboard"
+    },
+    "th": {
+      "project": "Project",
+      "status": "Status",
+      "invite_code": "Invite Code",
+      "created": "Created",
+      "reference": "Reference",
+      "department": "Department",
+      "submitted": "Submitted"
+    },
+    "ph": {
+      "eg_a1b2c3d4": "e.g. A1B2C3D4"
+    }
+  },
+  "client_login": {
+    "title": {
+      "client_sign_in": "Client Sign In"
+    },
+    "label": {
+      "email_address": "Email Address",
+      "password": "Password",
+      "authentication_code": "Authentication Code"
+    }
+  },
+  "client_settings": {
+    "title": {
+      "settings": "Settings"
+    }
+  },
+  "guidance_portal": {
+    "title": {
+      "gc_web_standards_checklist": "GC Web Standards Checklist"
+    },
+    "label": {
+      "additional_notes": "Additional Notes"
+    },
+    "ph": {
+      "notes_or_evidence_reference": "Notes or evidence reference (optional)...",
+      "eg_jane_doe": "e.g. Jane Doe",
+      "eg_janedoeagencygcca": "e.g. jane.doe@agency.gc.ca",
+      "any_questions_clarifications_or": "Any questions, clarifications, or additional context..."
+    }
+  },
+  "guidance_submitted": {
+    "title": {
+      "checklist_submitted": "Checklist Submitted"
+    }
+  },
+  "intake": {
+    "title": {
+      "security_assessment_intake": "Security Assessment Intake",
+      "identity_access": "Identity & Access",
+      "cloud_infrastructure": "Cloud & Infrastructure",
+      "security_monitoring": "Security & Monitoring",
+      "devops_encryption_management": "DevOps, Encryption & Management",
+      "technical_lead": "Technical Lead",
+      "authorizing_official_dg_director": "Authorizing Official (DG / Director)"
+    },
+    "label": {
+      "branch_directorate": "Branch / Directorate",
+      "target_golive_date": "Target Go-Live Date",
+      "estimated_user_count": "Estimated User Count",
+      "personal_information_pii_checklist": "Personal Information (PII) Checklist",
+      "data_residency": "Data Residency",
+      "technology_stack": "Technology Stack",
+      "microsoft_entra_id_azure": "Microsoft Entra ID (Azure AD)",
+      "active_directory_onprem": "Active Directory (On-Prem)",
+      "multifactor_authentication": "Multi-Factor Authentication",
+      "privileged_identity_management": "Privileged Identity Management",
+      "microsoft_azure": "Microsoft Azure",
+      "amazon_web_services": "Amazon Web Services",
+      "google_cloud_platform": "Google Cloud Platform",
+      "ssc_data_centre": "SSC Data Centre",
+      "gc_network_gcnet": "GC Network (GCNet)",
+      "microsoft_sentinel_siem": "Microsoft Sentinel (SIEM)",
+      "splunk_siem": "Splunk (SIEM)",
+      "microsoft_defender": "Microsoft Defender",
+      "crowdstrike_falcon": "CrowdStrike Falcon",
+      "cse_cccs_services": "CSE / CCCS Services",
+      "web_application_firewall": "Web Application Firewall",
+      "azure_devops": "Azure DevOps",
+      "github_enterprise": "GitHub Enterprise",
+      "microsoft_intune_mdm": "Microsoft Intune (MDM)",
+      "azure_key_vault": "Azure Key Vault",
+      "aws_kms": "AWS KMS",
+      "tls_12_13": "TLS 1.2 / 1.3",
+      "azure_backup": "Azure Backup",
+      "other_technologies_notes": "Other Technologies / Notes",
+      "list_known_interconnections_integrations": "List Known Interconnections / Integrations",
+      "completed_security_activities": "Completed Security Activities",
+      "attachments": "Attachments",
+      "selected_files": "Selected files:",
+      "notes_questions_special_considerations": "Notes / Questions / Special Considerations"
+    },
+    "ph": {
+      "eg_were_building_a": "e.g. We're building a portal for tax professionals to submit client returns. It connects to CRA mainframe and handles SIN, financial data. Hosted on Azure in Canada...",
+      "eg_hr_case_management": "e.g. HR Case Management Portal",
+      "describe_the_purpose_scope": "Describe the purpose, scope, and key features of the system...",
+      "eg_employment_and_social": "e.g. Employment and Social Development Canada",
+      "eg_innovation_information_and": "e.g. Innovation, Information and Technology Branch",
+      "list_any_technologies_not": "List any technologies not covered above (e.g. Oracle DB, SAP, Dynamics 365, Power Platform, etc.)",
+      "eg_gccase_via_api": "e.g. GCcase (via API), SAP (file transfer), GCDOCS (document storage), Canada.ca (public portal)...",
+      "full_name": "Full name",
+      "email_address": "Email address",
+      "title_role": "Title / Role",
+      "eg_tight_deadline_need": "e.g. tight deadline, need iATO first, migrating from legacy system, specific compliance requirements..."
+    }
+  },
+  "mfa_setup": {
+    "title": {
+      "set_up_multifactor_authentication": "Set Up Multi-Factor Authentication"
+    },
+    "label": {
+      "step_2_enter_the": "Step 2: Enter the 6-digit code from your app"
+    }
+  },
+  "passkey_setup": {
+    "title": {
+      "register_a_passkey": "Register a Passkey"
+    }
+  },
+  "poam_remediation": {
+    "title": {
+      "poam_remediation": "POA&M Remediation"
+    },
+    "label": {
+      "original_finding": "Original Finding",
+      "required_remediation": "Required Remediation",
+      "your_remediation_evidence": "Your Remediation Evidence"
+    },
+    "ph": {
+      "describe_what_was_done": "Describe what was done to remediate this finding, including evidence of completion..."
+    }
+  },
+  "product_signup": {
+    "title": {
+      "start_your_free_14day": "Start your free 14-day trial",
+      "dedicated_tenant_isolation": "Dedicated tenant isolation",
+      "create_your_account": "Create your account"
+    },
+    "ph": {
+      "smith": "Smith",
+      "acme_security_corp": "Acme Security Corp",
+      "min_10_characters": "Min. 10 characters",
+      "reenter_your_password": "Re-enter your password"
+    }
+  },
+  "provision_status": {
+    "title": {
+      "deploying_your_instance": "Deploying your instance"
+    }
+  },
+  "register": {
+    "title": {
+      "account_registration": "Account Registration"
+    },
+    "label": {
+      "organization": "Organization"
+    },
+    "ph": {
+      "xxxxxxxx": "XXXXXXXX",
+      "eg_jane_doe": "e.g. Jane Doe",
+      "must_match_the_invited": "Must match the invited email",
+      "your_organization": "Your organization",
+      "minimum_10_characters": "Minimum 10 characters"
+    }
+  },
+  "respond": {
+    "label": {
+      "your_evidence": "Your Evidence",
+      "attachments": "Attachments"
+    },
+    "ph": {
+      "enter_your_evidence_here": "Enter your evidence here...",
+      "add_a_comment": "Add a comment..."
+    }
+  },
+  "success": {
+    "title": {
+      "evidence_submitted_successfully": "Evidence Submitted Successfully"
+    }
+  },
+  "flash": {
+    "admin": {
+      "passkey_verification_failed_please": "Passkey verification failed. Please try again.",
+      "invalid_authentication_code_please": "Invalid authentication code. Please try again.",
+      "failed_to_generate_qr": "Failed to generate QR code.",
+      "setup_failed_please_try": "Setup failed. Please try again.",
+      "invalid_code_make_sure": "Invalid code. Make sure your authenticator clock is synced and try again.",
+      "mfa_enabled_you_can": "MFA enabled! You can optionally register a passkey for biometric sign-in.",
+      "please_log_in_to": "Please log in to access the admin area",
+      "project_created_successfully": "Project created successfully",
+      "project_not_found": "Project not found",
+      "assessment_not_found": "Assessment not found",
+      "you_do_not_have": "You do not have access to this assessment.",
+      "audit_started": "Audit started",
+      "poam_item_added": "POA&M item added",
+      "poam_item_updated": "POA&M item updated",
+      "poam_item_removed": "POA&M item removed",
+      "submission_reactivated_for_updates": "Submission reactivated for updates",
+      "failed_to_generate_pdf": "Failed to generate PDF",
+      "failed_to_generate_ato": "Failed to generate ATO document",
+      "draft_assessment_deleted_successfully": "Draft assessment deleted successfully",
+      "selfassessment_not_found": "Self-assessment not found",
+      "selfassessment_marked_as_reviewed": "Self-assessment marked as reviewed.",
+      "request_not_found": "Request not found",
+      "access_request_denied": "Access request denied.",
+      "intake_not_found": "Intake not found",
+      "attachment_not_found": "Attachment not found",
+      "guidance_report_not_found": "Guidance report not found",
+      "guidance_checklist_validated_and": "Guidance checklist validated and approved.",
+      "checklist_returned_to_project": "Checklist returned to project owner for revision.",
+      "notes_saved": "Notes saved.",
+      "no_new_controls_to": "No new controls to add.",
+      "control_not_found": "Control not found",
+      "control_updated": "Control updated.",
+      "email_address_is_required": "Email address is required.",
+      "failed_to_send_invitation": "Failed to send invitation.",
+      "invitation_not_found_or": "Invitation not found or not in pending status.",
+      "all_fields_are_required": "All fields are required.",
+      "password_must_be_at": "Password must be at least 10 characters.",
+      "passwords_do_not_match": "Passwords do not match.",
+      "invalid_or_expired_invite": "Invalid or expired invite code.",
+      "this_invitation_has_expired": "This invitation has expired. Please request a new one from the assessor.",
+      "an_account_with_this": "An account with this email already exists.",
+      "account_created_you_can": "Account created! You can now sign in.",
+      "registration_failed_please_try": "Registration failed. Please try again.",
+      "invalid_mfa_code_please": "Invalid MFA code. Please try again.",
+      "registration_complete_mfa_enabled": "Registration complete! MFA enabled. Please sign in.",
+      "only_the_assessment_owner": "Only the assessment owner can revoke assignments.",
+      "selected_assessor_not_found": "Selected assessor not found or inactive.",
+      "you_can_only_assign": "You can only assign assessors you have invited.",
+      "assignment_not_found": "Assignment not found."
+    },
+    "public": {
+      "this_access_code_has": "This access code has expired. Please request a new one.",
+      "invalid_or_expired_access": "Invalid or expired access code.",
+      "email_is_required": "Email is required.",
+      "a_request_from_this": "A request from this email is already pending review. You will be notified by email when approved.",
+      "you_already_have_an": "You already have an active access code. Check your email or enter it below.",
+      "failed_to_submit_request": "Failed to submit request. Please try again.",
+      "please_enter_an_access": "Please enter an access code",
+      "please_sign_in_to": "Please sign in to access remediation items.",
+      "assessment_not_found": "Assessment not found",
+      "all_fields_are_required": "All fields are required.",
+      "password_must_be_at": "Password must be at least 10 characters.",
+      "passwords_do_not_match": "Passwords do not match.",
+      "invalid_or_expired_invite": "Invalid or expired invite code.",
+      "this_invitation_has_expired": "This invitation has expired. Please request a new one.",
+      "an_account_with_this": "An account with this email already exists.",
+      "registration_failed_please_try": "Registration failed. Please try again.",
+      "failed_to_generate_qr": "Failed to generate QR code.",
+      "user_not_found_please": "User not found. Please register again.",
+      "invalid_code_please_try": "Invalid code. Please try again — make sure your device clock is synced.",
+      "mfa_enabled_you_can": "MFA enabled! You can optionally register a passkey for faster sign-in.",
+      "invalid_email_or_password": "Invalid email or password.",
+      "please_complete_your_mfa": "Please complete your MFA setup.",
+      "session_expired_please_sign": "Session expired. Please sign in again.",
+      "invalid_authentication_code_please": "Invalid authentication code. Please try again.",
+      "session_expired": "Session expired.",
+      "passkey_not_available": "Passkey not available.",
+      "verification_failed": "Verification failed.",
+      "you_have_been_signed": "You have been signed out.",
+      "failed_to_submit_intake": "Failed to submit intake. Please try again.",
+      "intake_not_found": "Intake not found.",
+      "you_do_not_have": "You do not have access to this intake.",
+      "this_intake_has_already": "This intake has already been submitted and cannot be edited.",
+      "intake_not_found_or": "Intake not found or already submitted.",
+      "this_assessment_is_assigned": "This assessment is assigned to a different account.",
+      "not_authenticated": "Not authenticated",
+      "remediation_evidence_submitted_for": "Remediation evidence submitted for assessor review.",
+      "invalid_code": "Invalid code",
+      "already_validated": "Already validated",
+      "provisioning_is_not_available": "Provisioning is not available. Please contact support.",
+      "verification_failed_please_try": "Verification failed. Please try again.",
+      "verification_error_please_try": "Verification error. Please try again.",
+      "an_instance_for_this": "An instance for this organization name already exists. Please choose a different name or contact support.",
+      "an_error_occurred_please": "An error occurred. Please try again.",
+      "provisioning_job_not_found": "Provisioning job not found."
+    }
+  }
 }

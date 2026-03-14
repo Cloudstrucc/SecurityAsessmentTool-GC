@@ -42,7 +42,7 @@ router.get('/self-assessment', (req, res) => {
     const access = get("SELECT * FROM sa_access_requests WHERE access_code = ? AND status = 'approved'", [code.toUpperCase().trim()]);
     if (access) {
       if (access.expires_at && new Date(access.expires_at) < new Date()) {
-        req.flash('error', 'This access code has expired. Please request a new one.');
+        req.flash('error', req.t('flash.public.this_access_code_has'));
         return res.render('public/self-assessment-gate', { title: 'Security Self-Assessment' });
       }
       // Valid — show the wizard
@@ -56,7 +56,7 @@ router.get('/self-assessment', (req, res) => {
         accessEmail: access.email || ''
       });
     }
-    req.flash('error', 'Invalid or expired access code.');
+    req.flash('error', req.t('flash.public.invalid_or_expired_access'));
   }
   res.render('public/self-assessment-gate', { title: 'Security Self-Assessment' });
 });
@@ -66,19 +66,19 @@ router.post('/self-assessment/request-access', async (req, res) => {
   try {
     const { name, email, organization, reason } = req.body;
     if (!email) {
-      req.flash('error', 'Email is required.');
+      req.flash('error', req.t('flash.public.email_is_required'));
       return res.redirect('/self-assessment');
     }
     // Check for existing pending request
     const existing = get("SELECT id FROM sa_access_requests WHERE email = ? AND status = 'pending'", [email.toLowerCase().trim()]);
     if (existing) {
-      req.flash('info', 'A request from this email is already pending review. You will be notified by email when approved.');
+      req.flash('info', req.t('flash.public.a_request_from_this'));
       return res.redirect('/self-assessment');
     }
     // Check for existing approved code
     const approved = get("SELECT access_code FROM sa_access_requests WHERE email = ? AND status = 'approved' AND (expires_at IS NULL OR expires_at > datetime('now'))", [email.toLowerCase().trim()]);
     if (approved) {
-      req.flash('success', 'You already have an active access code. Check your email or enter it below.');
+      req.flash('success', req.t('flash.public.you_already_have_an'));
       return res.redirect('/self-assessment');
     }
 
@@ -92,7 +92,7 @@ router.post('/self-assessment/request-access', async (req, res) => {
     });
   } catch (err) {
     console.error('SA access request error:', err);
-    req.flash('error', 'Failed to submit request. Please try again.');
+    req.flash('error', req.t('flash.public.failed_to_submit_request'));
     res.redirect('/self-assessment');
   }
 });
@@ -100,13 +100,13 @@ router.post('/self-assessment/request-access', async (req, res) => {
 // Access via code
 router.get('/access', (req, res) => {
   const { code } = req.query;
-  if (!code) { req.flash('error', 'Please enter an access code'); return res.redirect('/portal'); }
+  if (!code) { req.flash('error', req.t('flash.public.please_enter_an_access')); return res.redirect('/portal'); }
   res.redirect('/respond/' + code.toUpperCase().trim());
 });
 
 router.post('/respond/access', (req, res) => {
   const { code } = req.body;
-  if (!code) { req.flash('error', 'Please enter an access code'); return res.redirect('/portal'); }
+  if (!code) { req.flash('error', req.t('flash.public.please_enter_an_access')); return res.redirect('/portal'); }
   res.redirect('/respond/' + code.toUpperCase().trim());
 });
 
@@ -138,7 +138,7 @@ router.get('/respond/:code', (req, res) => {
   // ── Require client login ──
   if (!req.session.clientId) {
     req.session.pendingInviteCode = code;
-    req.flash('info', 'Please sign in to access this assessment. Use the email address associated with your intake submission.');
+    req.flash('info', req.t('flash.public.please_sign_in_to'));
     return res.redirect('/client/login');
   }
 
@@ -247,7 +247,7 @@ router.post('/respond/:code/submit', requireSignature('evidence.submit', 'Submit
     WHERE a.invite_code = ?
   `, [code]);
 
-  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/portal'); }
+  if (!assessment) { req.flash('error', req.t('flash.public.assessment_not_found')); return res.redirect('/portal'); }
 
   run(`UPDATE assessments SET status = 'submitted', submitted_at = CURRENT_TIMESTAMP, 
     updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [assessment.id]);
@@ -292,7 +292,7 @@ router.get('/respond/:code/checklist', (req, res) => {
 function ensureClientAuth(req, res, next) {
   if (req.isAuthenticated()) return next();
   if (req.session && req.session.clientId) return next();
-  req.flash('error', 'Please sign in to access the intake portal.');
+  req.flash('error', req.t('flash.public.please_sign_in_to'));
   res.redirect('/client/login');
 }
 
@@ -308,17 +308,17 @@ router.post('/client/register', (req, res) => {
     const { name, email, organization, password, confirmPassword, invite_code } = req.body;
 
     if (!name || !email || !organization || !password) {
-      req.flash('error', 'All fields are required.');
+      req.flash('error', req.t('flash.public.all_fields_are_required'));
       return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code || '' });
     }
 
     if (password.length < 10) {
-      req.flash('error', 'Password must be at least 10 characters.');
+      req.flash('error', req.t('flash.public.password_must_be_at'));
       return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code || '' });
     }
 
     if (password !== confirmPassword) {
-      req.flash('error', 'Passwords do not match.');
+      req.flash('error', req.t('flash.public.passwords_do_not_match'));
       return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code || '' });
     }
 
@@ -330,11 +330,11 @@ router.post('/client/register', (req, res) => {
         [invite_code.trim().toUpperCase()]
       );
       if (!invite) {
-        req.flash('error', 'Invalid or expired invite code.');
+        req.flash('error', req.t('flash.public.invalid_or_expired_invite'));
         return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code });
       }
       if (new Date(invite.expires_at) < new Date()) {
-        req.flash('error', 'This invitation has expired. Please request a new one.');
+        req.flash('error', req.t('flash.public.this_invitation_has_expired'));
         return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code });
       }
       // Enforce email match
@@ -346,7 +346,7 @@ router.post('/client/register', (req, res) => {
 
     const existing = get('SELECT id FROM users WHERE email = ?', [email.toLowerCase().trim()]);
     if (existing) {
-      req.flash('error', 'An account with this email already exists.');
+      req.flash('error', req.t('flash.public.an_account_with_this'));
       return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code || '' });
     }
 
@@ -371,7 +371,7 @@ router.post('/client/register', (req, res) => {
 
   } catch (err) {
     console.error('Registration error:', err);
-    req.flash('error', 'Registration failed. Please try again.');
+    req.flash('error', req.t('flash.public.registration_failed_please_try'));
     res.redirect('/client/register');
   }
 });
@@ -397,7 +397,7 @@ router.get('/client/mfa-setup', async (req, res) => {
     });
   } catch (err) {
     console.error('QR code error:', err);
-    req.flash('error', 'Failed to generate QR code.');
+    req.flash('error', req.t('flash.public.failed_to_generate_qr'));
     res.redirect('/client/register');
   }
 });
@@ -408,13 +408,13 @@ router.post('/client/mfa-setup', (req, res) => {
 
   const user = get('SELECT id, totp_secret FROM users WHERE id = ?', [userId]);
   if (!user) {
-    req.flash('error', 'User not found. Please register again.');
+    req.flash('error', req.t('flash.public.user_not_found_please'));
     return res.redirect('/client/register');
   }
 
   const isValid = otpVerify({ secret: user.totp_secret, token }).valid;
   if (!isValid) {
-    req.flash('error', 'Invalid code. Please try again — make sure your device clock is synced.');
+    req.flash('error', req.t('flash.public.invalid_code_please_try'));
     return res.redirect(303, '/client/mfa-setup');
   }
 
@@ -424,7 +424,7 @@ router.post('/client/mfa-setup', (req, res) => {
 
   // Log them in
   req.session.clientId = user.id;
-  req.flash('success', 'MFA enabled! You can optionally register a passkey for faster sign-in.');
+  req.flash('success', req.t('flash.public.mfa_enabled_you_can'));
   res.redirect('/client/passkey-setup');
 });
 
@@ -449,14 +449,14 @@ router.post('/client/login', (req, res) => {
   const user = get('SELECT * FROM users WHERE email = ? AND is_active = 1', [email]);
 
   if (!user || !bcrypt.compareSync(password, user.password)) {
-    req.flash('error', 'Invalid email or password.');
+    req.flash('error', req.t('flash.public.invalid_email_or_password'));
     return res.redirect('/client/login');
   }
 
   if (!user.mfa_enabled) {
     // User registered but never completed MFA setup
     req.session.pendingMfaUserId = user.id;
-    req.flash('warning', 'Please complete your MFA setup.');
+    req.flash('warning', req.t('flash.public.please_complete_your_mfa'));
     return res.redirect(303, '/client/mfa-setup');
   }
 
@@ -476,13 +476,13 @@ router.post('/client/login/mfa', (req, res) => {
 
   const user = get('SELECT id, totp_secret, name FROM users WHERE id = ? AND mfa_enabled = 1', [userId]);
   if (!user) {
-    req.flash('error', 'Session expired. Please sign in again.');
+    req.flash('error', req.t('flash.public.session_expired_please_sign'));
     return res.redirect('/client/login');
   }
 
   const isValid = otpVerify({ secret: user.totp_secret, token }).valid;
   if (!isValid) {
-    req.flash('error', 'Invalid authentication code. Please try again.');
+    req.flash('error', req.t('flash.public.invalid_authentication_code_please'));
     // Re-render MFA step instead of redirecting (avoids losing state)
     return res.render('public/client-login', {
       title: 'Verify MFA', mfaStep: true, userId: user.id
@@ -509,14 +509,14 @@ router.post('/client/login/mfa', (req, res) => {
 // ── CLIENT LOGIN VIA WEBAUTHN ──
 router.post('/client/login/webauthn', (req, res) => {
   const userId = req.session.pendingLoginUserId;
-  if (!userId) { req.flash('error', 'Session expired.'); return res.redirect('/client/login'); }
+  if (!userId) { req.flash('error', req.t('flash.public.session_expired')); return res.redirect('/client/login'); }
   const user = get('SELECT id, name, mfa_enabled, webauthn_credential_id FROM users WHERE id = ? AND mfa_enabled = 1', [userId]);
-  if (!user || !user.webauthn_credential_id) { req.flash('error', 'Passkey not available.'); return res.redirect('/client/login'); }
+  if (!user || !user.webauthn_credential_id) { req.flash('error', req.t('flash.public.passkey_not_available')); return res.redirect('/client/login'); }
 
   // The sig_token was already verified by /api/webauthn/auth-verify
   const { consumeToken } = require('../config/mfa-signature');
   const tokenUserId = consumeToken(req.body._sig_token);
-  if (!tokenUserId || tokenUserId !== userId) { req.flash('error', 'Verification failed.'); return res.redirect('/client/login'); }
+  if (!tokenUserId || tokenUserId !== userId) { req.flash('error', req.t('flash.public.verification_failed')); return res.redirect('/client/login'); }
 
   delete req.session.pendingLoginUserId;
   req.session.clientId = user.id;
@@ -539,7 +539,7 @@ router.get('/client/logout', (req, res) => {
   delete req.session.clientId;
   delete req.session.pendingLoginUserId;
   delete req.session.pendingMfaUserId;
-  req.flash('success', 'You have been signed out.');
+  req.flash('success', req.t('flash.public.you_have_been_signed'));
   res.redirect('/portal');
 });
 
@@ -547,7 +547,7 @@ router.get('/client/logout', (req, res) => {
 
 router.get('/client/dashboard', ensureClientAuth, (req, res) => {
   const clientUser = get('SELECT * FROM users WHERE id = ?', [req.session.clientId]);
-  if (!clientUser) { req.flash('error', 'Session expired.'); return res.redirect('/client/login'); }
+  if (!clientUser) { req.flash('error', req.t('flash.public.session_expired')); return res.redirect('/client/login'); }
 
   // Get intakes submitted by this user OR assigned to them by an assessor
   const intakes = all(`
@@ -576,7 +576,7 @@ router.get('/client/dashboard', ensureClientAuth, (req, res) => {
 
 router.get('/client/settings', ensureClientAuth, (req, res) => {
   const clientUser = get('SELECT * FROM users WHERE id = ?', [req.session.clientId]);
-  if (!clientUser) { req.flash('error', 'Session expired.'); return res.redirect('/client/login'); }
+  if (!clientUser) { req.flash('error', req.t('flash.public.session_expired')); return res.redirect('/client/login'); }
   res.render('public/client-settings', {
     title: 'Settings',
     clientUser,
@@ -674,7 +674,7 @@ router.post('/intake', ensureClientAuth, intakeUpload.array('attachments', 10), 
 
   } catch (err) {
     console.error('Intake submission error:', err);
-    req.flash('error', 'Failed to submit intake. Please try again.');
+    req.flash('error', req.t('flash.public.failed_to_submit_intake'));
     res.redirect('/intake');
   }
 });
@@ -685,7 +685,7 @@ router.post('/intake', ensureClientAuth, intakeUpload.array('attachments', 10), 
 
 router.get('/intake/:refCode/edit', ensureClientAuth, (req, res) => {
   const intake = get('SELECT * FROM intake_submissions WHERE ref_code = ?', [req.params.refCode]);
-  if (!intake) { req.flash('error', 'Intake not found.'); return res.redirect('/client/dashboard'); }
+  if (!intake) { req.flash('error', req.t('flash.public.intake_not_found')); return res.redirect('/client/dashboard'); }
   
   // Verify access: client must be the assignee or owner
   const clientUser = get('SELECT * FROM users WHERE id = ?', [req.session.clientId]);
@@ -695,13 +695,13 @@ router.get('/intake/:refCode/edit', ensureClientAuth, (req, res) => {
   const isAssigned = (intake.assigned_to_email || '').toLowerCase().trim() === email;
   const isSubmitter = intake.submitted_by_user_id === clientUser.id;
   if (!isOwner && !isAssigned && !isSubmitter) {
-    req.flash('error', 'You do not have access to this intake.');
+    req.flash('error', req.t('flash.public.you_do_not_have'));
     return res.redirect('/client/dashboard');
   }
   
   // Only allow editing draft intakes
   if (intake.status !== 'draft') {
-    req.flash('info', 'This intake has already been submitted and cannot be edited.');
+    req.flash('info', req.t('flash.public.this_intake_has_already'));
     return res.redirect('/client/dashboard');
   }
   
@@ -729,7 +729,7 @@ router.post('/intake/:refCode/edit', ensureClientAuth, intakeUpload.array('attac
   try {
     const intake = get('SELECT * FROM intake_submissions WHERE ref_code = ?', [req.params.refCode]);
     if (!intake || intake.status !== 'draft') {
-      req.flash('error', 'Intake not found or already submitted.');
+      req.flash('error', req.t('flash.public.intake_not_found_or'));
       return res.redirect('/client/dashboard');
     }
     
@@ -739,7 +739,7 @@ router.post('/intake/:refCode/edit', ensureClientAuth, intakeUpload.array('attac
     const isOwner = (intake.owner_email || '').toLowerCase().trim() === email;
     const isAssigned = (intake.assigned_to_email || '').toLowerCase().trim() === email;
     if (!isOwner && !isAssigned && intake.submitted_by_user_id !== clientUser.id) {
-      req.flash('error', 'You do not have access to this intake.');
+      req.flash('error', req.t('flash.public.you_do_not_have'));
       return res.redirect('/client/dashboard');
     }
 
@@ -829,7 +829,7 @@ router.post('/intake/:refCode/edit', ensureClientAuth, intakeUpload.array('attac
 
   } catch (err) {
     console.error('Intake edit error:', err);
-    req.flash('error', 'Failed to submit intake. Please try again.');
+    req.flash('error', req.t('flash.public.failed_to_submit_intake'));
     res.redirect(`/intake/${req.params.refCode}/edit`);
   }
 });
@@ -843,7 +843,7 @@ router.get('/respond/:code/poam', (req, res) => {
   const code = req.params.code.toUpperCase().trim();
   if (!req.session.clientId) {
     req.session.pendingInviteCode = code;
-    req.flash('info', 'Please sign in to access remediation items.');
+    req.flash('info', req.t('flash.public.please_sign_in_to'));
     return res.redirect('/client/login');
   }
 
@@ -860,7 +860,7 @@ router.get('/respond/:code/poam', (req, res) => {
   const expectedEmail = (assessment.client_email || assessment.project_owner_email || '').toLowerCase().trim();
   const clientEmail = (clientUser?.email || '').toLowerCase().trim();
   if (expectedEmail && clientEmail !== expectedEmail) {
-    req.flash('error', 'This assessment is assigned to a different account.');
+    req.flash('error', req.t('flash.public.this_assessment_is_assigned'));
     return res.redirect('/client/login');
   }
 
@@ -901,16 +901,16 @@ router.post('/respond/:code/poam/:itemId/save', express.json({ limit: '5mb' }), 
 
 // Submit all remediation evidence
 router.post('/respond/:code/poam/submit', requireSignature('poam.client_submit', 'Submitted POA&M remediation evidence', 'assessment'), (req, res) => {
-  if (!req.session.clientId) { req.flash('error', 'Not authenticated'); return res.redirect('/client/login'); }
+  if (!req.session.clientId) { req.flash('error', req.t('flash.public.not_authenticated')); return res.redirect('/client/login'); }
   const code = req.params.code.toUpperCase().trim();
   const assessment = get('SELECT id FROM assessments WHERE UPPER(TRIM(invite_code)) = ?', [code]);
-  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/client/dashboard'); }
+  if (!assessment) { req.flash('error', req.t('flash.public.assessment_not_found')); return res.redirect('/client/dashboard'); }
 
   // Mark all items with evidence as submitted
   run(`UPDATE iato_checklist SET client_evidence_status = 'submitted', client_submitted_at = CURRENT_TIMESTAMP 
     WHERE assessment_id = ? AND client_evidence IS NOT NULL AND client_evidence != ''`, [assessment.id]);
 
-  req.flash('success', 'Remediation evidence submitted for assessor review.');
+  req.flash('success', req.t('flash.public.remediation_evidence_submitted_for'));
   res.redirect('/respond/' + code + '/poam');
 });
 
@@ -988,8 +988,8 @@ router.post('/guidance/:code/submit', requireSignature('guidance.submit', 'Submi
     FROM guidance_reports g JOIN projects p ON g.project_id = p.id
     WHERE g.invite_code = ?
   `, [req.params.code.toUpperCase()]);
-  if (!report) { req.flash('error', 'Invalid code'); return res.redirect('/portal'); }
-  if (report.status === 'validated') { req.flash('error', 'Already validated'); return res.redirect('/guidance/' + req.params.code); }
+  if (!report) { req.flash('error', req.t('flash.public.invalid_code')); return res.redirect('/portal'); }
+  if (report.status === 'validated') { req.flash('error', req.t('flash.public.already_validated')); return res.redirect('/guidance/' + req.params.code); }
 
   const { respondent_name, respondent_email, respondent_notes } = req.body;
 
@@ -1062,15 +1062,15 @@ router.post('/product-signup', async (req, res) => {
 
     // ── Validate ──
     if (!first_name || !last_name || !email || !organization || !password) {
-      req.flash('error', 'All fields are required.');
+      req.flash('error', req.t('flash.public.all_fields_are_required'));
       return res.redirect('/product-signup');
     }
     if (password.length < 10) {
-      req.flash('error', 'Password must be at least 10 characters.');
+      req.flash('error', req.t('flash.public.password_must_be_at'));
       return res.redirect('/product-signup');
     }
     if (password !== confirm_password) {
-      req.flash('error', 'Passwords do not match.');
+      req.flash('error', req.t('flash.public.passwords_do_not_match'));
       return res.redirect('/product-signup');
     }
 
@@ -1078,7 +1078,7 @@ router.post('/product-signup', async (req, res) => {
     const svc = getProvisioningService();
     if (!svc || !svc.isConfigured()) {
       console.error('[Provision] Azure SDK credentials not configured');
-      req.flash('error', 'Provisioning is not available. Please contact support.');
+      req.flash('error', req.t('flash.public.provisioning_is_not_available'));
       return res.redirect('/product-signup');
     }
 
@@ -1089,12 +1089,12 @@ router.post('/product-signup', async (req, res) => {
         const hmacKey = process.env.ALTCHA_HMAC_SECRET || process.env.SESSION_SECRET || 'vcs-default-altcha-key';
         const ok = await verifySolution(altchaPayload, hmacKey);
         if (!ok) {
-          req.flash('error', 'Verification failed. Please try again.');
+          req.flash('error', req.t('flash.public.verification_failed_please_try'));
           return res.redirect('/product-signup');
         }
       } catch (e) {
         console.error('ALTCHA verification error:', e);
-        req.flash('error', 'Verification error. Please try again.');
+        req.flash('error', req.t('flash.public.verification_error_please_try'));
         return res.redirect('/product-signup');
       }
     }
@@ -1104,7 +1104,7 @@ router.post('/product-signup', async (req, res) => {
       .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').substring(0, 24);
     const existingJob = get("SELECT id FROM provisioning_jobs WHERE app_name = ?", [`vcs-sa-${orgSlug}`]);
     if (existingJob) {
-      req.flash('error', 'An instance for this organization name already exists. Please choose a different name or contact support.');
+      req.flash('error', req.t('flash.public.an_instance_for_this'));
       return res.redirect('/product-signup');
     }
 
@@ -1132,7 +1132,7 @@ router.post('/product-signup', async (req, res) => {
 
   } catch (err) {
     console.error('Product signup error:', err);
-    req.flash('error', 'An error occurred. Please try again.');
+    req.flash('error', req.t('flash.public.an_error_occurred_please'));
     res.redirect('/product-signup');
   }
 });
@@ -1141,7 +1141,7 @@ router.post('/product-signup', async (req, res) => {
 router.get('/product-signup/status/:jobId', (req, res) => {
   const job = get('SELECT * FROM provisioning_jobs WHERE job_id = ?', [req.params.jobId]);
   if (!job) {
-    req.flash('error', 'Provisioning job not found.');
+    req.flash('error', req.t('flash.public.provisioning_job_not_found'));
     return res.redirect('/product-signup');
   }
   res.render('public/provision-status', {

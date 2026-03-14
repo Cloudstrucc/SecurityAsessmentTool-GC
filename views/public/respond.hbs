@@ -118,7 +118,7 @@
 
           <!-- Evidence Editor -->
           <div class="mb-2">
-            <label class="form-label small fw-semibold">Your Evidence</label>
+            <label class="form-label small fw-semibold">{{t 'respond.label.your_evidence'}}</label>
             {{#if ../../isReadOnly}}
               <div class="evidence-editor" style="background:#f8f9fa;min-height:80px">
                 {{{this.evidence_html}}}
@@ -128,7 +128,7 @@
               <div class="evidence-editor" contenteditable="true" id="editor-{{this.id}}"
                 data-control-id="{{this.id}}"
                 oninput="autoSave({{this.id}})"
-                placeholder="Enter your evidence here...">{{{this.evidence_html}}}</div>
+                placeholder="{{t 'respond.ph.enter_your_evidence_here'}}">{{{this.evidence_html}}}</div>
               <div class="d-flex justify-content-between mt-1">
                 <div class="btn-group btn-group-sm">
                   <button type="button" class="btn btn-outline-secondary" onclick="execCmd('bold')" title="Bold"><i class="bi bi-type-bold"></i></button>
@@ -147,7 +147,7 @@
           <!-- File Upload -->
           {{#unless ../../isReadOnly}}
             <div class="mb-2">
-              <label class="form-label small fw-semibold">Attachments</label>
+              <label class="form-label small fw-semibold">{{t 'respond.label.attachments'}}</label>
               <div class="input-group input-group-sm">
                 <input type="file" class="form-control form-control-sm" id="fileInput-{{this.id}}"
                   onchange="uploadFile({{this.id}})">
@@ -174,7 +174,7 @@
             </div>
             {{#unless ../../isReadOnly}}
               <div class="input-group input-group-sm mt-2">
-                <input type="text" class="form-control" id="commentInput-{{this.id}}" placeholder="Add a comment...">
+                <input type="text" class="form-control" id="commentInput-{{this.id}}" placeholder="{{t 'respond.ph.add_a_comment'}}">
                 <button class="btn btn-outline-primary" onclick="addComment({{this.id}})">
                   <i class="bi bi-send"></i>
                 </button>

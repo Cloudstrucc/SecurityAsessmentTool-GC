@@ -1,7 +1,7 @@
 <div class="container" style="max-width:1100px">
   <div class="d-flex justify-content-between align-items-center mb-1">
     <div>
-      <h1 class="mb-0">Team & Invitations</h1>
+      <h1 class="mb-0">{{t 'admin.invitations.title.team_invitations'}}</h1>
       <p class="text-muted mb-0">Invite clients and peer assessors to the portal</p>
     </div>
   </div>
@@ -46,16 +46,16 @@
             <input type="email" class="form-control" name="email" required placeholder="jane.doe@client-org.com">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Name</label>
-            <input type="text" class="form-control" name="name" placeholder="Jane Doe">
+            <label class="form-label">{{t 'admin.invitations.label.name'}}</label>
+            <input type="text" class="form-control" name="name" placeholder="{{t 'admin.invitations.ph.jane_doe'}}">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Organization</label>
-            <input type="text" class="form-control" name="organization" placeholder="Client Organization Name">
+            <label class="form-label">{{t 'admin.invitations.label.organization'}}</label>
+            <input type="text" class="form-control" name="organization" placeholder="{{t 'admin.invitations.ph.client_organization_name'}}">
           </div>
           <div class="col-md-6">
             <label class="form-label">Message <small class="text-muted">(optional)</small></label>
-            <input type="text" class="form-control" name="message" placeholder="Brief note to include in the email">
+            <input type="text" class="form-control" name="message" placeholder="{{t 'admin.invitations.ph.brief_note_to_include'}}">
           </div>
           <div class="col-12">
             <button type="submit" class="btn btn-primary"><i class="bi bi-send me-2"></i>Send Client Invite</button>
@@ -76,12 +76,12 @@
           <table class="table table-hover align-middle">
             <thead class="table-light">
               <tr>
-                <th>Email</th>
-                <th>Name</th>
-                <th>Code</th>
-                <th>Status</th>
-                <th>Sent</th>
-                <th>Expires</th>
+                <th>{{t 'admin.invitations.th.email'}}</th>
+                <th>{{t 'admin.invitations.th.name'}}</th>
+                <th>{{t 'admin.invitations.th.code'}}</th>
+                <th>{{t 'admin.invitations.th.status'}}</th>
+                <th>{{t 'admin.invitations.th.sent'}}</th>
+                <th>{{t 'admin.invitations.th.expires'}}</th>
                 <th></th>
               </tr>
             </thead>
@@ -141,15 +141,15 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Name</label>
-            <input type="text" class="form-control" name="name" placeholder="John Smith">
+            <input type="text" class="form-control" name="name" placeholder="{{t 'admin.invitations.ph.john_smith'}}">
           </div>
           <div class="col-md-6">
             <label class="form-label">Organization</label>
-            <input type="text" class="form-control" name="organization" placeholder="Organization">
+            <input type="text" class="form-control" name="organization" placeholder="{{t 'admin.invitations.ph.organization'}}">
           </div>
           <div class="col-md-6">
             <label class="form-label">Message <small class="text-muted">(optional)</small></label>
-            <input type="text" class="form-control" name="message" placeholder="Brief note about the collaboration">
+            <input type="text" class="form-control" name="message" placeholder="{{t 'admin.invitations.ph.brief_note_about_the'}}">
           </div>
           <div class="col-12">
             <button type="submit" class="btn btn-dark"><i class="bi bi-shield-plus me-2"></i>Send Assessor Invite</button>
@@ -230,9 +230,9 @@
               <tr>
                 <th>Name</th>
                 <th>Email</th>
-                <th>Organization</th>
-                <th>Joined</th>
-                <th>Last Login</th>
+                <th>{{t 'admin.invitations.th.organization'}}</th>
+                <th>{{t 'admin.invitations.th.joined'}}</th>
+                <th>{{t 'admin.invitations.th.last_login'}}</th>
               </tr>
             </thead>
             <tbody>

@@ -62,13 +62,13 @@
 
           {{#if project.description}}
             <hr>
-            <h6 class="fw-semibold text-muted mb-2">Description</h6>
+            <h6 class="fw-semibold text-muted mb-2">{{t 'admin.project_detail.title.description'}}</h6>
             <p class="small mb-0">{{project.description}}</p>
           {{/if}}
 
           {{#if techNames.length}}
             <hr>
-            <h6 class="fw-semibold text-muted mb-2">Technology Stack</h6>
+            <h6 class="fw-semibold text-muted mb-2">{{t 'admin.project_detail.title.technology_stack'}}</h6>
             <div class="d-flex flex-wrap gap-1">
               {{#each techNames}}
                 <span class="badge bg-light text-dark border">{{this}}</span>
@@ -122,12 +122,12 @@
               <table class="table table-hover mb-0">
                 <thead>
                   <tr>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th>Score</th>
-                    <th>Result</th>
-                    <th>Invite Code</th>
-                    <th>Updated</th>
+                    <th>{{t 'admin.project_detail.th.type'}}</th>
+                    <th>{{t 'admin.project_detail.th.status'}}</th>
+                    <th>{{t 'admin.project_detail.th.score'}}</th>
+                    <th>{{t 'admin.project_detail.th.result'}}</th>
+                    <th>{{t 'admin.project_detail.th.invite_code'}}</th>
+                    <th>{{t 'admin.project_detail.th.updated'}}</th>
                     <th></th>
                   </tr>
                 </thead>

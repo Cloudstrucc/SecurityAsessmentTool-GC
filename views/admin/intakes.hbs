@@ -15,28 +15,28 @@
     <div class="stat-card">
       <div class="stat-icon" style="background:#e7f1fb;color:var(--gc-accent);"><i class="bi bi-inbox"></i></div>
       <div class="stat-number">{{stats.total}}</div>
-      <div class="stat-label">Total Submissions</div>
+      <div class="stat-label">{{t 'admin.intakes.stat.total_submissions'}}</div>
     </div>
   </div>
   <div class="col-md-3">
     <div class="stat-card">
       <div class="stat-icon" style="background:#fff3cd;color:var(--gc-warning);"><i class="bi bi-hourglass-split"></i></div>
       <div class="stat-number">{{stats.pending}}</div>
-      <div class="stat-label">Pending Review</div>
+      <div class="stat-label">{{t 'admin.intakes.stat.pending_review'}}</div>
     </div>
   </div>
   <div class="col-md-3">
     <div class="stat-card">
       <div class="stat-icon" style="background:#d8eeca;color:var(--gc-success);"><i class="bi bi-check-circle"></i></div>
       <div class="stat-number">{{stats.accepted}}</div>
-      <div class="stat-label">Accepted</div>
+      <div class="stat-label">{{t 'admin.intakes.stat.accepted'}}</div>
     </div>
   </div>
   <div class="col-md-3">
     <div class="stat-card">
       <div class="stat-icon" style="background:#e7f1fb;color:var(--gc-accent);"><i class="bi bi-eye"></i></div>
       <div class="stat-number">{{stats.inReview}}</div>
-      <div class="stat-label">In Review</div>
+      <div class="stat-label">{{t 'admin.intakes.stat.in_review'}}</div>
     </div>
   </div>
 </div>
@@ -52,15 +52,15 @@
       <table class="table table-hover mb-0">
         <thead>
           <tr>
-            <th>Ref</th>
-            <th>Project Name</th>
-            <th>Department</th>
-            <th>Classification</th>
-            <th>PII</th>
-            <th>Hosting</th>
-            <th>Submitted By</th>
-            <th>Status</th>
-            <th>Date</th>
+            <th>{{t 'admin.intakes.th.ref'}}</th>
+            <th>{{t 'admin.intakes.th.project_name'}}</th>
+            <th>{{t 'admin.intakes.th.department'}}</th>
+            <th>{{t 'admin.intakes.th.classification'}}</th>
+            <th>{{t 'admin.intakes.th.pii'}}</th>
+            <th>{{t 'admin.intakes.th.hosting'}}</th>
+            <th>{{t 'admin.intakes.th.submitted_by'}}</th>
+            <th>{{t 'admin.intakes.th.status'}}</th>
+            <th>{{t 'admin.intakes.th.date'}}</th>
             <th></th>
           </tr>
         </thead>
@@ -100,7 +100,7 @@
     {{else}}
     <div class="text-center py-5">
       <i class="bi bi-inbox text-muted" style="font-size:3rem;"></i>
-      <h5 class="text-muted mt-3">No intake submissions yet</h5>
+      <h5 class="text-muted mt-3">{{t 'admin.intakes.title.no_intake_submissions_yet'}}</h5>
       <p class="text-muted">Share the intake form link with project teams: <code>/intake</code></p>
     </div>
     {{/if}}

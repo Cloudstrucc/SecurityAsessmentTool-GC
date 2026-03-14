@@ -2,7 +2,7 @@
   <div class="d-flex align-items-center mb-4">
     <a href="/respond/{{inviteCode}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
     <div>
-      <h1 class="mb-0">iATO Remediation Checklist</h1>
+      <h1 class="mb-0">{{t 'checklist.title.iato_remediation_checklist'}}</h1>
       <p class="text-muted mb-0">{{assessment.project_name}}</p>
     </div>
   </div>
@@ -21,11 +21,11 @@
             <thead>
               <tr>
                 <th style="width:5%">#</th>
-                <th style="width:35%">Description</th>
-                <th>Control</th>
-                <th>Deadline</th>
-                <th>Assigned To</th>
-                <th>Status</th>
+                <th style="width:35%">{{t 'checklist.th.description'}}</th>
+                <th>{{t 'checklist.th.control'}}</th>
+                <th>{{t 'checklist.th.deadline'}}</th>
+                <th>{{t 'checklist.th.assigned_to'}}</th>
+                <th>{{t 'checklist.th.status'}}</th>
               </tr>
             </thead>
             <tbody>

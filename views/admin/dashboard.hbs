@@ -1,7 +1,7 @@
 <div class="container">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h1 class="mb-1">Dashboard</h1>
+      <h1 class="mb-1">{{t 'admin.dashboard.title.dashboard'}}</h1>
       <p class="text-muted mb-0">Welcome back, {{admin.name}}</p>
     </div>
     <a href="/admin/projects/new" class="btn btn-primary">
@@ -17,7 +17,7 @@
           <i class="bi bi-folder2-open"></i>
         </div>
         <div class="stat-number">{{stats.totalProjects}}</div>
-        <div class="stat-label">Total Projects</div>
+        <div class="stat-label">{{t 'admin.dashboard.stat.total_projects'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
@@ -26,7 +26,7 @@
           <i class="bi bi-clipboard-check"></i>
         </div>
         <div class="stat-number">{{stats.activeAssessments}}</div>
-        <div class="stat-label">Active Assessments</div>
+        <div class="stat-label">{{t 'admin.dashboard.stat.active_assessments'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
@@ -35,7 +35,7 @@
           <i class="bi bi-search"></i>
         </div>
         <div class="stat-number">{{stats.pendingAudits}}</div>
-        <div class="stat-label">Pending Audits</div>
+        <div class="stat-label">{{t 'admin.dashboard.stat.pending_audits'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
@@ -44,7 +44,7 @@
           <i class="bi bi-patch-check"></i>
         </div>
         <div class="stat-number">{{stats.activeATOs}}</div>
-        <div class="stat-label">Active ATOs</div>
+        <div class="stat-label">{{t 'admin.dashboard.stat.active_atos'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
@@ -54,7 +54,7 @@
             <i class="bi bi-inbox"></i>
           </div>
           <div class="stat-number">{{stats.pendingIntakes}}</div>
-          <div class="stat-label">Pending Intakes</div>
+          <div class="stat-label">{{t 'admin.dashboard.stat.pending_intakes'}}</div>
         </div>
       </a>
     </div>
@@ -65,7 +65,7 @@
             <i class="bi bi-clipboard2-pulse"></i>
           </div>
           <div class="stat-number">{{stats.pendingSelfAssessments}}</div>
-          <div class="stat-label">Pre-Assessments</div>
+          <div class="stat-label">{{t 'admin.dashboard.stat.preassessments'}}</div>
         </div>
       </a>
     </div>
@@ -85,10 +85,10 @@
               <table class="table table-hover mb-0">
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>Classification</th>
-                    <th>Status</th>
-                    <th>Updated</th>
+                    <th>{{t 'admin.dashboard.th.name'}}</th>
+                    <th>{{t 'admin.dashboard.th.classification'}}</th>
+                    <th>{{t 'admin.dashboard.th.status'}}</th>
+                    <th>{{t 'admin.dashboard.th.updated'}}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -126,9 +126,9 @@
               <table class="table table-hover mb-0">
                 <thead>
                   <tr>
-                    <th>Project</th>
+                    <th>{{t 'admin.dashboard.th.project'}}</th>
                     <th>Status</th>
-                    <th>Result</th>
+                    <th>{{t 'admin.dashboard.th.result'}}</th>
                     <th>Updated</th>
                   </tr>
                 </thead>
@@ -182,12 +182,12 @@
               <table class="table table-hover mb-0">
                 <thead>
                   <tr>
-                    <th>Ref</th>
+                    <th>{{t 'admin.dashboard.th.ref'}}</th>
                     <th>Project</th>
-                    <th>Department</th>
+                    <th>{{t 'admin.dashboard.th.department'}}</th>
                     <th>Classification</th>
                     <th>Status</th>
-                    <th>Submitted</th>
+                    <th>{{t 'admin.dashboard.th.submitted'}}</th>
                   </tr>
                 </thead>
                 <tbody>

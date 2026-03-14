@@ -1,0 +1,362 @@
+<style>
+  .prov-page { min-height: calc(100vh - 120px); display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
+  .prov-card {
+    width: 100%; max-width: 640px; background: #fff; border-radius: 16px;
+    box-shadow: 0 25px 80px rgba(0,0,0,.1); overflow: hidden;
+  }
+
+  /* Top gradient bar */
+  .prov-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    padding: 2rem 2.5rem; color: #e2e8f0; text-align: center; position: relative; overflow: hidden;
+  }
+  .prov-header::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 120%, rgba(56,189,248,.12) 0%, transparent 60%);
+  }
+  .prov-header * { position: relative; }
+  .prov-header .logo { display: flex; align-items: center; justify-content: center; gap: .5rem; margin-bottom: 1.25rem; }
+  .prov-header .logo-icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: linear-gradient(135deg, #38bdf8, #818cf8); display: flex;
+    align-items: center; justify-content: center; color: #fff; font-size: 1rem;
+  }
+  .prov-header .logo-text { font-weight: 700; font-size: .95rem; color: #e2e8f0; }
+  .prov-header h2 { font-size: 1.35rem; font-weight: 700; margin-bottom: .25rem; color: #fff; }
+  .prov-header p { font-size: .875rem; color: #94a3b8; margin: 0; }
+  .prov-header strong { color: #e2e8f0; }
+
+  /* Progress section */
+  .prov-body { padding: 2rem 2.5rem 2.5rem; }
+
+  .prov-progress-wrap { margin-bottom: 2rem; }
+  .prov-progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .75rem; }
+  .prov-progress-header .pct { font-size: 1.75rem; font-weight: 700; color: #0f172a; font-variant-numeric: tabular-nums; }
+  .prov-progress-header .step-label {
+    font-size: .85rem; color: #64748b; text-align: right; max-width: 60%;
+    animation: fadeInStep .4s ease-out;
+  }
+  @keyframes fadeInStep { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+
+  .prov-bar-bg {
+    height: 8px; background: #f1f5f9; border-radius: 99px; overflow: hidden; position: relative;
+  }
+  .prov-bar {
+    height: 100%; border-radius: 99px; transition: width .8s cubic-bezier(.4,0,.2,1);
+    background: linear-gradient(90deg, #38bdf8 0%, #818cf8 100%);
+    position: relative;
+  }
+  .prov-bar::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
+    animation: shimmer 2s infinite;
+  }
+  @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+
+  /* Steps timeline */
+  .prov-steps { margin: 1.75rem 0; }
+  .prov-step {
+    display: flex; align-items: flex-start; gap: .85rem; padding: .6rem 0;
+    position: relative;
+  }
+  .prov-step + .prov-step { border-top: 1px solid #f1f5f9; }
+  .prov-step-icon {
+    width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: .7rem; flex-shrink: 0; transition: all .4s;
+  }
+  .prov-step-icon.pending { background: #f1f5f9; color: #94a3b8; }
+  .prov-step-icon.running { background: #dbeafe; color: #2563eb; animation: pulse-ring 1.5s infinite; }
+  .prov-step-icon.done { background: #dcfce7; color: #16a34a; }
+  .prov-step-icon.failed { background: #fee2e2; color: #dc2626; }
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(37,99,235,.3); }
+    70% { box-shadow: 0 0 0 8px rgba(37,99,235,0); }
+    100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+  }
+  .prov-step-text { font-size: .875rem; color: #334155; font-weight: 500; padding-top: .2rem; }
+  .prov-step-text.muted { color: #94a3b8; font-weight: 400; }
+
+  /* Instance info card */
+  .prov-instance {
+    background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px;
+    padding: 1.25rem; margin-top: 1.5rem; display: none;
+  }
+  .prov-instance.show { display: block; animation: slideUp .5s ease-out; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+  .prov-instance .inst-row { display: flex; justify-content: space-between; align-items: center; padding: .35rem 0; font-size: .85rem; }
+  .prov-instance .inst-label { color: #64748b; }
+  .prov-instance .inst-value { font-weight: 600; color: #0f172a; }
+  .prov-instance .inst-value code { background: #e2e8f0; padding: .1rem .4rem; border-radius: 4px; font-size: .8rem; }
+
+  .prov-launch {
+    display: block; width: 100%; padding: .85rem; border: none; border-radius: 10px; text-align: center;
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    color: #fff; font-size: .95rem; font-weight: 600; text-decoration: none;
+    margin-top: 1rem; transition: all .25s; box-shadow: 0 4px 15px rgba(22,163,74,.25);
+    cursor: pointer; font-family: inherit; display: none;
+  }
+  .prov-launch.show { display: block; animation: slideUp .5s ease-out; }
+  .prov-launch:hover { box-shadow: 0 6px 25px rgba(22,163,74,.35); transform: translateY(-1px); color: #fff; }
+  .prov-launch i { margin-right: .5rem; }
+
+  /* Failure state */
+  .prov-error {
+    background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 12px; padding: 1.25rem;
+    margin-top: 1.5rem; display: none; color: #991b1b; font-size: .875rem;
+  }
+  .prov-error.show { display: block; }
+  .prov-error i { margin-right: .5rem; }
+
+  /* Idle animation */
+  .prov-idle-hint {
+    text-align: center; color: #94a3b8; font-size: .8rem; margin-top: 1.5rem;
+  }
+  .prov-idle-hint .dots::after { content: ''; animation: dots 1.5s steps(4,end) infinite; }
+  @keyframes dots {
+    0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; }
+  }
+</style>
+
+<div class="prov-page">
+  <div class="prov-card">
+
+    <!-- Header -->
+    <div class="prov-header">
+      <div class="logo">
+        <span class="logo-icon"><i class="bi bi-shield-lock-fill"></i></span>
+        <span class="logo-text">Vanguard Cloud Services Inc.</span>
+      </div>
+      <h2 id="headerTitle">Deploying your instance</h2>
+      <p id="headerSub">Setting up a dedicated Azure environment for <strong>{{orgName}}</strong></p>
+    </div>
+
+    <!-- Body -->
+    <div class="prov-body">
+
+      <!-- Progress bar -->
+      <div class="prov-progress-wrap">
+        <div class="prov-progress-header">
+          <span class="pct" id="pctText">0%</span>
+          <span class="step-label" id="stepLabel">Initializing...</span>
+        </div>
+        <div class="prov-bar-bg">
+          <div class="prov-bar" id="progressBar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Steps timeline -->
+      <div class="prov-steps" id="stepsTimeline">
+        <div class="prov-step" data-threshold="5">
+          <span class="prov-step-icon pending" id="stepIcon0"><i class="bi bi-check-lg"></i></span>
+          <span class="prov-step-text muted" id="stepText0">Validating Azure credentials</span>
+        </div>
+        <div class="prov-step" data-threshold="15">
+          <span class="prov-step-icon pending" id="stepIcon1"><i class="bi bi-check-lg"></i></span>
+          <span class="prov-step-text muted" id="stepText1">Creating resource group</span>
+        </div>
+        <div class="prov-step" data-threshold="25">
+          <span class="prov-step-icon pending" id="stepIcon2"><i class="bi bi-check-lg"></i></span>
+          <span class="prov-step-text muted" id="stepText2">Creating App Service plan</span>
+        </div>
+        <div class="prov-step" data-threshold="40">
+          <span class="prov-step-icon pending" id="stepIcon3"><i class="bi bi-check-lg"></i></span>
+          <span class="prov-step-text muted" id="stepText3">Creating web application</span>
+        </div>
+        <div class="prov-step" data-threshold="55">
+          <span class="prov-step-icon pending" id="stepIcon4"><i class="bi bi-check-lg"></i></span>
+          <span class="prov-step-text muted" id="stepText4">Configuring environment &amp; credentials</span>
+        </div>
+        <div class="prov-step" data-threshold="75">
+          <span class="prov-step-icon pending" id="stepIcon5"><i class="bi bi-check-lg"></i></span>
+          <span class="prov-step-text muted" id="stepText5">Deploying application code</span>
+        </div>
+        <div class="prov-step" data-threshold="90">
+          <span class="prov-step-icon pending" id="stepIcon6"><i class="bi bi-check-lg"></i></span>
+          <span class="prov-step-text muted" id="stepText6">Health check &amp; finalization</span>
+        </div>
+      </div>
+
+      <!-- Instance info (shown on complete) -->
+      <div class="prov-instance" id="instanceCard">
+        <div class="inst-row">
+          <span class="inst-label">Instance URL</span>
+          <span class="inst-value"><code id="instanceUrlText">—</code></span>
+        </div>
+        <div class="inst-row">
+          <span class="inst-label">Login Email</span>
+          <span class="inst-value" id="instanceEmail">{{adminEmail}}</span>
+        </div>
+        <div class="inst-row">
+          <span class="inst-label">Role</span>
+          <span class="inst-value">Security Assessor (Admin)</span>
+        </div>
+        <div class="inst-row">
+          <span class="inst-label">Plan</span>
+          <span class="inst-value"><span style="color:#38bdf8">Trial</span> — 14 days</span>
+        </div>
+      </div>
+
+      <!-- Launch button -->
+      <a href="#" class="prov-launch" id="launchBtn" target="_blank">
+        <i class="bi bi-box-arrow-up-right"></i>Launch Your SA&A Platform
+      </a>
+
+      <!-- Error state -->
+      <div class="prov-error" id="errorCard">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <strong>Provisioning failed</strong>
+        <p id="errorText" style="margin:.5rem 0 0;font-size:.8rem;color:#b91c1c"></p>
+        <a href="/product-signup" class="btn btn-outline-danger btn-sm mt-2"><i class="bi bi-arrow-clockwise me-1"></i>Try Again</a>
+      </div>
+
+      <!-- Idle hint -->
+      <div class="prov-idle-hint" id="idleHint">
+        <i class="bi bi-hourglass-split me-1"></i>This typically takes 3–8 minutes. You can leave this page open<span class="dots"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var JOB_ID = '{{jobId}}';
+  var pollInterval = null;
+  var lastProgress = -1;
+  var THRESHOLDS = [5, 15, 25, 40, 55, 75, 90];
+
+  function updateUI(data) {
+    var pct = data.progress || 0;
+    var step = data.step || 'Working...';
+    var status = data.status || 'queued';
+
+    // Update progress bar
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('pctText').textContent = pct + '%';
+    if (step !== document.getElementById('stepLabel').textContent) {
+      var label = document.getElementById('stepLabel');
+      label.style.animation = 'none';
+      label.offsetHeight; // trigger reflow
+      label.style.animation = '';
+      label.textContent = step;
+    }
+
+    // Update step icons
+    THRESHOLDS.forEach(function(thr, i) {
+      var icon = document.getElementById('stepIcon' + i);
+      var text = document.getElementById('stepText' + i);
+      if (!icon || !text) return;
+
+      if (pct > thr + 5) {
+        // Completed
+        icon.className = 'prov-step-icon done';
+        text.className = 'prov-step-text';
+      } else if (pct >= thr - 2) {
+        // Running
+        icon.className = 'prov-step-icon running';
+        icon.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:14px;height:14px;border-width:2px"></span>';
+        text.className = 'prov-step-text';
+      } else {
+        // Pending
+        icon.className = 'prov-step-icon pending';
+        icon.innerHTML = '<i class="bi bi-check-lg"></i>';
+        text.className = 'prov-step-text muted';
+      }
+    });
+
+    // Handle completion
+    if (status === 'completed') {
+      clearInterval(pollInterval);
+      document.getElementById('headerTitle').textContent = 'Your instance is ready!';
+      document.getElementById('headerSub').innerHTML = '<i class="bi bi-check-circle-fill me-1" style="color:#34d399"></i>Deployment complete';
+      document.getElementById('idleHint').style.display = 'none';
+
+      // Remove shimmer animation
+      document.getElementById('progressBar').style.background = '#16a34a';
+      var bar = document.getElementById('progressBar');
+      if (bar.querySelector) {
+        var style = document.createElement('style');
+        style.textContent = '.prov-bar::after { animation: none !important; }';
+        document.head.appendChild(style);
+      }
+
+      // Show instance card
+      var instanceUrl = data.instance_url || ('https://' + data.app_name + '.azurewebsites.net');
+      document.getElementById('instanceUrlText').textContent = instanceUrl.replace('https://','');
+      document.getElementById('instanceCard').classList.add('show');
+
+      // Show launch button
+      var launchBtn = document.getElementById('launchBtn');
+      launchBtn.href = instanceUrl + '/admin/login';
+      launchBtn.classList.add('show');
+
+      // Auto-redirect after 4 seconds
+      var countdown = 4;
+      var redirectTimer = document.createElement('p');
+      redirectTimer.style.cssText = 'text-align:center;font-size:.85rem;color:#64748b;margin-top:.75rem';
+      redirectTimer.innerHTML = 'Redirecting to your login in <strong id="countdownNum">' + countdown + '</strong> seconds...';
+      launchBtn.parentNode.insertBefore(redirectTimer, launchBtn.nextSibling);
+      var cdInterval = setInterval(function() {
+        countdown--;
+        var el = document.getElementById('countdownNum');
+        if (el) el.textContent = countdown;
+        if (countdown <= 0) {
+          clearInterval(cdInterval);
+          window.location.href = instanceUrl + '/admin/login';
+        }
+      }, 1000);
+
+      // Set all steps to done
+      THRESHOLDS.forEach(function(thr, i) {
+        var icon = document.getElementById('stepIcon' + i);
+        var text = document.getElementById('stepText' + i);
+        if (icon) { icon.className = 'prov-step-icon done'; icon.innerHTML = '<i class="bi bi-check-lg"></i>'; }
+        if (text) text.className = 'prov-step-text';
+      });
+    }
+
+    // Handle failure
+    if (status === 'failed') {
+      clearInterval(pollInterval);
+      document.getElementById('headerTitle').textContent = 'Deployment issue';
+      document.getElementById('headerSub').innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1" style="color:#f87171"></i>We encountered a problem';
+      document.getElementById('idleHint').style.display = 'none';
+      document.getElementById('progressBar').style.background = '#ef4444';
+      document.getElementById('errorCard').classList.add('show');
+      document.getElementById('errorText').textContent = data.error || 'An unexpected error occurred. Please try again or contact support.';
+
+      // Mark current step as failed
+      THRESHOLDS.forEach(function(thr, i) {
+        var icon = document.getElementById('stepIcon' + i);
+        if (icon && icon.className.indexOf('running') !== -1) {
+          icon.className = 'prov-step-icon failed';
+          icon.innerHTML = '<i class="bi bi-x-lg"></i>';
+        }
+      });
+    }
+
+    lastProgress = pct;
+  }
+
+  function poll() {
+    fetch('/api/provision-status/' + JOB_ID)
+      .then(function(r) { return r.json(); })
+      .then(updateUI)
+      .catch(function(err) { console.error('Poll error:', err); });
+  }
+
+  // Start polling
+  poll();
+  pollInterval = setInterval(poll, 3000);
+
+  // Stop after 15 minutes
+  setTimeout(function() {
+    if (pollInterval) {
+      clearInterval(pollInterval);
+      if (lastProgress < 100) {
+        document.getElementById('idleHint').innerHTML = '<i class="bi bi-clock-history me-1"></i>Provisioning is taking longer than expected. <a href="javascript:location.reload()">Refresh</a> to check status.';
+      }
+    }
+  }, 15 * 60 * 1000);
+
+})();
+</script>

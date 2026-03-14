@@ -3,7 +3,7 @@
     <div style="width:56px;height:56px;border-radius:14px;background:#d4edda;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
       <i class="bi bi-check-circle-fill text-success" style="font-size:1.5rem;"></i>
     </div>
-    <h2>GC Web Standards Checklist</h2>
+    <h2>{{t 'guidance_portal.title.gc_web_standards_checklist'}}</h2>
     <p class="text-muted mb-1">{{report.project_name}}</p>
     <div class="d-flex justify-content-center gap-2 flex-wrap">
       <span class="badge bg-light text-dark border"><i class="bi bi-database me-1"></i>{{report.data_classification}}</span>
@@ -82,7 +82,7 @@
       </div>
       <div class="mt-2">
         <input type="text" class="form-control form-control-sm checklist-notes" data-id="{{this.id}}"
-          placeholder="Notes or evidence reference (optional)..." value="{{this.notes}}"
+          placeholder="{{t 'guidance_portal.ph.notes_or_evidence_reference'}}" value="{{this.notes}}"
           {{#if ../../isReadOnly}}disabled{{/if}}>
       </div>
     </div>
@@ -108,18 +108,18 @@
           <div class="col-md-6">
             <label class="form-label small fw-semibold">Your Name <span class="text-danger">*</span></label>
             <input type="text" class="form-control" name="respondent_name" required
-              value="{{report.respondent_name}}" placeholder="e.g. Jane Doe">
+              value="{{report.respondent_name}}" placeholder="{{t 'guidance_portal.ph.eg_jane_doe'}}">
           </div>
           <div class="col-md-6">
             <label class="form-label small fw-semibold">Your Email <span class="text-danger">*</span></label>
             <input type="email" class="form-control" name="respondent_email" required
-              value="{{report.respondent_email}}" placeholder="e.g. jane.doe@agency.gc.ca">
+              value="{{report.respondent_email}}" placeholder="{{t 'guidance_portal.ph.eg_janedoeagencygcca'}}">
           </div>
         </div>
         <div class="mb-3">
-          <label class="form-label small fw-semibold">Additional Notes</label>
+          <label class="form-label small fw-semibold">{{t 'guidance_portal.label.additional_notes'}}</label>
           <textarea class="form-control" name="respondent_notes" rows="3"
-            placeholder="Any questions, clarifications, or additional context...">{{report.respondent_notes}}</textarea>
+            placeholder="{{t 'guidance_portal.ph.any_questions_clarifications_or'}}">{{report.respondent_notes}}</textarea>
         </div>
         <button type="submit" class="btn btn-primary w-100 py-2" id="submitBtn">
           <i class="bi bi-send me-2"></i>Submit for Review

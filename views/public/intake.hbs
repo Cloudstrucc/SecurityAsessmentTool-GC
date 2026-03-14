@@ -5,7 +5,7 @@
     <div style="width:64px;height:64px;border-radius:16px;background:var(--gc-accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
       <i class="bi bi-clipboard2-data text-white" style="font-size:1.75rem;"></i>
     </div>
-    <h2>Security Assessment Intake</h2>
+    <h2>{{t 'intake.title.security_assessment_intake'}}</h2>
     <p class="text-muted">Submit your project for a security assessment. We'll determine the right frameworks and controls based on your operating regions.</p>
   </div>
 
@@ -256,7 +256,7 @@
             <div class="card-body">
               <h6 class="fw-bold mb-2"><i class="bi bi-chat-text me-1 text-purple" style="color:#8b5cf6;"></i> Describe Your Project</h6>
               <p class="text-muted small mb-2">Describe what your system does, who uses it, and what data it handles.</p>
-              <textarea class="form-control form-control-sm" id="aiPlainDesc" rows="3" placeholder="e.g. We're building a portal for tax professionals to submit client returns. It connects to CRA mainframe and handles SIN, financial data. Hosted on Azure in Canada..."></textarea>
+              <textarea class="form-control form-control-sm" id="aiPlainDesc" rows="3" placeholder="{{t 'intake.ph.eg_were_building_a'}}"></textarea>
               <button type="button" class="btn btn-sm w-100 mt-2 text-white" style="background:#8b5cf6;" id="aiSuggestBtn" disabled onclick="aiSuggestFromDescription()">
                 <i class="bi bi-stars me-1"></i>Get Suggestions
               </button>
@@ -278,32 +278,32 @@
 
       <div class="mb-3">
         <label class="form-label" for="projectName">Project / System Name <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" id="projectName" name="projectName" required placeholder="e.g. HR Case Management Portal">
+        <input type="text" class="form-control" id="projectName" name="projectName" required placeholder="{{t 'intake.ph.eg_hr_case_management'}}">
       </div>
 
       <div class="mb-3">
         <label class="form-label" for="projectDescription">Project Description <span class="text-danger">*</span></label>
-        <textarea class="form-control" id="projectDescription" name="projectDescription" rows="4" required placeholder="Describe the purpose, scope, and key features of the system..."></textarea>
+        <textarea class="form-control" id="projectDescription" name="projectDescription" rows="4" required placeholder="{{t 'intake.ph.describe_the_purpose_scope'}}"></textarea>
       </div>
 
       <div class="row g-3 mb-3">
         <div class="col-md-6">
           <label class="form-label" for="department" id="lbl-department">Department / Agency <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" id="department" name="department" required placeholder="e.g. Employment and Social Development Canada">
+          <input type="text" class="form-control" id="department" name="department" required placeholder="{{t 'intake.ph.eg_employment_and_social'}}">
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="branch" id="lbl-branch">Branch / Directorate</label>
-          <input type="text" class="form-control" id="branch" name="branch" placeholder="e.g. Innovation, Information and Technology Branch">
+          <label class="form-label" for="branch" id="lbl-branch">{{t 'intake.label.branch_directorate'}}</label>
+          <input type="text" class="form-control" id="branch" name="branch" placeholder="{{t 'intake.ph.eg_innovation_information_and'}}">
         </div>
       </div>
 
       <div class="row g-3 mb-3">
         <div class="col-md-4">
-          <label class="form-label" for="targetDate">Target Go-Live Date</label>
+          <label class="form-label" for="targetDate">{{t 'intake.label.target_golive_date'}}</label>
           <input type="date" class="form-control" id="targetDate" name="targetDate">
         </div>
         <div class="col-md-4">
-          <label class="form-label" for="userCount">Estimated User Count</label>
+          <label class="form-label" for="userCount">{{t 'intake.label.estimated_user_count'}}</label>
           <select class="form-select" id="userCount" name="userCount">
             <option value="">Select...</option>
             <option value="1-50">1 – 50</option>
@@ -418,7 +418,7 @@
 
       <!-- ── 2E: PII Checklist ── -->
       <div class="mb-3" id="pii-section">
-        <label class="form-label fw-bold" id="pii-heading">Personal Information (PII) Checklist</label>
+        <label class="form-label fw-bold" id="pii-heading">{{t 'intake.label.personal_information_pii_checklist'}}</label>
         <p class="text-muted small mb-2">Does your system collect, process, store, or transmit any of the following? Check all that apply.</p>
 
         <div class="row g-2">
@@ -561,7 +561,7 @@
           </select>
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="hostingRegion">Data Residency</label>
+          <label class="form-label" for="hostingRegion">{{t 'intake.label.data_residency'}}</label>
           <select class="form-select" id="hostingRegion" name="hostingRegion">
             <option value="">Select...</option>
             <option value="canada-only" selected>Canada Only</option>
@@ -574,51 +574,51 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label fw-bold">Technology Stack</label>
+        <label class="form-label fw-bold">{{t 'intake.label.technology_stack'}}</label>
         <p class="text-muted small mb-2">Check all technologies that are part of this implementation.</p>
 
-        <h6 class="text-muted small text-uppercase mt-3 mb-2">Identity & Access</h6>
+        <h6 class="text-muted small text-uppercase mt-3 mb-2">{{t 'intake.title.identity_access'}}</h6>
         <div class="row g-2">
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="entra-id" id="tech-entra"><label class="form-check-label" for="tech-entra">Microsoft Entra ID (Azure AD)</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="active-directory" id="tech-ad"><label class="form-check-label" for="tech-ad">Active Directory (On-Prem)</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="mfa" id="tech-mfa"><label class="form-check-label" for="tech-mfa">Multi-Factor Authentication</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="pim" id="tech-pim"><label class="form-check-label" for="tech-pim">Privileged Identity Management</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="entra-id" id="tech-entra"><label class="form-check-label" for="tech-entra">{{t 'intake.label.microsoft_entra_id_azure'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="active-directory" id="tech-ad"><label class="form-check-label" for="tech-ad">{{t 'intake.label.active_directory_onprem'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="mfa" id="tech-mfa"><label class="form-check-label" for="tech-mfa">{{t 'intake.label.multifactor_authentication'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="pim" id="tech-pim"><label class="form-check-label" for="tech-pim">{{t 'intake.label.privileged_identity_management'}}</label></div></div>
         </div>
 
-        <h6 class="text-muted small text-uppercase mt-3 mb-2">Cloud & Infrastructure</h6>
+        <h6 class="text-muted small text-uppercase mt-3 mb-2">{{t 'intake.title.cloud_infrastructure'}}</h6>
         <div class="row g-2">
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="azure" id="tech-azure"><label class="form-check-label" for="tech-azure">Microsoft Azure</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="aws" id="tech-aws"><label class="form-check-label" for="tech-aws">Amazon Web Services</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gcp" id="tech-gcp"><label class="form-check-label" for="tech-gcp">Google Cloud Platform</label></div></div>
-          <div class="col-md-4" id="tech-ssc-wrap"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="ssc-dc" id="tech-ssc"><label class="form-check-label" for="tech-ssc">SSC Data Centre</label></div></div>
-          <div class="col-md-4" id="tech-gcnet-wrap"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gc-network" id="tech-gcnet"><label class="form-check-label" for="tech-gcnet">GC Network (GCNet)</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="azure" id="tech-azure"><label class="form-check-label" for="tech-azure">{{t 'intake.label.microsoft_azure'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="aws" id="tech-aws"><label class="form-check-label" for="tech-aws">{{t 'intake.label.amazon_web_services'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gcp" id="tech-gcp"><label class="form-check-label" for="tech-gcp">{{t 'intake.label.google_cloud_platform'}}</label></div></div>
+          <div class="col-md-4" id="tech-ssc-wrap"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="ssc-dc" id="tech-ssc"><label class="form-check-label" for="tech-ssc">{{t 'intake.label.ssc_data_centre'}}</label></div></div>
+          <div class="col-md-4" id="tech-gcnet-wrap"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gc-network" id="tech-gcnet"><label class="form-check-label" for="tech-gcnet">{{t 'intake.label.gc_network_gcnet'}}</label></div></div>
         </div>
 
-        <h6 class="text-muted small text-uppercase mt-3 mb-2">Security & Monitoring</h6>
+        <h6 class="text-muted small text-uppercase mt-3 mb-2">{{t 'intake.title.security_monitoring'}}</h6>
         <div class="row g-2">
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="siem-sentinel" id="tech-sentinel"><label class="form-check-label" for="tech-sentinel">Microsoft Sentinel (SIEM)</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="siem-splunk" id="tech-splunk"><label class="form-check-label" for="tech-splunk">Splunk (SIEM)</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="defender" id="tech-defender"><label class="form-check-label" for="tech-defender">Microsoft Defender</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="crowdstrike" id="tech-cs"><label class="form-check-label" for="tech-cs">CrowdStrike Falcon</label></div></div>
-          <div class="col-md-4" id="tech-cse-wrap"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gc-cse" id="tech-cse"><label class="form-check-label" for="tech-cse">CSE / CCCS Services</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="waf" id="tech-waf"><label class="form-check-label" for="tech-waf">Web Application Firewall</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="siem-sentinel" id="tech-sentinel"><label class="form-check-label" for="tech-sentinel">{{t 'intake.label.microsoft_sentinel_siem'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="siem-splunk" id="tech-splunk"><label class="form-check-label" for="tech-splunk">{{t 'intake.label.splunk_siem'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="defender" id="tech-defender"><label class="form-check-label" for="tech-defender">{{t 'intake.label.microsoft_defender'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="crowdstrike" id="tech-cs"><label class="form-check-label" for="tech-cs">{{t 'intake.label.crowdstrike_falcon'}}</label></div></div>
+          <div class="col-md-4" id="tech-cse-wrap"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gc-cse" id="tech-cse"><label class="form-check-label" for="tech-cse">{{t 'intake.label.cse_cccs_services'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="waf" id="tech-waf"><label class="form-check-label" for="tech-waf">{{t 'intake.label.web_application_firewall'}}</label></div></div>
         </div>
 
-        <h6 class="text-muted small text-uppercase mt-3 mb-2">DevOps, Encryption & Management</h6>
+        <h6 class="text-muted small text-uppercase mt-3 mb-2">{{t 'intake.title.devops_encryption_management'}}</h6>
         <div class="row g-2">
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="azure-devops" id="tech-ado"><label class="form-check-label" for="tech-ado">Azure DevOps</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="github" id="tech-gh"><label class="form-check-label" for="tech-gh">GitHub Enterprise</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="intune" id="tech-intune"><label class="form-check-label" for="tech-intune">Microsoft Intune (MDM)</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="key-vault" id="tech-kv"><label class="form-check-label" for="tech-kv">Azure Key Vault</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="aws-kms" id="tech-kms"><label class="form-check-label" for="tech-kms">AWS KMS</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="ssl-tls" id="tech-tls"><label class="form-check-label" for="tech-tls">TLS 1.2 / 1.3</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="backup-azure" id="tech-backup"><label class="form-check-label" for="tech-backup">Azure Backup</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="azure-devops" id="tech-ado"><label class="form-check-label" for="tech-ado">{{t 'intake.label.azure_devops'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="github" id="tech-gh"><label class="form-check-label" for="tech-gh">{{t 'intake.label.github_enterprise'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="intune" id="tech-intune"><label class="form-check-label" for="tech-intune">{{t 'intake.label.microsoft_intune_mdm'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="key-vault" id="tech-kv"><label class="form-check-label" for="tech-kv">{{t 'intake.label.azure_key_vault'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="aws-kms" id="tech-kms"><label class="form-check-label" for="tech-kms">{{t 'intake.label.aws_kms'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="ssl-tls" id="tech-tls"><label class="form-check-label" for="tech-tls">{{t 'intake.label.tls_12_13'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="backup-azure" id="tech-backup"><label class="form-check-label" for="tech-backup">{{t 'intake.label.azure_backup'}}</label></div></div>
         </div>
       </div>
 
       <div class="mb-3">
-        <label class="form-label" for="otherTech">Other Technologies / Notes</label>
-        <textarea class="form-control" id="otherTech" name="otherTech" rows="2" placeholder="List any technologies not covered above (e.g. Oracle DB, SAP, Dynamics 365, Power Platform, etc.)"></textarea>
+        <label class="form-label" for="otherTech">{{t 'intake.label.other_technologies_notes'}}</label>
+        <textarea class="form-control" id="otherTech" name="otherTech" rows="2" placeholder="{{t 'intake.ph.list_any_technologies_not'}}"></textarea>
       </div>
     </div>
 
@@ -652,8 +652,8 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label" for="interconnections">List Known Interconnections / Integrations</label>
-        <textarea class="form-control" id="interconnections" name="interconnections" rows="3" placeholder="e.g. GCcase (via API), SAP (file transfer), GCDOCS (document storage), Canada.ca (public portal)..."></textarea>
+        <label class="form-label" for="interconnections">{{t 'intake.label.list_known_interconnections_integrations'}}</label>
+        <textarea class="form-control" id="interconnections" name="interconnections" rows="3" placeholder="{{t 'intake.ph.eg_gccase_via_api'}}"></textarea>
       </div>
 
       <div class="row g-3">
@@ -686,7 +686,7 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label fw-bold">Completed Security Activities</label>
+        <label class="form-label fw-bold">{{t 'intake.label.completed_security_activities'}}</label>
         <p class="text-muted small mb-2">Check all that have been completed or are in progress.</p>
         <div class="row g-2">
           <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="tra" id="act-tra"><label class="form-check-label" for="act-tra"><strong>Threat & Risk Assessment (TRA)</strong></label></div></div>
@@ -709,17 +709,17 @@
       <h6 class="fw-bold mb-2">Project Owner / Submitter <span class="text-danger">*</span></h6>
       <div class="row g-3 mb-3">
         <div class="col-md-4">
-          <input type="text" class="form-control" name="ownerName" required placeholder="Full name">
+          <input type="text" class="form-control" name="ownerName" required placeholder="{{t 'intake.ph.full_name'}}">
         </div>
         <div class="col-md-4">
-          <input type="email" class="form-control" name="ownerEmail" required placeholder="Email address">
+          <input type="email" class="form-control" name="ownerEmail" required placeholder="{{t 'intake.ph.email_address'}}">
         </div>
         <div class="col-md-4">
-          <input type="text" class="form-control" name="ownerTitle" placeholder="Title / Role">
+          <input type="text" class="form-control" name="ownerTitle" placeholder="{{t 'intake.ph.title_role'}}">
         </div>
       </div>
 
-      <h6 class="fw-bold mb-2">Technical Lead</h6>
+      <h6 class="fw-bold mb-2">{{t 'intake.title.technical_lead'}}</h6>
       <div class="row g-3 mb-3">
         <div class="col-md-4">
           <input type="text" class="form-control" name="techLeadName" placeholder="Full name">
@@ -732,7 +732,7 @@
         </div>
       </div>
 
-      <h6 class="fw-bold mb-2" id="lbl-authority">Authorizing Official (DG / Director)</h6>
+      <h6 class="fw-bold mb-2" id="lbl-authority">{{t 'intake.title.authorizing_official_dg_director'}}</h6>
       <div class="row g-3">
         <div class="col-md-4">
           <input type="text" class="form-control" name="authorityName" placeholder="Full name">
@@ -754,13 +754,13 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Attachments</label>
+        <label class="form-label">{{t 'intake.label.attachments'}}</label>
         <input type="file" class="form-control" name="attachments" id="attachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.pptx,.ppt,.png,.jpg,.jpeg,.gif,.vsdx,.vsd,.txt,.md,.csv">
         <small class="text-muted" id="attachments-help">You can select multiple files. Examples: architecture diagrams, TRA reports, SSP documents, network diagrams, previous ATO letters.</small>
       </div>
 
       <div id="fileList" class="mb-3" style="display:none;">
-        <label class="form-label fw-bold small text-muted">Selected files:</label>
+        <label class="form-label fw-bold small text-muted">{{t 'intake.label.selected_files'}}</label>
         <div id="fileListContent"></div>
       </div>
     </div>
@@ -773,8 +773,8 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label" for="additionalNotes">Notes / Questions / Special Considerations</label>
-        <textarea class="form-control" id="additionalNotes" name="additionalNotes" rows="4" placeholder="e.g. tight deadline, need iATO first, migrating from legacy system, specific compliance requirements..."></textarea>
+        <label class="form-label" for="additionalNotes">{{t 'intake.label.notes_questions_special_considerations'}}</label>
+        <textarea class="form-control" id="additionalNotes" name="additionalNotes" rows="4" placeholder="{{t 'intake.ph.eg_tight_deadline_need'}}"></textarea>
       </div>
     </div>
 

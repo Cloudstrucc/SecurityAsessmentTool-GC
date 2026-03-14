@@ -1,0 +1,2184 @@
+const express = require('express');
+const router = express.Router();
+const { v4: uuidv4 } = require('uuid');
+const { run, runBatch, all, get } = require('../models/database');
+const { passport } = require('../config/passport');
+const { determineProfile, detectComplexity, categorizationLabel, categorizationFullLabel, SECURITY_PROFILES, CONFIDENTIALITY_LEVELS, INTEGRITY_LEVELS, AVAILABILITY_LEVELS } = require('../config/security-profiles');
+const { getRecommendedControls, assessSAARequirement, groupByFamily, COMMON_TECHNOLOGIES, CONTROL_FAMILIES, CONTROLS, GC_WEB_GUIDANCE, computeRiskLevel } = require('../config/itsg33-controls');
+const { FRAMEWORKS, getFrameworksByCategory, generateMultiFrameworkControls, getFrameworkCoverageSummary } = require('../config/security-frameworks');
+const emailService = require('../utils/emailService');
+const pdfExport = require('../utils/pdfExport');
+const path = require('path');
+const fs = require('fs');
+
+const { requireSignature, logSignature, userHasMfa, getUserMfaMode, userHasWebAuthn } = require('../config/mfa-signature');
+const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
+const QRCode = require('qrcode');
+
+// ── AUTH ──
+router.get('/login', (req, res) => {
+  if (req.isAuthenticated() && req.session.adminMfaVerified) return res.redirect('/admin/dashboard');
+  // If authenticated but MFA not verified, show MFA step
+  if (req.isAuthenticated() && !req.session.adminMfaVerified) {
+    const user = get('SELECT mfa_enabled FROM users WHERE id = ?', [req.user.id]);
+    if (user && user.mfa_enabled) {
+      return res.render('admin/login', { title: 'Verify MFA', layout: 'main', mfaStep: true });
+    }
+  }
+  res.render('admin/login', { title: 'Assessor Login', layout: 'main', prefillEmail: req.query.email || '' });
+});
+
+router.post('/login', (req, res, next) => {
+  // If this is the WebAuthn verification step
+  if (req.body._webauthn_step && req.isAuthenticated()) {
+    const { consumeToken } = require('../config/mfa-signature');
+    const tokenUserId = consumeToken(req.body._sig_token);
+    if (!tokenUserId || tokenUserId !== req.user.id) {
+      req.flash('error', 'Passkey verification failed. Please try again.');
+      const dbUser = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [req.user.id]);
+      return res.render('admin/login', { title: 'Verify MFA', layout: 'main', mfaStep: true, hasWebAuthn: !!dbUser?.webauthn_credential_id });
+    }
+    req.session.adminMfaVerified = true;
+    logSignature({
+      userId: req.user.id, userEmail: req.user.email, userName: req.user.name,
+      userRole: 'assessor', action: 'auth.login', actionLabel: 'Assessor login with passkey',
+      entityType: 'session', ipAddress: req.ip, userAgent: (req.headers['user-agent'] || '').substring(0, 200),
+      mfaMethod: 'push'
+    });
+    return res.redirect('/admin/dashboard');
+  }
+
+  // If this is the TOTP MFA verification step
+  if (req.body._mfa_step && req.isAuthenticated()) {
+    const user = get('SELECT id, totp_secret, mfa_enabled FROM users WHERE id = ?', [req.user.id]);
+    if (!user || !user.mfa_enabled) {
+      return res.redirect('/admin/mfa-setup');
+    }
+    const isValid = otpVerify({ secret: user.totp_secret, token: req.body.token, window: 1 }).valid;
+    if (!isValid) {
+      req.flash('error', 'Invalid authentication code. Please try again.');
+      const dbUser = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [req.user.id]);
+      return res.render('admin/login', { title: 'Verify MFA', layout: 'main', mfaStep: true, hasWebAuthn: !!dbUser?.webauthn_credential_id });
+    }
+    req.session.adminMfaVerified = true;
+    logSignature({
+      userId: user.id, userEmail: req.user.email, userName: req.user.name,
+      userRole: 'assessor', action: 'auth.login', actionLabel: 'Assessor login with MFA',
+      entityType: 'session', ipAddress: req.ip, userAgent: (req.headers['user-agent'] || '').substring(0, 200)
+    });
+    return res.redirect('/admin/dashboard');
+  }
+
+  // Standard password auth
+  passport.authenticate('local', (err, user, info) => {
+    if (err) return next(err);
+    if (!user) {
+      req.flash('error', info?.message || 'Invalid credentials');
+      return res.redirect('/admin/login');
+    }
+    req.logIn(user, (err) => {
+      if (err) return next(err);
+
+      // Check if MFA is set up
+      const dbUser = get('SELECT mfa_enabled, totp_secret, webauthn_credential_id FROM users WHERE id = ?', [user.id]);
+      if (!dbUser || !dbUser.mfa_enabled || !dbUser.totp_secret) {
+        return res.redirect('/admin/mfa-setup');
+      }
+
+      // Show MFA verification step
+      req.session.adminMfaVerified = false;
+      return res.render('admin/login', { title: 'Verify MFA', layout: 'main', mfaStep: true, hasWebAuthn: !!dbUser.webauthn_credential_id });
+    });
+  })(req, res, next);
+});
+
+router.get('/logout', (req, res) => {
+  delete req.session.adminMfaVerified;
+  req.logout(() => res.redirect('/admin/login'));
+});
+
+// ── ADMIN MFA SETUP ──
+router.get('/mfa-setup', (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/admin/login');
+
+  const user = get('SELECT id, email, totp_secret, mfa_enabled FROM users WHERE id = ?', [req.user.id]);
+  if (!user) return res.redirect('/admin/login');
+
+  // Generate new secret if none exists
+  let secret = user.totp_secret;
+  if (!secret) {
+    secret = otpGenerateSecret();
+    run('UPDATE users SET totp_secret = ? WHERE id = ?', [secret, user.id]);
+  }
+
+  const otpauth = otpGenerateURI({ issuer: 'GC SA&A Tool', label: user.email, secret });
+
+  QRCode.toDataURL(otpauth).then(qrCodeUrl => {
+    res.render('admin/login', {
+      title: 'MFA Setup',
+      layout: 'main',
+      mfaSetup: true,
+      qrCodeUrl,
+      secret,
+      mfaAlreadyEnabled: user.mfa_enabled === 1
+    });
+  }).catch(err => {
+    console.error('QR code error:', err);
+    req.flash('error', 'Failed to generate QR code.');
+    res.redirect('/admin/login');
+  });
+});
+
+router.post('/mfa-setup', (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/admin/login');
+
+  const user = get('SELECT id, email, name, totp_secret FROM users WHERE id = ?', [req.user.id]);
+  if (!user || !user.totp_secret) {
+    req.flash('error', 'Setup failed. Please try again.');
+    return res.redirect('/admin/mfa-setup');
+  }
+
+  const isValid = otpVerify({ secret: user.totp_secret, token: req.body.token, window: 1 }).valid;
+  if (!isValid) {
+    req.flash('error', 'Invalid code. Make sure your authenticator clock is synced and try again.');
+    return res.redirect('/admin/mfa-setup');
+  }
+
+  run('UPDATE users SET mfa_enabled = 1 WHERE id = ?', [user.id]);
+  req.session.adminMfaVerified = true;
+
+  logSignature({
+    userId: user.id, userEmail: user.email, userName: user.name,
+    userRole: 'assessor', action: 'auth.mfa_setup', actionLabel: 'Assessor MFA enrollment completed',
+    entityType: 'user', entityId: user.id,
+    ipAddress: req.ip, userAgent: (req.headers['user-agent'] || '').substring(0, 200)
+  });
+
+  req.flash('success', 'MFA enabled! You can optionally register a passkey for biometric sign-in.');
+  res.redirect('/admin/passkey-setup');
+});
+
+// ── Ensure admin has completed MFA for this session ──
+// ── ADMIN PASSKEY SETUP (optional, after MFA enrollment) ──
+router.get('/passkey-setup', (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/admin/login');
+  const user = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [req.user.id]);
+  res.render('admin/passkey-setup', {
+    title: 'Register Passkey', layout: 'main',
+    hasWebAuthn: !!user?.webauthn_credential_id
+  });
+});
+
+function ensureAdminMfa(req, res, next) {
+  if (!req.isAuthenticated()) {
+    req.flash('error', 'Please log in to access the admin area');
+    return res.redirect('/admin/login');
+  }
+  // Check MFA enrollment
+  const user = get('SELECT mfa_enabled FROM users WHERE id = ?', [req.user.id]);
+  if (!user || !user.mfa_enabled) {
+    return res.redirect('/admin/mfa-setup');
+  }
+  // Check MFA verification for this session
+  if (!req.session.adminMfaVerified) {
+    return res.render('admin/login', { title: 'Verify MFA', layout: 'main', mfaStep: true });
+  }
+  return next();
+}
+
+// ── AUDIT LOG ──
+router.get('/audit-log', ensureAdminMfa, (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = 50;
+  const offset = (page - 1) * limit;
+  const entityFilter = req.query.entity || '';
+  const actionFilter = req.query.action || '';
+
+  let where = '1=1';
+  const params = [];
+  if (entityFilter) { where += ' AND entity_type = ?'; params.push(entityFilter); }
+  if (actionFilter) { where += ' AND action LIKE ?'; params.push(`%${actionFilter}%`); }
+
+  const total = get(`SELECT COUNT(*) as c FROM audit_signatures WHERE ${where}`, params)?.c || 0;
+  const signatures = all(`SELECT * FROM audit_signatures WHERE ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`, [...params, limit, offset]);
+  const pages = Math.ceil(total / limit);
+
+  // Get summary stats
+  const todayCount = get("SELECT COUNT(*) as c FROM audit_signatures WHERE date(created_at) = date('now')")?.c || 0;
+  const uniqueUsers = get('SELECT COUNT(DISTINCT user_id) as c FROM audit_signatures')?.c || 0;
+
+  res.render('admin/audit-log', {
+    title: 'Audit Signature Log',
+    isAdmin: true, isAuditLog: true,
+    admin: req.user,
+    signatures,
+    stats: { total, todayCount, uniqueUsers },
+    pagination: { page, pages, total, limit },
+    filters: { entity: entityFilter, action: actionFilter }
+  });
+});
+
+// ── DASHBOARD ──
+router.get('/dashboard', ensureAdminMfa, (req, res) => {
+  // Get own projects + assigned projects
+  const projects = all(`
+    SELECT DISTINCT p.*, 
+      CASE WHEN p.created_by = ? THEN 'owner' ELSE 'assigned' END AS access_role
+    FROM projects p
+    LEFT JOIN assessment_assignments aa ON aa.entity_type = 'project' AND aa.entity_id = p.id AND aa.assigned_to = ? AND aa.status = 'active'
+    WHERE p.created_by = ? OR aa.id IS NOT NULL
+    ORDER BY p.updated_at DESC LIMIT 10
+  `, [req.user.id, req.user.id, req.user.id]);
+
+  const assessments = all(`
+    SELECT DISTINCT a.*, p.name as project_name,
+      CASE WHEN a.created_by = ? THEN 'owner' ELSE 'assigned' END AS access_role
+    FROM assessments a 
+    JOIN projects p ON a.project_id = p.id 
+    LEFT JOIN assessment_assignments aa ON aa.entity_type = 'assessment' AND aa.entity_id = a.id AND aa.assigned_to = ? AND aa.status = 'active'
+    WHERE a.created_by = ? OR aa.id IS NOT NULL
+    ORDER BY a.updated_at DESC LIMIT 10
+  `, [req.user.id, req.user.id, req.user.id]);
+
+  const recentIntakes = all(`SELECT * FROM intake_submissions ORDER BY created_at DESC LIMIT 5`);
+  
+  // Count stats scoped to user's own + assigned
+  const stats = {
+    totalProjects: get(`SELECT COUNT(DISTINCT p.id) as c FROM projects p LEFT JOIN assessment_assignments aa ON aa.entity_type = 'project' AND aa.entity_id = p.id AND aa.assigned_to = ? AND aa.status = 'active' WHERE p.created_by = ? OR aa.id IS NOT NULL`, [req.user.id, req.user.id])?.c || 0,
+    activeAssessments: get(`SELECT COUNT(DISTINCT a.id) as c FROM assessments a LEFT JOIN assessment_assignments aa ON aa.entity_type = 'assessment' AND aa.entity_id = a.id AND aa.assigned_to = ? AND aa.status = 'active' WHERE (a.created_by = ? OR aa.id IS NOT NULL) AND a.status NOT IN ('completed','closed')`, [req.user.id, req.user.id])?.c || 0,
+    pendingAudits: get("SELECT COUNT(*) as c FROM assessments WHERE status = 'submitted'")?.c || 0,
+    activeATOs: get("SELECT COUNT(*) as c FROM assessments WHERE ato_type = 'ato' AND result = 'ato'")?.c || 0,
+    activeIATOs: get("SELECT COUNT(*) as c FROM assessments WHERE ato_type = 'iato' AND result = 'iato'")?.c || 0,
+    pendingIntakes: get("SELECT COUNT(*) as c FROM intake_submissions WHERE status IN ('pending','in-review')")?.c || 0,
+    pendingSelfAssessments: (get("SELECT COUNT(*) as c FROM self_assessments WHERE status = 'submitted'")?.c || 0) +
+      (get("SELECT COUNT(*) as c FROM sa_access_requests WHERE status = 'pending'")?.c || 0)
+  };
+
+  // Check if this user has pending invitations they sent
+  const pendingInviteCount = get("SELECT COUNT(*) as c FROM invitations WHERE invited_by = ? AND status = 'pending'", [req.user.id])?.c || 0;
+
+  res.render('admin/dashboard', {
+    title: 'Dashboard',
+    isAdmin: true, isDashboard: true,
+    admin: req.user, projects, assessments, recentIntakes, stats, pendingInviteCount
+  });
+});
+
+// ── PROJECTS ──
+router.get('/projects', ensureAdminMfa, (req, res) => {
+  const projects = all('SELECT * FROM projects ORDER BY updated_at DESC');
+  res.render('admin/projects', {
+    title: 'Projects', isAdmin: true, isProjects: true,
+    admin: req.user, projects
+  });
+});
+
+router.get('/projects/new', ensureAdminMfa, (req, res) => {
+  // Get clients invited by this assessor (accepted)
+  const clients = all(
+    `SELECT u.id, u.name, u.email, u.organization, i.accepted_at
+     FROM users u
+     INNER JOIN invitations i ON i.accepted_by_user_id = u.id AND i.invited_by = ? AND i.type = 'client' AND i.status = 'accepted'
+     WHERE u.role = 'client' AND u.is_active = 1
+     ORDER BY u.name ASC`, [req.user.id]
+  );
+  // Get pending client invites
+  const pendingInvites = all(
+    `SELECT id, email, name, organization, invite_code, created_at, expires_at
+     FROM invitations WHERE invited_by = ? AND type = 'client' AND status = 'pending'
+     ORDER BY created_at DESC`, [req.user.id]
+  );
+  res.render('admin/project-new', {
+    title: 'New Project', isAdmin: true, isProjects: true,
+    admin: req.user,
+    technologies: COMMON_TECHNOLOGIES,
+    clients,
+    pendingInvites
+  });
+});
+
+router.post('/projects/new', ensureAdminMfa, (req, res) => {
+  try {
+    const { name, description, data_classification, hosting_type, app_type, has_pii,
+      technologies, specifications, project_owner_name, project_owner_email,
+      project_authority_name, project_authority_email, cio_name, cio_email,
+      department, branch, confidentiality_level, integrity_level, availability_level,
+      is_hva, security_profile, selectedRegions, selectedFrameworks,
+      client_action, client_user_id, invite_email, invite_name, invite_org, invite_message } = req.body;
+
+    const slug = (name || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const techArray = Array.isArray(technologies) ? technologies : (technologies ? [technologies] : []);
+    let regions = [];
+    try { regions = JSON.parse(selectedRegions || '[]'); } catch(e) { regions = []; }
+    let frameworks = [];
+    try { frameworks = JSON.parse(selectedFrameworks || '[]'); } catch(e) { frameworks = []; }
+
+    // Handle client assignment
+    let clientUserId = null;
+    if (client_action === 'existing' && client_user_id) {
+      clientUserId = parseInt(client_user_id);
+    } else if (client_action === 'invite' && invite_email) {
+      // Create a new client invite
+      const email = invite_email.toLowerCase().trim();
+      const existing = get('SELECT id, role FROM users WHERE email = ?', [email]);
+      if (existing) {
+        req.flash('error', `A user with email ${email} already exists.`);
+        return res.redirect('/admin/projects/new');
+      }
+      const pendingInvite = get("SELECT id FROM invitations WHERE email = ? AND status = 'pending' AND type = 'client'", [email]);
+      if (!pendingInvite) {
+        const inviteCode = uuidv4().substring(0, 8).toUpperCase();
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+        run(
+          `INSERT INTO invitations (type, email, name, organization, invite_code, invited_by, expires_at, message)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          ['client', email, invite_name || '', invite_org || '', inviteCode, req.user.id, expiresAt, invite_message || '']
+        );
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        emailService.sendClientRegistrationInvite({
+          to: email, recipientName: invite_name || '', inviteCode,
+          assessorName: req.user.name, organization: req.user.organization, baseUrl, message: invite_message || ''
+        });
+      }
+    }
+
+    const projectId = run(`INSERT INTO projects (name, slug, description, data_classification, confidentiality_level,
+      integrity_level, availability_level, security_profile, is_hva, hosting_type, app_type, has_pii,
+      technologies, specifications, project_owner_name, project_owner_email, project_authority_name,
+      project_authority_email, cio_name, cio_email, department, branch, selected_regions, selected_frameworks,
+      client_user_id, status, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)`,
+      [name, slug, description || '', data_classification || 'protected-b',
+        confidentiality_level || data_classification || 'protected-b',
+        integrity_level || 'medium', availability_level || 'medium',
+        security_profile || 'PBMM', is_hva ? 1 : 0, hosting_type || '', app_type || '',
+        has_pii ? 1 : 0, JSON.stringify(techArray), specifications || '',
+        project_owner_name || '', project_owner_email || '', project_authority_name || '', project_authority_email || '',
+        cio_name || '', cio_email || '', department || '', branch || '',
+        JSON.stringify(regions), JSON.stringify(frameworks), clientUserId, req.user.id]);
+
+    req.flash('success', 'Project created successfully');
+    
+    // ── Auto-create draft intake for the client to complete ──
+    const intakeRefCode = 'INT-' + uuidv4().substring(0, 8).toUpperCase();
+    let clientEmail = '';
+    if (clientUserId) {
+      const clientUser = get('SELECT email FROM users WHERE id = ?', [clientUserId]);
+      if (clientUser) clientEmail = clientUser.email;
+    } else if (client_action === 'invite' && invite_email) {
+      clientEmail = invite_email.toLowerCase().trim();
+    }
+    
+    run(`INSERT INTO intake_submissions (
+      ref_code, status, project_name, project_description, department, branch,
+      data_classification, confidentiality_level, integrity_level, availability_level,
+      is_hva, security_profile, hosting_type, app_type, has_pii,
+      technologies, selected_regions, owner_email, owner_name,
+      project_id, created_by_assessor_id, assigned_to_email
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+    [intakeRefCode, 'draft', name || '', description || '', department || '', branch || '',
+      data_classification || 'protected-b',
+      confidentiality_level || data_classification || 'protected-b',
+      integrity_level || 'medium', availability_level || 'medium',
+      is_hva ? 1 : 0, security_profile || 'PBMM',
+      hosting_type || '', app_type || '', has_pii ? 1 : 0,
+      JSON.stringify(techArray), JSON.stringify(regions),
+      clientEmail, project_owner_name || '',
+      projectId, req.user.id, clientEmail]);
+
+    res.redirect('/admin/projects');
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Failed to create project: ' + err.message);
+    res.redirect('/admin/projects/new');
+  }
+});
+
+router.get('/projects/:id', ensureAdminMfa, (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+
+  const assessments = all('SELECT * FROM assessments WHERE project_id = ? ORDER BY created_at DESC', [project.id]);
+  let techs = [];
+  try { techs = JSON.parse(project.technologies || '[]'); } catch(e) {}
+
+  res.render('admin/project-detail', {
+    title: project.name, isAdmin: true, isProjects: true,
+    admin: req.user, project, assessments,
+    techNames: techs.map(t => COMMON_TECHNOLOGIES[t]?.name || t)
+  });
+});
+
+// ── ASSESSMENTS ──
+router.get('/projects/:projectId/assessments/new', ensureAdminMfa, (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+
+  let techs = [];
+  try { techs = JSON.parse(project.technologies || '[]'); } catch(e) {}
+
+  const projectInfo = {
+    dataClassification: project.data_classification,
+    confidentiality: project.confidentiality_level || project.data_classification,
+    hostingType: project.hosting_type,
+    appType: project.app_type,
+    hasPII: !!project.has_pii,
+    technologies: techs,
+    description: project.description,
+    securityProfile: project.security_profile || 'PBMM',
+    isHVA: !!project.is_hva
+  };
+
+  // Check if SA&A is required
+  const saaCheck = assessSAARequirement(projectInfo);
+  if (!saaCheck.requiresSAA && !req.query.force) {
+    // Redirect to guidance report instead
+    return res.redirect(`/admin/projects/${project.id}/guidance`);
+  }
+
+  const controls = getRecommendedControls(projectInfo);
+  const families = groupByFamily(controls);
+
+  // Check for reusable templates
+  const templates = all(`SELECT DISTINCT control_id, tailored_description, evidence_guidance, example_evidence 
+    FROM control_templates WHERE hosting_type = ? ORDER BY usage_count DESC`, [project.hosting_type]);
+  const templateMap = {};
+  templates.forEach(t => { templateMap[t.control_id] = t; });
+
+  // Apply templates where available
+  families.forEach(fam => {
+    fam.controls.forEach(ctrl => {
+      if (templateMap[ctrl.id]) {
+        ctrl.tailoredDescription = templateMap[ctrl.id].tailored_description || ctrl.tailoredDescription;
+        ctrl.evidenceGuidance = templateMap[ctrl.id].evidence_guidance || ctrl.evidenceGuidance;
+        ctrl.hasTemplate = true;
+      }
+    });
+  });
+
+  res.render('admin/assessment-new', {
+    title: 'New Assessment', isAdmin: true, isProjects: true,
+    admin: req.user, project, families, controlCount: controls.length,
+    saaReason: saaCheck.reason
+  });
+});
+
+router.post('/projects/:projectId/assessments/new', ensureAdminMfa, (req, res) => {
+  try {
+    const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
+    if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+
+    const inviteCode = uuidv4().substring(0, 8).toUpperCase();
+    const selectedFrameworks = req.body.selectedFrameworks 
+      ? (Array.isArray(req.body.selectedFrameworks) ? req.body.selectedFrameworks : [req.body.selectedFrameworks])
+      : ['ITSG-33'];
+    const assessmentId = run(`INSERT INTO assessments (project_id, type, status, invite_code, created_by, client_email, selected_frameworks)
+      VALUES (?, 'initial', 'draft', ?, ?, ?, ?)`, [project.id, inviteCode, req.user.id, project.project_owner_email || '', JSON.stringify(selectedFrameworks)]);
+
+    console.log('[Assessment] Created assessment ID:', assessmentId, 'invite:', inviteCode);
+
+    // Insert controls via batch (avoids last_insert_rowid issues)
+    const controlIds = req.body.control_ids || [];
+    const tailored = req.body.tailored || {};
+    const guidance = req.body.guidance || {};
+    const inherited = req.body.inherited || {};
+    const inheritedFrom = req.body.inherited_from || {};
+    const applicable = req.body.applicable || {};
+
+    const controlList = Array.isArray(controlIds) ? controlIds : [controlIds];
+    const statements = controlList.map(cid => {
+      const family = cid.split('-')[0];
+      return {
+        sql: `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title, 
+          description, tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority, risk_level)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        params: [assessmentId, cid, family, CONTROL_FAMILIES[family] || family,
+          req.body[`title_${cid}`] || cid,
+          req.body[`desc_${cid}`] || '',
+          tailored[cid] || req.body[`tailored_${cid}`] || '',
+          guidance[cid] || req.body[`guidance_${cid}`] || '',
+          inherited[cid] ? 1 : 0,
+          inheritedFrom[cid] || '',
+          applicable[cid] !== '0' ? 1 : 0,
+          req.body[`priority_${cid}`] || 'P1',
+          computeRiskLevel({ family, priority: req.body[`priority_${cid}`] || 'P1' })
+        ]
+      };
+    });
+
+    if (statements.length > 0) {
+      runBatch(statements);
+      console.log('[Assessment] Inserted', statements.length, 'controls for assessment', assessmentId);
+    }
+
+    req.flash('success', `Assessment created with ${statements.length} controls. You can now review and send the invite.`);
+    res.redirect(`/admin/assessments/${assessmentId}`);
+  } catch (err) {
+    console.error('Assessment creation error:', err);
+    req.flash('error', 'Failed to create assessment: ' + err.message);
+    res.redirect(`/admin/projects/${req.params.projectId}`);
+  }
+});
+
+router.get('/assessments', ensureAdminMfa, (req, res) => {
+  const assessments = all(`
+    SELECT a.*, p.name as project_name 
+    FROM assessments a JOIN projects p ON a.project_id = p.id 
+    ORDER BY a.updated_at DESC
+  `);
+  res.render('admin/assessments', {
+    title: 'Assessments', isAdmin: true, isAssessments: true,
+    admin: req.user, assessments
+  });
+});
+
+router.get('/assessments/:id', ensureAdminMfa, (req, res) => {
+  const assessment = get(`
+    SELECT a.*, p.name as project_name, p.project_owner_name, p.project_owner_email,
+      p.data_classification, p.hosting_type, p.app_type,
+      p.description as project_description, p.technologies, p.confidentiality_level,
+      p.integrity_level, p.availability_level, p.security_profile
+    FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?
+  `, [req.params.id]);
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+
+  // Access control: owner or assigned
+  const access = canAccessEntity(req.user.id, 'assessment', assessment.id);
+  if (!access.access) {
+    req.flash('error', 'You do not have access to this assessment.');
+    return res.redirect('/admin/assessments');
+  }
+  const isOwner = access.role === 'owner';
+
+  const controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessment.id]);
+  const families = {};
+  controls.forEach(c => {
+    if (!families[c.family]) families[c.family] = { code: c.family, name: c.family_name, controls: [] };
+    families[c.family].controls.push(c);
+  });
+
+  const stats = {
+    total: controls.length,
+    applicable: controls.filter(c => c.is_applicable).length,
+    inherited: controls.filter(c => c.is_inherited).length,
+    evidenceProvided: controls.filter(c => c.evidence_status === 'provided').length,
+    met: controls.filter(c => c.audit_result === 'met').length,
+    partiallyMet: controls.filter(c => c.audit_result === 'partially-met').length,
+    notMet: controls.filter(c => c.audit_result === 'not-met').length,
+    pending: controls.filter(c => !c.audit_result || c.audit_result === 'pending').length,
+    highRisk: controls.filter(c => (c.risk_level || computeRiskLevel(c)) === 'high').length,
+    mediumRisk: controls.filter(c => (c.risk_level || computeRiskLevel(c)) === 'medium').length,
+    lowRisk: controls.filter(c => (c.risk_level || computeRiskLevel(c)) === 'low').length,
+    highRiskNotMet: controls.filter(c => (c.risk_level || computeRiskLevel(c)) === 'high' && (c.audit_result === 'not-met' || c.audit_result === 'partially-met')).length
+  };
+  stats.score = stats.applicable > 0 ? Math.round((stats.met + stats.partiallyMet * 0.5) / stats.applicable * 100) : 0;
+
+  // Compute risk level for controls that don't have one
+  controls.forEach(c => { if (!c.risk_level) c.risk_level = computeRiskLevel(c); });
+
+  const checklistItems = all('SELECT * FROM iato_checklist WHERE assessment_id = ? ORDER BY CASE risk_level WHEN \'high\' THEN 0 WHEN \'medium\' THEN 1 ELSE 2 END, deadline', [assessment.id]);
+  const poamStats = {
+    total: checklistItems.length,
+    open: checklistItems.filter(i => i.status === 'open').length,
+    inProgress: checklistItems.filter(i => i.status === 'in-progress').length,
+    completed: checklistItems.filter(i => i.status === 'completed').length,
+    verified: checklistItems.filter(i => i.status === 'verified').length,
+    overdue: checklistItems.filter(i => i.status !== 'completed' && i.status !== 'verified' && i.deadline && new Date(i.deadline) < new Date()).length,
+    highCount: checklistItems.filter(i => i.risk_level === 'high').length,
+    mediumCount: checklistItems.filter(i => i.risk_level === 'medium').length,
+    lowCount: checklistItems.filter(i => i.risk_level === 'low').length
+  };
+
+  // Parse selected frameworks for display
+  const selectedFrameworks = JSON.parse(assessment.selected_frameworks || '["ITSG-33"]');
+  const frameworkSummary = {};
+  selectedFrameworks.forEach(fwId => {
+    const fw = FRAMEWORKS[fwId];
+    if (fw) {
+      const fwControls = controls.filter(c => {
+        const cfw = JSON.parse(c.frameworks || '[]');
+        return cfw.includes(fwId);
+      });
+      frameworkSummary[fwId] = { ...fw, id: fwId, controlCount: fwControls.length };
+    }
+  });
+
+  // Get active assignments for this assessment
+  const assignments = all(
+    `SELECT aa.*, u.name AS assignee_name, u.email AS assignee_email, u.organization AS assignee_org
+     FROM assessment_assignments aa
+     JOIN users u ON aa.assigned_to = u.id
+     WHERE aa.entity_type = 'assessment' AND aa.entity_id = ? AND aa.status = 'active'`,
+    [assessment.id]
+  );
+
+  // Get peer assessors available for assignment (invited by current user)
+  const peerAssessors = isOwner ? all(
+    `SELECT u.id, u.name, u.email, u.organization
+     FROM users u
+     INNER JOIN invitations i ON i.accepted_by_user_id = u.id AND i.invited_by = ? AND i.type = 'assessor' AND i.status = 'accepted'
+     WHERE u.role = 'assessor' AND u.is_active = 1 AND u.id NOT IN (
+       SELECT assigned_to FROM assessment_assignments WHERE entity_type = 'assessment' AND entity_id = ? AND status = 'active'
+     )
+     ORDER BY u.name`, [req.user.id, assessment.id]
+  ) : [];
+
+  res.render('admin/assessment-detail', {
+    title: `Assessment: ${assessment.project_name}`,
+    isAdmin: true, isAssessments: true,
+    admin: req.user, assessment, isOwner,
+    families: Object.values(families), controls, stats, checklistItems, poamStats,
+    selectedFrameworks, frameworkSummary: Object.values(frameworkSummary),
+    multiFramework: selectedFrameworks.length > 1,
+    assignments, peerAssessors,
+    projectContextJSON: JSON.stringify({
+      name: assessment.project_name,
+      description: assessment.project_description || '',
+      technologies: assessment.technologies || '',
+      hosting_type: assessment.hosting_type || '',
+      confidentiality_level: assessment.confidentiality_level || 'protected-b',
+      integrity_level: assessment.integrity_level || 'medium',
+      availability_level: assessment.availability_level || 'medium',
+      security_profile: assessment.security_profile || 'PBMM'
+    })
+  });
+});
+
+// ── SEND INVITE ──
+router.post('/assessments/:id/send-invite', ensureAdminMfa, async (req, res) => {
+  try {
+    const assessment = get(`
+      SELECT a.*, p.project_owner_name, p.project_owner_email, p.name as project_name
+      FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?
+    `, [req.params.id]);
+
+    if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30);
+
+    run(`UPDATE assessments SET status = 'evidence-gathering', invite_sent_at = CURRENT_TIMESTAMP, 
+      invite_expires_at = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [expiresAt.toISOString(), assessment.id]);
+
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const emailResult = await emailService.sendInvite({
+      to: assessment.project_owner_email,
+      recipientName: assessment.project_owner_name,
+      projectName: assessment.project_name,
+      inviteCode: assessment.invite_code,
+      expiresAt: expiresAt.toISOString(),
+      assessorName: req.user.name,
+      baseUrl
+    });
+
+    if (emailResult.sent) {
+      req.flash('success', `Invite emailed to ${assessment.project_owner_email} with code: ${assessment.invite_code}`);
+    } else {
+      req.flash('success', `Assessment activated with code: ${assessment.invite_code}. Email could not be sent (${emailResult.error || 'not configured'}) — share the code manually.`);
+    }
+    res.redirect(`/admin/assessments/${assessment.id}`);
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Failed to send invite: ' + err.message);
+    res.redirect(`/admin/assessments/${req.params.id}`);
+  }
+});
+
+// ── AUDIT ──
+router.post('/assessments/:id/start-audit', ensureAdminMfa, (req, res) => {
+  run(`UPDATE assessments SET status = 'audit', audit_started_at = CURRENT_TIMESTAMP, 
+    updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [req.params.id]);
+  req.flash('success', 'Audit started');
+  res.redirect(`/admin/assessments/${req.params.id}`);
+});
+
+router.post('/assessments/:id/audit-control/:controlId', ensureAdminMfa, (req, res) => {
+  const { result, comments } = req.body;
+  run(`UPDATE assessment_controls SET audit_result = ?, audit_comments = ?, 
+    audit_reviewed_at = CURRENT_TIMESTAMP, audit_reviewed_by = ?, updated_at = CURRENT_TIMESTAMP 
+    WHERE id = ? AND assessment_id = ?`,
+    [result, comments, req.user.id, req.params.controlId, req.params.id]);
+  res.json({ success: true });
+});
+
+router.post('/assessments/:id/complete-audit', ensureAdminMfa, requireSignature('audit.complete', 'Completed audit — ATO determination', 'assessment'), (req, res) => {
+  const controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? AND is_applicable = 1', [req.params.id]);
+  const met = controls.filter(c => c.audit_result === 'met').length;
+  const partial = controls.filter(c => c.audit_result === 'partially-met').length;
+  const notMet = controls.filter(c => c.audit_result === 'not-met').length;
+  const total = controls.length;
+  const score = total > 0 ? Math.round((met + partial * 0.5) / total * 100) : 0;
+
+  // Assessor can override the result or let the engine decide
+  let result = req.body.overrideResult || null;
+  let atoType = null;
+
+  if (!result) {
+    // GC scoring: 100% met = ATO, >=80% with no critical = iATO, <80% = denied
+    // TBS additional check: any HIGH risk not-met controls = cannot grant full ATO
+    const highRiskNotMet = controls.filter(c =>
+      (c.audit_result === 'not-met') &&
+      (c.risk_level === 'high' || computeRiskLevel(c) === 'high'));
+
+    if (met === total) {
+      result = 'ato'; atoType = 'ato';
+    } else if (score >= 80 && highRiskNotMet.length === 0) {
+      result = 'ato'; atoType = 'ato';
+    } else if (score >= 60) {
+      result = 'iato'; atoType = 'iato';
+    } else {
+      result = 'denied'; atoType = null;
+    }
+  } else {
+    atoType = (result === 'ato') ? 'ato' : (result === 'iato') ? 'iato' : null;
+  }
+
+  // Set expiry for iATO (default 90 days if not specified)
+  let expiryDate = null;
+  if (atoType === 'iato') {
+    if (req.body.atoExpiryDate) {
+      expiryDate = req.body.atoExpiryDate;
+    } else {
+      const d = new Date(); d.setDate(d.getDate() + 90);
+      expiryDate = d.toISOString().split('T')[0];
+    }
+  }
+
+  run(`UPDATE assessments SET status = 'completed', audit_completed_at = CURRENT_TIMESTAMP, 
+    overall_score = ?, result = ?, ato_type = ?, ato_expiry_date = ?,
+    risk_acceptance_statement = ?, poam_notes = ?,
+    updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+    [score, result, atoType, expiryDate,
+     req.body.riskAcceptance || '', req.body.poamNotes || '',
+     req.params.id]);
+
+  // Auto-populate POA&M items for not-met/partially-met controls
+  const findings = controls.filter(c => c.audit_result === 'not-met' || c.audit_result === 'partially-met');
+  if (atoType === 'iato' && findings.length > 0) {
+    const existing = all('SELECT control_id FROM iato_checklist WHERE assessment_id = ?', [req.params.id]);
+    const existingIds = new Set(existing.map(e => e.control_id));
+
+    findings.forEach(c => {
+      if (!existingIds.has(c.control_id)) {
+        const riskLevel = c.risk_level || computeRiskLevel(c);
+        const defaultDeadline = new Date();
+        defaultDeadline.setDate(defaultDeadline.getDate() + (riskLevel === 'high' ? 30 : riskLevel === 'medium' ? 60 : 90));
+
+        run(`INSERT INTO iato_checklist (assessment_id, control_id, description, risk_level,
+          original_finding, deadline, status, created_by)
+          VALUES (?, ?, ?, ?, ?, ?, 'open', ?)`,
+          [req.params.id, c.control_id,
+           `Remediate ${c.control_id} — ${c.title} (${c.audit_result === 'not-met' ? 'Not Met' : 'Partially Met'})`,
+           riskLevel,
+           c.audit_comments || `Control ${c.audit_result}: ${c.title}`,
+           defaultDeadline.toISOString().split('T')[0],
+           req.user.id]);
+      }
+    });
+  }
+
+  // Save templates for reuse
+  const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+  const project = get('SELECT * FROM projects WHERE id = ?', [assessment.project_id]);
+  controls.filter(c => c.audit_result === 'met' && c.evidence_text).forEach(c => {
+    const existing = get('SELECT id FROM control_templates WHERE control_id = ? AND hosting_type = ?',
+      [c.control_id, project.hosting_type]);
+    if (!existing) {
+      run(`INSERT INTO control_templates (control_id, hosting_type, technologies, tailored_description, 
+        evidence_guidance, example_evidence, source_project_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [c.control_id, project.hosting_type, project.technologies, c.tailored_description,
+          c.evidence_guidance, c.evidence_text, project.id]);
+    } else {
+      run('UPDATE control_templates SET usage_count = usage_count + 1 WHERE id = ?', [existing.id]);
+    }
+  });
+
+  req.flash('success', `Audit completed. Score: ${score}%. Result: ${(result || '').toUpperCase()}.${atoType === 'iato' ? ' POA&M items auto-generated for ' + findings.length + ' findings.' : ''}`);
+  res.redirect(`/admin/assessments/${req.params.id}`);
+});
+
+// ── POA&M MANAGEMENT ──
+router.post('/assessments/:id/checklist/add', ensureAdminMfa, (req, res) => {
+  const { description, deadline, control_id, assigned_to, risk_level, remediation_plan, milestone } = req.body;
+  run(`INSERT INTO iato_checklist (assessment_id, control_id, description, risk_level,
+    remediation_plan, milestone, deadline, assigned_to, created_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [req.params.id, control_id, description, risk_level || 'medium',
+     remediation_plan || '', milestone || '', deadline, assigned_to, req.user.id]);
+  req.flash('success', 'POA&M item added');
+  res.redirect(`/admin/assessments/${req.params.id}`);
+});
+
+router.post('/assessments/:id/poam/:itemId/update', ensureAdminMfa, (req, res) => {
+  const { status, risk_level, assigned_to, deadline, remediation_plan, milestone, evidence_text } = req.body;
+  const updates = [];
+  const params = [];
+
+  if (status) { updates.push('status = ?'); params.push(status); }
+  if (risk_level) { updates.push('risk_level = ?'); params.push(risk_level); }
+  if (assigned_to !== undefined) { updates.push('assigned_to = ?'); params.push(assigned_to); }
+  if (deadline) { updates.push('deadline = ?'); params.push(deadline); }
+  if (remediation_plan !== undefined) { updates.push('remediation_plan = ?'); params.push(remediation_plan); }
+  if (milestone !== undefined) { updates.push('milestone = ?'); params.push(milestone); }
+  if (evidence_text !== undefined) { updates.push('evidence_text = ?'); params.push(evidence_text); }
+
+  if (status === 'completed') {
+    updates.push('completed_at = CURRENT_TIMESTAMP');
+  }
+  if (status === 'verified') {
+    updates.push('verified_at = CURRENT_TIMESTAMP');
+    updates.push('verified_by = ?'); params.push(req.user.id);
+  }
+
+  if (updates.length) {
+    params.push(req.params.itemId, req.params.id);
+    run(`UPDATE iato_checklist SET ${updates.join(', ')} WHERE id = ? AND assessment_id = ?`, params);
+  }
+  if (req.xhr || req.headers.accept?.includes('json')) {
+    return res.json({ success: true });
+  }
+  req.flash('success', 'POA&M item updated');
+  res.redirect(`/admin/assessments/${req.params.id}`);
+});
+
+router.post('/assessments/:id/poam/:itemId/delete', ensureAdminMfa, (req, res) => {
+  run('DELETE FROM iato_checklist WHERE id = ? AND assessment_id = ?', [req.params.itemId, req.params.id]);
+  req.flash('success', 'POA&M item removed');
+  res.redirect(`/admin/assessments/${req.params.id}`);
+});
+
+router.post('/assessments/:id/poam/auto-populate', ensureAdminMfa, (req, res) => {
+  const controls = all(`SELECT * FROM assessment_controls WHERE assessment_id = ? AND is_applicable = 1 
+    AND (audit_result = 'not-met' OR audit_result = 'partially-met')`, [req.params.id]);
+  const existing = all('SELECT control_id FROM iato_checklist WHERE assessment_id = ?', [req.params.id]);
+  const existingIds = new Set(existing.map(e => e.control_id));
+  let added = 0;
+
+  controls.forEach(c => {
+    if (!existingIds.has(c.control_id)) {
+      const riskLevel = c.risk_level || computeRiskLevel(c);
+      const defaultDeadline = new Date();
+      defaultDeadline.setDate(defaultDeadline.getDate() + (riskLevel === 'high' ? 30 : riskLevel === 'medium' ? 60 : 90));
+      run(`INSERT INTO iato_checklist (assessment_id, control_id, description, risk_level,
+        original_finding, deadline, status, created_by)
+        VALUES (?, ?, ?, ?, ?, ?, 'open', ?)`,
+        [req.params.id, c.control_id,
+         `Remediate ${c.control_id} — ${c.title}`,
+         riskLevel, c.audit_comments || `${c.audit_result}: ${c.title}`,
+         defaultDeadline.toISOString().split('T')[0], req.user.id]);
+      added++;
+    }
+  });
+  req.flash('success', `Auto-populated ${added} POA&M items from ${controls.length} findings (${existing.length} already existed).`);
+  res.redirect(`/admin/assessments/${req.params.id}`);
+});
+
+// ── REACTIVATE SUBMISSION ──
+router.post('/assessments/:id/reactivate', ensureAdminMfa, requireSignature('assessment.reactivate', 'Reactivated assessment for edits', 'assessment'), (req, res) => {
+  run(`UPDATE assessments SET status = 'evidence-gathering', submitted_at = NULL, 
+    updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [req.params.id]);
+  run(`UPDATE assessment_controls SET evidence_status = 'pending' WHERE assessment_id = ?`, [req.params.id]);
+  req.flash('success', 'Submission reactivated for updates');
+  res.redirect(`/admin/assessments/${req.params.id}`);
+});
+
+// ── PDF EXPORT ──
+router.get('/assessments/:id/export-pdf', ensureAdminMfa, async (req, res) => {
+  try {
+    const assessment = get(`SELECT a.*, p.* FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?`, [req.params.id]);
+    const controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessment.id]);
+
+    const outputDir = path.join(__dirname, '..', 'data', 'exports');
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+    const outputPath = path.join(outputDir, `sa-report-${assessment.id}-${Date.now()}.pdf`);
+
+    await pdfExport.generateAssessmentReport(assessment, controls, assessment, outputPath);
+    res.download(outputPath);
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Failed to generate PDF');
+    res.redirect(`/admin/assessments/${req.params.id}`);
+  }
+});
+
+router.get('/assessments/:id/generate-ato', ensureAdminMfa, async (req, res) => {
+  try {
+    const assessment = get(`SELECT a.*, p.* FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?`, [req.params.id]);
+    const controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessment.id]);
+
+    const outputDir = path.join(__dirname, '..', 'data', 'exports');
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+    const atoType = assessment.ato_type || 'ato';
+    const outputPath = path.join(outputDir, `${atoType}-${assessment.id}-${Date.now()}.pdf`);
+
+    await pdfExport.generateATODocument(assessment, assessment, atoType, controls, outputPath, {
+      poamItems: all('SELECT * FROM iato_checklist WHERE assessment_id = ? ORDER BY CASE risk_level WHEN \'high\' THEN 0 WHEN \'medium\' THEN 1 ELSE 2 END, deadline', [assessment.id]),
+      riskAcceptance: assessment.risk_acceptance_statement || '',
+      poamNotes: assessment.poam_notes || ''
+    });
+    
+    run(`UPDATE assessments SET ato_generated_at = CURRENT_TIMESTAMP WHERE id = ?`, [assessment.id]);
+    res.download(outputPath);
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Failed to generate ATO document');
+    res.redirect(`/admin/assessments/${req.params.id}`);
+  }
+});
+
+// ── DELETE ASSESSMENT (Draft only) ──
+router.post('/assessments/:id/delete', ensureAdminMfa, requireSignature('assessment.delete', 'Deleted assessment', 'assessment'), (req, res) => {
+  const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+  if (assessment.status !== 'draft') {
+    req.flash('error', 'Only draft assessments can be deleted. This assessment is currently in "' + assessment.status + '" status.');
+    return res.redirect(`/admin/assessments/${assessment.id}`);
+  }
+
+  // Cascade delete related data
+  run('DELETE FROM comments WHERE assessment_control_id IN (SELECT id FROM assessment_controls WHERE assessment_id = ?)', [assessment.id]);
+  run('DELETE FROM attachments WHERE assessment_control_id IN (SELECT id FROM assessment_controls WHERE assessment_id = ?)', [assessment.id]);
+  run('DELETE FROM iato_checklist WHERE assessment_id = ?', [assessment.id]);
+  run('DELETE FROM assessment_controls WHERE assessment_id = ?', [assessment.id]);
+  run('DELETE FROM assessments WHERE id = ?', [assessment.id]);
+
+  req.flash('success', 'Draft assessment deleted successfully');
+  res.redirect(req.body.return_to || '/admin/assessments');
+});
+
+// ── DELETE PROJECT ──
+router.post('/projects/:id/delete', ensureAdminMfa, requireSignature('project.delete', 'Deleted project', 'project'), (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+
+  // Check for non-draft assessments
+  const nonDraftAssessments = all(
+    "SELECT id, status, invite_code FROM assessments WHERE project_id = ? AND status != 'draft'",
+    [project.id]
+  );
+
+  if (nonDraftAssessments.length > 0) {
+    const statuses = nonDraftAssessments.map(a => `${a.invite_code} (${a.status})`).join(', ');
+    req.flash('error', `Cannot delete project — it contains ${nonDraftAssessments.length} non-draft assessment(s): ${statuses}. Only projects with all assessments in draft status can be deleted.`);
+    return res.redirect(`/admin/projects/${project.id}`);
+  }
+
+  // Delete all draft assessments and their related data
+  const draftAssessments = all("SELECT id FROM assessments WHERE project_id = ?", [project.id]);
+  draftAssessments.forEach(a => {
+    run('DELETE FROM comments WHERE assessment_control_id IN (SELECT id FROM assessment_controls WHERE assessment_id = ?)', [a.id]);
+    run('DELETE FROM attachments WHERE assessment_control_id IN (SELECT id FROM assessment_controls WHERE assessment_id = ?)', [a.id]);
+    run('DELETE FROM iato_checklist WHERE assessment_id = ?', [a.id]);
+    run('DELETE FROM assessment_controls WHERE assessment_id = ?', [a.id]);
+    run('DELETE FROM assessments WHERE id = ?', [a.id]);
+  });
+
+  // Delete the project itself
+  run('DELETE FROM projects WHERE id = ?', [project.id]);
+
+  req.flash('success', `Project "${project.name}" and ${draftAssessments.length} draft assessment(s) deleted`);
+  res.redirect('/admin/projects');
+});
+
+// ── SETTINGS ──
+router.get('/settings', ensureAdminMfa, (req, res) => {
+  const user = get('SELECT mfa_enabled, mfa_mode, webauthn_credential_id FROM users WHERE id = ?', [req.user.id]);
+  res.render('admin/settings', {
+    title: 'Settings', isAdmin: true, isSettings: true, admin: req.user,
+    mfaEnabled: user && user.mfa_enabled === 1,
+    mfaMode: user?.mfa_mode || 'totp',
+    hasWebAuthn: !!user?.webauthn_credential_id
+  });
+});
+
+// ── INTAKE MANAGEMENT ──
+
+const PII_LABELS = {
+  'name-address': 'Name, Address & Contact Info',
+  'sin': 'Social Insurance Number (SIN)',
+  'financial': 'Financial Information',
+  'health': 'Health / Medical Records',
+  'biometric': 'Biometric Data',
+  'employment': 'Employment / HR Records',
+  'immigration': 'Immigration / Citizenship',
+  'law-enforcement': 'Law Enforcement / Criminal Records',
+  'indigenous': 'Indigenous / Treaty Data'
+};
+
+const ACTIVITY_LABELS = {
+  'tra': 'Threat & Risk Assessment (TRA)',
+  'pia': 'Privacy Impact Assessment (PIA)',
+  'ssp': 'System Security Plan (SSP)',
+  'vapt': 'Vulnerability Assessment / Pen Test',
+  'network-diagram': 'Network / Architecture Diagram',
+  'previous-sa': 'Previous SA&A / ATO'
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  SELF-ASSESSMENTS (Pre-Intake Review)
+// ══════════════════════════════════════════════════════════════════════════════
+const { countryNames, govLevelNames, sensitivityNames, getFrameworks } = require('../config/framework-map');
+
+// List all self-assessments + access requests
+router.get('/self-assessments', ensureAdminMfa, (req, res) => {
+  const assessments = all('SELECT * FROM self_assessments ORDER BY created_at DESC');
+  const accessRequests = all('SELECT * FROM sa_access_requests ORDER BY created_at DESC');
+  const stats = {
+    total: assessments.length,
+    submitted: assessments.filter(a => a.status === 'submitted').length,
+    reviewed: assessments.filter(a => a.status === 'reviewed').length,
+    intakeCreated: assessments.filter(a => a.status === 'intake-created').length,
+    pendingAccessRequests: accessRequests.filter(r => r.status === 'pending').length
+  };
+  res.render('admin/self-assessments', {
+    title: 'Pre-Intake Self-Assessments', isAdmin: true, isSelfAssessments: true,
+    admin: req.user, assessments, accessRequests, stats
+  });
+});
+
+// Review a single self-assessment
+router.get('/self-assessments/:id', ensureAdminMfa, (req, res) => {
+  const sa = get('SELECT * FROM self_assessments WHERE id = ?', [req.params.id]);
+  if (!sa) { req.flash('error', 'Self-assessment not found'); return res.redirect('/admin/self-assessments'); }
+
+  const report = JSON.parse(sa.report_json || '{}');
+  const frameworks = JSON.parse(sa.frameworks_json || '{}');
+  const questions = JSON.parse(sa.questions_json || '[]');
+  const answers = JSON.parse(sa.answers_json || '{}');
+
+  // Check if intake already exists for this
+  const linkedIntake = sa.intake_id ? get('SELECT id, ref_code, status FROM intake_submissions WHERE id = ?', [sa.intake_id]) : null;
+
+  // Check if user already has an account
+  const existingUser = sa.submitter_email ? get('SELECT id, email, role FROM users WHERE email = ?', [sa.submitter_email.toLowerCase().trim()]) : null;
+
+  res.render('admin/self-assessment-review', {
+    title: `Review: ${sa.ref_code}`, isAdmin: true,
+    admin: req.user, sa, report, frameworks, questions, answers,
+    linkedIntake, existingUser,
+    countryName: countryNames[sa.country] || sa.country,
+    govLevelName: govLevelNames[sa.gov_level] || sa.gov_level,
+    sensitivityName: sensitivityNames[sa.data_sensitivity] || sa.data_sensitivity
+  });
+});
+
+// Mark as reviewed
+router.post('/self-assessments/:id/review', ensureAdminMfa, (req, res) => {
+  const { admin_notes } = req.body;
+  run("UPDATE self_assessments SET status = 'reviewed', reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP, admin_notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+    [req.user.id, admin_notes || '', req.params.id]);
+  req.flash('success', 'Self-assessment marked as reviewed.');
+  res.redirect(`/admin/self-assessments/${req.params.id}`);
+});
+
+// Create intake from self-assessment (manual or AI-populated)
+router.post('/self-assessments/:id/create-intake', ensureAdminMfa, (req, res) => {
+  try {
+    const sa = get('SELECT * FROM self_assessments WHERE id = ?', [req.params.id]);
+    if (!sa) { req.flash('error', 'Self-assessment not found'); return res.redirect('/admin/self-assessments'); }
+
+    // Use form values (admin can override AI-generated or enter manually)
+    const {
+      project_name, project_description, department, app_type,
+      data_classification, confidentiality_level, integrity_level, availability_level,
+      has_pii, pia_completed, hosting_type, hosting_region,
+      security_profile, additional_notes
+    } = req.body;
+
+    const crypto = require('crypto');
+    const refCode = 'INT-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+
+    const intakeId = run(`INSERT INTO intake_submissions (
+      ref_code, status, project_name, project_description, department,
+      app_type, data_classification, confidentiality_level, integrity_level, availability_level,
+      has_pii, pia_completed, hosting_type, hosting_region, security_profile,
+      additional_notes, owner_name, owner_email
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [refCode, 'draft', project_name || '', project_description || '', department || '',
+       app_type || '', data_classification || 'protected-b',
+       confidentiality_level || 'medium', integrity_level || 'medium', availability_level || 'medium',
+       has_pii === 'true' || has_pii === '1' ? 1 : 0, pia_completed || 'unknown',
+       hosting_type || '', hosting_region || '', security_profile || 'PBMM',
+       additional_notes || '', sa.submitter_name || '', sa.submitter_email || '']
+    );
+
+    // Link self-assessment to intake
+    run("UPDATE self_assessments SET status = 'intake-created', intake_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+      [intakeId, sa.id]);
+
+    req.flash('success', `Draft intake ${refCode} created from self-assessment. You can now invite the client to review and submit it.`);
+    res.redirect(`/admin/self-assessments/${sa.id}`);
+  } catch (err) {
+    console.error('Create intake from SA error:', err);
+    req.flash('error', 'Failed to create intake: ' + err.message);
+    res.redirect(`/admin/self-assessments/${req.params.id}`);
+  }
+});
+
+// Invite client to register and review their draft intake
+router.post('/self-assessments/:id/invite-client', ensureAdminMfa, (req, res) => {
+  try {
+    const sa = get('SELECT * FROM self_assessments WHERE id = ?', [req.params.id]);
+    if (!sa) { req.flash('error', 'Self-assessment not found'); return res.redirect('/admin/self-assessments'); }
+
+    const linkedIntake = sa.intake_id ? get('SELECT ref_code FROM intake_submissions WHERE id = ?', [sa.intake_id]) : null;
+    const email = sa.submitter_email;
+    const name = sa.submitter_name || '';
+
+    // Check if user already exists
+    const existingUser = get('SELECT id FROM users WHERE email = ?', [email.toLowerCase().trim()]);
+
+    if (existingUser) {
+      // User exists — just flash a login link
+      req.flash('success', `${email} already has an account. They can sign in at /client/login to review their intake.`);
+    } else {
+      // Create invitation for client registration
+      const crypto = require('crypto');
+      const inviteCode = crypto.randomBytes(4).toString('hex').toUpperCase();
+      const expiry = new Date(Date.now() + 14 * 86400000).toISOString(); // 14 days
+
+      run(`INSERT INTO invitations (type, email, name, organization, invite_code, invited_by, status, expires_at, message)
+        VALUES (?,?,?,?,?,?,?,?,?)`,
+        ['client', email, name, sa.submitter_org || '', inviteCode, req.user.id, 'pending', expiry,
+         `You submitted a preliminary security self-assessment (ref: ${sa.ref_code}). A draft intake has been created for your review.${linkedIntake ? ' Intake ref: ' + linkedIntake.ref_code : ''}`]
+      );
+
+      // Try to send email
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      try {
+        emailService.sendClientRegistrationInvite({
+          to: email, recipientName: name,
+          inviteCode, assessorName: req.user.name,
+          organization: req.user.organization || '', baseUrl,
+          message: `Your preliminary security self-assessment (${sa.ref_code}) has been reviewed. A draft intake has been prepared for you. Please register and sign in to review and submit it.`
+        });
+        req.flash('success', `Invitation sent to ${email} with code ${inviteCode}. They can register and review their draft intake.`);
+      } catch (emailErr) {
+        req.flash('success', `Invitation created with code ${inviteCode} — email could not be sent. Share this registration link: ${baseUrl}/admin/register?invite=${inviteCode}`);
+      }
+    }
+
+    res.redirect(`/admin/self-assessments/${sa.id}`);
+  } catch (err) {
+    console.error('Invite client error:', err);
+    req.flash('error', 'Failed to invite client: ' + err.message);
+    res.redirect(`/admin/self-assessments/${req.params.id}`);
+  }
+});
+
+// ── Access Request Management ──
+
+// Approve an access request
+router.post('/self-assessment-requests/:id/approve', ensureAdminMfa, (req, res) => {
+  try {
+    const request = get('SELECT * FROM sa_access_requests WHERE id = ?', [req.params.id]);
+    if (!request) { req.flash('error', 'Request not found'); return res.redirect('/admin/self-assessments'); }
+
+    const crypto = require('crypto');
+    const code = crypto.randomBytes(4).toString('hex').toUpperCase();
+    const expiry = new Date(Date.now() + 30 * 86400000).toISOString(); // 30 days
+
+    run("UPDATE sa_access_requests SET status = 'approved', access_code = ?, approved_by = ?, approved_at = CURRENT_TIMESTAMP, expires_at = ? WHERE id = ?",
+      [code, req.user.id, expiry, request.id]);
+
+    // Try to send email
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    try {
+      emailService.sendMail({
+        to: request.email,
+        subject: 'Your Security Self-Assessment Access Code',
+        text: `Hello ${request.name || ''},\n\nYour request for access to the Security Self-Assessment has been approved.\n\nAccess Code: ${code}\n\nUse this link to start your assessment:\n${baseUrl}/self-assessment?code=${code}\n\nThis code expires in 30 days.\n\nBest regards,\nSecurity Assessment Team`
+      });
+      req.flash('success', `Approved! Access code ${code} sent to ${request.email}.`);
+    } catch (emailErr) {
+      req.flash('success', `Approved! Code: ${code} — Email could not be sent. Share this link: ${baseUrl}/self-assessment?code=${code}`);
+    }
+    res.redirect('/admin/self-assessments');
+  } catch (err) {
+    console.error('Approve access request error:', err);
+    req.flash('error', 'Failed to approve: ' + err.message);
+    res.redirect('/admin/self-assessments');
+  }
+});
+
+// Deny an access request
+router.post('/self-assessment-requests/:id/deny', ensureAdminMfa, (req, res) => {
+  run("UPDATE sa_access_requests SET status = 'denied' WHERE id = ?", [req.params.id]);
+  req.flash('success', 'Access request denied.');
+  res.redirect('/admin/self-assessments');
+});
+
+// List all intakes
+router.get('/intakes', ensureAdminMfa, (req, res) => {
+  const intakes = all('SELECT * FROM intake_submissions ORDER BY created_at DESC');
+  const pending = all("SELECT COUNT(*) as c FROM intake_submissions WHERE status = 'pending'")[0]?.c || 0;
+  const accepted = all("SELECT COUNT(*) as c FROM intake_submissions WHERE status = 'accepted'")[0]?.c || 0;
+  const inReview = all("SELECT COUNT(*) as c FROM intake_submissions WHERE status = 'in-review'")[0]?.c || 0;
+
+  res.render('admin/intakes', {
+    title: 'Intake Submissions', isAdmin: true, isIntakes: true,
+    admin: req.user, intakes,
+    stats: { total: intakes.length, pending, accepted, inReview }
+  });
+});
+
+// Review a single intake
+router.get('/intakes/:id', ensureAdminMfa, (req, res) => {
+  const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
+  if (!intake) { req.flash('error', 'Intake not found'); return res.redirect('/admin/intakes'); }
+
+  const piiTypes = JSON.parse(intake.pii_types || '[]');
+  const technologies = JSON.parse(intake.technologies || '[]');
+  const activities = JSON.parse(intake.completed_activities || '[]');
+
+  const attachments = all('SELECT * FROM intake_attachments WHERE intake_id = ?', [intake.id]);
+  attachments.forEach(a => {
+    a.size_display = a.size > 1048576 ? (a.size / 1048576).toFixed(1) + ' MB' : (a.size / 1024).toFixed(0) + ' KB';
+  });
+
+  const allTechnologies = Object.entries(COMMON_TECHNOLOGIES).map(([key, val]) => ({
+    key, name: val.name, alreadySelected: technologies.includes(key)
+  }));
+
+  // Engine preview
+  let engineDesc = intake.project_description || '';
+  if (intake.interconnections) engineDesc += ' integration interconnect API ' + intake.interconnections;
+  if (intake.mobile_access === 'yes') engineDesc += ' mobile byod';
+  if (intake.external_users === 'yes') engineDesc += ' external public';
+
+  const recommended = getRecommendedControls({
+    dataClassification: intake.data_classification,
+    confidentiality: intake.confidentiality_level || intake.data_classification,
+    hostingType: intake.hosting_type,
+    appType: intake.app_type, hasPII: intake.has_pii === 1,
+    technologies, description: engineDesc,
+    securityProfile: intake.security_profile || 'PBMM',
+    isHVA: intake.is_hva === 1
+  });
+
+  const saaCheck = assessSAARequirement({
+    dataClassification: intake.data_classification,
+    confidentiality: intake.confidentiality_level || intake.data_classification,
+    hasPII: intake.has_pii === 1,
+    description: engineDesc, appType: intake.app_type
+  });
+
+  // Profile determination for display
+  const confLevel = intake.confidentiality_level || intake.data_classification || 'protected-b';
+  const intLevel = intake.integrity_level || 'medium';
+  const avaLevel = intake.availability_level || 'medium';
+  const profileResult = determineProfile({
+    confidentiality: confLevel, integrity: intLevel, availability: avaLevel,
+    hasPII: intake.has_pii === 1, isHVA: intake.is_hva === 1,
+    hasComplexity: detectComplexity(engineDesc)
+  });
+  const catLabel = categorizationLabel(confLevel, intLevel, avaLevel);
+  const catFullLabel = categorizationFullLabel(confLevel, intLevel, avaLevel);
+
+  res.render('admin/intake-review', {
+    title: 'Review: ' + intake.project_name, isAdmin: true,
+    user: req.user, intake, attachments,
+    piiList: piiTypes.filter(p => p !== 'none').map(p => PII_LABELS[p] || p),
+    techList: technologies.map(t => COMMON_TECHNOLOGIES[t]?.name || t),
+    activityList: activities.map(a => ACTIVITY_LABELS[a] || a),
+    allTechnologies,
+    controlCount: recommended.length,
+    p1Count: recommended.filter(c => c.priority === 'P1').length,
+    p2Count: recommended.filter(c => c.priority === 'P2').length,
+    p3Count: recommended.filter(c => c.priority === 'P3').length,
+    inheritedCount: recommended.filter(c => c.isInherited).length,
+    nonInheritedCount: recommended.filter(c => !c.isInherited).length,
+    profileId: profileResult.profile.id,
+    saaRequired: saaCheck.requiresSAA,
+    saaReason: saaCheck.reason,
+    catLabel, catFullLabel,
+    profileName: profileResult.profile.name,
+    profileShortName: profileResult.profile.shortName,
+    profileReason: profileResult.reason,
+    tailoringNotes: profileResult.tailoringNotes,
+    profileColor: profileResult.profile.color,
+    frameworkCategories: getFrameworksByCategory(),
+    frameworksJson: JSON.stringify(FRAMEWORKS),
+    intakeRegions: JSON.parse(intake.selected_regions || '[]'),
+    intakeRegionsJson: intake.selected_regions || '[]'
+  });
+});
+
+// Update intake status
+router.post('/intakes/:id/status', ensureAdminMfa, (req, res) => {
+  const { status, declineReason } = req.body;
+  if (declineReason) {
+    run('UPDATE intake_submissions SET status = ?, decline_reason = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [status, declineReason, req.params.id]);
+  } else {
+    run('UPDATE intake_submissions SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [status, req.params.id]);
+  }
+  req.flash('success', 'Intake status updated to ' + status);
+  res.redirect('/admin/intakes/' + req.params.id);
+});
+
+// Create project + assessment from intake
+router.post('/intakes/:id/create-project', ensureAdminMfa, requireSignature('intake.accept', 'Accepted intake and created project', 'intake'), (req, res) => {
+  try {
+    const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
+    if (!intake) { req.flash('error', 'Intake not found'); return res.redirect('/admin/intakes'); }
+
+    const submittedTech = JSON.parse(intake.technologies || '[]');
+    const additionalTech = Array.isArray(req.body.additionalTech) ? req.body.additionalTech : (req.body.additionalTech ? [req.body.additionalTech] : []);
+    const allTech = [...new Set([...submittedTech, ...additionalTech])];
+
+    const classification = req.body.overrideClassification || intake.data_classification;
+    const appType = req.body.overrideAppType || intake.app_type;
+    const confLevel = req.body.overrideClassification || intake.confidentiality_level || classification;
+    const intLevel = req.body.overrideIntegrity || intake.integrity_level || 'medium';
+    const avaLevel = req.body.overrideAvailability || intake.availability_level || 'medium';
+    const isHVA = req.body.overrideHVA ? 1 : (intake.is_hva || 0);
+
+    // Determine profile using the full C/I/A engine (with any admin overrides)
+    const profileResult = determineProfile({
+      confidentiality: confLevel, integrity: intLevel, availability: avaLevel,
+      hasPII: intake.has_pii === 1, isHVA: isHVA === 1,
+      hasComplexity: detectComplexity(intake.project_description || '')
+    });
+    const securityProfile = profileResult.profile.id;
+
+    console.log('[Intake→Project] C/I/A:', confLevel, intLevel, avaLevel,
+      'HVA:', isHVA, 'PII:', intake.has_pii,
+      '→ Profile:', securityProfile, '(' + profileResult.reason + ')');
+
+    let fullDescription = intake.project_description || '';
+    if (intake.interconnections) fullDescription += '\nInterconnections: ' + intake.interconnections;
+    if (intake.mobile_access === 'yes') fullDescription += '\nMobile/BYOD access required.';
+    if (intake.external_users === 'yes') fullDescription += '\nExternal users will access the system.';
+    if (req.body.assessorDescription) fullDescription += '\n' + req.body.assessorDescription;
+
+    const slug = intake.project_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now().toString(36);
+
+    const projectId = run(
+      `INSERT INTO projects (name, slug, description, data_classification,
+        confidentiality_level, integrity_level, availability_level, security_profile, is_hva,
+        hosting_type, app_type, has_pii, technologies, specifications,
+        project_owner_name, project_owner_email,
+        project_authority_name, project_authority_email, status, created_by
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [intake.project_name, slug, fullDescription, classification,
+        confLevel, intLevel, avaLevel, securityProfile, isHVA,
+        intake.hosting_type, appType,
+        intake.has_pii, JSON.stringify(allTech), intake.other_tech || '',
+        intake.owner_name, intake.owner_email,
+        intake.authority_name || '', intake.authority_email || '', 'active', req.user.id]
+    );
+
+    // Check if SA&A is required
+    const saaCheck = assessSAARequirement({
+      dataClassification: classification, confidentiality: confLevel,
+      hasPII: intake.has_pii === 1, description: fullDescription, appType
+    });
+
+    if (!saaCheck.requiresSAA) {
+      // No SA&A needed — redirect to guidance report
+      run(`UPDATE intake_submissions SET status = 'accepted', project_id = ?, assessor_notes = ?,
+        assessor_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        [projectId, req.body.assessorNotes || '', req.body.assessorDescription || '', req.params.id]);
+
+      req.flash('success', `Project "${intake.project_name}" created. No formal SA&A required — a GC Web Guidance Report has been generated.`);
+      return res.redirect('/admin/projects/' + projectId + '/guidance');
+    }
+
+    const recommended = getRecommendedControls({
+      dataClassification: classification, confidentiality: confLevel,
+      hostingType: intake.hosting_type, appType, hasPII: intake.has_pii === 1,
+      technologies: allTech, description: fullDescription,
+      securityProfile: securityProfile, isHVA: isHVA === 1
+    });
+
+    // Apply admin filtering options
+    let filtered = recommended;
+    if (req.body.excludeInherited === '1') {
+      filtered = filtered.filter(c => !c.isInherited);
+    }
+    if (req.body.onlyP1P2 === '1') {
+      filtered = filtered.filter(c => c.priority === 'P1' || c.priority === 'P2');
+    }
+
+    // Multi-framework support — parse selected frameworks
+    let selectedFrameworks = [];
+    if (req.body.selectedFrameworks) {
+      selectedFrameworks = Array.isArray(req.body.selectedFrameworks)
+        ? req.body.selectedFrameworks
+        : [req.body.selectedFrameworks];
+    }
+    // Always include ITSG-33 as the primary baseline
+    if (!selectedFrameworks.includes('ITSG-33')) {
+      selectedFrameworks.unshift('ITSG-33');
+    }
+
+    // Generate multi-framework controls if additional frameworks selected
+    if (selectedFrameworks.length > 1) {
+      filtered = generateMultiFrameworkControls(selectedFrameworks, filtered, {
+        name: intake.project_name,
+        classification: classification
+      });
+    } else {
+      // Single framework (ITSG-33 only) — add default framework tags
+      filtered = filtered.map(c => ({
+        ...c,
+        frameworks: ['ITSG-33'],
+        frameworkRefs: [{ frameworkId: 'ITSG-33', frameworkName: 'ITSG-33', reference: c.id }],
+        isFrameworkSpecific: false,
+        sourceFramework: 'ITSG-33'
+      }));
+    }
+
+    console.log('[Intake→Project] Profile:', securityProfile,
+      'Recommended:', recommended.length,
+      'After filters:', filtered.length,
+      'Frameworks:', selectedFrameworks.join(', '),
+      '(excludeInherited:', req.body.excludeInherited || 'no',
+      'onlyP1P2:', req.body.onlyP1P2 || 'no', ')');
+
+    const inviteCode = uuidv4().substring(0, 8).toUpperCase();
+    const assessmentId = run(
+      `INSERT INTO assessments (project_id, type, status, invite_code, created_by, client_email, selected_frameworks) VALUES (?,?,?,?,?,?,?)`,
+      [projectId, req.body.assessmentType || 'initial', 'draft', inviteCode, req.user.id, intake.owner_email || '', JSON.stringify(selectedFrameworks)]
+    );
+
+    const grouped = groupByFamily(filtered);
+    grouped.forEach(family => {
+      family.controls.forEach(control => {
+        run(
+          `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title, description,
+            tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority, risk_level,
+            frameworks, source_framework, framework_refs
+          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+          [assessmentId, control.id, control.family, control.familyName || family.name, control.title, control.description,
+            control.tailoredDescription || '', control.evidenceGuidance || '',
+            control.isInherited ? 1 : 0, (control.inheritedFrom || []).join(', '), 1, control.priority,
+            computeRiskLevel(control),
+            JSON.stringify(control.frameworks || ['ITSG-33']),
+            control.sourceFramework || 'ITSG-33',
+            JSON.stringify(control.frameworkRefs || [])]
+        );
+      });
+    });
+
+    run(`UPDATE intake_submissions SET status = 'accepted', project_id = ?, assessor_notes = ?,
+      assessor_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [projectId, req.body.assessorNotes || '', req.body.assessorDescription || '', req.params.id]);
+
+    req.flash('success', `Project "${intake.project_name}" created with ${filtered.length} controls (profile: ${securityProfile}).`);
+    res.redirect('/admin/assessments/' + assessmentId);
+  } catch (err) {
+    console.error('Create project from intake error:', err);
+    req.flash('error', 'Failed to create project: ' + err.message);
+    res.redirect('/admin/intakes/' + req.params.id);
+  }
+});
+
+// Download intake attachment
+router.get('/intakes/attachment/:id', ensureAdminMfa, (req, res) => {
+  const attachment = get('SELECT * FROM intake_attachments WHERE id = ?', [req.params.id]);
+  if (!attachment) { req.flash('error', 'Attachment not found'); return res.redirect('/admin/intakes'); }
+  res.download(path.join(__dirname, '..', 'uploads', 'intakes', attachment.filename), attachment.original_name);
+});
+
+// ══════════════════════════════════════════════════════
+// GC WEB GUIDANCE REPORT (no-assessment-required path)
+// ══════════════════════════════════════════════════════
+
+router.get('/projects/:projectId/guidance', ensureAdminMfa, (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+
+  // Get or create guidance report
+  let report = get('SELECT * FROM guidance_reports WHERE project_id = ?', [project.id]);
+
+  let totalRequired = 0, totalRecommended = 0;
+  GC_WEB_GUIDANCE.categories.forEach(cat => {
+    cat.items.forEach(item => {
+      if (item.required) totalRequired++;
+      else totalRecommended++;
+    });
+  });
+
+  // Parse saved checklist responses
+  let responses = {};
+  if (report) {
+    try { responses = JSON.parse(report.checklist_responses || '{}'); } catch(e) {}
+  }
+
+  // Merge responses into guidance items for display
+  const guidanceWithResponses = {
+    ...GC_WEB_GUIDANCE,
+    categories: GC_WEB_GUIDANCE.categories.map(cat => ({
+      ...cat,
+      items: cat.items.map(item => ({
+        ...item,
+        status: responses[item.id]?.status || 'pending',
+        notes: responses[item.id]?.notes || ''
+      }))
+    }))
+  };
+
+  // Count submitted statuses
+  let metCount = 0, inProgressCount = 0, naCount = 0, pendingCount = 0;
+  Object.values(responses).forEach(r => {
+    if (r.status === 'met') metCount++;
+    else if (r.status === 'in-progress') inProgressCount++;
+    else if (r.status === 'na') naCount++;
+    else pendingCount++;
+  });
+
+  res.render('admin/guidance-report', {
+    title: 'GC Web Guidance Report',
+    isAdmin: true, isProjects: true,
+    admin: req.user, project, report,
+    guidance: guidanceWithResponses,
+    totalRequired, totalRecommended,
+    metCount, inProgressCount, naCount, pendingCount
+  });
+});
+
+router.post('/projects/:projectId/guidance/send-invite', ensureAdminMfa, (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+
+  let report = get('SELECT * FROM guidance_reports WHERE project_id = ?', [project.id]);
+  const inviteCode = uuidv4().substring(0, 8).toUpperCase();
+
+  if (!report) {
+    run(`INSERT INTO guidance_reports (project_id, invite_code, status, created_by) VALUES (?,?,?,?)`,
+      [project.id, inviteCode, 'sent', req.user.id]);
+  } else {
+    run(`UPDATE guidance_reports SET invite_code = ?, status = 'sent', updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [report.invite_code || inviteCode, report.id]);
+  }
+
+  report = get('SELECT * FROM guidance_reports WHERE project_id = ?', [project.id]);
+
+  // Send email if owner email is available
+  if (project.project_owner_email) {
+    try {
+      emailService.sendMail({
+        to: project.project_owner_email,
+        subject: `GC Web Guidance Checklist — ${project.name}`,
+        text: `You have been invited to complete a GC Web Standards compliance checklist for "${project.name}".\n\nPlease use the following link to access and complete the checklist:\n\n${req.protocol}://${req.get('host')}/guidance/${report.invite_code}\n\nAccess Code: ${report.invite_code}`
+      });
+    } catch(e) { console.error('Email send error:', e); }
+  }
+
+  req.flash('success', `Guidance invite sent! Code: ${report.invite_code}` +
+    (project.project_owner_email ? ` — email sent to ${project.project_owner_email}` : ''));
+  res.redirect(`/admin/projects/${project.id}/guidance`);
+});
+
+router.post('/projects/:projectId/guidance/validate', ensureAdminMfa, (req, res) => {
+  const report = get('SELECT * FROM guidance_reports WHERE project_id = ?', [req.params.projectId]);
+  if (!report) { req.flash('error', 'Guidance report not found'); return res.redirect('/admin/projects'); }
+
+  const { action, reviewer_notes } = req.body;
+
+  if (action === 'validate') {
+    run(`UPDATE guidance_reports SET status = 'validated', reviewer_notes = ?, 
+      validated_at = CURRENT_TIMESTAMP, validated_by = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [reviewer_notes || '', req.user.id, report.id]);
+    req.flash('success', 'Guidance checklist validated and approved.');
+  } else if (action === 'return') {
+    run(`UPDATE guidance_reports SET status = 'returned', reviewer_notes = ?, 
+      updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [reviewer_notes || '', report.id]);
+    req.flash('warning', 'Checklist returned to project owner for revision.');
+  }
+
+  res.redirect(`/admin/projects/${req.params.projectId}/guidance`);
+});
+
+router.post('/projects/:projectId/guidance-notes', ensureAdminMfa, (req, res) => {
+  req.flash('success', 'Notes saved.');
+  res.redirect(`/admin/projects/${req.params.projectId}/guidance`);
+});
+
+router.get('/projects/:projectId/guidance-pdf', ensureAdminMfa, (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+
+  let totalRequired = 0, totalRecommended = 0;
+  GC_WEB_GUIDANCE.categories.forEach(cat => {
+    cat.items.forEach(item => {
+      if (item.required) totalRequired++;
+      else totalRecommended++;
+    });
+  });
+
+  // Generate simple text-based PDF
+  let html = `<h1>${project.name}</h1>`;
+  html += `<h2>GC Web Standards & Guidance Report</h2>`;
+  html += `<p><strong>${GC_WEB_GUIDANCE.summary.title}</strong></p>`;
+  html += `<p>${GC_WEB_GUIDANCE.summary.description}</p>`;
+  html += `<p><strong>${totalRequired}</strong> required items | <strong>${totalRecommended}</strong> recommended items</p><hr>`;
+
+  GC_WEB_GUIDANCE.categories.forEach(cat => {
+    html += `<h3>${cat.title}</h3><p>${cat.description}</p><ul>`;
+    cat.items.forEach(item => {
+      const level = item.required ? '(REQUIRED)' : '(Recommended)';
+      html += `<li>${level} ${item.text}</li>`;
+    });
+    html += '</ul>';
+  });
+  html += `<hr><p><em>${GC_WEB_GUIDANCE.summary.footer}</em></p>`;
+
+  res.setHeader('Content-Type', 'text/html');
+  res.setHeader('Content-Disposition', `attachment; filename="${project.name.replace(/[^a-zA-Z0-9]/g,'-')}-GC-Web-Guidance.html"`);
+  res.send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${project.name} - GC Web Guidance</title>
+    <style>body{font-family:Arial,sans-serif;max-width:800px;margin:2rem auto;line-height:1.6}
+    h1{color:#26374A}h2,h3{color:#2B4380}ul{margin-bottom:1.5rem}li{margin-bottom:0.5rem}</style></head><body>${html}</body></html>`);
+});
+
+// ══════════════════════════════════════════════════════
+// CONTROL MANAGEMENT (add/remove/update on assessments)
+// ══════════════════════════════════════════════════════
+
+router.get('/assessments/:id/manage-controls', ensureAdminMfa, (req, res) => {
+  const assessment = get(`
+    SELECT a.*, p.name as project_name, p.data_classification, p.app_type
+    FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?
+  `, [req.params.id]);
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+
+  // Current controls in this assessment
+  const currentControls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessment.id]);
+  const currentIds = new Set(currentControls.map(c => c.control_id));
+
+  // Group current controls by family
+  const currentGrouped = {};
+  currentControls.forEach(c => {
+    if (!currentGrouped[c.family]) {
+      currentGrouped[c.family] = { code: c.family, name: c.family_name || CONTROL_FAMILIES[c.family], controls: [] };
+    }
+    currentGrouped[c.family].controls.push(c);
+  });
+  const currentFamilies = Object.values(currentGrouped);
+
+  // All ITSG-33 controls grouped by family, marking which are already added
+  const allControlsMarked = CONTROLS.map(c => ({
+    ...c,
+    familyName: CONTROL_FAMILIES[c.family],
+    alreadyAdded: currentIds.has(c.id)
+  }));
+  const allGrouped = {};
+  allControlsMarked.forEach(c => {
+    if (!allGrouped[c.family]) {
+      allGrouped[c.family] = { code: c.family, name: CONTROL_FAMILIES[c.family], controls: [] };
+    }
+    allGrouped[c.family].controls.push(c);
+  });
+  const allFamilies = Object.values(allGrouped);
+
+  res.render('admin/manage-controls', {
+    title: 'Manage Controls', isAdmin: true, isAssessments: true,
+    admin: req.user, assessment,
+    currentFamilies, currentCount: currentControls.length,
+    allFamilies, availableCount: CONTROLS.length - currentIds.size
+  });
+});
+
+// Add controls to an existing assessment
+router.post('/assessments/:id/add-controls', ensureAdminMfa, (req, res) => {
+  const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+
+  const addIds = req.body.add_control_ids || [];
+  const idList = Array.isArray(addIds) ? addIds : [addIds];
+
+  // Get existing control IDs to avoid duplicates
+  const existing = new Set(all('SELECT control_id FROM assessment_controls WHERE assessment_id = ?', [assessment.id]).map(c => c.control_id));
+
+  const statements = [];
+  idList.forEach(cid => {
+    if (existing.has(cid)) return; // skip duplicates
+    const ctrl = CONTROLS.find(c => c.id === cid);
+    if (!ctrl) return;
+    const family = cid.split('-')[0];
+    statements.push({
+      sql: `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title, 
+        description, tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      params: [assessment.id, cid, family, CONTROL_FAMILIES[family] || family,
+        ctrl.title, ctrl.description, '', ctrl.evidenceGuidance || '', 0, '', 1, ctrl.priority]
+    });
+  });
+
+  if (statements.length > 0) {
+    runBatch(statements);
+    req.flash('success', `Added ${statements.length} control(s) to the assessment.`);
+  } else {
+    req.flash('info', 'No new controls to add.');
+  }
+  res.redirect(`/admin/assessments/${assessment.id}/manage-controls`);
+});
+
+// Remove a control from an assessment
+router.post('/assessments/:id/remove-control/:controlId', ensureAdminMfa, (req, res) => {
+  const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+
+  const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?',
+    [req.params.controlId, assessment.id]);
+  if (!control) { req.flash('error', 'Control not found'); return res.redirect(`/admin/assessments/${assessment.id}/manage-controls`); }
+
+  run('DELETE FROM assessment_controls WHERE id = ? AND assessment_id = ?', [req.params.controlId, assessment.id]);
+  req.flash('success', `Removed ${control.control_id} — ${control.title}`);
+  res.redirect(`/admin/assessments/${assessment.id}/manage-controls`);
+});
+
+// Update a control on an assessment (tailored description, guidance, applicability, inheritance)
+router.post('/assessments/:id/update-control/:controlId', ensureAdminMfa, (req, res) => {
+  const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+
+  const { tailored_description, evidence_guidance, is_applicable, is_inherited, inherited_from } = req.body;
+  run(`UPDATE assessment_controls SET 
+    tailored_description = ?, evidence_guidance = ?, is_applicable = ?, 
+    is_inherited = ?, inherited_from = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ? AND assessment_id = ?`,
+    [tailored_description || '', evidence_guidance || '',
+     is_applicable === '0' ? 0 : 1, is_inherited === '1' ? 1 : 0,
+     inherited_from || '', req.params.controlId, assessment.id]);
+
+  req.flash('success', 'Control updated.');
+  res.redirect(`/admin/assessments/${assessment.id}/manage-controls`);
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  INVITATION MANAGEMENT — Client & Assessor Invites
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Helper: check if current user owns or is assigned to an entity
+function canAccessEntity(userId, entityType, entityId) {
+  // Owner check — created_by
+  const tableName = entityType === 'project' ? 'projects' : 'assessments';
+  const entity = get(`SELECT created_by FROM ${tableName} WHERE id = ?`, [entityId]);
+  if (entity && entity.created_by === userId) return { access: true, role: 'owner' };
+  // Assignment check
+  const assignment = get(
+    `SELECT id, role FROM assessment_assignments WHERE entity_type = ? AND entity_id = ? AND assigned_to = ? AND status = 'active'`,
+    [entityType, entityId, userId]
+  );
+  if (assignment) return { access: true, role: assignment.role };
+  return { access: false, role: null };
+}
+
+// Helper: ensure only the owner can perform an action
+function isEntityOwner(userId, entityType, entityId) {
+  const tableName = entityType === 'project' ? 'projects' : 'assessments';
+  const entity = get(`SELECT created_by FROM ${tableName} WHERE id = ?`, [entityId]);
+  return entity && entity.created_by === userId;
+}
+
+// ── INVITATIONS LIST PAGE ──
+router.get('/invitations', ensureAdminMfa, (req, res) => {
+  const clientInvites = all(
+    `SELECT i.*, u.name AS inviter_name FROM invitations i
+     LEFT JOIN users u ON i.invited_by = u.id
+     WHERE i.invited_by = ? AND i.type = 'client'
+     ORDER BY i.created_at DESC`, [req.user.id]
+  );
+  const assessorInvites = all(
+    `SELECT i.*, u.name AS inviter_name, au.name AS accepted_name FROM invitations i
+     LEFT JOIN users u ON i.invited_by = u.id
+     LEFT JOIN users au ON i.accepted_by_user_id = au.id
+     WHERE i.invited_by = ? AND i.type = 'assessor'
+     ORDER BY i.created_at DESC`, [req.user.id]
+  );
+  // Get peer assessors who accepted invites from this user
+  const peerAssessors = all(
+    `SELECT u.id, u.name, u.email, u.organization, u.last_login, i.accepted_at
+     FROM users u
+     INNER JOIN invitations i ON i.accepted_by_user_id = u.id AND i.invited_by = ? AND i.type = 'assessor' AND i.status = 'accepted'
+     WHERE u.role = 'assessor' AND u.is_active = 1
+     ORDER BY i.accepted_at DESC`, [req.user.id]
+  );
+  res.render('admin/invitations', {
+    title: 'Invitation Management',
+    isAdmin: true,
+    isInvitations: true,
+    clientInvites,
+    assessorInvites,
+    peerAssessors,
+    user: req.user
+  });
+});
+
+// ── SEND CLIENT REGISTRATION INVITE ──
+router.post('/invitations/client', ensureAdminMfa, (req, res) => {
+  try {
+    const { email, name, organization, message } = req.body;
+    if (!email) {
+      req.flash('error', 'Email address is required.');
+      return res.redirect('/admin/invitations');
+    }
+    // Check if user already exists
+    const existing = get('SELECT id, role FROM users WHERE email = ?', [email.toLowerCase().trim()]);
+    if (existing) {
+      req.flash('error', `A user with email ${email} already exists (role: ${existing.role}).`);
+      return res.redirect('/admin/invitations');
+    }
+    // Check for pending invite
+    const pendingInvite = get("SELECT id FROM invitations WHERE email = ? AND status = 'pending' AND type = 'client'", [email.toLowerCase().trim()]);
+    if (pendingInvite) {
+      req.flash('error', `A pending invitation already exists for ${email}.`);
+      return res.redirect('/admin/invitations');
+    }
+    const inviteCode = uuidv4().substring(0, 8).toUpperCase();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    run(
+      `INSERT INTO invitations (type, email, name, organization, invite_code, invited_by, expires_at, message)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      ['client', email.toLowerCase().trim(), name || '', organization || '', inviteCode, req.user.id, expiresAt, message || '']
+    );
+    // Send email
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    emailService.sendClientRegistrationInvite({
+      to: email.toLowerCase().trim(),
+      recipientName: name || '',
+      inviteCode,
+      assessorName: req.user.name,
+      organization: req.user.organization,
+      baseUrl,
+      message: message || ''
+    });
+    req.flash('success', `Client registration invite sent to ${email}. Code: ${inviteCode}`);
+    res.redirect('/admin/invitations');
+  } catch (err) {
+    console.error('Client invite error:', err);
+    req.flash('error', 'Failed to send invitation.');
+    res.redirect('/admin/invitations');
+  }
+});
+
+// ── SEND ASSESSOR INVITE ──
+router.post('/invitations/assessor', ensureAdminMfa, (req, res) => {
+  try {
+    const { email, name, organization, message } = req.body;
+    if (!email) {
+      req.flash('error', 'Email address is required.');
+      return res.redirect('/admin/invitations');
+    }
+    const existing = get('SELECT id, role FROM users WHERE email = ?', [email.toLowerCase().trim()]);
+    if (existing) {
+      req.flash('error', `A user with email ${email} already exists (role: ${existing.role}).`);
+      return res.redirect('/admin/invitations');
+    }
+    const pendingInvite = get("SELECT id FROM invitations WHERE email = ? AND status = 'pending' AND type = 'assessor'", [email.toLowerCase().trim()]);
+    if (pendingInvite) {
+      req.flash('error', `A pending assessor invitation already exists for ${email}.`);
+      return res.redirect('/admin/invitations');
+    }
+    const inviteCode = uuidv4().substring(0, 8).toUpperCase();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    run(
+      `INSERT INTO invitations (type, email, name, organization, invite_code, invited_by, expires_at, message)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      ['assessor', email.toLowerCase().trim(), name || '', organization || '', inviteCode, req.user.id, expiresAt, message || '']
+    );
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    emailService.sendAssessorInvite({
+      to: email.toLowerCase().trim(),
+      recipientName: name || '',
+      inviteCode,
+      assessorName: req.user.name,
+      organization: req.user.organization,
+      baseUrl,
+      message: message || ''
+    });
+    req.flash('success', `Assessor invite sent to ${email}. Code: ${inviteCode}`);
+    res.redirect('/admin/invitations');
+  } catch (err) {
+    console.error('Assessor invite error:', err);
+    req.flash('error', 'Failed to send invitation.');
+    res.redirect('/admin/invitations');
+  }
+});
+
+// ── REVOKE / CANCEL AN INVITATION ──
+router.post('/invitations/:id/revoke', ensureAdminMfa, (req, res) => {
+  const invite = get('SELECT * FROM invitations WHERE id = ? AND invited_by = ?', [req.params.id, req.user.id]);
+  if (!invite) {
+    req.flash('error', 'Invitation not found or you are not the inviter.');
+    return res.redirect('/admin/invitations');
+  }
+  run("UPDATE invitations SET status = 'revoked' WHERE id = ?", [invite.id]);
+  req.flash('success', `Invitation to ${invite.email} has been revoked.`);
+  res.redirect('/admin/invitations');
+});
+
+// ── RESEND AN INVITATION ──
+router.post('/invitations/:id/resend', ensureAdminMfa, (req, res) => {
+  const invite = get('SELECT * FROM invitations WHERE id = ? AND invited_by = ?', [req.params.id, req.user.id]);
+  if (!invite || invite.status !== 'pending') {
+    req.flash('error', 'Invitation not found or not in pending status.');
+    return res.redirect('/admin/invitations');
+  }
+  // Extend expiry
+  const newExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  run('UPDATE invitations SET expires_at = ? WHERE id = ?', [newExpiry, invite.id]);
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  if (invite.type === 'client') {
+    emailService.sendClientRegistrationInvite({ to: invite.email, recipientName: invite.name, inviteCode: invite.invite_code, assessorName: req.user.name, organization: req.user.organization, baseUrl, message: invite.message || '' });
+  } else {
+    emailService.sendAssessorInvite({ to: invite.email, recipientName: invite.name, inviteCode: invite.invite_code, assessorName: req.user.name, organization: req.user.organization, baseUrl, message: invite.message || '' });
+  }
+  req.flash('success', `Invitation re-sent to ${invite.email} with extended expiry.`);
+  res.redirect('/admin/invitations');
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ASSESSOR REGISTRATION (via invite code)
+// ══════════════════════════════════════════════════════════════════════════════
+const bcryptAdmin = require('bcryptjs');
+
+router.get('/register', (req, res) => {
+  const inviteCode = req.query.invite || '';
+  let inviteEmail = '';
+  let inviteName = '';
+  // Look up invite to pre-fill form fields
+  if (inviteCode) {
+    const invite = get(
+      "SELECT email, name FROM invitations WHERE invite_code = ? AND status = 'pending'",
+      [inviteCode.trim().toUpperCase()]
+    );
+    if (invite) {
+      inviteEmail = invite.email || '';
+      inviteName = invite.name || '';
+    }
+  }
+  res.render('admin/register', {
+    title: 'Account Registration', layout: 'main',
+    inviteCode, formData: { email: inviteEmail, name: inviteName }
+  });
+});
+
+router.post('/register', (req, res) => {
+  try {
+    const { name, email, organization, password, confirmPassword, invite_code } = req.body;
+    if (!name || !email || !password || !invite_code) {
+      req.flash('error', 'All fields are required.');
+      return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+    }
+    if (password.length < 10) {
+      req.flash('error', 'Password must be at least 10 characters.');
+      return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+    }
+    if (password !== confirmPassword) {
+      req.flash('error', 'Passwords do not match.');
+      return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+    }
+    // Validate invite code
+    const invite = get(
+      "SELECT * FROM invitations WHERE invite_code = ? AND type IN ('assessor','admin','client') AND status = 'pending'",
+      [invite_code.trim().toUpperCase()]
+    );
+    if (!invite) {
+      req.flash('error', 'Invalid or expired invite code.');
+      return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+    }
+    if (new Date(invite.expires_at) < new Date()) {
+      req.flash('error', 'This invitation has expired. Please request a new one from the assessor.');
+      return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+    }
+    // Enforce email match
+    if (email.toLowerCase().trim() !== invite.email.toLowerCase().trim()) {
+      req.flash('error', `You must register with the email address the invitation was sent to (${invite.email}).`);
+      return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+    }
+    // Check existing user
+    const existing = get('SELECT id FROM users WHERE email = ?', [email.toLowerCase().trim()]);
+    if (existing) {
+      req.flash('error', 'An account with this email already exists.');
+      return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+    }
+    const assignedRole = invite.type; // admin, assessor, or client
+    const hashedPassword = bcryptAdmin.hashSync(password, 12);
+    const secret = otpGenerateSecret();
+    const userId = run(
+      `INSERT INTO users (email, password, name, role, organization, totp_secret, mfa_enabled, is_active)
+       VALUES (?,?,?,?,?,?,?,?)`,
+      [email.toLowerCase().trim(), hashedPassword, name, assignedRole, organization || invite.organization || '', secret, 0, 1]
+    );
+    // Mark invitation as accepted
+    run("UPDATE invitations SET status = 'accepted', accepted_at = CURRENT_TIMESTAMP, accepted_by_user_id = ? WHERE id = ?",
+      [userId, invite.id]);
+
+    // Clients skip MFA — redirect to client login
+    if (assignedRole === 'client') {
+      req.flash('success', 'Account created! You can now sign in.');
+      return res.redirect(303, '/client/login');
+    }
+
+    // Admin/assessor — redirect to MFA setup
+    req.session.pendingAssessorMfaUserId = userId;
+    res.redirect(303, '/admin/assessor-mfa-setup');
+  } catch (err) {
+    console.error('Registration error:', err);
+    req.flash('error', 'Registration failed. Please try again.');
+    res.redirect('/admin/register');
+  }
+});
+
+// Assessor MFA setup after registration
+router.get('/assessor-mfa-setup', (req, res) => {
+  const userId = req.session.pendingAssessorMfaUserId;
+  if (!userId) return res.redirect('/admin/login');
+  const user = get('SELECT * FROM users WHERE id = ?', [userId]);
+  if (!user) return res.redirect('/admin/login');
+  const otpUri = otpGenerateURI({ issuer: 'SA&A Portal', label: user.email, secret: user.totp_secret });
+  QRCode.toDataURL(otpUri, (err, qrDataUrl) => {
+    res.render('admin/assessor-mfa-setup', {
+      title: 'Set Up MFA',
+      layout: 'main',
+      user,
+      qrDataUrl,
+      secret: user.totp_secret
+    });
+  });
+});
+
+router.post('/assessor-mfa-setup', (req, res) => {
+  const userId = req.session.pendingAssessorMfaUserId;
+  if (!userId) return res.redirect('/admin/login');
+  const user = get('SELECT * FROM users WHERE id = ?', [userId]);
+  if (!user || !user.totp_secret) return res.redirect('/admin/login');
+  const { token } = req.body;
+  const valid = otpVerify({ secret: user.totp_secret, token: req.body.token, window: 1 }).valid;
+  if (!valid) {
+    req.flash('error', 'Invalid MFA code. Please try again.');
+    return res.redirect('/admin/assessor-mfa-setup');
+  }
+  run('UPDATE users SET mfa_enabled = 1 WHERE id = ?', [userId]);
+  delete req.session.pendingAssessorMfaUserId;
+  req.flash('success', 'Registration complete! MFA enabled. Please sign in.');
+  res.redirect('/admin/login');
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ASSESSMENT ASSIGNMENT — Assign / Revoke peer assessor access
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Assign an assessment to a peer assessor
+router.post('/assessments/:id/assign', ensureAdminMfa, (req, res) => {
+  const assessmentId = parseInt(req.params.id);
+  const { assignee_id, notes } = req.body;
+  // Only the owner can assign
+  if (!isEntityOwner(req.user.id, 'assessment', assessmentId)) {
+    req.flash('error', 'Only the assessment owner can assign peer assessors.');
+    return res.redirect(`/admin/assessments/${assessmentId}`);
+  }
+  const assignee = get('SELECT * FROM users WHERE id = ? AND role = ? AND is_active = 1', [assignee_id, 'assessor']);
+  if (!assignee) {
+    req.flash('error', 'Selected assessor not found or inactive.');
+    return res.redirect(`/admin/assessments/${assessmentId}`);
+  }
+  // Verify assignee was invited by this user
+  const wasInvited = get(
+    "SELECT id FROM invitations WHERE accepted_by_user_id = ? AND invited_by = ? AND type = 'assessor' AND status = 'accepted'",
+    [assignee.id, req.user.id]
+  );
+  if (!wasInvited) {
+    req.flash('error', 'You can only assign assessors you have invited.');
+    return res.redirect(`/admin/assessments/${assessmentId}`);
+  }
+  // Check not already assigned
+  const existingAssignment = get(
+    "SELECT id FROM assessment_assignments WHERE entity_type = 'assessment' AND entity_id = ? AND assigned_to = ? AND status = 'active'",
+    [assessmentId, assignee.id]
+  );
+  if (existingAssignment) {
+    req.flash('info', `${assignee.name} is already assigned to this assessment.`);
+    return res.redirect(`/admin/assessments/${assessmentId}`);
+  }
+  run(
+    `INSERT INTO assessment_assignments (entity_type, entity_id, assigned_to, assigned_by, role, notes)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    ['assessment', assessmentId, assignee.id, req.user.id, 'assigned', notes || '']
+  );
+  // Also assign the project
+  const assessment = get('SELECT project_id FROM assessments WHERE id = ?', [assessmentId]);
+  if (assessment) {
+    const projectAssignment = get(
+      "SELECT id FROM assessment_assignments WHERE entity_type = 'project' AND entity_id = ? AND assigned_to = ? AND status = 'active'",
+      [assessment.project_id, assignee.id]
+    );
+    if (!projectAssignment) {
+      run(
+        `INSERT INTO assessment_assignments (entity_type, entity_id, assigned_to, assigned_by, role, notes)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        ['project', assessment.project_id, assignee.id, req.user.id, 'assigned', 'Auto-assigned with assessment']
+      );
+    }
+  }
+  // Send notification email
+  const assessmentFull = get('SELECT a.*, p.name AS project_name FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?', [assessmentId]);
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  emailService.sendAssignmentNotification({
+    to: assignee.email,
+    recipientName: assignee.name,
+    entityType: 'assessment',
+    entityName: assessmentFull ? assessmentFull.project_name : `Assessment #${assessmentId}`,
+    assignedByName: req.user.name,
+    baseUrl,
+    message: notes || ''
+  });
+  req.flash('success', `Assessment assigned to ${assignee.name}.`);
+  res.redirect(`/admin/assessments/${assessmentId}`);
+});
+
+// Revoke an assessment assignment
+router.post('/assessments/:id/revoke-assignment/:assignmentId', ensureAdminMfa, (req, res) => {
+  const assessmentId = parseInt(req.params.id);
+  if (!isEntityOwner(req.user.id, 'assessment', assessmentId)) {
+    req.flash('error', 'Only the assessment owner can revoke assignments.');
+    return res.redirect(`/admin/assessments/${assessmentId}`);
+  }
+  const assignment = get('SELECT * FROM assessment_assignments WHERE id = ? AND entity_id = ? AND status = ?',
+    [req.params.assignmentId, assessmentId, 'active']);
+  if (!assignment) {
+    req.flash('error', 'Assignment not found.');
+    return res.redirect(`/admin/assessments/${assessmentId}`);
+  }
+  run("UPDATE assessment_assignments SET status = 'revoked', revoked_at = CURRENT_TIMESTAMP WHERE id = ?", [assignment.id]);
+  // Also revoke project assignment if no other active assessment assignments remain
+  const assessment = get('SELECT project_id FROM assessments WHERE id = ?', [assessmentId]);
+  if (assessment) {
+    const otherActive = get(
+      "SELECT id FROM assessment_assignments WHERE entity_type = 'assessment' AND assigned_to = ? AND assigned_by = ? AND status = 'active' AND entity_id != ?",
+      [assignment.assigned_to, req.user.id, assessmentId]
+    );
+    if (!otherActive) {
+      run("UPDATE assessment_assignments SET status = 'revoked', revoked_at = CURRENT_TIMESTAMP WHERE entity_type = 'project' AND entity_id = ? AND assigned_to = ? AND status = 'active'",
+        [assessment.project_id, assignment.assigned_to]);
+    }
+  }
+  const assignee = get('SELECT name FROM users WHERE id = ?', [assignment.assigned_to]);
+  req.flash('success', `Access revoked for ${assignee ? assignee.name : 'user'}.`);
+  res.redirect(`/admin/assessments/${assessmentId}`);
+});
+
+// Get assignments for an assessment (JSON API for UI)
+router.get('/api/assessments/:id/assignments', ensureAdminMfa, (req, res) => {
+  const assessmentId = parseInt(req.params.id);
+  const access = canAccessEntity(req.user.id, 'assessment', assessmentId);
+  if (!access.access) return res.status(403).json({ error: 'Access denied' });
+  const assignments = all(
+    `SELECT aa.*, u.name AS assignee_name, u.email AS assignee_email, u.organization AS assignee_org
+     FROM assessment_assignments aa
+     JOIN users u ON aa.assigned_to = u.id
+     WHERE aa.entity_type = 'assessment' AND aa.entity_id = ? AND aa.status = 'active'`,
+    [assessmentId]
+  );
+  res.json({ assignments, isOwner: access.role === 'owner' });
+});
+
+module.exports = router;

@@ -1,7 +1,7 @@
 <div class="container py-4" style="max-width:960px">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h1 class="mb-1">My Dashboard</h1>
+      <h1 class="mb-1">{{t 'client_dashboard.title.my_dashboard'}}</h1>
       <p class="text-muted mb-0">Welcome back, {{clientUser.name}}</p>
     </div>
     <a href="/intake" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>New Intake</a>
@@ -20,10 +20,10 @@
       <table class="table table-hover align-middle mb-0">
         <thead>
           <tr>
-            <th>Project</th>
-            <th>Status</th>
-            <th>Invite Code</th>
-            <th>Created</th>
+            <th>{{t 'client_dashboard.th.project'}}</th>
+            <th>{{t 'client_dashboard.th.status'}}</th>
+            <th>{{t 'client_dashboard.th.invite_code'}}</th>
+            <th>{{t 'client_dashboard.th.created'}}</th>
             <th></th>
           </tr>
         </thead>
@@ -77,11 +77,11 @@
       <table class="table table-hover align-middle mb-0">
         <thead>
           <tr>
-            <th>Reference</th>
+            <th>{{t 'client_dashboard.th.reference'}}</th>
             <th>Project</th>
             <th>Status</th>
-            <th>Department</th>
-            <th>Submitted</th>
+            <th>{{t 'client_dashboard.th.department'}}</th>
+            <th>{{t 'client_dashboard.th.submitted'}}</th>
             <th></th>
           </tr>
         </thead>
@@ -129,7 +129,7 @@
     </div>
     <p class="small text-muted mb-3">Received an invite code from your assessor? Enter it below to access the assessment.</p>
     <form action="/respond/access" method="POST" class="d-flex gap-2">
-      <input type="text" name="code" class="form-control form-control-sm font-monospace" placeholder="e.g. A1B2C3D4" style="max-width:200px" required>
+      <input type="text" name="code" class="form-control form-control-sm font-monospace" placeholder="{{t 'client_dashboard.ph.eg_a1b2c3d4'}}" style="max-width:200px" required>
       <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-right me-1"></i>Go</button>
     </form>
   </div>

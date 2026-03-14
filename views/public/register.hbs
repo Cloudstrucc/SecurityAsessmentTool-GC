@@ -3,7 +3,7 @@
     <div style="width:56px;height:56px;border-radius:14px;background:#1a3c5e;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
       <i class="bi bi-shield-lock text-white" style="font-size:1.5rem;"></i>
     </div>
-    <h3>Account Registration</h3>
+    <h3>{{t 'register.title.account_registration'}}</h3>
     <p class="text-muted">Register your account using a valid invite code provided by an administrator.</p>
   </div>
 
@@ -13,26 +13,26 @@
         <div class="mb-3">
           <label class="form-label" for="invite_code">Invite Code <span class="text-danger">*</span></label>
           <input type="text" class="form-control form-control-lg text-center fw-bold" id="invite_code" name="invite_code" required
-            placeholder="XXXXXXXX" value="{{inviteCode}}" style="letter-spacing:3px;text-transform:uppercase;">
+            placeholder="{{t 'register.ph.xxxxxxxx'}}" value="{{inviteCode}}" style="letter-spacing:3px;text-transform:uppercase;">
           <small class="text-muted">Enter the code from your invitation email.</small>
         </div>
         <hr>
         <div class="mb-3">
           <label class="form-label" for="name">Full Name <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" id="name" name="name" required placeholder="e.g. Jane Doe" value="{{formData.name}}">
+          <input type="text" class="form-control" id="name" name="name" required placeholder="{{t 'register.ph.eg_jane_doe'}}" value="{{formData.name}}">
         </div>
         <div class="mb-3">
           <label class="form-label" for="email">Email <span class="text-danger">*</span></label>
-          <input type="email" class="form-control" id="email" name="email" required placeholder="Must match the invited email" value="{{formData.email}}" {{#if formData.email}}readonly style="background-color:#f8f9fa"{{/if}}>
+          <input type="email" class="form-control" id="email" name="email" required placeholder="{{t 'register.ph.must_match_the_invited'}}" value="{{formData.email}}" {{#if formData.email}}readonly style="background-color:#f8f9fa"{{/if}}>
           <small class="text-muted">{{#if formData.email}}Email pre-filled from your invitation.{{else}}You must use the email address the invitation was sent to.{{/if}}</small>
         </div>
         <div class="mb-3">
-          <label class="form-label" for="organization">Organization</label>
-          <input type="text" class="form-control" id="organization" name="organization" placeholder="Your organization" value="{{formData.organization}}">
+          <label class="form-label" for="organization">{{t 'register.label.organization'}}</label>
+          <input type="text" class="form-control" id="organization" name="organization" placeholder="{{t 'register.ph.your_organization'}}" value="{{formData.organization}}">
         </div>
         <div class="mb-3">
           <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
-          <input type="password" class="form-control" id="password" name="password" required minlength="10" placeholder="Minimum 10 characters">
+          <input type="password" class="form-control" id="password" name="password" required minlength="10" placeholder="{{t 'register.ph.minimum_10_characters'}}">
           <small class="text-muted">At least 10 characters with a mix of upper/lowercase, numbers, and symbols.</small>
         </div>
         <div class="mb-4">

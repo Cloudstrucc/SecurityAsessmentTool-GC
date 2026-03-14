@@ -118,43 +118,43 @@
     <div class="col-6 col-lg">
       <div class="stat-card">
         <div class="stat-number">{{stats.total}}</div>
-        <div class="stat-label">Total Controls</div>
+        <div class="stat-label">{{t 'admin.assessment_detail.stat.total_controls'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
       <div class="stat-card">
         <div class="stat-number">{{stats.inherited}}</div>
-        <div class="stat-label">Inherited</div>
+        <div class="stat-label">{{t 'admin.assessment_detail.stat.inherited'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
       <div class="stat-card">
         <div class="stat-number">{{stats.evidenceProvided}}</div>
-        <div class="stat-label">Evidence Provided</div>
+        <div class="stat-label">{{t 'admin.assessment_detail.stat.evidence_provided'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
       <div class="stat-card">
         <div class="stat-number text-success">{{stats.met}}</div>
-        <div class="stat-label">Met</div>
+        <div class="stat-label">{{t 'admin.assessment_detail.stat.met'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
       <div class="stat-card">
         <div class="stat-number" style="color:var(--gc-warning)">{{stats.partiallyMet}}</div>
-        <div class="stat-label">Partially Met</div>
+        <div class="stat-label">{{t 'admin.assessment_detail.stat.partially_met'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
       <div class="stat-card">
         <div class="stat-number text-danger">{{stats.notMet}}</div>
-        <div class="stat-label">Not Met</div>
+        <div class="stat-label">{{t 'admin.assessment_detail.stat.not_met'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
       <div class="stat-card">
         <div class="stat-number" style="color:#dc3545">{{stats.highRisk}}</div>
-        <div class="stat-label">High Risk (TBS)</div>
+        <div class="stat-label">{{t 'admin.assessment_detail.stat.high_risk_tbs'}}</div>
       </div>
     </div>
   </div>
@@ -201,7 +201,7 @@
         <hr class="my-2">
         <form method="POST" action="/admin/assessments/{{assessment.id}}/assign" class="d-flex gap-2 align-items-end">
           <div class="flex-grow-1">
-            <label class="form-label small mb-1">Assign Peer Assessor</label>
+            <label class="form-label small mb-1">{{t 'admin.assessment_detail.label.assign_peer_assessor'}}</label>
             <select class="form-select form-select-sm" name="assignee_id" required>
               <option value="">Select an assessor...</option>
               {{#each peerAssessors}}
@@ -210,7 +210,7 @@
             </select>
           </div>
           <div>
-            <input type="text" class="form-control form-control-sm" name="notes" placeholder="Notes (optional)" style="width:160px">
+            <input type="text" class="form-control form-control-sm" name="notes" placeholder="{{t 'admin.assessment_detail.ph.notes_optional'}}" style="width:160px">
           </div>
           <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-person-plus me-1"></i>Assign</button>
         </form>
@@ -315,7 +315,7 @@
           {{/if}}
           <div class="row g-3 mb-3">
             <div class="col-md-4">
-              <label class="form-label small fw-bold">Override Result</label>
+              <label class="form-label small fw-bold">{{t 'admin.assessment_detail.label.override_result'}}</label>
               <select class="form-select form-select-sm" name="overrideResult">
                 <option value="">Auto-calculate (TBS rules)</option>
                 <option value="ato">ATO — Full Authority</option>
@@ -324,19 +324,19 @@
               </select>
             </div>
             <div class="col-md-4">
-              <label class="form-label small fw-bold">iATO Expiry Date</label>
+              <label class="form-label small fw-bold">{{t 'admin.assessment_detail.label.iato_expiry_date'}}</label>
               <input type="date" class="form-control form-control-sm" name="atoExpiryDate">
               <small class="text-muted">Default: 90 days if iATO</small>
             </div>
             <div class="col-md-4">
-              <label class="form-label small fw-bold">POA&M Notes</label>
-              <input type="text" class="form-control form-control-sm" name="poamNotes" placeholder="POA&M context notes...">
+              <label class="form-label small fw-bold">{{t 'admin.assessment_detail.label.poam_notes'}}</label>
+              <input type="text" class="form-control form-control-sm" name="poamNotes" placeholder="{{t 'admin.assessment_detail.ph.poam_context_notes'}}">
             </div>
           </div>
           <div class="mb-3">
             <label class="form-label small fw-bold">Risk Acceptance Statement <span class="text-muted fw-normal">(required for iATO per TBS)</span></label>
             <textarea class="form-control form-control-sm" name="riskAcceptance" rows="3"
-              placeholder="Document residual risk acceptance rationale per TBS Directive on Security Management..."></textarea>
+              placeholder="{{t 'admin.assessment_detail.ph.document_residual_risk_acceptance'}}"></textarea>
           </div>
           <button type="submit" class="btn btn-success"><i class="bi bi-shield-check me-1"></i>Complete Audit & Issue Decision</button>
         </form>
@@ -393,12 +393,12 @@
           <table class="table table-hover table-sm mb-0" style="font-size:.85rem">
             <thead>
               <tr>
-                <th style="width:30px">Risk</th>
-                <th>Item</th>
-                <th style="width:70px">Control</th>
-                <th style="width:100px">Deadline</th>
-                <th style="width:100px">Assigned</th>
-                <th style="width:120px">Status</th>
+                <th style="width:30px">{{t 'admin.assessment_detail.th.risk'}}</th>
+                <th>{{t 'admin.assessment_detail.th.item'}}</th>
+                <th style="width:70px">{{t 'admin.assessment_detail.th.control'}}</th>
+                <th style="width:100px">{{t 'admin.assessment_detail.th.deadline'}}</th>
+                <th style="width:100px">{{t 'admin.assessment_detail.th.assigned'}}</th>
+                <th style="width:120px">{{t 'admin.assessment_detail.th.status'}}</th>
                 <th style="width:60px"></th>
               </tr>
             </thead>
@@ -454,7 +454,7 @@
         <form method="POST" action="/admin/assessments/{{assessment.id}}/checklist/add" class="">
           <div class="row g-2 mb-2">
             <div class="col-md-4">
-              <input type="text" class="form-control form-control-sm" name="description" placeholder="Remediation item description" required>
+              <input type="text" class="form-control form-control-sm" name="description" placeholder="{{t 'admin.assessment_detail.ph.remediation_item_description'}}" required>
             </div>
             <div class="col-md-2">
               <select class="form-select form-select-sm" name="control_id">
@@ -477,7 +477,7 @@
               <input type="date" class="form-control form-control-sm" name="deadline" required>
             </div>
             <div class="col-md-2">
-              <input type="text" class="form-control form-control-sm" name="assigned_to" placeholder="Assigned to">
+              <input type="text" class="form-control form-control-sm" name="assigned_to" placeholder="{{t 'admin.assessment_detail.ph.assigned_to'}}">
             </div>
             <div class="col-md-1">
               <button class="btn btn-sm btn-warning w-100"><i class="bi bi-plus-lg"></i></button>
@@ -485,10 +485,10 @@
           </div>
           <div class="row g-2">
             <div class="col-md-6">
-              <input type="text" class="form-control form-control-sm" name="remediation_plan" placeholder="Remediation plan (optional)">
+              <input type="text" class="form-control form-control-sm" name="remediation_plan" placeholder="{{t 'admin.assessment_detail.ph.remediation_plan_optional'}}">
             </div>
             <div class="col-md-6">
-              <input type="text" class="form-control form-control-sm" name="milestone" placeholder="Milestone (optional)">
+              <input type="text" class="form-control form-control-sm" name="milestone" placeholder="{{t 'admin.assessment_detail.ph.milestone_optional'}}">
             </div>
           </div>
         </form>
@@ -621,7 +621,7 @@
                 </button>
                 <div class="flex-grow-1 position-relative">
                   <input type="text" class="form-control form-control-sm pe-5"
-                    id="audit-comment-{{this.id}}" placeholder="Auditor comments..."
+                    id="audit-comment-{{this.id}}" placeholder="{{t 'admin.assessment_detail.ph.auditor_comments'}}"
                     value="{{this.audit_comments}}"
                     onchange="auditControl({{this.id}}, '{{../../assessment.id}}', null, null, this.value)">
                   <button type="button" class="btn btn-sm position-absolute ai-elaborate-btn" style="top:1px;right:2px;padding:2px 6px;z-index:2" title="AI: Elaborate"
@@ -656,7 +656,7 @@
             </div>
             <div class="input-group mt-2">
               <input type="text" class="form-control form-control-sm" id="commentInput-{{this.id}}"
-                placeholder="Add a comment...">
+                placeholder="{{t 'admin.assessment_detail.ph.add_a_comment'}}">
               <button class="btn btn-sm btn-outline-primary" onclick="addComment({{this.id}}, '{{../../assessment.id}}')">
                 <i class="bi bi-send"></i>
               </button>
@@ -677,7 +677,7 @@
         </div>
         <div class="family-nav-filter mb-2">
           <input type="text" class="form-control form-control-sm" id="familyFilter"
-            placeholder="Filter families..." style="font-size:.75rem;">
+            placeholder="{{t 'admin.assessment_detail.ph.filter_families'}}" style="font-size:.75rem;">
         </div>
         <div class="family-nav-list" id="familyNavList">
           {{#each families}}

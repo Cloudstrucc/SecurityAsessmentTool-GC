@@ -2,7 +2,7 @@
   <div class="d-flex align-items-center mb-4">
     <a href="/admin/assessments/{{assessment.id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
     <div class="flex-grow-1">
-      <h1 class="mb-0">Manage Controls</h1>
+      <h1 class="mb-0">{{t 'admin.manage_controls.title.manage_controls'}}</h1>
       <p class="text-muted mb-0">{{assessment.project_name}} — Add, remove, or update assessment controls</p>
     </div>
     <div>
@@ -71,35 +71,35 @@
             <form method="POST" action="/admin/assessments/{{../../assessment.id}}/update-control/{{this.id}}">
               <div class="row g-2 mt-1">
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">Tailored Description</label>
+                  <label class="form-label small fw-semibold">{{t 'admin.manage_controls.label.tailored_description'}}</label>
                   <textarea class="form-control form-control-sm" name="tailored_description" rows="3"
-                    placeholder="Project-specific description...">{{this.tailored_description}}</textarea>
+                    placeholder="{{t 'admin.manage_controls.ph.projectspecific_description'}}">{{this.tailored_description}}</textarea>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">Evidence Guidance</label>
+                  <label class="form-label small fw-semibold">{{t 'admin.manage_controls.label.evidence_guidance'}}</label>
                   <textarea class="form-control form-control-sm" name="evidence_guidance" rows="3"
-                    placeholder="What evidence should be provided...">{{this.evidence_guidance}}</textarea>
+                    placeholder="{{t 'admin.manage_controls.ph.what_evidence_should_be'}}">{{this.evidence_guidance}}</textarea>
                 </div>
               </div>
               <div class="row g-2 mt-1">
                 <div class="col-md-4">
-                  <label class="form-label small fw-semibold">Applicability</label>
+                  <label class="form-label small fw-semibold">{{t 'admin.manage_controls.label.applicability'}}</label>
                   <select class="form-select form-select-sm" name="is_applicable">
                     <option value="1" {{#if this.is_applicable}}selected{{/if}}>In Scope</option>
                     <option value="0" {{#unless this.is_applicable}}selected{{/unless}}>Out of Scope</option>
                   </select>
                 </div>
                 <div class="col-md-4">
-                  <label class="form-label small fw-semibold">Inherited</label>
+                  <label class="form-label small fw-semibold">{{t 'admin.manage_controls.label.inherited'}}</label>
                   <select class="form-select form-select-sm" name="is_inherited">
                     <option value="0" {{#unless this.is_inherited}}selected{{/unless}}>No</option>
                     <option value="1" {{#if this.is_inherited}}selected{{/if}}>Yes</option>
                   </select>
                 </div>
                 <div class="col-md-4">
-                  <label class="form-label small fw-semibold">Inherited From</label>
+                  <label class="form-label small fw-semibold">{{t 'admin.manage_controls.label.inherited_from'}}</label>
                   <input type="text" class="form-control form-control-sm" name="inherited_from"
-                    value="{{this.inherited_from}}" placeholder="e.g. Azure, SSC">
+                    value="{{this.inherited_from}}" placeholder="{{t 'admin.manage_controls.ph.eg_azure_ssc'}}">
                 </div>
               </div>
               <div class="mt-2">
@@ -141,7 +141,7 @@
             </div>
             <div class="d-flex gap-2">
               <input type="text" class="form-control form-control-sm" id="controlSearch"
-                placeholder="Filter by ID or keyword..." style="max-width:220px" oninput="filterControls(this.value)">
+                placeholder="{{t 'admin.manage_controls.ph.filter_by_id_or'}}" style="max-width:220px" oninput="filterControls(this.value)">
               <select class="form-select form-select-sm" id="familyFilter" style="max-width:160px" onchange="filterByFamily(this.value)">
                 <option value="">All Families</option>
                 {{#each allFamilies}}

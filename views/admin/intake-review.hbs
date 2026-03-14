@@ -45,15 +45,15 @@
       </div>
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label small text-muted">Department / Agency</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.department_agency'}}</label>
           <div class="fw-bold">{{intake.department}}</div>
         </div>
         <div class="col-md-6">
-          <label class="form-label small text-muted">Branch / Directorate</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.branch_directorate'}}</label>
           <div>{{#if intake.branch}}{{intake.branch}}{{else}}<span class="text-muted">—</span>{{/if}}</div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">Application Type</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.application_type'}}</label>
           <div>
             {{#if (eq intake.app_type 'internal')}}<span class="badge bg-light text-dark"><i class="bi bi-lock me-1"></i>Internal Only</span>
             {{else if (eq intake.app_type 'external')}}<span class="badge bg-warning"><i class="bi bi-globe me-1"></i>External / Public</span>
@@ -62,15 +62,15 @@
           </div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">Target Go-Live</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.target_golive'}}</label>
           <div>{{#if intake.target_date}}{{intake.target_date}}{{else}}<span class="text-muted">—</span>{{/if}}</div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">Estimated Users</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.estimated_users'}}</label>
           <div>{{#if intake.user_count}}{{intake.user_count}}{{else}}<span class="text-muted">—</span>{{/if}}</div>
         </div>
         <div class="col-12">
-          <label class="form-label small text-muted">Project Description</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.project_description'}}</label>
           <div class="p-3 bg-light rounded" style="white-space:pre-wrap;">{{intake.project_description}}</div>
         </div>
       </div>
@@ -123,19 +123,19 @@
 
       <div class="row g-3">
         <div class="col-md-4">
-          <label class="form-label small text-muted">ATIP Subject</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.atip_subject'}}</label>
           <div>{{#if intake.atip_subject}}{{intake.atip_subject}}{{else}}—{{/if}}</div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">PIA Status</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.pia_status'}}</label>
           <div>{{#if intake.pia_completed}}{{intake.pia_completed}}{{else}}—{{/if}}</div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">Contains PII</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.contains_pii'}}</label>
           <div>{{#if intake.has_pii}}<span class="badge bg-danger">Yes</span>{{else}}<span class="badge bg-success">No</span>{{/if}}</div>
         </div>
         <div class="col-12">
-          <label class="form-label small text-muted">PII Types Identified</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.pii_types_identified'}}</label>
           {{#if intake.has_pii}}
           <div class="d-flex flex-wrap gap-2 mt-1">
             {{#each piiList}}
@@ -158,15 +158,15 @@
       </div>
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label small text-muted">Hosting</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.hosting'}}</label>
           <div><span class="badge bg-info" style="font-size:0.85rem;">{{intake.hosting_type}}</span></div>
         </div>
         <div class="col-md-6">
-          <label class="form-label small text-muted">Data Residency</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.data_residency'}}</label>
           <div>{{#if intake.hosting_region}}{{intake.hosting_region}}{{else}}—{{/if}}</div>
         </div>
         <div class="col-12">
-          <label class="form-label small text-muted">Technologies</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.technologies'}}</label>
           <div class="d-flex flex-wrap gap-2 mt-1">
             {{#each techList}}
             <span class="badge bg-light text-dark border" style="font-size:0.85rem;"><i class="bi bi-gear me-1"></i>{{this}}</span>
@@ -175,7 +175,7 @@
         </div>
         {{#if intake.other_tech}}
         <div class="col-12">
-          <label class="form-label small text-muted">Other Technologies</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.other_technologies'}}</label>
           <div class="p-2 bg-light rounded small">{{intake.other_tech}}</div>
         </div>
         {{/if}}
@@ -189,25 +189,25 @@
       </div>
       <div class="row g-3">
         <div class="col-md-4">
-          <label class="form-label small text-muted">APIs</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.apis'}}</label>
           <div>{{#if intake.has_apis}}{{intake.has_apis}}{{else}}—{{/if}}</div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">GC Interconnections</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.gc_interconnections'}}</label>
           <div>{{#if intake.gc_interconnections}}{{intake.gc_interconnections}}{{else}}—{{/if}}</div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">Mobile / BYOD</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.mobile_byod'}}</label>
           <div>{{#if intake.mobile_access}}{{intake.mobile_access}}{{else}}—{{/if}}</div>
         </div>
         {{#if intake.interconnections}}
         <div class="col-12">
-          <label class="form-label small text-muted">Listed Interconnections</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.listed_interconnections'}}</label>
           <div class="p-2 bg-light rounded small" style="white-space:pre-wrap;">{{intake.interconnections}}</div>
         </div>
         {{/if}}
         <div class="col-md-6">
-          <label class="form-label small text-muted">External Users</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.external_users'}}</label>
           <div>{{#if intake.external_users}}{{intake.external_users}}{{else}}—{{/if}}</div>
         </div>
       </div>
@@ -236,13 +236,13 @@
       </div>
       <div class="row g-3">
         <div class="col-md-4">
-          <label class="form-label small text-muted">Project Owner</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.project_owner'}}</label>
           <div class="fw-bold">{{intake.owner_name}}</div>
           <div class="small"><a href="mailto:{{intake.owner_email}}">{{intake.owner_email}}</a></div>
           {{#if intake.owner_title}}<div class="small text-muted">{{intake.owner_title}}</div>{{/if}}
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">Technical Lead</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.technical_lead'}}</label>
           {{#if intake.tech_lead_name}}
           <div class="fw-bold">{{intake.tech_lead_name}}</div>
           <div class="small"><a href="mailto:{{intake.tech_lead_email}}">{{intake.tech_lead_email}}</a></div>
@@ -250,7 +250,7 @@
           {{else}}<div class="text-muted">—</div>{{/if}}
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">Authorizing Official</label>
+          <label class="form-label small text-muted">{{t 'admin.intake_review.label.authorizing_official'}}</label>
           {{#if intake.authority_name}}
           <div class="fw-bold">{{intake.authority_name}}</div>
           <div class="small"><a href="mailto:{{intake.authority_email}}">{{intake.authority_email}}</a></div>
@@ -343,7 +343,7 @@
             <p class="small text-muted mb-3">Add context or adjust details before creating the project and assessment. These overrides feed into the recommendation engine.</p>
 
             <div class="mb-3">
-              <label class="form-label small fw-bold">Override Confidentiality</label>
+              <label class="form-label small fw-bold">{{t 'admin.intake_review.label.override_confidentiality'}}</label>
               <select class="form-select form-select-sm" name="overrideClassification">
                 <option value="">Use submitted ({{intake.confidentiality_level}})</option>
                 <optgroup label="Non-National Interest">
@@ -362,7 +362,7 @@
 
             <div class="row g-2 mb-3">
               <div class="col-md-6">
-                <label class="form-label small fw-bold">Override Integrity</label>
+                <label class="form-label small fw-bold">{{t 'admin.intake_review.label.override_integrity'}}</label>
                 <select class="form-select form-select-sm" name="overrideIntegrity">
                   <option value="">Use submitted ({{intake.integrity_level}})</option>
                   <option value="low">Low</option>
@@ -371,7 +371,7 @@
                 </select>
               </div>
               <div class="col-md-6">
-                <label class="form-label small fw-bold">Override Availability</label>
+                <label class="form-label small fw-bold">{{t 'admin.intake_review.label.override_availability'}}</label>
                 <select class="form-select form-select-sm" name="overrideAvailability">
                   <option value="">Use submitted ({{intake.availability_level}})</option>
                   <option value="low">Low</option>
@@ -383,11 +383,11 @@
 
             <div class="form-check mb-3">
               <input class="form-check-input" type="checkbox" name="overrideHVA" value="1" id="overrideHVA" {{#if intake.is_hva}}checked{{/if}}>
-              <label class="form-check-label small fw-bold" for="overrideHVA">High Value Asset (HVA)</label>
+              <label class="form-check-label small fw-bold" for="overrideHVA">{{t 'admin.intake_review.label.high_value_asset_hva'}}</label>
             </div>
 
             <div class="mb-3">
-              <label class="form-label small fw-bold">Override App Type</label>
+              <label class="form-label small fw-bold">{{t 'admin.intake_review.label.override_app_type'}}</label>
               <select class="form-select form-select-sm" name="overrideAppType">
                 <option value="">Use submitted ({{intake.app_type}})</option>
                 <option value="internal">Internal</option>
@@ -397,7 +397,7 @@
             </div>
 
             <div class="mb-3">
-              <label class="form-label small fw-bold">Additional Technologies</label>
+              <label class="form-label small fw-bold">{{t 'admin.intake_review.label.additional_technologies'}}</label>
               <p class="text-muted small mb-1">Add technologies the client may not have listed.</p>
               <div class="row g-1">
                 {{#each allTechnologies}}
@@ -415,18 +415,18 @@
             </div>
 
             <div class="mb-3">
-              <label class="form-label small fw-bold">Additional Description Context</label>
-              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="assessorDescription" id="assessorDescription" rows="3" placeholder="Add keywords for the engine: e.g. 'API gateway, microservices, containerized, data lake'"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="assessorDescription"><i class="bi bi-stars"></i></button></div>
+              <label class="form-label small fw-bold">{{t 'admin.intake_review.label.additional_description_context'}}</label>
+              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="assessorDescription" id="assessorDescription" rows="3" placeholder="{{t 'admin.intake_review.ph.add_keywords_for_the'}}"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="assessorDescription"><i class="bi bi-stars"></i></button></div>
               <small class="text-muted">Appended to the project description for the recommendation engine.</small>
             </div>
 
             <div class="mb-3">
-              <label class="form-label small fw-bold">Assessor Notes (internal)</label>
-              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="assessorNotes" id="assessorNotes" rows="3" placeholder="Internal notes about this intake (not shared with client)..."></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="assessorNotes"><i class="bi bi-stars"></i></button></div>
+              <label class="form-label small fw-bold">{{t 'admin.intake_review.label.assessor_notes_internal'}}</label>
+              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="assessorNotes" id="assessorNotes" rows="3" placeholder="{{t 'admin.intake_review.ph.internal_notes_about_this'}}"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="assessorNotes"><i class="bi bi-stars"></i></button></div>
             </div>
 
             <div class="mb-3">
-              <label class="form-label small fw-bold">Assessment Type</label>
+              <label class="form-label small fw-bold">{{t 'admin.intake_review.label.assessment_type'}}</label>
               <select class="form-select form-select-sm" name="assessmentType">
                 <option value="initial">Initial Assessment</option>
                 <option value="renewal">Renewal</option>
@@ -548,7 +548,7 @@
                 <div class="form-check form-check-sm">
                   <input class="form-check-input" type="checkbox" name="onlyP1P2" value="1" id="onlyP1P2">
                   <label class="form-check-label small" for="onlyP1P2">
-                    Include only P1 &amp; P2 priority controls
+                    {{t 'admin.intake_review.label.include_only_p1_amp'}}
                   </label>
                 </div>
               </div>
@@ -567,7 +567,7 @@
           <form method="POST" action="/admin/intakes/{{intake.id}}/status" class="">
             <input type="hidden" name="status" value="declined">
             <div class="mb-2">
-              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="declineReason" id="declineReason" rows="2" placeholder="Reason for declining (optional)"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="declineReason"><i class="bi bi-stars"></i></button></div>
+              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="declineReason" id="declineReason" rows="2" placeholder="{{t 'admin.intake_review.ph.reason_for_declining_optional'}}"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="declineReason"><i class="bi bi-stars"></i></button></div>
             </div>
             <button type="submit" class="btn btn-outline-danger btn-sm w-100" onclick="return confirm('Decline this intake?')">
               <i class="bi bi-x-circle me-1"></i>Decline Intake

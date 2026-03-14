@@ -1,0 +1,147 @@
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2><i class="bi bi-fingerprint me-2"></i>Audit Signature Log</h2>
+      <p class="text-muted mb-0">MFA-verified actions across all projects and assessments</p>
+    </div>
+    <a href="/admin/dashboard" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card text-center">
+        <div class="card-body py-3">
+          <div class="fs-3 fw-bold" style="color:var(--gc-nav)">{{stats.total}}</div>
+          <div class="small text-muted">Total Signatures</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center">
+        <div class="card-body py-3">
+          <div class="fs-3 fw-bold" style="color:var(--gc-green)">{{stats.todayCount}}</div>
+          <div class="small text-muted">Today</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center">
+        <div class="card-body py-3">
+          <div class="fs-3 fw-bold" style="color:var(--gc-blue)">{{stats.uniqueUsers}}</div>
+          <div class="small text-muted">Unique Signers</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-3">
+    <div class="card-body py-2">
+      <form method="GET" action="/admin/audit-log" class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold mb-1">Entity Type</label>
+          <select name="entity" class="form-select form-select-sm">
+            <option value="">All</option>
+            <option value="intake" {{#if (eq filters.entity 'intake')}}selected{{/if}}>Intakes</option>
+            <option value="project" {{#if (eq filters.entity 'project')}}selected{{/if}}>Projects</option>
+            <option value="assessment" {{#if (eq filters.entity 'assessment')}}selected{{/if}}>Assessments</option>
+            <option value="session" {{#if (eq filters.entity 'session')}}selected{{/if}}>Sessions</option>
+            <option value="user" {{#if (eq filters.entity 'user')}}selected{{/if}}>Users</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold mb-1">Action</label>
+          <input type="text" name="action" class="form-control form-control-sm" value="{{filters.action}}" placeholder="e.g. audit.complete">
+        </div>
+        <div class="col-md-4 d-flex gap-2">
+          <button type="submit" class="btn btn-sm btn-primary flex-fill"><i class="bi bi-funnel me-1"></i>Filter</button>
+          <a href="/admin/audit-log" class="btn btn-sm btn-outline-secondary">Clear</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Signature Table -->
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 small">
+        <thead class="table-light">
+          <tr>
+            <th style="width:160px">Timestamp</th>
+            <th>User</th>
+            <th>Role</th>
+            <th>Action</th>
+            <th>Entity</th>
+            <th>MFA</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each signatures}}
+          <tr>
+            <td class="text-nowrap">
+              <span class="text-muted">{{this.created_at}}</span>
+            </td>
+            <td>
+              <div class="fw-semibold">{{this.user_name}}</div>
+              <div class="text-muted" style="font-size:0.8em">{{this.user_email}}</div>
+            </td>
+            <td>
+              {{#if (eq this.user_role 'assessor')}}
+                <span class="badge bg-primary">Assessor</span>
+              {{else if (eq this.user_role 'client')}}
+                <span class="badge bg-info">Client</span>
+              {{else}}
+                <span class="badge bg-secondary">{{this.user_role}}</span>
+              {{/if}}
+            </td>
+            <td>
+              <div class="fw-semibold">{{this.action_label}}</div>
+              <code class="text-muted" style="font-size:0.75em">{{this.action}}</code>
+            </td>
+            <td>
+              {{#if this.entity_type}}
+                <span class="badge bg-light text-dark border">{{this.entity_type}}</span>
+                {{#if this.entity_id}}<span class="text-muted">#{{this.entity_id}}</span>{{/if}}
+                {{#if this.entity_name}}<div class="text-muted" style="font-size:0.8em">{{this.entity_name}}</div>{{/if}}
+              {{else}}
+                <span class="text-muted">—</span>
+              {{/if}}
+            </td>
+            <td>
+              <i class="bi bi-shield-check text-success" title="TOTP verified"></i>
+              <span class="text-muted" style="font-size:0.8em">{{this.mfa_method}}</span>
+            </td>
+          </tr>
+          {{else}}
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">
+              <i class="bi bi-fingerprint" style="font-size:2rem;opacity:0.3"></i>
+              <div class="mt-2">No audit signatures recorded yet.</div>
+              <div class="small">Signatures are logged when users perform MFA-verified actions.</div>
+            </td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+
+    {{!-- Pagination --}}
+    {{#if (gt pagination.pages 1)}}
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2">
+      <span class="small text-muted">
+        Showing {{pagination.limit}} of {{pagination.total}} signatures — Page {{pagination.page}} of {{pagination.pages}}
+      </span>
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          {{#if (gt pagination.page 1)}}
+            <li class="page-item"><a class="page-link" href="/admin/audit-log?page={{math pagination.page '-' 1}}&entity={{filters.entity}}&action={{filters.action}}">Prev</a></li>
+          {{/if}}
+          {{#if (lt pagination.page pagination.pages)}}
+            <li class="page-item"><a class="page-link" href="/admin/audit-log?page={{math pagination.page '+' 1}}&entity={{filters.entity}}&action={{filters.action}}">Next</a></li>
+          {{/if}}
+        </ul>
+      </nav>
+    </div>
+    {{/if}}
+  </div>
+</div>

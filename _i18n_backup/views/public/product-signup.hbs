@@ -1,0 +1,283 @@
+<style>
+  .signup-hero {
+    text-align: center; padding: 4rem 1rem 2.5rem;
+    background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(56,189,248,.08) 0%, transparent 70%);
+  }
+  .signup-hero .eyebrow {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .4rem 1rem; border-radius: 99px; font-size: .8rem; font-weight: 500;
+    background: var(--c-surface); border: 1px solid var(--c-border);
+    color: var(--c-brand); margin-bottom: 1.5rem;
+  }
+  .signup-hero h1 {
+    font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 700; line-height: 1.15;
+    letter-spacing: -.03em; margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--c-text) 40%, var(--c-brand) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .signup-hero p { font-size: 1.05rem; color: var(--c-text-muted); max-width: 560px; margin: 0 auto; line-height: 1.7; }
+
+  .signup-container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 3rem; }
+  .signup-grid { display: grid; grid-template-columns: 1fr 420px; gap: 2.5rem; align-items: start; }
+  @media (max-width: 900px) { .signup-grid { grid-template-columns: 1fr; } }
+
+  .sf-plan-card {
+    background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 14px;
+    padding: 1.75rem; margin-bottom: 1.5rem; position: relative; overflow: hidden;
+  }
+  .sf-plan-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--c-brand) 0%, var(--c-accent) 100%);
+  }
+  .sf-plan-label { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--c-brand); margin-bottom: .75rem; }
+  .sf-plan-price { font-size: 2.5rem; font-weight: 700; line-height: 1; margin-bottom: .25rem; }
+  .sf-plan-price span { font-size: .9rem; font-weight: 400; color: var(--c-text-muted); }
+  .sf-plan-detail { font-size: .85rem; color: var(--c-text-muted); }
+
+  .sf-limits { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin: 1.5rem 0; }
+  .sf-limit {
+    background: var(--c-surface-2); border: 1px solid var(--c-border); border-radius: 10px; padding: .85rem 1rem;
+  }
+  .sf-limit .lim-val { font-family: var(--mono); font-size: 1.1rem; font-weight: 600; color: var(--c-brand); }
+  .sf-limit .lim-label { font-size: .75rem; color: var(--c-text-muted); margin-top: .15rem; }
+
+  .sf-feature-list { list-style: none; padding: 0; margin: 0; }
+  .sf-feature-list li {
+    display: flex; align-items: flex-start; gap: .6rem; padding: .55rem 0; font-size: .875rem; color: var(--c-text-muted);
+    border-bottom: 1px solid rgba(42,53,80,.4);
+  }
+  .sf-feature-list li:last-child { border-bottom: none; }
+  .sf-feature-list li i { color: var(--c-success); font-size: .7rem; margin-top: .35rem; flex-shrink: 0; }
+
+  .sf-badges { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: 1.5rem; }
+  .sf-badges span {
+    font-size: .65rem; font-weight: 500; padding: .25rem .6rem; border-radius: 5px;
+    background: var(--c-surface); border: 1px solid var(--c-border); color: var(--c-text-dim);
+  }
+
+  .sf-arch-note {
+    background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 12px;
+    padding: 1.25rem; margin-top: 1.5rem; display: flex; gap: 1rem; align-items: flex-start;
+  }
+  .sf-arch-note .arch-icon {
+    width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+    background: rgba(56,189,248,.1); color: var(--c-brand);
+    display: flex; align-items: center; justify-content: center; font-size: 1.15rem;
+  }
+  .sf-arch-note h4 { font-size: .85rem; font-weight: 600; margin-bottom: .25rem; color: var(--c-text); }
+  .sf-arch-note p { font-size: .8rem; color: var(--c-text-muted); line-height: 1.55; margin: 0; }
+
+  .signup-form-card {
+    background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 16px;
+    padding: 2rem; position: sticky; top: 80px;
+  }
+  .signup-form-card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: .15rem; }
+  .signup-form-card .sfc-sub { font-size: .85rem; color: var(--c-text-muted); margin-bottom: 1.5rem; }
+
+  .fg { margin-bottom: 1rem; }
+  .fg label { display: block; font-size: .78rem; font-weight: 600; color: var(--c-text-muted); margin-bottom: .3rem; }
+  .fg label .req { color: var(--c-danger); }
+  .fg input, .fg select {
+    width: 100%; padding: .6rem .85rem; border-radius: 8px;
+    border: 1.5px solid var(--c-border); background: var(--c-surface-2);
+    color: var(--c-text); font-family: var(--font); font-size: .875rem;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .fg input:focus, .fg select:focus { outline: none; border-color: var(--c-brand); box-shadow: 0 0 0 3px var(--c-brand-glow); }
+  .fg input::placeholder { color: var(--c-text-dim); }
+  .fg select option { background: var(--c-surface); color: var(--c-text); }
+  .fg .hint { font-size: .7rem; color: var(--c-text-dim); margin-top: .25rem; }
+  .fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+
+  .fg-pw-wrap { position: relative; }
+  .fg-pw-wrap input { padding-right: 2.5rem; }
+  .fg-pw-toggle {
+    position: absolute; right: .65rem; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--c-text-dim); cursor: pointer; font-size: .95rem; padding: 0;
+  }
+  .fg-pw-toggle:hover { color: var(--c-text); }
+
+  .pw-strength { height: 4px; border-radius: 2px; background: var(--c-surface-2); margin-top: .4rem; overflow: hidden; }
+  .pw-strength-bar { height: 100%; width: 0%; border-radius: 2px; transition: width .3s, background .3s; }
+  .pw-strength-text { font-size: .65rem; color: var(--c-text-dim); margin-top: .2rem; }
+
+  .fg-separator { display: flex; align-items: center; gap: .65rem; margin: 1.25rem 0; }
+  .fg-separator::before, .fg-separator::after { content: ''; flex: 1; height: 1px; background: var(--c-border); }
+  .fg-separator span { font-size: .7rem; color: var(--c-text-dim); font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+
+  .fg-url-preview {
+    background: var(--c-surface-2); border: 1px solid var(--c-border); border-radius: 8px;
+    padding: .6rem .85rem; margin-bottom: 1rem; display: none; align-items: center; gap: .5rem; font-size: .78rem;
+  }
+  .fg-url-preview i { color: var(--c-brand); }
+  .fg-url-preview .url-label { color: var(--c-text-dim); }
+  .fg-url-preview code {
+    background: rgba(56,189,248,.1); padding: .1rem .45rem; border-radius: 4px;
+    font-size: .72rem; font-family: var(--mono); color: var(--c-brand); font-weight: 500;
+  }
+
+  .fg-captcha { margin: 1rem 0; display: flex; justify-content: center; }
+  .fg-captcha altcha-widget { --altcha-max-width: 100%; }
+
+  .fg-submit {
+    display: block; width: 100%; padding: .8rem; border: none; border-radius: 10px; cursor: pointer;
+    background: var(--c-brand); color: var(--c-bg); font-family: var(--font);
+    font-size: .9rem; font-weight: 600; transition: all .25s;
+    box-shadow: 0 4px 20px var(--c-brand-glow);
+  }
+  .fg-submit:hover { background: #7dd3fc; box-shadow: 0 4px 30px rgba(56,189,248,.25); transform: translateY(-1px); }
+  .fg-submit:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+  .fg-terms { font-size: .7rem; color: var(--c-text-dim); text-align: center; margin-top: .85rem; line-height: 1.55; }
+  .fg-terms a { color: var(--c-brand); }
+
+  @keyframes fadeUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+  .fade-up { animation: fadeUp .6s ease-out both; }
+  .fade-up-1 { animation-delay: .1s; }
+  .fade-up-2 { animation-delay: .2s; }
+</style>
+
+<div class="signup-hero">
+  <div class="eyebrow fade-up"><i class="bi bi-lightning-charge-fill"></i> Deploy in under 5 minutes · 17+ compliance frameworks</div>
+  <h1 class="fade-up fade-up-1">Start your free 14-day trial</h1>
+  <p class="fade-up fade-up-2">Get a fully dedicated Azure instance with tenant-level isolation.<br>No credit card required. No shared infrastructure.</p>
+</div>
+
+<div class="signup-container">
+  <div class="signup-grid">
+
+    <div class="signup-features fade-up fade-up-1">
+      <div class="sf-plan-card">
+        <div class="sf-plan-label"><i class="bi bi-gift me-1"></i> Trial Plan — 14 Days</div>
+        <div class="sf-plan-price">Free <span>for 14 days</span></div>
+        <div class="sf-plan-detail">Full-access trial with your own isolated SA&amp;A instance</div>
+      </div>
+
+      <div class="sf-limits">
+        <div class="sf-limit"><div class="lim-val">3</div><div class="lim-label">Active assessments</div></div>
+        <div class="sf-limit"><div class="lim-val">1 / day</div><div class="lim-label">New assessment limit</div></div>
+        <div class="sf-limit"><div class="lim-val">25K</div><div class="lim-label">AI tokens / month</div></div>
+        <div class="sf-limit"><div class="lim-val">1</div><div class="lim-label">Team member</div></div>
+      </div>
+
+      <ul class="sf-feature-list">
+        <li><i class="bi bi-check-circle-fill"></i>Full multi-framework intake wizard with 17+ regions</li>
+        <li><i class="bi bi-check-circle-fill"></i>Control assessment with compliance scoring</li>
+        <li><i class="bi bi-check-circle-fill"></i>AI-assisted evidence guidance generation</li>
+        <li><i class="bi bi-check-circle-fill"></i>Client portal for evidence submission</li>
+        <li><i class="bi bi-check-circle-fill"></i>MFA + WebAuthn passkey authentication</li>
+        <li><i class="bi bi-check-circle-fill"></i>PDF compliance reports &amp; ATO generation</li>
+        <li><i class="bi bi-check-circle-fill"></i>Dedicated Azure App Service (Canada Central)</li>
+        <li><i class="bi bi-check-circle-fill"></i>Full audit trail with MFA-signed actions</li>
+      </ul>
+
+      <div class="sf-badges">
+        <span>ITSG-33</span><span>NIST 800-53</span><span>ISO 27001</span><span>SOC 2</span>
+        <span>PCI DSS</span><span>CMMC</span><span>CIS Controls v8.1</span><span>NIS2</span>
+        <span>DORA</span><span>FedRAMP</span><span>Essential Eight</span><span>BSI</span>
+        <span>ANSSI</span><span>NCSC CAF</span>
+      </div>
+
+      <div class="sf-arch-note">
+        <div class="arch-icon"><i class="bi bi-lock-fill"></i></div>
+        <div>
+          <h4>Dedicated tenant isolation</h4>
+          <p>Every trial gets its own Azure App Service instance and SQLite database. Your data never shares compute or storage with other tenants.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="signup-form-card fade-up fade-up-2">
+      <h3>Create your account</h3>
+      <p class="sfc-sub">This becomes your security assessor login.</p>
+
+      <form method="POST" action="/product-signup" id="signupForm">
+        <div class="fg-row">
+          <div class="fg">
+            <label>First Name <span class="req">*</span></label>
+            <input type="text" name="first_name" placeholder="Jane" required autocomplete="given-name">
+          </div>
+          <div class="fg">
+            <label>Last Name <span class="req">*</span></label>
+            <input type="text" name="last_name" placeholder="Smith" required autocomplete="family-name">
+          </div>
+        </div>
+
+        <div class="fg">
+          <label>Work Email <span class="req">*</span></label>
+          <input type="email" name="email" placeholder="jane@organization.com" required autocomplete="email">
+          <div class="hint"><i class="bi bi-info-circle me-1"></i>This becomes your assessor login</div>
+        </div>
+
+        <div class="fg">
+          <label>Organization Name <span class="req">*</span></label>
+          <input type="text" name="organization" id="orgInput" placeholder="Acme Security Corp" required autocomplete="organization">
+        </div>
+
+        <div class="fg-url-preview" id="instancePreview">
+          <i class="bi bi-cloud-check"></i>
+          <span class="url-label">Your instance:</span>
+          <code id="instanceUrl">vcs-sa-yourorg.azurewebsites.net</code>
+        </div>
+
+        <div class="fg">
+          <label>Country <span class="req">*</span></label>
+          <select name="country" required>
+            <option value="">Select your country...</option>
+            <option value="CA">Canada</option><option value="US">United States</option>
+            <option value="GB">United Kingdom</option><option value="AU">Australia</option>
+            <option value="DE">Germany</option><option value="FR">France</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+
+        <div class="fg-separator"><span>Set your password</span></div>
+
+        <div class="fg">
+          <label>Password <span class="req">*</span></label>
+          <div class="fg-pw-wrap">
+            <input type="password" name="password" id="pwInput" placeholder="Min. 10 characters" required minlength="10" autocomplete="new-password">
+            <button type="button" class="fg-pw-toggle" onclick="togglePw('pwInput',this)"><i class="bi bi-eye"></i></button>
+          </div>
+          <div class="pw-strength"><div class="pw-strength-bar" id="strengthBar"></div></div>
+          <div class="pw-strength-text" id="strengthText"></div>
+        </div>
+
+        <div class="fg">
+          <label>Confirm Password <span class="req">*</span></label>
+          <div class="fg-pw-wrap">
+            <input type="password" name="confirm_password" id="pwConfirm" placeholder="Re-enter your password" required minlength="10" autocomplete="new-password">
+            <button type="button" class="fg-pw-toggle" onclick="togglePw('pwConfirm',this)"><i class="bi bi-eye"></i></button>
+          </div>
+          <div class="hint" id="matchHint" style="display:none"></div>
+        </div>
+
+        <div class="fg-captcha">
+          <altcha-widget challengeurl="/api/altcha-challenge" auto="onload"></altcha-widget>
+        </div>
+
+        <button type="submit" class="fg-submit" id="submitBtn">
+          <i class="bi bi-rocket-takeoff me-2"></i>Deploy My Instance
+        </button>
+
+        <p class="fg-terms">
+          By signing up you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.<br>
+          Deploys to Azure Canada Central with full tenant isolation.
+        </p>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<script async defer src="https://cdn.jsdelivr.net/npm/altcha/dist/altcha.min.js" type="module"></script>
+<script>
+var orgInput=document.getElementById('orgInput'),preview=document.getElementById('instancePreview'),urlEl=document.getElementById('instanceUrl');
+orgInput.addEventListener('input',function(){var s=this.value.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').substring(0,24);if(s.length>=2){urlEl.textContent='vcs-sa-'+s+'.azurewebsites.net';preview.style.display='flex'}else{preview.style.display='none'}});
+function togglePw(id,btn){var inp=document.getElementById(id),icon=btn.querySelector('i');inp.type=inp.type==='password'?'text':'password';icon.className=inp.type==='password'?'bi bi-eye':'bi bi-eye-slash'}
+var pwInput=document.getElementById('pwInput'),strengthBar=document.getElementById('strengthBar'),strengthText=document.getElementById('strengthText');
+pwInput.addEventListener('input',function(){var pw=this.value,s=0;if(pw.length>=10)s++;if(pw.length>=14)s++;if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;var p=Math.min(s*20,100),c=['#ef4444','#f97316','#eab308','#22c55e','#22c55e'],l=['Very weak','Weak','Fair','Strong','Very strong'];strengthBar.style.width=p+'%';strengthBar.style.background=c[Math.min(s,4)];strengthText.textContent=pw.length>0?l[Math.min(s,4)]:'';strengthText.style.color=c[Math.min(s,4)]});
+var pwConfirm=document.getElementById('pwConfirm'),matchHint=document.getElementById('matchHint');
+pwConfirm.addEventListener('input',function(){if(this.value.length>0){matchHint.style.display='';matchHint.innerHTML=this.value===pwInput.value?'<i class="bi bi-check-circle me-1" style="color:#34d399"></i><span style="color:#34d399">Passwords match</span>':'<i class="bi bi-x-circle me-1" style="color:#f87171"></i><span style="color:#f87171">Passwords do not match</span>'}else{matchHint.style.display='none'}});
+document.getElementById('signupForm').addEventListener('submit',function(e){if(pwInput.value!==pwConfirm.value){e.preventDefault();alert('Passwords do not match.');return}if(pwInput.value.length<10){e.preventDefault();alert('Password must be at least 10 characters.');return}var btn=document.getElementById('submitBtn');btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm me-2"></span>Starting deployment...'});
+</script>

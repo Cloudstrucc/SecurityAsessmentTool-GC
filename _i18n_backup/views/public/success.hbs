@@ -1,0 +1,37 @@
+<div class="container" style="max-width:700px">
+  <div class="text-center py-5">
+    <div class="mb-4">
+      <div style="width:80px;height:80px;border-radius:50%;background:#d8eeca;display:inline-flex;align-items:center;justify-content:center">
+        <i class="bi bi-check-circle-fill text-success" style="font-size:3rem"></i>
+      </div>
+    </div>
+    <h1 class="mb-3">Evidence Submitted Successfully</h1>
+    <p class="text-muted fs-5 mb-4">
+      Your evidence for <strong>{{projectName}}</strong> has been submitted and locked for review.
+    </p>
+
+    <div class="card mx-auto" style="max-width:500px">
+      <div class="card-body">
+        <table class="table table-borderless mb-0">
+          <tr>
+            <td class="text-muted fw-semibold">Project</td>
+            <td>{{projectName}}</td>
+          </tr>
+          <tr>
+            <td class="text-muted fw-semibold">Submitted</td>
+            <td>{{submittedAt}}</td>
+          </tr>
+          <tr>
+            <td class="text-muted fw-semibold">Status</td>
+            <td><span class="badge bg-primary">Under Review</span></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <p class="text-muted">Your security assessor has been notified and will review the evidence. You will be contacted if any updates are needed.</p>
+      <a href="/" class="btn btn-outline-primary mt-2"><i class="bi bi-house me-1"></i>Return Home</a>
+    </div>
+  </div>
+</div>

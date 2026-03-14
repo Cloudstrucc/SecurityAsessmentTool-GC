@@ -139,7 +139,7 @@
 
 <div class="signup-hero">
   <div class="eyebrow fade-up"><i class="bi bi-lightning-charge-fill"></i> Deploy in under 5 minutes · 17+ compliance frameworks</div>
-  <h1 class="fade-up fade-up-1">Start your free 14-day trial</h1>
+  <h1 class="fade-up fade-up-1">{{t 'product_signup.title.start_your_free_14day'}}</h1>
   <p class="fade-up fade-up-2">Get a fully dedicated Azure instance with tenant-level isolation.<br>No credit card required. No shared infrastructure.</p>
 </div>
 
@@ -181,14 +181,14 @@
       <div class="sf-arch-note">
         <div class="arch-icon"><i class="bi bi-lock-fill"></i></div>
         <div>
-          <h4>Dedicated tenant isolation</h4>
+          <h4>{{t 'product_signup.title.dedicated_tenant_isolation'}}</h4>
           <p>Every trial gets its own Azure App Service instance and SQLite database. Your data never shares compute or storage with other tenants.</p>
         </div>
       </div>
     </div>
 
     <div class="signup-form-card fade-up fade-up-2">
-      <h3>Create your account</h3>
+      <h3>{{t 'product_signup.title.create_your_account'}}</h3>
       <p class="sfc-sub">This becomes your security assessor login.</p>
 
       <form method="POST" action="/product-signup" id="signupForm">
@@ -199,7 +199,7 @@
           </div>
           <div class="fg">
             <label>Last Name <span class="req">*</span></label>
-            <input type="text" name="last_name" placeholder="Smith" required autocomplete="family-name">
+            <input type="text" name="last_name" placeholder="{{t 'product_signup.ph.smith'}}" required autocomplete="family-name">
           </div>
         </div>
 
@@ -211,7 +211,7 @@
 
         <div class="fg">
           <label>Organization Name <span class="req">*</span></label>
-          <input type="text" name="organization" id="orgInput" placeholder="Acme Security Corp" required autocomplete="organization">
+          <input type="text" name="organization" id="orgInput" placeholder="{{t 'product_signup.ph.acme_security_corp'}}" required autocomplete="organization">
         </div>
 
         <div class="fg-url-preview" id="instancePreview">
@@ -236,7 +236,7 @@
         <div class="fg">
           <label>Password <span class="req">*</span></label>
           <div class="fg-pw-wrap">
-            <input type="password" name="password" id="pwInput" placeholder="Min. 10 characters" required minlength="10" autocomplete="new-password">
+            <input type="password" name="password" id="pwInput" placeholder="{{t 'product_signup.ph.min_10_characters'}}" required minlength="10" autocomplete="new-password">
             <button type="button" class="fg-pw-toggle" onclick="togglePw('pwInput',this)"><i class="bi bi-eye"></i></button>
           </div>
           <div class="pw-strength"><div class="pw-strength-bar" id="strengthBar"></div></div>
@@ -246,7 +246,7 @@
         <div class="fg">
           <label>Confirm Password <span class="req">*</span></label>
           <div class="fg-pw-wrap">
-            <input type="password" name="confirm_password" id="pwConfirm" placeholder="Re-enter your password" required minlength="10" autocomplete="new-password">
+            <input type="password" name="confirm_password" id="pwConfirm" placeholder="{{t 'product_signup.ph.reenter_your_password'}}" required minlength="10" autocomplete="new-password">
             <button type="button" class="fg-pw-toggle" onclick="togglePw('pwConfirm',this)"><i class="bi bi-eye"></i></button>
           </div>
           <div class="hint" id="matchHint" style="display:none"></div>

@@ -39,7 +39,7 @@
     <div class="card-body py-2">
       <form method="GET" action="/admin/audit-log" class="row g-2 align-items-end">
         <div class="col-md-4">
-          <label class="form-label small fw-semibold mb-1">Entity Type</label>
+          <label class="form-label small fw-semibold mb-1">{{t 'admin.audit_log.label.entity_type'}}</label>
           <select name="entity" class="form-select form-select-sm">
             <option value="">All</option>
             <option value="intake" {{#if (eq filters.entity 'intake')}}selected{{/if}}>Intakes</option>
@@ -50,8 +50,8 @@
           </select>
         </div>
         <div class="col-md-4">
-          <label class="form-label small fw-semibold mb-1">Action</label>
-          <input type="text" name="action" class="form-control form-control-sm" value="{{filters.action}}" placeholder="e.g. audit.complete">
+          <label class="form-label small fw-semibold mb-1">{{t 'admin.audit_log.label.action'}}</label>
+          <input type="text" name="action" class="form-control form-control-sm" value="{{filters.action}}" placeholder="{{t 'admin.audit_log.ph.eg_auditcomplete'}}">
         </div>
         <div class="col-md-4 d-flex gap-2">
           <button type="submit" class="btn btn-sm btn-primary flex-fill"><i class="bi bi-funnel me-1"></i>Filter</button>
@@ -67,12 +67,12 @@
       <table class="table table-hover mb-0 small">
         <thead class="table-light">
           <tr>
-            <th style="width:160px">Timestamp</th>
-            <th>User</th>
-            <th>Role</th>
-            <th>Action</th>
-            <th>Entity</th>
-            <th>MFA</th>
+            <th style="width:160px">{{t 'admin.audit_log.th.timestamp'}}</th>
+            <th>{{t 'admin.audit_log.th.user'}}</th>
+            <th>{{t 'admin.audit_log.th.role'}}</th>
+            <th>{{t 'admin.audit_log.th.action'}}</th>
+            <th>{{t 'admin.audit_log.th.entity'}}</th>
+            <th>{{t 'admin.audit_log.th.mfa'}}</th>
           </tr>
         </thead>
         <tbody>

@@ -1,0 +1,261 @@
+<div class="container" style="max-width:1100px">
+  <div class="d-flex justify-content-between align-items-center mb-1">
+    <div>
+      <h1 class="mb-0">Team & Invitations</h1>
+      <p class="text-muted mb-0">Invite clients and peer assessors to the portal</p>
+    </div>
+  </div>
+
+  <!-- ══ Tabs ══ -->
+  <ul class="nav nav-tabs mt-3" role="tablist">
+    <li class="nav-item">
+      <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-clients" type="button">
+        <i class="bi bi-people me-1"></i>Client Invitations
+        {{#if clientInvites.length}}<span class="badge bg-secondary ms-1">{{clientInvites.length}}</span>{{/if}}
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-assessors" type="button">
+        <i class="bi bi-shield-lock me-1"></i>Assessor Invitations
+        {{#if assessorInvites.length}}<span class="badge bg-secondary ms-1">{{assessorInvites.length}}</span>{{/if}}
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-team" type="button">
+        <i class="bi bi-person-check me-1"></i>My Team
+        {{#if peerAssessors.length}}<span class="badge bg-primary ms-1">{{peerAssessors.length}}</span>{{/if}}
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content mt-3">
+
+    <!-- ══ CLIENT INVITATIONS ══ -->
+    <div class="tab-pane fade show active" id="tab-clients">
+      <div class="form-section">
+        <div class="section-header">
+          <h3 class="section-title">
+            <span class="section-number"><i class="bi bi-person-plus"></i></span>
+            Invite a Client
+          </h3>
+        </div>
+        <p class="text-muted small">The client must register using the exact email you specify. They'll receive a link and invite code.</p>
+        <form method="POST" action="/admin/invitations/client" class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Email Address <span class="text-danger">*</span></label>
+            <input type="email" class="form-control" name="email" required placeholder="jane.doe@client-org.com">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-control" name="name" placeholder="Jane Doe">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Organization</label>
+            <input type="text" class="form-control" name="organization" placeholder="Client Organization Name">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Message <small class="text-muted">(optional)</small></label>
+            <input type="text" class="form-control" name="message" placeholder="Brief note to include in the email">
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-send me-2"></i>Send Client Invite</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Existing Client Invitations -->
+      <div class="form-section mt-4">
+        <div class="section-header">
+          <h3 class="section-title">
+            <span class="section-number"><i class="bi bi-list-check"></i></span>
+            Sent Invitations
+          </h3>
+        </div>
+        {{#if clientInvites.length}}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Code</th>
+                <th>Status</th>
+                <th>Sent</th>
+                <th>Expires</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each clientInvites}}
+              <tr>
+                <td><code>{{this.email}}</code></td>
+                <td>{{this.name}}</td>
+                <td><code class="fw-bold">{{this.invite_code}}</code></td>
+                <td>
+                  {{#eq this.status "pending"}}<span class="badge bg-warning text-dark">Pending</span>{{/eq}}
+                  {{#eq this.status "accepted"}}<span class="badge bg-success">Accepted</span>{{/eq}}
+                  {{#eq this.status "revoked"}}<span class="badge bg-danger">Revoked</span>{{/eq}}
+                </td>
+                <td><small>{{this.created_at}}</small></td>
+                <td><small>{{this.expires_at}}</small></td>
+                <td>
+                  {{#eq this.status "pending"}}
+                  <div class="btn-group btn-group-sm">
+                    <form method="POST" action="/admin/invitations/{{this.id}}/resend" class="d-inline">
+                      <button type="submit" class="btn btn-outline-primary btn-sm" title="Resend"><i class="bi bi-arrow-repeat"></i></button>
+                    </form>
+                    <form method="POST" action="/admin/invitations/{{this.id}}/revoke" class="d-inline" onsubmit="return confirm('Revoke this invitation?')">
+                      <button type="submit" class="btn btn-outline-danger btn-sm" title="Revoke"><i class="bi bi-x-lg"></i></button>
+                    </form>
+                  </div>
+                  {{/eq}}
+                </td>
+              </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+        {{else}}
+        <p class="text-muted text-center py-3"><i class="bi bi-inbox me-2"></i>No client invitations sent yet.</p>
+        {{/if}}
+      </div>
+    </div>
+
+    <!-- ══ ASSESSOR INVITATIONS ══ -->
+    <div class="tab-pane fade" id="tab-assessors">
+      <div class="form-section">
+        <div class="section-header">
+          <h3 class="section-title">
+            <span class="section-number"><i class="bi bi-shield-plus"></i></span>
+            Invite a Peer Assessor
+          </h3>
+        </div>
+        <div class="alert alert-info small mb-3">
+          <i class="bi bi-info-circle me-1"></i>
+          <strong>Peer assessors</strong> can view and work on assessments you assign to them. Only you (as the originating assessor) can create, delete, or reassign records. You can revoke their access at any time.
+        </div>
+        <form method="POST" action="/admin/invitations/assessor" class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Email Address <span class="text-danger">*</span></label>
+            <input type="email" class="form-control" name="email" required placeholder="colleague@agency.gc.ca">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-control" name="name" placeholder="John Smith">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Organization</label>
+            <input type="text" class="form-control" name="organization" placeholder="Organization">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Message <small class="text-muted">(optional)</small></label>
+            <input type="text" class="form-control" name="message" placeholder="Brief note about the collaboration">
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-dark"><i class="bi bi-shield-plus me-2"></i>Send Assessor Invite</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Existing Assessor Invitations -->
+      <div class="form-section mt-4">
+        <div class="section-header">
+          <h3 class="section-title">
+            <span class="section-number"><i class="bi bi-list-check"></i></span>
+            Sent Assessor Invitations
+          </h3>
+        </div>
+        {{#if assessorInvites.length}}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Code</th>
+                <th>Status</th>
+                <th>Sent</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each assessorInvites}}
+              <tr>
+                <td><code>{{this.email}}</code></td>
+                <td>{{this.name}} {{#if this.accepted_name}}<span class="badge bg-success">→ {{this.accepted_name}}</span>{{/if}}</td>
+                <td><code class="fw-bold">{{this.invite_code}}</code></td>
+                <td>
+                  {{#eq this.status "pending"}}<span class="badge bg-warning text-dark">Pending</span>{{/eq}}
+                  {{#eq this.status "accepted"}}<span class="badge bg-success">Accepted</span>{{/eq}}
+                  {{#eq this.status "revoked"}}<span class="badge bg-danger">Revoked</span>{{/eq}}
+                </td>
+                <td><small>{{this.created_at}}</small></td>
+                <td>
+                  {{#eq this.status "pending"}}
+                  <div class="btn-group btn-group-sm">
+                    <form method="POST" action="/admin/invitations/{{this.id}}/resend" class="d-inline">
+                      <button type="submit" class="btn btn-outline-primary btn-sm" title="Resend"><i class="bi bi-arrow-repeat"></i></button>
+                    </form>
+                    <form method="POST" action="/admin/invitations/{{this.id}}/revoke" class="d-inline" onsubmit="return confirm('Revoke this invitation?')">
+                      <button type="submit" class="btn btn-outline-danger btn-sm" title="Revoke"><i class="bi bi-x-lg"></i></button>
+                    </form>
+                  </div>
+                  {{/eq}}
+                </td>
+              </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+        {{else}}
+        <p class="text-muted text-center py-3"><i class="bi bi-shield me-2"></i>No assessor invitations sent yet.</p>
+        {{/if}}
+      </div>
+    </div>
+
+    <!-- ══ MY TEAM ══ -->
+    <div class="tab-pane fade" id="tab-team">
+      <div class="form-section">
+        <div class="section-header">
+          <h3 class="section-title">
+            <span class="section-number"><i class="bi bi-people"></i></span>
+            Active Peer Assessors
+          </h3>
+        </div>
+        <p class="text-muted small">These assessors have accepted your invitation and can be assigned to your assessments.</p>
+        {{#if peerAssessors.length}}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Organization</th>
+                <th>Joined</th>
+                <th>Last Login</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each peerAssessors}}
+              <tr>
+                <td><i class="bi bi-shield-check text-primary me-1"></i>{{this.name}}</td>
+                <td><code>{{this.email}}</code></td>
+                <td>{{this.organization}}</td>
+                <td><small>{{this.accepted_at}}</small></td>
+                <td><small>{{this.last_login}}</small></td>
+              </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+        {{else}}
+        <div class="text-center py-4">
+          <i class="bi bi-people" style="font-size:2.5rem;color:#ccc;"></i>
+          <p class="text-muted mt-2">No peer assessors yet. Invite colleagues from the Assessor Invitations tab.</p>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+
+  </div>
+</div>

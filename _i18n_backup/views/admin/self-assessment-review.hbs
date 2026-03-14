@@ -1,0 +1,427 @@
+<style>
+.sa-meta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+@media (max-width: 768px) { .sa-meta-grid { grid-template-columns: 1fr; } }
+.sa-meta-item { padding: 0.75rem; background: #f8f9fa; border-radius: 8px; }
+.sa-meta-item .label { font-size: 0.72rem; text-transform: uppercase; color: #8c96a2; font-weight: 600; letter-spacing: 0.5px; }
+.sa-meta-item .value { font-size: 0.95rem; font-weight: 600; color: #26374a; margin-top: 0.15rem; }
+.finding-item { padding: 0.65rem 0; border-bottom: 1px solid #f0f1f3; display: flex; gap: 0.6rem; }
+.finding-item:last-child { border-bottom: none; }
+.finding-icon { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.75rem; }
+.fi-critical { background: #fde8e8; color: #c4322e; }
+.fi-warning { background: #fef3e0; color: #c27415; }
+.fi-secure { background: #e6f5ed; color: #1a8a4a; }
+.intake-form-section { background: #f8f9fb; border: 1px solid #e9ecef; border-radius: 8px; padding: 1.25rem; margin-top: 1rem; }
+.intake-form-section .form-label { font-size: 0.82rem; font-weight: 600; color: #26374a; }
+.intake-form-section .form-control, .intake-form-section .form-select { font-size: 0.88rem; }
+.ai-populate-bar { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; background: linear-gradient(135deg, #eef3f8, #f0f4ff); border-radius: 8px; margin-bottom: 1rem; }
+.fw-tag { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.72rem; font-weight: 600; background: #fff; border: 1px solid #b8cce8; color: #284162; }
+.fw-tag-primary { background: #284162; color: #fff; border-color: #284162; }
+</style>
+
+<div class="container">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <a href="/admin/self-assessments" class="text-muted small text-decoration-none mb-1 d-block">
+        <i class="bi bi-arrow-left me-1"></i>Back to Self-Assessments
+      </a>
+      <h1 class="mb-1">
+        <i class="bi bi-clipboard2-pulse me-2 text-primary"></i>{{sa.ref_code}}
+      </h1>
+      <p class="text-muted mb-0">
+        Submitted by <strong>{{sa.submitter_name}}</strong> ({{sa.submitter_email}})
+        {{#if sa.submitter_org}}· {{sa.submitter_org}}{{/if}}
+      </p>
+    </div>
+    <div>
+      {{#if (eq sa.status 'submitted')}}
+        <span class="badge bg-primary fs-6">Pending Review</span>
+      {{else if (eq sa.status 'reviewed')}}
+        <span class="badge bg-warning text-dark fs-6">Reviewed</span>
+      {{else if (eq sa.status 'intake-created')}}
+        <span class="badge bg-success fs-6">Intake Created</span>
+      {{/if}}
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- ══ Left column: Assessment details ══ -->
+    <div class="col-lg-8">
+
+      <!-- System info -->
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-info-circle me-2"></i>System & Jurisdiction</div>
+        <div class="card-body">
+          <div class="sa-meta-grid">
+            <div class="sa-meta-item">
+              <div class="label">System Type</div>
+              <div class="value">{{sa.system_type}}</div>
+            </div>
+            <div class="sa-meta-item">
+              <div class="label">Country</div>
+              <div class="value">{{countryName}}</div>
+            </div>
+            <div class="sa-meta-item">
+              <div class="label">Government Level</div>
+              <div class="value">{{govLevelName}}</div>
+            </div>
+            <div class="sa-meta-item">
+              <div class="label">Data Sensitivity</div>
+              <div class="value">{{sensitivityName}}</div>
+            </div>
+            <div class="sa-meta-item">
+              <div class="label">Security Score</div>
+              <div class="value">
+                {{#if sa.score}}
+                  <span class="{{#if (gt sa.score 70)}}text-success{{else}}{{#if (gt sa.score 40)}}text-warning{{else}}text-danger{{/if}}{{/if}}">
+                    {{sa.score}}%
+                  </span>
+                {{else}}—{{/if}}
+              </div>
+            </div>
+            <div class="sa-meta-item">
+              <div class="label">Findings</div>
+              <div class="value">
+                <span class="text-danger">{{sa.critical_count}} critical</span> ·
+                <span class="text-warning">{{sa.warning_count}} warnings</span> ·
+                <span class="text-success">{{sa.secure_count}} secured</span>
+              </div>
+            </div>
+          </div>
+
+          {{#if sa.system_description}}
+          <div class="mt-2">
+            <div class="text-muted small fw-semibold mb-1">System Description</div>
+            <div class="p-2 bg-light rounded" style="font-size:0.9rem;">{{sa.system_description}}</div>
+          </div>
+          {{/if}}
+
+          {{#if frameworks.all}}
+          <div class="mt-3">
+            <div class="text-muted small fw-semibold mb-1">Applicable Frameworks</div>
+            <div class="d-flex flex-wrap gap-1">
+              {{#each frameworks.all}}
+                <span class="fw-tag {{#if @first}}fw-tag-primary{{/if}}">{{this}}</span>
+              {{/each}}
+            </div>
+          </div>
+          {{/if}}
+        </div>
+      </div>
+
+      <!-- AI Report: Critical -->
+      {{#if report.critical.length}}
+      <div class="card mb-3">
+        <div class="card-header bg-danger text-white"><i class="bi bi-exclamation-triangle-fill me-2"></i>Critical Gaps ({{report.critical.length}})</div>
+        <div class="card-body">
+          {{#each report.critical}}
+          <div class="finding-item">
+            <div class="finding-icon fi-critical"><i class="bi bi-x-lg"></i></div>
+            <div>
+              <div class="fw-semibold" style="font-size:0.88rem;">{{this.title}}</div>
+              <div class="text-muted small">{{this.detail}}</div>
+              {{#if this.recommendation}}<div class="small text-primary mt-1"><i class="bi bi-lightbulb me-1"></i>{{this.recommendation}}</div>{{/if}}
+              {{#if this.framework}}<div class="text-muted small mt-1"><i class="bi bi-tag me-1"></i>{{this.framework}}</div>{{/if}}
+            </div>
+          </div>
+          {{/each}}
+        </div>
+      </div>
+      {{/if}}
+
+      <!-- AI Report: Warnings -->
+      {{#if report.warnings.length}}
+      <div class="card mb-3">
+        <div class="card-header" style="background:#fef3e0;color:#92700c;"><i class="bi bi-exclamation-circle-fill me-2"></i>Areas Needing Improvement ({{report.warnings.length}})</div>
+        <div class="card-body">
+          {{#each report.warnings}}
+          <div class="finding-item">
+            <div class="finding-icon fi-warning"><i class="bi bi-exclamation"></i></div>
+            <div>
+              <div class="fw-semibold" style="font-size:0.88rem;">{{this.title}}</div>
+              <div class="text-muted small">{{this.detail}}</div>
+              {{#if this.recommendation}}<div class="small text-primary mt-1"><i class="bi bi-lightbulb me-1"></i>{{this.recommendation}}</div>{{/if}}
+              {{#if this.framework}}<div class="text-muted small mt-1"><i class="bi bi-tag me-1"></i>{{this.framework}}</div>{{/if}}
+            </div>
+          </div>
+          {{/each}}
+        </div>
+      </div>
+      {{/if}}
+
+      <!-- AI Report: Secured (assumed) -->
+      {{#if report.secure.length}}
+      <div class="card mb-3">
+        <div class="card-header" style="background:#e6f5ed;color:#1a8a4a;"><i class="bi bi-check-circle-fill me-2"></i>Secured (assumed — verify independently) ({{report.secure.length}})</div>
+        <div class="card-body">
+          <div class="alert alert-warning small py-2 mb-3"><i class="bi bi-exclamation-triangle me-1"></i>Self-reported by the client. Should be verified during formal assessment.</div>
+          {{#each report.secure}}
+          <div class="finding-item">
+            <div class="finding-icon fi-secure"><i class="bi bi-check-lg"></i></div>
+            <div>
+              <div class="fw-semibold" style="font-size:0.88rem;">{{this.title}}</div>
+              {{#if this.detail}}<div class="text-muted small">{{this.detail}}</div>{{/if}}
+              {{#if this.framework}}<div class="text-muted small mt-1"><i class="bi bi-tag me-1"></i>{{this.framework}}</div>{{/if}}
+            </div>
+          </div>
+          {{/each}}
+        </div>
+      </div>
+      {{/if}}
+
+    </div>
+
+    <!-- ══ Right column: Actions ══ -->
+    <div class="col-lg-4">
+
+      <!-- Admin notes -->
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-pencil me-2"></i>Admin Notes</div>
+        <div class="card-body">
+          <form action="/admin/self-assessments/{{sa.id}}/review" method="POST">
+            <textarea name="admin_notes" class="form-control mb-2" rows="3" placeholder="Internal notes about this submission...">{{sa.admin_notes}}</textarea>
+            <button type="submit" class="btn btn-sm btn-outline-primary w-100">
+              <i class="bi bi-check me-1"></i>{{#if (eq sa.status 'submitted')}}Mark as Reviewed{{else}}Update Notes{{/if}}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Linked intake -->
+      {{#if linkedIntake}}
+      <div class="card mb-3 border-success">
+        <div class="card-header bg-success text-white"><i class="bi bi-link-45deg me-2"></i>Linked Intake</div>
+        <div class="card-body">
+          <div class="fw-semibold"><code>{{linkedIntake.ref_code}}</code></div>
+          <div class="text-muted small mb-2">Status: {{linkedIntake.status}}</div>
+          <a href="/admin/intakes/{{linkedIntake.id}}" class="btn btn-sm btn-outline-success w-100">
+            <i class="bi bi-eye me-1"></i>View Intake
+          </a>
+        </div>
+      </div>
+      {{/if}}
+
+      <!-- Invite client -->
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-envelope me-2"></i>Client Invitation</div>
+        <div class="card-body">
+          {{#if existingUser}}
+            <div class="alert alert-info small py-2 mb-2">
+              <i class="bi bi-person-check me-1"></i><strong>{{sa.submitter_email}}</strong> already has an account ({{existingUser.role}}).
+            </div>
+            <a href="mailto:{{sa.submitter_email}}?subject=Your Security Self-Assessment ({{sa.ref_code}})&body=Your preliminary security assessment has been reviewed. Please sign in to review your draft intake." class="btn btn-sm btn-outline-primary w-100">
+              <i class="bi bi-envelope me-1"></i>Send Email Manually
+            </a>
+          {{else}}
+            {{#if linkedIntake}}
+              <p class="small text-muted">Invite <strong>{{sa.submitter_email}}</strong> to register, sign in, and review their draft intake.</p>
+              <form action="/admin/self-assessments/{{sa.id}}/invite-client" method="POST">
+                <button type="submit" class="btn btn-primary w-100">
+                  <i class="bi bi-send me-1"></i>Send Registration Invite
+                </button>
+              </form>
+            {{else}}
+              <p class="small text-muted">Create a draft intake first, then you can invite the client to register and review it.</p>
+            {{/if}}
+          {{/if}}
+        </div>
+      </div>
+
+      <!-- Create intake -->
+      {{#unless linkedIntake}}
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-clipboard-plus me-2"></i>Create Intake</div>
+        <div class="card-body">
+          <!-- AI populate button -->
+          <div class="ai-populate-bar">
+            <div>
+              <div class="fw-semibold small">Pre-populate with AI</div>
+              <div class="text-muted" style="font-size:0.72rem;">Auto-fill intake fields from self-assessment</div>
+            </div>
+            <button class="btn btn-sm btn-primary ms-auto" onclick="aiPopulateIntake()" id="aiPopBtn">
+              <i class="bi bi-stars me-1"></i>Generate
+            </button>
+          </div>
+
+          <form action="/admin/self-assessments/{{sa.id}}/create-intake" method="POST" id="intakeForm">
+            <div class="intake-form-section">
+              <div class="mb-2">
+                <label class="form-label">Project Name</label>
+                <input type="text" class="form-control" name="project_name" id="if_project_name" value="" placeholder="e.g. Citizen Feedback Portal">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="project_description" id="if_project_description" rows="2" placeholder="Brief description of the system..."></textarea>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Department</label>
+                <input type="text" class="form-control" name="department" id="if_department" value="">
+              </div>
+              <div class="row g-2 mb-2">
+                <div class="col-6">
+                  <label class="form-label">App Type</label>
+                  <select class="form-select" name="app_type" id="if_app_type">
+                    <option value="">—</option>
+                    <option value="web">Web Application</option>
+                    <option value="internal">Internal System</option>
+                    <option value="cloud">Cloud Infrastructure</option>
+                    <option value="mobile">Mobile App</option>
+                    <option value="data">Data / Analytics</option>
+                    <option value="network">Network / Devices</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Data Classification</label>
+                  <select class="form-select" name="data_classification" id="if_data_classification">
+                    <option value="unclassified">Unclassified</option>
+                    <option value="protected-a">Protected A</option>
+                    <option value="protected-b" selected>Protected B</option>
+                    <option value="secret">Secret</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row g-2 mb-2">
+                <div class="col-4">
+                  <label class="form-label">Confidentiality</label>
+                  <select class="form-select" name="confidentiality_level" id="if_confidentiality">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+                <div class="col-4">
+                  <label class="form-label">Integrity</label>
+                  <select class="form-select" name="integrity_level" id="if_integrity">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+                <div class="col-4">
+                  <label class="form-label">Availability</label>
+                  <select class="form-select" name="availability_level" id="if_availability">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row g-2 mb-2">
+                <div class="col-6">
+                  <label class="form-label">Contains PII?</label>
+                  <select class="form-select" name="has_pii" id="if_has_pii">
+                    <option value="false">No</option>
+                    <option value="true" selected>Yes</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label">PIA Completed?</label>
+                  <select class="form-select" name="pia_completed" id="if_pia_completed">
+                    <option value="unknown">Unknown</option>
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row g-2 mb-2">
+                <div class="col-6">
+                  <label class="form-label">Hosting</label>
+                  <select class="form-select" name="hosting_type" id="if_hosting_type">
+                    <option value="">—</option>
+                    <option value="on-premises">On-Premises</option>
+                    <option value="shared">Shared Hosting</option>
+                    <option value="cloud-certified">Certified Cloud</option>
+                    <option value="managed">Managed / PaaS</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Hosting Region</label>
+                  <input type="text" class="form-control" name="hosting_region" id="if_hosting_region" value="" placeholder="e.g. Canada">
+                </div>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Security Profile</label>
+                <select class="form-select" name="security_profile" id="if_security_profile">
+                  <option value="PBMM">PBMM</option>
+                  <option value="standard">Standard</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Additional Notes</label>
+                <textarea class="form-control" name="additional_notes" id="if_additional_notes" rows="2" placeholder="Key findings, notes for the client..."></textarea>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 mt-3">
+              <i class="bi bi-clipboard-plus me-1"></i>Create Draft Intake
+            </button>
+          </form>
+        </div>
+      </div>
+      {{/unless}}
+
+    </div>
+  </div>
+</div>
+
+<script>
+async function aiPopulateIntake() {
+  const btn = document.getElementById('aiPopBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Generating...';
+
+  try {
+    const resp = await fetch('/api/self-assessment/{{sa.id}}/generate-intake', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    const d = data.intakeData;
+    if (d.project_name) document.getElementById('if_project_name').value = d.project_name;
+    if (d.project_description) document.getElementById('if_project_description').value = d.project_description;
+    if (d.department) document.getElementById('if_department').value = d.department;
+    if (d.app_type) setSelect('if_app_type', d.app_type);
+    if (d.data_classification) setSelect('if_data_classification', d.data_classification);
+    if (d.confidentiality_level) setSelect('if_confidentiality', d.confidentiality_level);
+    if (d.integrity_level) setSelect('if_integrity', d.integrity_level);
+    if (d.availability_level) setSelect('if_availability', d.availability_level);
+    if (d.has_pii !== undefined) setSelect('if_has_pii', d.has_pii ? 'true' : 'false');
+    if (d.pia_completed) setSelect('if_pia_completed', d.pia_completed);
+    if (d.hosting_type) setSelect('if_hosting_type', d.hosting_type);
+    if (d.hosting_region) document.getElementById('if_hosting_region').value = d.hosting_region;
+    if (d.security_profile) setSelect('if_security_profile', d.security_profile);
+    if (d.additional_notes) document.getElementById('if_additional_notes').value = d.additional_notes;
+
+    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Fields Populated';
+    btn.className = 'btn btn-sm btn-success ms-auto';
+
+    // Highlight changed fields
+    document.querySelectorAll('.intake-form-section input, .intake-form-section select, .intake-form-section textarea').forEach(el => {
+      if (el.value) el.style.borderColor = '#1a8a4a';
+    });
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-stars me-1"></i>Retry';
+    alert('AI generation failed: ' + err.message);
+  }
+}
+
+function setSelect(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  // Try exact match first
+  for (let i = 0; i < el.options.length; i++) {
+    if (el.options[i].value === val) { el.selectedIndex = i; return; }
+  }
+  // Try contains match
+  const lower = val.toLowerCase();
+  for (let i = 0; i < el.options.length; i++) {
+    if (el.options[i].value.toLowerCase().includes(lower) || lower.includes(el.options[i].value.toLowerCase())) {
+      el.selectedIndex = i; return;
+    }
+  }
+}
+</script>

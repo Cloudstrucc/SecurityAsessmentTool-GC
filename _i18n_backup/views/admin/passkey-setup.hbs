@@ -1,0 +1,82 @@
+<div class="container" style="max-width:520px;">
+  <div class="row justify-content-center mt-5">
+    <div class="col-12">
+      <div class="text-center mb-4">
+        <i class="bi bi-person-bounding-box" style="font-size:3rem;color:var(--gc-nav)"></i>
+        <h2 class="mt-2" style="color:var(--gc-nav)">Register a Passkey</h2>
+        <p class="text-muted">Use Face ID, Touch ID, or Windows Hello for faster sign-in and action verification.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-body p-4">
+          {{#if hasWebAuthn}}
+            <div class="alert alert-success small mb-3">
+              <i class="bi bi-check-circle me-1"></i><strong>Passkey registered.</strong> You can re-register to update it.
+            </div>
+          {{/if}}
+
+          <div class="text-center mb-4">
+            <i class="bi bi-fingerprint" style="font-size:3.5rem;color:var(--gc-nav);opacity:0.6"></i>
+          </div>
+
+          <div class="alert alert-info small">
+            <i class="bi bi-info-circle me-1"></i>
+            Approve the biometric prompt to register. You'll then be able to log in and verify actions without typing a TOTP code.
+          </div>
+
+          <button class="btn btn-primary w-100 py-2 mb-3" id="registerPasskeyBtn">
+            <i class="bi bi-person-bounding-box me-1"></i>Register Passkey
+          </button>
+
+          <div id="passkeyStatus" class="small d-none mb-3"></div>
+
+          <a href="/admin/dashboard" class="btn btn-outline-secondary w-100" id="skipBtn">
+            <i class="bi bi-arrow-right me-1"></i>Skip — Use TOTP Only
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@11/dist/bundle/index.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('registerPasskeyBtn').addEventListener('click', async function() {
+    const btn = this;
+    const statusEl = document.getElementById('passkeyStatus');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Starting registration...';
+    statusEl.className = 'small mb-3 text-muted';
+    statusEl.textContent = 'Waiting for biometric prompt...';
+    statusEl.classList.remove('d-none');
+
+    try {
+      const optResp = await fetch('/api/webauthn/register-options', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+      const opts = await optResp.json();
+      if (opts.error) throw new Error(opts.error);
+
+      const regResult = await SimpleWebAuthnBrowser.startRegistration({ optionsJSON: opts });
+
+      statusEl.textContent = 'Verifying with server...';
+      const verifyResp = await fetch('/api/webauthn/register-verify', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(regResult)
+      });
+      const verifyData = await verifyResp.json();
+
+      if (verifyData.success) {
+        statusEl.className = 'small mb-3 text-success';
+        statusEl.innerHTML = '<i class="bi bi-check-circle me-1"></i><strong>Passkey registered!</strong> You can now log in with biometrics.';
+        btn.className = 'btn btn-success w-100 py-2 mb-3';
+        btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Passkey Registered';
+        document.getElementById('skipBtn').innerHTML = '<i class="bi bi-arrow-right me-1"></i>Continue to Dashboard';
+      } else { throw new Error(verifyData.error || 'Verification failed'); }
+    } catch (err) {
+      statusEl.className = 'small mb-3 text-danger';
+      statusEl.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i>' + (err.name === 'NotAllowedError' ? 'Cancelled. Click again to retry.' : err.message);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-person-bounding-box me-1"></i>Try Again';
+    }
+  });
+});
+</script>

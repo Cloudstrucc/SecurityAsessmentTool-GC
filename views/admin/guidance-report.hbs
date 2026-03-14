@@ -109,9 +109,9 @@
           <hr>
           <form method="POST" action="/admin/projects/{{project.id}}/guidance/validate" class="">
             <div class="mb-3">
-              <label class="form-label small fw-semibold">Reviewer Notes</label>
+              <label class="form-label small fw-semibold">{{t 'admin.guidance_report.label.reviewer_notes'}}</label>
               <textarea class="form-control" name="reviewer_notes" rows="3"
-                placeholder="Notes for the project owner (visible if returned)..."></textarea>
+                placeholder="{{t 'admin.guidance_report.ph.notes_for_the_project'}}"></textarea>
             </div>
             <div class="d-flex gap-2">
               <button type="submit" name="action" value="validate" class="btn btn-success"
@@ -180,10 +180,10 @@
         <thead>
           <tr>
             <th style="width:40px"></th>
-            <th>Requirement</th>
-            <th style="width:100px" class="text-center">Level</th>
-            <th style="width:120px" class="text-center">Status</th>
-            <th>Notes</th>
+            <th>{{t 'admin.guidance_report.th.requirement'}}</th>
+            <th style="width:100px" class="text-center">{{t 'admin.guidance_report.th.level'}}</th>
+            <th style="width:120px" class="text-center">{{t 'admin.guidance_report.th.status'}}</th>
+            <th>{{t 'admin.guidance_report.th.notes'}}</th>
           </tr>
         </thead>
         <tbody>
@@ -271,7 +271,7 @@
     <div class="card-header"><i class="bi bi-pencil-square me-2"></i>Assessor Notes</div>
     <div class="card-body">
       <form method="POST" action="/admin/projects/{{project.id}}/guidance-notes" class="">
-        <textarea class="form-control mb-3" name="notes" rows="4" placeholder="Add any assessor notes for this guidance report...">{{project.assessor_notes}}</textarea>
+        <textarea class="form-control mb-3" name="notes" rows="4" placeholder="{{t 'admin.guidance_report.ph.add_any_assessor_notes'}}">{{project.assessor_notes}}</textarea>
         <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save me-1"></i>Save Notes</button>
       </form>
     </div>
