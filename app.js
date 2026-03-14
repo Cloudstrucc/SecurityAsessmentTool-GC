@@ -19,6 +19,7 @@ const adminRoutes = require('./routes/admin');
 const publicRoutes = require('./routes/public');
 const apiRoutes = require('./routes/api');
 const emailService = require('./utils/emailService');
+const { initI18n } = require('./config/i18n');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,6 +35,8 @@ async function initialize() {
   try {
     await initDatabase();
     console.log('Database initialized');
+    await initI18n();
+    console.log('i18n initialized (en, fr, es)');
     emailService.initialize();
     console.log('Application initialized successfully');
   } catch (error) {
@@ -158,6 +161,12 @@ app.use(express.urlencoded({ extended: true, limit: '10mb', parameterLimit: 1000
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// i18n — language detection + translation
+const { i18nMiddleware, i18nLocals, registerHandlebarsHelpers } = require('./config/i18n');
+registerHandlebarsHelpers({ handlebars: require('handlebars') });
+app.use(i18nMiddleware());
+app.use(i18nLocals);
 
 app.set('trust proxy', 1);
 app.use(session({

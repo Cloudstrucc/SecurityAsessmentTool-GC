@@ -1,134 +1,65 @@
 <style>
-.hero {
-  background: linear-gradient(135deg, #1a2e42 0%, #2d4a6a 50%, #3a5a7c 100%);
-  position: relative; overflow: hidden;
-  border-bottom: 3px solid var(--gc-red, #af3c43);
-}
-.hero::before {
-  content: ''; position: absolute; top: -40%; right: -8%;
-  width: 550px; height: 550px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
-}
-.hero::after {
-  content: ''; position: absolute; bottom: -25%; left: -5%;
-  width: 450px; height: 450px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(175,60,67,0.08) 0%, transparent 70%);
-}
-.hero-brand {
-  padding: 0.85rem 0;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  position: relative; z-index: 2;
-}
-.hero-brand .brand-link {
-  color: #fff; text-decoration: none;
-  display: flex; align-items: center; gap: 0.6rem; font-size: 0.95rem;
-}
-.hero-brand .brand-icon {
-  width: 32px; height: 32px; border-radius: 8px;
-  background: rgba(255,255,255,0.12);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.1rem; color: #fff;
-}
-.hero-brand .brand-name { font-weight: 700; }
-.hero-brand .brand-sep { color: rgba(255,255,255,0.25); margin: 0 0.15rem; font-weight: 300; }
-.hero-brand .brand-product { font-weight: 400; opacity: 0.75; font-size: 0.88rem; }
-.btn-existing {
-  font-size: 0.78rem; padding: 0.3rem 0.85rem;
-  border: 1px solid rgba(255,255,255,0.25); border-radius: 6px;
-  color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.06);
-  text-decoration: none; transition: all 0.2s;
-}
-.btn-existing:hover { background: rgba(255,255,255,0.12); color: #fff; }
-
-.hero-main { padding: 3rem 0 2.5rem; position: relative; z-index: 1; }
-.hero h1 { color: #fff; font-weight: 800; font-size: 2.2rem; line-height: 1.2; }
-.hero h1 span { color: #f0c36d; }
-.hero .lead { color: rgba(255,255,255,0.7); font-size: 1.05rem; max-width: 540px; }
-
-.sa-hero-card {
-  background: #fff; border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18); overflow: hidden; max-width: 420px;
-}
-.sa-hero-card .sa-header {
-  background: linear-gradient(135deg, #284162, #1a8a4a);
-  padding: 1.5rem; text-align: center;
-}
-.sa-hero-card .sa-header i { font-size: 2.5rem; color: #fff; display: block; margin-bottom: 0.5rem; }
-.sa-hero-card .sa-header h3 { color: #fff; font-size: 1.1rem; font-weight: 700; margin: 0; }
-.sa-hero-card .sa-header p { color: rgba(255,255,255,0.8); font-size: 0.82rem; margin: 0.3rem 0 0; }
-.sa-hero-card .sa-body { padding: 1.5rem; }
-.sa-step {
-  display: flex; gap: 0.75rem; align-items: flex-start;
-  margin-bottom: 0.85rem; padding-bottom: 0.85rem; border-bottom: 1px solid #f0f1f3;
-}
-.sa-step:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.sa-step-num {
-  width: 28px; height: 28px; border-radius: 50%;
-  background: #284162; color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
-}
-.sa-step-text { font-size: 0.85rem; color: #333; line-height: 1.4; }
-.sa-step-text strong { color: #26374a; }
-.btn-sa-start {
-  background: linear-gradient(135deg, #1a8a4a, #15713d);
-  color: #fff; border: none; width: 100%;
-  padding: 0.85rem; border-radius: 10px;
-  font-weight: 700; font-size: 1rem;
-  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-  transition: all 0.2s; cursor: pointer; text-decoration: none;
-  box-shadow: 0 4px 12px rgba(26,138,74,0.3);
-}
-.btn-sa-start:hover {
-  background: linear-gradient(135deg, #15713d, #0f5c30);
-  transform: translateY(-2px); box-shadow: 0 6px 20px rgba(26,138,74,0.4); color: #fff;
-}
-.sa-note { font-size: 0.72rem; color: #8c96a2; text-align: center; margin-top: 0.75rem; }
-
-.fw-ticker {
-  background: rgba(255,255,255,0.06); border-top: 1px solid rgba(255,255,255,0.08);
-  padding: 0.75rem 0; position: relative; z-index: 1;
-}
-.fw-ticker-inner {
-  display: flex; align-items: center; gap: 0.75rem;
-  overflow: hidden; flex-wrap: wrap; justify-content: center;
-}
-.fw-ticker .fw-label {
-  color: rgba(255,255,255,0.45); font-size: 0.72rem; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;
-}
-.fw-badge {
-  padding: 0.2rem 0.65rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600;
-  background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.55);
-  border: 1px solid rgba(255,255,255,0.1);
-}
-
-.platform-section { padding: 2.5rem 0; }
-.platform-section h2 { font-size: 1.3rem; font-weight: 700; color: #26374a; }
-.cap-item { text-align: center; padding: 1rem; }
-.cap-item i { font-size: 1.8rem; color: #284162; }
-.cap-item .cap-title { font-weight: 700; font-size: 0.88rem; margin-top: 0.5rem; color: #26374a; }
-.cap-item .cap-desc { font-size: 0.75rem; color: #8c96a2; margin-top: 0.2rem; }
-
-.site-footer { background: #26374a; padding: 1.25rem 0; }
-.site-footer p { color: rgba(255,255,255,0.5); font-size: 0.78rem; margin: 0; }
-.site-footer a { color: rgba(255,255,255,0.7); text-decoration: none; }
-.site-footer a:hover { color: #fff; }
+.hero{background:linear-gradient(135deg,#1a2e42 0%,#2d4a6a 50%,#3a5a7c 100%);position:relative;overflow:hidden;border-bottom:3px solid var(--gc-red,#af3c43)}
+.hero::before{content:'';position:absolute;top:-40%;right:-8%;width:550px;height:550px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.04) 0%,transparent 70%)}
+.hero::after{content:'';position:absolute;bottom:-25%;left:-5%;width:450px;height:450px;border-radius:50%;background:radial-gradient(circle,rgba(175,60,67,0.08) 0%,transparent 70%)}
+.hero-brand{padding:0.85rem 0;border-bottom:1px solid rgba(255,255,255,0.08);position:relative;z-index:2}
+.hero-brand .brand-link{color:#fff;text-decoration:none;display:flex;align-items:center;gap:0.6rem;font-size:0.95rem}
+.hero-brand .brand-icon{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff}
+.hero-brand .brand-name{font-weight:700}
+.hero-brand .brand-sep{color:rgba(255,255,255,0.25);margin:0 0.15rem;font-weight:300}
+.hero-brand .brand-product{font-weight:400;opacity:0.75;font-size:0.88rem}
+.btn-existing{font-size:0.78rem;padding:0.3rem 0.85rem;border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.06);text-decoration:none;transition:all 0.2s}
+.btn-existing:hover{background:rgba(255,255,255,0.12);color:#fff}
+.lang-switch a{font-size:0.72rem;padding:0.15rem 0.45rem;border-radius:4px;text-decoration:none}
+.lang-switch a.active{background:rgba(255,255,255,0.15);color:#fff;font-weight:600}
+.lang-switch a:not(.active){color:rgba(255,255,255,0.5)}
+.hero-main{padding:3rem 0 2.5rem;position:relative;z-index:1}
+.hero h1{color:#fff;font-weight:800;font-size:2.2rem;line-height:1.2}
+.hero h1 span{color:#f0c36d}
+.hero .lead{color:rgba(255,255,255,0.7);font-size:1.05rem;max-width:540px}
+.sa-hero-card{background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:hidden;max-width:420px}
+.sa-hero-card .sa-header{background:linear-gradient(135deg,#284162,#1a8a4a);padding:1.5rem;text-align:center}
+.sa-hero-card .sa-header i{font-size:2.5rem;color:#fff;display:block;margin-bottom:0.5rem}
+.sa-hero-card .sa-header h3{color:#fff;font-size:1.1rem;font-weight:700;margin:0}
+.sa-hero-card .sa-header p{color:rgba(255,255,255,0.8);font-size:0.82rem;margin:0.3rem 0 0}
+.sa-hero-card .sa-body{padding:1.5rem}
+.sa-step{display:flex;gap:0.75rem;align-items:flex-start;margin-bottom:0.85rem;padding-bottom:0.85rem;border-bottom:1px solid #f0f1f3}
+.sa-step:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.sa-step-num{width:28px;height:28px;border-radius:50%;background:#284162;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0}
+.sa-step-text{font-size:0.85rem;color:#333;line-height:1.4}
+.sa-step-text strong{color:#26374a}
+.btn-sa-start{background:linear-gradient(135deg,#1a8a4a,#15713d);color:#fff;border:none;width:100%;padding:0.85rem;border-radius:10px;font-weight:700;font-size:1rem;display:flex;align-items:center;justify-content:center;gap:0.5rem;transition:all 0.2s;cursor:pointer;text-decoration:none;box-shadow:0 4px 12px rgba(26,138,74,0.3)}
+.btn-sa-start:hover{background:linear-gradient(135deg,#15713d,#0f5c30);transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,138,74,0.4);color:#fff}
+.sa-note{font-size:0.72rem;color:#8c96a2;text-align:center;margin-top:0.75rem}
+.fw-ticker{background:rgba(255,255,255,0.06);border-top:1px solid rgba(255,255,255,0.08);padding:0.75rem 0;position:relative;z-index:1}
+.fw-ticker-inner{display:flex;align-items:center;gap:0.75rem;overflow:hidden;flex-wrap:wrap;justify-content:center}
+.fw-ticker .fw-label{color:rgba(255,255,255,0.45);font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
+.fw-badge{padding:0.2rem 0.65rem;border-radius:4px;font-size:0.7rem;font-weight:600;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.55);border:1px solid rgba(255,255,255,0.1)}
+.platform-section{padding:2.5rem 0}
+.platform-section h2{font-size:1.3rem;font-weight:700;color:#26374a}
+.cap-item{text-align:center;padding:1rem}
+.cap-item i{font-size:1.8rem;color:#284162}
+.cap-item .cap-title{font-weight:700;font-size:0.88rem;margin-top:0.5rem;color:#26374a}
+.cap-item .cap-desc{font-size:0.75rem;color:#8c96a2;margin-top:0.2rem}
+.site-footer{background:#26374a;padding:1.25rem 0}
+.site-footer p{color:rgba(255,255,255,0.5);font-size:0.78rem;margin:0}
+.site-footer a{color:rgba(255,255,255,0.7);text-decoration:none}
+.site-footer a:hover{color:#fff}
 </style>
 
-<!-- Hero -->
 <div class="hero">
   <div class="hero-brand">
     <div class="container d-flex justify-content-between align-items-center">
       <a href="/" class="brand-link">
         <div class="brand-icon"><i class="bi bi-cloud-check-fill"></i></div>
-        <span>
-          <span class="brand-name">Vanguard Cloud Services</span>
-          <span class="brand-sep">|</span>
-          <span class="brand-product">SA&amp;A Platform</span>
-        </span>
+        <span><span class="brand-name">{{t 'brand.company'}}</span><span class="brand-sep">|</span><span class="brand-product">{{t 'brand.product'}}</span></span>
       </a>
-      <a href="/portal" class="btn-existing"><i class="bi bi-box-arrow-in-right me-1"></i>Existing Client</a>
+      <div class="d-flex align-items-center gap-2">
+        <div class="lang-switch d-flex gap-1">
+          {{#each supportedLangs}}<a href="?lang={{this.code}}" class="{{#if this.active}}active{{/if}}">{{this.short}}</a>{{/each}}
+        </div>
+        <a href="/portal" class="btn-existing"><i class="bi bi-box-arrow-in-right me-1"></i>{{t 'nav.existingClient'}}</a>
+      </div>
     </div>
   </div>
   <div class="container hero-main">
@@ -136,73 +67,58 @@
       <div class="col-lg-7">
         <div class="mb-2">
           <span class="badge" style="background:rgba(240,195,109,0.15);color:#f0c36d;font-size:0.72rem;font-weight:600;padding:0.3rem 0.8rem;border-radius:20px;">
-            <i class="bi bi-shield-check me-1"></i>Multi-Framework Compliance Platform
+            <i class="bi bi-shield-check me-1"></i>{{t 'home.badge'}}
           </span>
         </div>
-        <h1 class="mb-3">Is your system<br><span>secure enough?</span></h1>
-        <p class="lead mb-4">Find out in minutes. Our self-assessment wizard asks plain-language questions about your system, maps them to the right security frameworks for your jurisdiction, and gives you an instant report.</p>
+        <h1 class="mb-3">{{t 'home.headline'}}<br><span>{{t 'home.headlineAccent'}}</span></h1>
+        <p class="lead mb-4">{{t 'home.lead'}}</p>
         <div class="d-flex flex-wrap gap-3 mb-3">
-          <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.65);font-size:0.82rem;"><i class="bi bi-check-circle-fill" style="color:#1a8a4a;"></i>No account needed</div>
-          <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.65);font-size:0.82rem;"><i class="bi bi-check-circle-fill" style="color:#1a8a4a;"></i>5-minute questionnaire</div>
-          <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.65);font-size:0.82rem;"><i class="bi bi-check-circle-fill" style="color:#1a8a4a;"></i>Instant security report</div>
+          <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.65);font-size:0.82rem;"><i class="bi bi-check-circle-fill" style="color:#1a8a4a;"></i>{{t 'home.noAccount'}}</div>
+          <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.65);font-size:0.82rem;"><i class="bi bi-check-circle-fill" style="color:#1a8a4a;"></i>{{t 'home.fiveMin'}}</div>
+          <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.65);font-size:0.82rem;"><i class="bi bi-check-circle-fill" style="color:#1a8a4a;"></i>{{t 'home.instantReport'}}</div>
         </div>
         <div class="d-flex flex-wrap gap-3 mt-4 d-lg-none">
-          <a href="/self-assessment" class="btn-sa-start" style="max-width:320px;"><i class="bi bi-shield-check"></i>Start Free Assessment</a>
+          <a href="/self-assessment" class="btn-sa-start" style="max-width:320px;"><i class="bi bi-shield-check"></i>{{t 'saCard.startBtn'}}</a>
         </div>
       </div>
       <div class="col-lg-5 d-none d-lg-block">
         <div class="sa-hero-card">
-          <div class="sa-header">
-            <i class="bi bi-clipboard2-pulse"></i>
-            <h3>Security Self-Assessment</h3>
-            <p>Free preliminary evaluation</p>
-          </div>
+          <div class="sa-header"><i class="bi bi-clipboard2-pulse"></i><h3>{{t 'saCard.title'}}</h3><p>{{t 'saCard.subtitle'}}</p></div>
           <div class="sa-body">
-            <div class="sa-step"><div class="sa-step-num">1</div><div class="sa-step-text"><strong>Describe your system</strong> — select type, jurisdiction, and sensitivity level</div></div>
-            <div class="sa-step"><div class="sa-step-num">2</div><div class="sa-step-text"><strong>Answer questions</strong> — tailored to your frameworks (ITSG-33, NIST, GDPR, etc.)</div></div>
-            <div class="sa-step"><div class="sa-step-num">3</div><div class="sa-step-text"><strong>Get your report</strong> — what's secure, what's critical, and next steps</div></div>
-            <a href="/self-assessment" class="btn-sa-start mt-3"><i class="bi bi-shield-check"></i>Start Free Assessment</a>
-            <div class="sa-note"><i class="bi bi-lock me-1"></i>Access code required — request one instantly</div>
+            <div class="sa-step"><div class="sa-step-num">1</div><div class="sa-step-text"><strong>{{t 'saCard.step1'}}</strong> {{t 'saCard.step1d'}}</div></div>
+            <div class="sa-step"><div class="sa-step-num">2</div><div class="sa-step-text"><strong>{{t 'saCard.step2'}}</strong> {{t 'saCard.step2d'}}</div></div>
+            <div class="sa-step"><div class="sa-step-num">3</div><div class="sa-step-text"><strong>{{t 'saCard.step3'}}</strong> {{t 'saCard.step3d'}}</div></div>
+            <a href="/self-assessment" class="btn-sa-start mt-3"><i class="bi bi-shield-check"></i>{{t 'saCard.startBtn'}}</a>
+            <div class="sa-note"><i class="bi bi-lock me-1"></i>{{t 'saCard.note'}}</div>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <div class="fw-ticker">
-    <div class="container">
-      <div class="fw-ticker-inner">
-        <span class="fw-label">Supported Frameworks</span>
-        <span class="fw-badge">ITSG-33</span><span class="fw-badge">NIST 800-53</span><span class="fw-badge">ISO 27001</span><span class="fw-badge">GDPR</span><span class="fw-badge">NIS2</span><span class="fw-badge">HIPAA</span><span class="fw-badge">FedRAMP</span><span class="fw-badge">Essential Eight</span><span class="fw-badge">DORA</span><span class="fw-badge">NCSC CAF</span><span class="fw-badge">PCI DSS</span><span class="fw-badge">SOC 2</span><span class="fw-badge">PBMM</span><span class="fw-badge">CIS v8.1</span><span class="fw-badge">CMMC</span>
-      </div>
-    </div>
-  </div>
+  <div class="fw-ticker"><div class="container"><div class="fw-ticker-inner">
+    <span class="fw-label">{{t 'home.frameworks'}}</span>
+    <span class="fw-badge">ITSG-33</span><span class="fw-badge">NIST 800-53</span><span class="fw-badge">ISO 27001</span><span class="fw-badge">GDPR</span><span class="fw-badge">NIS2</span><span class="fw-badge">HIPAA</span><span class="fw-badge">FedRAMP</span><span class="fw-badge">Essential Eight</span><span class="fw-badge">DORA</span><span class="fw-badge">NCSC CAF</span><span class="fw-badge">PCI DSS</span><span class="fw-badge">SOC 2</span><span class="fw-badge">PBMM</span><span class="fw-badge">CIS v8.1</span><span class="fw-badge">CMMC</span>
+  </div></div></div>
 </div>
 
-<!-- Platform Capabilities -->
 <div class="container platform-section">
-  <div class="text-center mb-4">
-    <h2><i class="bi bi-grid-3x3-gap me-2"></i>Platform Capabilities</h2>
-    <p class="text-muted">End-to-end security assessment and authorization lifecycle</p>
-  </div>
+  <div class="text-center mb-4"><h2><i class="bi bi-grid-3x3-gap me-2"></i>{{t 'cap.title'}}</h2><p class="text-muted">{{t 'cap.subtitle'}}</p></div>
   <div class="row g-3">
-    <div class="col-6 col-md-3"><div class="cap-item"><i class="bi bi-globe2"></i><div class="cap-title">Multi-Jurisdiction</div><div class="cap-desc">17+ regions with automatic framework selection</div></div></div>
-    <div class="col-6 col-md-3"><div class="cap-item"><i class="bi bi-clipboard-check"></i><div class="cap-title">Full SA&amp;A Lifecycle</div><div class="cap-desc">ATO, iATO, POA&amp;M, risk categorization, PDF exports</div></div></div>
-    <div class="col-6 col-md-3"><div class="cap-item"><i class="bi bi-people-fill"></i><div class="cap-title">Team Collaboration</div><div class="cap-desc">Client portal, peer assessor assignments, invitations</div></div></div>
-    <div class="col-6 col-md-3"><div class="cap-item"><i class="bi bi-shield-fill-check"></i><div class="cap-title">MFA + Passkeys</div><div class="cap-desc">TOTP, WebAuthn biometric, signed audit trail</div></div></div>
-    <div class="col-6 col-md-3"><div class="cap-item"><i class="bi bi-file-earmark-ruled"></i><div class="cap-title">GC Web Guidance</div><div class="cap-desc">Automated compliance checklists for low-risk systems</div></div></div>
-    <div class="col-6 col-md-3"><div class="cap-item"><i class="bi bi-fingerprint"></i><div class="cap-title">Audit Trail</div><div class="cap-desc">MFA-signed actions with tamper-proof logging</div></div></div>
-    <div class="col-6 col-md-3"><div class="cap-item"><i class="bi bi-building"></i><div class="cap-title">Multi-Tenant SaaS</div><div class="cap-desc">Isolated instances per organization on Azure</div></div></div>
-    <div class="col-6 col-md-3"><div class="cap-item"><i class="bi bi-award"></i><div class="cap-title">Industry Standards</div><div class="cap-desc">SOC 2, PCI DSS, CMMC, FedRAMP, DORA, Essential Eight</div></div></div>
+    <div class="col-6 col-md-3"><div class="cap-item"><i class="bi bi-globe2"></i><div class="cap-title">{{t 'cap.multiJuris'}}</div><div class="cap-desc">{{t 'cap.multiJurisD'}}</div></div></div>
+    <div class="col-6 col-md-3"><div class="cap-item"><i class="bi bi-clipboard-check"></i><div class="cap-title">{{t 'cap.lifecycle'}}</div><div class="cap-desc">{{t 'cap.lifecycleD'}}</div></div></div>
+    <div class="col-6 col-md-3"><div class="cap-item"><i class="bi bi-people-fill"></i><div class="cap-title">{{t 'cap.collab'}}</div><div class="cap-desc">{{t 'cap.collabD'}}</div></div></div>
+    <div class="col-6 col-md-3"><div class="cap-item"><i class="bi bi-shield-fill-check"></i><div class="cap-title">{{t 'cap.mfa'}}</div><div class="cap-desc">{{t 'cap.mfaD'}}</div></div></div>
+    <div class="col-6 col-md-3"><div class="cap-item"><i class="bi bi-file-earmark-ruled"></i><div class="cap-title">{{t 'cap.guidance'}}</div><div class="cap-desc">{{t 'cap.guidanceD'}}</div></div></div>
+    <div class="col-6 col-md-3"><div class="cap-item"><i class="bi bi-fingerprint"></i><div class="cap-title">{{t 'cap.audit'}}</div><div class="cap-desc">{{t 'cap.auditD'}}</div></div></div>
+    <div class="col-6 col-md-3"><div class="cap-item"><i class="bi bi-building"></i><div class="cap-title">{{t 'cap.tenant'}}</div><div class="cap-desc">{{t 'cap.tenantD'}}</div></div></div>
+    <div class="col-6 col-md-3"><div class="cap-item"><i class="bi bi-award"></i><div class="cap-title">{{t 'cap.standards'}}</div><div class="cap-desc">{{t 'cap.standardsD'}}</div></div></div>
   </div>
-  <div class="text-center mt-4 mb-2">
-    <p class="text-muted small">Security Assessment &amp; Authorization Platform by <strong>Vanguard Cloud Services Inc.</strong></p>
-  </div>
+  <div class="text-center mt-4 mb-2"><p class="text-muted small">{{t 'brand.tagline'}} {{t 'brand.by'}} <strong>{{t 'brand.company'}}</strong></p></div>
 </div>
 
-<!-- Footer -->
 <div class="site-footer">
   <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <p><i class="bi bi-cloud-check-fill me-1"></i><strong>Vanguard Cloud Services Inc.</strong></p>
-    <p><a href="/portal">Client Portal</a></p>
+    <p><i class="bi bi-cloud-check-fill me-1"></i><strong>{{t 'brand.company'}}</strong></p>
+    <p><a href="/portal">{{t 'nav.clientPortal'}}</a></p>
   </div>
 </div>

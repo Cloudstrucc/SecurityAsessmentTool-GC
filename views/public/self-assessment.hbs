@@ -183,10 +183,20 @@
   <!-- ════════════ STEP 2 ════════════ -->
   <div id="saStep2" class="hidden">
     <div id="saQLoading" class="ai-loading">
-      <div class="ai-pulse"><i class="bi bi-stars"></i></div>
-      <div>
-        <div class="fw-semibold" style="font-size:0.88rem;">Analyzing your system &amp; jurisdiction...</div>
-        <div class="text-muted" style="font-size:0.78rem;">Generating tailored security questions based on applicable frameworks</div>
+      <div style="width:100%;">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="ai-pulse"><i class="bi bi-stars"></i></div>
+          <div>
+            <div class="fw-semibold" style="font-size:0.88rem;">{{t 'sa.analyzing'}}</div>
+            <div class="text-muted" style="font-size:0.78rem;">{{t 'sa.analyzingD'}}</div>
+          </div>
+        </div>
+        <div class="progress" style="height:6px;border-radius:3px;">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" id="saQProgress" style="width:10%;background:var(--cs-accent,#284162);"></div>
+        </div>
+        <div class="text-center mt-2" style="font-size:0.72rem;color:#8c96a2;">
+          <i class="bi bi-exclamation-circle me-1"></i>{{t 'sa.doNotClose'}}
+        </div>
       </div>
     </div>
 
@@ -215,10 +225,20 @@
   <!-- ════════════ STEP 3 ════════════ -->
   <div id="saStep3" class="hidden">
     <div id="saRLoading" class="ai-loading mb-3">
-      <div class="ai-pulse"><i class="bi bi-stars"></i></div>
-      <div>
-        <div class="fw-semibold" style="font-size:0.88rem;">Generating your security report...</div>
-        <div class="text-muted" style="font-size:0.78rem;">Analyzing answers and mapping to framework controls</div>
+      <div style="width:100%;">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="ai-pulse"><i class="bi bi-stars"></i></div>
+          <div>
+            <div class="fw-semibold" style="font-size:0.88rem;">{{t 'sa.genReport'}}</div>
+            <div class="text-muted" style="font-size:0.78rem;">{{t 'sa.genReportD'}}</div>
+          </div>
+        </div>
+        <div class="progress" style="height:6px;border-radius:3px;">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" id="saRProgress" style="width:10%;background:#1a8a4a;"></div>
+        </div>
+        <div class="text-center mt-2" style="font-size:0.72rem;color:#8c96a2;">
+          <i class="bi bi-exclamation-circle me-1"></i>{{t 'sa.doNotClose'}}
+        </div>
       </div>
     </div>
     <div id="saReportBody" class="hidden"></div>
@@ -311,6 +331,11 @@ async function saGoStep2() {
   document.getElementById('saQContainer').classList.add('hidden');
   saSetStep(2);
 
+  // Start progress animation
+  const qProg = document.getElementById('saQProgress');
+  let qProgVal = 10;
+  const qProgInterval = setInterval(() => { qProgVal = Math.min(qProgVal + Math.random() * 8, 90); qProg.style.width = qProgVal + '%'; }, 500);
+
   try {
     const resp = await fetch('/api/self-assessment/questions', {
       method: 'POST',
@@ -318,14 +343,18 @@ async function saGoStep2() {
       body: JSON.stringify({
         systemType: window._saSelectedType,
         country, govLevel, sensitivity, description,
-        frameworks: window._saFrameworks
+        frameworks: window._saFrameworks,
+        lang: document.documentElement.lang || 'en'
       })
     });
+    clearInterval(qProgInterval);
+    qProg.style.width = '100%';
     const data = await resp.json();
     if (data.error) throw new Error(data.error);
     window._saQuestions = data.questions;
     renderQuestions(data.questions, data.scopeText, data.frameworksLabel);
   } catch (err) {
+    clearInterval(qProgInterval);
     document.getElementById('saQLoading').innerHTML = `<div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-1"></i>${err.message}</div>`;
   }
 }

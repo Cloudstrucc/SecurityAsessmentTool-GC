@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="no-js" lang="en" dir="ltr">
+<html class="no-js" lang="{{lang}}" dir="ltr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -229,11 +229,16 @@
             <span class="brand-product">SA&amp;A Platform</span>
           </span>
         </a>
-        <div class="gc-lang">
+        <div class="gc-lang d-flex align-items-center gap-2">
+          <div class="d-flex gap-1">
+            {{#each supportedLangs}}
+              <a href="?lang={{this.code}}" class="text-decoration-none" style="font-size:0.72rem;padding:0.15rem 0.45rem;border-radius:4px;{{#if this.active}}background:rgba(255,255,255,0.15);color:#fff;font-weight:600;{{else}}color:rgba(255,255,255,0.5);{{/if}}">{{this.short}}</a>
+            {{/each}}
+          </div>
           {{#unless isAdmin}}
             {{#unless user}}
               <a href="/portal" class="btn btn-sm btn-outline-light" style="font-size:0.78rem;border-color:rgba(255,255,255,0.3);padding:0.25rem 0.75rem;">
-                <i class="bi bi-box-arrow-in-right me-1"></i>Existing Client
+                <i class="bi bi-box-arrow-in-right me-1"></i>{{t 'nav.existingClient'}}
               </a>
             {{/unless}}
           {{/unless}}

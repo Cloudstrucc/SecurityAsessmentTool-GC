@@ -292,19 +292,33 @@ const jurisdictionOverlays = {
   ],
 };
 
+// Group title translations (used when t() is available)
+const groupTitleKeys = {
+  'Identity & Access Management': 'bq.iam',
+  'Data Protection & Privacy': 'bq.dp',
+  'System & Network Security': 'bq.sns',
+  'Monitoring & Incident Response': 'bq.mir',
+  'Governance, Policy & Awareness': 'bq.gpa',
+  'System-Specific Considerations': 'bq.ssc'
+};
+
 /**
  * Build the complete question set for a given jurisdiction and sensitivity.
  * Returns the baseline questions merged with applicable overlays.
  * No API call needed.
+ * @param {string} country
+ * @param {string} govLevel
+ * @param {string} sensitivity
+ * @param {Function} [t] - Optional i18next translate function for group titles
  */
-function getBaselineQuestions(country, govLevel, sensitivity) {
+function getBaselineQuestions(country, govLevel, sensitivity, t) {
   // Deep clone the baseline
   const questions = JSON.parse(JSON.stringify(baselineQuestions));
 
   // Collect applicable overlays (most general → most specific)
   const overlayKeys = [];
-  if (country) overlayKeys.push(country);                      // e.g. 'CA'
-  if (country && govLevel) overlayKeys.push(`${country}-${govLevel}`); // e.g. 'CA-federal'
+  if (country) overlayKeys.push(country);
+  if (country && govLevel) overlayKeys.push(`${country}-${govLevel}`);
   if (sensitivity === 'high' || sensitivity === 'classified') {
     overlayKeys.push('_high-sensitivity');
   }
@@ -315,18 +329,13 @@ function getBaselineQuestions(country, govLevel, sensitivity) {
     if (!overlays) return;
 
     overlays.forEach(overlay => {
-      // Find the matching group in baseline
       const group = questions.find(g => g.title === overlay.group);
       if (!group) return;
-
-      // Update framework ref to include overlay's ref
       if (overlay.frameworkRef && !group.frameworkRef.includes(overlay.frameworkRef)) {
         group.frameworkRef += ' · ' + overlay.frameworkRef;
       }
-
       overlay.questions.forEach(oq => {
         if (oq.replace) {
-          // Replace an existing question that matches (by text start)
           const idx = group.questions.findIndex(q => q.text.startsWith(oq.text.substring(0, 20)));
           if (idx >= 0) {
             group.questions[idx] = { ...group.questions[idx], ...oq };
@@ -335,15 +344,23 @@ function getBaselineQuestions(country, govLevel, sensitivity) {
             group.questions.push(oq);
           }
         } else {
-          // Add if not already present (check by text)
           const exists = group.questions.some(q => q.text === oq.text);
-          if (!exists) {
-            group.questions.push(oq);
-          }
+          if (!exists) group.questions.push(oq);
         }
       });
     });
   });
+
+  // Translate group titles if t() is available
+  if (t && typeof t === 'function') {
+    questions.forEach(g => {
+      const key = groupTitleKeys[g.title];
+      if (key) {
+        const translated = t(key);
+        if (translated && translated !== key) g.title = translated;
+      }
+    });
+  }
 
   return questions;
 }

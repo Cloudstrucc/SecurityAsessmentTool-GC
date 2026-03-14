@@ -478,11 +478,21 @@ router.post('/ai/review-evidence/:assessmentId', ensureAuthenticated, express.js
 //  SELF-ASSESSMENT (Pre-Intake) API Endpoints
 // ══════════════════════════════════════════════════════════════════════════════
 const { getFrameworks, getBaselineQuestions, countryNames, govLevelNames } = require('../config/framework-map');
+const { langNames } = require('../config/i18n');
+
+// Helper: build AI language instruction
+function aiLangInstruction(req) {
+  const lang = req.language || 'en';
+  if (lang === 'en') return '';
+  const name = langNames[lang] || lang;
+  return `\nIMPORTANT: Respond entirely in ${name}. All text, titles, hints, recommendations must be in ${name}.`;
+}
 
 // Generate tailored security questions: baseline (static) + AI delta (system-specific)
 router.post('/self-assessment/questions', async (req, res) => {
   try {
     const { systemType, country, govLevel, sensitivity, description, frameworks } = req.body;
+    const lang = req.language || req.body.lang || 'en';
     const scopeCountry = countryNames[country] || country;
     const scopeLevel = govLevelNames[govLevel] || govLevel;
     const fw = frameworks || getFrameworks(country, govLevel, sensitivity);
@@ -490,7 +500,7 @@ router.post('/self-assessment/questions', async (req, res) => {
     const scopeText = `Scope: <strong>${scopeCountry} — ${scopeLevel}</strong> · ${sensitivity} sensitivity · Applicable: ${fwLabel}`;
 
     // Step 1: Get baseline questions (static, no API call)
-    const questions = getBaselineQuestions(country, govLevel, sensitivity);
+    const questions = getBaselineQuestions(country, govLevel, sensitivity, req.t);
 
     // Step 2: If description is substantive, call AI for system-specific extras only
     const desc = (description || '').trim();
@@ -515,7 +525,7 @@ Based on the specific system description, generate 3-8 ADDITIONAL questions that
 Return a JSON array of question objects. Each has: group (which existing group title to add to, or "System-Specific" for a new group), type ("checkbox" or "select"), text (plain language), hint (optional), and for select type: options array.
 
 Keep questions non-technical and understandable by a business owner.
-Return ONLY valid JSON array, no markdown, no backticks.`;
+Return ONLY valid JSON array, no markdown, no backticks.${aiLangInstruction(req)}`;
 
         const result = await ai.callClaude(system, `System description: ${desc}`, { maxTokens: 1500, temperature: 0.3 });
         const cleaned = result.replace(/```json|```/g, '').trim();
@@ -625,7 +635,7 @@ Return a JSON object with:
 
 Be specific about which framework controls apply. Keep language accessible to non-technical users.
 For "secure" items, note these are self-reported assumptions that need verification.
-Return ONLY valid JSON, no markdown, no backticks.`;
+Return ONLY valid JSON, no markdown, no backticks.${aiLangInstruction(req)}`;
 
     const result = await ai.callClaude(system, `Assessment answers:\n${answerSummary}`, { maxTokens: 4000, temperature: 0.3 });
 
