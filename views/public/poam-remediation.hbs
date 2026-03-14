@@ -1,7 +1,7 @@
 <div class="container py-4" style="max-width:960px">
   <div class="d-flex justify-content-between align-items-center mb-2">
     <div>
-      <h1 class="mb-1">{{t 'poam_remediation.title.poam_remediation'}}</h1>
+      <h1 class="mb-1">{{t 'poam_remediation.h1.poam_remediation'}}</h1>
       <p class="text-muted mb-0">{{assessment.project_name}} — Address findings to achieve full ATO</p>
     </div>
     <a href="/respond/{{inviteCode}}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to Evidence</a>
@@ -10,16 +10,16 @@
   <!-- Stats -->
   <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
-      <div class="card text-center p-2"><div class="small text-muted">Total Items</div><div class="fw-bold fs-5">{{stats.total}}</div></div>
+      <div class="card text-center p-2"><div class="small text-muted">{{t 'poam_remediation.div.total_items'}}</div><div class="fw-bold fs-5">{{stats.total}}</div></div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="card text-center p-2"><div class="small text-muted">Open</div><div class="fw-bold fs-5 text-warning">{{stats.open}}</div></div>
+      <div class="card text-center p-2"><div class="small text-muted">{{t 'poam_remediation.div.open'}}</div><div class="fw-bold fs-5 text-warning">{{stats.open}}</div></div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="card text-center p-2"><div class="small text-muted">Your Submissions</div><div class="fw-bold fs-5 text-info">{{stats.clientSubmitted}}</div></div>
+      <div class="card text-center p-2"><div class="small text-muted">{{t 'poam_remediation.div.your_submissions'}}</div><div class="fw-bold fs-5 text-info">{{stats.clientSubmitted}}</div></div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="card text-center p-2"><div class="small text-muted">Verified</div><div class="fw-bold fs-5 text-success">{{stats.verified}}</div></div>
+      <div class="card text-center p-2"><div class="small text-muted">{{t 'poam_remediation.div.verified'}}</div><div class="fw-bold fs-5 text-success">{{stats.verified}}</div></div>
     </div>
   </div>
 
@@ -61,15 +61,15 @@
       <div class="mb-2">
         <label class="form-label small fw-semibold">{{t 'poam_remediation.label.your_remediation_evidence'}}</label>
         <div class="position-relative">
-          <textarea class="form-control ai-expandable" rows="4" placeholder="{{t 'poam_remediation.ph.describe_what_was_done'}}"
+          <textarea class="form-control ai-expandable" rows="4" placeholder="{{t 'poam_remediation.ph.describe_what_was_done_to'}}"
             data-item-id="{{this.id}}" id="poamEvidence-{{this.id}}">{{this.client_evidence}}</textarea>
-          <button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate on your text"
+          <button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="{{t 'poam_remediation.tattr.ai_elaborate_on_your_text'}}"
             data-target="poamEvidence-{{this.id}}">
             <i class="bi bi-stars"></i>
           </button>
         </div>
         {{#if (eq this.client_evidence_status 'submitted')}}
-          <span class="small text-success mt-1 d-block"><i class="bi bi-check-circle me-1"></i>Submitted for review</span>
+          <span class="small text-success mt-1 d-block"><i class="bi bi-check-circle me-1"></i>{{t 'poam_remediation.span.submitted_for_review'}}</span>
         {{/if}}
       </div>
       <button class="btn btn-sm btn-outline-primary poam-save-btn" data-item-id="{{this.id}}">
@@ -85,7 +85,7 @@
   {{#unless isCompleted}}
   <div class="text-end mt-4">
     <form method="POST" action="/respond/{{inviteCode}}/poam/submit" class="d-inline mfa-protected" data-mfa-label="Submit all POA&M remediation evidence">
-      <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-send me-1"></i>Submit All Remediation Evidence</button>
+      <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-send me-1"></i>{{t 'poam_remediation.btn.submit_all_remediation_evidence'}}</button>
     </form>
   </div>
   {{/unless}}

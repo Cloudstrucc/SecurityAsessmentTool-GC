@@ -34,7 +34,7 @@ router.post('/login', (req, res, next) => {
     const { consumeToken } = require('../config/mfa-signature');
     const tokenUserId = consumeToken(req.body._sig_token);
     if (!tokenUserId || tokenUserId !== req.user.id) {
-      req.flash('error', req.t('flash.admin.passkey_verification_failed_please'));
+      req.flash('error', req.t('flash.admin.passkey_verification_failed_please_try'));
       const dbUser = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [req.user.id]);
       return res.render('admin/login', { title: 'Verify MFA', layout: 'main', mfaStep: true, hasWebAuthn: !!dbUser?.webauthn_credential_id });
     }
@@ -56,7 +56,7 @@ router.post('/login', (req, res, next) => {
     }
     const isValid = otpVerify({ secret: user.totp_secret, token: req.body.token, window: 1 }).valid;
     if (!isValid) {
-      req.flash('error', req.t('flash.admin.invalid_authentication_code_please'));
+      req.flash('error', req.t('flash.admin.invalid_authentication_code_please_try'));
       const dbUser = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [req.user.id]);
       return res.render('admin/login', { title: 'Verify MFA', layout: 'main', mfaStep: true, hasWebAuthn: !!dbUser?.webauthn_credential_id });
     }
@@ -124,7 +124,7 @@ router.get('/mfa-setup', (req, res) => {
     });
   }).catch(err => {
     console.error('QR code error:', err);
-    req.flash('error', req.t('flash.admin.failed_to_generate_qr'));
+    req.flash('error', req.t('flash.admin.failed_to_generate_qr_code'));
     res.redirect('/admin/login');
   });
 });
@@ -134,13 +134,13 @@ router.post('/mfa-setup', (req, res) => {
 
   const user = get('SELECT id, email, name, totp_secret FROM users WHERE id = ?', [req.user.id]);
   if (!user || !user.totp_secret) {
-    req.flash('error', req.t('flash.admin.setup_failed_please_try'));
+    req.flash('error', req.t('flash.admin.setup_failed_please_try_again'));
     return res.redirect('/admin/mfa-setup');
   }
 
   const isValid = otpVerify({ secret: user.totp_secret, token: req.body.token, window: 1 }).valid;
   if (!isValid) {
-    req.flash('error', req.t('flash.admin.invalid_code_make_sure'));
+    req.flash('error', req.t('flash.admin.invalid_code_make_sure_your'));
     return res.redirect('/admin/mfa-setup');
   }
 
@@ -154,7 +154,7 @@ router.post('/mfa-setup', (req, res) => {
     ipAddress: req.ip, userAgent: (req.headers['user-agent'] || '').substring(0, 200)
   });
 
-  req.flash('success', req.t('flash.admin.mfa_enabled_you_can'));
+  req.flash('success', req.t('flash.admin.mfa_enabled_you_can_optionally'));
   res.redirect('/admin/passkey-setup');
 });
 
@@ -171,7 +171,7 @@ router.get('/passkey-setup', (req, res) => {
 
 function ensureAdminMfa(req, res, next) {
   if (!req.isAuthenticated()) {
-    req.flash('error', req.t('flash.admin.please_log_in_to'));
+    req.flash('error', req.t('flash.admin.please_log_in_to_access'));
     return res.redirect('/admin/login');
   }
   // Check MFA enrollment
@@ -412,7 +412,7 @@ router.get('/projects/:id', ensureAdminMfa, (req, res) => {
 // ── ASSESSMENTS ──
 router.get('/projects/:projectId/assessments/new', ensureAdminMfa, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
-  if (!project) { req.flash('error', req.t('flash.admin.project_not_found')); return res.redirect('/admin/projects'); }
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
   let techs = [];
   try { techs = JSON.parse(project.technologies || '[]'); } catch(e) {}
@@ -466,7 +466,7 @@ router.get('/projects/:projectId/assessments/new', ensureAdminMfa, (req, res) =>
 router.post('/projects/:projectId/assessments/new', ensureAdminMfa, (req, res) => {
   try {
     const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
-    if (!project) { req.flash('error', req.t('flash.admin.project_not_found')); return res.redirect('/admin/projects'); }
+    if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
     const inviteCode = uuidv4().substring(0, 8).toUpperCase();
     const selectedFrameworks = req.body.selectedFrameworks 
@@ -545,7 +545,7 @@ router.get('/assessments/:id', ensureAdminMfa, (req, res) => {
   // Access control: owner or assigned
   const access = canAccessEntity(req.user.id, 'assessment', assessment.id);
   if (!access.access) {
-    req.flash('error', req.t('flash.admin.you_do_not_have'));
+    req.flash('error', req.t('flash.admin.you_do_not_have_access'));
     return res.redirect('/admin/assessments');
   }
   const isOwner = access.role === 'owner';
@@ -652,7 +652,7 @@ router.post('/assessments/:id/send-invite', ensureAdminMfa, async (req, res) => 
       FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?
     `, [req.params.id]);
 
-    if (!assessment) { req.flash('error', req.t('flash.admin.assessment_not_found')); return res.redirect('/admin/assessments'); }
+    if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
@@ -923,7 +923,7 @@ router.get('/assessments/:id/generate-ato', ensureAdminMfa, async (req, res) => 
     res.download(outputPath);
   } catch (err) {
     console.error(err);
-    req.flash('error', req.t('flash.admin.failed_to_generate_ato'));
+    req.flash('error', req.t('flash.admin.failed_to_generate_ato_document'));
     res.redirect(`/admin/assessments/${req.params.id}`);
   }
 });
@@ -931,7 +931,7 @@ router.get('/assessments/:id/generate-ato', ensureAdminMfa, async (req, res) => 
 // ── DELETE ASSESSMENT (Draft only) ──
 router.post('/assessments/:id/delete', ensureAdminMfa, requireSignature('assessment.delete', 'Deleted assessment', 'assessment'), (req, res) => {
   const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
-  if (!assessment) { req.flash('error', req.t('flash.admin.assessment_not_found')); return res.redirect('/admin/assessments'); }
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
   if (assessment.status !== 'draft') {
     req.flash('error', 'Only draft assessments can be deleted. This assessment is currently in "' + assessment.status + '" status.');
     return res.redirect(`/admin/assessments/${assessment.id}`);
@@ -951,7 +951,7 @@ router.post('/assessments/:id/delete', ensureAdminMfa, requireSignature('assessm
 // ── DELETE PROJECT ──
 router.post('/projects/:id/delete', ensureAdminMfa, requireSignature('project.delete', 'Deleted project', 'project'), (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
-  if (!project) { req.flash('error', req.t('flash.admin.project_not_found')); return res.redirect('/admin/projects'); }
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
   // Check for non-draft assessments
   const nonDraftAssessments = all(
@@ -1077,7 +1077,7 @@ router.post('/self-assessments/:id/review', ensureAdminMfa, (req, res) => {
 router.post('/self-assessments/:id/create-intake', ensureAdminMfa, (req, res) => {
   try {
     const sa = get('SELECT * FROM self_assessments WHERE id = ?', [req.params.id]);
-    if (!sa) { req.flash('error', req.t('flash.admin.selfassessment_not_found')); return res.redirect('/admin/self-assessments'); }
+    if (!sa) { req.flash('error', 'Self-assessment not found'); return res.redirect('/admin/self-assessments'); }
 
     // Use form values (admin can override AI-generated or enter manually)
     const {
@@ -1121,7 +1121,7 @@ router.post('/self-assessments/:id/create-intake', ensureAdminMfa, (req, res) =>
 router.post('/self-assessments/:id/invite-client', ensureAdminMfa, (req, res) => {
   try {
     const sa = get('SELECT * FROM self_assessments WHERE id = ?', [req.params.id]);
-    if (!sa) { req.flash('error', req.t('flash.admin.selfassessment_not_found')); return res.redirect('/admin/self-assessments'); }
+    if (!sa) { req.flash('error', 'Self-assessment not found'); return res.redirect('/admin/self-assessments'); }
 
     const linkedIntake = sa.intake_id ? get('SELECT ref_code FROM intake_submissions WHERE id = ?', [sa.intake_id]) : null;
     const email = sa.submitter_email;
@@ -1324,7 +1324,7 @@ router.post('/intakes/:id/status', ensureAdminMfa, (req, res) => {
 router.post('/intakes/:id/create-project', ensureAdminMfa, requireSignature('intake.accept', 'Accepted intake and created project', 'intake'), (req, res) => {
   try {
     const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
-    if (!intake) { req.flash('error', req.t('flash.admin.intake_not_found')); return res.redirect('/admin/intakes'); }
+    if (!intake) { req.flash('error', 'Intake not found'); return res.redirect('/admin/intakes'); }
 
     const submittedTech = JSON.parse(intake.technologies || '[]');
     const additionalTech = Array.isArray(req.body.additionalTech) ? req.body.additionalTech : (req.body.additionalTech ? [req.body.additionalTech] : []);
@@ -1491,7 +1491,7 @@ router.get('/intakes/attachment/:id', ensureAdminMfa, (req, res) => {
 
 router.get('/projects/:projectId/guidance', ensureAdminMfa, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
-  if (!project) { req.flash('error', req.t('flash.admin.project_not_found')); return res.redirect('/admin/projects'); }
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
   // Get or create guidance report
   let report = get('SELECT * FROM guidance_reports WHERE project_id = ?', [project.id]);
@@ -1544,7 +1544,7 @@ router.get('/projects/:projectId/guidance', ensureAdminMfa, (req, res) => {
 
 router.post('/projects/:projectId/guidance/send-invite', ensureAdminMfa, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
-  if (!project) { req.flash('error', req.t('flash.admin.project_not_found')); return res.redirect('/admin/projects'); }
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
   let report = get('SELECT * FROM guidance_reports WHERE project_id = ?', [project.id]);
   const inviteCode = uuidv4().substring(0, 8).toUpperCase();
@@ -1585,12 +1585,12 @@ router.post('/projects/:projectId/guidance/validate', ensureAdminMfa, (req, res)
     run(`UPDATE guidance_reports SET status = 'validated', reviewer_notes = ?, 
       validated_at = CURRENT_TIMESTAMP, validated_by = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
       [reviewer_notes || '', req.user.id, report.id]);
-    req.flash('success', req.t('flash.admin.guidance_checklist_validated_and'));
+    req.flash('success', req.t('flash.admin.guidance_checklist_validated_and_approved'));
   } else if (action === 'return') {
     run(`UPDATE guidance_reports SET status = 'returned', reviewer_notes = ?, 
       updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
       [reviewer_notes || '', report.id]);
-    req.flash('warning', req.t('flash.admin.checklist_returned_to_project'));
+    req.flash('warning', req.t('flash.admin.checklist_returned_to_project_owner'));
   }
 
   res.redirect(`/admin/projects/${req.params.projectId}/guidance`);
@@ -1603,7 +1603,7 @@ router.post('/projects/:projectId/guidance-notes', ensureAdminMfa, (req, res) =>
 
 router.get('/projects/:projectId/guidance-pdf', ensureAdminMfa, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
-  if (!project) { req.flash('error', req.t('flash.admin.project_not_found')); return res.redirect('/admin/projects'); }
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
   let totalRequired = 0, totalRecommended = 0;
   GC_WEB_GUIDANCE.categories.forEach(cat => {
@@ -1646,7 +1646,7 @@ router.get('/assessments/:id/manage-controls', ensureAdminMfa, (req, res) => {
     SELECT a.*, p.name as project_name, p.data_classification, p.app_type
     FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?
   `, [req.params.id]);
-  if (!assessment) { req.flash('error', req.t('flash.admin.assessment_not_found')); return res.redirect('/admin/assessments'); }
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
 
   // Current controls in this assessment
   const currentControls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessment.id]);
@@ -1688,7 +1688,7 @@ router.get('/assessments/:id/manage-controls', ensureAdminMfa, (req, res) => {
 // Add controls to an existing assessment
 router.post('/assessments/:id/add-controls', ensureAdminMfa, (req, res) => {
   const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
-  if (!assessment) { req.flash('error', req.t('flash.admin.assessment_not_found')); return res.redirect('/admin/assessments'); }
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
 
   const addIds = req.body.add_control_ids || [];
   const idList = Array.isArray(addIds) ? addIds : [addIds];
@@ -1715,7 +1715,7 @@ router.post('/assessments/:id/add-controls', ensureAdminMfa, (req, res) => {
     runBatch(statements);
     req.flash('success', `Added ${statements.length} control(s) to the assessment.`);
   } else {
-    req.flash('info', req.t('flash.admin.no_new_controls_to'));
+    req.flash('info', req.t('flash.admin.no_new_controls_to_add'));
   }
   res.redirect(`/admin/assessments/${assessment.id}/manage-controls`);
 });
@@ -1723,7 +1723,7 @@ router.post('/assessments/:id/add-controls', ensureAdminMfa, (req, res) => {
 // Remove a control from an assessment
 router.post('/assessments/:id/remove-control/:controlId', ensureAdminMfa, (req, res) => {
   const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
-  if (!assessment) { req.flash('error', req.t('flash.admin.assessment_not_found')); return res.redirect('/admin/assessments'); }
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
 
   const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?',
     [req.params.controlId, assessment.id]);
@@ -1737,7 +1737,7 @@ router.post('/assessments/:id/remove-control/:controlId', ensureAdminMfa, (req, 
 // Update a control on an assessment (tailored description, guidance, applicability, inheritance)
 router.post('/assessments/:id/update-control/:controlId', ensureAdminMfa, (req, res) => {
   const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
-  if (!assessment) { req.flash('error', req.t('flash.admin.assessment_not_found')); return res.redirect('/admin/assessments'); }
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
 
   const { tailored_description, evidence_guidance, is_applicable, is_inherited, inherited_from } = req.body;
   run(`UPDATE assessment_controls SET 
@@ -1864,7 +1864,7 @@ router.post('/invitations/assessor', ensureAdminMfa, (req, res) => {
   try {
     const { email, name, organization, message } = req.body;
     if (!email) {
-      req.flash('error', req.t('flash.admin.email_address_is_required'));
+      req.flash('error', 'Email address is required.');
       return res.redirect('/admin/invitations');
     }
     const existing = get('SELECT id, role FROM users WHERE email = ?', [email.toLowerCase().trim()]);
@@ -1898,7 +1898,7 @@ router.post('/invitations/assessor', ensureAdminMfa, (req, res) => {
     res.redirect('/admin/invitations');
   } catch (err) {
     console.error('Assessor invite error:', err);
-    req.flash('error', req.t('flash.admin.failed_to_send_invitation'));
+    req.flash('error', 'Failed to send invitation.');
     res.redirect('/admin/invitations');
   }
 });
@@ -1907,7 +1907,7 @@ router.post('/invitations/assessor', ensureAdminMfa, (req, res) => {
 router.post('/invitations/:id/revoke', ensureAdminMfa, (req, res) => {
   const invite = get('SELECT * FROM invitations WHERE id = ? AND invited_by = ?', [req.params.id, req.user.id]);
   if (!invite) {
-    req.flash('error', req.t('flash.admin.invitation_not_found_or'));
+    req.flash('error', req.t('flash.admin.invitation_not_found_or_you'));
     return res.redirect('/admin/invitations');
   }
   run("UPDATE invitations SET status = 'revoked' WHERE id = ?", [invite.id]);
@@ -1919,7 +1919,7 @@ router.post('/invitations/:id/revoke', ensureAdminMfa, (req, res) => {
 router.post('/invitations/:id/resend', ensureAdminMfa, (req, res) => {
   const invite = get('SELECT * FROM invitations WHERE id = ? AND invited_by = ?', [req.params.id, req.user.id]);
   if (!invite || invite.status !== 'pending') {
-    req.flash('error', req.t('flash.admin.invitation_not_found_or'));
+    req.flash('error', req.t('flash.admin.invitation_not_found_or_not'));
     return res.redirect('/admin/invitations');
   }
   // Extend expiry
@@ -1969,7 +1969,7 @@ router.post('/register', (req, res) => {
       return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
     }
     if (password.length < 10) {
-      req.flash('error', req.t('flash.admin.password_must_be_at'));
+      req.flash('error', req.t('flash.admin.password_must_be_at_least'));
       return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
     }
     if (password !== confirmPassword) {
@@ -1982,11 +1982,11 @@ router.post('/register', (req, res) => {
       [invite_code.trim().toUpperCase()]
     );
     if (!invite) {
-      req.flash('error', req.t('flash.admin.invalid_or_expired_invite'));
+      req.flash('error', req.t('flash.admin.invalid_or_expired_invite_code'));
       return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
     }
     if (new Date(invite.expires_at) < new Date()) {
-      req.flash('error', req.t('flash.admin.this_invitation_has_expired'));
+      req.flash('error', req.t('flash.admin.this_invitation_has_expired_please'));
       return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
     }
     // Enforce email match
@@ -1997,7 +1997,7 @@ router.post('/register', (req, res) => {
     // Check existing user
     const existing = get('SELECT id FROM users WHERE email = ?', [email.toLowerCase().trim()]);
     if (existing) {
-      req.flash('error', req.t('flash.admin.an_account_with_this'));
+      req.flash('error', req.t('flash.admin.an_account_with_this_email'));
       return res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
     }
     const assignedRole = invite.type; // admin, assessor, or client
@@ -2014,7 +2014,7 @@ router.post('/register', (req, res) => {
 
     // Clients skip MFA — redirect to client login
     if (assignedRole === 'client') {
-      req.flash('success', req.t('flash.admin.account_created_you_can'));
+      req.flash('success', req.t('flash.admin.account_created_you_can_now'));
       return res.redirect(303, '/client/login');
     }
 
@@ -2023,7 +2023,7 @@ router.post('/register', (req, res) => {
     res.redirect(303, '/admin/assessor-mfa-setup');
   } catch (err) {
     console.error('Registration error:', err);
-    req.flash('error', req.t('flash.admin.registration_failed_please_try'));
+    req.flash('error', req.t('flash.admin.registration_failed_please_try_again'));
     res.redirect('/admin/register');
   }
 });
@@ -2054,12 +2054,12 @@ router.post('/assessor-mfa-setup', (req, res) => {
   const { token } = req.body;
   const valid = otpVerify({ secret: user.totp_secret, token: req.body.token, window: 1 }).valid;
   if (!valid) {
-    req.flash('error', req.t('flash.admin.invalid_mfa_code_please'));
+    req.flash('error', req.t('flash.admin.invalid_mfa_code_please_try'));
     return res.redirect('/admin/assessor-mfa-setup');
   }
   run('UPDATE users SET mfa_enabled = 1 WHERE id = ?', [userId]);
   delete req.session.pendingAssessorMfaUserId;
-  req.flash('success', req.t('flash.admin.registration_complete_mfa_enabled'));
+  req.flash('success', req.t('flash.admin.registration_complete_mfa_enabled_please'));
   res.redirect('/admin/login');
 });
 
@@ -2073,12 +2073,12 @@ router.post('/assessments/:id/assign', ensureAdminMfa, (req, res) => {
   const { assignee_id, notes } = req.body;
   // Only the owner can assign
   if (!isEntityOwner(req.user.id, 'assessment', assessmentId)) {
-    req.flash('error', req.t('flash.admin.only_the_assessment_owner'));
+    req.flash('error', req.t('flash.admin.only_the_assessment_owner_can'));
     return res.redirect(`/admin/assessments/${assessmentId}`);
   }
   const assignee = get('SELECT * FROM users WHERE id = ? AND role = ? AND is_active = 1', [assignee_id, 'assessor']);
   if (!assignee) {
-    req.flash('error', req.t('flash.admin.selected_assessor_not_found'));
+    req.flash('error', req.t('flash.admin.selected_assessor_not_found_or'));
     return res.redirect(`/admin/assessments/${assessmentId}`);
   }
   // Verify assignee was invited by this user
@@ -2087,7 +2087,7 @@ router.post('/assessments/:id/assign', ensureAdminMfa, (req, res) => {
     [assignee.id, req.user.id]
   );
   if (!wasInvited) {
-    req.flash('error', req.t('flash.admin.you_can_only_assign'));
+    req.flash('error', req.t('flash.admin.you_can_only_assign_assessors'));
     return res.redirect(`/admin/assessments/${assessmentId}`);
   }
   // Check not already assigned
@@ -2139,7 +2139,7 @@ router.post('/assessments/:id/assign', ensureAdminMfa, (req, res) => {
 router.post('/assessments/:id/revoke-assignment/:assignmentId', ensureAdminMfa, (req, res) => {
   const assessmentId = parseInt(req.params.id);
   if (!isEntityOwner(req.user.id, 'assessment', assessmentId)) {
-    req.flash('error', req.t('flash.admin.only_the_assessment_owner'));
+    req.flash('error', req.t('flash.admin.only_the_assessment_owner_can'));
     return res.redirect(`/admin/assessments/${assessmentId}`);
   }
   const assignment = get('SELECT * FROM assessment_assignments WHERE id = ? AND entity_id = ? AND status = ?',

@@ -1,0 +1,287 @@
+<div class="container">
+  <div class="d-flex align-items-center mb-4">
+    <a href="/admin/projects/{{project.id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
+    <div class="flex-grow-1">
+      <h1 class="mb-0">{{project.name}}</h1>
+      <p class="text-muted mb-0">GC Web Standards &amp; Guidance Report</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button onclick="window.print()" class="btn btn-outline-primary"><i class="bi bi-printer me-1"></i>Print</button>
+      <a href="/admin/projects/{{project.id}}/guidance-pdf" class="btn btn-primary"><i class="bi bi-download me-1"></i>Export PDF</a>
+    </div>
+  </div>
+
+  <!-- Invite & Status Bar -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-8">
+          <div class="d-flex flex-wrap gap-3 align-items-center">
+            {{#if report}}
+              <div>
+                <span class="small text-muted d-block">Invite Code</span>
+                <code class="fs-5 fw-bold">{{report.invite_code}}</code>
+              </div>
+              <div class="vr d-none d-md-block"></div>
+              <div>
+                <span class="small text-muted d-block">Status</span>
+                {{#ifCond report.status '==' 'draft'}}<span class="badge bg-secondary">Draft</span>{{/ifCond}}
+                {{#ifCond report.status '==' 'sent'}}<span class="badge bg-info">Sent — Awaiting Response</span>{{/ifCond}}
+                {{#ifCond report.status '==' 'submitted'}}<span class="badge bg-warning text-dark">Submitted — Awaiting Review</span>{{/ifCond}}
+                {{#ifCond report.status '==' 'returned'}}<span class="badge bg-danger">Returned for Revision</span>{{/ifCond}}
+                {{#ifCond report.status '==' 'validated'}}<span class="badge bg-success">Validated</span>{{/ifCond}}
+              </div>
+              {{#if report.respondent_name}}
+                <div class="vr d-none d-md-block"></div>
+                <div>
+                  <span class="small text-muted d-block">Respondent</span>
+                  <span class="fw-semibold">{{report.respondent_name}}</span>
+                  {{#if report.respondent_email}}<br><small class="text-muted">{{report.respondent_email}}</small>{{/if}}
+                </div>
+              {{/if}}
+              {{#if report.submitted_at}}
+                <div class="vr d-none d-md-block"></div>
+                <div>
+                  <span class="small text-muted d-block">Submitted</span>
+                  <span>{{formatDate report.submitted_at}}</span>
+                </div>
+              {{/if}}
+            {{else}}
+              <span class="text-muted">No invite sent yet.</span>
+            {{/if}}
+          </div>
+        </div>
+        <div class="col-md-4 text-md-end">
+          <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+            {{#if report}}
+              {{#ifCond report.status '!=' 'validated'}}
+                <form method="POST" action="/admin/projects/{{project.id}}/guidance/send-invite" class="d-inline">
+                  <button class="btn btn-outline-primary btn-sm"><i class="bi bi-send me-1"></i>Resend Invite</button>
+                </form>
+              {{/ifCond}}
+              <a href="/guidance/{{report.invite_code}}" target="_blank" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-box-arrow-up-right me-1"></i>Open Portal
+              </a>
+            {{else}}
+              <form method="POST" action="/admin/projects/{{project.id}}/guidance/send-invite" class="d-inline">
+                <button class="btn btn-primary"><i class="bi bi-send me-1"></i>Send Invite to Owner</button>
+              </form>
+            {{/if}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review/Validate Actions (when submitted) -->
+  {{#if report}}
+    {{#ifCond report.status '==' 'submitted'}}
+      <div class="card mb-4 border-warning">
+        <div class="card-header" style="background:var(--gc-warning)">
+          <i class="bi bi-clipboard-check me-2"></i>Review &amp; Validate
+        </div>
+        <div class="card-body">
+          {{#if report.respondent_notes}}
+            <div class="mb-3 p-3 rounded" style="background:#f8f9fa">
+              <small class="fw-semibold text-muted d-block mb-1"><i class="bi bi-chat-left-text me-1"></i>Respondent Notes</small>
+              <div class="small" style="white-space:pre-wrap">{{report.respondent_notes}}</div>
+            </div>
+          {{/if}}
+
+          <div class="row g-3 mb-2">
+            <div class="col-sm-3 text-center">
+              <div class="fs-4 fw-bold text-success">{{metCount}}</div>
+              <small class="text-muted">Met</small>
+            </div>
+            <div class="col-sm-3 text-center">
+              <div class="fs-4 fw-bold text-info">{{inProgressCount}}</div>
+              <small class="text-muted">In Progress</small>
+            </div>
+            <div class="col-sm-3 text-center">
+              <div class="fs-4 fw-bold text-secondary">{{naCount}}</div>
+              <small class="text-muted">N/A</small>
+            </div>
+            <div class="col-sm-3 text-center">
+              <div class="fs-4 fw-bold text-danger">{{pendingCount}}</div>
+              <small class="text-muted">Pending</small>
+            </div>
+          </div>
+          <hr>
+          <form method="POST" action="/admin/projects/{{project.id}}/guidance/validate" class="">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Reviewer Notes</label>
+              <textarea class="form-control" name="reviewer_notes" rows="3"
+                placeholder="Notes for the project owner (visible if returned)..."></textarea>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="submit" name="action" value="validate" class="btn btn-success"
+                onclick="return confirm('Validate and approve this checklist?')">
+                <i class="bi bi-patch-check me-1"></i>Validate &amp; Approve
+              </button>
+              <button type="submit" name="action" value="return" class="btn btn-outline-warning"
+                onclick="return confirm('Return this checklist for revision?')">
+                <i class="bi bi-arrow-return-left me-1"></i>Return for Revision
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    {{/ifCond}}
+
+    {{#ifCond report.status '==' 'validated'}}
+      <div class="alert alert-success mb-4">
+        <i class="bi bi-patch-check me-2"></i>
+        <strong>Validated</strong> on {{formatDate report.validated_at}}.
+        {{#if report.reviewer_notes}}<br><small>Notes: {{report.reviewer_notes}}</small>{{/if}}
+      </div>
+    {{/ifCond}}
+  {{/if}}
+
+  <!-- Summary -->
+  <div class="card mb-4" style="border-left:4px solid var(--gc-success)">
+    <div class="card-body">
+      <div class="d-flex align-items-start gap-3">
+        <div style="width:48px;height:48px;border-radius:12px;background:#d4edda;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="bi bi-check-circle-fill text-success" style="font-size:1.5rem"></i>
+        </div>
+        <div>
+          <h4 class="mb-2 text-success">{{guidance.summary.title}}</h4>
+          <p class="mb-2">{{guidance.summary.description}}</p>
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            <span class="badge bg-light text-dark border"><i class="bi bi-database me-1"></i>{{project.data_classification}}</span>
+            <span class="badge bg-light text-dark border"><i class="bi bi-globe me-1"></i>{{project.app_type}}</span>
+            {{#if project.hosting_type}}<span class="badge bg-light text-dark border"><i class="bi bi-cloud me-1"></i>{{project.hosting_type}}</span>{{/if}}
+            <span class="badge bg-success"><i class="bi bi-shield-check me-1"></i>No PII</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-info mb-4">
+    <i class="bi bi-info-circle me-2"></i>
+    <strong>{{totalRequired}} required</strong> and <strong>{{totalRecommended}} recommended</strong> items across {{guidance.categories.length}} categories.
+    All <span class="badge bg-danger badge-sm">Required</span> items must be addressed before launch.
+  </div>
+
+  <!-- Categories -->
+  {{#each guidance.categories}}
+  <div class="form-section mb-4" id="cat-{{this.id}}">
+    <div class="section-header">
+      <h3 class="section-title">
+        <i class="bi bi-{{this.icon}} me-2" style="color:var(--gc-accent)"></i>
+        {{this.title}}
+      </h3>
+      <p class="section-description">{{this.description}}</p>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th style="width:40px"></th>
+            <th>Requirement</th>
+            <th style="width:100px" class="text-center">Level</th>
+            <th style="width:120px" class="text-center">Status</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each this.items}}
+          <tr class="{{#ifCond this.status '==' 'met'}}table-success{{/ifCond}}{{#ifCond this.status '==' 'in-progress'}}table-info{{/ifCond}}">
+            <td class="text-center">
+              {{#ifCond this.status '==' 'met'}}
+                <i class="bi bi-check-circle-fill text-success"></i>
+              {{else}}
+                {{#ifCond this.status '==' 'in-progress'}}
+                  <i class="bi bi-clock-fill text-info"></i>
+                {{else}}
+                  {{#ifCond this.status '==' 'na'}}
+                    <i class="bi bi-dash-circle text-secondary"></i>
+                  {{else}}
+                    <i class="bi bi-circle text-muted"></i>
+                  {{/ifCond}}
+                {{/ifCond}}
+              {{/ifCond}}
+            </td>
+            <td>{{this.text}}</td>
+            <td class="text-center">
+              {{#if this.required}}
+                <span class="badge bg-danger">Required</span>
+              {{else}}
+                <span class="badge bg-info">Recommended</span>
+              {{/if}}
+            </td>
+            <td class="text-center">
+              {{#ifCond this.status '==' 'met'}}<span class="badge bg-success">Met</span>{{/ifCond}}
+              {{#ifCond this.status '==' 'in-progress'}}<span class="badge bg-info">In Progress</span>{{/ifCond}}
+              {{#ifCond this.status '==' 'na'}}<span class="badge bg-secondary">N/A</span>{{/ifCond}}
+              {{#ifCond this.status '==' 'pending'}}<span class="badge bg-light text-dark border">Pending</span>{{/ifCond}}
+            </td>
+            <td class="small text-muted">{{this.notes}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {{/each}}
+
+  <!-- Additional Considerations -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <i class="bi bi-lightbulb me-2"></i>Additional Considerations
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <h6><i class="bi bi-exclamation-triangle text-warning me-2"></i>When a Full SA&amp;A Becomes Required</h6>
+          <ul class="small mb-0">
+            <li>Data classification increases to Protected A or B</li>
+            <li>Personal information (PII) is collected or processed</li>
+            <li>User authentication or accounts are introduced</li>
+            <li>Integration with other GC systems or databases</li>
+            <li>Payment processing or financial transactions</li>
+            <li>The application scope expands beyond static content</li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <h6><i class="bi bi-link-45deg text-primary me-2"></i>Reference Links</h6>
+          <ul class="small mb-0">
+            <li><a href="https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601" target="_blank">Standard on Web Accessibility</a></li>
+            <li><a href="https://www.w3.org/WAI/WCAG21/quickref/" target="_blank">WCAG 2.1 Quick Reference</a></li>
+            <li><a href="https://design.canada.ca/" target="_blank">Canada.ca Design System</a></li>
+            <li><a href="https://www.canada.ca/en/government/system/digital-government/guideline-service-digital.html" target="_blank">GC Digital Standards</a></li>
+            <li><a href="https://www.cyber.gc.ca/en/guidance/itsg-33-it-security-risk-management" target="_blank">ITSG-33 Framework</a></li>
+            <li><a href="https://wet-boew.github.io/wet-boew/index-en.html" target="_blank">Web Experience Toolkit (WET)</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Notice -->
+  <div class="alert alert-warning mb-5">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    {{guidance.summary.footer}}
+  </div>
+
+  <!-- Assessor Notes -->
+  <div class="card mb-5">
+    <div class="card-header"><i class="bi bi-pencil-square me-2"></i>Assessor Notes</div>
+    <div class="card-body">
+      <form method="POST" action="/admin/projects/{{project.id}}/guidance-notes" class="">
+        <textarea class="form-control mb-3" name="notes" rows="4" placeholder="Add any assessor notes for this guidance report...">{{project.assessor_notes}}</textarea>
+        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save me-1"></i>Save Notes</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  @media print {
+    .guidance-status { display: none !important; }
+    .btn, form, .alert-warning { display: none !important; }
+    .card { break-inside: avoid; }
+  }
+</style>

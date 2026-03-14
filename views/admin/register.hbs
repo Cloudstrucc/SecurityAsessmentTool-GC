@@ -3,8 +3,8 @@
     <div style="width:56px;height:56px;border-radius:14px;background:#1a3c5e;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
       <i class="bi bi-shield-lock text-white" style="font-size:1.5rem;"></i>
     </div>
-    <h3>{{t 'admin.register.title.account_registration'}}</h3>
-    <p class="text-muted">Register your account using a valid invite code provided by an administrator.</p>
+    <h3>{{t 'admin.register.h3.account_registration'}}</h3>
+    <p class="text-muted">{{t 'admin.register.p.register_your_account_using_a'}}</p>
   </div>
 
   <div class="card">
@@ -14,7 +14,7 @@
           <label class="form-label" for="invite_code">Invite Code <span class="text-danger">*</span></label>
           <input type="text" class="form-control form-control-lg text-center fw-bold" id="invite_code" name="invite_code" required
             placeholder="{{t 'admin.register.ph.xxxxxxxx'}}" value="{{inviteCode}}" style="letter-spacing:3px;text-transform:uppercase;">
-          <small class="text-muted">Enter the code from your invitation email.</small>
+          <small class="text-muted">{{t 'admin.register.small.enter_the_code_from_your'}}</small>
         </div>
         <hr>
         <div class="mb-3">
@@ -23,8 +23,8 @@
         </div>
         <div class="mb-3">
           <label class="form-label" for="email">Email <span class="text-danger">*</span></label>
-          <input type="email" class="form-control" id="email" name="email" required placeholder="{{t 'admin.register.ph.must_match_the_invited'}}" value="{{formData.email}}">
-          <small class="text-muted">You must use the email address the invitation was sent to.</small>
+          <input type="email" class="form-control" id="email" name="email" required placeholder="{{t 'admin.register.ph.must_match_the_invited_email'}}" value="{{formData.email}}">
+          <small class="text-muted">{{t 'admin.register.small.you_must_use_the_email'}}</small>
         </div>
         <div class="mb-3">
           <label class="form-label" for="organization">{{t 'admin.register.label.organization'}}</label>
@@ -33,21 +33,20 @@
         <div class="mb-3">
           <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
           <input type="password" class="form-control" id="password" name="password" required minlength="10" placeholder="{{t 'admin.register.ph.minimum_10_characters'}}">
-          <small class="text-muted">At least 10 characters with a mix of upper/lowercase, numbers, and symbols.</small>
+          <small class="text-muted">{{t 'admin.register.small.at_least_10_characters_with'}}</small>
         </div>
         <div class="mb-4">
           <label class="form-label" for="confirmPassword">Confirm Password <span class="text-danger">*</span></label>
           <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required minlength="10">
         </div>
         <button type="submit" class="btn btn-dark w-100 py-2">
-          <i class="bi bi-arrow-right me-2"></i>Continue to MFA Setup
-        </button>
+          <i class="bi bi-arrow-right me-2"></i>{{t 'admin.register.btn.continue_to_mfa_setup'}}</button>
       </form>
     </div>
   </div>
 
   <div class="text-center mt-3">
-    <span class="text-muted">Already have an account?</span>
-    <a href="/admin/login">Sign in</a>
+    <span class="text-muted">{{t 'admin.register.span.already_have_an_account'}}</span>
+    <a href="/admin/login">{{t 'admin.register.link.sign_in'}}</a>
   </div>
 </div>

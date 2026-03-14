@@ -14,23 +14,23 @@
         <div class="col-md-8">
           <div class="d-flex flex-wrap gap-3 align-items-center">
             <div>
-              <span class="small text-muted d-block">Invite Code</span>
+              <span class="small text-muted d-block">{{t 'admin.assessment_detail.span.invite_code'}}</span>
               <code class="fs-5 fw-bold">{{assessment.invite_code}}</code>
             </div>
             <div class="vr d-none d-md-block"></div>
             <div>
-              <span class="small text-muted d-block">Owner</span>
+              <span class="small text-muted d-block">{{t 'admin.assessment_detail.span.owner'}}</span>
               <span class="fw-semibold">{{assessment.project_owner_name}}</span>
             </div>
             <div class="vr d-none d-md-block"></div>
             <div>
-              <span class="small text-muted d-block">Classification</span>
+              <span class="small text-muted d-block">{{t 'admin.assessment_detail.span.classification'}}</span>
               <span class="badge bg-info">{{assessment.data_classification}}</span>
             </div>
             {{#if assessment.overall_score}}
               <div class="vr d-none d-md-block"></div>
               <div>
-                <span class="small text-muted d-block">Score</span>
+                <span class="small text-muted d-block">{{t 'admin.assessment_detail.span.score'}}</span>
                 <span class="fw-bold fs-5 {{#ifCond assessment.overall_score '>=' 80}}text-success{{else}}text-danger{{/ifCond}}">
                   {{assessment.overall_score}}%
                 </span>
@@ -39,7 +39,7 @@
             {{#if assessment.result}}
               <div class="vr d-none d-md-block"></div>
               <div>
-                <span class="small text-muted d-block">Result</span>
+                <span class="small text-muted d-block">{{t 'admin.assessment_detail.span.result'}}</span>
                 {{{statusBadge assessment.result}}}
               </div>
             {{/if}}
@@ -53,12 +53,12 @@
                 <i class="bi bi-gear me-1"></i>Manage Controls
               </a>
               <form method="POST" action="/admin/assessments/{{assessment.id}}/send-invite" class="d-inline">
-                <button class="btn btn-primary"><i class="bi bi-send me-1"></i>Send Invite</button>
+                <button class="btn btn-primary"><i class="bi bi-send me-1"></i>{{t 'admin.assessment_detail.btn.send_invite'}}</button>
               </form>
               <form method="POST" action="/admin/assessments/{{assessment.id}}/delete" class="d-inline mfa-protected" data-mfa-label="Deleting assessment permanently"
                 onsubmit="return confirm('Delete this draft assessment? This cannot be undone.')">
                 <input type="hidden" name="return_to" value="/admin/projects/{{assessment.project_id}}">
-                <button class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+                <button class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i>{{t 'admin.assessment_detail.btn.delete'}}</button>
               </form>
             {{/eq}}
 
@@ -67,9 +67,9 @@
                 <i class="bi bi-gear me-1"></i>Manage Controls
               </a>
               <form method="POST" action="/admin/assessments/{{assessment.id}}/send-invite" class="d-inline">
-                <button class="btn btn-outline-primary btn-sm"><i class="bi bi-send me-1"></i>Resend Invite</button>
+                <button class="btn btn-outline-primary btn-sm"><i class="bi bi-send me-1"></i>{{t 'admin.assessment_detail.btn.resend_invite'}}</button>
               </form>
-              <a href="/respond/{{assessment.invite_code}}" target="_blank" class="btn btn-outline-success btn-sm" title="Open the public evidence submission portal">
+              <a href="/respond/{{assessment.invite_code}}" target="_blank" class="btn btn-outline-success btn-sm" title="{{t 'admin.assessment_detail.tattr.open_the_public_evidence_submission'}}">
                 <i class="bi bi-box-arrow-up-right me-1"></i>Open Portal
               </a>
             {{/eq}}
@@ -79,10 +79,10 @@
                 <i class="bi bi-stars me-1"></i>AI Pre-Review Evidence
               </button>
               <form method="POST" action="/admin/assessments/{{assessment.id}}/start-audit" class="d-inline">
-                <button class="btn btn-warning"><i class="bi bi-search me-1"></i>Start Audit</button>
+                <button class="btn btn-warning"><i class="bi bi-search me-1"></i>{{t 'admin.assessment_detail.btn.start_audit'}}</button>
               </form>
               <form method="POST" action="/admin/assessments/{{assessment.id}}/reactivate" class="d-inline mfa-protected" data-mfa-label="Reactivating assessment for client edits">
-                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-unlock me-1"></i>Reactivate</button>
+                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-unlock me-1"></i>{{t 'admin.assessment_detail.btn.reactivate'}}</button>
               </form>
             {{/eq}}
 
@@ -94,8 +94,7 @@
 
             {{#eq assessment.status "audit"}}
               <button class="btn btn-success" data-bs-toggle="collapse" data-bs-target="#completeAuditForm">
-                <i class="bi bi-check-circle me-1"></i>Complete Audit
-              </button>
+                <i class="bi bi-check-circle me-1"></i>{{t 'admin.assessment_detail.btn.complete_audit'}}</button>
             {{/eq}}
 
             {{#eq assessment.status "completed"}}
@@ -162,8 +161,8 @@
   <!-- Team Assignments Panel -->
   <div class="card mb-4">
     <div class="card-header py-2 d-flex justify-content-between align-items-center">
-      <span><i class="bi bi-people me-2"></i><strong>Team</strong></span>
-      {{#if isOwner}}<span class="badge bg-primary">Owner</span>{{else}}<span class="badge bg-info">Assigned</span>{{/if}}
+      <span><i class="bi bi-people me-2"></i><strong>{{t 'admin.assessment_detail.strong.team'}}</strong></span>
+      {{#if isOwner}}<span class="badge bg-primary">{{t 'admin.assessment_detail.span.owner_2'}}</span>{{else}}<span class="badge bg-info">{{t 'admin.assessment_detail.span.assigned'}}</span>{{/if}}
     </div>
     <div class="card-body py-3">
       {{#if assignments.length}}
@@ -181,10 +180,10 @@
                 {{#if ../isOwner}}
                 <form method="POST" action="/admin/assessments/{{../assessment.id}}/revoke-assignment/{{this.id}}" class="d-inline"
                   onsubmit="return confirm('Revoke access for {{this.assignee_name}}?')">
-                  <button type="submit" class="btn btn-outline-danger btn-sm" title="Revoke Access"><i class="bi bi-x-lg me-1"></i>Revoke</button>
+                  <button type="submit" class="btn btn-outline-danger btn-sm" title="{{t 'admin.assessment_detail.btn.revoke'}} Access"><i class="bi bi-x-lg me-1"></i>Revoke</button>
                 </form>
                 {{else}}
-                <span class="badge bg-success">Active</span>
+                <span class="badge bg-success">{{t 'admin.assessment_detail.span.active'}}</span>
                 {{/if}}
               </td>
             </tr>
@@ -212,12 +211,12 @@
           <div>
             <input type="text" class="form-control form-control-sm" name="notes" placeholder="{{t 'admin.assessment_detail.ph.notes_optional'}}" style="width:160px">
           </div>
-          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-person-plus me-1"></i>Assign</button>
+          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-person-plus me-1"></i>{{t 'admin.assessment_detail.btn.assign'}}</button>
         </form>
         {{else}}
           {{#unless assignments.length}}
           <hr class="my-2">
-          <p class="text-muted small mb-0"><a href="/admin/invitations">Invite peer assessors</a> to collaborate on this assessment.</p>
+          <p class="text-muted small mb-0"><a href="/admin/invitations">{{t 'admin.assessment_detail.link.invite_peer_assessors'}}</a> to collaborate on this assessment.</p>
           {{/unless}}
         {{/if}}
       {{/if}}
@@ -250,7 +249,7 @@
     <div class="card mb-4">
       <div class="card-body">
         <div class="d-flex justify-content-between mb-2">
-          <span class="fw-semibold">Audit Progress</span>
+          <span class="fw-semibold">{{t 'admin.assessment_detail.span.audit_progress'}}</span>
           <span class="fw-bold">{{stats.score}}%</span>
         </div>
         <div class="progress" style="height:12px">
@@ -276,8 +275,7 @@
   <div class="collapse mb-4" id="completeAuditForm">
     <div class="card border-warning">
       <div class="card-header bg-warning text-dark fw-bold">
-        <i class="bi bi-shield-check me-2"></i>Complete Audit — TBS Authorization Decision
-      </div>
+        <i class="bi bi-shield-check me-2"></i>{{t 'admin.assessment_detail.card.complete_audit_tbs_authorization_decision'}}</div>
       <div class="card-body">
         <form method="POST" action="/admin/assessments/{{assessment.id}}/complete-audit"
           onsubmit="return confirm('Complete the audit and issue the authorization decision?')" class="mfa-protected" data-mfa-label="Completing audit — ATO determination">
@@ -285,32 +283,32 @@
             <div class="col-6 col-md-3">
               <div class="p-2 rounded text-center" style="background:#fef2f2">
                 <div class="fw-bold text-danger fs-5">{{stats.highRiskNotMet}}</div>
-                <small class="text-muted">High-Risk Findings</small>
+                <small class="text-muted">{{t 'admin.assessment_detail.small.highrisk_findings'}}</small>
               </div>
             </div>
             <div class="col-6 col-md-3">
               <div class="p-2 rounded text-center" style="background:#f0fdf4">
                 <div class="fw-bold text-success fs-5">{{stats.met}}</div>
-                <small class="text-muted">Controls Met</small>
+                <small class="text-muted">{{t 'admin.assessment_detail.small.controls_met'}}</small>
               </div>
             </div>
             <div class="col-6 col-md-3">
               <div class="p-2 rounded text-center" style="background:#fffbeb">
                 <div class="fw-bold" style="color:var(--gc-warning)">{{stats.partiallyMet}}</div>
-                <small class="text-muted">Partially Met</small>
+                <small class="text-muted">{{t 'admin.assessment_detail.small.partially_met'}}</small>
               </div>
             </div>
             <div class="col-6 col-md-3">
               <div class="p-2 rounded text-center" style="background:#fef2f2">
                 <div class="fw-bold text-danger">{{stats.notMet}}</div>
-                <small class="text-muted">Not Met</small>
+                <small class="text-muted">{{t 'admin.assessment_detail.small.not_met'}}</small>
               </div>
             </div>
           </div>
           {{#if stats.highRiskNotMet}}
           <div class="alert alert-danger py-2 small mb-3">
             <i class="bi bi-exclamation-triangle me-1"></i>
-            <strong>TBS Policy:</strong> {{stats.highRiskNotMet}} high-risk control(s) not met. Per TBS Directive on Security Management, full ATO cannot be granted with outstanding high-risk findings. Consider iATO with POA&M.
+            <strong>{{t 'admin.assessment_detail.strong.tbs_policy'}}</strong> {{stats.highRiskNotMet}} high-risk control(s) not met. Per TBS Directive on Security Management, full ATO cannot be granted with outstanding high-risk findings. Consider iATO with POA&M.
           </div>
           {{/if}}
           <div class="row g-3 mb-3">
@@ -326,7 +324,7 @@
             <div class="col-md-4">
               <label class="form-label small fw-bold">{{t 'admin.assessment_detail.label.iato_expiry_date'}}</label>
               <input type="date" class="form-control form-control-sm" name="atoExpiryDate">
-              <small class="text-muted">Default: 90 days if iATO</small>
+              <small class="text-muted">{{t 'admin.assessment_detail.small.default_90_days_if_iato'}}</small>
             </div>
             <div class="col-md-4">
               <label class="form-label small fw-bold">{{t 'admin.assessment_detail.label.poam_notes'}}</label>
@@ -334,11 +332,11 @@
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label small fw-bold">Risk Acceptance Statement <span class="text-muted fw-normal">(required for iATO per TBS)</span></label>
+            <label class="form-label small fw-bold">Risk Acceptance Statement <span class="text-muted fw-normal">{{t 'admin.assessment_detail.span.required_for_iato_per_tbs'}}</span></label>
             <textarea class="form-control form-control-sm" name="riskAcceptance" rows="3"
-              placeholder="{{t 'admin.assessment_detail.ph.document_residual_risk_acceptance'}}"></textarea>
+              placeholder="{{t 'admin.assessment_detail.ph.document_residual_risk_acceptance_rationale'}}"></textarea>
           </div>
-          <button type="submit" class="btn btn-success"><i class="bi bi-shield-check me-1"></i>Complete Audit & Issue Decision</button>
+          <button type="submit" class="btn btn-success"><i class="bi bi-shield-check me-1"></i>{{t 'admin.assessment_detail.btn.complete_audit_issue_decision'}}</button>
         </form>
       </div>
     </div>
@@ -349,12 +347,11 @@
   {{#eq assessment.result "iato"}}
     <div class="card mb-4" id="poam-section">
       <div class="card-header d-flex justify-content-between align-items-center" style="background:var(--gc-warning)">
-        <span><i class="bi bi-clipboard2-check me-2"></i><strong>Plan of Action & Milestones (POA&M)</strong></span>
+        <span><i class="bi bi-clipboard2-check me-2"></i><strong>{{t 'admin.assessment_detail.strong.plan_of_action_milestones_poam'}}</strong></span>
         <div class="d-flex gap-2">
           <form method="POST" action="/admin/assessments/{{assessment.id}}/poam/auto-populate" class="d-inline">
-            <button class="btn btn-sm btn-outline-dark" title="Auto-generate from findings">
-              <i class="bi bi-lightning me-1"></i>Auto-Populate
-            </button>
+            <button class="btn btn-sm btn-outline-dark" title="{{t 'admin.assessment_detail.tattr.autogenerate_from_findings'}}">
+              <i class="bi bi-lightning me-1"></i>{{t 'admin.assessment_detail.btn.autopopulate'}}</button>
           </form>
           <span class="badge bg-dark">{{poamStats.total}} items</span>
         </div>
@@ -362,7 +359,7 @@
       <div class="card-body">
         {{#if assessment.risk_acceptance_statement}}
           <div class="alert alert-info py-2 small mb-3">
-            <i class="bi bi-shield-exclamation me-1"></i><strong>Risk Acceptance:</strong> {{assessment.risk_acceptance_statement}}
+            <i class="bi bi-shield-exclamation me-1"></i><strong>{{t 'admin.assessment_detail.strong.risk_acceptance'}}</strong> {{assessment.risk_acceptance_statement}}
           </div>
         {{/if}}
         {{#if assessment.ato_expiry_date}}
@@ -436,7 +433,7 @@
                   <td>
                     <form method="POST" action="/admin/assessments/{{../assessment.id}}/poam/{{this.id}}/delete"
                       onsubmit="return confirm('Remove this POA&M item?')" class="d-inline">
-                      <button class="btn btn-sm btn-outline-danger p-0 px-1" title="Delete"><i class="bi bi-trash"></i></button>
+                      <button class="btn btn-sm btn-outline-danger p-0 px-1" title="{{t 'admin.assessment_detail.tattr.delete'}}"><i class="bi bi-trash"></i></button>
                     </form>
                   </td>
                 </tr>
@@ -445,7 +442,7 @@
           </table>
         </div>
         {{else}}
-          <p class="text-muted mb-3">No POA&M items yet. Use "Auto-Populate" to generate from audit findings, or add manually below.</p>
+          <p class="text-muted mb-3">{{t 'admin.assessment_detail.p.no_poam_items_yet_use'}}</p>
         {{/if}}
 
         <!-- Add POA&M Item -->
@@ -548,16 +545,16 @@
             </div>
             <div class="d-flex gap-1">
               <span class="badge bg-secondary">{{this.priority}}</span>
-              {{#eq this.risk_level "high"}}<span class="badge bg-danger">High Risk</span>{{/eq}}
-              {{#eq this.risk_level "medium"}}<span class="badge bg-warning text-dark">Med Risk</span>{{/eq}}
-              {{#eq this.risk_level "low"}}<span class="badge bg-info">Low Risk</span>{{/eq}}
+              {{#eq this.risk_level "high"}}<span class="badge bg-danger">{{t 'admin.assessment_detail.span.high_risk'}}</span>{{/eq}}
+              {{#eq this.risk_level "medium"}}<span class="badge bg-warning text-dark">{{t 'admin.assessment_detail.span.med_risk'}}</span>{{/eq}}
+              {{#eq this.risk_level "low"}}<span class="badge bg-info">{{t 'admin.assessment_detail.span.low_risk'}}</span>{{/eq}}
               {{#if this.audit_result}}{{{statusBadge this.audit_result}}}{{/if}}
             </div>
           </div>
 
           {{#if this.tailored_description}}
             <div class="mt-2 p-2 rounded" style="background:#f8f9fa">
-              <small class="text-muted fw-semibold d-block mb-1">Tailored Description</small>
+              <small class="text-muted fw-semibold d-block mb-1">{{t 'admin.assessment_detail.small.tailored_description'}}</small>
               <small>{{this.tailored_description}}</small>
             </div>
           {{/if}}
@@ -606,17 +603,17 @@
             {{/if}}
             <div class="audit-row mt-3 p-2 rounded" style="background:#f5f7fa">
               <div class="d-flex gap-2 align-items-center flex-wrap">
-                <span class="small fw-semibold text-muted me-2">Audit:</span>
+                <span class="small fw-semibold text-muted me-2">{{t 'admin.assessment_detail.span.audit'}}</span>
                 <button type="button" class="audit-btn met {{#eq this.audit_result 'met'}}active{{/eq}}"
                   onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'met', this)" title="Met">
                   <i class="bi bi-check-lg"></i>
                 </button>
                 <button type="button" class="audit-btn partial {{#eq this.audit_result 'partially-met'}}active{{/eq}}"
-                  onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'partially-met', this)" title="Partially Met">
+                  onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'partially-met', this)" title="{{t 'admin.assessment_detail.tattr.partially_met'}}">
                   <i class="bi bi-dash-lg"></i>
                 </button>
                 <button type="button" class="audit-btn not-met {{#eq this.audit_result 'not-met'}}active{{/eq}}"
-                  onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'not-met', this)" title="Not Met">
+                  onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'not-met', this)" title="{{t 'admin.assessment_detail.tattr.not_met'}}">
                   <i class="bi bi-x-lg"></i>
                 </button>
                 <div class="flex-grow-1 position-relative">
@@ -624,7 +621,7 @@
                     id="audit-comment-{{this.id}}" placeholder="{{t 'admin.assessment_detail.ph.auditor_comments'}}"
                     value="{{this.audit_comments}}"
                     onchange="auditControl({{this.id}}, '{{../../assessment.id}}', null, null, this.value)">
-                  <button type="button" class="btn btn-sm position-absolute ai-elaborate-btn" style="top:1px;right:2px;padding:2px 6px;z-index:2" title="AI: Elaborate"
+                  <button type="button" class="btn btn-sm position-absolute ai-elaborate-btn" style="top:1px;right:2px;padding:2px 6px;z-index:2" title="{{t 'admin.assessment_detail.tattr.ai_elaborate'}}"
                     data-target="audit-comment-{{this.id}}">
                     <i class="bi bi-stars" style="font-size:0.85rem"></i>
                   </button>
@@ -652,7 +649,7 @@
           </div>
           <div class="collapse mt-2" id="comments-{{this.id}}">
             <div class="comment-thread border rounded p-2" id="thread-{{this.id}}">
-              <div class="text-muted small text-center py-2">Loading comments...</div>
+              <div class="text-muted small text-center py-2">{{t 'admin.assessment_detail.div.loading_comments'}}</div>
             </div>
             <div class="input-group mt-2">
               <input type="text" class="form-control form-control-sm" id="commentInput-{{this.id}}"

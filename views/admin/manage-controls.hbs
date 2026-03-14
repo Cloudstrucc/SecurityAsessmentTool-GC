@@ -2,7 +2,7 @@
   <div class="d-flex align-items-center mb-4">
     <a href="/admin/assessments/{{assessment.id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
     <div class="flex-grow-1">
-      <h1 class="mb-0">{{t 'admin.manage_controls.title.manage_controls'}}</h1>
+      <h1 class="mb-0">{{t 'admin.manage_controls.h1.manage_controls'}}</h1>
       <p class="text-muted mb-0">{{assessment.project_name}} — Add, remove, or update assessment controls</p>
     </div>
     <div>
@@ -32,7 +32,7 @@
         <i class="bi bi-info-circle me-1"></i>
         These controls are currently in this assessment. You can remove controls or update their tailored descriptions and evidence guidance.
         {{#eq assessment.status "draft"}}
-        Changes can be made freely while the assessment is in <strong>Draft</strong> status.
+        Changes can be made freely while the assessment is in <strong>{{t 'admin.manage_controls.strong.draft'}}</strong> status.
         {{/eq}}
       </div>
 
@@ -54,10 +54,10 @@
             </div>
             <div class="d-flex gap-1 align-items-center">
               <span class="badge bg-secondary">{{this.priority}}</span>
-              {{#if this.is_inherited}}<span class="badge bg-info">Inherited</span>{{/if}}
+              {{#if this.is_inherited}}<span class="badge bg-info">{{t 'admin.manage_controls.span.inherited'}}</span>{{/if}}
               <form method="POST" action="/admin/assessments/{{../../assessment.id}}/remove-control/{{this.id}}"
                 class="d-inline ms-2" data-removed-label="Remove control {{this.control_id}} from assessment">>
-                <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="Remove from assessment">
+                <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="{{t 'admin.manage_controls.tattr.remove_from_assessment'}}">
                   <i class="bi bi-x-lg"></i>
                 </button>
               </form>
@@ -78,7 +78,7 @@
                 <div class="col-md-6">
                   <label class="form-label small fw-semibold">{{t 'admin.manage_controls.label.evidence_guidance'}}</label>
                   <textarea class="form-control form-control-sm" name="evidence_guidance" rows="3"
-                    placeholder="{{t 'admin.manage_controls.ph.what_evidence_should_be'}}">{{this.evidence_guidance}}</textarea>
+                    placeholder="{{t 'admin.manage_controls.ph.what_evidence_should_be_provided'}}">{{this.evidence_guidance}}</textarea>
                 </div>
               </div>
               <div class="row g-2 mt-1">
@@ -103,7 +103,7 @@
                 </div>
               </div>
               <div class="mt-2">
-                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save me-1"></i>Save Changes</button>
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save me-1"></i>{{t 'admin.manage_controls.btn.save_changes'}}</button>
               </div>
             </form>
           </div>
@@ -120,7 +120,7 @@
       {{#unless currentFamilies}}
         <div class="text-center py-5 text-muted">
           <i class="bi bi-inbox" style="font-size:3rem"></i>
-          <p class="mt-2">No controls in this assessment yet. Use the <strong>Add Controls</strong> tab to add from the ITSG-33 catalog.</p>
+          <p class="mt-2">No controls in this assessment yet. Use the <strong>{{t 'admin.manage_controls.strong.add_controls'}}</strong> tab to add from the ITSG-33 catalog.</p>
         </div>
       {{/unless}}
     </div>
@@ -141,7 +141,7 @@
             </div>
             <div class="d-flex gap-2">
               <input type="text" class="form-control form-control-sm" id="controlSearch"
-                placeholder="{{t 'admin.manage_controls.ph.filter_by_id_or'}}" style="max-width:220px" oninput="filterControls(this.value)">
+                placeholder="{{t 'admin.manage_controls.ph.filter_by_id_or_keyword'}}" style="max-width:220px" oninput="filterControls(this.value)">
               <select class="form-select form-select-sm" id="familyFilter" style="max-width:160px" onchange="filterByFamily(this.value)">
                 <option value="">All Families</option>
                 {{#each allFamilies}}
@@ -149,8 +149,7 @@
                 {{/each}}
               </select>
               <button type="submit" class="btn btn-primary btn-sm" id="addBtn" disabled>
-                <i class="bi bi-plus-circle me-1"></i>Add Selected
-              </button>
+                <i class="bi bi-plus-circle me-1"></i>{{t 'admin.manage_controls.btn.add_selected'}}</button>
             </div>
           </div>
         </div>
@@ -181,7 +180,7 @@
               <div class="d-flex gap-1">
                 <span class="badge bg-secondary">{{this.priority}}</span>
                 {{#if this.alreadyAdded}}
-                  <span class="badge bg-success"><i class="bi bi-check me-1"></i>Added</span>
+                  <span class="badge bg-success"><i class="bi bi-check me-1"></i>{{t 'admin.manage_controls.span.added'}}</span>
                 {{/if}}
               </div>
             </div>
@@ -193,8 +192,7 @@
 
         <div class="text-center mt-3 mb-5">
           <button type="submit" class="btn btn-primary" id="addBtnBottom" disabled>
-            <i class="bi bi-plus-circle me-1"></i>Add Selected Controls
-          </button>
+            <i class="bi bi-plus-circle me-1"></i>{{t 'admin.manage_controls.btn.add_selected_controls'}}</button>
         </div>
       </form>
     </div>

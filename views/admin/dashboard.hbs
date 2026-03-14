@@ -1,12 +1,11 @@
 <div class="container">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h1 class="mb-1">{{t 'admin.dashboard.title.dashboard'}}</h1>
+      <h1 class="mb-1">{{t 'admin.dashboard.h1.dashboard'}}</h1>
       <p class="text-muted mb-0">Welcome back, {{admin.name}}</p>
     </div>
     <a href="/admin/projects/new" class="btn btn-primary">
-      <i class="bi bi-plus-lg me-1"></i>New Project
-    </a>
+      <i class="bi bi-plus-lg me-1"></i>{{t 'admin.dashboard.link.new_project'}}</a>
   </div>
 
   <!-- Stats Cards -->
@@ -76,8 +75,8 @@
     <div class="col-lg-6">
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span><i class="bi bi-folder2-open me-2"></i>Recent Projects</span>
-          <a href="/admin/projects" class="btn btn-sm btn-outline-light">View All</a>
+          <span><i class="bi bi-folder2-open me-2"></i>{{t 'admin.dashboard.span.recent_projects'}}</span>
+          <a href="/admin/projects" class="btn btn-sm btn-outline-light">{{t 'admin.dashboard.link.view_all'}}</a>
         </div>
         <div class="card-body p-0">
           {{#if projects.length}}
@@ -106,7 +105,7 @@
           {{else}}
             <div class="p-4 text-center text-muted">
               <i class="bi bi-folder-plus" style="font-size:2rem"></i>
-              <p class="mt-2 mb-0">No projects yet. <a href="/admin/projects/new">Create your first project</a></p>
+              <p class="mt-2 mb-0">No projects yet. <a href="/admin/projects/new">{{t 'admin.dashboard.link.create_your_first_project'}}</a></p>
             </div>
           {{/if}}
         </div>
@@ -117,8 +116,8 @@
     <div class="col-lg-6">
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span><i class="bi bi-clipboard-check me-2"></i>Recent Assessments</span>
-          <a href="/admin/assessments" class="btn btn-sm btn-outline-light">View All</a>
+          <span><i class="bi bi-clipboard-check me-2"></i>{{t 'admin.dashboard.span.recent_assessments'}}</span>
+          <a href="/admin/assessments" class="btn btn-sm btn-outline-light">{{t 'admin.dashboard.link.view_all_2'}}</a>
         </div>
         <div class="card-body p-0">
           {{#if assessments.length}}
@@ -149,7 +148,7 @@
           {{else}}
             <div class="p-4 text-center text-muted">
               <i class="bi bi-clipboard-plus" style="font-size:2rem"></i>
-              <p class="mt-2 mb-0">No assessments yet.</p>
+              <p class="mt-2 mb-0">{{t 'admin.dashboard.p.no_assessments_yet'}}</p>
             </div>
           {{/if}}
         </div>
@@ -173,8 +172,8 @@
     <div class="col-12">
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span><i class="bi bi-inbox me-2"></i>Recent Intakes</span>
-          <a href="/admin/intakes" class="btn btn-sm btn-outline-light">View All</a>
+          <span><i class="bi bi-inbox me-2"></i>{{t 'admin.dashboard.span.recent_intakes'}}</span>
+          <a href="/admin/intakes" class="btn btn-sm btn-outline-light">{{t 'admin.dashboard.link.view_all_3'}}</a>
         </div>
         <div class="card-body p-0">
           {{#if recentIntakes.length}}
@@ -198,10 +197,10 @@
                       <td class="text-muted small">{{this.department}}</td>
                       <td><span class="badge bg-info">{{this.data_classification}}</span></td>
                       <td>
-                        {{#ifCond this.status '==' 'pending'}}<span class="badge bg-warning text-dark">Pending</span>{{/ifCond}}
-                        {{#ifCond this.status '==' 'in-review'}}<span class="badge bg-info">In Review</span>{{/ifCond}}
-                        {{#ifCond this.status '==' 'accepted'}}<span class="badge bg-success">Accepted</span>{{/ifCond}}
-                        {{#ifCond this.status '==' 'declined'}}<span class="badge bg-danger">Declined</span>{{/ifCond}}
+                        {{#ifCond this.status '==' 'pending'}}<span class="badge bg-warning text-dark">{{t 'admin.dashboard.span.pending'}}</span>{{/ifCond}}
+                        {{#ifCond this.status '==' 'in-review'}}<span class="badge bg-info">{{t 'admin.dashboard.span.in_review'}}</span>{{/ifCond}}
+                        {{#ifCond this.status '==' 'accepted'}}<span class="badge bg-success">{{t 'admin.dashboard.span.accepted'}}</span>{{/ifCond}}
+                        {{#ifCond this.status '==' 'declined'}}<span class="badge bg-danger">{{t 'admin.dashboard.span.declined'}}</span>{{/ifCond}}
                       </td>
                       <td class="text-muted small">{{formatDate this.created_at}}</td>
                     </tr>
@@ -212,7 +211,7 @@
           {{else}}
             <div class="p-4 text-center text-muted">
               <i class="bi bi-inbox" style="font-size:2rem"></i>
-              <p class="mt-2 mb-0">No intakes submitted yet. Share the <a href="/intake" target="_blank">intake form</a> with project teams.</p>
+              <p class="mt-2 mb-0">No intakes submitted yet. Share the <a href="/intake" target="_blank">{{t 'admin.dashboard.link.intake_form'}}</a> with project teams.</p>
             </div>
           {{/if}}
         </div>

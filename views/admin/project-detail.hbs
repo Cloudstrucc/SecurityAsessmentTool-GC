@@ -3,7 +3,7 @@
     <a href="/admin/projects" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
     <div class="flex-grow-1">
       <h1 class="mb-0">{{project.name}}</h1>
-      <p class="text-muted mb-0">Project Details & Assessments</p>
+      <p class="text-muted mb-0">{{t 'admin.project_detail.p.project_details_assessments'}}</p>
     </div>
     <div class="d-flex gap-2">
       <a href="/admin/projects/{{project.id}}/guidance" class="btn btn-outline-success">
@@ -15,8 +15,7 @@
       <form action="/admin/projects/{{project.id}}/delete" method="POST" class="d-inline mfa-protected" data-mfa-label="Deleting this record permanently"
         onsubmit="return confirm('Delete this project and all its draft assessments? This cannot be undone.')">
         <button type="submit" class="btn btn-outline-danger">
-          <i class="bi bi-trash me-1"></i>Delete Project
-        </button>
+          <i class="bi bi-trash me-1"></i>{{t 'admin.project_detail.btn.delete_project'}}</button>
       </form>
     </div>
   </div>
@@ -25,7 +24,7 @@
     <!-- Project Info -->
     <div class="col-lg-5">
       <div class="card">
-        <div class="card-header"><i class="bi bi-info-circle me-2"></i>Project Information</div>
+        <div class="card-header"><i class="bi bi-info-circle me-2"></i>{{t 'admin.project_detail.card.project_information'}}</div>
         <div class="card-body">
           <table class="table table-borderless mb-0">
             <tr>
@@ -44,7 +43,7 @@
               <td class="fw-semibold text-muted">PII</td>
               <td>
                 {{#if project.has_pii}}
-                  <span class="badge bg-warning"><i class="bi bi-person-badge me-1"></i>Yes</span>
+                  <span class="badge bg-warning"><i class="bi bi-person-badge me-1"></i>{{t 'admin.project_detail.span.yes'}}</span>
                 {{else}}
                   <span class="badge bg-secondary">No</span>
                 {{/if}}
@@ -62,13 +61,13 @@
 
           {{#if project.description}}
             <hr>
-            <h6 class="fw-semibold text-muted mb-2">{{t 'admin.project_detail.title.description'}}</h6>
+            <h6 class="fw-semibold text-muted mb-2">{{t 'admin.project_detail.h6.description'}}</h6>
             <p class="small mb-0">{{project.description}}</p>
           {{/if}}
 
           {{#if techNames.length}}
             <hr>
-            <h6 class="fw-semibold text-muted mb-2">{{t 'admin.project_detail.title.technology_stack'}}</h6>
+            <h6 class="fw-semibold text-muted mb-2">{{t 'admin.project_detail.h6.technology_stack'}}</h6>
             <div class="d-flex flex-wrap gap-1">
               {{#each techNames}}
                 <span class="badge bg-light text-dark border">{{this}}</span>
@@ -80,25 +79,25 @@
 
       <!-- Contacts -->
       <div class="card mt-3">
-        <div class="card-header bg-light"><i class="bi bi-people me-2"></i>Key Contacts</div>
+        <div class="card-header bg-light"><i class="bi bi-people me-2"></i>{{t 'admin.project_detail.card.key_contacts'}}</div>
         <div class="card-body">
           {{#if project.project_owner_name}}
             <div class="mb-3">
-              <div class="small text-muted text-uppercase fw-bold">Project Owner / Architect</div>
+              <div class="small text-muted text-uppercase fw-bold">{{t 'admin.project_detail.div.project_owner_architect'}}</div>
               <div class="fw-semibold">{{project.project_owner_name}}</div>
               {{#if project.project_owner_email}}<div class="small text-muted">{{project.project_owner_email}}</div>{{/if}}
             </div>
           {{/if}}
           {{#if project.project_authority_name}}
             <div class="mb-3">
-              <div class="small text-muted text-uppercase fw-bold">Project Authority</div>
+              <div class="small text-muted text-uppercase fw-bold">{{t 'admin.project_detail.div.project_authority'}}</div>
               <div class="fw-semibold">{{project.project_authority_name}}</div>
               {{#if project.project_authority_email}}<div class="small text-muted">{{project.project_authority_email}}</div>{{/if}}
             </div>
           {{/if}}
           {{#if project.cio_name}}
             <div>
-              <div class="small text-muted text-uppercase fw-bold">CIO / Delegated Authority</div>
+              <div class="small text-muted text-uppercase fw-bold">{{t 'admin.project_detail.div.cio_delegated_authority'}}</div>
               <div class="fw-semibold">{{project.cio_name}}</div>
               {{#if project.cio_email}}<div class="small text-muted">{{project.cio_email}}</div>{{/if}}
             </div>
@@ -111,7 +110,7 @@
     <div class="col-lg-7">
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span><i class="bi bi-clipboard-check me-2"></i>Assessments</span>
+          <span><i class="bi bi-clipboard-check me-2"></i>{{t 'admin.project_detail.span.assessments'}}</span>
           <a href="/admin/projects/{{project.id}}/assessments/new" class="btn btn-sm btn-outline-light">
             <i class="bi bi-plus-lg me-1"></i>Create
           </a>
@@ -156,7 +155,7 @@
                           <form action="/admin/assessments/{{this.id}}/delete" method="POST" class="d-inline ms-1 mfa-protected" data-mfa-label="Deleting this record permanently"
                             onsubmit="return confirm('Delete this draft assessment? This cannot be undone.')">
                             <input type="hidden" name="return_to" value="/admin/projects/{{../project.id}}">
-                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete draft">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="{{t 'admin.project_detail.tattr.delete_draft'}}">
                               <i class="bi bi-trash"></i>
                             </button>
                           </form>
@@ -170,7 +169,7 @@
           {{else}}
             <div class="p-5 text-center text-muted">
               <i class="bi bi-clipboard-plus" style="font-size:3rem"></i>
-              <p class="mt-3 mb-2">No assessments yet for this project.</p>
+              <p class="mt-3 mb-2">{{t 'admin.project_detail.p.no_assessments_yet_for_this'}}</p>
               <a href="/admin/projects/{{project.id}}/assessments/new" class="btn btn-primary">
                 <i class="bi bi-plus-lg me-1"></i>Start Assessment
               </a>

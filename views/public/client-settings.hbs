@@ -1,6 +1,6 @@
 <div class="container py-4" style="max-width:800px">
-  <h1 class="mb-1">{{t 'client_settings.title.settings'}}</h1>
-  <p class="text-muted mb-4">Account & security preferences</p>
+  <h1 class="mb-1">{{t 'client_settings.h1.settings'}}</h1>
+  <p class="text-muted mb-4">{{t 'client_settings.p.account_security_preferences'}}</p>
 
   <div class="form-section">
     <div class="section-header">
@@ -27,7 +27,7 @@
       <div class="d-flex align-items-center justify-content-between">
         <div>
           <span class="badge bg-success me-2"><i class="bi bi-check-circle me-1"></i>TOTP Enabled</span>
-          <span class="text-muted small">Authenticator app configured</span>
+          <span class="text-muted small">{{t 'client_settings.span.authenticator_app_configured'}}</span>
         </div>
       </div>
       <p class="small text-muted mt-2 mb-0"><i class="bi bi-lock-fill me-1"></i>Login always requires MFA regardless of the state-change setting below.</p>
@@ -46,14 +46,14 @@
         State-Change Verification
       </h3>
     </div>
-    <p class="small text-muted mb-3">Controls how critical actions (submitting intakes, evidence, guidance) are verified.</p>
+    <p class="small text-muted mb-3">{{t 'client_settings.p.controls_how_critical_actions_submitting'}}</p>
 
     <div class="d-flex flex-column gap-2" id="mfaModeOptions">
       <label class="card p-3 d-flex flex-row align-items-start gap-3 mb-0 border-2 {{#if (eq mfaMode 'push')}}border-primary{{/if}}" style="cursor:pointer" id="mfaModeCard-push">
         <input type="radio" name="mfa_mode" value="push" class="form-check-input mt-1" {{#if (eq mfaMode 'push')}}checked{{/if}} {{#unless hasWebAuthn}}disabled{{/unless}}>
         <div class="flex-grow-1">
           <div class="fw-semibold"><i class="bi bi-hand-index-thumb me-1"></i>Biometric / Passkey Push</div>
-          <div class="small text-muted">Approve with Face ID, Touch ID, or Windows Hello — no code to type.</div>
+          <div class="small text-muted">{{t 'client_settings.div.approve_with_face_id_touch'}}</div>
           {{#unless hasWebAuthn}}<div class="small text-danger mt-1"><i class="bi bi-exclamation-circle me-1"></i>Register a passkey below to enable this option.</div>{{/unless}}
         </div>
       </label>
@@ -62,7 +62,7 @@
         <input type="radio" name="mfa_mode" value="totp" class="form-check-input mt-1" {{#if (eq mfaMode 'totp')}}checked{{/if}}>
         <div class="flex-grow-1">
           <div class="fw-semibold"><i class="bi bi-key me-1"></i>TOTP Code</div>
-          <div class="small text-muted">Enter a 6-digit code from your authenticator app for each critical action.</div>
+          <div class="small text-muted">{{t 'client_settings.div.enter_a_6digit_code_from'}}</div>
         </div>
       </label>
 
@@ -70,7 +70,7 @@
         <input type="radio" name="mfa_mode" value="none" class="form-check-input mt-1" {{#if (eq mfaMode 'none')}}checked{{/if}}>
         <div class="flex-grow-1">
           <div class="fw-semibold"><i class="bi bi-shield-slash me-1"></i>No Additional Verification</div>
-          <div class="small text-muted">Critical actions proceed without MFA challenge. Actions are still logged.</div>
+          <div class="small text-muted">{{t 'client_settings.div.critical_actions_proceed_without_mfa'}}</div>
         </div>
       </label>
     </div>
@@ -88,14 +88,14 @@
     {{#if hasWebAuthn}}
       <div class="d-flex align-items-center justify-content-between">
         <div>
-          <span class="badge bg-success me-2"><i class="bi bi-check-circle me-1"></i>Registered</span>
-          <span class="text-muted small">Passkey enrolled — Face ID / Touch ID / Windows Hello</span>
+          <span class="badge bg-success me-2"><i class="bi bi-check-circle me-1"></i>{{t 'client_settings.span.registered'}}</span>
+          <span class="text-muted small">{{t 'client_settings.span.passkey_enrolled_face_id_touch'}}</span>
         </div>
-        <button class="btn btn-outline-secondary btn-sm" id="registerWebAuthn"><i class="bi bi-arrow-repeat me-1"></i>Re-register</button>
+        <button class="btn btn-outline-secondary btn-sm" id="registerWebAuthn"><i class="bi bi-arrow-repeat me-1"></i>{{t 'client_settings.btn.reregister'}}</button>
       </div>
     {{else}}
-      <p class="small text-muted mb-3">Register a passkey to enable biometric verification for login and critical actions.</p>
-      <button class="btn btn-primary btn-sm" id="registerWebAuthn"><i class="bi bi-person-bounding-box me-1"></i>Register Passkey</button>
+      <p class="small text-muted mb-3">{{t 'client_settings.p.register_a_passkey_to_enable'}}</p>
+      <button class="btn btn-primary btn-sm" id="registerWebAuthn"><i class="bi bi-person-bounding-box me-1"></i>{{t 'client_settings.btn.register_passkey'}}</button>
     {{/if}}
     <div id="webauthnStatus" class="small mt-2 d-none"></div>
   </div>

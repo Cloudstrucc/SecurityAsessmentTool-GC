@@ -1,0 +1,68 @@
+<style>
+.portal-hero{background:linear-gradient(135deg,#1a2e42 0%,#2d4a6a 50%,#3a5a7c 100%);padding:3rem 0 4rem;position:relative;overflow:hidden;margin:-1.5rem -15px 0;width:calc(100% + 30px);border-bottom:3px solid #af3c43}
+.portal-hero::before{content:'';position:absolute;top:-40%;right:-8%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.04) 0%,transparent 70%)}
+.portal-hero .portal-inner{position:relative;z-index:1}
+.portal-card{background:#fff;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.12);border:none;overflow:hidden;height:100%}
+.portal-card .card-header{font-weight:600;font-size:0.9rem;padding:0.85rem 1.25rem}
+.portal-card .card-body{padding:1.5rem}
+</style>
+
+<div class="portal-hero">
+  <div class="container portal-inner">
+    <div class="text-center">
+      <i class="bi bi-shield-lock-fill" style="font-size:3rem;color:rgba(255,255,255,0.8)"></i>
+      <h1 class="text-white mt-2 mb-2">{{t 'portal.title'}}</h1>
+      <p style="color:rgba(255,255,255,0.65);max-width:500px;margin:0 auto;">{{t 'portal.subtitle'}}</p>
+    </div>
+  </div>
+</div>
+
+<div class="container" style="margin-top:-2.5rem;position:relative;z-index:2;">
+  <div class="row justify-content-center g-4">
+    <div class="col-lg-4">
+      <div class="portal-card card">
+        <div class="card-header" style="background:#284162;color:#fff;"><i class="bi bi-clipboard2-data me-2"></i>{{t 'portal.submitIntake'}}</div>
+        <div class="card-body d-flex flex-column">
+          <p class="text-muted mb-3">{{t 'portal.submitIntakeD'}}</p>
+          <p class="small text-muted mb-3"><i class="bi bi-shield-lock me-1"></i>{{t 'portal.mfaReq'}}</p>
+          <div class="mt-auto">
+            {{#if user}}
+              <a href="/intake" class="btn btn-primary w-100 py-2"><i class="bi bi-clipboard-plus me-2"></i>{{t 'nav.startIntake'}}</a>
+            {{else}}
+              <a href="/client/login" class="btn btn-primary w-100 py-2"><i class="bi bi-box-arrow-in-right me-2"></i>{{t 'nav.signIn'}}</a>
+              <a href="/client/register" class="btn btn-outline-primary w-100 py-2 mt-2"><i class="bi bi-person-plus me-2"></i>{{t 'nav.register'}}</a>
+            {{/if}}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="portal-card card">
+        <div class="card-header"><i class="bi bi-key me-2"></i>{{t 'portal.enterCode'}}</div>
+        <div class="card-body d-flex flex-column">
+          <p class="text-muted mb-3">{{t 'portal.enterCodeD'}}</p>
+          <form action="/respond/access" method="POST" class="mt-auto">
+            <div class="mb-3">
+              <label for="code" class="form-label">{{t 'portal.accessCode'}}</label>
+              <input type="text" class="form-control form-control-lg text-center text-uppercase" id="code" name="code" placeholder="A1B2C3D4" maxlength="10" required style="letter-spacing:3px;font-weight:600;font-family:'Courier New',monospace">
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2"><i class="bi bi-box-arrow-in-right me-2"></i>{{t 'portal.accessBtn'}}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="portal-card card">
+        <div class="card-header bg-light" style="color:#26374a"><i class="bi bi-person-badge me-2"></i>{{t 'portal.practitioner'}}</div>
+        <div class="card-body d-flex flex-column">
+          <p class="text-muted mb-3">{{t 'portal.practitionerD'}}</p>
+          <div class="mt-auto">
+            <a href="/admin/login" class="btn btn-dark w-100 py-2"><i class="bi bi-shield-check me-2"></i>{{t 'nav.assessorLogin'}}</a>
+            <a href="/admin/register" class="btn btn-outline-secondary w-100 py-2 mt-2"><i class="bi bi-person-plus me-2"></i>{{t 'nav.registerInvite'}}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="text-center mt-4 mb-5"><a href="/" class="text-muted small"><i class="bi bi-arrow-left me-1"></i>{{t 'nav.backHome'}}</a></div>
+</div>

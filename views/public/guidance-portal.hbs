@@ -3,7 +3,7 @@
     <div style="width:56px;height:56px;border-radius:14px;background:#d4edda;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
       <i class="bi bi-check-circle-fill text-success" style="font-size:1.5rem;"></i>
     </div>
-    <h2>{{t 'guidance_portal.title.gc_web_standards_checklist'}}</h2>
+    <h2>{{t 'guidance_portal.h2.gc_web_standards_checklist'}}</h2>
     <p class="text-muted mb-1">{{report.project_name}}</p>
     <div class="d-flex justify-content-center gap-2 flex-wrap">
       <span class="badge bg-light text-dark border"><i class="bi bi-database me-1"></i>{{report.data_classification}}</span>
@@ -15,17 +15,17 @@
   {{#if isReadOnly}}
     <div class="alert alert-success text-center">
       <i class="bi bi-patch-check me-2"></i>
-      <strong>This checklist has been validated and approved.</strong> No further changes can be made.
+      <strong>{{t 'guidance_portal.strong.this_checklist_has_been_validated'}}</strong> No further changes can be made.
     </div>
   {{/if}}
 
   {{#if isReturned}}
     <div class="alert alert-warning">
       <i class="bi bi-arrow-return-left me-2"></i>
-      <strong>Returned for revision.</strong> The assessor has requested updates. Please review the items below and resubmit.
+      <strong>{{t 'guidance_portal.strong.returned_for_revision'}}</strong> The assessor has requested updates. Please review the items below and resubmit.
       {{#if report.reviewer_notes}}
         <hr class="my-2">
-        <strong>Assessor notes:</strong> {{report.reviewer_notes}}
+        <strong>{{t 'guidance_portal.strong.assessor_notes'}}</strong> {{report.reviewer_notes}}
       {{/if}}
     </div>
   {{/if}}
@@ -33,7 +33,7 @@
   {{#ifCond report.status '==' 'submitted'}}
     <div class="alert alert-info text-center">
       <i class="bi bi-hourglass-split me-2"></i>
-      <strong>Submitted and awaiting review.</strong> You can still update items until the assessor validates.
+      <strong>{{t 'guidance_portal.strong.submitted_and_awaiting_review'}}</strong> You can still update items until the assessor validates.
     </div>
   {{/ifCond}}
 
@@ -42,7 +42,7 @@
       <h5 class="mb-2">{{guidance.summary.title}}</h5>
       <p class="mb-2 small">{{guidance.summary.description}}</p>
       <p class="mb-0 small"><strong>{{totalRequired}} required</strong> and <strong>{{totalRecommended}} recommended</strong> items.
-        All <span class="badge bg-danger" style="font-size:0.7rem">Required</span> items must be addressed before launch.</p>
+        All <span class="badge bg-danger" style="font-size:0.7rem">{{t 'guidance_portal.span.required'}}</span> items must be addressed before launch.</p>
     </div>
   </div>
 
@@ -65,7 +65,7 @@
             {{#if this.required}}
               <span class="badge bg-danger" style="font-size:0.7rem">Required</span>
             {{else}}
-              <span class="badge bg-info" style="font-size:0.7rem">Recommended</span>
+              <span class="badge bg-info" style="font-size:0.7rem">{{t 'guidance_portal.span.recommended'}}</span>
             {{/if}}
             <span class="small">{{this.text}}</span>
           </div>
@@ -82,7 +82,7 @@
       </div>
       <div class="mt-2">
         <input type="text" class="form-control form-control-sm checklist-notes" data-id="{{this.id}}"
-          placeholder="{{t 'guidance_portal.ph.notes_or_evidence_reference'}}" value="{{this.notes}}"
+          placeholder="{{t 'guidance_portal.ph.notes_or_evidence_reference_optional'}}" value="{{this.notes}}"
           {{#if ../../isReadOnly}}disabled{{/if}}>
       </div>
     </div>
@@ -98,9 +98,9 @@
 
   <!-- Submit -->
   <div class="card mb-5">
-    <div class="card-header"><i class="bi bi-send me-2"></i>Submit Checklist for Review</div>
+    <div class="card-header"><i class="bi bi-send me-2"></i>{{t 'guidance_portal.card.submit_checklist_for_review'}}</div>
     <div class="card-body">
-      <p class="text-muted small">Once you've addressed the items above, submit for the security assessor to validate. You'll be able to make updates until the assessor approves.</p>
+      <p class="text-muted small">{{t 'guidance_portal.p.once_youve_addressed_the_items'}}</p>
       <form method="POST" action="/guidance/{{report.invite_code}}/submit" id="submitForm" class="mfa-protected"
         data-mfa-label="Submit guidance checklist for assessor validation">
         <input type="hidden" name="checklist_json" id="checklistJson" value="">
@@ -119,11 +119,10 @@
         <div class="mb-3">
           <label class="form-label small fw-semibold">{{t 'guidance_portal.label.additional_notes'}}</label>
           <textarea class="form-control" name="respondent_notes" rows="3"
-            placeholder="{{t 'guidance_portal.ph.any_questions_clarifications_or'}}">{{report.respondent_notes}}</textarea>
+            placeholder="{{t 'guidance_portal.ph.any_questions_clarifications_or_additional'}}">{{report.respondent_notes}}</textarea>
         </div>
         <button type="submit" class="btn btn-primary w-100 py-2" id="submitBtn">
-          <i class="bi bi-send me-2"></i>Submit for Review
-        </button>
+          <i class="bi bi-send me-2"></i>{{t 'guidance_portal.btn.submit_for_review'}}</button>
       </form>
     </div>
   </div>

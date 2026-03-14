@@ -139,7 +139,7 @@
 
 <div class="signup-hero">
   <div class="eyebrow fade-up"><i class="bi bi-lightning-charge-fill"></i> Deploy in under 5 minutes · 17+ compliance frameworks</div>
-  <h1 class="fade-up fade-up-1">{{t 'product_signup.title.start_your_free_14day'}}</h1>
+  <h1 class="fade-up fade-up-1">{{t 'product_signup.h1.start_your_free_14day_trial'}}</h1>
   <p class="fade-up fade-up-2">Get a fully dedicated Azure instance with tenant-level isolation.<br>No credit card required. No shared infrastructure.</p>
 </div>
 
@@ -154,10 +154,10 @@
       </div>
 
       <div class="sf-limits">
-        <div class="sf-limit"><div class="lim-val">3</div><div class="lim-label">Active assessments</div></div>
-        <div class="sf-limit"><div class="lim-val">1 / day</div><div class="lim-label">New assessment limit</div></div>
-        <div class="sf-limit"><div class="lim-val">25K</div><div class="lim-label">AI tokens / month</div></div>
-        <div class="sf-limit"><div class="lim-val">1</div><div class="lim-label">Team member</div></div>
+        <div class="sf-limit"><div class="lim-val">3</div><div class="lim-label">{{t 'product_signup.div.active_assessments'}}</div></div>
+        <div class="sf-limit"><div class="lim-val">1 / day</div><div class="lim-label">{{t 'product_signup.div.new_assessment_limit'}}</div></div>
+        <div class="sf-limit"><div class="lim-val">25K</div><div class="lim-label">{{t 'product_signup.div.ai_tokens_month'}}</div></div>
+        <div class="sf-limit"><div class="lim-val">1</div><div class="lim-label">{{t 'product_signup.div.team_member'}}</div></div>
       </div>
 
       <ul class="sf-feature-list">
@@ -181,21 +181,21 @@
       <div class="sf-arch-note">
         <div class="arch-icon"><i class="bi bi-lock-fill"></i></div>
         <div>
-          <h4>{{t 'product_signup.title.dedicated_tenant_isolation'}}</h4>
-          <p>Every trial gets its own Azure App Service instance and SQLite database. Your data never shares compute or storage with other tenants.</p>
+          <h4>{{t 'product_signup.h4.dedicated_tenant_isolation'}}</h4>
+          <p>{{t 'product_signup.p.every_trial_gets_its_own'}}</p>
         </div>
       </div>
     </div>
 
     <div class="signup-form-card fade-up fade-up-2">
-      <h3>{{t 'product_signup.title.create_your_account'}}</h3>
-      <p class="sfc-sub">This becomes your security assessor login.</p>
+      <h3>{{t 'product_signup.h3.create_your_account'}}</h3>
+      <p class="sfc-sub">{{t 'product_signup.p.this_becomes_your_security_assessor'}}</p>
 
       <form method="POST" action="/product-signup" id="signupForm">
         <div class="fg-row">
           <div class="fg">
             <label>First Name <span class="req">*</span></label>
-            <input type="text" name="first_name" placeholder="Jane" required autocomplete="given-name">
+            <input type="text" name="first_name" placeholder="{{t 'product_signup.ph.jane'}}" required autocomplete="given-name">
           </div>
           <div class="fg">
             <label>Last Name <span class="req">*</span></label>
@@ -216,7 +216,7 @@
 
         <div class="fg-url-preview" id="instancePreview">
           <i class="bi bi-cloud-check"></i>
-          <span class="url-label">Your instance:</span>
+          <span class="url-label">{{t 'product_signup.span.your_instance'}}</span>
           <code id="instanceUrl">vcs-sa-yourorg.azurewebsites.net</code>
         </div>
 
@@ -257,11 +257,10 @@
         </div>
 
         <button type="submit" class="fg-submit" id="submitBtn">
-          <i class="bi bi-rocket-takeoff me-2"></i>Deploy My Instance
-        </button>
+          <i class="bi bi-rocket-takeoff me-2"></i>{{t 'product_signup.btn.deploy_my_instance'}}</button>
 
         <p class="fg-terms">
-          By signing up you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.<br>
+          By signing up you agree to our <a href="#">{{t 'product_signup.link.terms_of_service'}}</a> and <a href="#">{{t 'product_signup.link.privacy_policy'}}</a>.<br>
           Deploys to Azure Canada Central with full tenant isolation.
         </p>
       </form>

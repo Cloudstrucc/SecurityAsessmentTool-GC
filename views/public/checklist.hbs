@@ -2,14 +2,14 @@
   <div class="d-flex align-items-center mb-4">
     <a href="/respond/{{inviteCode}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
     <div>
-      <h1 class="mb-0">{{t 'checklist.title.iato_remediation_checklist'}}</h1>
+      <h1 class="mb-0">{{t 'checklist.h1.iato_remediation_checklist'}}</h1>
       <p class="text-muted mb-0">{{assessment.project_name}}</p>
     </div>
   </div>
 
   <div class="alert alert-warning">
     <i class="bi bi-exclamation-triangle me-2"></i>
-    Your project has received an <strong>interim Authority to Operate (iATO)</strong>. The items below must be addressed
+    Your project has received an <strong>{{t 'checklist.strong.interim_authority_to_operate_iato'}}</strong>. The items below must be addressed
     by their deadlines before a full ATO can be granted.
   </div>
 
@@ -50,7 +50,7 @@
     <div class="mt-3">
       <div class="d-flex justify-content-between align-items-center">
         <div>
-          <span class="fw-semibold">Progress:</span>
+          <span class="fw-semibold">{{t 'checklist.span.progress'}}</span>
           {{#each items}}{{#eq this.status "completed"}}{{/eq}}{{/each}}
         </div>
       </div>
@@ -59,13 +59,13 @@
     <div class="card">
       <div class="card-body text-center text-muted py-5">
         <i class="bi bi-list-check" style="font-size:3rem"></i>
-        <p class="mt-3 mb-0">No checklist items have been created yet. Your assessor will add remediation items shortly.</p>
+        <p class="mt-3 mb-0">{{t 'checklist.p.no_checklist_items_have_been'}}</p>
       </div>
     </div>
   {{/if}}
 
   <div class="text-center mt-4 mb-5">
-    <p class="text-muted">Contact your security assessor if you have questions about any items.</p>
+    <p class="text-muted">{{t 'checklist.p.contact_your_security_assessor_if'}}</p>
     <a href="/respond/{{inviteCode}}" class="btn btn-outline-primary">
       <i class="bi bi-arrow-left me-1"></i>Back to Assessment
     </a>

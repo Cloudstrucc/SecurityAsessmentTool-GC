@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html class="no-js" lang="{{lang}}" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{#if title}}{{title}} - {{/if}}Vanguard SA&amp;A Platform</title>
+  <meta name="description" content="Vanguard Cloud Services — Security Assessment &amp; Authorization — Multi-Framework Compliance Platform">
+  <meta name="dcterms.title" content="Vanguard SA&amp;A Platform">
+  <meta name="dcterms.language" title="ISO639-2/T" content="eng">
+  <meta name="dcterms.creator" content="Vanguard Cloud Services Inc.">
+  <meta name="theme-color" content="#1a2332">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    /* ═══ Vanguard Design System — SA&A Platform ═══════════════════════ */
+    :root {
+      /* Primary palette */
+      --cs-nav:#1a2332; --cs-nav-hover:#111827;
+      --cs-link:#2563eb; --cs-link-hover:#1d4ed8; --cs-visited:#7c3aed;
+      --cs-blue:#1a2332; --cs-brand:#0ea5e9;
+      --cs-white:#fff; --cs-light:#f8fafc; --cs-border:#e2e8f0;
+      --cs-text:#1e293b; --cs-muted:#64748b;
+      --cs-success:#16a34a; --cs-warning:#ea580c; --cs-danger:#dc2626; --cs-info:#0ea5e9;
+      --cs-accent:#2563eb; --cs-accent-dk:#1e40af;
+
+      /* Backward-compat aliases for existing templates */
+      --gc-nav:var(--cs-nav); --gc-nav-hover:var(--cs-nav-hover);
+      --gc-link:var(--cs-link); --gc-link-hover:var(--cs-link-hover); --gc-visited:var(--cs-visited);
+      --gc-blue:var(--cs-blue); --gc-red:var(--cs-brand);
+      --gc-white:var(--cs-white); --gc-light:var(--cs-light); --gc-border:var(--cs-border);
+      --gc-text:var(--cs-text); --gc-muted:var(--cs-muted);
+      --gc-success:var(--cs-success); --gc-warning:var(--cs-warning); --gc-danger:var(--cs-danger); --gc-info:var(--cs-info);
+      --gc-accent:var(--cs-accent); --gc-accent-dk:var(--cs-accent-dk);
+    }
+    body {
+      font-family:'Inter','Lato',sans-serif; font-size:1rem; line-height:1.65;
+      color:var(--cs-text); background:var(--cs-light); margin:0;
+      min-height:100vh; display:flex; flex-direction:column;
+    }
+    h1,h2,h3,h4,h5,h6 { font-family:'Lato','Inter',sans-serif; font-weight:700; color:var(--cs-blue); line-height:1.2; }
+    a { color:var(--cs-link); }
+    a:hover { color:var(--cs-link-hover); }
+    a:focus { outline:3px solid #fbbf24; outline-offset:0; }
+
+    /* ── Skip links (WCAG 2.4.1) ── */
+    .gc-skip {
+      position:absolute; width:1px; height:1px; overflow:hidden;
+      clip:rect(0,0,0,0); white-space:nowrap;
+    }
+    .gc-skip:focus {
+      position:fixed; top:0; left:0; z-index:9999;
+      width:auto; height:auto; clip:auto;
+      padding:.75rem 1.5rem; background:#fbbf24; color:#000;
+      font-weight:700; text-decoration:none; outline:3px solid #000;
+    }
+
+    /* ── Brand bar ── */
+    .gc-fip { background:var(--cs-nav); }
+    .gc-fip-inner { display:flex; align-items:center; justify-content:space-between; padding:.6rem 0; }
+    .gc-sig { display:flex; align-items:center; gap:.65rem; text-decoration:none; color:#fff; }
+    .gc-sig:hover { color:#fff; text-decoration:none; }
+    .gc-sig .brand-logo {
+      width:34px; height:34px; border-radius:8px;
+      background:linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.1rem; color:#fff;
+    }
+    .gc-sig .brand-name { font-family:'Lato',sans-serif; font-weight:700; font-size:1.05rem; letter-spacing:-.01em; }
+    .gc-sig .brand-sep { color:rgba(255,255,255,.3); font-weight:300; }
+    .gc-sig .brand-product { font-weight:400; font-size:.9rem; opacity:.85; }
+    .gc-lang a { color:#fff; font-size:.875rem; text-decoration:underline; }
+
+    /* ── App bar ── */
+    .gc-app-bar { background:#fff; border-bottom:3px solid var(--cs-brand); }
+    .gc-app-inner { display:flex; align-items:center; justify-content:space-between; padding:.5rem 0; flex-wrap:wrap; gap:.5rem; }
+    .gc-app-title {
+      font-family:'Lato',sans-serif; font-weight:700; font-size:1.2rem;
+      color:var(--cs-blue); text-decoration:none; display:flex; align-items:center; gap:.5rem;
+    }
+    .gc-app-title:hover,.gc-app-title:visited { color:var(--cs-blue); text-decoration:none; }
+    .gc-app-title .brand-icon { color:var(--cs-brand); font-size:1.4rem; }
+
+    .gc-app-nav { display:flex; align-items:center; gap:0; list-style:none; margin:0; padding:0; flex-wrap:wrap; }
+    .gc-app-nav li a, .gc-app-nav li > span {
+      display:block; padding:.5rem .75rem; font-size:.9rem; font-weight:500;
+      color:var(--cs-link); text-decoration:none; border-bottom:3px solid transparent;
+      transition:border-color .2s, background .2s;
+    }
+    .gc-app-nav li a:visited { color:var(--cs-link); }
+    .gc-app-nav li a:hover { background:#f1f5f9; border-bottom-color:var(--cs-accent); }
+    .gc-app-nav li a.active { border-bottom-color:var(--cs-brand); font-weight:600; color:var(--cs-nav); }
+    .gc-app-nav .dropdown-menu { border:1px solid var(--cs-border); border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,.1); }
+    .gc-app-nav .dropdown-item:hover { background:#f1f5f9; }
+
+    .gc-menu-btn { display:none; background:none; border:1px solid var(--cs-border); border-radius:6px; padding:.3rem .6rem; cursor:pointer; font-size:1rem; color:var(--cs-text); }
+    @media(max-width:991px) {
+      .gc-menu-btn { display:block; }
+      .gc-app-nav { display:none; width:100%; flex-direction:column; }
+      .gc-app-nav.show { display:flex; }
+      .gc-app-nav li a { border-bottom:none; border-left:3px solid transparent; }
+      .gc-app-nav li a.active { border-left-color:var(--cs-brand); border-bottom:none; }
+    }
+
+    /* ── Main ── */
+    .gc-main { flex:1; padding:1.5rem 0; }
+
+    /* ── Footer ── */
+    .gc-footer-main { background:var(--cs-nav); color:rgba(255,255,255,.8); padding:1.25rem 0; }
+    .gc-footer-main a { color:#93c5fd; }
+    .gc-footer-main a:hover { color:#fff; }
+    .gc-footer-links { list-style:none; padding:0; margin:0 0 .75rem; display:flex; flex-wrap:wrap; gap:.25rem 1.5rem; }
+    .gc-footer-links a { font-size:.875rem; }
+    .gc-footer-sub { background:#f1f5f9; padding:.75rem 0; }
+    .gc-footer-sub-inner { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem; }
+    .gc-modified { font-size:.8125rem; color:var(--cs-muted); }
+
+    /* ═══ App components ════════════════════════════════════════════════════ */
+    .card { border:1px solid var(--cs-border); border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,.04); }
+    .card-header { background:var(--cs-nav); color:#fff; font-weight:600; padding:.875rem 1.25rem; border-bottom:none; border-radius:0; }
+    .card-header.bg-light { background:var(--cs-light)!important; color:var(--cs-text); }
+
+    .btn-primary { background:var(--cs-accent); border-color:var(--cs-accent); font-weight:500; }
+    .btn-primary:hover,.btn-primary:focus { background:var(--cs-accent-dk); border-color:var(--cs-accent-dk); }
+    .btn-outline-primary { color:var(--cs-accent); border-color:var(--cs-accent); }
+    .btn-outline-primary:hover { background:var(--cs-accent); border-color:var(--cs-accent); }
+    .btn-dark { background:var(--cs-nav); border-color:var(--cs-nav); }
+
+    .form-control,.form-select { border-radius:6px; border:1px solid var(--cs-border); }
+    .form-control:focus,.form-select:focus { border-color:var(--cs-accent); box-shadow:0 0 0 3px rgba(37,99,235,.2); }
+    .form-label { font-weight:500; color:var(--cs-text); margin-bottom:.3rem; }
+
+    .form-section {
+      background:#fff; border-radius:6px; padding:1.5rem; margin-bottom:1.5rem;
+      border:1px solid var(--cs-border); border-left:4px solid var(--cs-accent);
+    }
+    .section-header { margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:1px solid var(--cs-border); }
+    .section-title { display:flex; align-items:center; gap:.75rem; margin:0; font-size:1.2rem; }
+    .section-number { background:var(--cs-accent); color:#fff; min-width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:600; }
+    .section-description { color:var(--cs-muted); margin-top:.5rem; font-size:.9375rem; }
+
+    .progress { height:8px; border-radius:6px; }
+    .progress-bar { background:linear-gradient(90deg,var(--cs-accent),var(--cs-info)); border-radius:6px; }
+
+    .stat-card {
+      background:#fff; border-radius:6px; padding:1.25rem; text-align:center;
+      border:1px solid var(--cs-border); transition:box-shadow .2s;
+    }
+    .stat-card:hover { box-shadow:0 2px 8px rgba(0,0,0,.1); }
+    .stat-card .stat-icon { width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin:0 auto .75rem; }
+    .stat-card .stat-number { font-size:2rem; font-weight:700; color:var(--cs-nav); line-height:1; margin-bottom:.25rem; }
+    .stat-card .stat-label { font-size:.875rem; color:var(--cs-muted); }
+
+    .alert { border:none; border-radius:6px; }
+    .alert-success { background:#dcfce7; color:#14532d; border-left:4px solid var(--cs-success); }
+    .alert-danger { background:#fef2f2; color:#7f1d1d; border-left:4px solid var(--cs-danger); }
+    .alert-warning { background:#fffbeb; color:#78350f; border-left:4px solid var(--cs-warning); }
+    .alert-info { background:#ecfeff; color:#164e63; border-left:4px solid var(--cs-info); }
+
+    .table thead th { background:var(--cs-light); border-bottom:2px solid var(--cs-border); font-weight:600; font-size:.8125rem; text-transform:uppercase; letter-spacing:.5px; color:var(--cs-muted); }
+    .table td { vertical-align:middle; }
+
+    .badge { font-weight:500; padding:.35rem .65rem; border-radius:4px; }
+    .badge.bg-success { background:var(--cs-success)!important; }
+    .badge.bg-warning { background:var(--cs-warning)!important; color:#fff!important; }
+    .badge.bg-danger { background:var(--cs-danger)!important; }
+    .badge.bg-info { background:var(--cs-accent)!important; }
+
+    .control-card { background:#fff; border:1px solid var(--cs-border); border-radius:6px; padding:1.25rem; margin-bottom:1rem; transition:border-color .2s; }
+    .control-card:hover { border-color:var(--cs-accent); }
+    .control-card.inherited { border-left:4px solid var(--cs-info); background:#f0f9ff; }
+    .control-card .control-id { font-family:monospace; font-weight:700; color:var(--cs-nav); }
+    .control-card .control-title { font-weight:600; margin-bottom:.25rem; }
+    .control-card .control-desc { font-size:.875rem; color:var(--cs-muted); }
+
+    .comment-thread { max-height:300px; overflow-y:auto; }
+    .comment-item { padding:.5rem; border-bottom:1px solid #f0f0f0; font-size:.875rem; }
+    .comment-item:last-child { border-bottom:none; }
+    .comment-author { font-weight:600; color:var(--cs-nav); }
+    .comment-time { font-size:.75rem; color:var(--cs-muted); }
+
+    .evidence-editor { min-height:150px; border:1px solid var(--cs-border); border-radius:6px; padding:1rem; background:#fff; }
+    .evidence-editor:focus { border-color:var(--cs-accent); outline:none; box-shadow:0 0 0 3px rgba(37,99,235,.2); }
+
+    .progress-sticky { position:sticky; top:0; z-index:100; background:#fff; padding:1rem; border-radius:0 0 6px 6px; box-shadow:0 4px 12px rgba(0,0,0,.1); margin-bottom:1.5rem; }
+
+    .audit-btn { width:40px; height:40px; border-radius:50%; border:2px solid; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; background:transparent; }
+    .audit-btn.met { border-color:var(--cs-success); color:var(--cs-success); }
+    .audit-btn.met.active { background:var(--cs-success); color:#fff; }
+    .audit-btn.partial { border-color:var(--cs-warning); color:var(--cs-warning); }
+    .audit-btn.partial.active { background:var(--cs-warning); color:#fff; }
+    .audit-btn.not-met { border-color:var(--cs-danger); color:var(--cs-danger); }
+    .audit-btn.not-met.active { background:var(--cs-danger); color:#fff; }
+
+    @media(max-width:768px) {
+      .gc-main { padding:1rem 0; }
+      .form-section { padding:1rem; }
+      .stat-card .stat-number { font-size:1.5rem; }
+    }
+    @media print {
+      .gc-fip,.gc-app-bar,.gc-footer-main,.gc-footer-sub,.btn,.progress-sticky,.gc-skip { display:none!important; }
+      .form-section { break-inside:avoid; box-shadow:none; border:1px solid #ddd; }
+      body { background:#fff; }
+    }
+  </style>
+  {{#if extraStyles}}{{{extraStyles}}}{{/if}}
+</head>
+<body vocab="http://schema.org/" typeof="WebPage">
+
+  <!-- Skip links (WCAG 2.4.1) -->
+  <a class="gc-skip" href="#main-content">Skip to main content</a>
+  <a class="gc-skip" href="#gc-footer">Skip to footer</a>
+
+  <!-- ═══ Vanguard Brand Bar ═══ -->
+  <header role="banner">
+    <div class="gc-fip">
+      <div class="container gc-fip-inner">
+        <a class="gc-sig" href="/">
+          <span class="brand-logo"><i class="bi bi-cloud-check-fill"></i></span>
+          <span>
+            <span class="brand-name">Vanguard Cloud Services</span>
+            <span class="brand-sep mx-1">|</span>
+            <span class="brand-product">SA&amp;A Platform</span>
+          </span>
+        </a>
+        <div class="gc-lang d-flex align-items-center gap-2">
+          <div class="d-flex gap-1">
+            {{#each supportedLangs}}
+              <a href="?lang={{this.code}}" class="text-decoration-none" style="font-size:0.72rem;padding:0.15rem 0.45rem;border-radius:4px;{{#if this.active}}background:rgba(255,255,255,0.15);color:#fff;font-weight:600;{{else}}color:rgba(255,255,255,0.5);{{/if}}">{{this.short}}</a>
+            {{/each}}
+          </div>
+          {{#unless isAdmin}}
+            {{#unless user}}
+              <a href="/portal" class="btn btn-sm btn-outline-light" style="font-size:0.78rem;border-color:rgba(255,255,255,0.3);padding:0.25rem 0.75rem;">
+                <i class="bi bi-box-arrow-in-right me-1"></i>{{t 'nav.existingClient'}}
+              </a>
+            {{/unless}}
+          {{/unless}}
+        </div>
+      </div>
+    </div>
+
+    <nav class="gc-app-bar" aria-label="Application navigation">
+      <div class="container gc-app-inner">
+        <a class="gc-app-title" href="{{#if isAdmin}}/admin/dashboard{{else}}/{{/if}}">
+          <i class="bi bi-shield-lock-fill brand-icon" aria-hidden="true"></i>
+          Security Assessment &amp; Authorization
+        </a>
+        <button class="gc-menu-btn" onclick="document.getElementById('gcNav').classList.toggle('show')" aria-label="Toggle navigation">
+          <i class="bi bi-list" aria-hidden="true"></i> Menu
+        </button>
+        <ul class="gc-app-nav" id="gcNav">
+          {{#if isAdmin}}
+            <li><a class="{{#if isDashboard}}active{{/if}}" href="/admin/dashboard"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>Dashboard</a></li>
+            <li><a class="{{#if isProjects}}active{{/if}}" href="/admin/projects"><i class="bi bi-folder2-open me-1" aria-hidden="true"></i>Projects</a></li>
+            <li><a class="{{#if isAssessments}}active{{/if}}" href="/admin/assessments"><i class="bi bi-clipboard-check me-1" aria-hidden="true"></i>Assessments</a></li>
+            <li><a class="{{#if isSelfAssessments}}active{{/if}}" href="/admin/self-assessments"><i class="bi bi-clipboard2-pulse me-1" aria-hidden="true"></i>Pre-Assessments</a></li>
+            <li><a class="{{#if isIntakes}}active{{/if}}" href="/admin/intakes"><i class="bi bi-inbox me-1" aria-hidden="true"></i>Intakes</a></li>
+            <li><a class="{{#if isInvitations}}active{{/if}}" href="/admin/invitations"><i class="bi bi-person-plus me-1" aria-hidden="true"></i>Team</a></li>
+            <li><a class="{{#if isSettings}}active{{/if}}" href="/admin/settings"><i class="bi bi-gear me-1" aria-hidden="true"></i>Settings</a></li>
+            <li class="nav-item dropdown">
+              <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{admin.name}}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/admin/audit-log"><i class="bi bi-fingerprint me-2" aria-hidden="true"></i>Audit Log</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/admin/logout"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Sign out</a></li>
+              </ul>
+            </li>
+          {{else}}
+            {{#if user}}
+              {{#if (eq user.role 'client')}}
+              <li><a href="/client/dashboard"><i class="bi bi-house me-1" aria-hidden="true"></i>Dashboard</a></li>
+              <li><a href="/intake"><i class="bi bi-clipboard-plus me-1" aria-hidden="true"></i>New Intake</a></li>
+              <li class="nav-item dropdown">
+                <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{user.name}}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><span class="dropdown-item-text small text-muted">{{user.email}}</span></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/client/settings"><i class="bi bi-gear me-2" aria-hidden="true"></i>Settings</a></li>
+                  <li><a class="dropdown-item" href="/client/logout"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Sign out</a></li>
+                </ul>
+              </li>
+              {{/if}}
+            {{/if}}
+            {{#if clientName}}
+              <li><span style="padding:.5rem .75rem;color:var(--cs-muted);font-size:.9rem;"><i class="bi bi-person me-1" aria-hidden="true"></i>{{clientName}}</span></li>
+            {{/if}}
+          {{/if}}
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  {{#if messages.success}}<div class="container mt-3" role="alert"><div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2" aria-hidden="true"></i>{{messages.success}}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div></div>{{/if}}
+  {{#if messages.error}}<div class="container mt-3" role="alert"><div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-circle me-2" aria-hidden="true"></i>{{messages.error}}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div></div>{{/if}}
+  {{#if messages.warning}}<div class="container mt-3" role="alert"><div class="alert alert-warning alert-dismissible fade show"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>{{messages.warning}}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div></div>{{/if}}
+
+  <main class="gc-main" id="main-content" role="main" property="mainContentOfPage">
+    {{{body}}}
+  </main>
+
+  <footer id="gc-footer" role="contentinfo">
+    <div class="gc-footer-main">
+      <div class="container">
+        <nav aria-label="About this site">
+          <h2 class="visually-hidden">About this site</h2>
+          <ul class="gc-footer-links">
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Accessibility</a></li>
+          </ul>
+        </nav>
+        <p style="font-size:.8125rem;margin:0;opacity:.7;">&copy; {{currentYear}} Vanguard Cloud Services Inc. &mdash; Security Assessment &amp; Authorization Platform &middot; Multi-Framework Compliance</p>
+      </div>
+    </div>
+    <div class="gc-footer-sub">
+      <div class="container gc-footer-sub-inner">
+        <div class="gc-modified">Date modified: <time>{{currentDate}}</time></div>
+        <span style="font-weight:600;color:var(--cs-nav);font-size:.875rem;display:flex;align-items:center;gap:.35rem;">
+          <i class="bi bi-cloud-check-fill" style="color:var(--cs-brand)"></i> Vanguard Cloud Services
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MFA Signature Modal -->
+  <div class="modal fade" id="mfaSignatureModal" tabindex="-1" aria-labelledby="mfaSignatureLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+      <div class="modal-content">
+        <div class="modal-header border-0 pb-0">
+          <div class="text-center w-100">
+            <i class="bi bi-shield-lock" style="font-size:2rem;color:var(--cs-brand)" id="mfaModalIcon"></i>
+            <h5 class="modal-title mt-2" id="mfaSignatureLabel">Verification Required</h5>
+          </div>
+        </div>
+        <div class="modal-body pt-1">
+          <p class="text-center text-muted small mb-3" id="mfaActionLabel">This action requires verification.</p>
+          <div id="mfaError" class="alert alert-danger small py-2 d-none"></div>
+          <!-- TOTP input -->
+          <div class="mb-3" id="mfaTotpSection">
+            <label for="mfaTokenInput" class="form-label small fw-semibold">6-Digit Code</label>
+            <input type="text" class="form-control form-control-lg text-center font-monospace" 
+              id="mfaTokenInput" pattern="[0-9]{6}" maxlength="6" inputmode="numeric"
+              placeholder="000000" autocomplete="one-time-code">
+          </div>
+          <!-- WebAuthn push -->
+          <div class="text-center d-none" id="mfaPushSection">
+            <div class="mb-3">
+              <i class="bi bi-person-bounding-box" style="font-size:3rem;color:var(--cs-nav)"></i>
+            </div>
+            <p class="text-muted small">Approve the prompt on your device using Face ID, Touch ID, or Windows Hello.</p>
+            <div id="mfaPushSpinner" class="d-none">
+              <div class="spinner-border text-primary spinner-border-sm me-1"></div>
+              <span class="small text-muted">Waiting for biometric...</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0 d-flex gap-2">
+          <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary flex-fill" id="mfaVerifyBtn">
+            <i class="bi bi-shield-check me-1"></i>Verify &amp; Sign
+          </button>
+        </div>
+        <div class="px-3 pb-3">
+          <p class="text-muted text-center mb-0" style="font-size:0.7rem">
+            <i class="bi bi-fingerprint me-1"></i>This action will be logged to the audit trail.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@11/dist/bundle/index.umd.min.js"></script>
+
+  <!-- MFA Signature Interception -->
+  <script>
+  (function() {
+    let pendingForm = null;
+    let mfaModal = null;
+    let currentMfaMode = 'totp';
+    const modalEl = document.getElementById('mfaSignatureModal');
+    if (modalEl) mfaModal = new bootstrap.Modal(modalEl);
+
+    fetch('/api/mfa-mode').then(r => r.json()).then(d => {
+      if (d.mfa_mode) currentMfaMode = d.mfa_mode;
+    }).catch(() => {});
+
+    function appendTokenAndSubmit(sigToken) {
+      if (!pendingForm) return;
+      const hidden = document.createElement('input');
+      hidden.type = 'hidden'; hidden.name = '_sig_token'; hidden.value = sigToken;
+      pendingForm.appendChild(hidden);
+      if (mfaModal) mfaModal.hide();
+      pendingForm.submit();
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('mfaError');
+      el.textContent = msg; el.classList.remove('d-none');
+    }
+
+    document.addEventListener('submit', function(e) {
+      const form = e.target;
+      if (!form.classList.contains('mfa-protected')) return;
+      if (form.querySelector('input[name="_sig_token"]')) return;
+
+      e.preventDefault();
+      pendingForm = form;
+
+      const label = form.dataset.mfaLabel || 'This action requires verification.';
+      document.getElementById('mfaActionLabel').textContent = label;
+      document.getElementById('mfaError').classList.add('d-none');
+
+      if (currentMfaMode === 'push') {
+        document.getElementById('mfaTotpSection').classList.add('d-none');
+        document.getElementById('mfaPushSection').classList.remove('d-none');
+        document.getElementById('mfaVerifyBtn').classList.add('d-none');
+        document.getElementById('mfaModalIcon').className = 'bi bi-person-bounding-box';
+        document.getElementById('mfaSignatureLabel').textContent = 'Biometric Verification';
+        if (mfaModal) mfaModal.show();
+        setTimeout(doWebAuthnVerify, 400);
+      } else {
+        document.getElementById('mfaTotpSection').classList.remove('d-none');
+        document.getElementById('mfaPushSection').classList.add('d-none');
+        document.getElementById('mfaVerifyBtn').classList.remove('d-none');
+        document.getElementById('mfaModalIcon').className = 'bi bi-shield-lock';
+        document.getElementById('mfaSignatureLabel').textContent = 'MFA Verification Required';
+        document.getElementById('mfaTokenInput').value = '';
+        if (mfaModal) mfaModal.show();
+        setTimeout(() => document.getElementById('mfaTokenInput')?.focus(), 300);
+      }
+    });
+
+    const verifyBtn = document.getElementById('mfaVerifyBtn');
+    if (verifyBtn) verifyBtn.addEventListener('click', doTotpVerify);
+    const tokenInput = document.getElementById('mfaTokenInput');
+    if (tokenInput) tokenInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); doTotpVerify(); } });
+
+    async function doTotpVerify() {
+      const token = document.getElementById('mfaTokenInput').value.trim();
+      if (!token || token.length !== 6 || !/^\d{6}$/.test(token)) { showError('Please enter a valid 6-digit code.'); return; }
+
+      const btn = document.getElementById('mfaVerifyBtn');
+      const origText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Verifying...';
+      document.getElementById('mfaError').classList.add('d-none');
+
+      try {
+        const resp = await fetch('/api/verify-mfa', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) });
+        const data = await resp.json();
+        if (data.success && data.sig_token) { appendTokenAndSubmit(data.sig_token); return; }
+        if (resp.status === 401) {
+          showError('You must be signed in. Refresh the page and try again.');
+        } else {
+          showError(data.error || 'Verification failed.');
+          document.getElementById('mfaTokenInput').value = '';
+          document.getElementById('mfaTokenInput').focus();
+        }
+      } catch (err) { showError('Network error. Please try again.'); }
+      btn.disabled = false; btn.innerHTML = origText;
+    }
+
+    async function doWebAuthnVerify() {
+      const spinner = document.getElementById('mfaPushSpinner');
+      spinner.classList.remove('d-none');
+      document.getElementById('mfaError').classList.add('d-none');
+
+      try {
+        const optResp = await fetch('/api/webauthn/auth-options', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const opts = await optResp.json();
+        if (opts.error) throw new Error(opts.error);
+
+        const authResult = await SimpleWebAuthnBrowser.startAuthentication({ optionsJSON: opts });
+
+        const verifyResp = await fetch('/api/webauthn/auth-verify', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(authResult)
+        });
+        const verifyData = await verifyResp.json();
+
+        if (verifyData.success && verifyData.sig_token) {
+          appendTokenAndSubmit(verifyData.sig_token);
+          return;
+        }
+        throw new Error(verifyData.error || 'Verification failed');
+      } catch (err) {
+        spinner.classList.add('d-none');
+        if (err.name === 'NotAllowedError') {
+          showError('Biometric cancelled. Click Verify to try again or switch to TOTP in Settings.');
+          document.getElementById('mfaVerifyBtn').classList.remove('d-none');
+          document.getElementById('mfaVerifyBtn').innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Retry Biometric';
+          document.getElementById('mfaVerifyBtn').onclick = function() { this.classList.add('d-none'); doWebAuthnVerify(); };
+        } else {
+          showError(err.message || 'Biometric verification failed.');
+        }
+      }
+    }
+  })();
+  </script>
+
+  <!-- AI Text Elaboration (global) -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.ai-elaborate-btn').forEach(btn => {
+      btn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        const targetId = this.dataset.target;
+        const textarea = document.getElementById(targetId);
+        if (!textarea) return;
+        const text = textarea.value.trim();
+        if (text.length < 3) { alert('Please type at least a few words before using AI elaboration.'); return; }
+
+        const origHTML = this.innerHTML;
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+        try {
+          const context = {};
+          if (this.dataset.controlId) context.controlId = this.dataset.controlId;
+          if (this.dataset.controlTitle) context.controlTitle = this.dataset.controlTitle;
+
+          const resp = await fetch('/api/ai/elaborate', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, context })
+          });
+          const data = await resp.json();
+          if (data.success && data.elaborated) {
+            textarea.value = data.elaborated;
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+            this.innerHTML = '<i class="bi bi-check text-success"></i>';
+            setTimeout(() => { this.innerHTML = origHTML; }, 2000);
+          } else {
+            alert(data.error || 'AI elaboration failed.');
+            this.innerHTML = origHTML;
+          }
+        } catch (err) {
+          alert('Network error: ' + err.message);
+          this.innerHTML = origHTML;
+        }
+        this.disabled = false;
+      });
+    });
+  });
+  </script>
+
+  {{#if extraScripts}}{{{extraScripts}}}{{/if}}
+</body>
+</html>

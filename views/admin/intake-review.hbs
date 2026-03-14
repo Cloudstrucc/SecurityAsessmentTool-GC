@@ -1,6 +1,6 @@
 <div class="container">
 <div class="mb-4">
-  <a href="/admin/intakes" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i> Back to Intakes</a>
+  <a href="/admin/intakes" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i> {{t 'admin.intake_review.link.back_to_intakes'}}</a>
 </div>
 
 <div class="d-flex justify-content-between align-items-start mb-4">
@@ -8,9 +8,9 @@
     <h2>{{intake.project_name}}</h2>
     <div class="d-flex gap-2 align-items-center">
       <code>{{intake.ref_code}}</code>
-      {{#if (eq intake.status 'pending')}}<span class="badge bg-warning">Pending Review</span>
-      {{else if (eq intake.status 'in-review')}}<span class="badge bg-info">In Review</span>
-      {{else if (eq intake.status 'accepted')}}<span class="badge bg-success">Accepted</span>
+      {{#if (eq intake.status 'pending')}}<span class="badge bg-warning">{{t 'admin.intake_review.span.pending_review'}}</span>
+      {{else if (eq intake.status 'in-review')}}<span class="badge bg-info">{{t 'admin.intake_review.span.in_review'}}</span>
+      {{else if (eq intake.status 'accepted')}}<span class="badge bg-success">{{t 'admin.intake_review.span.accepted'}}</span>
       {{else}}<span class="badge bg-secondary">{{intake.status}}</span>{{/if}}
       <span class="text-muted small">Submitted {{formatDate intake.created_at}}</span>
     </div>
@@ -18,13 +18,12 @@
   <div class="d-flex gap-2">
     {{#if (neq intake.status 'accepted')}}
     <button type="button" class="btn text-white" style="background:#8b5cf6;" onclick="aiReviewIntake()">
-      <i class="bi bi-stars me-1"></i>AI Review
-    </button>
+      <i class="bi bi-stars me-1"></i>{{t 'admin.intake_review.btn.ai_review'}}</button>
     {{/if}}
     {{#if (eq intake.status 'pending')}}
     <form method="POST" action="/admin/intakes/{{intake.id}}/status" style="display:inline;" class="">
       <input type="hidden" name="status" value="in-review">
-      <button type="submit" class="btn btn-outline-info"><i class="bi bi-eye me-1"></i>Mark In Review</button>
+      <button type="submit" class="btn btn-outline-info"><i class="bi bi-eye me-1"></i>{{t 'admin.intake_review.btn.mark_in_review'}}</button>
     </form>
     {{/if}}
     {{#if intake.project_id}}
@@ -55,9 +54,9 @@
         <div class="col-md-4">
           <label class="form-label small text-muted">{{t 'admin.intake_review.label.application_type'}}</label>
           <div>
-            {{#if (eq intake.app_type 'internal')}}<span class="badge bg-light text-dark"><i class="bi bi-lock me-1"></i>Internal Only</span>
-            {{else if (eq intake.app_type 'external')}}<span class="badge bg-warning"><i class="bi bi-globe me-1"></i>External / Public</span>
-            {{else if (eq intake.app_type 'hybrid')}}<span class="badge bg-info"><i class="bi bi-arrow-left-right me-1"></i>Hybrid</span>
+            {{#if (eq intake.app_type 'internal')}}<span class="badge bg-light text-dark"><i class="bi bi-lock me-1"></i>{{t 'admin.intake_review.span.internal_only'}}</span>
+            {{else if (eq intake.app_type 'external')}}<span class="badge bg-warning"><i class="bi bi-globe me-1"></i>{{t 'admin.intake_review.span.external_public'}}</span>
+            {{else if (eq intake.app_type 'hybrid')}}<span class="badge bg-info"><i class="bi bi-arrow-left-right me-1"></i>{{t 'admin.intake_review.span.hybrid'}}</span>
             {{else}}{{intake.app_type}}{{/if}}
           </div>
         </div>
@@ -86,21 +85,21 @@
         <div class="col-md-4">
           <label class="form-label small text-muted"><i class="bi bi-shield-lock me-1"></i>Confidentiality</label>
           <div>
-            {{#if (eq intake.confidentiality_level 'top-secret')}}<span class="badge bg-dark" style="font-size:0.9rem;">Top Secret</span>
-            {{else if (eq intake.confidentiality_level 'secret')}}<span class="badge bg-dark" style="font-size:0.9rem;">Secret</span>
-            {{else if (eq intake.confidentiality_level 'confidential')}}<span class="badge bg-dark" style="font-size:0.9rem;">Confidential</span>
-            {{else if (eq intake.confidentiality_level 'protected-c')}}<span class="badge bg-danger" style="font-size:0.9rem;">Protected C</span>
-            {{else if (eq intake.confidentiality_level 'protected-b')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">Protected B</span>
-            {{else if (eq intake.confidentiality_level 'protected-a')}}<span class="badge bg-info" style="font-size:0.9rem;">Protected A</span>
+            {{#if (eq intake.confidentiality_level 'top-secret')}}<span class="badge bg-dark" style="font-size:0.9rem;">{{t 'admin.intake_review.span.top_secret'}}</span>
+            {{else if (eq intake.confidentiality_level 'secret')}}<span class="badge bg-dark" style="font-size:0.9rem;">{{t 'admin.intake_review.span.secret'}}</span>
+            {{else if (eq intake.confidentiality_level 'confidential')}}<span class="badge bg-dark" style="font-size:0.9rem;">{{t 'admin.intake_review.span.confidential'}}</span>
+            {{else if (eq intake.confidentiality_level 'protected-c')}}<span class="badge bg-danger" style="font-size:0.9rem;">{{t 'admin.intake_review.span.protected_c'}}</span>
+            {{else if (eq intake.confidentiality_level 'protected-b')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">{{t 'admin.intake_review.span.protected_b'}}</span>
+            {{else if (eq intake.confidentiality_level 'protected-a')}}<span class="badge bg-info" style="font-size:0.9rem;">{{t 'admin.intake_review.span.protected_a'}}</span>
             {{else}}<span class="badge bg-secondary" style="font-size:0.9rem;">{{intake.confidentiality_level}}</span>{{/if}}
           </div>
         </div>
         <div class="col-md-4">
           <label class="form-label small text-muted"><i class="bi bi-check2-square me-1"></i>Integrity</label>
           <div>
-            {{#if (eq intake.integrity_level 'high')}}<span class="badge bg-danger" style="font-size:0.9rem;">High</span>
-            {{else if (eq intake.integrity_level 'medium')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">Medium</span>
-            {{else}}<span class="badge bg-success" style="font-size:0.9rem;">Low</span>{{/if}}
+            {{#if (eq intake.integrity_level 'high')}}<span class="badge bg-danger" style="font-size:0.9rem;">{{t 'admin.intake_review.span.high'}}</span>
+            {{else if (eq intake.integrity_level 'medium')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">{{t 'admin.intake_review.span.medium'}}</span>
+            {{else}}<span class="badge bg-success" style="font-size:0.9rem;">{{t 'admin.intake_review.span.low'}}</span>{{/if}}
           </div>
         </div>
         <div class="col-md-4">
@@ -109,14 +108,14 @@
             {{#if (eq intake.availability_level 'high')}}<span class="badge bg-danger" style="font-size:0.9rem;">High</span>
             {{else if (eq intake.availability_level 'medium')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">Medium</span>
             {{else}}<span class="badge bg-success" style="font-size:0.9rem;">Low</span>{{/if}}
-            {{#if intake.is_hva}}<span class="badge bg-danger ms-1" style="font-size:0.8rem;"><i class="bi bi-star-fill me-1"></i>HVA</span>{{/if}}
+            {{#if intake.is_hva}}<span class="badge bg-danger ms-1" style="font-size:0.8rem;"><i class="bi bi-star-fill me-1"></i>{{t 'admin.intake_review.span.hva'}}</span>{{/if}}
           </div>
         </div>
       </div>
 
       {{#if intake.security_profile}}
       <div class="alert alert-info py-2 mb-3">
-        <i class="bi bi-cpu me-2"></i><strong>Determined Profile:</strong>
+        <i class="bi bi-cpu me-2"></i><strong>{{t 'admin.intake_review.strong.determined_profile'}}</strong>
         <span class="badge bg-primary ms-2">{{intake.security_profile}}</span>
       </div>
       {{/if}}
@@ -132,7 +131,7 @@
         </div>
         <div class="col-md-4">
           <label class="form-label small text-muted">{{t 'admin.intake_review.label.contains_pii'}}</label>
-          <div>{{#if intake.has_pii}}<span class="badge bg-danger">Yes</span>{{else}}<span class="badge bg-success">No</span>{{/if}}</div>
+          <div>{{#if intake.has_pii}}<span class="badge bg-danger">{{t 'admin.intake_review.span.yes'}}</span>{{else}}<span class="badge bg-success">No</span>{{/if}}</div>
         </div>
         <div class="col-12">
           <label class="form-label small text-muted">{{t 'admin.intake_review.label.pii_types_identified'}}</label>
@@ -145,7 +144,7 @@
             {{/each}}
           </div>
           {{else}}
-          <div class="text-muted">No PII identified</div>
+          <div class="text-muted">{{t 'admin.intake_review.div.no_pii_identified'}}</div>
           {{/if}}
         </div>
       </div>
@@ -189,7 +188,7 @@
       </div>
       <div class="row g-3">
         <div class="col-md-4">
-          <label class="form-label small text-muted">{{t 'admin.intake_review.label.apis'}}</label>
+          <label class="form-label small text-muted">APIs</label>
           <div>{{#if intake.has_apis}}{{intake.has_apis}}{{else}}—{{/if}}</div>
         </div>
         <div class="col-md-4">
@@ -296,51 +295,51 @@
 
       <!-- Recommendation Preview -->
       <div class="card mb-3">
-        <div class="card-header"><i class="bi bi-cpu me-2"></i>Engine Preview</div>
+        <div class="card-header"><i class="bi bi-cpu me-2"></i>{{t 'admin.intake_review.card.engine_preview'}}</div>
         <div class="card-body">
           {{#if saaRequired}}
             <div class="alert alert-warning small py-1 px-2 mb-2">
-              <i class="bi bi-shield-exclamation me-1"></i><strong>SA&amp;A Required</strong>
+              <i class="bi bi-shield-exclamation me-1"></i><strong>{{t 'admin.intake_review.strong.saampa_required'}}</strong>
             </div>
           {{else}}
             <div class="alert alert-success small py-1 px-2 mb-2">
-              <i class="bi bi-check-circle me-1"></i><strong>No SA&amp;A Required</strong><br>
-              <small>GC Web Guidance Report will be generated</small>
+              <i class="bi bi-check-circle me-1"></i><strong>{{t 'admin.intake_review.strong.no_saampa_required'}}</strong><br>
+              <small>{{t 'admin.intake_review.small.gc_web_guidance_report_will'}}</small>
             </div>
           {{/if}}
           <div class="small text-muted mb-2">{{saaReason}}</div>
           <div class="d-flex justify-content-between mb-2">
-            <span class="text-muted small">Estimated controls:</span>
+            <span class="text-muted small">{{t 'admin.intake_review.span.estimated_controls'}}</span>
             <span class="fw-bold">{{controlCount}}</span>
           </div>
           <div class="d-flex justify-content-between mb-2">
-            <span class="text-muted small">P1 (mandatory):</span>
+            <span class="text-muted small">{{t 'admin.intake_review.span.p1_mandatory'}}</span>
             <span>{{p1Count}}</span>
           </div>
           <div class="d-flex justify-content-between mb-2">
-            <span class="text-muted small">P2 (conditional):</span>
+            <span class="text-muted small">{{t 'admin.intake_review.span.p2_conditional'}}</span>
             <span>{{p2Count}}</span>
           </div>
           <div class="d-flex justify-content-between mb-2">
-            <span class="text-muted small">P3 (situational):</span>
+            <span class="text-muted small">{{t 'admin.intake_review.span.p3_situational'}}</span>
             <span>{{p3Count}}</span>
           </div>
           <div class="d-flex justify-content-between">
-            <span class="text-muted small">Inherited controls:</span>
+            <span class="text-muted small">{{t 'admin.intake_review.span.inherited_controls'}}</span>
             <span>{{inheritedCount}}</span>
           </div>
           <hr>
-          <small class="text-muted">Based on submitted project details. Adjust below to refine.</small>
+          <small class="text-muted">{{t 'admin.intake_review.small.based_on_submitted_project_details'}}</small>
         </div>
       </div>
 
       <!-- Assessor Actions -->
       {{#if (neq intake.status 'accepted')}}
       <div class="card mb-3">
-        <div class="card-header bg-light" style="color:var(--gc-text);"><i class="bi bi-pencil-square me-2"></i>Assessor Context</div>
+        <div class="card-header bg-light" style="color:var(--gc-text);"><i class="bi bi-pencil-square me-2"></i>{{t 'admin.intake_review.card.assessor_context'}}</div>
         <div class="card-body">
           <form method="POST" action="/admin/intakes/{{intake.id}}/create-project" id="createProjectForm" class="mfa-protected" data-mfa-label="Accepting intake and creating project">
-            <p class="small text-muted mb-3">Add context or adjust details before creating the project and assessment. These overrides feed into the recommendation engine.</p>
+            <p class="small text-muted mb-3">{{t 'admin.intake_review.p.add_context_or_adjust_details'}}</p>
 
             <div class="mb-3">
               <label class="form-label small fw-bold">{{t 'admin.intake_review.label.override_confidentiality'}}</label>
@@ -398,7 +397,7 @@
 
             <div class="mb-3">
               <label class="form-label small fw-bold">{{t 'admin.intake_review.label.additional_technologies'}}</label>
-              <p class="text-muted small mb-1">Add technologies the client may not have listed.</p>
+              <p class="text-muted small mb-1">{{t 'admin.intake_review.p.add_technologies_the_client_may'}}</p>
               <div class="row g-1">
                 {{#each allTechnologies}}
                 <div class="col-12">
@@ -406,7 +405,7 @@
                     <input class="form-check-input" type="checkbox" name="additionalTech" value="{{this.key}}" id="addtech-{{this.key}}"
                       {{#if this.alreadySelected}} checked disabled{{/if}}>
                     <label class="form-check-label small" for="addtech-{{this.key}}">
-                      {{this.name}} {{#if this.alreadySelected}}<span class="text-muted">(already selected)</span>{{/if}}
+                      {{this.name}} {{#if this.alreadySelected}}<span class="text-muted">{{t 'admin.intake_review.span.already_selected'}}</span>{{/if}}
                     </label>
                   </div>
                 </div>
@@ -416,13 +415,13 @@
 
             <div class="mb-3">
               <label class="form-label small fw-bold">{{t 'admin.intake_review.label.additional_description_context'}}</label>
-              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="assessorDescription" id="assessorDescription" rows="3" placeholder="{{t 'admin.intake_review.ph.add_keywords_for_the'}}"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="assessorDescription"><i class="bi bi-stars"></i></button></div>
-              <small class="text-muted">Appended to the project description for the recommendation engine.</small>
+              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="assessorDescription" id="assessorDescription" rows="3" placeholder="{{t 'admin.intake_review.ph.add_keywords_for_the_engine'}}"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="{{t 'admin.intake_review.tattr.ai_elaborate'}}" data-target="assessorDescription"><i class="bi bi-stars"></i></button></div>
+              <small class="text-muted">{{t 'admin.intake_review.small.appended_to_the_project_description'}}</small>
             </div>
 
             <div class="mb-3">
               <label class="form-label small fw-bold">{{t 'admin.intake_review.label.assessor_notes_internal'}}</label>
-              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="assessorNotes" id="assessorNotes" rows="3" placeholder="{{t 'admin.intake_review.ph.internal_notes_about_this'}}"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="assessorNotes"><i class="bi bi-stars"></i></button></div>
+              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="assessorNotes" id="assessorNotes" rows="3" placeholder="{{t 'admin.intake_review.ph.internal_notes_about_this_intake'}}"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="assessorNotes"><i class="bi bi-stars"></i></button></div>
             </div>
 
             <div class="mb-3">
@@ -444,7 +443,7 @@
                     <span class="badge bg-primary bg-opacity-10 text-primary border border-primary">{{this}}</span>
                   {{/each}}
                 </div>
-                <small class="text-muted d-block mt-1">Frameworks below have been pre-selected based on these regions.</small>
+                <small class="text-muted d-block mt-1">{{t 'admin.intake_review.small.frameworks_below_have_been_preselected'}}</small>
               </div>
             </div>
             {{/if}}
@@ -466,7 +465,7 @@
                     <label class="form-check-label small" for="fw-{{this.id}}">
                       <strong>{{this.name}}</strong>
                       <span class="text-muted ms-1">{{this.country}} · {{this.sector}}</span>
-                      {{#if this.mandatory}}<span class="badge bg-danger bg-opacity-75 ms-1" style="font-size:0.6rem">Mandatory</span>{{/if}}
+                      {{#if this.mandatory}}<span class="badge bg-danger bg-opacity-75 ms-1" style="font-size:0.6rem">{{t 'admin.intake_review.span.mandatory'}}</span>{{/if}}
                       {{#unless this.mandatory}}<span class="badge bg-secondary bg-opacity-50 ms-1" style="font-size:0.6rem">{{this.mandatoryNote}}</span>{{/unless}}
                     </label>
                   </div>
@@ -548,15 +547,14 @@
                 <div class="form-check form-check-sm">
                   <input class="form-check-input" type="checkbox" name="onlyP1P2" value="1" id="onlyP1P2">
                   <label class="form-check-label small" for="onlyP1P2">
-                    {{t 'admin.intake_review.label.include_only_p1_amp'}}
+                    Include only P1 &amp; P2 priority controls
                   </label>
                 </div>
               </div>
             </div>
 
             <button type="submit" class="btn btn-primary w-100" onclick="return confirm('This will create a new Project and Assessment from this intake. Continue?')">
-              <i class="bi bi-plus-circle me-1"></i>Create Project & Assessment
-            </button>
+              <i class="bi bi-plus-circle me-1"></i>{{t 'admin.intake_review.btn.create_project_assessment'}}</button>
           </form>
         </div>
       </div>
@@ -570,14 +568,13 @@
               <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="declineReason" id="declineReason" rows="2" placeholder="{{t 'admin.intake_review.ph.reason_for_declining_optional'}}"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="declineReason"><i class="bi bi-stars"></i></button></div>
             </div>
             <button type="submit" class="btn btn-outline-danger btn-sm w-100" onclick="return confirm('Decline this intake?')">
-              <i class="bi bi-x-circle me-1"></i>Decline Intake
-            </button>
+              <i class="bi bi-x-circle me-1"></i>{{t 'admin.intake_review.btn.decline_intake'}}</button>
           </form>
         </div>
       </div>
       {{else}}
       <div class="alert alert-success">
-        <i class="bi bi-check-circle me-2"></i><strong>Accepted</strong><br>
+        <i class="bi bi-check-circle me-2"></i><strong>{{t 'admin.intake_review.strong.accepted'}}</strong><br>
         Project created from this intake.
         {{#if intake.project_id}}
         <a href="/admin/projects/{{intake.project_id}}" class="d-block mt-2">View Project <i class="bi bi-arrow-right"></i></a>

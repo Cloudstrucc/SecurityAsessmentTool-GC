@@ -3,8 +3,8 @@
     <div style="width:56px;height:56px;border-radius:14px;background:var(--gc-accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
       <i class="bi bi-box-arrow-in-right text-white" style="font-size:1.5rem;"></i>
     </div>
-    <h3>{{t 'client_login.title.client_sign_in'}}</h3>
-    <p class="text-muted">Sign in to submit or view your security assessment intakes.</p>
+    <h3>{{t 'client_login.h3.client_sign_in'}}</h3>
+    <p class="text-muted">{{t 'client_login.p.sign_in_to_submit_or'}}</p>
   </div>
 
   <div class="card">
@@ -22,8 +22,7 @@
           <input type="password" class="form-control" id="password" name="password" required>
         </div>
         <button type="submit" class="btn btn-primary w-100 py-2">
-          <i class="bi bi-arrow-right me-2"></i>Continue
-        </button>
+          <i class="bi bi-arrow-right me-2"></i>{{t 'client_login.btn.continue'}}</button>
       </form>
       {{else}}
       <!-- Step 2: MFA -->
@@ -34,13 +33,13 @@
         <div class="text-center mb-3">
           <i class="bi bi-person-bounding-box" style="font-size:3rem;color:var(--gc-nav,#26374a)"></i>
         </div>
-        <p class="text-center text-muted small mb-3">Approve with your passkey (Face ID, Touch ID, or Windows Hello).</p>
+        <p class="text-center text-muted small mb-3">{{t 'client_login.p.approve_with_your_passkey_face'}}</p>
         <div id="passkeyError" class="alert alert-danger small py-2 d-none"></div>
         <button class="btn btn-primary w-100 py-2 mb-3" id="passkeyLoginBtn" data-user-id="{{userId}}">
           <i class="bi bi-person-bounding-box me-1"></i>Sign In with Passkey
         </button>
         <div class="text-center">
-          <a href="#" class="small text-muted" id="switchToTotpBtn"><i class="bi bi-key me-1"></i>Use TOTP code instead</a>
+          <a href="#" class="small text-muted" id="switchToTotpBtn"><i class="bi bi-key me-1"></i>{{t 'client_login.link.use_totp_code_instead'}}</a>
         </div>
       </div>
       {{/if}}
@@ -60,12 +59,11 @@
               autocomplete="one-time-code" inputmode="numeric" {{#unless hasWebAuthn}}autofocus{{/unless}}>
           </div>
           <button type="submit" class="btn btn-primary w-100 py-2">
-            <i class="bi bi-check-circle me-2"></i>Verify & Sign In
-          </button>
+            <i class="bi bi-check-circle me-2"></i>{{t 'client_login.btn.verify_sign_in'}}</button>
         </form>
         {{#if hasWebAuthn}}
         <div class="text-center mt-3">
-          <a href="#" class="small text-muted" id="switchToPasskeyBtn"><i class="bi bi-person-bounding-box me-1"></i>Use passkey instead</a>
+          <a href="#" class="small text-muted" id="switchToPasskeyBtn"><i class="bi bi-person-bounding-box me-1"></i>{{t 'client_login.link.use_passkey_instead'}}</a>
         </div>
         {{/if}}
       </div>
@@ -75,8 +73,8 @@
   </div>
 
   <div class="text-center mt-3">
-    <span class="text-muted">Don't have an account?</span>
-    <a href="/client/register">Register here</a>
+    <span class="text-muted">{{t 'client_login.span.dont_have_an_account'}}</span>
+    <a href="/client/register">{{t 'client_login.link.register_here'}}</a>
   </div>
 </div>
 

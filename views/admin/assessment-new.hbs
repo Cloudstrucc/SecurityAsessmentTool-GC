@@ -2,7 +2,7 @@
   <div class="d-flex align-items-center mb-4">
     <a href="/admin/projects/{{project.id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
     <div>
-      <h1 class="mb-0">{{t 'admin.assessment_new.title.new_assessment'}}</h1>
+      <h1 class="mb-0">{{t 'admin.assessment_new.h1.new_assessment'}}</h1>
       <p class="text-muted mb-0">{{project.name}} — Select & tailor ITSG-33 controls</p>
     </div>
   </div>
@@ -30,11 +30,10 @@
           <span class="fw-semibold" id="selectedCount">{{controlCount}}</span> of {{controlCount}} controls selected
         </div>
         <div class="d-flex gap-2">
-          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll(true)">Select All</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll(false)">Deselect All</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll(true)">{{t 'admin.assessment_new.btn.select_all'}}</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll(false)">{{t 'admin.assessment_new.btn.deselect_all'}}</button>
           <button type="submit" class="btn btn-primary">
-            <i class="bi bi-clipboard-check me-1"></i>Create Assessment
-          </button>
+            <i class="bi bi-clipboard-check me-1"></i>{{t 'admin.assessment_new.btn.create_assessment'}}</button>
         </div>
       </div>
     </div>
@@ -61,10 +60,10 @@
               <div class="d-flex gap-1">
                 <span class="badge bg-secondary">{{this.priority}}</span>
                 {{#if this.inheritedFrom}}
-                  <span class="badge bg-info"><i class="bi bi-arrow-left-right me-1"></i>Inherited</span>
+                  <span class="badge bg-info"><i class="bi bi-arrow-left-right me-1"></i>{{t 'admin.assessment_new.span.inherited'}}</span>
                 {{/if}}
                 {{#if this.hasTemplate}}
-                  <span class="badge bg-success"><i class="bi bi-recycle me-1"></i>Template</span>
+                  <span class="badge bg-success"><i class="bi bi-recycle me-1"></i>{{t 'admin.assessment_new.span.template'}}</span>
                 {{/if}}
               </div>
             </div>
@@ -86,12 +85,12 @@
                 <div class="col-md-6">
                   <label class="form-label small fw-semibold">{{t 'admin.assessment_new.label.tailored_description'}}</label>
                   <textarea class="form-control form-control-sm" name="tailored[{{this.id}}]" rows="3"
-                    placeholder="{{t 'admin.assessment_new.ph.projectspecific_description_for_this'}}">{{this.tailoredDescription}}</textarea>
+                    placeholder="{{t 'admin.assessment_new.ph.projectspecific_description_for_this_control'}}">{{this.tailoredDescription}}</textarea>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label small fw-semibold">{{t 'admin.assessment_new.label.evidence_guidance'}}</label>
                   <textarea class="form-control form-control-sm" name="guidance[{{this.id}}]" rows="3"
-                    placeholder="{{t 'admin.assessment_new.ph.what_evidence_the_project'}}">{{this.evidenceGuidance}}</textarea>
+                    placeholder="{{t 'admin.assessment_new.ph.what_evidence_the_project_owner'}}">{{this.evidenceGuidance}}</textarea>
                 </div>
               </div>
               {{#if this.inheritedFrom}}
@@ -125,8 +124,7 @@
         <i class="bi bi-x-lg me-1"></i>Cancel
       </a>
       <button type="submit" class="btn btn-primary btn-lg">
-        <i class="bi bi-clipboard-check me-2"></i>Create Assessment Package
-      </button>
+        <i class="bi bi-clipboard-check me-2"></i>{{t 'admin.assessment_new.btn.create_assessment_package'}}</button>
     </div>
   </form>
 </div>

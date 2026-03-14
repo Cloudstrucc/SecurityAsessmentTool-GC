@@ -214,8 +214,8 @@
 <body vocab="http://schema.org/" typeof="WebPage">
 
   <!-- Skip links (WCAG 2.4.1) -->
-  <a class="gc-skip" href="#main-content">Skip to main content</a>
-  <a class="gc-skip" href="#gc-footer">Skip to footer</a>
+  <a class="gc-skip" href="#main-content">{{t 'layout.main.link.skip_to_main_content'}}</a>
+  <a class="gc-skip" href="#gc-footer">{{t 'layout.main.link.skip_to_footer'}}</a>
 
   <!-- ═══ Vanguard Brand Bar ═══ -->
   <header role="banner">
@@ -224,9 +224,9 @@
         <a class="gc-sig" href="/">
           <span class="brand-logo"><i class="bi bi-cloud-check-fill"></i></span>
           <span>
-            <span class="brand-name">Vanguard Cloud Services</span>
+            <span class="brand-name">{{t 'layout.main.span.vanguard_cloud_services'}}</span>
             <span class="brand-sep mx-1">|</span>
-            <span class="brand-product">SA&amp;A Platform</span>
+            <span class="brand-product">{{t 'layout.main.span.saampa_platform'}}</span>
           </span>
         </a>
         <div class="gc-lang d-flex align-items-center gap-2">
@@ -253,8 +253,7 @@
           Security Assessment &amp; Authorization
         </a>
         <button class="gc-menu-btn" onclick="document.getElementById('gcNav').classList.toggle('show')" aria-label="Toggle navigation">
-          <i class="bi bi-list" aria-hidden="true"></i> Menu
-        </button>
+          <i class="bi bi-list" aria-hidden="true"></i> {{t 'layout.main.btn.menu'}}</button>
         <ul class="gc-app-nav" id="gcNav">
           {{#if isAdmin}}
             <li><a class="{{#if isDashboard}}active{{/if}}" href="/admin/dashboard"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>Dashboard</a></li>
@@ -269,16 +268,16 @@
                 <i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{admin.name}}
               </a>
               <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="/admin/audit-log"><i class="bi bi-fingerprint me-2" aria-hidden="true"></i>Audit Log</a></li>
+                <li><a class="dropdown-item" href="/admin/audit-log"><i class="bi bi-fingerprint me-2" aria-hidden="true"></i>{{t 'layout.main.link.audit_log'}}</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="/admin/logout"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Sign out</a></li>
+                <li><a class="dropdown-item" href="/admin/logout"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>{{t 'layout.main.link.sign_out'}}</a></li>
               </ul>
             </li>
           {{else}}
             {{#if user}}
               {{#if (eq user.role 'client')}}
-              <li><a href="/client/dashboard"><i class="bi bi-house me-1" aria-hidden="true"></i>Dashboard</a></li>
-              <li><a href="/intake"><i class="bi bi-clipboard-plus me-1" aria-hidden="true"></i>New Intake</a></li>
+              <li><a href="/client/dashboard"><i class="bi bi-house me-1" aria-hidden="true"></i>{{t 'layout.main.link.dashboard'}}</a></li>
+              <li><a href="/intake"><i class="bi bi-clipboard-plus me-1" aria-hidden="true"></i>{{t 'layout.main.link.new_intake'}}</a></li>
               <li class="nav-item dropdown">
                 <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                   <i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{user.name}}
@@ -286,8 +285,8 @@
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li><span class="dropdown-item-text small text-muted">{{user.email}}</span></li>
                   <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" href="/client/settings"><i class="bi bi-gear me-2" aria-hidden="true"></i>Settings</a></li>
-                  <li><a class="dropdown-item" href="/client/logout"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Sign out</a></li>
+                  <li><a class="dropdown-item" href="/client/settings"><i class="bi bi-gear me-2" aria-hidden="true"></i>{{t 'layout.main.link.settings'}}</a></li>
+                  <li><a class="dropdown-item" href="/client/logout"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>{{t 'layout.main.link.sign_out_2'}}</a></li>
                 </ul>
               </li>
               {{/if}}
@@ -313,12 +312,12 @@
     <div class="gc-footer-main">
       <div class="container">
         <nav aria-label="About this site">
-          <h2 class="visually-hidden">{{t 'layout.main.title.about_this_site'}}</h2>
+          <h2 class="visually-hidden">{{t 'layout.main.h2.about_this_site'}}</h2>
           <ul class="gc-footer-links">
-            <li><a href="#">Contact</a></li>
-            <li><a href="#">Terms of Service</a></li>
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">Accessibility</a></li>
+            <li><a href="#">{{t 'layout.main.link.contact'}}</a></li>
+            <li><a href="#">{{t 'layout.main.link.terms_of_service'}}</a></li>
+            <li><a href="#">{{t 'layout.main.link.privacy_policy'}}</a></li>
+            <li><a href="#">{{t 'layout.main.link.accessibility'}}</a></li>
           </ul>
         </nav>
         <p style="font-size:.8125rem;margin:0;opacity:.7;">&copy; {{currentYear}} Vanguard Cloud Services Inc. &mdash; Security Assessment &amp; Authorization Platform &middot; Multi-Framework Compliance</p>
@@ -328,8 +327,7 @@
       <div class="container gc-footer-sub-inner">
         <div class="gc-modified">Date modified: <time>{{currentDate}}</time></div>
         <span style="font-weight:600;color:var(--cs-nav);font-size:.875rem;display:flex;align-items:center;gap:.35rem;">
-          <i class="bi bi-cloud-check-fill" style="color:var(--cs-brand)"></i> Vanguard Cloud Services
-        </span>
+          <i class="bi bi-cloud-check-fill" style="color:var(--cs-brand)"></i> {{t 'layout.main.span.vanguard_cloud_services_2'}}</span>
       </div>
     </div>
   </footer>
@@ -341,11 +339,11 @@
         <div class="modal-header border-0 pb-0">
           <div class="text-center w-100">
             <i class="bi bi-shield-lock" style="font-size:2rem;color:var(--cs-brand)" id="mfaModalIcon"></i>
-            <h5 class="modal-title mt-2" id="mfaSignatureLabel">{{t 'layout.main.title.verification_required'}}</h5>
+            <h5 class="modal-title mt-2" id="mfaSignatureLabel">{{t 'layout.main.h5.verification_required'}}</h5>
           </div>
         </div>
         <div class="modal-body pt-1">
-          <p class="text-center text-muted small mb-3" id="mfaActionLabel">This action requires verification.</p>
+          <p class="text-center text-muted small mb-3" id="mfaActionLabel">{{t 'layout.main.p.this_action_requires_verification'}}</p>
           <div id="mfaError" class="alert alert-danger small py-2 d-none"></div>
           <!-- TOTP input -->
           <div class="mb-3" id="mfaTotpSection">
@@ -359,18 +357,17 @@
             <div class="mb-3">
               <i class="bi bi-person-bounding-box" style="font-size:3rem;color:var(--cs-nav)"></i>
             </div>
-            <p class="text-muted small">Approve the prompt on your device using Face ID, Touch ID, or Windows Hello.</p>
+            <p class="text-muted small">{{t 'layout.main.p.approve_the_prompt_on_your'}}</p>
             <div id="mfaPushSpinner" class="d-none">
               <div class="spinner-border text-primary spinner-border-sm me-1"></div>
-              <span class="small text-muted">Waiting for biometric...</span>
+              <span class="small text-muted">{{t 'layout.main.span.waiting_for_biometric'}}</span>
             </div>
           </div>
         </div>
         <div class="modal-footer border-0 pt-0 d-flex gap-2">
-          <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">{{t 'layout.main.btn.cancel'}}</button>
           <button type="button" class="btn btn-primary flex-fill" id="mfaVerifyBtn">
-            <i class="bi bi-shield-check me-1"></i>Verify &amp; Sign
-          </button>
+            <i class="bi bi-shield-check me-1"></i>{{t 'layout.main.btn.verify_amp_sign'}}</button>
         </div>
         <div class="px-3 pb-3">
           <p class="text-muted text-center mb-0" style="font-size:0.7rem">

@@ -23,8 +23,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <a href="/admin/self-assessments" class="text-muted small text-decoration-none mb-1 d-block">
-        <i class="bi bi-arrow-left me-1"></i>Back to Self-Assessments
-      </a>
+        <i class="bi bi-arrow-left me-1"></i>{{t 'admin.self_assessment_review.link.back_to_selfassessments'}}</a>
       <h1 class="mb-1">
         <i class="bi bi-clipboard2-pulse me-2 text-primary"></i>{{sa.ref_code}}
       </h1>
@@ -35,11 +34,11 @@
     </div>
     <div>
       {{#if (eq sa.status 'submitted')}}
-        <span class="badge bg-primary fs-6">Pending Review</span>
+        <span class="badge bg-primary fs-6">{{t 'admin.self_assessment_review.span.pending_review'}}</span>
       {{else if (eq sa.status 'reviewed')}}
-        <span class="badge bg-warning text-dark fs-6">Reviewed</span>
+        <span class="badge bg-warning text-dark fs-6">{{t 'admin.self_assessment_review.span.reviewed'}}</span>
       {{else if (eq sa.status 'intake-created')}}
-        <span class="badge bg-success fs-6">Intake Created</span>
+        <span class="badge bg-success fs-6">{{t 'admin.self_assessment_review.span.intake_created'}}</span>
       {{/if}}
     </div>
   </div>
@@ -50,27 +49,27 @@
 
       <!-- System info -->
       <div class="card mb-3">
-        <div class="card-header"><i class="bi bi-info-circle me-2"></i>System & Jurisdiction</div>
+        <div class="card-header"><i class="bi bi-info-circle me-2"></i>{{t 'admin.self_assessment_review.card.system_jurisdiction'}}</div>
         <div class="card-body">
           <div class="sa-meta-grid">
             <div class="sa-meta-item">
-              <div class="label">System Type</div>
+              <div class="label">{{t 'admin.self_assessment_review.div.system_type'}}</div>
               <div class="value">{{sa.system_type}}</div>
             </div>
             <div class="sa-meta-item">
-              <div class="label">Country</div>
+              <div class="label">{{t 'admin.self_assessment_review.div.country'}}</div>
               <div class="value">{{countryName}}</div>
             </div>
             <div class="sa-meta-item">
-              <div class="label">Government Level</div>
+              <div class="label">{{t 'admin.self_assessment_review.div.government_level'}}</div>
               <div class="value">{{govLevelName}}</div>
             </div>
             <div class="sa-meta-item">
-              <div class="label">Data Sensitivity</div>
+              <div class="label">{{t 'admin.self_assessment_review.div.data_sensitivity'}}</div>
               <div class="value">{{sensitivityName}}</div>
             </div>
             <div class="sa-meta-item">
-              <div class="label">Security Score</div>
+              <div class="label">{{t 'admin.self_assessment_review.div.security_score'}}</div>
               <div class="value">
                 {{#if sa.score}}
                   <span class="{{#if (gt sa.score 70)}}text-success{{else}}{{#if (gt sa.score 40)}}text-warning{{else}}text-danger{{/if}}{{/if}}">
@@ -80,7 +79,7 @@
               </div>
             </div>
             <div class="sa-meta-item">
-              <div class="label">Findings</div>
+              <div class="label">{{t 'admin.self_assessment_review.div.findings'}}</div>
               <div class="value">
                 <span class="text-danger">{{sa.critical_count}} critical</span> ·
                 <span class="text-warning">{{sa.warning_count}} warnings</span> ·
@@ -91,14 +90,14 @@
 
           {{#if sa.system_description}}
           <div class="mt-2">
-            <div class="text-muted small fw-semibold mb-1">System Description</div>
+            <div class="text-muted small fw-semibold mb-1">{{t 'admin.self_assessment_review.div.system_description'}}</div>
             <div class="p-2 bg-light rounded" style="font-size:0.9rem;">{{sa.system_description}}</div>
           </div>
           {{/if}}
 
           {{#if frameworks.all}}
           <div class="mt-3">
-            <div class="text-muted small fw-semibold mb-1">Applicable Frameworks</div>
+            <div class="text-muted small fw-semibold mb-1">{{t 'admin.self_assessment_review.div.applicable_frameworks'}}</div>
             <div class="d-flex flex-wrap gap-1">
               {{#each frameworks.all}}
                 <span class="fw-tag {{#if @first}}fw-tag-primary{{/if}}">{{this}}</span>
@@ -176,10 +175,10 @@
 
       <!-- Admin notes -->
       <div class="card mb-3">
-        <div class="card-header"><i class="bi bi-pencil me-2"></i>Admin Notes</div>
+        <div class="card-header"><i class="bi bi-pencil me-2"></i>{{t 'admin.self_assessment_review.card.admin_notes'}}</div>
         <div class="card-body">
           <form action="/admin/self-assessments/{{sa.id}}/review" method="POST">
-            <textarea name="admin_notes" class="form-control mb-2" rows="3" placeholder="{{t 'admin.self_assessment_review.ph.internal_notes_about_this'}}">{{sa.admin_notes}}</textarea>
+            <textarea name="admin_notes" class="form-control mb-2" rows="3" placeholder="{{t 'admin.self_assessment_review.ph.internal_notes_about_this_submission'}}">{{sa.admin_notes}}</textarea>
             <button type="submit" class="btn btn-sm btn-outline-primary w-100">
               <i class="bi bi-check me-1"></i>{{#if (eq sa.status 'submitted')}}Mark as Reviewed{{else}}Update Notes{{/if}}
             </button>
@@ -190,7 +189,7 @@
       <!-- Linked intake -->
       {{#if linkedIntake}}
       <div class="card mb-3 border-success">
-        <div class="card-header bg-success text-white"><i class="bi bi-link-45deg me-2"></i>Linked Intake</div>
+        <div class="card-header bg-success text-white"><i class="bi bi-link-45deg me-2"></i>{{t 'admin.self_assessment_review.card.linked_intake'}}</div>
         <div class="card-body">
           <div class="fw-semibold"><code>{{linkedIntake.ref_code}}</code></div>
           <div class="text-muted small mb-2">Status: {{linkedIntake.status}}</div>
@@ -203,7 +202,7 @@
 
       <!-- Invite client -->
       <div class="card mb-3">
-        <div class="card-header"><i class="bi bi-envelope me-2"></i>Client Invitation</div>
+        <div class="card-header"><i class="bi bi-envelope me-2"></i>{{t 'admin.self_assessment_review.card.client_invitation'}}</div>
         <div class="card-body">
           {{#if existingUser}}
             <div class="alert alert-info small py-2 mb-2">
@@ -217,11 +216,10 @@
               <p class="small text-muted">Invite <strong>{{sa.submitter_email}}</strong> to register, sign in, and review their draft intake.</p>
               <form action="/admin/self-assessments/{{sa.id}}/invite-client" method="POST">
                 <button type="submit" class="btn btn-primary w-100">
-                  <i class="bi bi-send me-1"></i>Send Registration Invite
-                </button>
+                  <i class="bi bi-send me-1"></i>{{t 'admin.self_assessment_review.btn.send_registration_invite'}}</button>
               </form>
             {{else}}
-              <p class="small text-muted">Create a draft intake first, then you can invite the client to register and review it.</p>
+              <p class="small text-muted">{{t 'admin.self_assessment_review.p.create_a_draft_intake_first'}}</p>
             {{/if}}
           {{/if}}
         </div>
@@ -230,17 +228,16 @@
       <!-- Create intake -->
       {{#unless linkedIntake}}
       <div class="card mb-3">
-        <div class="card-header"><i class="bi bi-clipboard-plus me-2"></i>Create Intake</div>
+        <div class="card-header"><i class="bi bi-clipboard-plus me-2"></i>{{t 'admin.self_assessment_review.card.create_intake'}}</div>
         <div class="card-body">
           <!-- AI populate button -->
           <div class="ai-populate-bar">
             <div>
-              <div class="fw-semibold small">Pre-populate with AI</div>
-              <div class="text-muted" style="font-size:0.72rem;">Auto-fill intake fields from self-assessment</div>
+              <div class="fw-semibold small">{{t 'admin.self_assessment_review.div.prepopulate_with_ai'}}</div>
+              <div class="text-muted" style="font-size:0.72rem;">{{t 'admin.self_assessment_review.div.autofill_intake_fields_from_selfassessment'}}</div>
             </div>
             <button class="btn btn-sm btn-primary ms-auto" onclick="aiPopulateIntake()" id="aiPopBtn">
-              <i class="bi bi-stars me-1"></i>Generate
-            </button>
+              <i class="bi bi-stars me-1"></i>{{t 'admin.self_assessment_review.btn.generate'}}</button>
           </div>
 
           <form action="/admin/self-assessments/{{sa.id}}/create-intake" method="POST" id="intakeForm">
@@ -251,7 +248,7 @@
               </div>
               <div class="mb-2">
                 <label class="form-label">{{t 'admin.self_assessment_review.label.description'}}</label>
-                <textarea class="form-control" name="project_description" id="if_project_description" rows="2" placeholder="{{t 'admin.self_assessment_review.ph.brief_description_of_the'}}"></textarea>
+                <textarea class="form-control" name="project_description" id="if_project_description" rows="2" placeholder="{{t 'admin.self_assessment_review.ph.brief_description_of_the_system'}}"></textarea>
               </div>
               <div class="mb-2">
                 <label class="form-label">{{t 'admin.self_assessment_review.label.department'}}</label>
@@ -349,13 +346,12 @@
               </div>
               <div class="mb-2">
                 <label class="form-label">{{t 'admin.self_assessment_review.label.additional_notes'}}</label>
-                <textarea class="form-control" name="additional_notes" id="if_additional_notes" rows="2" placeholder="{{t 'admin.self_assessment_review.ph.key_findings_notes_for'}}"></textarea>
+                <textarea class="form-control" name="additional_notes" id="if_additional_notes" rows="2" placeholder="{{t 'admin.self_assessment_review.ph.key_findings_notes_for_the'}}"></textarea>
               </div>
             </div>
 
             <button type="submit" class="btn btn-success w-100 mt-3">
-              <i class="bi bi-clipboard-plus me-1"></i>Create Draft Intake
-            </button>
+              <i class="bi bi-clipboard-plus me-1"></i>{{t 'admin.self_assessment_review.btn.create_draft_intake'}}</button>
           </form>
         </div>
       </div>

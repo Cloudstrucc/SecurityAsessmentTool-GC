@@ -4,7 +4,7 @@
       <h2><i class="bi bi-fingerprint me-2"></i>Audit Signature Log</h2>
       <p class="text-muted mb-0">MFA-verified actions across all projects and assessments</p>
     </div>
-    <a href="/admin/dashboard" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
+    <a href="/admin/dashboard" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>{{t 'admin.audit_log.link.dashboard'}}</a>
   </div>
 
   <div class="row g-3 mb-4">
@@ -12,7 +12,7 @@
       <div class="card text-center">
         <div class="card-body py-3">
           <div class="fs-3 fw-bold" style="color:var(--gc-nav)">{{stats.total}}</div>
-          <div class="small text-muted">Total Signatures</div>
+          <div class="small text-muted">{{t 'admin.audit_log.div.total_signatures'}}</div>
         </div>
       </div>
     </div>
@@ -20,7 +20,7 @@
       <div class="card text-center">
         <div class="card-body py-3">
           <div class="fs-3 fw-bold" style="color:var(--gc-green)">{{stats.todayCount}}</div>
-          <div class="small text-muted">Today</div>
+          <div class="small text-muted">{{t 'admin.audit_log.div.today'}}</div>
         </div>
       </div>
     </div>
@@ -28,7 +28,7 @@
       <div class="card text-center">
         <div class="card-body py-3">
           <div class="fs-3 fw-bold" style="color:var(--gc-blue)">{{stats.uniqueUsers}}</div>
-          <div class="small text-muted">Unique Signers</div>
+          <div class="small text-muted">{{t 'admin.audit_log.div.unique_signers'}}</div>
         </div>
       </div>
     </div>
@@ -54,8 +54,8 @@
           <input type="text" name="action" class="form-control form-control-sm" value="{{filters.action}}" placeholder="{{t 'admin.audit_log.ph.eg_auditcomplete'}}">
         </div>
         <div class="col-md-4 d-flex gap-2">
-          <button type="submit" class="btn btn-sm btn-primary flex-fill"><i class="bi bi-funnel me-1"></i>Filter</button>
-          <a href="/admin/audit-log" class="btn btn-sm btn-outline-secondary">Clear</a>
+          <button type="submit" class="btn btn-sm btn-primary flex-fill"><i class="bi bi-funnel me-1"></i>{{t 'admin.audit_log.btn.filter'}}</button>
+          <a href="/admin/audit-log" class="btn btn-sm btn-outline-secondary">{{t 'admin.audit_log.link.clear'}}</a>
         </div>
       </form>
     </div>
@@ -72,7 +72,7 @@
             <th>{{t 'admin.audit_log.th.role'}}</th>
             <th>{{t 'admin.audit_log.th.action'}}</th>
             <th>{{t 'admin.audit_log.th.entity'}}</th>
-            <th>{{t 'admin.audit_log.th.mfa'}}</th>
+            <th>MFA</th>
           </tr>
         </thead>
         <tbody>
@@ -87,9 +87,9 @@
             </td>
             <td>
               {{#if (eq this.user_role 'assessor')}}
-                <span class="badge bg-primary">Assessor</span>
+                <span class="badge bg-primary">{{t 'admin.audit_log.span.assessor'}}</span>
               {{else if (eq this.user_role 'client')}}
-                <span class="badge bg-info">Client</span>
+                <span class="badge bg-info">{{t 'admin.audit_log.span.client'}}</span>
               {{else}}
                 <span class="badge bg-secondary">{{this.user_role}}</span>
               {{/if}}
@@ -117,7 +117,7 @@
             <td colspan="6" class="text-center py-4 text-muted">
               <i class="bi bi-fingerprint" style="font-size:2rem;opacity:0.3"></i>
               <div class="mt-2">No audit signatures recorded yet.</div>
-              <div class="small">Signatures are logged when users perform MFA-verified actions.</div>
+              <div class="small">{{t 'admin.audit_log.div.signatures_are_logged_when_users'}}</div>
             </td>
           </tr>
           {{/each}}

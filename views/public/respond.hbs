@@ -6,7 +6,7 @@
       <p class="text-muted mb-0">Security Assessment Evidence Submission — ITSG-33 / {{assessment.data_classification}}</p>
     </div>
     {{#if isReadOnly}}
-      <span class="badge bg-success fs-6 py-2 px-3"><i class="bi bi-lock me-1"></i>Submitted</span>
+      <span class="badge bg-success fs-6 py-2 px-3"><i class="bi bi-lock me-1"></i>{{t 'respond.span.submitted'}}</span>
     {{/if}}
   </div>
 
@@ -22,8 +22,8 @@
     <div class="alert alert-warning d-flex justify-content-between align-items-center">
       <div>
         <i class="bi bi-exclamation-triangle me-2"></i>
-        {{#if isIATO}}<strong>Interim ATO Issued</strong> — Remediation items require your attention.
-        {{else}}<strong>POA&M Items</strong> — Action items have been identified for this assessment.
+        {{#if isIATO}}<strong>{{t 'respond.strong.interim_ato_issued'}}</strong> — Remediation items require your attention.
+        {{else}}<strong>{{t 'respond.strong.poam_items'}}</strong> — Action items have been identified for this assessment.
         {{/if}}
       </div>
       <a href="/respond/{{inviteCode}}/poam" class="btn btn-warning btn-sm"><i class="bi bi-list-check me-1"></i>View POA&M Items</a>
@@ -87,7 +87,7 @@
                 <span class="badge bg-info"><i class="bi bi-arrow-left-right me-1"></i>Inherited: {{this.inherited_from}}</span>
               {{/if}}
               {{#eq this.evidence_status "provided"}}
-                <span class="badge bg-success"><i class="bi bi-check me-1"></i>Done</span>
+                <span class="badge bg-success"><i class="bi bi-check me-1"></i>{{t 'respond.span.done'}}</span>
               {{/eq}}
             </div>
           </div>
@@ -131,13 +131,13 @@
                 placeholder="{{t 'respond.ph.enter_your_evidence_here'}}">{{{this.evidence_html}}}</div>
               <div class="d-flex justify-content-between mt-1">
                 <div class="btn-group btn-group-sm">
-                  <button type="button" class="btn btn-outline-secondary" onclick="execCmd('bold')" title="Bold"><i class="bi bi-type-bold"></i></button>
-                  <button type="button" class="btn btn-outline-secondary" onclick="execCmd('italic')" title="Italic"><i class="bi bi-type-italic"></i></button>
-                  <button type="button" class="btn btn-outline-secondary" onclick="execCmd('insertUnorderedList')" title="Bullet List"><i class="bi bi-list-ul"></i></button>
-                  <button type="button" class="btn btn-outline-secondary" onclick="execCmd('insertOrderedList')" title="Numbered List"><i class="bi bi-list-ol"></i></button>
+                  <button type="button" class="btn btn-outline-secondary" onclick="execCmd('bold')" title="{{t 'respond.tattr.bold'}}"><i class="bi bi-type-bold"></i></button>
+                  <button type="button" class="btn btn-outline-secondary" onclick="execCmd('italic')" title="{{t 'respond.tattr.italic'}}"><i class="bi bi-type-italic"></i></button>
+                  <button type="button" class="btn btn-outline-secondary" onclick="execCmd('insertUnorderedList')" title="{{t 'respond.tattr.bullet_list'}}"><i class="bi bi-list-ul"></i></button>
+                  <button type="button" class="btn btn-outline-secondary" onclick="execCmd('insertOrderedList')" title="{{t 'respond.tattr.numbered_list'}}"><i class="bi bi-list-ol"></i></button>
                   <button type="button" class="btn btn-outline-secondary ai-editor-elaborate" 
                     data-editor-id="editor-{{this.id}}" data-control-id="{{this.control_id}}" data-control-title="{{this.title}}" 
-                    title="AI: Elaborate on your text"><i class="bi bi-stars"></i></button>
+                    title="{{t 'respond.tattr.ai_elaborate_on_your_text'}}"><i class="bi bi-stars"></i></button>
                 </div>
                 <small class="text-muted" id="saveStatus-{{this.id}}"></small>
               </div>
@@ -170,7 +170,7 @@
           </div>
           <div class="collapse mt-2" id="comments-{{this.id}}">
             <div class="comment-thread border rounded p-2" id="thread-{{this.id}}">
-              <div class="text-muted small text-center py-1">Loading...</div>
+              <div class="text-muted small text-center py-1">{{t 'respond.div.loading'}}</div>
             </div>
             {{#unless ../../isReadOnly}}
               <div class="input-group input-group-sm mt-2">
@@ -190,7 +190,7 @@
     <div class="text-center mb-5 mt-4">
       <form method="POST" action="/respond/{{inviteCode}}/submit" class="mfa-protected"
         data-mfa-label="Submit all evidence — this will lock the form and notify your assessor.">>
-        <button class="btn btn-primary btn-lg"><i class="bi bi-send me-2"></i>Submit All Evidence</button>
+        <button class="btn btn-primary btn-lg"><i class="bi bi-send me-2"></i>{{t 'respond.btn.submit_all_evidence'}}</button>
       </form>
     </div>
   {{/unless}}

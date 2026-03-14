@@ -1,0 +1,1161 @@
+<div class="container">
+  <div class="d-flex align-items-center mb-4">
+    <a href="/admin/projects/{{assessment.project_id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
+    <div class="flex-grow-1">
+      <h1 class="mb-0">{{assessment.project_name}}</h1>
+      <p class="text-muted mb-0">Assessment Package — {{{statusBadge assessment.status}}}</p>
+    </div>
+  </div>
+
+  <!-- Status & Actions Bar -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-8">
+          <div class="d-flex flex-wrap gap-3 align-items-center">
+            <div>
+              <span class="small text-muted d-block">Invite Code</span>
+              <code class="fs-5 fw-bold">{{assessment.invite_code}}</code>
+            </div>
+            <div class="vr d-none d-md-block"></div>
+            <div>
+              <span class="small text-muted d-block">Owner</span>
+              <span class="fw-semibold">{{assessment.project_owner_name}}</span>
+            </div>
+            <div class="vr d-none d-md-block"></div>
+            <div>
+              <span class="small text-muted d-block">Classification</span>
+              <span class="badge bg-info">{{assessment.data_classification}}</span>
+            </div>
+            {{#if assessment.overall_score}}
+              <div class="vr d-none d-md-block"></div>
+              <div>
+                <span class="small text-muted d-block">Score</span>
+                <span class="fw-bold fs-5 {{#ifCond assessment.overall_score '>=' 80}}text-success{{else}}text-danger{{/ifCond}}">
+                  {{assessment.overall_score}}%
+                </span>
+              </div>
+            {{/if}}
+            {{#if assessment.result}}
+              <div class="vr d-none d-md-block"></div>
+              <div>
+                <span class="small text-muted d-block">Result</span>
+                {{{statusBadge assessment.result}}}
+              </div>
+            {{/if}}
+          </div>
+        </div>
+        <div class="col-md-4 text-md-end">
+          <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+            {{!-- Action buttons based on status --}}
+            {{#eq assessment.status "draft"}}
+              <a href="/admin/assessments/{{assessment.id}}/manage-controls" class="btn btn-outline-primary">
+                <i class="bi bi-gear me-1"></i>Manage Controls
+              </a>
+              <form method="POST" action="/admin/assessments/{{assessment.id}}/send-invite" class="d-inline">
+                <button class="btn btn-primary"><i class="bi bi-send me-1"></i>Send Invite</button>
+              </form>
+              <form method="POST" action="/admin/assessments/{{assessment.id}}/delete" class="d-inline mfa-protected" data-mfa-label="Deleting assessment permanently"
+                onsubmit="return confirm('Delete this draft assessment? This cannot be undone.')">
+                <input type="hidden" name="return_to" value="/admin/projects/{{assessment.project_id}}">
+                <button class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+              </form>
+            {{/eq}}
+
+            {{#eq assessment.status "evidence-gathering"}}
+              <a href="/admin/assessments/{{assessment.id}}/manage-controls" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-gear me-1"></i>Manage Controls
+              </a>
+              <form method="POST" action="/admin/assessments/{{assessment.id}}/send-invite" class="d-inline">
+                <button class="btn btn-outline-primary btn-sm"><i class="bi bi-send me-1"></i>Resend Invite</button>
+              </form>
+              <a href="/respond/{{assessment.invite_code}}" target="_blank" class="btn btn-outline-success btn-sm" title="Open the public evidence submission portal">
+                <i class="bi bi-box-arrow-up-right me-1"></i>Open Portal
+              </a>
+            {{/eq}}
+
+            {{#eq assessment.status "submitted"}}
+              <button class="btn btn-info me-1" id="aiReviewBtn" data-assessment-id="{{assessment.id}}">
+                <i class="bi bi-stars me-1"></i>AI Pre-Review Evidence
+              </button>
+              <form method="POST" action="/admin/assessments/{{assessment.id}}/start-audit" class="d-inline">
+                <button class="btn btn-warning"><i class="bi bi-search me-1"></i>Start Audit</button>
+              </form>
+              <form method="POST" action="/admin/assessments/{{assessment.id}}/reactivate" class="d-inline mfa-protected" data-mfa-label="Reactivating assessment for client edits">
+                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-unlock me-1"></i>Reactivate</button>
+              </form>
+            {{/eq}}
+
+            {{#eq assessment.status "audit"}}
+              <button class="btn btn-info btn-sm me-1" id="aiReviewBtn" data-assessment-id="{{assessment.id}}">
+                <i class="bi bi-stars me-1"></i>AI Pre-Review
+              </button>
+            {{/eq}}
+
+            {{#eq assessment.status "audit"}}
+              <button class="btn btn-success" data-bs-toggle="collapse" data-bs-target="#completeAuditForm">
+                <i class="bi bi-check-circle me-1"></i>Complete Audit
+              </button>
+            {{/eq}}
+
+            {{#eq assessment.status "completed"}}
+              <a href="/admin/assessments/{{assessment.id}}/generate-ato" class="btn btn-success">
+                <i class="bi bi-file-earmark-pdf me-1"></i>Generate {{#if assessment.ato_type}}{{assessment.ato_type}}{{else}}ATO{{/if}}
+              </a>
+            {{/eq}}
+
+            <a href="/admin/assessments/{{assessment.id}}/export-pdf" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-download me-1"></i>Export PDF
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg">
+      <div class="stat-card">
+        <div class="stat-number">{{stats.total}}</div>
+        <div class="stat-label">Total Controls</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg">
+      <div class="stat-card">
+        <div class="stat-number">{{stats.inherited}}</div>
+        <div class="stat-label">Inherited</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg">
+      <div class="stat-card">
+        <div class="stat-number">{{stats.evidenceProvided}}</div>
+        <div class="stat-label">Evidence Provided</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg">
+      <div class="stat-card">
+        <div class="stat-number text-success">{{stats.met}}</div>
+        <div class="stat-label">Met</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg">
+      <div class="stat-card">
+        <div class="stat-number" style="color:var(--gc-warning)">{{stats.partiallyMet}}</div>
+        <div class="stat-label">Partially Met</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg">
+      <div class="stat-card">
+        <div class="stat-number text-danger">{{stats.notMet}}</div>
+        <div class="stat-label">Not Met</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg">
+      <div class="stat-card">
+        <div class="stat-number" style="color:#dc3545">{{stats.highRisk}}</div>
+        <div class="stat-label">High Risk (TBS)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Team Assignments Panel -->
+  <div class="card mb-4">
+    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-people me-2"></i><strong>Team</strong></span>
+      {{#if isOwner}}<span class="badge bg-primary">Owner</span>{{else}}<span class="badge bg-info">Assigned</span>{{/if}}
+    </div>
+    <div class="card-body py-3">
+      {{#if assignments.length}}
+      <div class="table-responsive">
+        <table class="table table-sm table-borderless align-middle mb-0">
+          <tbody>
+            {{#each assignments}}
+            <tr>
+              <td style="width:28px"><i class="bi bi-shield-check text-primary"></i></td>
+              <td>
+                <strong>{{this.assignee_name}}</strong>
+                <small class="text-muted d-block">{{this.assignee_email}}{{#if this.assignee_org}} · {{this.assignee_org}}{{/if}}</small>
+              </td>
+              <td class="text-end">
+                {{#if ../isOwner}}
+                <form method="POST" action="/admin/assessments/{{../assessment.id}}/revoke-assignment/{{this.id}}" class="d-inline"
+                  onsubmit="return confirm('Revoke access for {{this.assignee_name}}?')">
+                  <button type="submit" class="btn btn-outline-danger btn-sm" title="Revoke Access"><i class="bi bi-x-lg me-1"></i>Revoke</button>
+                </form>
+                {{else}}
+                <span class="badge bg-success">Active</span>
+                {{/if}}
+              </td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+      {{else}}
+      <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i>No peer assessors assigned.</p>
+      {{/if}}
+
+      {{#if isOwner}}
+        {{#if peerAssessors.length}}
+        <hr class="my-2">
+        <form method="POST" action="/admin/assessments/{{assessment.id}}/assign" class="d-flex gap-2 align-items-end">
+          <div class="flex-grow-1">
+            <label class="form-label small mb-1">Assign Peer Assessor</label>
+            <select class="form-select form-select-sm" name="assignee_id" required>
+              <option value="">Select an assessor...</option>
+              {{#each peerAssessors}}
+              <option value="{{this.id}}">{{this.name}} ({{this.email}})</option>
+              {{/each}}
+            </select>
+          </div>
+          <div>
+            <input type="text" class="form-control form-control-sm" name="notes" placeholder="Notes (optional)" style="width:160px">
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-person-plus me-1"></i>Assign</button>
+        </form>
+        {{else}}
+          {{#unless assignments.length}}
+          <hr class="my-2">
+          <p class="text-muted small mb-0"><a href="/admin/invitations">Invite peer assessors</a> to collaborate on this assessment.</p>
+          {{/unless}}
+        {{/if}}
+      {{/if}}
+    </div>
+  </div>
+
+  {{#if multiFramework}}
+  <!-- Multi-Framework Scope -->
+  <div class="card mb-4 border-primary">
+    <div class="card-body py-2">
+      <div class="d-flex align-items-center mb-2">
+        <i class="bi bi-shield-check text-primary me-2 fs-5"></i>
+        <strong class="small">Frameworks in Scope ({{frameworkSummary.length}})</strong>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        {{#each frameworkSummary}}
+        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-2 py-1" style="font-size:0.8rem">
+          <strong>{{this.name}}</strong>
+          <span class="text-muted ms-1">{{this.country}}</span>
+          <span class="badge bg-primary ms-1" style="font-size:0.65rem">{{this.controlCount}} ctrl</span>
+        </span>
+        {{/each}}
+      </div>
+    </div>
+  </div>
+  {{/if}}
+
+  {{!-- Score Bar (when audit is done or in progress) --}}
+  {{#or stats.met stats.partiallyMet stats.notMet}}
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-2">
+          <span class="fw-semibold">Audit Progress</span>
+          <span class="fw-bold">{{stats.score}}%</span>
+        </div>
+        <div class="progress" style="height:12px">
+          <div class="progress-bar bg-success" style="width:{{percentage stats.met stats.applicable}}%"
+            title="Met: {{stats.met}}"></div>
+          <div class="progress-bar" style="width:{{percentage stats.partiallyMet stats.applicable}}%;background:var(--gc-warning)"
+            title="Partially Met: {{stats.partiallyMet}}"></div>
+          <div class="progress-bar bg-danger" style="width:{{percentage stats.notMet stats.applicable}}%"
+            title="Not Met: {{stats.notMet}}"></div>
+        </div>
+        <div class="d-flex gap-3 mt-2 small">
+          <span><i class="bi bi-circle-fill text-success"></i> Met ({{stats.met}})</span>
+          <span><i class="bi bi-circle-fill" style="color:var(--gc-warning)"></i> Partial ({{stats.partiallyMet}})</span>
+          <span><i class="bi bi-circle-fill text-danger"></i> Not Met ({{stats.notMet}})</span>
+          <span><i class="bi bi-circle-fill text-secondary"></i> Pending ({{stats.pending}})</span>
+        </div>
+      </div>
+    </div>
+  {{/or}}
+
+  {{!-- Complete Audit Form (collapsible) --}}
+  {{#eq assessment.status "audit"}}
+  <div class="collapse mb-4" id="completeAuditForm">
+    <div class="card border-warning">
+      <div class="card-header bg-warning text-dark fw-bold">
+        <i class="bi bi-shield-check me-2"></i>Complete Audit — TBS Authorization Decision
+      </div>
+      <div class="card-body">
+        <form method="POST" action="/admin/assessments/{{assessment.id}}/complete-audit"
+          onsubmit="return confirm('Complete the audit and issue the authorization decision?')" class="mfa-protected" data-mfa-label="Completing audit — ATO determination">
+          <div class="row g-3 mb-3">
+            <div class="col-6 col-md-3">
+              <div class="p-2 rounded text-center" style="background:#fef2f2">
+                <div class="fw-bold text-danger fs-5">{{stats.highRiskNotMet}}</div>
+                <small class="text-muted">High-Risk Findings</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="p-2 rounded text-center" style="background:#f0fdf4">
+                <div class="fw-bold text-success fs-5">{{stats.met}}</div>
+                <small class="text-muted">Controls Met</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="p-2 rounded text-center" style="background:#fffbeb">
+                <div class="fw-bold" style="color:var(--gc-warning)">{{stats.partiallyMet}}</div>
+                <small class="text-muted">Partially Met</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="p-2 rounded text-center" style="background:#fef2f2">
+                <div class="fw-bold text-danger">{{stats.notMet}}</div>
+                <small class="text-muted">Not Met</small>
+              </div>
+            </div>
+          </div>
+          {{#if stats.highRiskNotMet}}
+          <div class="alert alert-danger py-2 small mb-3">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            <strong>TBS Policy:</strong> {{stats.highRiskNotMet}} high-risk control(s) not met. Per TBS Directive on Security Management, full ATO cannot be granted with outstanding high-risk findings. Consider iATO with POA&M.
+          </div>
+          {{/if}}
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-bold">Override Result</label>
+              <select class="form-select form-select-sm" name="overrideResult">
+                <option value="">Auto-calculate (TBS rules)</option>
+                <option value="ato">ATO — Full Authority</option>
+                <option value="iato">iATO — Interim + POA&M</option>
+                <option value="denied">Denied</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold">iATO Expiry Date</label>
+              <input type="date" class="form-control form-control-sm" name="atoExpiryDate">
+              <small class="text-muted">Default: 90 days if iATO</small>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold">POA&M Notes</label>
+              <input type="text" class="form-control form-control-sm" name="poamNotes" placeholder="POA&M context notes...">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Risk Acceptance Statement <span class="text-muted fw-normal">(required for iATO per TBS)</span></label>
+            <textarea class="form-control form-control-sm" name="riskAcceptance" rows="3"
+              placeholder="Document residual risk acceptance rationale per TBS Directive on Security Management..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-success"><i class="bi bi-shield-check me-1"></i>Complete Audit & Issue Decision</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {{/eq}}
+
+  <!-- POA&M Section (replaces basic iATO checklist) -->
+  {{#eq assessment.result "iato"}}
+    <div class="card mb-4" id="poam-section">
+      <div class="card-header d-flex justify-content-between align-items-center" style="background:var(--gc-warning)">
+        <span><i class="bi bi-clipboard2-check me-2"></i><strong>Plan of Action & Milestones (POA&M)</strong></span>
+        <div class="d-flex gap-2">
+          <form method="POST" action="/admin/assessments/{{assessment.id}}/poam/auto-populate" class="d-inline">
+            <button class="btn btn-sm btn-outline-dark" title="Auto-generate from findings">
+              <i class="bi bi-lightning me-1"></i>Auto-Populate
+            </button>
+          </form>
+          <span class="badge bg-dark">{{poamStats.total}} items</span>
+        </div>
+      </div>
+      <div class="card-body">
+        {{#if assessment.risk_acceptance_statement}}
+          <div class="alert alert-info py-2 small mb-3">
+            <i class="bi bi-shield-exclamation me-1"></i><strong>Risk Acceptance:</strong> {{assessment.risk_acceptance_statement}}
+          </div>
+        {{/if}}
+        {{#if assessment.ato_expiry_date}}
+          <div class="d-flex gap-3 small mb-3 flex-wrap">
+            <span><i class="bi bi-calendar-event me-1"></i>Expires: <strong>{{formatDate assessment.ato_expiry_date}}</strong></span>
+            <span class="badge bg-danger">{{poamStats.highCount}} High</span>
+            <span class="badge bg-warning text-dark">{{poamStats.mediumCount}} Medium</span>
+            <span class="badge bg-info">{{poamStats.lowCount}} Low</span>
+            {{#if poamStats.overdue}}<span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>{{poamStats.overdue}} Overdue</span>{{/if}}
+          </div>
+        {{/if}}
+
+        <!-- POA&M Progress -->
+        {{#if poamStats.total}}
+        <div class="progress mb-3" style="height:8px">
+          <div class="progress-bar bg-success" style="width:{{percentage poamStats.verified poamStats.total}}%" title="Verified: {{poamStats.verified}}"></div>
+          <div class="progress-bar" style="width:{{percentage poamStats.completed poamStats.total}}%;background:#17a2b8" title="Completed: {{poamStats.completed}}"></div>
+          <div class="progress-bar" style="width:{{percentage poamStats.inProgress poamStats.total}}%;background:var(--gc-warning)" title="In Progress: {{poamStats.inProgress}}"></div>
+        </div>
+        <div class="d-flex gap-3 small mb-3">
+          <span><i class="bi bi-circle-fill text-secondary"></i> Open ({{poamStats.open}})</span>
+          <span><i class="bi bi-circle-fill" style="color:var(--gc-warning)"></i> In Progress ({{poamStats.inProgress}})</span>
+          <span><i class="bi bi-circle-fill" style="color:#17a2b8"></i> Completed ({{poamStats.completed}})</span>
+          <span><i class="bi bi-circle-fill text-success"></i> Verified ({{poamStats.verified}})</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover table-sm mb-0" style="font-size:.85rem">
+            <thead>
+              <tr>
+                <th style="width:30px">Risk</th>
+                <th>Item</th>
+                <th style="width:70px">Control</th>
+                <th style="width:100px">Deadline</th>
+                <th style="width:100px">Assigned</th>
+                <th style="width:120px">Status</th>
+                <th style="width:60px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each checklistItems}}
+                <tr class="{{#eq this.status 'verified'}}table-success{{/eq}} {{#eq this.status 'completed'}}table-info{{/eq}}">
+                  <td>
+                    {{#eq this.risk_level "high"}}<span class="badge bg-danger">H</span>{{/eq}}
+                    {{#eq this.risk_level "medium"}}<span class="badge bg-warning text-dark">M</span>{{/eq}}
+                    {{#eq this.risk_level "low"}}<span class="badge bg-info">L</span>{{/eq}}
+                  </td>
+                  <td>
+                    <span class="fw-semibold">{{this.description}}</span>
+                    {{#if this.original_finding}}<br><small class="text-muted">Finding: {{this.original_finding}}</small>{{/if}}
+                    {{#if this.remediation_plan}}<br><small class="text-primary">Plan: {{this.remediation_plan}}</small>{{/if}}
+                  </td>
+                  <td><code>{{this.control_id}}</code></td>
+                  <td>
+                    <small>{{formatDate this.deadline}}</small>
+                    {{#if this.deadline}}
+                      {{!-- Highlight overdue --}}
+                    {{/if}}
+                  </td>
+                  <td><small>{{this.assigned_to}}</small></td>
+                  <td>
+                    <form method="POST" action="/admin/assessments/{{../assessment.id}}/poam/{{this.id}}/update" class="d-inline">
+                      <select class="form-select form-select-sm" name="status" onchange="this.form.submit()" style="font-size:.78rem">
+                        <option value="open" {{#eq this.status "open"}}selected{{/eq}}>Open</option>
+                        <option value="in-progress" {{#eq this.status "in-progress"}}selected{{/eq}}>In Progress</option>
+                        <option value="completed" {{#eq this.status "completed"}}selected{{/eq}}>Completed</option>
+                        <option value="verified" {{#eq this.status "verified"}}selected{{/eq}}>Verified</option>
+                      </select>
+                    </form>
+                  </td>
+                  <td>
+                    <form method="POST" action="/admin/assessments/{{../assessment.id}}/poam/{{this.id}}/delete"
+                      onsubmit="return confirm('Remove this POA&M item?')" class="d-inline">
+                      <button class="btn btn-sm btn-outline-danger p-0 px-1" title="Delete"><i class="bi bi-trash"></i></button>
+                    </form>
+                  </td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+        {{else}}
+          <p class="text-muted mb-3">No POA&M items yet. Use "Auto-Populate" to generate from audit findings, or add manually below.</p>
+        {{/if}}
+
+        <!-- Add POA&M Item -->
+        <hr>
+        <h6 class="fw-semibold mb-3"><i class="bi bi-plus-circle me-1"></i>Add POA&M Item</h6>
+        <form method="POST" action="/admin/assessments/{{assessment.id}}/checklist/add" class="">
+          <div class="row g-2 mb-2">
+            <div class="col-md-4">
+              <input type="text" class="form-control form-control-sm" name="description" placeholder="Remediation item description" required>
+            </div>
+            <div class="col-md-2">
+              <select class="form-select form-select-sm" name="control_id">
+                <option value="">Control</option>
+                {{#each controls}}
+                  {{#or (eq this.audit_result "not-met") (eq this.audit_result "partially-met")}}
+                    <option value="{{this.control_id}}">{{this.control_id}}</option>
+                  {{/or}}
+                {{/each}}
+              </select>
+            </div>
+            <div class="col-md-1">
+              <select class="form-select form-select-sm" name="risk_level">
+                <option value="high">High</option>
+                <option value="medium" selected>Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <input type="date" class="form-control form-control-sm" name="deadline" required>
+            </div>
+            <div class="col-md-2">
+              <input type="text" class="form-control form-control-sm" name="assigned_to" placeholder="Assigned to">
+            </div>
+            <div class="col-md-1">
+              <button class="btn btn-sm btn-warning w-100"><i class="bi bi-plus-lg"></i></button>
+            </div>
+          </div>
+          <div class="row g-2">
+            <div class="col-md-6">
+              <input type="text" class="form-control form-control-sm" name="remediation_plan" placeholder="Remediation plan (optional)">
+            </div>
+            <div class="col-md-6">
+              <input type="text" class="form-control form-control-sm" name="milestone" placeholder="Milestone (optional)">
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  {{/eq}}
+
+  <!-- Layout: Controls + Family Nav -->
+  <div class="row">
+    <div class="col-lg-9">
+
+  <!-- Mobile Family Nav -->
+  <div class="d-lg-none family-nav-mobile">
+    {{#each families}}
+      <a href="#family-{{this.code}}" class="family-nav-item" data-family="{{this.code}}">
+        <span class="family-nav-code">{{this.code}}</span>
+        <span class="family-nav-count">{{this.controls.length}}</span>
+      </a>
+    {{/each}}
+  </div>
+
+  <!-- Control Families -->
+  {{#each families}}
+    <div class="form-section" id="family-{{this.code}}">
+      <div class="section-header">
+        <h3 class="section-title">
+          <span class="section-number">{{this.code}}</span>
+          {{this.name}}
+        </h3>
+        <p class="section-description">{{this.controls.length}} control(s)</p>
+      </div>
+
+      {{#each this.controls}}
+        <div class="control-card {{#if this.is_inherited}}inherited{{/if}}" id="control-{{this.id}}">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                {{{controlResultIcon this.audit_result}}}
+                <span class="control-id">{{this.control_id}}</span>
+                <span class="control-title">{{this.title}}</span>
+              </div>
+              {{#if this.is_inherited}}
+                <span class="badge bg-info mb-1"><i class="bi bi-arrow-left-right me-1"></i>Inherited: {{this.inherited_from}}</span>
+              {{/if}}
+              {{#if ../../multiFramework}}
+                <div class="d-flex flex-wrap gap-1 mt-1">
+                  {{#each (parseJson this.frameworks)}}
+                    <span class="badge bg-primary bg-opacity-10 text-primary border" style="font-size:0.65rem">{{this}}</span>
+                  {{/each}}
+                  {{#if this.source_framework}}
+                    {{#neq this.source_framework 'ITSG-33'}}
+                      <span class="badge bg-warning text-dark" style="font-size:0.65rem"><i class="bi bi-plus-circle me-1"></i>{{this.source_framework}}</span>
+                    {{/neq}}
+                  {{/if}}
+                </div>
+              {{/if}}
+            </div>
+            <div class="d-flex gap-1">
+              <span class="badge bg-secondary">{{this.priority}}</span>
+              {{#eq this.risk_level "high"}}<span class="badge bg-danger">High Risk</span>{{/eq}}
+              {{#eq this.risk_level "medium"}}<span class="badge bg-warning text-dark">Med Risk</span>{{/eq}}
+              {{#eq this.risk_level "low"}}<span class="badge bg-info">Low Risk</span>{{/eq}}
+              {{#if this.audit_result}}{{{statusBadge this.audit_result}}}{{/if}}
+            </div>
+          </div>
+
+          {{#if this.tailored_description}}
+            <div class="mt-2 p-2 rounded" style="background:#f8f9fa">
+              <small class="text-muted fw-semibold d-block mb-1">Tailored Description</small>
+              <small>{{this.tailored_description}}</small>
+            </div>
+          {{/if}}
+
+          {{#if this.evidence_guidance}}
+            <div class="mt-2 p-2 rounded" style="background:#fff8e1">
+              <small class="text-muted fw-semibold d-block mb-1"><i class="bi bi-info-circle me-1"></i>Evidence Guidance</small>
+              <small>{{this.evidence_guidance}}</small>
+            </div>
+          {{/if}}
+
+          <!-- AI Evidence Guidance (assessor generates guidance for client) -->
+          <div class="mt-2 d-flex gap-2 align-items-center">
+            <button type="button" class="btn btn-sm text-white" style="background:#8b5cf6; font-size:.78rem;"
+              onclick="aiGenerateGuidance({{this.id}}, '{{this.control_id}}', '{{this.title}}')"
+              id="ai-ev-btn-{{this.id}}">
+              <i class="bi bi-stars me-1"></i>AI Evidence Guidance
+            </button>
+            <div id="ai-ev-status-{{this.id}}" class="small text-muted" style="display:none;"></div>
+          </div>
+          <div id="ai-ev-result-{{this.id}}" style="display:none;" class="mt-2 p-2 rounded border" style="background:#f5f3ff;">
+          </div>
+
+          <!-- Evidence (if provided) -->
+          {{#eq this.evidence_status "provided"}}
+            <div class="mt-2 p-2 rounded border" style="background:#f0fff0">
+              <small class="text-success fw-semibold d-block mb-1"><i class="bi bi-check-circle me-1"></i>Evidence Submitted</small>
+              <div class="small">{{{this.evidence_html}}}</div>
+              {{#if this.evidence_text}}
+                {{#unless this.evidence_html}}
+                  <div class="small">{{this.evidence_text}}</div>
+                {{/unless}}
+              {{/if}}
+            </div>
+          {{/eq}}
+
+          {{!-- Audit controls (only in audit status) --}}
+          {{#eq ../../assessment.status "audit"}}
+            {{#if this.ai_review_result}}
+            <div class="small mt-2 mb-1 px-2">
+              <span class="badge {{#if (eq this.ai_review_result 'met')}}bg-success{{else if (eq this.ai_review_result 'partial')}}bg-warning text-dark{{else}}bg-danger{{/if}} me-1">
+                <i class="bi bi-stars me-1"></i>AI: {{this.ai_review_result}}
+              </span>
+              <span class="text-muted">{{this.ai_review_comments}}</span>
+            </div>
+            {{/if}}
+            <div class="audit-row mt-3 p-2 rounded" style="background:#f5f7fa">
+              <div class="d-flex gap-2 align-items-center flex-wrap">
+                <span class="small fw-semibold text-muted me-2">Audit:</span>
+                <button type="button" class="audit-btn met {{#eq this.audit_result 'met'}}active{{/eq}}"
+                  onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'met', this)" title="Met">
+                  <i class="bi bi-check-lg"></i>
+                </button>
+                <button type="button" class="audit-btn partial {{#eq this.audit_result 'partially-met'}}active{{/eq}}"
+                  onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'partially-met', this)" title="Partially Met">
+                  <i class="bi bi-dash-lg"></i>
+                </button>
+                <button type="button" class="audit-btn not-met {{#eq this.audit_result 'not-met'}}active{{/eq}}"
+                  onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'not-met', this)" title="Not Met">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+                <div class="flex-grow-1 position-relative">
+                  <input type="text" class="form-control form-control-sm pe-5"
+                    id="audit-comment-{{this.id}}" placeholder="Auditor comments..."
+                    value="{{this.audit_comments}}"
+                    onchange="auditControl({{this.id}}, '{{../../assessment.id}}', null, null, this.value)">
+                  <button type="button" class="btn btn-sm position-absolute ai-elaborate-btn" style="top:1px;right:2px;padding:2px 6px;z-index:2" title="AI: Elaborate"
+                    data-target="audit-comment-{{this.id}}">
+                    <i class="bi bi-stars" style="font-size:0.85rem"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          {{/eq}}
+
+          {{!-- Audit comments (after audit) --}}
+          {{#if this.audit_comments}}
+            {{#neq ../../assessment.status "audit"}}
+              <div class="mt-2 p-2 rounded" style="background:#fdf2f8">
+                <small class="fw-semibold d-block mb-1"><i class="bi bi-chat-left-text me-1"></i>Auditor Comments</small>
+                <small>{{this.audit_comments}}</small>
+              </div>
+            {{/neq}}
+          {{/if}}
+
+          <!-- Comment thread toggle -->
+          <div class="mt-2">
+            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0"
+              data-bs-toggle="collapse" data-bs-target="#comments-{{this.id}}">
+              <i class="bi bi-chat-dots me-1"></i>Comments
+            </button>
+          </div>
+          <div class="collapse mt-2" id="comments-{{this.id}}">
+            <div class="comment-thread border rounded p-2" id="thread-{{this.id}}">
+              <div class="text-muted small text-center py-2">Loading comments...</div>
+            </div>
+            <div class="input-group mt-2">
+              <input type="text" class="form-control form-control-sm" id="commentInput-{{this.id}}"
+                placeholder="Add a comment...">
+              <button class="btn btn-sm btn-outline-primary" onclick="addComment({{this.id}}, '{{../../assessment.id}}')">
+                <i class="bi bi-send"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      {{/each}}
+    </div>
+  {{/each}}
+
+    </div><!-- end col-lg-9 -->
+
+    <!-- Family Navigation Sidebar -->
+    <div class="col-lg-3 d-none d-lg-block">
+      <div class="family-nav" id="familyNav">
+        <div class="family-nav-header">
+          <i class="bi bi-list-nested me-1"></i>Control Families
+        </div>
+        <div class="family-nav-filter mb-2">
+          <input type="text" class="form-control form-control-sm" id="familyFilter"
+            placeholder="Filter families..." style="font-size:.75rem;">
+        </div>
+        <div class="family-nav-list" id="familyNavList">
+          {{#each families}}
+            <a href="#family-{{this.code}}" class="family-nav-item" data-family="{{this.code}}" title="{{this.name}}">
+              <span class="family-nav-code">{{this.code}}</span>
+              <span class="family-nav-name">{{this.name}}</span>
+              <span class="family-nav-count">{{this.controls.length}}</span>
+            </a>
+          {{/each}}
+        </div>
+        <div class="family-nav-footer mt-2">
+          <div class="d-flex justify-content-between small text-muted px-1">
+            <span>{{stats.total}} controls</span>
+            <span class="text-success">{{stats.met}} met</span>
+          </div>
+          <div class="progress mt-1" style="height:4px;">
+            <div class="progress-bar bg-success" style="width:{{percentage stats.met stats.applicable}}%"></div>
+            <div class="progress-bar" style="width:{{percentage stats.partiallyMet stats.applicable}}%;background:var(--gc-warning)"></div>
+            <div class="progress-bar bg-danger" style="width:{{percentage stats.notMet stats.applicable}}%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- end row -->
+</div><!-- end container -->
+
+<script>
+async function auditControl(controlId, assessmentId, result, btn, comments) {
+  const payload = {};
+  if (result) {
+    payload.result = result;
+    // Deactivate siblings, activate this
+    if (btn) {
+      btn.closest('.audit-row').querySelectorAll('.audit-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+  }
+  const commentEl = document.getElementById('audit-comment-' + controlId);
+  payload.comments = comments || (commentEl ? commentEl.value : '');
+  if (result) payload.result = result;
+
+  try {
+    await fetch('/admin/assessments/' + assessmentId + '/audit-control/' + controlId, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) { console.error(e); }
+}
+
+async function loadComments(controlId) {
+  try {
+    const res = await fetch('/api/comments/' + controlId);
+    const data = await res.json();
+    const thread = document.getElementById('thread-' + controlId);
+    if (data.comments && data.comments.length) {
+      thread.innerHTML = data.comments.map(c =>
+        '<div class="comment-item">' +
+        '<span class="comment-author">' + c.user_name + '</span> ' +
+        '<span class="comment-time">' + new Date(c.created_at).toLocaleString() + '</span>' +
+        '<div>' + c.content + '</div></div>'
+      ).join('');
+    } else {
+      thread.innerHTML = '<div class="text-muted small text-center py-2">No comments yet</div>';
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function addComment(controlId, assessmentId) {
+  const input = document.getElementById('commentInput-' + controlId);
+  if (!input.value.trim()) return;
+  try {
+    await fetch('/api/comments/' + controlId, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: input.value, user_name: '{{admin.name}}', user_role: 'assessor' })
+    });
+    input.value = '';
+    loadComments(controlId);
+  } catch(e) { console.error(e); }
+}
+
+// Load comments when expanded
+document.querySelectorAll('[id^="comments-"]').forEach(el => {
+  el.addEventListener('show.bs.collapse', () => {
+    const controlId = el.id.replace('comments-', '');
+    loadComments(controlId);
+  });
+});
+</script>
+
+{{> ai-panel }}
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// AI EVIDENCE NARRATIVE GENERATION
+// ═══════════════════════════════════════════════════════════════════════════════
+const PROJECT_CONTEXT = {{{projectContextJSON}}};
+const ASSESSMENT_ID = '{{assessment.id}}';
+
+// ── Single control evidence GUIDANCE generation (assessor generates for client) ──
+async function aiGenerateGuidance(controlDbId, controlId, title) {
+  const btn = document.getElementById('ai-ev-btn-' + controlDbId);
+  const statusEl = document.getElementById('ai-ev-status-' + controlDbId);
+  const resultEl = document.getElementById('ai-ev-result-' + controlDbId);
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Generating...';
+  statusEl.style.display = 'inline';
+  statusEl.textContent = 'AI is drafting evidence guidance for the client...';
+
+  try {
+    const resp = await fetch('/api/ai/evidence-guidance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        controlId, controlTitle: title,
+        controlDescription: title,
+        projectContext: PROJECT_CONTEXT
+      })
+    });
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error || 'Failed');
+
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = `
+      <div style="background:#f5f3ff; border:1px solid #e9d5ff; border-radius:8px; padding:12px;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <small class="fw-semibold" style="color:#6d28d9;"><i class="bi bi-stars me-1"></i>AI-Generated Evidence Guidance</small>
+          <div class="d-flex gap-1">
+            <button class="btn btn-sm btn-outline-success" style="font-size:.75rem;" onclick="aiSaveGuidance(${controlDbId})">
+              <i class="bi bi-check-lg me-1"></i>Save to Control
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" style="font-size:.75rem;" onclick="aiCopyNarrative(this, ${controlDbId})">
+              <i class="bi bi-clipboard me-1"></i>Copy
+            </button>
+          </div>
+        </div>
+        <div class="small" style="white-space:pre-wrap; line-height:1.6;" id="ai-narrative-text-${controlDbId}">${data.guidance}</div>
+        <small class="text-muted d-block mt-2"><i class="bi bi-info-circle me-1"></i>This guidance will be shown to the client in their evidence submission portal.</small>
+      </div>`;
+
+    statusEl.textContent = 'Guidance ready — click "Save to Control" to attach it.';
+    statusEl.style.color = '#16a34a';
+    btn.innerHTML = '<i class="bi bi-stars me-1"></i>Regenerate Guidance';
+    btn.disabled = false;
+  } catch (err) {
+    statusEl.textContent = 'Error: ' + err.message;
+    statusEl.style.color = '#dc3545';
+    btn.innerHTML = '<i class="bi bi-stars me-1"></i>Retry';
+    btn.disabled = false;
+  }
+}
+
+// ── Save AI guidance to the control's evidence_guidance field ──
+async function aiSaveGuidance(controlDbId) {
+  const text = document.getElementById('ai-narrative-text-' + controlDbId).textContent;
+  try {
+    const resp = await fetch('/api/ai/save-guidance/' + controlDbId, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guidance: text })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      const statusEl = document.getElementById('ai-ev-status-' + controlDbId);
+      statusEl.textContent = '✓ Guidance saved — client will see it in their portal.';
+      statusEl.style.color = '#16a34a';
+      // Update the guidance display on page if it exists
+      const card = document.getElementById('control-' + controlDbId) || document.getElementById('ai-ev-btn-' + controlDbId)?.closest('.control-card');
+      if (card) {
+        let guidanceEl = card.querySelector('[style*="fff8e1"]');
+        if (guidanceEl) {
+          guidanceEl.querySelector('small:last-child').textContent = text;
+        } else {
+          const newEl = document.createElement('div');
+          newEl.className = 'mt-2 p-2 rounded';
+          newEl.style.background = '#fff8e1';
+          newEl.innerHTML = '<small class="text-muted fw-semibold d-block mb-1"><i class="bi bi-lightbulb me-1"></i>Evidence Guidance</small><small>' + text + '</small>';
+          const aiSection = document.getElementById('ai-ev-result-' + controlDbId);
+          if (aiSection) aiSection.parentNode.insertBefore(newEl, aiSection);
+        }
+      }
+    }
+  } catch(e) { console.error(e); }
+}
+
+// ── Copy narrative to clipboard ──────────────────────────────────────────────
+function aiCopyNarrative(btn, controlDbId) {
+  const text = document.getElementById('ai-narrative-text-' + controlDbId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Copied!';
+    setTimeout(() => { btn.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy'; }, 2000);
+  });
+}
+
+// ── Bulk evidence guidance generation (via AI FAB) ────────────────────────────
+async function aiBulkEvidence() {
+  AIPanel.open({ title: 'Bulk Evidence Guidance', subtitle: 'Generate guidance for multiple controls' });
+  AIPanel.showLoading('Preparing controls list...');
+
+  const controlEls = document.querySelectorAll('[id^="ai-ev-btn-"]');
+  const totalControls = controlEls.length;
+
+  let html = `
+    <div class="ai-section">
+      <div class="ai-section-title">Bulk Evidence Guidance Generator</div>
+      <div class="small mb-3">Generate AI evidence guidance for controls. This tells clients <strong>what to provide</strong> — the guidance appears in their evidence submission portal.</div>
+      <div class="p-3 rounded" style="background:#f5f3ff; border:1px solid #e9d5ff;">
+        <div class="fw-bold small mb-1">${totalControls} controls available</div>
+        <div class="small text-muted">Each control takes ~3-5 seconds. Guidance will appear inline next to each control.</div>
+      </div>
+    </div>
+    <div class="ai-section mt-3">
+      <div class="ai-section-title">Select Batch Size</div>
+      <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-sm btn-outline-primary" onclick="aiRunBulk(5)">First 5 controls</button>
+        <button class="btn btn-sm btn-outline-primary" onclick="aiRunBulk(10)">First 10 controls</button>
+        <button class="btn btn-sm btn-outline-primary" onclick="aiRunBulk(20)">First 20 controls</button>
+      </div>
+    </div>
+    <div id="ai-bulk-progress" class="mt-3" style="display:none;"></div>`;
+
+  AIPanel.open({
+    title: 'Bulk Evidence Guidance',
+    subtitle: totalControls + ' controls in assessment',
+    body: html,
+    footer: `<button class="btn btn-sm btn-outline-secondary w-100" onclick="AIPanel.close()">Close</button>`
+  });
+}
+
+async function aiRunBulk(count) {
+  const progressEl = document.getElementById('ai-bulk-progress');
+  progressEl.style.display = 'block';
+  progressEl.innerHTML = '<div class="small"><i class="bi bi-hourglass-split me-1"></i>Starting...</div>';
+
+  const btns = Array.from(document.querySelectorAll('[id^="ai-ev-btn-"]')).slice(0, count);
+
+  for (let i = 0; i < btns.length; i++) {
+    progressEl.innerHTML = `
+      <div class="small mb-1"><i class="bi bi-hourglass-split me-1"></i>Generating ${i + 1} of ${btns.length}...</div>
+      <div class="progress" style="height:6px;">
+        <div class="progress-bar" style="width:${((i + 1) / btns.length * 100).toFixed(0)}%; background:#8b5cf6;"></div>
+      </div>`;
+
+    // Trigger the individual generate function
+    btns[i].click();
+    // Wait for completion
+    await new Promise(resolve => setTimeout(resolve, 6000));
+  }
+
+  progressEl.innerHTML = `
+    <div class="small text-success"><i class="bi bi-check-circle me-1"></i>Generated ${btns.length} evidence guidance items. Review each one and click "Save to Control" to attach.</div>`;
+}
+
+// Override AI FAB button to open bulk evidence generator
+document.addEventListener('DOMContentLoaded', function() {
+  var fab = document.getElementById('aiTriggerBtn');
+  if (fab) {
+    fab.onclick = function(e) {
+      e.preventDefault();
+      aiBulkEvidence();
+    };
+    fab.title = 'AI: Generate Evidence Guidance for Client';
+  }
+
+  // ── Family Nav: scroll spy + filter ──
+  const familySections = document.querySelectorAll('[id^="family-"]');
+  const navItems = document.querySelectorAll('.family-nav-item');
+  const filterInput = document.getElementById('familyFilter');
+
+  // Scroll spy
+  if (familySections.length && navItems.length) {
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          navItems.forEach(item => {
+            item.classList.toggle('active', item.getAttribute('href') === '#' + id);
+          });
+        }
+      });
+    }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+
+    familySections.forEach(sec => observer.observe(sec));
+
+    // Smooth scroll
+    navItems.forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Offset for fixed header
+          setTimeout(() => window.scrollBy(0, -80), 300);
+        }
+      });
+    });
+  }
+
+  // Family filter
+  if (filterInput) {
+    filterInput.addEventListener('input', function() {
+      const q = this.value.toLowerCase();
+      navItems.forEach(item => {
+        const code = item.dataset.family || '';
+        const name = item.querySelector('.family-nav-name')?.textContent || '';
+        item.style.display = (code.toLowerCase().includes(q) || name.toLowerCase().includes(q)) ? '' : 'none';
+      });
+    });
+  }
+});
+</script>
+
+<script>
+// AI Evidence Pre-Review
+document.addEventListener('DOMContentLoaded', function() {
+  const aiBtn = document.getElementById('aiReviewBtn');
+  if (aiBtn) {
+    aiBtn.addEventListener('click', async function() {
+      const assessmentId = this.dataset.assessmentId;
+      const origHTML = this.innerHTML;
+      this.disabled = true;
+      this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>AI Reviewing Evidence...';
+
+      try {
+        const resp = await fetch('/api/ai/review-evidence/' + assessmentId, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await resp.json();
+
+        if (data.success && data.reviews) {
+          // Auto-populate audit results from AI review
+          let populated = 0;
+          data.reviews.forEach(r => {
+            // Map AI result to audit result
+            let auditResult = null;
+            if (r.result === 'met') auditResult = 'met';
+            else if (r.result === 'partial') auditResult = 'partially-met';
+            else if (r.result === 'not-met') auditResult = 'not-met';
+
+            if (auditResult) {
+              // Find the audit buttons for this control and click the right one
+              const commentInput = document.getElementById('audit-comment-' + r.controlDbId);
+              if (commentInput) {
+                // Set comment
+                commentInput.value = '[AI] ' + (r.comments || '');
+                // Trigger the audit API call
+                auditControl(r.controlDbId, assessmentId, auditResult, null, commentInput.value);
+                // Highlight the active button
+                const row = commentInput.closest('.audit-row');
+                if (row) {
+                  row.querySelectorAll('.audit-btn').forEach(b => b.classList.remove('active'));
+                  if (auditResult === 'met') row.querySelector('.audit-btn.met')?.classList.add('active');
+                  else if (auditResult === 'partially-met') row.querySelector('.audit-btn.partial')?.classList.add('active');
+                  else if (auditResult === 'not-met') row.querySelector('.audit-btn.not-met')?.classList.add('active');
+                }
+                populated++;
+              }
+            }
+          });
+
+          this.className = 'btn btn-success me-1';
+          this.innerHTML = '<i class="bi bi-check-circle me-1"></i>AI Reviewed ' + populated + '/' + data.total + ' Controls';
+          setTimeout(() => {
+            this.className = 'btn btn-info me-1 btn-sm';
+            this.innerHTML = origHTML;
+            this.disabled = false;
+          }, 5000);
+        } else {
+          alert(data.error || 'AI review failed.');
+          this.innerHTML = origHTML; this.disabled = false;
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+        this.innerHTML = origHTML; this.disabled = false;
+      }
+    });
+  }
+});
+</script><style>
+/* Family Navigation Sidebar */
+.family-nav {
+  position: sticky;
+  top: 80px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: .82rem;
+}
+.family-nav::-webkit-scrollbar { width: 4px; }
+.family-nav::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+.family-nav-header {
+  font-weight: 700;
+  font-size: .85rem;
+  color: var(--gc-nav, #333);
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--gc-red, #af3c43);
+  margin-bottom: 8px;
+}
+.family-nav-list {
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+}
+.family-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #333;
+  font-size: .78rem;
+  transition: all .15s;
+  border-left: 3px solid transparent;
+}
+.family-nav-item:hover {
+  background: #f0f4f8;
+  color: var(--gc-link, #2b4380);
+}
+.family-nav-item.active {
+  background: #e8f0fe;
+  border-left-color: var(--gc-link, #2b4380);
+  font-weight: 600;
+  color: var(--gc-link, #2b4380);
+}
+.family-nav-code {
+  font-family: monospace;
+  font-weight: 700;
+  font-size: .75rem;
+  min-width: 28px;
+  color: #555;
+}
+.family-nav-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.family-nav-count {
+  font-size: .7rem;
+  background: #e9ecef;
+  border-radius: 10px;
+  padding: 1px 6px;
+  color: #666;
+  min-width: 20px;
+  text-align: center;
+}
+.family-nav-item.active .family-nav-count {
+  background: var(--gc-link, #2b4380);
+  color: white;
+}
+.family-nav-footer {
+  border-top: 1px solid #dee2e6;
+  padding-top: 8px;
+}
+/* Mobile: show as horizontal strip */
+@media (max-width: 991.98px) {
+  .family-nav-mobile {
+    display: flex;
+    overflow-x: auto;
+    gap: 4px;
+    padding: 8px 0;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #dee2e6;
+  }
+  .family-nav-mobile .family-nav-item {
+    white-space: nowrap;
+    flex-shrink: 0;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+  }
+  .family-nav-mobile .family-nav-item.active {
+    border-bottom-color: var(--gc-link, #2b4380);
+    border-left: none;
+  }
+}
+</style>

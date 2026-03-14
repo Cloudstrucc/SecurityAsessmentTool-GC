@@ -124,9 +124,9 @@
     <div class="prov-header">
       <div class="logo">
         <span class="logo-icon"><i class="bi bi-shield-lock-fill"></i></span>
-        <span class="logo-text">Vanguard Cloud Services Inc.</span>
+        <span class="logo-text">{{t 'provision_status.span.vanguard_cloud_services_inc'}}</span>
       </div>
-      <h2 id="headerTitle">{{t 'provision_status.title.deploying_your_instance'}}</h2>
+      <h2 id="headerTitle">{{t 'provision_status.h2.deploying_your_instance'}}</h2>
       <p id="headerSub">Setting up a dedicated Azure environment for <strong>{{orgName}}</strong></p>
     </div>
 
@@ -137,7 +137,7 @@
       <div class="prov-progress-wrap">
         <div class="prov-progress-header">
           <span class="pct" id="pctText">0%</span>
-          <span class="step-label" id="stepLabel">Initializing...</span>
+          <span class="step-label" id="stepLabel">{{t 'provision_status.span.initializing'}}</span>
         </div>
         <div class="prov-bar-bg">
           <div class="prov-bar" id="progressBar" style="width:0%"></div>
@@ -148,65 +148,64 @@
       <div class="prov-steps" id="stepsTimeline">
         <div class="prov-step" data-threshold="5">
           <span class="prov-step-icon pending" id="stepIcon0"><i class="bi bi-check-lg"></i></span>
-          <span class="prov-step-text muted" id="stepText0">Validating Azure credentials</span>
+          <span class="prov-step-text muted" id="stepText0">{{t 'provision_status.span.validating_azure_credentials'}}</span>
         </div>
         <div class="prov-step" data-threshold="15">
           <span class="prov-step-icon pending" id="stepIcon1"><i class="bi bi-check-lg"></i></span>
-          <span class="prov-step-text muted" id="stepText1">Creating resource group</span>
+          <span class="prov-step-text muted" id="stepText1">{{t 'provision_status.span.creating_resource_group'}}</span>
         </div>
         <div class="prov-step" data-threshold="25">
           <span class="prov-step-icon pending" id="stepIcon2"><i class="bi bi-check-lg"></i></span>
-          <span class="prov-step-text muted" id="stepText2">Creating App Service plan</span>
+          <span class="prov-step-text muted" id="stepText2">{{t 'provision_status.span.creating_app_service_plan'}}</span>
         </div>
         <div class="prov-step" data-threshold="40">
           <span class="prov-step-icon pending" id="stepIcon3"><i class="bi bi-check-lg"></i></span>
-          <span class="prov-step-text muted" id="stepText3">Creating web application</span>
+          <span class="prov-step-text muted" id="stepText3">{{t 'provision_status.span.creating_web_application'}}</span>
         </div>
         <div class="prov-step" data-threshold="55">
           <span class="prov-step-icon pending" id="stepIcon4"><i class="bi bi-check-lg"></i></span>
-          <span class="prov-step-text muted" id="stepText4">Configuring environment &amp; credentials</span>
+          <span class="prov-step-text muted" id="stepText4">{{t 'provision_status.span.configuring_environment_amp_credentials'}}</span>
         </div>
         <div class="prov-step" data-threshold="75">
           <span class="prov-step-icon pending" id="stepIcon5"><i class="bi bi-check-lg"></i></span>
-          <span class="prov-step-text muted" id="stepText5">Deploying application code</span>
+          <span class="prov-step-text muted" id="stepText5">{{t 'provision_status.span.deploying_application_code'}}</span>
         </div>
         <div class="prov-step" data-threshold="90">
           <span class="prov-step-icon pending" id="stepIcon6"><i class="bi bi-check-lg"></i></span>
-          <span class="prov-step-text muted" id="stepText6">Health check &amp; finalization</span>
+          <span class="prov-step-text muted" id="stepText6">{{t 'provision_status.span.health_check_amp_finalization'}}</span>
         </div>
       </div>
 
       <!-- Instance info (shown on complete) -->
       <div class="prov-instance" id="instanceCard">
         <div class="inst-row">
-          <span class="inst-label">Instance URL</span>
+          <span class="inst-label">{{t 'provision_status.span.instance_url'}}</span>
           <span class="inst-value"><code id="instanceUrlText">—</code></span>
         </div>
         <div class="inst-row">
-          <span class="inst-label">Login Email</span>
+          <span class="inst-label">{{t 'provision_status.span.login_email'}}</span>
           <span class="inst-value" id="instanceEmail">{{adminEmail}}</span>
         </div>
         <div class="inst-row">
-          <span class="inst-label">Role</span>
-          <span class="inst-value">Security Assessor (Admin)</span>
+          <span class="inst-label">{{t 'provision_status.span.role'}}</span>
+          <span class="inst-value">{{t 'provision_status.span.security_assessor_admin'}}</span>
         </div>
         <div class="inst-row">
-          <span class="inst-label">Plan</span>
+          <span class="inst-label">{{t 'provision_status.span.plan'}}</span>
           <span class="inst-value"><span style="color:#38bdf8">Trial</span> — 14 days</span>
         </div>
       </div>
 
       <!-- Launch button -->
       <a href="#" class="prov-launch" id="launchBtn" target="_blank">
-        <i class="bi bi-box-arrow-up-right"></i>Launch Your SA&A Platform
-      </a>
+        <i class="bi bi-box-arrow-up-right"></i>{{t 'provision_status.link.launch_your_saa_platform'}}</a>
 
       <!-- Error state -->
       <div class="prov-error" id="errorCard">
         <i class="bi bi-exclamation-triangle-fill"></i>
-        <strong>Provisioning failed</strong>
+        <strong>{{t 'provision_status.strong.provisioning_failed'}}</strong>
         <p id="errorText" style="margin:.5rem 0 0;font-size:.8rem;color:#b91c1c"></p>
-        <a href="/product-signup" class="btn btn-outline-danger btn-sm mt-2"><i class="bi bi-arrow-clockwise me-1"></i>Try Again</a>
+        <a href="/product-signup" class="btn btn-outline-danger btn-sm mt-2"><i class="bi bi-arrow-clockwise me-1"></i>{{t 'provision_status.link.try_again'}}</a>
       </div>
 
       <!-- Idle hint -->

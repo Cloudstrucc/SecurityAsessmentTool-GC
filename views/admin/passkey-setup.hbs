@@ -3,15 +3,15 @@
     <div class="col-12">
       <div class="text-center mb-4">
         <i class="bi bi-person-bounding-box" style="font-size:3rem;color:var(--gc-nav)"></i>
-        <h2 class="mt-2" style="color:var(--gc-nav)">{{t 'admin.passkey_setup.title.register_a_passkey'}}</h2>
-        <p class="text-muted">Use Face ID, Touch ID, or Windows Hello for faster sign-in and action verification.</p>
+        <h2 class="mt-2" style="color:var(--gc-nav)">{{t 'admin.passkey_setup.h2.register_a_passkey'}}</h2>
+        <p class="text-muted">{{t 'admin.passkey_setup.p.use_face_id_touch_id'}}</p>
       </div>
 
       <div class="card">
         <div class="card-body p-4">
           {{#if hasWebAuthn}}
             <div class="alert alert-success small mb-3">
-              <i class="bi bi-check-circle me-1"></i><strong>Passkey registered.</strong> You can re-register to update it.
+              <i class="bi bi-check-circle me-1"></i><strong>{{t 'admin.passkey_setup.strong.passkey_registered'}}</strong> You can re-register to update it.
             </div>
           {{/if}}
 
@@ -25,14 +25,12 @@
           </div>
 
           <button class="btn btn-primary w-100 py-2 mb-3" id="registerPasskeyBtn">
-            <i class="bi bi-person-bounding-box me-1"></i>Register Passkey
-          </button>
+            <i class="bi bi-person-bounding-box me-1"></i>{{t 'admin.passkey_setup.btn.register_passkey'}}</button>
 
           <div id="passkeyStatus" class="small d-none mb-3"></div>
 
           <a href="/admin/dashboard" class="btn btn-outline-secondary w-100" id="skipBtn">
-            <i class="bi bi-arrow-right me-1"></i>Skip — Use TOTP Only
-          </a>
+            <i class="bi bi-arrow-right me-1"></i>{{t 'admin.passkey_setup.link.skip_use_totp_only'}}</a>
         </div>
       </div>
     </div>

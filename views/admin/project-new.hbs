@@ -4,8 +4,8 @@
   <div class="d-flex align-items-center mb-4">
     <a href="/admin/projects" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
     <div>
-      <h1 class="mb-0">{{t 'admin.project_new.title.new_project'}}</h1>
-      <p class="text-muted mb-0">Create a security assessment project using the guided wizard</p>
+      <h1 class="mb-0">{{t 'admin.project_new.h1.new_project'}}</h1>
+      <p class="text-muted mb-0">{{t 'admin.project_new.p.create_a_security_assessment_project'}}</p>
     </div>
   </div>
 
@@ -28,14 +28,13 @@
     <div class="card border-primary mb-4">
       <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
         <strong><i class="bi bi-globe me-2"></i>Step 1 of 3 — Where Does This Application Operate?</strong>
-        <span class="badge bg-light text-primary">Optional</span>
+        <span class="badge bg-light text-primary">{{t 'admin.project_new.span.optional'}}</span>
       </div>
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start mb-3">
-          <p class="text-muted mb-0">Select all regions and jurisdictions where this application will be deployed, store data, or serve users. This determines which security frameworks and compliance requirements apply.</p>
+          <p class="text-muted mb-0">{{t 'admin.project_new.p.select_all_regions_and_jurisdictions'}}</p>
           <button class="btn btn-outline-success btn-sm ms-3 text-nowrap" id="skipToStep3FromTop1" type="button">
-            <i class="bi bi-skip-end me-1"></i>Skip to Client Assignment
-          </button>
+            <i class="bi bi-skip-end me-1"></i>{{t 'admin.project_new.btn.skip_to_client_assignment'}}</button>
         </div>
         <div class="row g-4">
           <!-- North America -->
@@ -45,27 +44,27 @@
               <div class="card-body py-2">
                 <div class="form-check mb-1">
                   <input class="form-check-input region-check" type="checkbox" value="canada" id="reg-canada" data-frameworks="ITSG-33,CCCS-MEDIUM" data-label="Canada (Federal)">
-                  <label class="form-check-label" for="reg-canada"><strong>Canada (Federal)</strong> <small class="text-muted">— ITSG-33</small></label>
+                  <label class="form-check-label" for="reg-canada"><strong>{{t 'admin.project_new.strong.canada_federal'}}</strong> <small class="text-muted">{{t 'admin.project_new.small.itsg33'}}</small></label>
                 </div>
                 <div class="form-check mb-1 ms-4">
                   <input class="form-check-input region-check" type="checkbox" value="canada-finance" id="reg-canada-fin" data-frameworks="OSFI-B13" data-label="Canada (Financial)">
-                  <label class="form-check-label" for="reg-canada-fin"><strong>Canada (Financial)</strong> <small class="text-muted">— OSFI B-13</small></label>
+                  <label class="form-check-label" for="reg-canada-fin"><strong>{{t 'admin.project_new.strong.canada_financial'}}</strong> <small class="text-muted">{{t 'admin.project_new.small.osfi_b13'}}</small></label>
                 </div>
                 <div class="form-check mb-1">
                   <input class="form-check-input region-check" type="checkbox" value="usa" id="reg-usa" data-frameworks="NIST-800-53,FEDRAMP" data-label="United States">
-                  <label class="form-check-label" for="reg-usa"><strong>United States</strong> <small class="text-muted">— NIST 800-53</small></label>
+                  <label class="form-check-label" for="reg-usa"><strong>{{t 'admin.project_new.strong.united_states'}}</strong> <small class="text-muted">{{t 'admin.project_new.small.nist_80053'}}</small></label>
                 </div>
                 <div class="form-check mb-1 ms-4">
                   <input class="form-check-input region-check" type="checkbox" value="usa-defense" id="reg-usa-def" data-frameworks="CMMC" data-label="US Defense">
-                  <label class="form-check-label" for="reg-usa-def"><strong>US Defense</strong> <small class="text-muted">— CMMC</small></label>
+                  <label class="form-check-label" for="reg-usa-def"><strong>{{t 'admin.project_new.strong.us_defense'}}</strong> <small class="text-muted">{{t 'admin.project_new.small.cmmc'}}</small></label>
                 </div>
                 <div class="form-check mb-1 ms-4">
                   <input class="form-check-input region-check" type="checkbox" value="usa-state" id="reg-usa-state" data-frameworks="STATERAMP" data-label="US State/Local">
-                  <label class="form-check-label" for="reg-usa-state"><strong>US State/Local</strong> <small class="text-muted">— StateRAMP</small></label>
+                  <label class="form-check-label" for="reg-usa-state"><strong>{{t 'admin.project_new.strong.us_statelocal'}}</strong> <small class="text-muted">{{t 'admin.project_new.small.stateramp'}}</small></label>
                 </div>
                 <div class="form-check mb-1 ms-4">
                   <input class="form-check-input region-check" type="checkbox" value="usa-finance" id="reg-usa-fin" data-frameworks="NYDFS-500" data-label="US Financial">
-                  <label class="form-check-label" for="reg-usa-fin"><strong>US Financial</strong> <small class="text-muted">— NYDFS 500</small></label>
+                  <label class="form-check-label" for="reg-usa-fin"><strong>{{t 'admin.project_new.strong.us_financial'}}</strong> <small class="text-muted">{{t 'admin.project_new.small.nydfs_500'}}</small></label>
                 </div>
               </div>
             </div>
@@ -77,27 +76,27 @@
               <div class="card-body py-2">
                 <div class="form-check mb-1">
                   <input class="form-check-input region-check" type="checkbox" value="eu" id="reg-eu" data-frameworks="NIS2" data-label="European Union">
-                  <label class="form-check-label" for="reg-eu"><strong>European Union</strong> <small class="text-muted">— NIS2 / GDPR</small></label>
+                  <label class="form-check-label" for="reg-eu"><strong>{{t 'admin.project_new.strong.european_union'}}</strong> <small class="text-muted">{{t 'admin.project_new.small.nis2_gdpr'}}</small></label>
                 </div>
                 <div class="form-check mb-1 ms-4">
                   <input class="form-check-input region-check" type="checkbox" value="eu-finance" id="reg-eu-fin" data-frameworks="DORA" data-label="EU Financial">
-                  <label class="form-check-label" for="reg-eu-fin"><strong>EU Financial</strong> <small class="text-muted">— DORA</small></label>
+                  <label class="form-check-label" for="reg-eu-fin"><strong>{{t 'admin.project_new.strong.eu_financial'}}</strong> <small class="text-muted">{{t 'admin.project_new.small.dora'}}</small></label>
                 </div>
                 <div class="form-check mb-1 ms-4">
                   <input class="form-check-input region-check" type="checkbox" value="germany" id="reg-germany" data-frameworks="BSI-GRUNDSCHUTZ" data-label="Germany">
-                  <label class="form-check-label" for="reg-germany"><strong>Germany</strong> <small class="text-muted">— BSI IT-Grundschutz</small></label>
+                  <label class="form-check-label" for="reg-germany"><strong>{{t 'admin.project_new.strong.germany'}}</strong> <small class="text-muted">{{t 'admin.project_new.small.bsi_itgrundschutz'}}</small></label>
                 </div>
                 <div class="form-check mb-1 ms-4">
                   <input class="form-check-input region-check" type="checkbox" value="france" id="reg-france" data-frameworks="ANSSI-RGS" data-label="France">
-                  <label class="form-check-label" for="reg-france"><strong>France</strong> <small class="text-muted">— ANSSI RGS</small></label>
+                  <label class="form-check-label" for="reg-france"><strong>{{t 'admin.project_new.strong.france'}}</strong> <small class="text-muted">{{t 'admin.project_new.small.anssi_rgs'}}</small></label>
                 </div>
                 <div class="form-check mb-1 ms-4">
                   <input class="form-check-input region-check" type="checkbox" value="uk" id="reg-uk" data-frameworks="NCSC-CAF" data-label="United Kingdom">
-                  <label class="form-check-label" for="reg-uk"><strong>United Kingdom</strong> <small class="text-muted">— NCSC CAF</small></label>
+                  <label class="form-check-label" for="reg-uk"><strong>{{t 'admin.project_new.strong.united_kingdom'}}</strong> <small class="text-muted">{{t 'admin.project_new.small.ncsc_caf'}}</small></label>
                 </div>
                 <div class="form-check mb-1 ms-4">
                   <input class="form-check-input region-check" type="checkbox" value="spain" id="reg-spain" data-frameworks="ENS" data-label="Spain">
-                  <label class="form-check-label" for="reg-spain"><strong>Spain</strong> <small class="text-muted">— ENS</small></label>
+                  <label class="form-check-label" for="reg-spain"><strong>{{t 'admin.project_new.strong.spain'}}</strong> <small class="text-muted">{{t 'admin.project_new.small.ens'}}</small></label>
                 </div>
               </div>
             </div>
@@ -109,11 +108,11 @@
               <div class="card-body py-2">
                 <div class="form-check mb-1">
                   <input class="form-check-input region-check" type="checkbox" value="australia" id="reg-australia" data-frameworks="ASD-ISM,ASD-E8" data-label="Australia">
-                  <label class="form-check-label" for="reg-australia"><strong>Australia</strong> <small class="text-muted">— ASD ISM / Essential Eight</small></label>
+                  <label class="form-check-label" for="reg-australia"><strong>{{t 'admin.project_new.strong.australia'}}</strong> <small class="text-muted">{{t 'admin.project_new.small.asd_ism_essential_eight'}}</small></label>
                 </div>
                 <div class="form-check mb-1 ms-4">
                   <input class="form-check-input region-check" type="checkbox" value="australia-finance" id="reg-au-fin" data-frameworks="APRA-CPS234" data-label="Australia Financial">
-                  <label class="form-check-label" for="reg-au-fin"><strong>Australia Financial</strong> <small class="text-muted">— APRA CPS 234</small></label>
+                  <label class="form-check-label" for="reg-au-fin"><strong>{{t 'admin.project_new.strong.australia_financial'}}</strong> <small class="text-muted">{{t 'admin.project_new.small.apra_cps_234'}}</small></label>
                 </div>
               </div>
             </div>
@@ -125,20 +124,20 @@
               <div class="card-body py-2">
                 <div class="form-check mb-1">
                   <input class="form-check-input region-check" type="checkbox" value="global" id="reg-global" data-frameworks="ISO-27001" data-label="Global">
-                  <label class="form-check-label" for="reg-global"><strong>Global</strong> <small class="text-muted">— ISO 27001</small></label>
+                  <label class="form-check-label" for="reg-global"><strong>{{t 'admin.project_new.strong.global'}}</strong> <small class="text-muted">{{t 'admin.project_new.small.iso_27001'}}</small></label>
                 </div>
                 <div class="form-check mb-1">
                   <input class="form-check-input region-check" type="checkbox" value="soc2" id="reg-soc2" data-frameworks="SOC2" data-label="SOC 2">
-                  <label class="form-check-label" for="reg-soc2"><strong>SOC 2</strong> <small class="text-muted">— Trust Service Criteria</small></label>
+                  <label class="form-check-label" for="reg-soc2"><strong>SOC 2</strong> <small class="text-muted">{{t 'admin.project_new.small.trust_service_criteria'}}</small></label>
                 </div>
                 <div class="form-check mb-1">
                   <input class="form-check-input region-check" type="checkbox" value="pci" id="reg-pci" data-frameworks="PCI-DSS" data-label="PCI DSS">
-                  <label class="form-check-label" for="reg-pci"><strong>PCI DSS</strong> <small class="text-muted">— Payment Card Security</small></label>
+                  <label class="form-check-label" for="reg-pci"><strong>PCI DSS</strong> <small class="text-muted">{{t 'admin.project_new.small.payment_card_security'}}</small></label>
                 </div>
                 <div class="form-check mb-1">
                   <input class="form-check-input region-check" type="checkbox" value="cis" id="reg-cis" data-frameworks="CIS-CONTROLS" data-label="CIS Controls">
                   <label class="form-check-label" for="reg-cis">
-                    <strong>CIS Controls</strong> <small class="text-muted">— v8.1 (Municipal / General)</small>
+                    <strong>CIS Controls</strong> <small class="text-muted">{{t 'admin.project_new.small.v81_municipal_general'}}</small>
                   </label>
                 </div>
               </div>
@@ -180,42 +179,40 @@
 
       <div class="d-flex justify-content-between align-items-center mb-3">
         <button type="button" class="btn btn-outline-secondary btn-sm" id="backBtn">
-          <i class="bi bi-arrow-left me-1"></i>Back to Region Selection
-        </button>
+          <i class="bi bi-arrow-left me-1"></i>{{t 'admin.project_new.btn.back_to_region_selection'}}</button>
         <button type="button" class="btn btn-outline-success btn-sm" id="skipToStep3FromTop2">
-          <i class="bi bi-skip-end me-1"></i>Skip to Client Assignment
-        </button>
+          <i class="bi bi-skip-end me-1"></i>{{t 'admin.project_new.btn.skip_to_client_assignment_2'}}</button>
       </div>
 
       <!-- Section 1: Project Information -->
       <div class="form-section">
         <div class="section-header">
           <h3 class="section-title"><span class="section-number">1</span> Project Information</h3>
-          <p class="section-description">Basic details about the system or application</p>
+          <p class="section-description">{{t 'admin.project_new.p.basic_details_about_the_system'}}</p>
         </div>
         <div class="mb-3">
           <label class="form-label" for="name">Project Name <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" id="name" name="name" placeholder="{{t 'admin.project_new.ph.eg_hr_case_management'}}">
+          <input type="text" class="form-control" id="name" name="name" placeholder="{{t 'admin.project_new.ph.eg_hr_case_management_system'}}">
         </div>
         <div class="mb-3">
           <label class="form-label" for="description">Project Description <span class="text-danger">*</span></label>
           <textarea class="form-control" id="description" name="description" rows="4"
-            placeholder="{{t 'admin.project_new.ph.describe_the_systems_purpose'}}"></textarea>
+            placeholder="{{t 'admin.project_new.ph.describe_the_systems_purpose_users'}}"></textarea>
         </div>
         <div class="row g-3">
           <div class="col-md-6">
             <label class="form-label" id="lbl-department" for="department">{{t 'admin.project_new.label.department_agency'}}</label>
-            <input type="text" class="form-control" id="department" name="department" placeholder="{{t 'admin.project_new.ph.employment_and_social_development'}}">
+            <input type="text" class="form-control" id="department" name="department" placeholder="{{t 'admin.project_new.ph.employment_and_social_development_canada'}}">
           </div>
           <div class="col-md-6">
             <label class="form-label" id="lbl-branch" for="branch">{{t 'admin.project_new.label.branch_directorate'}}</label>
-            <input type="text" class="form-control" id="branch" name="branch" placeholder="{{t 'admin.project_new.ph.innovation_information_and_technology'}}">
+            <input type="text" class="form-control" id="branch" name="branch" placeholder="{{t 'admin.project_new.ph.innovation_information_and_technology_branch'}}">
           </div>
         </div>
         <div class="mt-3">
           <label class="form-label" for="specifications">{{t 'admin.project_new.label.technical_specifications_optional'}}</label>
           <textarea class="form-control" id="specifications" name="specifications" rows="3"
-            placeholder="{{t 'admin.project_new.ph.architecture_details_integration_points'}}"></textarea>
+            placeholder="{{t 'admin.project_new.ph.architecture_details_integration_points_apis'}}"></textarea>
         </div>
         <div class="mt-3 row g-3">
           <div class="col-md-6">
@@ -233,7 +230,7 @@
       <div class="form-section">
         <div class="section-header">
           <h3 class="section-title" id="sec2-title"><span class="section-number">2</span> Security Categorization</h3>
-          <p class="section-description" id="sec2-desc">Classify data sensitivity using the TBS standard / ITSG-33 framework</p>
+          <p class="section-description" id="sec2-desc">{{t 'admin.project_new.p.classify_data_sensitivity_using_the'}}</p>
         </div>
         <div class="row g-3">
           <div class="col-md-4">
@@ -291,7 +288,7 @@
       <div class="form-section">
         <div class="section-header">
           <h3 class="section-title"><span class="section-number">3</span> Hosting &amp; Technology</h3>
-          <p class="section-description">Where the system is deployed and what technologies are in use</p>
+          <p class="section-description">{{t 'admin.project_new.p.where_the_system_is_deployed'}}</p>
         </div>
         <div class="mb-3">
           <label class="form-label" for="hosting_type">Primary Hosting <span class="text-danger">*</span></label>
@@ -325,7 +322,7 @@
       <div class="form-section">
         <div class="section-header">
           <h3 class="section-title"><span class="section-number">4</span> Key Contacts</h3>
-          <p class="section-description">Individuals involved in the assessment and authorization process</p>
+          <p class="section-description">{{t 'admin.project_new.p.individuals_involved_in_the_assessment'}}</p>
         </div>
         <div class="row g-3">
           <div class="col-md-6">
@@ -360,8 +357,7 @@
 
       <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
         <button type="button" class="btn btn-outline-secondary" id="backBtn2">
-          <i class="bi bi-arrow-left me-1"></i>Back to Regions
-        </button>
+          <i class="bi bi-arrow-left me-1"></i>{{t 'admin.project_new.btn.back_to_regions'}}</button>
         <div class="d-flex gap-2">
           <button type="button" class="btn btn-outline-success" id="skipToStep3From2">
             Skip to Client Assignment <i class="bi bi-skip-end ms-1"></i>
@@ -381,13 +377,13 @@
       <div class="card border-success mb-4">
         <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
           <strong><i class="bi bi-person-plus me-2"></i>Step 3 of 3 — Client Assignment</strong>
-          <span class="badge bg-light text-success">Required</span>
+          <span class="badge bg-light text-success">{{t 'admin.project_new.span.required'}}</span>
         </div>
         <div class="card-body">
-          <p class="text-muted mb-3">Assign this project to a client user. They will receive a draft intake to complete with their project details, submit evidence, and respond to controls in the client portal.</p>
+          <p class="text-muted mb-3">{{t 'admin.project_new.p.assign_this_project_to_a'}}</p>
 
           <div class="alert alert-info small mb-3">
-            <i class="bi bi-info-circle me-1"></i><strong>How it works:</strong> Once created, a draft intake is automatically generated. The assigned client will see it in their dashboard and can complete the project details and submit for your review.
+            <i class="bi bi-info-circle me-1"></i><strong>{{t 'admin.project_new.strong.how_it_works'}}</strong> Once created, a draft intake is automatically generated. The assigned client will see it in their dashboard and can complete the project details and submit for your review.
           </div>
 
           <!-- Options -->
@@ -396,8 +392,8 @@
               <div class="card h-100 border-2 client-option" data-action="existing" style="cursor:pointer">
                 <div class="card-body text-center py-4">
                   <i class="bi bi-person-check" style="font-size:2rem;color:#198754"></i>
-                  <h6 class="mt-2 mb-1">{{t 'admin.project_new.title.existing_client'}}</h6>
-                  <small class="text-muted">Choose a registered client</small>
+                  <h6 class="mt-2 mb-1">{{t 'admin.project_new.h6.existing_client'}}</h6>
+                  <small class="text-muted">{{t 'admin.project_new.small.choose_a_registered_client'}}</small>
                 </div>
               </div>
             </div>
@@ -405,8 +401,8 @@
               <div class="card h-100 border-2 client-option" data-action="invite" style="cursor:pointer">
                 <div class="card-body text-center py-4">
                   <i class="bi bi-envelope-plus" style="font-size:2rem;color:#0d6efd"></i>
-                  <h6 class="mt-2 mb-1">{{t 'admin.project_new.title.invite_new_client'}}</h6>
-                  <small class="text-muted">Send a registration invite</small>
+                  <h6 class="mt-2 mb-1">{{t 'admin.project_new.h6.invite_new_client'}}</h6>
+                  <small class="text-muted">{{t 'admin.project_new.small.send_a_registration_invite'}}</small>
                 </div>
               </div>
             </div>
@@ -432,7 +428,7 @@
             {{else}}
               <div class="text-muted text-center py-3">
                 <i class="bi bi-people" style="font-size:2rem;opacity:0.3"></i>
-                <p class="mt-2 mb-0">No registered clients yet. Use "Invite New Client" to send an invitation.</p>
+                <p class="mt-2 mb-0">{{t 'admin.project_new.p.no_registered_clients_yet_use'}}</p>
               </div>
             {{/if}}
 
@@ -442,7 +438,7 @@
                 {{#each pendingInvites}}
                 <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                   <small>{{this.email}} — Code: <code>{{this.invite_code}}</code></small>
-                  <span class="badge bg-warning text-dark">Pending</span>
+                  <span class="badge bg-warning text-dark">{{t 'admin.project_new.span.pending'}}</span>
                 </div>
                 {{/each}}
               </div>
@@ -467,7 +463,7 @@
               </div>
               <div class="col-md-6">
                 <label class="form-label">{{t 'admin.project_new.label.message_optional'}}</label>
-                <input type="text" class="form-control" name="invite_message" placeholder="{{t 'admin.project_new.ph.welcome_to_the_assessment'}}">
+                <input type="text" class="form-control" name="invite_message" placeholder="{{t 'admin.project_new.ph.welcome_to_the_assessment_portal'}}">
               </div>
             </div>
             <div class="alert alert-info mt-3 small mb-0">
@@ -483,11 +479,9 @@
 
       <div class="d-flex justify-content-between align-items-center mb-5">
         <button type="button" class="btn btn-outline-secondary" id="backToStep2Btn">
-          <i class="bi bi-arrow-left me-1"></i>Back to Previous Step
-        </button>
+          <i class="bi bi-arrow-left me-1"></i>{{t 'admin.project_new.btn.back_to_previous_step'}}</button>
         <button type="submit" class="btn btn-success btn-lg" id="createProjectBtn">
-          <i class="bi bi-folder-plus me-2"></i>Create Project & Send Intake
-        </button>
+          <i class="bi bi-folder-plus me-2"></i>{{t 'admin.project_new.btn.create_project_send_intake'}}</button>
       </div>
     </div>
     <!-- /wizardStep3 -->

@@ -3,10 +3,10 @@
     <a href="/admin/projects/{{project.id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
     <div class="flex-grow-1">
       <h1 class="mb-0">{{project.name}}</h1>
-      <p class="text-muted mb-0">GC Web Standards &amp; Guidance Report</p>
+      <p class="text-muted mb-0">{{t 'admin.guidance_report.p.gc_web_standards_amp_guidance'}}</p>
     </div>
     <div class="d-flex gap-2">
-      <button onclick="window.print()" class="btn btn-outline-primary"><i class="bi bi-printer me-1"></i>Print</button>
+      <button onclick="window.print()" class="btn btn-outline-primary"><i class="bi bi-printer me-1"></i>{{t 'admin.guidance_report.btn.print'}}</button>
       <a href="/admin/projects/{{project.id}}/guidance-pdf" class="btn btn-primary"><i class="bi bi-download me-1"></i>Export PDF</a>
     </div>
   </div>
@@ -19,22 +19,22 @@
           <div class="d-flex flex-wrap gap-3 align-items-center">
             {{#if report}}
               <div>
-                <span class="small text-muted d-block">Invite Code</span>
+                <span class="small text-muted d-block">{{t 'admin.guidance_report.span.invite_code'}}</span>
                 <code class="fs-5 fw-bold">{{report.invite_code}}</code>
               </div>
               <div class="vr d-none d-md-block"></div>
               <div>
-                <span class="small text-muted d-block">Status</span>
-                {{#ifCond report.status '==' 'draft'}}<span class="badge bg-secondary">Draft</span>{{/ifCond}}
-                {{#ifCond report.status '==' 'sent'}}<span class="badge bg-info">Sent — Awaiting Response</span>{{/ifCond}}
-                {{#ifCond report.status '==' 'submitted'}}<span class="badge bg-warning text-dark">Submitted — Awaiting Review</span>{{/ifCond}}
-                {{#ifCond report.status '==' 'returned'}}<span class="badge bg-danger">Returned for Revision</span>{{/ifCond}}
-                {{#ifCond report.status '==' 'validated'}}<span class="badge bg-success">Validated</span>{{/ifCond}}
+                <span class="small text-muted d-block">{{t 'admin.guidance_report.span.status'}}</span>
+                {{#ifCond report.status '==' 'draft'}}<span class="badge bg-secondary">{{t 'admin.guidance_report.span.draft'}}</span>{{/ifCond}}
+                {{#ifCond report.status '==' 'sent'}}<span class="badge bg-info">{{t 'admin.guidance_report.span.sent_awaiting_response'}}</span>{{/ifCond}}
+                {{#ifCond report.status '==' 'submitted'}}<span class="badge bg-warning text-dark">{{t 'admin.guidance_report.span.submitted_awaiting_review'}}</span>{{/ifCond}}
+                {{#ifCond report.status '==' 'returned'}}<span class="badge bg-danger">{{t 'admin.guidance_report.span.returned_for_revision'}}</span>{{/ifCond}}
+                {{#ifCond report.status '==' 'validated'}}<span class="badge bg-success">{{t 'admin.guidance_report.span.validated'}}</span>{{/ifCond}}
               </div>
               {{#if report.respondent_name}}
                 <div class="vr d-none d-md-block"></div>
                 <div>
-                  <span class="small text-muted d-block">Respondent</span>
+                  <span class="small text-muted d-block">{{t 'admin.guidance_report.span.respondent'}}</span>
                   <span class="fw-semibold">{{report.respondent_name}}</span>
                   {{#if report.respondent_email}}<br><small class="text-muted">{{report.respondent_email}}</small>{{/if}}
                 </div>
@@ -42,12 +42,12 @@
               {{#if report.submitted_at}}
                 <div class="vr d-none d-md-block"></div>
                 <div>
-                  <span class="small text-muted d-block">Submitted</span>
+                  <span class="small text-muted d-block">{{t 'admin.guidance_report.span.submitted'}}</span>
                   <span>{{formatDate report.submitted_at}}</span>
                 </div>
               {{/if}}
             {{else}}
-              <span class="text-muted">No invite sent yet.</span>
+              <span class="text-muted">{{t 'admin.guidance_report.span.no_invite_sent_yet'}}</span>
             {{/if}}
           </div>
         </div>
@@ -56,7 +56,7 @@
             {{#if report}}
               {{#ifCond report.status '!=' 'validated'}}
                 <form method="POST" action="/admin/projects/{{project.id}}/guidance/send-invite" class="d-inline">
-                  <button class="btn btn-outline-primary btn-sm"><i class="bi bi-send me-1"></i>Resend Invite</button>
+                  <button class="btn btn-outline-primary btn-sm"><i class="bi bi-send me-1"></i>{{t 'admin.guidance_report.btn.resend_invite'}}</button>
                 </form>
               {{/ifCond}}
               <a href="/guidance/{{report.invite_code}}" target="_blank" class="btn btn-outline-success btn-sm">
@@ -64,7 +64,7 @@
               </a>
             {{else}}
               <form method="POST" action="/admin/projects/{{project.id}}/guidance/send-invite" class="d-inline">
-                <button class="btn btn-primary"><i class="bi bi-send me-1"></i>Send Invite to Owner</button>
+                <button class="btn btn-primary"><i class="bi bi-send me-1"></i>{{t 'admin.guidance_report.btn.send_invite_to_owner'}}</button>
               </form>
             {{/if}}
           </div>
@@ -78,8 +78,7 @@
     {{#ifCond report.status '==' 'submitted'}}
       <div class="card mb-4 border-warning">
         <div class="card-header" style="background:var(--gc-warning)">
-          <i class="bi bi-clipboard-check me-2"></i>Review &amp; Validate
-        </div>
+          <i class="bi bi-clipboard-check me-2"></i>{{t 'admin.guidance_report.card.review_amp_validate'}}</div>
         <div class="card-body">
           {{#if report.respondent_notes}}
             <div class="mb-3 p-3 rounded" style="background:#f8f9fa">
@@ -91,19 +90,19 @@
           <div class="row g-3 mb-2">
             <div class="col-sm-3 text-center">
               <div class="fs-4 fw-bold text-success">{{metCount}}</div>
-              <small class="text-muted">Met</small>
+              <small class="text-muted">{{t 'admin.guidance_report.small.met'}}</small>
             </div>
             <div class="col-sm-3 text-center">
               <div class="fs-4 fw-bold text-info">{{inProgressCount}}</div>
-              <small class="text-muted">In Progress</small>
+              <small class="text-muted">{{t 'admin.guidance_report.small.in_progress'}}</small>
             </div>
             <div class="col-sm-3 text-center">
               <div class="fs-4 fw-bold text-secondary">{{naCount}}</div>
-              <small class="text-muted">N/A</small>
+              <small class="text-muted">{{t 'admin.guidance_report.small.na'}}</small>
             </div>
             <div class="col-sm-3 text-center">
               <div class="fs-4 fw-bold text-danger">{{pendingCount}}</div>
-              <small class="text-muted">Pending</small>
+              <small class="text-muted">{{t 'admin.guidance_report.small.pending'}}</small>
             </div>
           </div>
           <hr>
@@ -111,17 +110,15 @@
             <div class="mb-3">
               <label class="form-label small fw-semibold">{{t 'admin.guidance_report.label.reviewer_notes'}}</label>
               <textarea class="form-control" name="reviewer_notes" rows="3"
-                placeholder="{{t 'admin.guidance_report.ph.notes_for_the_project'}}"></textarea>
+                placeholder="{{t 'admin.guidance_report.ph.notes_for_the_project_owner'}}"></textarea>
             </div>
             <div class="d-flex gap-2">
               <button type="submit" name="action" value="validate" class="btn btn-success"
                 onclick="return confirm('Validate and approve this checklist?')">
-                <i class="bi bi-patch-check me-1"></i>Validate &amp; Approve
-              </button>
+                <i class="bi bi-patch-check me-1"></i>{{t 'admin.guidance_report.btn.validate_amp_approve'}}</button>
               <button type="submit" name="action" value="return" class="btn btn-outline-warning"
                 onclick="return confirm('Return this checklist for revision?')">
-                <i class="bi bi-arrow-return-left me-1"></i>Return for Revision
-              </button>
+                <i class="bi bi-arrow-return-left me-1"></i>{{t 'admin.guidance_report.btn.return_for_revision'}}</button>
             </div>
           </form>
         </div>
@@ -131,7 +128,7 @@
     {{#ifCond report.status '==' 'validated'}}
       <div class="alert alert-success mb-4">
         <i class="bi bi-patch-check me-2"></i>
-        <strong>Validated</strong> on {{formatDate report.validated_at}}.
+        <strong>{{t 'admin.guidance_report.strong.validated'}}</strong> on {{formatDate report.validated_at}}.
         {{#if report.reviewer_notes}}<br><small>Notes: {{report.reviewer_notes}}</small>{{/if}}
       </div>
     {{/ifCond}}
@@ -151,7 +148,7 @@
             <span class="badge bg-light text-dark border"><i class="bi bi-database me-1"></i>{{project.data_classification}}</span>
             <span class="badge bg-light text-dark border"><i class="bi bi-globe me-1"></i>{{project.app_type}}</span>
             {{#if project.hosting_type}}<span class="badge bg-light text-dark border"><i class="bi bi-cloud me-1"></i>{{project.hosting_type}}</span>{{/if}}
-            <span class="badge bg-success"><i class="bi bi-shield-check me-1"></i>No PII</span>
+            <span class="badge bg-success"><i class="bi bi-shield-check me-1"></i>{{t 'admin.guidance_report.span.no_pii'}}</span>
           </div>
         </div>
       </div>
@@ -161,7 +158,7 @@
   <div class="alert alert-info mb-4">
     <i class="bi bi-info-circle me-2"></i>
     <strong>{{totalRequired}} required</strong> and <strong>{{totalRecommended}} recommended</strong> items across {{guidance.categories.length}} categories.
-    All <span class="badge bg-danger badge-sm">Required</span> items must be addressed before launch.
+    All <span class="badge bg-danger badge-sm">{{t 'admin.guidance_report.span.required'}}</span> items must be addressed before launch.
   </div>
 
   <!-- Categories -->
@@ -207,16 +204,16 @@
             <td>{{this.text}}</td>
             <td class="text-center">
               {{#if this.required}}
-                <span class="badge bg-danger">Required</span>
+                <span class="badge bg-danger">{{t 'admin.guidance_report.span.required_2'}}</span>
               {{else}}
-                <span class="badge bg-info">Recommended</span>
+                <span class="badge bg-info">{{t 'admin.guidance_report.span.recommended'}}</span>
               {{/if}}
             </td>
             <td class="text-center">
-              {{#ifCond this.status '==' 'met'}}<span class="badge bg-success">Met</span>{{/ifCond}}
-              {{#ifCond this.status '==' 'in-progress'}}<span class="badge bg-info">In Progress</span>{{/ifCond}}
-              {{#ifCond this.status '==' 'na'}}<span class="badge bg-secondary">N/A</span>{{/ifCond}}
-              {{#ifCond this.status '==' 'pending'}}<span class="badge bg-light text-dark border">Pending</span>{{/ifCond}}
+              {{#ifCond this.status '==' 'met'}}<span class="badge bg-success">{{t 'admin.guidance_report.span.met'}}</span>{{/ifCond}}
+              {{#ifCond this.status '==' 'in-progress'}}<span class="badge bg-info">{{t 'admin.guidance_report.span.in_progress'}}</span>{{/ifCond}}
+              {{#ifCond this.status '==' 'na'}}<span class="badge bg-secondary">{{t 'admin.guidance_report.span.na'}}</span>{{/ifCond}}
+              {{#ifCond this.status '==' 'pending'}}<span class="badge bg-light text-dark border">{{t 'admin.guidance_report.span.pending'}}</span>{{/ifCond}}
             </td>
             <td class="small text-muted">{{this.notes}}</td>
           </tr>
@@ -230,30 +227,29 @@
   <!-- Additional Considerations -->
   <div class="card mb-4">
     <div class="card-header">
-      <i class="bi bi-lightbulb me-2"></i>Additional Considerations
-    </div>
+      <i class="bi bi-lightbulb me-2"></i>{{t 'admin.guidance_report.card.additional_considerations'}}</div>
     <div class="card-body">
       <div class="row g-3">
         <div class="col-md-6">
           <h6><i class="bi bi-exclamation-triangle text-warning me-2"></i>When a Full SA&amp;A Becomes Required</h6>
           <ul class="small mb-0">
-            <li>Data classification increases to Protected A or B</li>
-            <li>Personal information (PII) is collected or processed</li>
-            <li>User authentication or accounts are introduced</li>
-            <li>Integration with other GC systems or databases</li>
-            <li>Payment processing or financial transactions</li>
-            <li>The application scope expands beyond static content</li>
+            <li>{{t 'admin.guidance_report.li.data_classification_increases_to_protected'}}</li>
+            <li>{{t 'admin.guidance_report.li.personal_information_pii_is_collected'}}</li>
+            <li>{{t 'admin.guidance_report.li.user_authentication_or_accounts_are'}}</li>
+            <li>{{t 'admin.guidance_report.li.integration_with_other_gc_systems'}}</li>
+            <li>{{t 'admin.guidance_report.li.payment_processing_or_financial_transactions'}}</li>
+            <li>{{t 'admin.guidance_report.li.the_application_scope_expands_beyond'}}</li>
           </ul>
         </div>
         <div class="col-md-6">
           <h6><i class="bi bi-link-45deg text-primary me-2"></i>Reference Links</h6>
           <ul class="small mb-0">
-            <li><a href="https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601" target="_blank">Standard on Web Accessibility</a></li>
-            <li><a href="https://www.w3.org/WAI/WCAG21/quickref/" target="_blank">WCAG 2.1 Quick Reference</a></li>
-            <li><a href="https://design.canada.ca/" target="_blank">Canada.ca Design System</a></li>
-            <li><a href="https://www.canada.ca/en/government/system/digital-government/guideline-service-digital.html" target="_blank">GC Digital Standards</a></li>
+            <li><a href="https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601" target="_blank">{{t 'admin.guidance_report.link.standard_on_web_accessibility'}}</a></li>
+            <li><a href="https://www.w3.org/WAI/WCAG21/quickref/" target="_blank">{{t 'admin.guidance_report.link.wcag_21_quick_reference'}}</a></li>
+            <li><a href="https://design.canada.ca/" target="_blank">{{t 'admin.guidance_report.link.canadaca_design_system'}}</a></li>
+            <li><a href="https://www.canada.ca/en/government/system/digital-government/guideline-service-digital.html" target="_blank">{{t 'admin.guidance_report.link.gc_digital_standards'}}</a></li>
             <li><a href="https://www.cyber.gc.ca/en/guidance/itsg-33-it-security-risk-management" target="_blank">ITSG-33 Framework</a></li>
-            <li><a href="https://wet-boew.github.io/wet-boew/index-en.html" target="_blank">Web Experience Toolkit (WET)</a></li>
+            <li><a href="https://wet-boew.github.io/wet-boew/index-en.html" target="_blank">{{t 'admin.guidance_report.link.web_experience_toolkit_wet'}}</a></li>
           </ul>
         </div>
       </div>
@@ -268,11 +264,11 @@
 
   <!-- Assessor Notes -->
   <div class="card mb-5">
-    <div class="card-header"><i class="bi bi-pencil-square me-2"></i>Assessor Notes</div>
+    <div class="card-header"><i class="bi bi-pencil-square me-2"></i>{{t 'admin.guidance_report.card.assessor_notes'}}</div>
     <div class="card-body">
       <form method="POST" action="/admin/projects/{{project.id}}/guidance-notes" class="">
-        <textarea class="form-control mb-3" name="notes" rows="4" placeholder="{{t 'admin.guidance_report.ph.add_any_assessor_notes'}}">{{project.assessor_notes}}</textarea>
-        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save me-1"></i>Save Notes</button>
+        <textarea class="form-control mb-3" name="notes" rows="4" placeholder="{{t 'admin.guidance_report.ph.add_any_assessor_notes_for'}}">{{project.assessor_notes}}</textarea>
+        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save me-1"></i>{{t 'admin.guidance_report.btn.save_notes'}}</button>
       </form>
     </div>
   </div>

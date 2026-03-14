@@ -89,8 +89,8 @@
 <div id="saWizard" class="container py-4" style="max-width:820px;">
   <div class="text-center mb-3">
     <i class="bi bi-shield-check" style="font-size:2.5rem;color:var(--cs-accent)"></i>
-    <h2 class="mt-2">Security Self-Assessment</h2>
-    <p class="text-muted">Evaluate your system's security posture against applicable frameworks — no account required</p>
+    <h2 class="mt-2">{{t 'self_assessment.h2.security_selfassessment'}}</h2>
+    <p class="text-muted">{{t 'self_assessment.p.evaluate_your_systems_security_posture'}}</p>
   </div>
 
   <div class="step-pills">
@@ -102,9 +102,9 @@
   <!-- ════════════ STEP 1 ════════════ -->
   <div id="saStep1">
     <div class="card">
-      <div class="card-header"><i class="bi bi-question-circle me-2"></i>Tell us about your system</div>
+      <div class="card-header"><i class="bi bi-question-circle me-2"></i>{{t 'self_assessment.card.tell_us_about_your_system'}}</div>
       <div class="card-body">
-        <p class="text-muted small mb-3">Select the type, jurisdiction, and describe your system. We'll determine which security frameworks apply and generate tailored questions.</p>
+        <p class="text-muted small mb-3">{{t 'self_assessment.p.select_the_type_jurisdiction_and'}}</p>
 
         <label class="form-label fw-semibold small text-muted mb-2"><i class="bi bi-laptop me-1"></i>System Type</label>
         <div class="system-type-grid" id="systemTypeGrid"></div>
@@ -157,13 +157,13 @@
 
         <div class="describe-box">
           <label class="form-label fw-semibold small text-muted mb-1"><i class="bi bi-pencil me-1"></i>Describe your system in plain language</label>
-          <textarea id="saDescription" rows="3" placeholder="e.g. We have a public-facing web portal that collects citizen feedback. It runs on shared hosting and stores personal information including names and email addresses."></textarea>
+          <textarea id="saDescription" rows="3" placeholder="{{t 'self_assessment.ph.eg_we_have_a_publicfacing'}}"></textarea>
         </div>
 
         <div class="contact-row">
           <div>
             <label><i class="bi bi-person me-1"></i>Your Name</label>
-            <input type="text" id="saName" placeholder="Jane Doe">
+            <input type="text" id="saName" placeholder="{{t 'self_assessment.ph.jane_doe'}}">
           </div>
           <div>
             <label><i class="bi bi-envelope me-1"></i>Your Email</label>
@@ -173,8 +173,7 @@
 
         <div class="d-flex justify-content-end mt-3">
           <button class="btn btn-primary py-2 px-4" onclick="saGoStep2()" id="saGenBtn">
-            <i class="bi bi-stars me-1"></i>Generate Security Questions
-          </button>
+            <i class="bi bi-stars me-1"></i>{{t 'self_assessment.btn.generate_security_questions'}}</button>
         </div>
       </div>
     </div>
@@ -214,8 +213,8 @@
           </div>
           <div id="saQuestionsBody"></div>
           <div class="d-flex justify-content-between mt-3">
-            <button class="btn btn-outline-secondary" onclick="saGoStep1()"><i class="bi bi-arrow-left me-1"></i>Back</button>
-            <button class="btn btn-primary px-4" onclick="saGoStep3()"><i class="bi bi-file-earmark-medical me-1"></i>Generate Report</button>
+            <button class="btn btn-outline-secondary" onclick="saGoStep1()"><i class="bi bi-arrow-left me-1"></i>{{t 'self_assessment.btn.back'}}</button>
+            <button class="btn btn-primary px-4" onclick="saGoStep3()"><i class="bi bi-file-earmark-medical me-1"></i>{{t 'self_assessment.btn.generate_report'}}</button>
           </div>
         </div>
       </div>

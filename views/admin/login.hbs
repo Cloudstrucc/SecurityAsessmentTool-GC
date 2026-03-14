@@ -4,14 +4,14 @@
       <div class="text-center mb-4">
         <i class="bi bi-shield-lock-fill" style="font-size:3rem;color:var(--gc-red)"></i>
         {{#if mfaSetup}}
-          <h2 class="mt-2" style="color:var(--gc-nav)">{{t 'admin.login.title.mfa_setup_required'}}</h2>
-          <p class="text-muted">Scan the QR code with your authenticator app to enable MFA.</p>
+          <h2 class="mt-2" style="color:var(--gc-nav)">MFA Setup Required</h2>
+          <p class="text-muted">{{t 'admin.login.p.scan_the_qr_code_with'}}</p>
         {{else if mfaStep}}
-          <h2 class="mt-2" style="color:var(--gc-nav)">{{t 'admin.login.title.verify_identity'}}</h2>
-          <p class="text-muted">Confirm your identity to continue.</p>
+          <h2 class="mt-2" style="color:var(--gc-nav)">{{t 'admin.login.h2.verify_identity'}}</h2>
+          <p class="text-muted">{{t 'admin.login.p.confirm_your_identity_to_continue'}}</p>
         {{else}}
-          <h2 class="mt-2" style="color:var(--gc-nav)">{{t 'admin.login.title.assessor_login'}}</h2>
-          <p class="text-muted">Security Assessment &amp; Authorization Portal</p>
+          <h2 class="mt-2" style="color:var(--gc-nav)">{{t 'admin.login.h2.assessor_login'}}</h2>
+          <p class="text-muted">{{t 'admin.login.p.security_assessment_amp_authorization_portal'}}</p>
         {{/if}}
       </div>
       <div class="card">
@@ -47,8 +47,7 @@
                 </div>
               </div>
               <button type="submit" class="btn btn-primary w-100 py-2">
-                <i class="bi bi-shield-check me-2"></i>Verify &amp; Enable MFA
-              </button>
+                <i class="bi bi-shield-check me-2"></i>{{t 'admin.login.btn.verify_amp_enable_mfa'}}</button>
             </form>
 
           {{!-- ══ MFA VERIFICATION STEP ══ --}}
@@ -60,13 +59,12 @@
               <div class="text-center mb-3">
                 <i class="bi bi-person-bounding-box" style="font-size:3rem;color:var(--gc-nav,#26374a)"></i>
               </div>
-              <p class="text-center text-muted small mb-3">Approve with your passkey (Face ID, Touch ID, or Windows Hello).</p>
+              <p class="text-center text-muted small mb-3">{{t 'admin.login.p.approve_with_your_passkey_face'}}</p>
               <div id="adminPasskeyError" class="alert alert-danger small py-2 d-none"></div>
               <button class="btn btn-primary w-100 py-2 mb-3" id="adminPasskeyBtn">
-                <i class="bi bi-person-bounding-box me-1"></i>Sign In with Passkey
-              </button>
+                <i class="bi bi-person-bounding-box me-1"></i>{{t 'admin.login.btn.sign_in_with_passkey'}}</button>
               <div class="text-center">
-                <a href="#" class="small text-muted" id="adminSwitchToTotp"><i class="bi bi-key me-1"></i>Use TOTP code instead</a>
+                <a href="#" class="small text-muted" id="adminSwitchToTotp"><i class="bi bi-key me-1"></i>{{t 'admin.login.link.use_totp_code_instead'}}</a>
               </div>
             </div>
             {{/if}}
@@ -87,17 +85,16 @@
                   <div class="form-text">Enter the 6-digit code from your authenticator app.</div>
                 </div>
                 <button type="submit" class="btn btn-primary w-100 py-2">
-                  <i class="bi bi-box-arrow-in-right me-2"></i>Verify &amp; Sign In
-                </button>
+                  <i class="bi bi-box-arrow-in-right me-2"></i>{{t 'admin.login.btn.verify_amp_sign_in'}}</button>
               </form>
               {{#if hasWebAuthn}}
               <div class="text-center mt-3">
-                <a href="#" class="small text-muted" id="adminSwitchToPasskey"><i class="bi bi-person-bounding-box me-1"></i>Use passkey instead</a>
+                <a href="#" class="small text-muted" id="adminSwitchToPasskey"><i class="bi bi-person-bounding-box me-1"></i>{{t 'admin.login.link.use_passkey_instead'}}</a>
               </div>
               {{/if}}
             </div>
             <div class="text-center mt-3">
-              <a href="/admin/logout" class="text-muted small"><i class="bi bi-arrow-left me-1"></i>Sign in as different user</a>
+              <a href="/admin/logout" class="text-muted small"><i class="bi bi-arrow-left me-1"></i>{{t 'admin.login.link.sign_in_as_different_user'}}</a>
             </div>
 
           {{!-- ══ STANDARD LOGIN ══ --}}
@@ -118,17 +115,16 @@
                 </div>
               </div>
               <button type="submit" class="btn btn-primary w-100 py-2">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
-              </button>
+                <i class="bi bi-box-arrow-in-right me-2"></i>{{t 'admin.login.btn.sign_in'}}</button>
             </form>
           {{/if}}
 
         </div>
       </div>
       <div class="text-center mt-3">
-        <a href="/admin/register" class="text-muted small me-3"><i class="bi bi-person-plus me-1"></i>Register with Invite Code</a>
+        <a href="/admin/register" class="text-muted small me-3"><i class="bi bi-person-plus me-1"></i>{{t 'admin.login.link.register_with_invite_code'}}</a>
         <span class="text-muted small">|</span>
-        <a href="/" class="text-muted small ms-3"><i class="bi bi-arrow-left me-1"></i>Back to Portal Home</a>
+        <a href="/" class="text-muted small ms-3"><i class="bi bi-arrow-left me-1"></i>{{t 'admin.login.link.back_to_portal_home'}}</a>
       </div>
     </div>
   </div>

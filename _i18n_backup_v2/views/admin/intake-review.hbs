@@ -1,0 +1,866 @@
+<div class="container">
+<div class="mb-4">
+  <a href="/admin/intakes" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i> Back to Intakes</a>
+</div>
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <h2>{{intake.project_name}}</h2>
+    <div class="d-flex gap-2 align-items-center">
+      <code>{{intake.ref_code}}</code>
+      {{#if (eq intake.status 'pending')}}<span class="badge bg-warning">Pending Review</span>
+      {{else if (eq intake.status 'in-review')}}<span class="badge bg-info">In Review</span>
+      {{else if (eq intake.status 'accepted')}}<span class="badge bg-success">Accepted</span>
+      {{else}}<span class="badge bg-secondary">{{intake.status}}</span>{{/if}}
+      <span class="text-muted small">Submitted {{formatDate intake.created_at}}</span>
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    {{#if (neq intake.status 'accepted')}}
+    <button type="button" class="btn text-white" style="background:#8b5cf6;" onclick="aiReviewIntake()">
+      <i class="bi bi-stars me-1"></i>AI Review
+    </button>
+    {{/if}}
+    {{#if (eq intake.status 'pending')}}
+    <form method="POST" action="/admin/intakes/{{intake.id}}/status" style="display:inline;" class="">
+      <input type="hidden" name="status" value="in-review">
+      <button type="submit" class="btn btn-outline-info"><i class="bi bi-eye me-1"></i>Mark In Review</button>
+    </form>
+    {{/if}}
+    {{#if intake.project_id}}
+    <a href="/admin/projects/{{intake.project_id}}" class="btn btn-success"><i class="bi bi-folder me-1"></i>View Project</a>
+    {{/if}}
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- Left column: Submitted information -->
+  <div class="col-lg-8">
+
+    <!-- Project Info -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">1</span> Project Information</h4>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label small text-muted">Department / Agency</label>
+          <div class="fw-bold">{{intake.department}}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small text-muted">Branch / Directorate</label>
+          <div>{{#if intake.branch}}{{intake.branch}}{{else}}<span class="text-muted">—</span>{{/if}}</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Application Type</label>
+          <div>
+            {{#if (eq intake.app_type 'internal')}}<span class="badge bg-light text-dark"><i class="bi bi-lock me-1"></i>Internal Only</span>
+            {{else if (eq intake.app_type 'external')}}<span class="badge bg-warning"><i class="bi bi-globe me-1"></i>External / Public</span>
+            {{else if (eq intake.app_type 'hybrid')}}<span class="badge bg-info"><i class="bi bi-arrow-left-right me-1"></i>Hybrid</span>
+            {{else}}{{intake.app_type}}{{/if}}
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Target Go-Live</label>
+          <div>{{#if intake.target_date}}{{intake.target_date}}{{else}}<span class="text-muted">—</span>{{/if}}</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Estimated Users</label>
+          <div>{{#if intake.user_count}}{{intake.user_count}}{{else}}<span class="text-muted">—</span>{{/if}}</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label small text-muted">Project Description</label>
+          <div class="p-3 bg-light rounded" style="white-space:pre-wrap;">{{intake.project_description}}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security Categorization -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">2</span> Security Categorization</h4>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label small text-muted"><i class="bi bi-shield-lock me-1"></i>Confidentiality</label>
+          <div>
+            {{#if (eq intake.confidentiality_level 'top-secret')}}<span class="badge bg-dark" style="font-size:0.9rem;">Top Secret</span>
+            {{else if (eq intake.confidentiality_level 'secret')}}<span class="badge bg-dark" style="font-size:0.9rem;">Secret</span>
+            {{else if (eq intake.confidentiality_level 'confidential')}}<span class="badge bg-dark" style="font-size:0.9rem;">Confidential</span>
+            {{else if (eq intake.confidentiality_level 'protected-c')}}<span class="badge bg-danger" style="font-size:0.9rem;">Protected C</span>
+            {{else if (eq intake.confidentiality_level 'protected-b')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">Protected B</span>
+            {{else if (eq intake.confidentiality_level 'protected-a')}}<span class="badge bg-info" style="font-size:0.9rem;">Protected A</span>
+            {{else}}<span class="badge bg-secondary" style="font-size:0.9rem;">{{intake.confidentiality_level}}</span>{{/if}}
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted"><i class="bi bi-check2-square me-1"></i>Integrity</label>
+          <div>
+            {{#if (eq intake.integrity_level 'high')}}<span class="badge bg-danger" style="font-size:0.9rem;">High</span>
+            {{else if (eq intake.integrity_level 'medium')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">Medium</span>
+            {{else}}<span class="badge bg-success" style="font-size:0.9rem;">Low</span>{{/if}}
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted"><i class="bi bi-clock-history me-1"></i>Availability</label>
+          <div>
+            {{#if (eq intake.availability_level 'high')}}<span class="badge bg-danger" style="font-size:0.9rem;">High</span>
+            {{else if (eq intake.availability_level 'medium')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">Medium</span>
+            {{else}}<span class="badge bg-success" style="font-size:0.9rem;">Low</span>{{/if}}
+            {{#if intake.is_hva}}<span class="badge bg-danger ms-1" style="font-size:0.8rem;"><i class="bi bi-star-fill me-1"></i>HVA</span>{{/if}}
+          </div>
+        </div>
+      </div>
+
+      {{#if intake.security_profile}}
+      <div class="alert alert-info py-2 mb-3">
+        <i class="bi bi-cpu me-2"></i><strong>Determined Profile:</strong>
+        <span class="badge bg-primary ms-2">{{intake.security_profile}}</span>
+      </div>
+      {{/if}}
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small text-muted">ATIP Subject</label>
+          <div>{{#if intake.atip_subject}}{{intake.atip_subject}}{{else}}—{{/if}}</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">PIA Status</label>
+          <div>{{#if intake.pia_completed}}{{intake.pia_completed}}{{else}}—{{/if}}</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Contains PII</label>
+          <div>{{#if intake.has_pii}}<span class="badge bg-danger">Yes</span>{{else}}<span class="badge bg-success">No</span>{{/if}}</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label small text-muted">PII Types Identified</label>
+          {{#if intake.has_pii}}
+          <div class="d-flex flex-wrap gap-2 mt-1">
+            {{#each piiList}}
+            <span class="badge bg-danger text-white" style="font-size:0.85rem;">
+              <i class="bi bi-exclamation-triangle me-1"></i>{{this}}
+            </span>
+            {{/each}}
+          </div>
+          {{else}}
+          <div class="text-muted">No PII identified</div>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+
+    <!-- Hosting & Technology -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">3</span> Hosting & Technology</h4>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label small text-muted">Hosting</label>
+          <div><span class="badge bg-info" style="font-size:0.85rem;">{{intake.hosting_type}}</span></div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small text-muted">Data Residency</label>
+          <div>{{#if intake.hosting_region}}{{intake.hosting_region}}{{else}}—{{/if}}</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label small text-muted">Technologies</label>
+          <div class="d-flex flex-wrap gap-2 mt-1">
+            {{#each techList}}
+            <span class="badge bg-light text-dark border" style="font-size:0.85rem;"><i class="bi bi-gear me-1"></i>{{this}}</span>
+            {{/each}}
+          </div>
+        </div>
+        {{#if intake.other_tech}}
+        <div class="col-12">
+          <label class="form-label small text-muted">Other Technologies</label>
+          <div class="p-2 bg-light rounded small">{{intake.other_tech}}</div>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+
+    <!-- Architecture & Integrations -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">4</span> Architecture & Integrations</h4>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small text-muted">APIs</label>
+          <div>{{#if intake.has_apis}}{{intake.has_apis}}{{else}}—{{/if}}</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">GC Interconnections</label>
+          <div>{{#if intake.gc_interconnections}}{{intake.gc_interconnections}}{{else}}—{{/if}}</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Mobile / BYOD</label>
+          <div>{{#if intake.mobile_access}}{{intake.mobile_access}}{{else}}—{{/if}}</div>
+        </div>
+        {{#if intake.interconnections}}
+        <div class="col-12">
+          <label class="form-label small text-muted">Listed Interconnections</label>
+          <div class="p-2 bg-light rounded small" style="white-space:pre-wrap;">{{intake.interconnections}}</div>
+        </div>
+        {{/if}}
+        <div class="col-md-6">
+          <label class="form-label small text-muted">External Users</label>
+          <div>{{#if intake.external_users}}{{intake.external_users}}{{else}}—{{/if}}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security Posture -->
+    {{#if intake.completed_activities}}
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">5</span> Existing Security Activities</h4>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        {{#each activityList}}
+        <span class="badge bg-success text-white" style="font-size:0.85rem;">
+          <i class="bi bi-check-circle me-1"></i>{{this}}
+        </span>
+        {{/each}}
+      </div>
+    </div>
+    {{/if}}
+
+    <!-- Contacts -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">6</span> Key Contacts</h4>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Project Owner</label>
+          <div class="fw-bold">{{intake.owner_name}}</div>
+          <div class="small"><a href="mailto:{{intake.owner_email}}">{{intake.owner_email}}</a></div>
+          {{#if intake.owner_title}}<div class="small text-muted">{{intake.owner_title}}</div>{{/if}}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Technical Lead</label>
+          {{#if intake.tech_lead_name}}
+          <div class="fw-bold">{{intake.tech_lead_name}}</div>
+          <div class="small"><a href="mailto:{{intake.tech_lead_email}}">{{intake.tech_lead_email}}</a></div>
+          {{#if intake.tech_lead_title}}<div class="small text-muted">{{intake.tech_lead_title}}</div>{{/if}}
+          {{else}}<div class="text-muted">—</div>{{/if}}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted">Authorizing Official</label>
+          {{#if intake.authority_name}}
+          <div class="fw-bold">{{intake.authority_name}}</div>
+          <div class="small"><a href="mailto:{{intake.authority_email}}">{{intake.authority_email}}</a></div>
+          {{#if intake.authority_title}}<div class="small text-muted">{{intake.authority_title}}</div>{{/if}}
+          {{else}}<div class="text-muted">—</div>{{/if}}
+        </div>
+      </div>
+    </div>
+
+    <!-- Attachments -->
+    {{#if attachments.length}}
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">7</span> Attachments ({{attachments.length}})</h4>
+      </div>
+      <div class="list-group">
+        {{#each attachments}}
+        <a href="/admin/intakes/attachment/{{this.id}}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+          <div>
+            <i class="bi bi-file-earmark me-2"></i>{{this.original_name}}
+          </div>
+          <span class="badge bg-light text-muted">{{this.size_display}}</span>
+        </a>
+        {{/each}}
+      </div>
+    </div>
+    {{/if}}
+
+    <!-- Additional Notes -->
+    {{#if intake.additional_notes}}
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title"><span class="section-number">8</span> Additional Notes</h4>
+      </div>
+      <div class="p-3 bg-light rounded" style="white-space:pre-wrap;">{{intake.additional_notes}}</div>
+    </div>
+    {{/if}}
+  </div>
+
+  <!-- Right column: Assessor context & actions -->
+  <div class="col-lg-4">
+    <div class="position-sticky" style="top:100px;">
+
+      <!-- Recommendation Preview -->
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-cpu me-2"></i>Engine Preview</div>
+        <div class="card-body">
+          {{#if saaRequired}}
+            <div class="alert alert-warning small py-1 px-2 mb-2">
+              <i class="bi bi-shield-exclamation me-1"></i><strong>SA&amp;A Required</strong>
+            </div>
+          {{else}}
+            <div class="alert alert-success small py-1 px-2 mb-2">
+              <i class="bi bi-check-circle me-1"></i><strong>No SA&amp;A Required</strong><br>
+              <small>GC Web Guidance Report will be generated</small>
+            </div>
+          {{/if}}
+          <div class="small text-muted mb-2">{{saaReason}}</div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">Estimated controls:</span>
+            <span class="fw-bold">{{controlCount}}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">P1 (mandatory):</span>
+            <span>{{p1Count}}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">P2 (conditional):</span>
+            <span>{{p2Count}}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">P3 (situational):</span>
+            <span>{{p3Count}}</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted small">Inherited controls:</span>
+            <span>{{inheritedCount}}</span>
+          </div>
+          <hr>
+          <small class="text-muted">Based on submitted project details. Adjust below to refine.</small>
+        </div>
+      </div>
+
+      <!-- Assessor Actions -->
+      {{#if (neq intake.status 'accepted')}}
+      <div class="card mb-3">
+        <div class="card-header bg-light" style="color:var(--gc-text);"><i class="bi bi-pencil-square me-2"></i>Assessor Context</div>
+        <div class="card-body">
+          <form method="POST" action="/admin/intakes/{{intake.id}}/create-project" id="createProjectForm" class="mfa-protected" data-mfa-label="Accepting intake and creating project">
+            <p class="small text-muted mb-3">Add context or adjust details before creating the project and assessment. These overrides feed into the recommendation engine.</p>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Override Confidentiality</label>
+              <select class="form-select form-select-sm" name="overrideClassification">
+                <option value="">Use submitted ({{intake.confidentiality_level}})</option>
+                <optgroup label="Non-National Interest">
+                  <option value="unclassified">Unclassified</option>
+                  <option value="protected-a">Protected A</option>
+                  <option value="protected-b">Protected B</option>
+                  <option value="protected-c">Protected C</option>
+                </optgroup>
+                <optgroup label="National Interest (Classified)">
+                  <option value="confidential">Confidential</option>
+                  <option value="secret">Secret</option>
+                  <option value="top-secret">Top Secret</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Override Integrity</label>
+                <select class="form-select form-select-sm" name="overrideIntegrity">
+                  <option value="">Use submitted ({{intake.integrity_level}})</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Override Availability</label>
+                <select class="form-select form-select-sm" name="overrideAvailability">
+                  <option value="">Use submitted ({{intake.availability_level}})</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" name="overrideHVA" value="1" id="overrideHVA" {{#if intake.is_hva}}checked{{/if}}>
+              <label class="form-check-label small fw-bold" for="overrideHVA">High Value Asset (HVA)</label>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Override App Type</label>
+              <select class="form-select form-select-sm" name="overrideAppType">
+                <option value="">Use submitted ({{intake.app_type}})</option>
+                <option value="internal">Internal</option>
+                <option value="external">External</option>
+                <option value="hybrid">Hybrid</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Additional Technologies</label>
+              <p class="text-muted small mb-1">Add technologies the client may not have listed.</p>
+              <div class="row g-1">
+                {{#each allTechnologies}}
+                <div class="col-12">
+                  <div class="form-check form-check-sm">
+                    <input class="form-check-input" type="checkbox" name="additionalTech" value="{{this.key}}" id="addtech-{{this.key}}"
+                      {{#if this.alreadySelected}} checked disabled{{/if}}>
+                    <label class="form-check-label small" for="addtech-{{this.key}}">
+                      {{this.name}} {{#if this.alreadySelected}}<span class="text-muted">(already selected)</span>{{/if}}
+                    </label>
+                  </div>
+                </div>
+                {{/each}}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Additional Description Context</label>
+              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="assessorDescription" id="assessorDescription" rows="3" placeholder="Add keywords for the engine: e.g. 'API gateway, microservices, containerized, data lake'"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="assessorDescription"><i class="bi bi-stars"></i></button></div>
+              <small class="text-muted">Appended to the project description for the recommendation engine.</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Assessor Notes (internal)</label>
+              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="assessorNotes" id="assessorNotes" rows="3" placeholder="Internal notes about this intake (not shared with client)..."></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="assessorNotes"><i class="bi bi-stars"></i></button></div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Assessment Type</label>
+              <select class="form-select form-select-sm" name="assessmentType">
+                <option value="initial">Initial Assessment</option>
+                <option value="renewal">Renewal</option>
+                <option value="reassessment">Reassessment</option>
+              </select>
+            </div>
+
+            <!-- Client's Selected Regions -->
+            {{#if intakeRegions.length}}
+            <div class="card bg-light border-primary border-opacity-25 mb-3">
+              <div class="card-body py-2 px-3">
+                <small class="fw-bold d-block mb-1"><i class="bi bi-globe me-1 text-primary"></i>Client's Operating Regions</small>
+                <div class="d-flex flex-wrap gap-1">
+                  {{#each intakeRegions}}
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary">{{this}}</span>
+                  {{/each}}
+                </div>
+                <small class="text-muted d-block mt-1">Frameworks below have been pre-selected based on these regions.</small>
+              </div>
+            </div>
+            {{/if}}
+
+            <!-- Framework Scope Selection -->
+            <div class="card bg-light border-0 mb-3">
+              <div class="card-body py-2 px-3">
+                <small class="fw-bold d-block mb-2"><i class="bi bi-shield-check me-1"></i>Security Frameworks in Scope</small>
+                <small class="text-muted d-block mb-2">ITSG-33 is always included. Select additional frameworks to generate cross-mapped controls.</small>
+                
+                {{#each frameworkCategories}}
+                <div class="mb-2">
+                  <small class="fw-semibold text-primary d-block mb-1">{{this.category}}</small>
+                  {{#each this.frameworks}}
+                  <div class="form-check form-check-sm mb-1">
+                    <input class="form-check-input fw-checkbox" type="checkbox" name="selectedFrameworks" value="{{this.id}}" id="fw-{{this.id}}"
+                      {{#if (eq this.id 'ITSG-33')}}checked disabled{{/if}}
+                      data-country="{{this.country}}" data-sector="{{this.sector}}">
+                    <label class="form-check-label small" for="fw-{{this.id}}">
+                      <strong>{{this.name}}</strong>
+                      <span class="text-muted ms-1">{{this.country}} · {{this.sector}}</span>
+                      {{#if this.mandatory}}<span class="badge bg-danger bg-opacity-75 ms-1" style="font-size:0.6rem">Mandatory</span>{{/if}}
+                      {{#unless this.mandatory}}<span class="badge bg-secondary bg-opacity-50 ms-1" style="font-size:0.6rem">{{this.mandatoryNote}}</span>{{/unless}}
+                    </label>
+                  </div>
+                  {{/each}}
+                </div>
+                {{/each}}
+
+                <!-- Hidden field to ensure ITSG-33 always submitted -->
+                <input type="hidden" name="selectedFrameworks" value="ITSG-33">
+
+                <div class="mt-2 small" id="fwSummary">
+                  <span class="badge bg-primary">1 framework selected</span>
+                </div>
+              </div>
+            </div>
+
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+              const fwBoxes = document.querySelectorAll('.fw-checkbox:not(:disabled)');
+              const summaryEl = document.getElementById('fwSummary');
+              function updateFwSummary() {
+                const checked = document.querySelectorAll('.fw-checkbox:checked');
+                const count = checked.length;
+                summaryEl.innerHTML = '<span class="badge bg-primary">' + count + ' framework' + (count !== 1 ? 's' : '') + ' selected</span>';
+                // Show selected names
+                const names = [];
+                checked.forEach(cb => {
+                  const label = cb.parentElement.querySelector('strong');
+                  if (label) names.push(label.textContent);
+                });
+                if (names.length > 1) {
+                  summaryEl.innerHTML += ' <small class="text-muted ms-1">' + names.join(', ') + '</small>';
+                }
+              }
+              fwBoxes.forEach(cb => cb.addEventListener('change', updateFwSummary));
+
+              // Auto-check frameworks based on client's selected regions
+              const regionMap = {
+                'canada': ['ITSG-33','CCCS-MEDIUM'], 'canada-finance': ['OSFI-B13'],
+                'usa': ['NIST-800-53','FEDRAMP'], 'usa-defense': ['CMMC'], 'usa-state': ['STATERAMP'], 'usa-finance': ['NYDFS-500'],
+                'eu': ['NIS2'], 'eu-finance': ['DORA'],
+                'germany': ['BSI-GRUNDSCHUTZ'], 'france': ['ANSSI-RGS'], 'uk': ['NCSC-CAF'], 'spain': ['ENS'],
+                'australia': ['ASD-ISM','ASD-E8'], 'australia-finance': ['APRA-CPS234'],
+                'global': ['ISO-27001'], 'soc2': ['SOC2'], 'pci': ['PCI-DSS'], 'cis': ['CIS-CONTROLS']
+              };
+              const intakeRegions = {{{json intakeRegions}}};
+              if (intakeRegions && intakeRegions.length) {
+                const autoFws = new Set();
+                intakeRegions.forEach(r => (regionMap[r] || []).forEach(f => autoFws.add(f)));
+                fwBoxes.forEach(cb => {
+                  if (autoFws.has(cb.value)) cb.checked = true;
+                });
+              }
+
+              updateFwSummary();
+            });
+            </script>
+
+            <!-- Control Selection Options -->
+            <div class="card bg-light border-0 mb-3">
+              <div class="card-body py-2 px-3">
+                <small class="fw-bold d-block mb-2"><i class="bi bi-funnel me-1"></i>Control Selection</small>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span>Profile: <strong>{{profileId}}</strong></span>
+                  <span>Controls: <strong>{{controlCount}}</strong></span>
+                </div>
+                <div class="d-flex flex-wrap gap-2 small mb-2">
+                  <span class="badge bg-danger">P1: {{p1Count}}</span>
+                  <span class="badge bg-warning text-dark">P2: {{p2Count}}</span>
+                  <span class="badge bg-secondary">P3: {{p3Count}}</span>
+                  <span class="badge bg-info">Inherited: {{inheritedCount}}</span>
+                </div>
+                <div class="form-check form-check-sm mb-1">
+                  <input class="form-check-input" type="checkbox" name="excludeInherited" value="1" id="excludeInherited">
+                  <label class="form-check-label small" for="excludeInherited">
+                    Exclude fully inherited controls (reduce to ~{{nonInheritedCount}} controls)
+                  </label>
+                </div>
+                <div class="form-check form-check-sm">
+                  <input class="form-check-input" type="checkbox" name="onlyP1P2" value="1" id="onlyP1P2">
+                  <label class="form-check-label small" for="onlyP1P2">
+                    Include only P1 &amp; P2 priority controls
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100" onclick="return confirm('This will create a new Project and Assessment from this intake. Continue?')">
+              <i class="bi bi-plus-circle me-1"></i>Create Project & Assessment
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Decline -->
+      <div class="card">
+        <div class="card-body">
+          <form method="POST" action="/admin/intakes/{{intake.id}}/status" class="">
+            <input type="hidden" name="status" value="declined">
+            <div class="mb-2">
+              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="declineReason" id="declineReason" rows="2" placeholder="Reason for declining (optional)"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="declineReason"><i class="bi bi-stars"></i></button></div>
+            </div>
+            <button type="submit" class="btn btn-outline-danger btn-sm w-100" onclick="return confirm('Decline this intake?')">
+              <i class="bi bi-x-circle me-1"></i>Decline Intake
+            </button>
+          </form>
+        </div>
+      </div>
+      {{else}}
+      <div class="alert alert-success">
+        <i class="bi bi-check-circle me-2"></i><strong>Accepted</strong><br>
+        Project created from this intake.
+        {{#if intake.project_id}}
+        <a href="/admin/projects/{{intake.project_id}}" class="d-block mt-2">View Project <i class="bi bi-arrow-right"></i></a>
+        {{/if}}
+      </div>
+      {{/if}}
+
+    </div>
+  </div>
+</div>
+</div>
+
+{{> ai-panel }}
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN AI REVIEW INTEGRATION
+// ═══════════════════════════════════════════════════════════════════════════════
+const INTAKE_ID = '{{intake.id}}';
+
+function riskBadge(level) {
+  const map = { low: 'ai-badge-low', medium: 'ai-badge-medium', high: 'ai-badge-high', critical: 'ai-badge-critical' };
+  return '<span class="ai-badge ' + (map[level] || 'ai-badge-medium') + '">' + (level || 'unknown').toUpperCase() + '</span>';
+}
+
+function scoreColor(score) {
+  if (score >= 8) return '#16a34a';
+  if (score >= 5) return '#d97706';
+  return '#dc2626';
+}
+
+// ── Full AI Review ──────────────────────────────────────────────────────────
+async function aiReviewIntake() {
+  AIPanel.open({ title: 'AI Intake Review', subtitle: 'Analyzing submission...' });
+  AIPanel.showLoading('Analyzing intake submission for risks, gaps, and recommendations...');
+
+  try {
+    const resp = await fetch('/api/ai/review-intake/' + INTAKE_ID, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error || 'Review failed');
+
+    const r = data.review;
+    window._aiReview = r;
+
+    // Build the review body
+    let html = '';
+
+    // Summary + score
+    html += `
+      <div class="ai-section">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="ai-section-title mb-0">Executive Summary</div>
+          <div class="d-flex align-items-center gap-2">
+            ${riskBadge(r.riskLevel)}
+            <div class="ai-score" style="background:${scoreColor(r.readinessScore)}20; color:${scoreColor(r.readinessScore)}; border:2px solid ${scoreColor(r.readinessScore)}">${r.readinessScore}</div>
+          </div>
+        </div>
+        <div class="small">${r.summary}</div>
+      </div>`;
+
+    // Profile assessment
+    if (r.profileAssessment) {
+      html += `
+        <div class="ai-section">
+          <div class="ai-section-title">Profile Assessment</div>
+          <div class="small p-2 rounded" style="background:#f0f9ff; border:1px solid #bae6fd;">${r.profileAssessment}</div>
+        </div>`;
+    }
+
+    // Suggested overrides
+    const overrides = r.suggestedOverrides || {};
+    const hasOverrides = Object.values(overrides).some(v => v && v !== 'null');
+    if (hasOverrides) {
+      let overrideCards = '';
+      if (overrides.confidentiality && overrides.confidentiality !== 'null') {
+        overrideCards += `
+          <div class="ai-card" id="ai-ov-conf">
+            <div class="d-flex justify-content-between align-items-start">
+              <div><div class="fw-bold small">Override Confidentiality</div><div class="small text-muted">${overrides.confidentiality}</div></div>
+              <button class="ai-accept-btn" onclick="aiApplyOverride('overrideClassification', '${(overrides.confidentiality.match(/unclassified|protected-a|protected-b|protected-c|confidential|secret|top-secret/) || [''])[0]}'); this.closest('.ai-card').classList.add('accepted');">
+                <i class="bi bi-check2 me-1"></i>Apply
+              </button>
+            </div>
+          </div>`;
+      }
+      if (overrides.integrity && overrides.integrity !== 'null') {
+        overrideCards += `
+          <div class="ai-card" id="ai-ov-integ">
+            <div class="d-flex justify-content-between align-items-start">
+              <div><div class="fw-bold small">Override Integrity</div><div class="small text-muted">${overrides.integrity}</div></div>
+              <button class="ai-accept-btn" onclick="aiApplyOverride('overrideIntegrity', '${(overrides.integrity.match(/low|medium|high/) || [''])[0]}'); this.closest('.ai-card').classList.add('accepted');">
+                <i class="bi bi-check2 me-1"></i>Apply
+              </button>
+            </div>
+          </div>`;
+      }
+      if (overrides.availability && overrides.availability !== 'null') {
+        overrideCards += `
+          <div class="ai-card" id="ai-ov-avail">
+            <div class="d-flex justify-content-between align-items-start">
+              <div><div class="fw-bold small">Override Availability</div><div class="small text-muted">${overrides.availability}</div></div>
+              <button class="ai-accept-btn" onclick="aiApplyOverride('overrideAvailability', '${(overrides.availability.match(/low|medium|high/) || [''])[0]}'); this.closest('.ai-card').classList.add('accepted');">
+                <i class="bi bi-check2 me-1"></i>Apply
+              </button>
+            </div>
+          </div>`;
+      }
+      if (overrides.isHVA && overrides.isHVA !== 'null') {
+        overrideCards += `
+          <div class="ai-card" id="ai-ov-hva">
+            <div class="d-flex justify-content-between align-items-start">
+              <div><div class="fw-bold small">High Value Asset</div><div class="small text-muted">${overrides.isHVA}</div></div>
+              <button class="ai-accept-btn" onclick="document.getElementById('overrideHVA').checked = ${String(overrides.isHVA).includes('true')}; this.closest('.ai-card').classList.add('accepted');">
+                <i class="bi bi-check2 me-1"></i>Apply
+              </button>
+            </div>
+          </div>`;
+      }
+      if (overrideCards) {
+        html += `<div class="ai-section"><div class="ai-section-title">Suggested Overrides</div>${overrideCards}</div>`;
+      }
+    }
+
+    // Risk factors + concerns
+    if (r.riskFactors && r.riskFactors.length) {
+      html += `<div class="ai-section"><div class="ai-section-title">Risk Factors</div>`;
+      r.riskFactors.forEach(f => { html += `<div class="small mb-1"><i class="bi bi-exclamation-triangle text-warning me-1"></i>${f}</div>`; });
+      html += `</div>`;
+    }
+    if (r.concerns && r.concerns.length) {
+      html += `<div class="ai-section"><div class="ai-section-title">Concerns</div>`;
+      r.concerns.forEach(c => { html += `<div class="small mb-1"><i class="bi bi-flag text-danger me-1"></i>${c}</div>`; });
+      html += `</div>`;
+    }
+
+    // Strengths
+    if (r.strengths && r.strengths.length) {
+      html += `<div class="ai-section"><div class="ai-section-title">Strengths</div>`;
+      r.strengths.forEach(s => { html += `<div class="small mb-1"><i class="bi bi-check-circle text-success me-1"></i>${s}</div>`; });
+      html += `</div>`;
+    }
+
+    // Questions for submitter
+    if (r.questionsForSubmitter && r.questionsForSubmitter.length) {
+      html += `<div class="ai-section"><div class="ai-section-title">Suggested Questions for Submitter</div>`;
+      r.questionsForSubmitter.forEach((q, i) => {
+        html += `
+          <div class="ai-question-item">
+            <div class="d-flex justify-content-between">
+              <div class="fw-bold small">${q.question}</div>
+              <button class="ai-accept-btn flex-shrink-0 ms-2" onclick="aiCopyQuestion(this, ${i})"><i class="bi bi-clipboard me-1"></i>Copy</button>
+            </div>
+            <div class="small text-muted mt-1"><em>${q.reason}</em></div>
+          </div>`;
+      });
+      html += `</div>`;
+    }
+
+    // Recommendations
+    if (r.recommendations && r.recommendations.length) {
+      html += `<div class="ai-section"><div class="ai-section-title">Recommendations</div>`;
+      r.recommendations.forEach(rec => { html += `<div class="small mb-1"><i class="bi bi-lightbulb text-info me-1"></i>${rec}</div>`; });
+      html += `</div>`;
+    }
+
+    AIPanel.open({
+      title: 'AI Intake Review',
+      subtitle: 'Risk Level: ' + (r.riskLevel || 'unknown').toUpperCase(),
+      body: html,
+      footer: `
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm flex-fill text-white" style="background:#8b5cf6;" onclick="aiSuggestControls()">
+            <i class="bi bi-shield-plus me-1"></i>Suggest Controls
+          </button>
+          <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="AIPanel.close()">Close</button>
+        </div>`
+    });
+  } catch (err) {
+    AIPanel.showError(err.message);
+  }
+}
+
+// ── Apply override to form ──────────────────────────────────────────────────
+function aiApplyOverride(fieldName, value) {
+  if (!value) return;
+  const el = document.querySelector('[name="' + fieldName + '"]');
+  if (el) {
+    el.value = value;
+    el.style.boxShadow = '0 0 0 2px #c4b5fd';
+  }
+}
+
+// ── Copy question to clipboard ──────────────────────────────────────────────
+function aiCopyQuestion(btn, index) {
+  const q = window._aiReview.questionsForSubmitter[index];
+  navigator.clipboard.writeText(q.question).then(() => {
+    btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Copied!';
+    setTimeout(() => { btn.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy'; }, 2000);
+  });
+}
+
+// ── Suggest additional controls ─────────────────────────────────────────────
+async function aiSuggestControls() {
+  AIPanel.open({ title: 'Control Suggestions', subtitle: 'Analyzing against catalogue...' });
+  AIPanel.showLoading('Comparing project context against ITSG-33 catalogue...');
+
+  try {
+    const resp = await fetch('/api/ai/suggest-controls/' + INTAKE_ID, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error || 'Failed');
+
+    const s = data.suggestions;
+    let html = '';
+
+    // Tailoring notes
+    if (s.tailoringNotes) {
+      html += `<div class="ai-section"><div class="ai-section-title">Tailoring Guidance</div><div class="small p-2 rounded" style="background:#f5f3ff;">${s.tailoringNotes}</div></div>`;
+    }
+
+    // Suggested additional controls
+    if (s.suggestedControls && s.suggestedControls.length) {
+      html += `<div class="ai-section"><div class="ai-section-title">Suggested Additional Controls (${s.suggestedControls.length})</div>`;
+      s.suggestedControls.forEach((c, i) => {
+        const pColor = c.priority === 'P1' ? '#dc2626' : c.priority === 'P2' ? '#d97706' : '#6b7280';
+        html += `
+          <div class="ai-card" id="ai-ctrl-${i}">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="fw-bold small">
+                  <code>${c.controlId}</code>
+                  <span class="ms-1" style="color:${pColor}; font-size:0.7rem;">${c.priority}</span>
+                </div>
+                <div class="small text-muted">${c.reason}</div>
+              </div>
+            </div>
+          </div>`;
+      });
+      html += `</div>`;
+    }
+
+    // Controls to emphasize
+    if (s.controlsToEmphasize && s.controlsToEmphasize.length) {
+      html += `<div class="ai-section"><div class="ai-section-title">Controls Needing Extra Attention</div>`;
+      s.controlsToEmphasize.forEach(c => {
+        html += `<div class="small mb-2"><code class="me-1">${c.controlId}</code> ${c.reason}</div>`;
+      });
+      html += `</div>`;
+    }
+
+    if (!html) html = '<div class="text-center text-muted py-4">No additional controls suggested — the baseline appears comprehensive.</div>';
+
+    AIPanel.open({
+      title: 'Control Suggestions',
+      subtitle: (s.suggestedControls || []).length + ' additional controls suggested',
+      body: html,
+      footer: `
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm flex-fill text-white" style="background:#8b5cf6;" onclick="aiReviewIntake()">
+            <i class="bi bi-arrow-left me-1"></i>Back to Review
+          </button>
+          <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="AIPanel.close()">Close</button>
+        </div>`
+    });
+  } catch (err) {
+    AIPanel.showError(err.message);
+  }
+}
+
+// Override AI FAB button to trigger intake review
+document.addEventListener('DOMContentLoaded', function() {
+  var fab = document.getElementById('aiTriggerBtn');
+  if (fab) {
+    fab.onclick = function(e) {
+      e.preventDefault();
+      aiReviewIntake();
+    };
+    fab.title = 'AI: Review This Intake';
+  }
+});
+</script>
