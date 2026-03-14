@@ -473,4 +473,261 @@ router.post('/ai/review-evidence/:assessmentId', ensureAuthenticated, express.js
     res.status(500).json({ error: err.message });
   }
 });
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  SELF-ASSESSMENT (Pre-Intake) API Endpoints
+// ══════════════════════════════════════════════════════════════════════════════
+const { getFrameworks, getBaselineQuestions, countryNames, govLevelNames } = require('../config/framework-map');
+
+// Generate tailored security questions: baseline (static) + AI delta (system-specific)
+router.post('/self-assessment/questions', async (req, res) => {
+  try {
+    const { systemType, country, govLevel, sensitivity, description, frameworks } = req.body;
+    const scopeCountry = countryNames[country] || country;
+    const scopeLevel = govLevelNames[govLevel] || govLevel;
+    const fw = frameworks || getFrameworks(country, govLevel, sensitivity);
+    const fwLabel = fw.all ? fw.all.join(', ') : fw.primary;
+    const scopeText = `Scope: <strong>${scopeCountry} — ${scopeLevel}</strong> · ${sensitivity} sensitivity · Applicable: ${fwLabel}`;
+
+    // Step 1: Get baseline questions (static, no API call)
+    const questions = getBaselineQuestions(country, govLevel, sensitivity);
+
+    // Step 2: If description is substantive, call AI for system-specific extras only
+    const desc = (description || '').trim();
+    if (desc.length >= 30 && ai.isConfigured()) {
+      try {
+        // Summarize what we already cover so AI doesn't repeat
+        const existingTopics = questions.map(g =>
+          g.title + ': ' + g.questions.map(q => q.text.substring(0, 50)).join('; ')
+        ).join('\n');
+
+        const system = `You are a security assessment expert. Given a specific system description, generate ONLY additional security questions that are NOT already covered by the standard baseline below.
+
+System type: ${systemType || 'general IT system'}
+Country: ${scopeCountry}, Level: ${scopeLevel}, Sensitivity: ${sensitivity}
+Frameworks: ${fwLabel}
+
+EXISTING BASELINE QUESTIONS (do NOT repeat these):
+${existingTopics}
+
+Based on the specific system description, generate 3-8 ADDITIONAL questions that address risks unique to this particular system. Focus on technology-specific, architecture-specific, or use-case-specific concerns.
+
+Return a JSON array of question objects. Each has: group (which existing group title to add to, or "System-Specific" for a new group), type ("checkbox" or "select"), text (plain language), hint (optional), and for select type: options array.
+
+Keep questions non-technical and understandable by a business owner.
+Return ONLY valid JSON array, no markdown, no backticks.`;
+
+        const result = await ai.callClaude(system, `System description: ${desc}`, { maxTokens: 1500, temperature: 0.3 });
+        const cleaned = result.replace(/```json|```/g, '').trim();
+        const extraQuestions = JSON.parse(cleaned);
+
+        // Merge AI extras into the baseline
+        if (Array.isArray(extraQuestions)) {
+          let systemSpecificGroup = null;
+
+          extraQuestions.forEach(eq => {
+            const targetGroup = eq.group || 'System-Specific';
+            const existing = questions.find(g => g.title === targetGroup);
+
+            if (existing) {
+              // Add to existing group if not duplicate
+              const isDupe = existing.questions.some(q =>
+                q.text.toLowerCase().includes(eq.text.substring(0, 30).toLowerCase())
+              );
+              if (!isDupe) {
+                existing.questions.push({
+                  type: eq.type || 'checkbox',
+                  text: eq.text,
+                  hint: eq.hint || '',
+                  options: eq.options,
+                  aiGenerated: true
+                });
+              }
+            } else {
+              // Create new "System-Specific" group
+              if (!systemSpecificGroup) {
+                systemSpecificGroup = {
+                  title: 'System-Specific Considerations',
+                  icon: 'bi-cpu',
+                  frameworkRef: 'AI-Generated',
+                  questions: []
+                };
+                questions.push(systemSpecificGroup);
+              }
+              systemSpecificGroup.questions.push({
+                type: eq.type || 'checkbox',
+                text: eq.text,
+                hint: eq.hint || '',
+                options: eq.options,
+                aiGenerated: true
+              });
+            }
+          });
+
+          console.log(`[SA] Baseline: ${questions.reduce((n, g) => n + g.questions.length, 0) - extraQuestions.length} static + ${extraQuestions.length} AI delta questions`);
+        }
+      } catch (aiErr) {
+        // AI failed — that's OK, baseline questions still work
+        console.warn('[SA] AI delta questions failed (baseline still served):', aiErr.message);
+      }
+    } else {
+      console.log(`[SA] Serving ${questions.reduce((n, g) => n + g.questions.length, 0)} baseline questions only (no AI call — description too short or AI not configured)`);
+    }
+
+    res.json({ questions, scopeText, frameworksLabel: fwLabel });
+  } catch (err) {
+    console.error('Self-assessment questions error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Generate security report from answers
+router.post('/self-assessment/report', async (req, res) => {
+  try {
+    const { systemType, country, govLevel, sensitivity, description, frameworks, questions, answers } = req.body;
+    const scopeCountry = countryNames[country] || country;
+    const scopeLevel = govLevelNames[govLevel] || govLevel;
+    const fw = frameworks || getFrameworks(country, govLevel, sensitivity);
+    const fwLabel = fw.all ? fw.all.join(', ') : fw.primary;
+
+    // Build a readable summary of questions + answers
+    let answerSummary = '';
+    if (questions && answers) {
+      questions.forEach((group, gi) => {
+        answerSummary += `\n## ${group.title}\n`;
+        group.questions.forEach((q, qi) => {
+          const key = `${gi}_${qi}`;
+          const answer = answers[key];
+          if (q.type === 'checkbox') {
+            answerSummary += `- ${q.text}: ${answer ? 'YES' : 'NO'}\n`;
+          } else if (q.type === 'select' && answer) {
+            answerSummary += `- ${q.text}: ${answer}\n`;
+          } else {
+            answerSummary += `- ${q.text}: NOT ANSWERED\n`;
+          }
+        });
+      });
+    }
+
+    const system = `You are a security assessment expert. Analyze the self-assessment answers and generate a preliminary security report.
+
+System: ${systemType || 'general'} — ${description}
+Country: ${scopeCountry}, Level: ${scopeLevel}, Sensitivity: ${sensitivity}
+Frameworks: ${fwLabel}
+
+Return a JSON object with:
+- score: number 0-100 (overall security posture percentage)
+- scopeLabel: string (e.g. "Web App · Canada Federal · ITSG-33")
+- critical: array of findings (immediate action needed). Each finding: { title, detail, recommendation, framework }
+- warnings: array of findings (needs improvement)
+- secure: array of findings (what's already in place — mark with framework refs)
+- nextSteps: array of strings (prioritized action items, reference framework controls)
+
+Be specific about which framework controls apply. Keep language accessible to non-technical users.
+For "secure" items, note these are self-reported assumptions that need verification.
+Return ONLY valid JSON, no markdown, no backticks.`;
+
+    const result = await ai.callClaude(system, `Assessment answers:\n${answerSummary}`, { maxTokens: 4000, temperature: 0.3 });
+
+    let report;
+    try {
+      const cleaned = result.replace(/```json|```/g, '').trim();
+      report = JSON.parse(cleaned);
+    } catch (e) {
+      console.error('Failed to parse AI report:', e.message);
+      return res.status(500).json({ error: 'Failed to generate report. Please try again.' });
+    }
+
+    res.json(report);
+  } catch (err) {
+    console.error('Self-assessment report error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Submit self-assessment for intake review
+router.post('/self-assessment/submit', (req, res) => {
+  try {
+    const { name, email, organization, systemType, country, govLevel, sensitivity,
+            description, frameworks, questions, answers, report } = req.body;
+
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+
+    const crypto = require('crypto');
+    const refCode = 'SA-' + crypto.randomBytes(3).toString('hex').toUpperCase();
+
+    run(`INSERT INTO self_assessments
+      (ref_code, submitter_name, submitter_email, submitter_org, system_type, system_description,
+       country, gov_level, data_sensitivity, frameworks_json, questions_json, answers_json, report_json,
+       score, secure_count, warning_count, critical_count)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [refCode, name || '', email, organization || '', systemType || '',
+       description || '', country || '', govLevel || '', sensitivity || '',
+       JSON.stringify(frameworks || {}), JSON.stringify(questions || []),
+       JSON.stringify(answers || {}), JSON.stringify(report || {}),
+       report?.score || 0, report?.secure?.length || 0,
+       report?.warnings?.length || 0, report?.critical?.length || 0]
+    );
+
+    res.json({ success: true, refCode });
+  } catch (err) {
+    console.error('Self-assessment submit error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin: AI pre-populate intake from self-assessment
+router.post('/self-assessment/:id/generate-intake', async (req, res) => {
+  try {
+    const sa = get('SELECT * FROM self_assessments WHERE id = ?', [req.params.id]);
+    if (!sa) return res.status(404).json({ error: 'Self-assessment not found' });
+
+    const report = JSON.parse(sa.report_json || '{}');
+    const frameworks = JSON.parse(sa.frameworks_json || '{}');
+
+    const system = `You are a security assessment intake specialist. Based on a preliminary self-assessment, pre-populate intake form fields for a formal Security Assessment & Authorization engagement.
+
+Self-assessment details:
+- System type: ${sa.system_type}
+- Description: ${sa.system_description}
+- Country: ${sa.country}, Level: ${sa.gov_level}, Sensitivity: ${sa.data_sensitivity}
+- Frameworks: ${frameworks.all ? frameworks.all.join(', ') : frameworks.primary || 'Unknown'}
+- Score: ${sa.score}%
+- Critical gaps: ${sa.critical_count}, Warnings: ${sa.warning_count}, Secure: ${sa.secure_count}
+
+Return a JSON object with these intake fields (use reasonable defaults where info is missing):
+{
+  "project_name": "string",
+  "project_description": "string",
+  "department": "string or empty",
+  "app_type": "web|internal|cloud|mobile|data|network",
+  "data_classification": "unclassified|protected-a|protected-b|secret",
+  "confidentiality_level": "low|medium|high",
+  "integrity_level": "low|medium|high",
+  "availability_level": "low|medium|high",
+  "has_pii": true/false,
+  "pia_completed": "yes|no|unknown",
+  "hosting_type": "on-premises|shared|cloud-certified|managed",
+  "hosting_region": "string",
+  "security_profile": "PBMM|standard|high",
+  "additional_notes": "string with key findings summary"
+}
+
+Return ONLY valid JSON.`;
+
+    const result = await ai.callClaude(system, 'Generate intake fields', { maxTokens: 2000, temperature: 0.2 });
+    let intakeData;
+    try {
+      intakeData = JSON.parse(result.replace(/```json|```/g, '').trim());
+    } catch (e) {
+      return res.status(500).json({ error: 'Failed to generate intake data' });
+    }
+
+    res.json({ success: true, intakeData });
+  } catch (err) {
+    console.error('Generate intake error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
