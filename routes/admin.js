@@ -249,7 +249,9 @@ router.get('/dashboard', ensureAdminMfa, (req, res) => {
     pendingAudits: get("SELECT COUNT(*) as c FROM assessments WHERE status = 'submitted'")?.c || 0,
     activeATOs: get("SELECT COUNT(*) as c FROM assessments WHERE ato_type = 'ato' AND result = 'ato'")?.c || 0,
     activeIATOs: get("SELECT COUNT(*) as c FROM assessments WHERE ato_type = 'iato' AND result = 'iato'")?.c || 0,
-    pendingIntakes: get("SELECT COUNT(*) as c FROM intake_submissions WHERE status IN ('pending','in-review')")?.c || 0
+    pendingIntakes: get("SELECT COUNT(*) as c FROM intake_submissions WHERE status IN ('pending','in-review')")?.c || 0,
+    pendingSelfAssessments: (get("SELECT COUNT(*) as c FROM self_assessments WHERE status = 'submitted'")?.c || 0) +
+      (get("SELECT COUNT(*) as c FROM sa_access_requests WHERE status = 'pending'")?.c || 0)
   };
 
   // Check if this user has pending invitations they sent
@@ -1013,6 +1015,200 @@ const ACTIVITY_LABELS = {
   'network-diagram': 'Network / Architecture Diagram',
   'previous-sa': 'Previous SA&A / ATO'
 };
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  SELF-ASSESSMENTS (Pre-Intake Review)
+// ══════════════════════════════════════════════════════════════════════════════
+const { countryNames, govLevelNames, sensitivityNames, getFrameworks } = require('../config/framework-map');
+
+// List all self-assessments + access requests
+router.get('/self-assessments', ensureAdminMfa, (req, res) => {
+  const assessments = all('SELECT * FROM self_assessments ORDER BY created_at DESC');
+  const accessRequests = all('SELECT * FROM sa_access_requests ORDER BY created_at DESC');
+  const stats = {
+    total: assessments.length,
+    submitted: assessments.filter(a => a.status === 'submitted').length,
+    reviewed: assessments.filter(a => a.status === 'reviewed').length,
+    intakeCreated: assessments.filter(a => a.status === 'intake-created').length,
+    pendingAccessRequests: accessRequests.filter(r => r.status === 'pending').length
+  };
+  res.render('admin/self-assessments', {
+    title: 'Pre-Intake Self-Assessments', isAdmin: true, isSelfAssessments: true,
+    admin: req.user, assessments, accessRequests, stats
+  });
+});
+
+// Review a single self-assessment
+router.get('/self-assessments/:id', ensureAdminMfa, (req, res) => {
+  const sa = get('SELECT * FROM self_assessments WHERE id = ?', [req.params.id]);
+  if (!sa) { req.flash('error', 'Self-assessment not found'); return res.redirect('/admin/self-assessments'); }
+
+  const report = JSON.parse(sa.report_json || '{}');
+  const frameworks = JSON.parse(sa.frameworks_json || '{}');
+  const questions = JSON.parse(sa.questions_json || '[]');
+  const answers = JSON.parse(sa.answers_json || '{}');
+
+  // Check if intake already exists for this
+  const linkedIntake = sa.intake_id ? get('SELECT id, ref_code, status FROM intake_submissions WHERE id = ?', [sa.intake_id]) : null;
+
+  // Check if user already has an account
+  const existingUser = sa.submitter_email ? get('SELECT id, email, role FROM users WHERE email = ?', [sa.submitter_email.toLowerCase().trim()]) : null;
+
+  res.render('admin/self-assessment-review', {
+    title: `Review: ${sa.ref_code}`, isAdmin: true,
+    admin: req.user, sa, report, frameworks, questions, answers,
+    linkedIntake, existingUser,
+    countryName: countryNames[sa.country] || sa.country,
+    govLevelName: govLevelNames[sa.gov_level] || sa.gov_level,
+    sensitivityName: sensitivityNames[sa.data_sensitivity] || sa.data_sensitivity
+  });
+});
+
+// Mark as reviewed
+router.post('/self-assessments/:id/review', ensureAdminMfa, (req, res) => {
+  const { admin_notes } = req.body;
+  run("UPDATE self_assessments SET status = 'reviewed', reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP, admin_notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+    [req.user.id, admin_notes || '', req.params.id]);
+  req.flash('success', 'Self-assessment marked as reviewed.');
+  res.redirect(`/admin/self-assessments/${req.params.id}`);
+});
+
+// Create intake from self-assessment (manual or AI-populated)
+router.post('/self-assessments/:id/create-intake', ensureAdminMfa, (req, res) => {
+  try {
+    const sa = get('SELECT * FROM self_assessments WHERE id = ?', [req.params.id]);
+    if (!sa) { req.flash('error', 'Self-assessment not found'); return res.redirect('/admin/self-assessments'); }
+
+    // Use form values (admin can override AI-generated or enter manually)
+    const {
+      project_name, project_description, department, app_type,
+      data_classification, confidentiality_level, integrity_level, availability_level,
+      has_pii, pia_completed, hosting_type, hosting_region,
+      security_profile, additional_notes
+    } = req.body;
+
+    const crypto = require('crypto');
+    const refCode = 'INT-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+
+    const intakeId = run(`INSERT INTO intake_submissions (
+      ref_code, status, project_name, project_description, department,
+      app_type, data_classification, confidentiality_level, integrity_level, availability_level,
+      has_pii, pia_completed, hosting_type, hosting_region, security_profile,
+      additional_notes, owner_name, owner_email
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [refCode, 'draft', project_name || '', project_description || '', department || '',
+       app_type || '', data_classification || 'protected-b',
+       confidentiality_level || 'medium', integrity_level || 'medium', availability_level || 'medium',
+       has_pii === 'true' || has_pii === '1' ? 1 : 0, pia_completed || 'unknown',
+       hosting_type || '', hosting_region || '', security_profile || 'PBMM',
+       additional_notes || '', sa.submitter_name || '', sa.submitter_email || '']
+    );
+
+    // Link self-assessment to intake
+    run("UPDATE self_assessments SET status = 'intake-created', intake_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+      [intakeId, sa.id]);
+
+    req.flash('success', `Draft intake ${refCode} created from self-assessment. You can now invite the client to review and submit it.`);
+    res.redirect(`/admin/self-assessments/${sa.id}`);
+  } catch (err) {
+    console.error('Create intake from SA error:', err);
+    req.flash('error', 'Failed to create intake: ' + err.message);
+    res.redirect(`/admin/self-assessments/${req.params.id}`);
+  }
+});
+
+// Invite client to register and review their draft intake
+router.post('/self-assessments/:id/invite-client', ensureAdminMfa, (req, res) => {
+  try {
+    const sa = get('SELECT * FROM self_assessments WHERE id = ?', [req.params.id]);
+    if (!sa) { req.flash('error', 'Self-assessment not found'); return res.redirect('/admin/self-assessments'); }
+
+    const linkedIntake = sa.intake_id ? get('SELECT ref_code FROM intake_submissions WHERE id = ?', [sa.intake_id]) : null;
+    const email = sa.submitter_email;
+    const name = sa.submitter_name || '';
+
+    // Check if user already exists
+    const existingUser = get('SELECT id FROM users WHERE email = ?', [email.toLowerCase().trim()]);
+
+    if (existingUser) {
+      // User exists — just flash a login link
+      req.flash('success', `${email} already has an account. They can sign in at /client/login to review their intake.`);
+    } else {
+      // Create invitation for client registration
+      const crypto = require('crypto');
+      const inviteCode = crypto.randomBytes(4).toString('hex').toUpperCase();
+      const expiry = new Date(Date.now() + 14 * 86400000).toISOString(); // 14 days
+
+      run(`INSERT INTO invitations (type, email, name, organization, invite_code, invited_by, status, expires_at, message)
+        VALUES (?,?,?,?,?,?,?,?,?)`,
+        ['client', email, name, sa.submitter_org || '', inviteCode, req.user.id, 'pending', expiry,
+         `You submitted a preliminary security self-assessment (ref: ${sa.ref_code}). A draft intake has been created for your review.${linkedIntake ? ' Intake ref: ' + linkedIntake.ref_code : ''}`]
+      );
+
+      // Try to send email
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      try {
+        emailService.sendClientRegistrationInvite({
+          to: email, recipientName: name,
+          inviteCode, assessorName: req.user.name,
+          organization: req.user.organization || '', baseUrl,
+          message: `Your preliminary security self-assessment (${sa.ref_code}) has been reviewed. A draft intake has been prepared for you. Please register and sign in to review and submit it.`
+        });
+        req.flash('success', `Invitation sent to ${email} with code ${inviteCode}. They can register and review their draft intake.`);
+      } catch (emailErr) {
+        req.flash('success', `Invitation created with code ${inviteCode} — email could not be sent. Share this registration link: ${baseUrl}/admin/register?invite=${inviteCode}`);
+      }
+    }
+
+    res.redirect(`/admin/self-assessments/${sa.id}`);
+  } catch (err) {
+    console.error('Invite client error:', err);
+    req.flash('error', 'Failed to invite client: ' + err.message);
+    res.redirect(`/admin/self-assessments/${req.params.id}`);
+  }
+});
+
+// ── Access Request Management ──
+
+// Approve an access request
+router.post('/self-assessment-requests/:id/approve', ensureAdminMfa, (req, res) => {
+  try {
+    const request = get('SELECT * FROM sa_access_requests WHERE id = ?', [req.params.id]);
+    if (!request) { req.flash('error', 'Request not found'); return res.redirect('/admin/self-assessments'); }
+
+    const crypto = require('crypto');
+    const code = crypto.randomBytes(4).toString('hex').toUpperCase();
+    const expiry = new Date(Date.now() + 30 * 86400000).toISOString(); // 30 days
+
+    run("UPDATE sa_access_requests SET status = 'approved', access_code = ?, approved_by = ?, approved_at = CURRENT_TIMESTAMP, expires_at = ? WHERE id = ?",
+      [code, req.user.id, expiry, request.id]);
+
+    // Try to send email
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    try {
+      emailService.sendMail({
+        to: request.email,
+        subject: 'Your Security Self-Assessment Access Code',
+        text: `Hello ${request.name || ''},\n\nYour request for access to the Security Self-Assessment has been approved.\n\nAccess Code: ${code}\n\nUse this link to start your assessment:\n${baseUrl}/self-assessment?code=${code}\n\nThis code expires in 30 days.\n\nBest regards,\nSecurity Assessment Team`
+      });
+      req.flash('success', `Approved! Access code ${code} sent to ${request.email}.`);
+    } catch (emailErr) {
+      req.flash('success', `Approved! Code: ${code} — Email could not be sent. Share this link: ${baseUrl}/self-assessment?code=${code}`);
+    }
+    res.redirect('/admin/self-assessments');
+  } catch (err) {
+    console.error('Approve access request error:', err);
+    req.flash('error', 'Failed to approve: ' + err.message);
+    res.redirect('/admin/self-assessments');
+  }
+});
+
+// Deny an access request
+router.post('/self-assessment-requests/:id/deny', ensureAdminMfa, (req, res) => {
+  run("UPDATE sa_access_requests SET status = 'denied' WHERE id = ?", [req.params.id]);
+  req.flash('success', 'Access request denied.');
+  res.redirect('/admin/self-assessments');
+});
 
 // List all intakes
 router.get('/intakes', ensureAdminMfa, (req, res) => {

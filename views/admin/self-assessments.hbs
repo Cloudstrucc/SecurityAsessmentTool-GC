@@ -1,0 +1,187 @@
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">Pre-Intake Self-Assessments</h1>
+      <p class="text-muted mb-0">Client-submitted security self-assessments awaiting review</p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card text-center p-3">
+        <div class="fs-3 fw-bold">{{stats.total}}</div>
+        <div class="text-muted small">Total</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center p-3 {{#if stats.submitted}}border-info{{/if}}">
+        <div class="fs-3 fw-bold text-primary">{{stats.submitted}}</div>
+        <div class="text-muted small">Pending Review</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center p-3">
+        <div class="fs-3 fw-bold text-warning">{{stats.reviewed}}</div>
+        <div class="text-muted small">Reviewed</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center p-3">
+        <div class="fs-3 fw-bold text-success">{{stats.intakeCreated}}</div>
+        <div class="text-muted small">Intake Created</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card">
+    <div class="card-body p-0">
+      {{#if assessments.length}}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Ref</th>
+              <th>Submitter</th>
+              <th>System</th>
+              <th>Jurisdiction</th>
+              <th>Score</th>
+              <th>Status</th>
+              <th>Submitted</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each assessments}}
+            <tr>
+              <td><code>{{this.ref_code}}</code></td>
+              <td>
+                <div class="fw-semibold" style="font-size:0.88rem;">{{this.submitter_name}}</div>
+                <div class="text-muted small">{{this.submitter_email}}</div>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border">{{this.system_type}}</span>
+              </td>
+              <td>
+                <span style="font-size:0.82rem;">{{this.country}} · {{this.gov_level}}</span>
+              </td>
+              <td>
+                {{#if this.score}}
+                  <span class="fw-bold {{#if (gt this.score 70)}}text-success{{else}}{{#if (gt this.score 40)}}text-warning{{else}}text-danger{{/if}}{{/if}}">
+                    {{this.score}}%
+                  </span>
+                  <div class="text-muted small">
+                    <span class="text-danger">{{this.critical_count}}C</span>
+                    <span class="text-warning ms-1">{{this.warning_count}}W</span>
+                    <span class="text-success ms-1">{{this.secure_count}}S</span>
+                  </div>
+                {{else}}
+                  <span class="text-muted">—</span>
+                {{/if}}
+              </td>
+              <td>
+                {{#if (eq this.status 'submitted')}}
+                  <span class="badge bg-primary">Pending Review</span>
+                {{else if (eq this.status 'reviewed')}}
+                  <span class="badge bg-warning text-dark">Reviewed</span>
+                {{else if (eq this.status 'intake-created')}}
+                  <span class="badge bg-success">Intake Created</span>
+                {{else}}
+                  <span class="badge bg-secondary">{{this.status}}</span>
+                {{/if}}
+              </td>
+              <td>
+                <span class="text-muted small">{{this.created_at}}</span>
+              </td>
+              <td>
+                <a href="/admin/self-assessments/{{this.id}}" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-eye me-1"></i>Review
+                </a>
+              </td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+      {{else}}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-clipboard2-pulse" style="font-size:3rem;"></i>
+        <p class="mt-3">No self-assessments submitted yet.</p>
+        <p class="small">When clients complete a self-assessment at <code>/self-assessment</code>, their submissions will appear here.</p>
+      </div>
+      {{/if}}
+    </div>
+  </div>
+
+  <!-- Access Requests -->
+  <h3 class="mt-4 mb-3">
+    <i class="bi bi-envelope-open me-2"></i>Access Requests
+    {{#if stats.pendingAccessRequests}}
+      <span class="badge bg-info ms-2">{{stats.pendingAccessRequests}} pending</span>
+    {{/if}}
+  </h3>
+  <div class="card">
+    <div class="card-body p-0">
+      {{#if accessRequests.length}}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Organization</th>
+              <th>Reason</th>
+              <th>Status</th>
+              <th>Requested</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each accessRequests}}
+            <tr>
+              <td class="fw-semibold" style="font-size:0.88rem;">{{this.name}}</td>
+              <td><span class="text-muted small">{{this.email}}</span></td>
+              <td><span class="small">{{this.organization}}</span></td>
+              <td><span class="small text-muted">{{this.reason}}</span></td>
+              <td>
+                {{#if (eq this.status 'pending')}}
+                  <span class="badge bg-warning text-dark">Pending</span>
+                {{else if (eq this.status 'approved')}}
+                  <span class="badge bg-success">Approved</span>
+                  <div class="small text-muted mt-1">Code: <code>{{this.access_code}}</code></div>
+                {{else if (eq this.status 'denied')}}
+                  <span class="badge bg-danger">Denied</span>
+                {{/if}}
+              </td>
+              <td><span class="text-muted small">{{this.created_at}}</span></td>
+              <td>
+                {{#if (eq this.status 'pending')}}
+                  <div class="d-flex gap-1">
+                    <form action="/admin/self-assessment-requests/{{this.id}}/approve" method="POST" style="display:inline">
+                      <button type="submit" class="btn btn-sm btn-success" title="Approve & send code">
+                        <i class="bi bi-check-lg"></i>
+                      </button>
+                    </form>
+                    <form action="/admin/self-assessment-requests/{{this.id}}/deny" method="POST" style="display:inline">
+                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Deny">
+                        <i class="bi bi-x-lg"></i>
+                      </button>
+                    </form>
+                  </div>
+                {{/if}}
+              </td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+      {{else}}
+      <div class="text-center py-4 text-muted">
+        <i class="bi bi-envelope-open" style="font-size:2rem;"></i>
+        <p class="mt-2 small">No access requests yet.</p>
+      </div>
+      {{/if}}
+    </div>
+  </div>
+</div>

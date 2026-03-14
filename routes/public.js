@@ -41,6 +41,69 @@ router.get('/portal', (req, res) => {
   res.render('index', { title: 'SA&A Platform Portal' });
 });
 
+// ── Security Self-Assessment (access-code gated) ──
+router.get('/self-assessment', (req, res) => {
+  const code = req.query.code || req.session.saAccessCode || '';
+  if (code) {
+    // Validate the code
+    const access = get("SELECT * FROM sa_access_requests WHERE access_code = ? AND status = 'approved'", [code.toUpperCase().trim()]);
+    if (access) {
+      if (access.expires_at && new Date(access.expires_at) < new Date()) {
+        req.flash('error', 'This access code has expired. Please request a new one.');
+        return res.render('public/self-assessment-gate', { title: 'Security Self-Assessment' });
+      }
+      // Valid — show the wizard
+      req.session.saAccessCode = code.toUpperCase().trim();
+      const { frameworkMap } = require('../config/framework-map');
+      return res.render('public/self-assessment', {
+        title: 'Security Self-Assessment',
+        frameworkMapJSON: JSON.stringify(frameworkMap),
+        accessCode: code.toUpperCase().trim(),
+        accessName: access.name || '',
+        accessEmail: access.email || ''
+      });
+    }
+    req.flash('error', 'Invalid or expired access code.');
+  }
+  res.render('public/self-assessment-gate', { title: 'Security Self-Assessment' });
+});
+
+// Request access to self-assessment
+router.post('/self-assessment/request-access', async (req, res) => {
+  try {
+    const { name, email, organization, reason } = req.body;
+    if (!email) {
+      req.flash('error', 'Email is required.');
+      return res.redirect('/self-assessment');
+    }
+    // Check for existing pending request
+    const existing = get("SELECT id FROM sa_access_requests WHERE email = ? AND status = 'pending'", [email.toLowerCase().trim()]);
+    if (existing) {
+      req.flash('info', 'A request from this email is already pending review. You will be notified by email when approved.');
+      return res.redirect('/self-assessment');
+    }
+    // Check for existing approved code
+    const approved = get("SELECT access_code FROM sa_access_requests WHERE email = ? AND status = 'approved' AND (expires_at IS NULL OR expires_at > datetime('now'))", [email.toLowerCase().trim()]);
+    if (approved) {
+      req.flash('success', 'You already have an active access code. Check your email or enter it below.');
+      return res.redirect('/self-assessment');
+    }
+
+    run(`INSERT INTO sa_access_requests (name, email, organization, reason, status) VALUES (?,?,?,?,'pending')`,
+      [name || '', email.toLowerCase().trim(), organization || '', reason || '']);
+
+    res.render('public/self-assessment-gate', {
+      title: 'Security Self-Assessment',
+      requestSubmitted: true,
+      requestEmail: email
+    });
+  } catch (err) {
+    console.error('SA access request error:', err);
+    req.flash('error', 'Failed to submit request. Please try again.');
+    res.redirect('/self-assessment');
+  }
+});
+
 // Access via code
 router.get('/access', (req, res) => {
   const { code } = req.query;

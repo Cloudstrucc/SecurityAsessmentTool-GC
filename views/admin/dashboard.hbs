@@ -58,6 +58,17 @@
         </div>
       </a>
     </div>
+    <div class="col-6 col-lg">
+      <a href="/admin/self-assessments" class="text-decoration-none">
+        <div class="stat-card {{#if stats.pendingSelfAssessments}}border-info{{/if}}">
+          <div class="stat-icon" style="background:#dbeafe;color:#2563eb">
+            <i class="bi bi-clipboard2-pulse"></i>
+          </div>
+          <div class="stat-number">{{stats.pendingSelfAssessments}}</div>
+          <div class="stat-label">Pre-Assessments</div>
+        </div>
+      </a>
+    </div>
   </div>
 
   <div class="row g-4">
