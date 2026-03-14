@@ -25,7 +25,7 @@ router.get('/login', (req, res) => {
       return res.render('admin/login', { title: 'Verify MFA', layout: 'main', mfaStep: true });
     }
   }
-  res.render('admin/login', { title: 'Assessor Login', layout: 'main' });
+  res.render('admin/login', { title: 'Assessor Login', layout: 'main', prefillEmail: req.query.email || '' });
 });
 
 router.post('/login', (req, res, next) => {
@@ -1746,7 +1746,23 @@ const bcryptAdmin = require('bcryptjs');
 
 router.get('/register', (req, res) => {
   const inviteCode = req.query.invite || '';
-  res.render('admin/register', { title: 'Account Registration', layout: 'main', inviteCode, formData: {} });
+  let inviteEmail = '';
+  let inviteName = '';
+  // Look up invite to pre-fill form fields
+  if (inviteCode) {
+    const invite = get(
+      "SELECT email, name FROM invitations WHERE invite_code = ? AND status = 'pending'",
+      [inviteCode.trim().toUpperCase()]
+    );
+    if (invite) {
+      inviteEmail = invite.email || '';
+      inviteName = invite.name || '';
+    }
+  }
+  res.render('admin/register', {
+    title: 'Account Registration', layout: 'main',
+    inviteCode, formData: { email: inviteEmail, name: inviteName }
+  });
 });
 
 router.post('/register', (req, res) => {

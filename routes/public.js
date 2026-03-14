@@ -385,7 +385,7 @@ router.get('/client/passkey-setup', (req, res) => {
 // ── CLIENT LOGIN ──
 
 router.get('/client/login', (req, res) => {
-  res.render('public/client-login', { title: 'Client Sign In' });
+  res.render('public/client-login', { title: 'Client Sign In', prefillEmail: req.query.email || '' });
 });
 
 router.post('/client/login', (req, res) => {

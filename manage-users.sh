@@ -299,7 +299,11 @@ async function main() {
   db.run("INSERT INTO invitations (type, email, name, organization, invite_code, invited_by, status, expires_at) VALUES (?,?,?,?,?,?,'pending',?)",
     [role, email, name, org, code, adminId, expiry]);
   fs.writeFileSync(dbPath, Buffer.from(db.export()));
+  // Check if user already has an account
+  const existing = db.exec("SELECT id FROM users WHERE email = '" + email + "'");
+  const userExists = existing.length > 0 && existing[0].values.length > 0;
   console.log('CODE:' + code);
+  console.log('EXISTS:' + (userExists ? 'yes' : 'no'));
 }
 main().catch(e => { console.error('ERROR: ' + e.message); process.exit(1); });
 JSEOF
@@ -308,16 +312,32 @@ JSEOF
 
   if echo "$RESPONSE" | grep -q "^CODE:"; then
     INVITE_CODE=$(echo "$RESPONSE" | grep "^CODE:" | cut -d: -f2 | tr -d '[:space:]')
+    USER_EXISTS=$(echo "$RESPONSE" | grep "^EXISTS:" | cut -d: -f2 | tr -d '[:space:]')
+
     if $LOCAL; then
+      PROTO="http"
       DOMAIN="localhost:${PORT:-3000}"
-      REGISTER_URL="http://${DOMAIN}/admin/register?invite=${INVITE_CODE}"
     else
+      PROTO="https"
       DOMAIN="${APP_NAME}.azurewebsites.net"
       CUSTOM=$(az webapp show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
         --query "hostNames[?!contains(@, '.azurewebsites.net')]" -o tsv 2>/dev/null || true)
       [ -n "$CUSTOM" ] && DOMAIN=$(echo "$CUSTOM" | head -1)
-      REGISTER_URL="https://${DOMAIN}/admin/register?invite=${INVITE_CODE}"
     fi
+
+    # Build the appropriate URL
+    if [ "$USER_EXISTS" = "yes" ]; then
+      if [ "$INV_ROLE" = "client" ]; then
+        INVITE_URL="${PROTO}://${DOMAIN}/client/login?email=${INV_EMAIL}"
+      else
+        INVITE_URL="${PROTO}://${DOMAIN}/admin/login?email=${INV_EMAIL}"
+      fi
+      URL_LABEL="Sign-In URL (existing user)"
+    else
+      INVITE_URL="${PROTO}://${DOMAIN}/admin/register?invite=${INVITE_CODE}"
+      URL_LABEL="Registration URL (new user)"
+    fi
+
     echo ""
     echo "  ┌──────────────────────────────────────────────────────────────┐"
     echo "  │  Invite Created!                                             │"
@@ -326,16 +346,10 @@ JSEOF
     printf "  │  Email:   %-49s│\n" "$INV_EMAIL"
     printf "  │  Role:    %-49s│\n" "$INV_ROLE"
     printf "  │  Expires: %-49s│\n" "in $INV_DAYS days"
+    printf "  │  Status:  %-49s│\n" "$([ "$USER_EXISTS" = "yes" ] && echo "Existing user" || echo "New user — must register")"
     echo "  └──────────────────────────────────────────────────────────────┘"
-    echo ""; log "Registration URL:"; echo ""; echo "  $REGISTER_URL"; echo ""
-    warn "Share this URL with the invitee. They must register with: $INV_EMAIL"
-    PROTO="https"
-    $LOCAL && PROTO="http"
-    if [ "$INV_ROLE" = "client" ]; then
-      log "After registration, login at: ${PROTO}://${DOMAIN}/client/login"
-    else
-      log "After registration, login at: ${PROTO}://${DOMAIN}/admin/login"
-    fi
+    echo ""; log "$URL_LABEL:"; echo ""; echo "  $INVITE_URL"; echo ""
+    warn "Share this URL with: $INV_EMAIL"
     restart_app
   else
     err "Failed: $RESPONSE"
