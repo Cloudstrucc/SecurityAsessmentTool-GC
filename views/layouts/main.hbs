@@ -229,7 +229,15 @@
             <span class="brand-product">SA&amp;A Platform</span>
           </span>
         </a>
-        <div class="gc-lang"><a href="#" lang="fr">Fran&ccedil;ais</a></div>
+        <div class="gc-lang">
+          {{#unless isAdmin}}
+            {{#unless user}}
+              <a href="/portal" class="btn btn-sm btn-outline-light" style="font-size:0.78rem;border-color:rgba(255,255,255,0.3);padding:0.25rem 0.75rem;">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Existing Client
+              </a>
+            {{/unless}}
+          {{/unless}}
+        </div>
       </div>
     </div>
 

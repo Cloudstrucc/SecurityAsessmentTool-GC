@@ -24,21 +24,14 @@ const intakeUpload = multer({
 });
 
 // Home page
+// Home page — always show hero
 router.get('/', (req, res) => {
-  if (process.env.PROVISIONING_ENABLED === 'true') {
-    // Root site — show product signup
-    return res.render('public/product-signup', {
-      title: 'Vanguard Cloud Services — SA&A Platform',
-      layout: 'minimal'
-    });
-  }
-  // Tenant instance — show portal
-  res.render('index', { title: 'SA&A Platform Portal' });
+  res.render('index', { title: 'Vanguard Cloud Services — SA&A Platform', layout: 'home' });
 });
 
 // App portal — login / access code / assessor entry
 router.get('/portal', (req, res) => {
-  res.render('index', { title: 'SA&A Platform Portal' });
+  res.render('portal', { title: 'Client Portal' });
 });
 
 // ── Security Self-Assessment (access-code gated) ──
