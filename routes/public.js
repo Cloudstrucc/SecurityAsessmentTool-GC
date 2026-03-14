@@ -106,7 +106,7 @@ router.get('/access', (req, res) => {
 
 router.post('/respond/access', (req, res) => {
   const { code } = req.body;
-  if (!code) { req.flash('error', 'Please enter an access code'); return res.redirect('/portal'); }
+  if (!code) { req.flash('error', req.t('flash.public.please_enter_an_access_code')); return res.redirect('/portal'); }
   res.redirect('/respond/' + code.toUpperCase().trim());
 });
 
@@ -547,7 +547,7 @@ router.get('/client/logout', (req, res) => {
 
 router.get('/client/dashboard', ensureClientAuth, (req, res) => {
   const clientUser = get('SELECT * FROM users WHERE id = ?', [req.session.clientId]);
-  if (!clientUser) { req.flash('error', 'Session expired.'); return res.redirect('/client/login'); }
+  if (!clientUser) { req.flash('error', req.t('flash.public.session_expired')); return res.redirect('/client/login'); }
 
   // Get intakes submitted by this user OR assigned to them by an assessor
   const intakes = all(`
@@ -576,7 +576,7 @@ router.get('/client/dashboard', ensureClientAuth, (req, res) => {
 
 router.get('/client/settings', ensureClientAuth, (req, res) => {
   const clientUser = get('SELECT * FROM users WHERE id = ?', [req.session.clientId]);
-  if (!clientUser) { req.flash('error', 'Session expired.'); return res.redirect('/client/login'); }
+  if (!clientUser) { req.flash('error', req.t('flash.public.session_expired')); return res.redirect('/client/login'); }
   res.render('public/client-settings', {
     title: 'Settings',
     clientUser,
@@ -739,7 +739,7 @@ router.post('/intake/:refCode/edit', ensureClientAuth, intakeUpload.array('attac
     const isOwner = (intake.owner_email || '').toLowerCase().trim() === email;
     const isAssigned = (intake.assigned_to_email || '').toLowerCase().trim() === email;
     if (!isOwner && !isAssigned && intake.submitted_by_user_id !== clientUser.id) {
-      req.flash('error', 'You do not have access to this intake.');
+      req.flash('error', req.t('flash.public.you_do_not_have_access'));
       return res.redirect('/client/dashboard');
     }
 
@@ -829,7 +829,7 @@ router.post('/intake/:refCode/edit', ensureClientAuth, intakeUpload.array('attac
 
   } catch (err) {
     console.error('Intake edit error:', err);
-    req.flash('error', 'Failed to submit intake. Please try again.');
+    req.flash('error', req.t('flash.public.failed_to_submit_intake_please'));
     res.redirect(`/intake/${req.params.refCode}/edit`);
   }
 });
@@ -904,7 +904,7 @@ router.post('/respond/:code/poam/submit', requireSignature('poam.client_submit',
   if (!req.session.clientId) { req.flash('error', req.t('flash.public.not_authenticated')); return res.redirect('/client/login'); }
   const code = req.params.code.toUpperCase().trim();
   const assessment = get('SELECT id FROM assessments WHERE UPPER(TRIM(invite_code)) = ?', [code]);
-  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/client/dashboard'); }
+  if (!assessment) { req.flash('error', req.t('flash.public.assessment_not_found')); return res.redirect('/client/dashboard'); }
 
   // Mark all items with evidence as submitted
   run(`UPDATE iato_checklist SET client_evidence_status = 'submitted', client_submitted_at = CURRENT_TIMESTAMP 
@@ -1062,15 +1062,15 @@ router.post('/product-signup', async (req, res) => {
 
     // ── Validate ──
     if (!first_name || !last_name || !email || !organization || !password) {
-      req.flash('error', 'All fields are required.');
+      req.flash('error', req.t('flash.public.all_fields_are_required'));
       return res.redirect('/product-signup');
     }
     if (password.length < 10) {
-      req.flash('error', 'Password must be at least 10 characters.');
+      req.flash('error', req.t('flash.public.password_must_be_at_least'));
       return res.redirect('/product-signup');
     }
     if (password !== confirm_password) {
-      req.flash('error', 'Passwords do not match.');
+      req.flash('error', req.t('flash.public.passwords_do_not_match'));
       return res.redirect('/product-signup');
     }
 

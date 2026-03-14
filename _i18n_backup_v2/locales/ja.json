@@ -1,0 +1,633 @@
+{
+  "brand": {
+    "company": "Vanguard Cloud Services",
+    "product": "SA&A Platform",
+    "tagline": "セキュリティ評価・認可プラットフォーム",
+    "by": "提供"
+  },
+  "nav": {
+    "existingClient": "既存のお客様",
+    "clientPortal": "クライアントポータル",
+    "assessorLogin": "評価者ログイン",
+    "signIn": "サインインして提出",
+    "register": "登録",
+    "registerInvite": "招待コードで登録",
+    "dashboard": "ダッシュボード",
+    "settings": "設定",
+    "signOut": "サインアウト",
+    "startIntake": "インテーク開始",
+    "backHome": "ホームに戻る",
+    "appTitle": "セキュリティ評価・認可",
+    "menu": "メニュー",
+    "projects": "プロジェクト",
+    "assessments": "評価",
+    "preAssessments": "事前評価",
+    "intakes": "インテーク",
+    "team": "チーム",
+    "auditLog": "監査ログ",
+    "newIntake": "新規インテーク",
+    "newProject": "新規プロジェクト"
+  },
+  "home": {
+    "badge": "マルチフレームワーク対応コンプライアンスプラットフォーム",
+    "headline": "あなたのシステムは",
+    "headlineAccent": "十分に安全ですか？",
+    "lead": "数分で確認できます。自己評価ウィザードがシステムについて分かりやすい質問をし、管轄地域に適したセキュリティフレームワークにマッピングして、即座にレポートを提供します。",
+    "noAccount": "アカウント登録不要",
+    "fiveMin": "5分間のアンケート",
+    "instantReport": "即時セキュリティレポート",
+    "frameworks": "対応フレームワーク"
+  },
+  "saCard": {
+    "title": "セキュリティ自己評価",
+    "subtitle": "無料の予備評価",
+    "step1": "システムを説明",
+    "step1d": "— 種類、管轄地域、機密レベルを選択",
+    "step2": "質問に回答",
+    "step2d": "— フレームワーク（ITSG-33、NIST、GDPRなど）に合わせた質問",
+    "step3": "レポートを取得",
+    "step3d": "— 安全な点、重要な点、次のステップ",
+    "startBtn": "無料評価を開始",
+    "note": "アクセスコードが必要です — 今すぐリクエスト可能"
+  },
+  "cap": {
+    "title": "プラットフォームの機能",
+    "subtitle": "エンドツーエンドのセキュリティ評価・認可ライフサイクル",
+    "multiJuris": "マルチ管轄対応",
+    "multiJurisD": "17以上の地域に対応し、フレームワークを自動選択",
+    "lifecycle": "SA&Aライフサイクル全体",
+    "lifecycleD": "ATO、iATO、POA&M、リスク分類、PDFエクスポート",
+    "collab": "チームコラボレーション",
+    "collabD": "クライアントポータル、ピア評価者の割り当て、招待",
+    "mfa": "MFA + パスキー",
+    "mfaD": "TOTP、WebAuthn 生体認証、署名付き監査証跡",
+    "guidance": "GC Webガイダンス",
+    "guidanceD": "低リスクシステム向けの自動コンプライアンスチェックリスト",
+    "audit": "監査証跡",
+    "auditD": "改ざん防止ログ付きのMFA署名アクション",
+    "tenant": "マルチテナントSaaS",
+    "tenantD": "Azure上で組織ごとに分離されたインスタンス",
+    "standards": "業界標準",
+    "standardsD": "SOC 2、PCI DSS、CMMC、FedRAMP、DORA、Essential Eight"
+  },
+  "portal": {
+    "title": "クライアントポータル",
+    "subtitle": "インテークの提出、評価へのアクセス、またはサインインしてセキュリティ態勢を管理します。",
+    "submitIntake": "インテークを提出",
+    "submitIntakeD": "新しいプロジェクトを開始しますか？プロジェクトの詳細とデータ分類を含むセキュリティ評価インテークを提出してください。",
+    "mfaReq": "MFAが有効なアカウントが必要です。",
+    "enterCode": "アクセスコードを入力",
+    "enterCodeD": "セキュリティ担当者から招待を受け取りましたか？アクセスコードを入力して、評価のためのエビデンスを提供してください。",
+    "accessCode": "アクセスコード",
+    "accessBtn": "評価にアクセス",
+    "practitioner": "セキュリティ担当者",
+    "practitionerD": "セキュリティ評価者および担当者は、ログインしてプロジェクトの管理、インテークのレビュー、評価の作成、監査の実施ができます。"
+  },
+  "gate": {
+    "title": "セキュリティ自己評価",
+    "subtitle": "適用されるフレームワークに対してシステムのセキュリティ態勢を評価します。",
+    "haveCode": "アクセスコードを持っています",
+    "codeLabel": "アクセスコード",
+    "startBtn": "評価を開始",
+    "requestAccess": "アクセスをリクエスト",
+    "requestD": "コードをお持ちでないですか？リクエストを送信すると、セキュリティチームが審査します。承認されると、アクセスコードがメールで届きます。",
+    "name": "お名前",
+    "email": "メールアドレス",
+    "org": "組織",
+    "systemQ": "評価したいシステムは何ですか？",
+    "systemP": "簡単な説明 — 例：市民フィードバック用の公開Webポータル",
+    "submitBtn": "アクセスをリクエスト",
+    "submitted": "リクエストが送信されました！",
+    "submittedD": "リクエストはセキュリティチームに送信されました。承認されると、<strong>{{email}}</strong>宛にアクセスコードが記載されたメールが届きます。",
+    "submittedNote": "通常、24時間以内に処理されます。",
+    "backPortal": "ポータルに戻る"
+  },
+  "sa": {
+    "title": "セキュリティ自己評価",
+    "subtitle": "適用されるフレームワークに対してシステムのセキュリティ態勢を評価します",
+    "step1": "システムと管轄",
+    "step2": "質問に回答",
+    "step3": "レポートを表示",
+    "tellUs": "システムについて教えてください",
+    "tellUsD": "タイプ、管轄を選択し、システムを説明してください。適用されるセキュリティフレームワークを判定し、カスタマイズされた質問を生成します。",
+    "systemType": "システムタイプ",
+    "webApp": "Webアプリケーション",
+    "webAppD": "Webサイト、ポータル、SaaSアプリ",
+    "internal": "内部システム",
+    "internalD": "イントラネット、人事、ERP、CRM",
+    "cloud": "クラウドインフラ",
+    "cloudD": "AWS、Azure、GCP セットアップ",
+    "mobile": "モバイルアプリ",
+    "mobileD": "iOS、Android、ハイブリッド",
+    "data": "データ / アナリティクス",
+    "dataD": "データベース、ウェアハウス、BI",
+    "network": "ネットワーク / デバイス",
+    "networkD": "LAN、Wi-Fi、IoT、エンドポイント",
+    "country": "国",
+    "govLevel": "政府レベル",
+    "sensitivity": "データ機密性",
+    "federal": "連邦",
+    "state": "州 / 省",
+    "municipal": "市区町村 / 地方自治体",
+    "private": "民間セクター",
+    "healthcare": "医療",
+    "finance": "金融サービス",
+    "public": "公開 / 非機密",
+    "lowSens": "低機密",
+    "medSens": "中機密（個人情報）",
+    "highSens": "高機密（Protected B / PII）",
+    "classified": "機密 / 秘密",
+    "fwApply": "お使いのシステムに適用される可能性のあるセキュリティフレームワーク：",
+    "describe": "システムを平易な言葉で説明してください",
+    "describeP": "例：WordPress で構築された一般公開のウェブポータルがあり、市民からのフィードバックフォームを収集しています。",
+    "generateQ": "セキュリティ質問を生成",
+    "analyzing": "システムと管轄区域を分析中...",
+    "analyzingD": "適用されるフレームワークに基づいてカスタマイズされたセキュリティ質問を生成しています",
+    "questionsTitle": "セキュリティ評価質問",
+    "questionsHint": "正直にお答えください — ギャップの特定に役立ちます。不明な質問はスキップしてください。",
+    "back": "戻る",
+    "generateReport": "セキュリティレポートを生成",
+    "genReport": "セキュリティレポートを生成中...",
+    "genReportD": "回答を分析し、フレームワークコントロールにマッピングしています",
+    "doNotClose": "このページを閉じないでください — 最大30秒かかる場合があります。",
+    "reportTitle": "予備的セキュリティ態勢",
+    "score": "セキュリティスコア",
+    "secured": "セキュリティ確保済み",
+    "needAttn": "要対応",
+    "critical": "重大なギャップ",
+    "criticalSection": "重大なギャップ — 即時対応が必要",
+    "warningSection": "改善が必要な領域",
+    "securedSection": "すでにセキュリティが確保されている項目",
+    "securedNote": "推定 — 個別に検証してください",
+    "securedWarn": "自己申告の回答に基づいています。正式な評価で検証する必要があります。",
+    "nextSteps": "推奨される次のステップ",
+    "requestFull": "完全な SA&A 評価をリクエスト",
+    "print": "レポートを印刷",
+    "startOver": "最初からやり直す",
+    "yourName": "お名前",
+    "yourEmail": "メールアドレス",
+    "yourOrg": "組織"
+  },
+  "common": {
+    "select": "— 選択 —",
+    "submit": "送信",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "required": "必須",
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました。もう一度お試しください。",
+    "yes": "はい",
+    "no": "いいえ",
+    "unknown": "不明"
+  },
+  "bq": {
+    "iam": "ID・アクセス管理",
+    "dp": "データ保護・プライバシー",
+    "sns": "システム・ネットワークセキュリティ",
+    "mir": "監視・インシデント対応",
+    "gpa": "ガバナンス、ポリシー・意識向上",
+    "ssc": "システム固有の考慮事項"
+  },
+  "auth": {
+    "login": "サインイン",
+    "loginTitle": "評価者ログイン",
+    "clientLogin": "クライアントサインイン",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "signIn": "サインイン",
+    "forgotPassword": "パスワードをお忘れですか？",
+    "noAccount": "アカウントをお持ちでないですか？",
+    "registerHere": "こちらから登録",
+    "verifyMfa": "MFA認証",
+    "enterCode": "認証アプリの6桁のコードを入力してください",
+    "verify": "認証",
+    "usePasskey": "代わりにPasskeyを使用",
+    "or": "または",
+    "mfaSetup": "MFAセットアップ",
+    "scanQr": "認証アプリでこのQRコードをスキャンしてください",
+    "manualEntry": "手動入力",
+    "enterToken": "認証コードを入力",
+    "enableMfa": "MFAを有効にする",
+    "register": "登録",
+    "name": "氏名",
+    "organization": "組織",
+    "confirmPassword": "パスワード確認",
+    "inviteCode": "招待コード",
+    "inviteHint": "招待メールに記載されたコードを入力してください。",
+    "createAccount": "アカウント作成",
+    "alreadyHave": "すでにアカウントをお持ちですか？",
+    "passkey": "Passkey / 生体認証",
+    "passkeyDesc": "Passkeyを登録すると、ログインや重要な操作に生体認証を使用できます。",
+    "registerPasskey": "Passkeyを登録",
+    "skipPasskey": "後で設定する",
+    "passkeyRegistered": "パスキーが登録されました！生体認証でサインインできます。",
+    "tryAgain": "再試行",
+    "continueToApp": "ダッシュボードへ進む",
+    "confirmIdentity": "続行するには本人確認を行ってください。",
+    "saPortal": "セキュリティ評価・認可ポータル",
+    "approvePasskey": "パスキー（Face ID、Touch ID、またはWindows Hello）で承認してください。",
+    "signInPasskey": "パスキーでサインイン",
+    "useTotpInstead": "代わりにTOTPコードを使用",
+    "enter6digit": "認証アプリの6桁コードを入力してください。",
+    "verifySignIn": "確認してサインイン",
+    "differentUser": "別のユーザーでサインイン",
+    "registerInvite": "招待コードで登録",
+    "backPortal": "ポータルホームに戻る",
+    "clientSignIn": "クライアントサインイン"
+  },
+  "dash": {
+    "title": "ダッシュボード",
+    "welcome": "おかえりなさい、",
+    "newProject": "新規プロジェクト",
+    "totalProjects": "プロジェクト総数",
+    "activeAssessments": "進行中の評価",
+    "pendingAudits": "保留中の監査",
+    "activeATOs": "有効なATO",
+    "pendingIntakes": "保留中のインテーク",
+    "preAssessments": "事前評価",
+    "recentProjects": "最近のプロジェクト",
+    "recentAssessments": "最近の評価",
+    "viewAll": "すべて表示",
+    "noProjects": "プロジェクトはまだありません。",
+    "noAssessments": "評価はまだありません。"
+  },
+  "proj": {
+    "title": "プロジェクト",
+    "new": "新規プロジェクト",
+    "name": "プロジェクト名",
+    "description": "説明",
+    "department": "部門",
+    "branch": "支部",
+    "dataClass": "データ分類",
+    "hosting": "ホスティング種別",
+    "appType": "アプリケーション種別",
+    "status": "ステータス",
+    "created": "作成日",
+    "actions": "アクション",
+    "view": "表示",
+    "noProjects": "プロジェクトが見つかりません。",
+    "delete": "プロジェクトを削除",
+    "deleteConfirm": "本当によろしいですか？"
+  },
+  "assess": {
+    "title": "評価",
+    "new": "新規評価",
+    "project": "プロジェクト",
+    "type": "種別",
+    "status": "ステータス",
+    "score": "スコア",
+    "controls": "コントロール",
+    "view": "表示",
+    "sendInvite": "招待を送信",
+    "startAudit": "監査を開始",
+    "completeAudit": "監査を完了",
+    "noAssessments": "評価が見つかりません。",
+    "evidenceGathering": "証跡収集",
+    "submitted": "提出済み",
+    "audit": "監査",
+    "completed": "完了",
+    "met": "適合",
+    "partiallyMet": "一部達成",
+    "notMet": "未達成",
+    "pending": "保留中",
+    "inherited": "継承済み",
+    "applicable": "適用対象",
+    "priority": "優先度"
+  },
+  "intake": {
+    "title": "インテーク申請一覧",
+    "ref": "参照番号",
+    "projectName": "プロジェクト名",
+    "submitter": "申請者",
+    "status": "ステータス",
+    "submitted": "提出日",
+    "review": "レビュー",
+    "accept": "承認",
+    "decline": "却下",
+    "noIntakes": "インテーク申請はまだありません。",
+    "form": "セキュリティ評価インテーク",
+    "systemInfo": "システム情報",
+    "dataInfo": "データと分類",
+    "hosting": "ホスティングと技術",
+    "contacts": "連絡先",
+    "additional": "追加情報",
+    "submit": "インテークを提出",
+    "draft": "下書き",
+    "inReview": "レビュー中",
+    "accepted": "承認済み",
+    "declined": "却下済み",
+    "strong": {
+      "privacy_impact_assessment_pia": "プライバシー影響評価 (PIA)"
+    },
+    "ph": {
+      "full_name": "氏名",
+      "email_address": "メールアドレス",
+      "title_role": "役職 / 役割"
+    }
+  },
+  "client": {
+    "dashboard": "マイダッシュボード",
+    "myIntakes": "マイインテーク",
+    "myAssessments": "マイ評価",
+    "newIntake": "新規インテーク",
+    "noIntakes": "まだインテークを提出していません。",
+    "noAssessments": "まだ割り当てられた評価はありません。",
+    "viewIntake": "表示",
+    "editDraft": "下書きを編集",
+    "settings": "設定",
+    "profile": "プロフィール",
+    "changePassword": "パスワード変更",
+    "mfaSettings": "MFA設定",
+    "passkeySettings": "パスキー設定"
+  },
+  "evidence": {
+    "title": "証拠提出",
+    "control": "コントロール",
+    "description": "説明",
+    "guidance": "証拠ガイダンス",
+    "provide": "証拠を提供",
+    "save": "保存",
+    "submit": "すべての証拠を提出",
+    "progress": "進捗状況",
+    "provided": "提供済み",
+    "remaining": "残り",
+    "addComment": "コメントを追加",
+    "attachFile": "ファイルを添付"
+  },
+  "settings": {
+    "title": "設定",
+    "mfa": "多要素認証（MFA）",
+    "mfaEnabled": "MFAが有効です",
+    "mfaMode": "MFAモード",
+    "totp": "認証アプリ（TOTP）",
+    "push": "パスキー / 生体認証",
+    "passkey": "パスキー管理",
+    "clearPasskeys": "パスキーをクリア",
+    "registerNew": "新しいパスキーを登録"
+  },
+  "auditLog": {
+    "title": "監査署名ログ",
+    "action": "アクション",
+    "user": "ユーザー",
+    "entity": "エンティティ",
+    "timestamp": "タイムスタンプ",
+    "details": "詳細",
+    "today": "今日",
+    "total": "合計",
+    "uniqueUsers": "ユニークユーザー数"
+  },
+  "invite": {
+    "title": "招待管理",
+    "clients": "クライアント招待",
+    "assessors": "評価者招待",
+    "peers": "ピア評価者",
+    "sendClient": "クライアントを招待",
+    "sendAssessor": "評価者を招待",
+    "email": "メールアドレス",
+    "name": "名前",
+    "message": "メッセージ",
+    "send": "招待を送信",
+    "resend": "再送信",
+    "revoke": "取り消し",
+    "status": "ステータス",
+    "code": "コード",
+    "expires": "有効期限",
+    "pending": "保留中",
+    "accepted": "承認済み",
+    "revoked": "取り消し済み",
+    "expired": "期限切れ"
+  },
+  "poam": {
+    "title": "POA&M是正管理",
+    "item": "項目",
+    "risk": "リスクレベル",
+    "deadline": "期限",
+    "status": "ステータス",
+    "evidence": "証跡",
+    "open": "未着手",
+    "inProgress": "進行中",
+    "completed": "完了",
+    "verified": "検証済み",
+    "overdue": "期限超過",
+    "submitEvidence": "是正措置エビデンスの提出"
+  },
+  "error": {
+    "title": "エラー",
+    "notFound": "ページが見つかりません",
+    "goHome": "ホームへ戻る",
+    "tryAgain": "再試行"
+  },
+  "success": {
+    "title": "エビデンス提出完了",
+    "message": "エビデンスが正常に提出されました。",
+    "ref": "参照番号",
+    "date": "提出日"
+  },
+  "guidance": {
+    "title": "GC Webガイダンスレポート",
+    "checklist": "コンプライアンスチェックリスト",
+    "required": "必須",
+    "recommended": "推奨",
+    "met": "達成",
+    "inProgress": "進行中",
+    "na": "該当なし",
+    "submit": "チェックリストを提出",
+    "validate": "検証",
+    "return": "修正のため差し戻し"
+  },
+  "saAdmin": {
+    "title": "受付前自己評価",
+    "subtitle": "レビュー待ちのクライアント提出セキュリティ自己評価",
+    "total": "合計",
+    "pendingReview": "レビュー待ち",
+    "reviewed": "レビュー済み",
+    "intakeCreated": "受付作成済み",
+    "ref": "参照番号",
+    "submitter": "提出者",
+    "system": "システム",
+    "jurisdiction": "管轄区域",
+    "score": "スコア",
+    "review": "レビュー",
+    "noAssessments": "自己評価はまだ提出されていません。",
+    "accessRequests": "アクセス申請",
+    "pending": "保留中",
+    "approve": "承認",
+    "deny": "拒否",
+    "noRequests": "アクセス申請はまだありません。",
+    "reason": "理由",
+    "requested": "申請日"
+  },
+  "saReview": {
+    "systemJuris": "システム & 管轄区域",
+    "systemType": "システム種別",
+    "country": "国",
+    "govLevel": "政府レベル",
+    "sensitivity": "データ機密度",
+    "score": "セキュリティスコア",
+    "findings": "検出事項",
+    "critical": "重大",
+    "warnings": "警告",
+    "secured": "保護済み",
+    "systemDesc": "システム概要",
+    "frameworks": "適用フレームワーク",
+    "criticalGaps": "重大なギャップ",
+    "warningSection": "改善が必要な領域",
+    "securedSection": "セキュリティ確保済み（想定 — 独自に検証してください）",
+    "securedWarn": "クライアントによる自己申告です。正式な評価時に検証が必要です。",
+    "adminNotes": "管理者メモ",
+    "notesPlaceholder": "この提出に関する内部メモ...",
+    "markReviewed": "レビュー済みにする",
+    "updateNotes": "メモを更新",
+    "linkedIntake": "関連付けられたインテーク",
+    "viewIntake": "インテークを表示",
+    "clientInvitation": "クライアント招待",
+    "hasAccount": "アカウント登録済み",
+    "sendEmail": "メールを手動送信",
+    "inviteDesc": "登録、サインイン、およびインテーク下書きの確認に招待します。",
+    "sendInvite": "登録招待を送信",
+    "createIntakeFirst": "まずインテークの下書きを作成してから、クライアントを招待できます。",
+    "createIntake": "インテークを作成",
+    "aiPopulate": "AIで事前入力",
+    "aiPopulateD": "自己評価からインテークフィールドを自動入力",
+    "generate": "生成",
+    "createDraft": "インテーク下書きを作成",
+    "projectName": "プロジェクト名",
+    "description": "説明",
+    "department": "部門",
+    "appType": "アプリタイプ",
+    "dataClass": "データ分類",
+    "confidentiality": "機密性",
+    "integrity": "完全性",
+    "availability": "可用性",
+    "pii": "PIIを含む？",
+    "pia": "PIA完了済み？",
+    "hostingType": "ホスティング",
+    "hostingRegion": "ホスティングリージョン",
+    "secProfile": "セキュリティプロファイル",
+    "notes": "追加メモ"
+  },
+  "footer": {
+    "contact": "お問い合わせ",
+    "terms": "利用規約",
+    "privacy": "プライバシーポリシー",
+    "accessibility": "アクセシビリティ",
+    "copyright": "セキュリティ評価・認可プラットフォーム · マルチフレームワークコンプライアンス",
+    "dateModified": "最終更新日"
+  },
+  "admin": {
+    "dashboard": {
+      "th": {
+        "status": "ステータス",
+        "updated": "更新日",
+        "project": "プロジェクト",
+        "classification": "分類"
+      }
+    },
+    "intake_review": {
+      "span": {
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      },
+      "tattr": {
+        "ai_elaborate": "AI: 詳細説明"
+      }
+    },
+    "invitations": {
+      "th": {
+        "email": "メールアドレス",
+        "name": "名前",
+        "code": "コード",
+        "status": "ステータス",
+        "sent": "送信日"
+      },
+      "label": {
+        "name": "名前",
+        "organization": "組織"
+      },
+      "small": {
+        "optional": "（任意）"
+      },
+      "span": {
+        "pending": "保留中",
+        "accepted": "承認済み",
+        "revoked": "取り消し済み"
+      },
+      "tattr": {
+        "resend": "再送信",
+        "revoke": "取り消し"
+      }
+    },
+    "project_new": {
+      "ph": {
+        "full_name": "氏名"
+      }
+    },
+    "self_assessments": {
+      "th": {
+        "status": "ステータス"
+      }
+    }
+  },
+  "index": {
+    "span": {
+      "essential_eight": "Essential Eight"
+    }
+  },
+  "layout": {
+    "main": {
+      "h2": {
+        "about_this_site": "このサイトについて"
+      },
+      "h5": {
+        "verification_required": "認証が必要です"
+      },
+      "p": {
+        "this_action_requires_verification": "この操作には認証が必要です。",
+        "approve_the_prompt_on_your": "Face ID、Touch ID、またはWindows Helloを使用して、デバイスでプロンプトを承認してください。"
+      },
+      "link": {
+        "skip_to_main_content": "メインコンテンツへスキップ",
+        "skip_to_footer": "フッターへスキップ"
+      },
+      "btn": {
+        "cancel": "キャンセル",
+        "verify_amp_sign": "認証 &amp; 署名"
+      },
+      "span": {
+        "waiting_for_biometric": "生体認証を待機中..."
+      }
+    }
+  },
+  "client_dashboard": {
+    "th": {
+      "project": "プロジェクト",
+      "status": "ステータス"
+    }
+  },
+  "guidance_portal": {
+    "span": {
+      "required": "必須"
+    }
+  },
+  "flash": {
+    "admin": {
+      "project_not_found": "プロジェクトが見つかりません",
+      "assessment_not_found": "評価が見つかりません",
+      "selfassessment_not_found": "自己評価が見つかりません",
+      "intake_not_found": "インテークが見つかりません",
+      "email_address_is_required": "メールアドレスは必須です。",
+      "failed_to_send_invitation": "招待状の送信に失敗しました。"
+    },
+    "public": {
+      "please_enter_an_access_code": "アクセスコードを入力してください",
+      "session_expired": "セッションの有効期限が切れました。",
+      "you_do_not_have_access": "このインテークにアクセスする権限がありません。",
+      "failed_to_submit_intake_please": "インテークの送信に失敗しました。もう一度お試しください。",
+      "assessment_not_found": "アセスメントが見つかりません",
+      "all_fields_are_required": "すべての項目を入力してください。",
+      "password_must_be_at_least": "パスワードは10文字以上で入力してください。",
+      "passwords_do_not_match": "パスワードが一致しません。"
+    }
+  }
+}

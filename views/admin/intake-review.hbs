@@ -105,9 +105,9 @@
         <div class="col-md-4">
           <label class="form-label small text-muted"><i class="bi bi-clock-history me-1"></i>Availability</label>
           <div>
-            {{#if (eq intake.availability_level 'high')}}<span class="badge bg-danger" style="font-size:0.9rem;">High</span>
-            {{else if (eq intake.availability_level 'medium')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">Medium</span>
-            {{else}}<span class="badge bg-success" style="font-size:0.9rem;">Low</span>{{/if}}
+            {{#if (eq intake.availability_level 'high')}}<span class="badge bg-danger" style="font-size:0.9rem;">{{t 'admin.intake_review.span.high'}}</span>
+            {{else if (eq intake.availability_level 'medium')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">{{t 'admin.intake_review.span.medium'}}</span>
+            {{else}}<span class="badge bg-success" style="font-size:0.9rem;">{{t 'admin.intake_review.span.low'}}</span>{{/if}}
             {{#if intake.is_hva}}<span class="badge bg-danger ms-1" style="font-size:0.8rem;"><i class="bi bi-star-fill me-1"></i>{{t 'admin.intake_review.span.hva'}}</span>{{/if}}
           </div>
         </div>
@@ -421,7 +421,7 @@
 
             <div class="mb-3">
               <label class="form-label small fw-bold">{{t 'admin.intake_review.label.assessor_notes_internal'}}</label>
-              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="assessorNotes" id="assessorNotes" rows="3" placeholder="{{t 'admin.intake_review.ph.internal_notes_about_this_intake'}}"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="assessorNotes"><i class="bi bi-stars"></i></button></div>
+              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="assessorNotes" id="assessorNotes" rows="3" placeholder="{{t 'admin.intake_review.ph.internal_notes_about_this_intake'}}"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="{{t 'admin.intake_review.tattr.ai_elaborate'}}" data-target="assessorNotes"><i class="bi bi-stars"></i></button></div>
             </div>
 
             <div class="mb-3">
@@ -565,7 +565,7 @@
           <form method="POST" action="/admin/intakes/{{intake.id}}/status" class="">
             <input type="hidden" name="status" value="declined">
             <div class="mb-2">
-              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="declineReason" id="declineReason" rows="2" placeholder="{{t 'admin.intake_review.ph.reason_for_declining_optional'}}"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="AI: Elaborate" data-target="declineReason"><i class="bi bi-stars"></i></button></div>
+              <div class="position-relative"><textarea class="form-control form-control-sm ai-expandable" name="declineReason" id="declineReason" rows="2" placeholder="{{t 'admin.intake_review.ph.reason_for_declining_optional'}}"></textarea><button type="button" class="btn btn-sm btn-outline-secondary position-absolute ai-elaborate-btn" style="top:4px;right:4px;z-index:2" title="{{t 'admin.intake_review.tattr.ai_elaborate'}}" data-target="declineReason"><i class="bi bi-stars"></i></button></div>
             </div>
             <button type="submit" class="btn btn-outline-danger btn-sm w-100" onclick="return confirm('Decline this intake?')">
               <i class="bi bi-x-circle me-1"></i>{{t 'admin.intake_review.btn.decline_intake'}}</button>

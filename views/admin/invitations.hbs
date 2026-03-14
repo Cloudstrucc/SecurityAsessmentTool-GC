@@ -140,15 +140,15 @@
             <input type="email" class="form-control" name="email" required placeholder="colleague@agency.gc.ca">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Name</label>
+            <label class="form-label">{{t 'admin.invitations.label.name'}}</label>
             <input type="text" class="form-control" name="name" placeholder="{{t 'admin.invitations.ph.john_smith'}}">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Organization</label>
+            <label class="form-label">{{t 'admin.invitations.label.organization'}}</label>
             <input type="text" class="form-control" name="organization" placeholder="{{t 'admin.invitations.ph.organization'}}">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Message <small class="text-muted">(optional)</small></label>
+            <label class="form-label">Message <small class="text-muted">{{t 'admin.invitations.small.optional'}}</small></label>
             <input type="text" class="form-control" name="message" placeholder="{{t 'admin.invitations.ph.brief_note_about_the_collaboration'}}">
           </div>
           <div class="col-12">
@@ -170,11 +170,11 @@
           <table class="table table-hover align-middle">
             <thead class="table-light">
               <tr>
-                <th>Email</th>
-                <th>Name</th>
-                <th>Code</th>
-                <th>Status</th>
-                <th>Sent</th>
+                <th>{{t 'admin.invitations.th.email'}}</th>
+                <th>{{t 'admin.invitations.th.name'}}</th>
+                <th>{{t 'admin.invitations.th.code'}}</th>
+                <th>{{t 'admin.invitations.th.status'}}</th>
+                <th>{{t 'admin.invitations.th.sent'}}</th>
                 <th></th>
               </tr>
             </thead>
@@ -185,19 +185,19 @@
                 <td>{{this.name}} {{#if this.accepted_name}}<span class="badge bg-success">→ {{this.accepted_name}}</span>{{/if}}</td>
                 <td><code class="fw-bold">{{this.invite_code}}</code></td>
                 <td>
-                  {{#eq this.status "pending"}}<span class="badge bg-warning text-dark">Pending</span>{{/eq}}
-                  {{#eq this.status "accepted"}}<span class="badge bg-success">Accepted</span>{{/eq}}
-                  {{#eq this.status "revoked"}}<span class="badge bg-danger">Revoked</span>{{/eq}}
+                  {{#eq this.status "pending"}}<span class="badge bg-warning text-dark">{{t 'admin.invitations.span.pending'}}</span>{{/eq}}
+                  {{#eq this.status "accepted"}}<span class="badge bg-success">{{t 'admin.invitations.span.accepted'}}</span>{{/eq}}
+                  {{#eq this.status "revoked"}}<span class="badge bg-danger">{{t 'admin.invitations.span.revoked'}}</span>{{/eq}}
                 </td>
                 <td><small>{{this.created_at}}</small></td>
                 <td>
                   {{#eq this.status "pending"}}
                   <div class="btn-group btn-group-sm">
                     <form method="POST" action="/admin/invitations/{{this.id}}/resend" class="d-inline">
-                      <button type="submit" class="btn btn-outline-primary btn-sm" title="Resend"><i class="bi bi-arrow-repeat"></i></button>
+                      <button type="submit" class="btn btn-outline-primary btn-sm" title="{{t 'admin.invitations.tattr.resend'}}"><i class="bi bi-arrow-repeat"></i></button>
                     </form>
                     <form method="POST" action="/admin/invitations/{{this.id}}/revoke" class="d-inline" onsubmit="return confirm('Revoke this invitation?')">
-                      <button type="submit" class="btn btn-outline-danger btn-sm" title="Revoke"><i class="bi bi-x-lg"></i></button>
+                      <button type="submit" class="btn btn-outline-danger btn-sm" title="{{t 'admin.invitations.tattr.revoke'}}"><i class="bi bi-x-lg"></i></button>
                     </form>
                   </div>
                   {{/eq}}
@@ -228,8 +228,8 @@
           <table class="table table-hover align-middle">
             <thead class="table-light">
               <tr>
-                <th>Name</th>
-                <th>Email</th>
+                <th>{{t 'admin.invitations.th.name'}}</th>
+                <th>{{t 'admin.invitations.th.email'}}</th>
                 <th>{{t 'admin.invitations.th.organization'}}</th>
                 <th>{{t 'admin.invitations.th.joined'}}</th>
                 <th>{{t 'admin.invitations.th.last_login'}}</th>

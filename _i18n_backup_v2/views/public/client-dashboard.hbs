@@ -1,10 +1,10 @@
 <div class="container py-4" style="max-width:960px">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h1 class="mb-1">My Dashboard</h1>
+      <h1 class="mb-1">{{t 'client_dashboard.h1.my_dashboard'}}</h1>
       <p class="text-muted mb-0">Welcome back, {{clientUser.name}}</p>
     </div>
-    <a href="/intake" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>New Intake</a>
+    <a href="/intake" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>{{t 'client_dashboard.link.new_intake'}}</a>
   </div>
 
   <!-- ══ Assessments ══ -->
@@ -20,10 +20,10 @@
       <table class="table table-hover align-middle mb-0">
         <thead>
           <tr>
-            <th>Project</th>
-            <th>Status</th>
-            <th>Invite Code</th>
-            <th>Created</th>
+            <th>{{t 'client_dashboard.th.project'}}</th>
+            <th>{{t 'client_dashboard.th.status'}}</th>
+            <th>{{t 'client_dashboard.th.invite_code'}}</th>
+            <th>{{t 'client_dashboard.th.created'}}</th>
             <th></th>
           </tr>
         </thead>
@@ -32,11 +32,11 @@
           <tr>
             <td class="fw-semibold">{{this.project_name}}</td>
             <td>
-              {{#if (eq this.status 'draft')}}<span class="badge bg-secondary">Draft</span>
-              {{else if (eq this.status 'evidence-gathering')}}<span class="badge bg-warning text-dark">Evidence Gathering</span>
-              {{else if (eq this.status 'submitted')}}<span class="badge bg-info">Submitted</span>
-              {{else if (eq this.status 'audit')}}<span class="badge bg-primary">Under Audit</span>
-              {{else if (eq this.status 'completed')}}<span class="badge bg-success">Completed</span>
+              {{#if (eq this.status 'draft')}}<span class="badge bg-secondary">{{t 'client_dashboard.span.draft'}}</span>
+              {{else if (eq this.status 'evidence-gathering')}}<span class="badge bg-warning text-dark">{{t 'client_dashboard.span.evidence_gathering'}}</span>
+              {{else if (eq this.status 'submitted')}}<span class="badge bg-info">{{t 'client_dashboard.span.submitted'}}</span>
+              {{else if (eq this.status 'audit')}}<span class="badge bg-primary">{{t 'client_dashboard.span.under_audit'}}</span>
+              {{else if (eq this.status 'completed')}}<span class="badge bg-success">{{t 'client_dashboard.span.completed'}}</span>
               {{else}}<span class="badge bg-secondary">{{this.status}}</span>
               {{/if}}
             </td>
@@ -77,11 +77,11 @@
       <table class="table table-hover align-middle mb-0">
         <thead>
           <tr>
-            <th>Reference</th>
+            <th>{{t 'client_dashboard.th.reference'}}</th>
             <th>Project</th>
             <th>Status</th>
-            <th>Department</th>
-            <th>Submitted</th>
+            <th>{{t 'client_dashboard.th.department'}}</th>
+            <th>{{t 'client_dashboard.th.submitted'}}</th>
             <th></th>
           </tr>
         </thead>
@@ -91,11 +91,11 @@
             <td><code class="small">{{this.ref_code}}</code></td>
             <td class="fw-semibold">{{this.project_name}}</td>
             <td>
-              {{#if (eq this.status 'draft')}}<span class="badge bg-dark"><i class="bi bi-pencil me-1"></i>Draft — Needs Completion</span>
-              {{else if (eq this.status 'pending')}}<span class="badge bg-warning text-dark">Pending Review</span>
-              {{else if (eq this.status 'in-review')}}<span class="badge bg-info">In Review</span>
-              {{else if (eq this.status 'accepted')}}<span class="badge bg-success">Accepted</span>
-              {{else if (eq this.status 'declined')}}<span class="badge bg-danger">Declined</span>
+              {{#if (eq this.status 'draft')}}<span class="badge bg-dark"><i class="bi bi-pencil me-1"></i>{{t 'client_dashboard.span.draft_needs_completion'}}</span>
+              {{else if (eq this.status 'pending')}}<span class="badge bg-warning text-dark">{{t 'client_dashboard.span.pending_review'}}</span>
+              {{else if (eq this.status 'in-review')}}<span class="badge bg-info">{{t 'client_dashboard.span.in_review'}}</span>
+              {{else if (eq this.status 'accepted')}}<span class="badge bg-success">{{t 'client_dashboard.span.accepted'}}</span>
+              {{else if (eq this.status 'declined')}}<span class="badge bg-danger">{{t 'client_dashboard.span.declined'}}</span>
               {{else}}<span class="badge bg-secondary">{{this.status}}</span>
               {{/if}}
             </td>
@@ -114,7 +114,7 @@
     {{else}}
     <div class="text-center py-4 text-muted">
       <i class="bi bi-inbox" style="font-size:2rem;opacity:0.4"></i>
-      <p class="mt-2">No intakes yet. <a href="/intake">Submit your first intake</a> to begin the security assessment process.</p>
+      <p class="mt-2">No intakes yet. <a href="/intake">{{t 'client_dashboard.link.submit_your_first_intake'}}</a> to begin the security assessment process.</p>
     </div>
     {{/if}}
   </div>
@@ -127,10 +127,10 @@
         Enter Access Code
       </h3>
     </div>
-    <p class="small text-muted mb-3">Received an invite code from your assessor? Enter it below to access the assessment.</p>
+    <p class="small text-muted mb-3">{{t 'client_dashboard.p.received_an_invite_code_from'}}</p>
     <form action="/respond/access" method="POST" class="d-flex gap-2">
-      <input type="text" name="code" class="form-control form-control-sm font-monospace" placeholder="e.g. A1B2C3D4" style="max-width:200px" required>
-      <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-right me-1"></i>Go</button>
+      <input type="text" name="code" class="form-control form-control-sm font-monospace" placeholder="{{t 'client_dashboard.ph.eg_a1b2c3d4'}}" style="max-width:200px" required>
+      <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-right me-1"></i>{{t 'client_dashboard.btn.go'}}</button>
     </form>
   </div>
 </div>

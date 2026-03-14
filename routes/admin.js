@@ -412,7 +412,7 @@ router.get('/projects/:id', ensureAdminMfa, (req, res) => {
 // ── ASSESSMENTS ──
 router.get('/projects/:projectId/assessments/new', ensureAdminMfa, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
-  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+  if (!project) { req.flash('error', req.t('flash.admin.project_not_found')); return res.redirect('/admin/projects'); }
 
   let techs = [];
   try { techs = JSON.parse(project.technologies || '[]'); } catch(e) {}
@@ -466,7 +466,7 @@ router.get('/projects/:projectId/assessments/new', ensureAdminMfa, (req, res) =>
 router.post('/projects/:projectId/assessments/new', ensureAdminMfa, (req, res) => {
   try {
     const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
-    if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+    if (!project) { req.flash('error', req.t('flash.admin.project_not_found')); return res.redirect('/admin/projects'); }
 
     const inviteCode = uuidv4().substring(0, 8).toUpperCase();
     const selectedFrameworks = req.body.selectedFrameworks 
@@ -652,7 +652,7 @@ router.post('/assessments/:id/send-invite', ensureAdminMfa, async (req, res) => 
       FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?
     `, [req.params.id]);
 
-    if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+    if (!assessment) { req.flash('error', req.t('flash.admin.assessment_not_found')); return res.redirect('/admin/assessments'); }
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
@@ -931,7 +931,7 @@ router.get('/assessments/:id/generate-ato', ensureAdminMfa, async (req, res) => 
 // ── DELETE ASSESSMENT (Draft only) ──
 router.post('/assessments/:id/delete', ensureAdminMfa, requireSignature('assessment.delete', 'Deleted assessment', 'assessment'), (req, res) => {
   const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
-  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+  if (!assessment) { req.flash('error', req.t('flash.admin.assessment_not_found')); return res.redirect('/admin/assessments'); }
   if (assessment.status !== 'draft') {
     req.flash('error', 'Only draft assessments can be deleted. This assessment is currently in "' + assessment.status + '" status.');
     return res.redirect(`/admin/assessments/${assessment.id}`);
@@ -951,7 +951,7 @@ router.post('/assessments/:id/delete', ensureAdminMfa, requireSignature('assessm
 // ── DELETE PROJECT ──
 router.post('/projects/:id/delete', ensureAdminMfa, requireSignature('project.delete', 'Deleted project', 'project'), (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
-  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+  if (!project) { req.flash('error', req.t('flash.admin.project_not_found')); return res.redirect('/admin/projects'); }
 
   // Check for non-draft assessments
   const nonDraftAssessments = all(
@@ -1077,7 +1077,7 @@ router.post('/self-assessments/:id/review', ensureAdminMfa, (req, res) => {
 router.post('/self-assessments/:id/create-intake', ensureAdminMfa, (req, res) => {
   try {
     const sa = get('SELECT * FROM self_assessments WHERE id = ?', [req.params.id]);
-    if (!sa) { req.flash('error', 'Self-assessment not found'); return res.redirect('/admin/self-assessments'); }
+    if (!sa) { req.flash('error', req.t('flash.admin.selfassessment_not_found')); return res.redirect('/admin/self-assessments'); }
 
     // Use form values (admin can override AI-generated or enter manually)
     const {
@@ -1121,7 +1121,7 @@ router.post('/self-assessments/:id/create-intake', ensureAdminMfa, (req, res) =>
 router.post('/self-assessments/:id/invite-client', ensureAdminMfa, (req, res) => {
   try {
     const sa = get('SELECT * FROM self_assessments WHERE id = ?', [req.params.id]);
-    if (!sa) { req.flash('error', 'Self-assessment not found'); return res.redirect('/admin/self-assessments'); }
+    if (!sa) { req.flash('error', req.t('flash.admin.selfassessment_not_found')); return res.redirect('/admin/self-assessments'); }
 
     const linkedIntake = sa.intake_id ? get('SELECT ref_code FROM intake_submissions WHERE id = ?', [sa.intake_id]) : null;
     const email = sa.submitter_email;
@@ -1324,7 +1324,7 @@ router.post('/intakes/:id/status', ensureAdminMfa, (req, res) => {
 router.post('/intakes/:id/create-project', ensureAdminMfa, requireSignature('intake.accept', 'Accepted intake and created project', 'intake'), (req, res) => {
   try {
     const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
-    if (!intake) { req.flash('error', 'Intake not found'); return res.redirect('/admin/intakes'); }
+    if (!intake) { req.flash('error', req.t('flash.admin.intake_not_found')); return res.redirect('/admin/intakes'); }
 
     const submittedTech = JSON.parse(intake.technologies || '[]');
     const additionalTech = Array.isArray(req.body.additionalTech) ? req.body.additionalTech : (req.body.additionalTech ? [req.body.additionalTech] : []);
@@ -1491,7 +1491,7 @@ router.get('/intakes/attachment/:id', ensureAdminMfa, (req, res) => {
 
 router.get('/projects/:projectId/guidance', ensureAdminMfa, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
-  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+  if (!project) { req.flash('error', req.t('flash.admin.project_not_found')); return res.redirect('/admin/projects'); }
 
   // Get or create guidance report
   let report = get('SELECT * FROM guidance_reports WHERE project_id = ?', [project.id]);
@@ -1646,7 +1646,7 @@ router.get('/assessments/:id/manage-controls', ensureAdminMfa, (req, res) => {
     SELECT a.*, p.name as project_name, p.data_classification, p.app_type
     FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?
   `, [req.params.id]);
-  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+  if (!assessment) { req.flash('error', req.t('flash.admin.assessment_not_found')); return res.redirect('/admin/assessments'); }
 
   // Current controls in this assessment
   const currentControls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessment.id]);
@@ -1688,7 +1688,7 @@ router.get('/assessments/:id/manage-controls', ensureAdminMfa, (req, res) => {
 // Add controls to an existing assessment
 router.post('/assessments/:id/add-controls', ensureAdminMfa, (req, res) => {
   const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
-  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+  if (!assessment) { req.flash('error', req.t('flash.admin.assessment_not_found')); return res.redirect('/admin/assessments'); }
 
   const addIds = req.body.add_control_ids || [];
   const idList = Array.isArray(addIds) ? addIds : [addIds];
@@ -1864,7 +1864,7 @@ router.post('/invitations/assessor', ensureAdminMfa, (req, res) => {
   try {
     const { email, name, organization, message } = req.body;
     if (!email) {
-      req.flash('error', 'Email address is required.');
+      req.flash('error', req.t('flash.admin.email_address_is_required'));
       return res.redirect('/admin/invitations');
     }
     const existing = get('SELECT id, role FROM users WHERE email = ?', [email.toLowerCase().trim()]);
@@ -1898,7 +1898,7 @@ router.post('/invitations/assessor', ensureAdminMfa, (req, res) => {
     res.redirect('/admin/invitations');
   } catch (err) {
     console.error('Assessor invite error:', err);
-    req.flash('error', 'Failed to send invitation.');
+    req.flash('error', req.t('flash.admin.failed_to_send_invitation'));
     res.redirect('/admin/invitations');
   }
 });

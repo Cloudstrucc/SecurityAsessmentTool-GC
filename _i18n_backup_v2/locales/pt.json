@@ -1,0 +1,633 @@
+{
+  "brand": {
+    "company": "Vanguard Cloud Services",
+    "product": "SA&A Platform",
+    "tagline": "Plataforma de Avaliação e Autorização de Segurança",
+    "by": "por"
+  },
+  "nav": {
+    "existingClient": "Cliente Existente",
+    "clientPortal": "Portal do Cliente",
+    "assessorLogin": "Login do Avaliador",
+    "signIn": "Entrar para Submeter",
+    "register": "Registrar",
+    "registerInvite": "Registrar com Código de Convite",
+    "dashboard": "Painel",
+    "settings": "Configurações",
+    "signOut": "Sair",
+    "startIntake": "Iniciar Intake",
+    "backHome": "Voltar ao Início",
+    "appTitle": "Avaliação e Autorização de Segurança",
+    "menu": "Menu",
+    "projects": "Projetos",
+    "assessments": "Avaliações",
+    "preAssessments": "Pré-Avaliações",
+    "intakes": "Intakes",
+    "team": "Equipe",
+    "auditLog": "Log de Auditoria",
+    "newIntake": "Novo Intake",
+    "newProject": "Novo Projeto"
+  },
+  "home": {
+    "badge": "Plataforma de Conformidade Multi-Framework",
+    "headline": "O seu sistema é",
+    "headlineAccent": "seguro o suficiente?",
+    "lead": "Descubra em minutos. Nosso assistente de autoavaliação faz perguntas em linguagem simples sobre o seu sistema, mapeia-as para os frameworks de segurança adequados à sua jurisdição e fornece um relatório instantâneo.",
+    "noAccount": "Não é necessário criar conta",
+    "fiveMin": "Questionário de 5 minutos",
+    "instantReport": "Relatório de segurança instantâneo",
+    "frameworks": "Frameworks Suportados"
+  },
+  "saCard": {
+    "title": "Autoavaliação de Segurança",
+    "subtitle": "Avaliação preliminar gratuita",
+    "step1": "Descreva o seu sistema",
+    "step1d": "— selecione tipo, jurisdição e nível de sensibilidade",
+    "step2": "Responda às perguntas",
+    "step2d": "— adaptadas aos seus frameworks (ITSG-33, NIST, GDPR, etc.)",
+    "step3": "Obtenha o seu relatório",
+    "step3d": "— o que está seguro, o que é crítico e próximos passos",
+    "startBtn": "Iniciar Avaliação Gratuita",
+    "note": "Código de acesso necessário — solicite um instantaneamente"
+  },
+  "cap": {
+    "title": "Capacidades da Plataforma",
+    "subtitle": "Ciclo de vida completo de avaliação e autorização de segurança",
+    "multiJuris": "Multijurisdição",
+    "multiJurisD": "17+ regiões com seleção automática de framework",
+    "lifecycle": "Ciclo de Vida SA&A Completo",
+    "lifecycleD": "ATO, iATO, POA&M, categorização de risco, exportações em PDF",
+    "collab": "Colaboração em Equipe",
+    "collabD": "Portal do cliente, atribuições de avaliadores pares, convites",
+    "mfa": "MFA + Passkeys",
+    "mfaD": "TOTP, WebAuthn biométrico, trilha de auditoria assinada",
+    "guidance": "Orientação Web GC",
+    "guidanceD": "Listas de verificação de conformidade automatizadas para sistemas de baixo risco",
+    "audit": "Trilha de Auditoria",
+    "auditD": "Ações assinadas por MFA com registro à prova de adulteração",
+    "tenant": "SaaS Multi-Tenant",
+    "tenantD": "Instâncias isoladas por organização no Azure",
+    "standards": "Padrões da Indústria",
+    "standardsD": "SOC 2, PCI DSS, CMMC, FedRAMP, DORA, Essential Eight"
+  },
+  "portal": {
+    "title": "Portal do Cliente",
+    "subtitle": "Envie solicitações, acesse avaliações ou faça login para gerenciar sua postura de segurança.",
+    "submitIntake": "Enviar uma Solicitação",
+    "submitIntakeD": "Iniciando um novo projeto? Envie uma solicitação de avaliação de segurança com os detalhes do seu projeto e classificação de dados.",
+    "mfaReq": "Conta com MFA obrigatório.",
+    "enterCode": "Inserir Código de Acesso",
+    "enterCodeD": "Recebeu um convite de um profissional de segurança? Insira seu código de acesso para fornecer evidências para sua avaliação.",
+    "accessCode": "Código de Acesso",
+    "accessBtn": "Acessar Avaliação",
+    "practitioner": "Profissional de Segurança",
+    "practitionerD": "Avaliadores e profissionais de segurança podem fazer login para gerenciar projetos, revisar solicitações, criar avaliações e conduzir auditorias."
+  },
+  "gate": {
+    "title": "Autoavaliação de Segurança",
+    "subtitle": "Avalie a postura de segurança do seu sistema em relação aos frameworks aplicáveis.",
+    "haveCode": "Tenho um Código de Acesso",
+    "codeLabel": "Código de Acesso",
+    "startBtn": "Iniciar Avaliação",
+    "requestAccess": "Solicitar Acesso",
+    "requestD": "Não tem um código? Envie uma solicitação e nossa equipe de segurança irá analisá-la. Após a aprovação, você receberá um código de acesso por e-mail.",
+    "name": "Seu Nome",
+    "email": "Endereço de E-mail",
+    "org": "Organização",
+    "systemQ": "Qual sistema você deseja avaliar?",
+    "systemP": "Descrição breve — ex.: portal web público para feedback de cidadãos",
+    "submitBtn": "Solicitar Acesso",
+    "submitted": "Solicitação Enviada!",
+    "submittedD": "Sua solicitação foi enviada para nossa equipe de segurança. Você receberá um e-mail em <strong>{{email}}</strong> com um código de acesso após a aprovação.",
+    "submittedNote": "Isso geralmente leva menos de 24 horas.",
+    "backPortal": "Voltar ao Portal"
+  },
+  "sa": {
+    "title": "Autoavaliação de Segurança",
+    "subtitle": "Avalie a postura de segurança do seu sistema em relação aos frameworks aplicáveis",
+    "step1": "Sistema e Jurisdição",
+    "step2": "Responder Perguntas",
+    "step3": "Ver Relatório",
+    "tellUs": "Conte-nos sobre seu sistema",
+    "tellUsD": "Selecione o tipo, jurisdição e descreva seu sistema. Determinaremos quais frameworks de segurança se aplicam e geraremos perguntas personalizadas.",
+    "systemType": "Tipo de Sistema",
+    "webApp": "Aplicação Web",
+    "webAppD": "Website, portal, aplicativo SaaS",
+    "internal": "Sistema Interno",
+    "internalD": "Intranet, RH, ERP, CRM",
+    "cloud": "Infraestrutura Cloud",
+    "cloudD": "Configuração AWS, Azure, GCP",
+    "mobile": "Aplicativo Móvel",
+    "mobileD": "iOS, Android, híbrido",
+    "data": "Dados / Analytics",
+    "dataD": "Banco de dados, data warehouse, BI",
+    "network": "Rede / Dispositivos",
+    "networkD": "LAN, Wi-Fi, IoT, endpoints",
+    "country": "País",
+    "govLevel": "Nível de Governo",
+    "sensitivity": "Sensibilidade dos Dados",
+    "federal": "Federal",
+    "state": "Estadual / Provincial",
+    "municipal": "Municipal / Local",
+    "private": "Setor Privado",
+    "healthcare": "Saúde",
+    "finance": "Serviços Financeiros",
+    "public": "Público / Não Classificado",
+    "lowSens": "Baixa sensibilidade",
+    "medSens": "Média (informações pessoais)",
+    "highSens": "Alta (Protected B / PII)",
+    "classified": "Classificado / Secreto",
+    "fwApply": "Frameworks de segurança que podem se aplicar ao seu sistema:",
+    "describe": "Descreva seu sistema em linguagem simples",
+    "describeP": "Ex.: Temos um portal web público construído em WordPress que coleta formulários de feedback dos cidadãos.",
+    "generateQ": "Gerar Perguntas de Segurança",
+    "analyzing": "Analisando seu sistema e jurisdição...",
+    "analyzingD": "Gerando perguntas de segurança personalizadas com base nos frameworks aplicáveis",
+    "questionsTitle": "Perguntas de Avaliação de Segurança",
+    "questionsHint": "Responda honestamente — isso ajuda a identificar lacunas. Pule perguntas sobre as quais você não tem certeza.",
+    "back": "Voltar",
+    "generateReport": "Gerar Relatório de Segurança",
+    "genReport": "Gerando seu relatório de segurança...",
+    "genReportD": "Analisando respostas e mapeando para controles do framework",
+    "doNotClose": "Por favor, não feche esta página — isso pode levar até 30 segundos.",
+    "reportTitle": "Postura de Segurança Preliminar",
+    "score": "Pontuação de Segurança",
+    "secured": "Protegido",
+    "needAttn": "Precisa de Atenção",
+    "critical": "Lacunas Críticas",
+    "criticalSection": "Lacunas Críticas — Ação Imediata Necessária",
+    "warningSection": "Áreas que Precisam de Melhoria",
+    "securedSection": "O que Já Está Protegido",
+    "securedNote": "presumido — verifique independentemente",
+    "securedWarn": "Baseado em suas respostas auto-relatadas. Deve ser verificado durante uma avaliação formal.",
+    "nextSteps": "Próximos Passos Recomendados",
+    "requestFull": "Solicitar Avaliação SA&A Completa",
+    "print": "Imprimir Relatório",
+    "startOver": "Recomeçar",
+    "yourName": "Seu Nome",
+    "yourEmail": "Seu Email",
+    "yourOrg": "Organização"
+  },
+  "common": {
+    "select": "— Selecionar —",
+    "submit": "Enviar",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "required": "obrigatório",
+    "loading": "Carregando...",
+    "error": "Ocorreu um erro. Por favor, tente novamente.",
+    "yes": "Sim",
+    "no": "Não",
+    "unknown": "Desconhecido"
+  },
+  "bq": {
+    "iam": "Gestão de Identidade e Acesso",
+    "dp": "Proteção de Dados e Privacidade",
+    "sns": "Segurança de Sistemas e Redes",
+    "mir": "Monitoramento e Resposta a Incidentes",
+    "gpa": "Governança, Políticas e Conscientização",
+    "ssc": "Considerações Específicas do Sistema"
+  },
+  "auth": {
+    "login": "Entrar",
+    "loginTitle": "Login do Avaliador",
+    "clientLogin": "Login do Cliente",
+    "email": "Endereço de email",
+    "password": "Senha",
+    "signIn": "Entrar",
+    "forgotPassword": "Esqueceu a senha?",
+    "noAccount": "Não tem uma conta?",
+    "registerHere": "Cadastre-se aqui",
+    "verifyMfa": "Verificar MFA",
+    "enterCode": "Digite o código de 6 dígitos do seu aplicativo autenticador",
+    "verify": "Verificar",
+    "usePasskey": "Usar Passkey",
+    "or": "ou",
+    "mfaSetup": "Configuração de MFA",
+    "scanQr": "Escaneie este código QR com seu aplicativo autenticador",
+    "manualEntry": "Entrada manual",
+    "enterToken": "Digite o código de verificação",
+    "enableMfa": "Ativar MFA",
+    "register": "Cadastrar",
+    "name": "Nome Completo",
+    "organization": "Organização",
+    "confirmPassword": "Confirmar Senha",
+    "inviteCode": "Código de Convite",
+    "inviteHint": "Digite o código do seu email de convite.",
+    "createAccount": "Criar Conta",
+    "alreadyHave": "Já tem uma conta?",
+    "passkey": "Passkey / Biometria",
+    "passkeyDesc": "Registre uma passkey para ativar a verificação biométrica no login e em ações críticas.",
+    "registerPasskey": "Registrar Passkey",
+    "skipPasskey": "Pular por Agora",
+    "passkeyRegistered": "Passkey registrada! Você pode usar o login biométrico.",
+    "tryAgain": "Tentar Novamente",
+    "continueToApp": "Continuar para o Painel",
+    "confirmIdentity": "Confirme sua identidade para continuar.",
+    "saPortal": "Portal de Avaliação e Autorização de Segurança",
+    "approvePasskey": "Aprove com sua chave de acesso (Face ID, Touch ID ou Windows Hello).",
+    "signInPasskey": "Entrar com Chave de Acesso",
+    "useTotpInstead": "Usar código TOTP em vez disso",
+    "enter6digit": "Digite o código de 6 dígitos do seu aplicativo autenticador.",
+    "verifySignIn": "Verificar e Entrar",
+    "differentUser": "Entrar como outro usuário",
+    "registerInvite": "Registrar com Código de Convite",
+    "backPortal": "Voltar para a Página Inicial do Portal",
+    "clientSignIn": "Login do Cliente"
+  },
+  "dash": {
+    "title": "Painel",
+    "welcome": "Bem-vindo de volta,",
+    "newProject": "Novo Projeto",
+    "totalProjects": "Total de Projetos",
+    "activeAssessments": "Avaliações Ativas",
+    "pendingAudits": "Auditorias Pendentes",
+    "activeATOs": "ATOs Ativos",
+    "pendingIntakes": "Admissões Pendentes",
+    "preAssessments": "Pré-Avaliações",
+    "recentProjects": "Projetos Recentes",
+    "recentAssessments": "Avaliações Recentes",
+    "viewAll": "Ver Todos",
+    "noProjects": "Nenhum projeto ainda.",
+    "noAssessments": "Nenhuma avaliação ainda."
+  },
+  "proj": {
+    "title": "Projetos",
+    "new": "Novo Projeto",
+    "name": "Nome do Projeto",
+    "description": "Descrição",
+    "department": "Departamento",
+    "branch": "Filial",
+    "dataClass": "Classificação de Dados",
+    "hosting": "Tipo de Hospedagem",
+    "appType": "Tipo de Aplicação",
+    "status": "Status",
+    "created": "Criado",
+    "actions": "Ações",
+    "view": "Visualizar",
+    "noProjects": "Nenhum projeto encontrado.",
+    "delete": "Excluir Projeto",
+    "deleteConfirm": "Tem certeza?"
+  },
+  "assess": {
+    "title": "Avaliações",
+    "new": "Nova Avaliação",
+    "project": "Projeto",
+    "type": "Tipo",
+    "status": "Status",
+    "score": "Pontuação",
+    "controls": "Controles",
+    "view": "Visualizar",
+    "sendInvite": "Enviar Convite",
+    "startAudit": "Iniciar Auditoria",
+    "completeAudit": "Concluir Auditoria",
+    "noAssessments": "Nenhuma avaliação encontrada.",
+    "evidenceGathering": "Coleta de Evidências",
+    "submitted": "Enviado",
+    "audit": "Auditoria",
+    "completed": "Concluído",
+    "met": "Atendido",
+    "partiallyMet": "Parcialmente Atendido",
+    "notMet": "Não Atendido",
+    "pending": "Pendente",
+    "inherited": "Herdado",
+    "applicable": "Aplicável",
+    "priority": "Prioridade"
+  },
+  "intake": {
+    "title": "Submissões de Triagem",
+    "ref": "Referência",
+    "projectName": "Nome do Projeto",
+    "submitter": "Solicitante",
+    "status": "Status",
+    "submitted": "Submetido",
+    "review": "Revisar",
+    "accept": "Aceitar",
+    "decline": "Recusar",
+    "noIntakes": "Nenhuma submissão de triagem ainda.",
+    "form": "Triagem de Avaliação de Segurança",
+    "systemInfo": "Informações do Sistema",
+    "dataInfo": "Dados e Classificação",
+    "hosting": "Hospedagem e Tecnologia",
+    "contacts": "Contatos",
+    "additional": "Informações Adicionais",
+    "submit": "Submeter Triagem",
+    "draft": "Rascunho",
+    "inReview": "Em Revisão",
+    "accepted": "Aceito",
+    "declined": "Recusado",
+    "strong": {
+      "privacy_impact_assessment_pia": "Avaliação de Impacto na Privacidade (PIA)"
+    },
+    "ph": {
+      "full_name": "Nome completo",
+      "email_address": "Endereço de email",
+      "title_role": "Título / Função"
+    }
+  },
+  "client": {
+    "dashboard": "Meu Painel",
+    "myIntakes": "Minhas Triagens",
+    "myAssessments": "Minhas Avaliações",
+    "newIntake": "Nova Triagem",
+    "noIntakes": "Você ainda não submeteu nenhuma triagem.",
+    "noAssessments": "Nenhuma avaliação atribuída a você ainda.",
+    "viewIntake": "Visualizar",
+    "editDraft": "Editar Rascunho",
+    "settings": "Configurações",
+    "profile": "Perfil",
+    "changePassword": "Alterar Senha",
+    "mfaSettings": "Configurações de MFA",
+    "passkeySettings": "Configurações de Passkey"
+  },
+  "evidence": {
+    "title": "Submissão de Evidências",
+    "control": "Controle",
+    "description": "Descrição",
+    "guidance": "Orientação de Evidências",
+    "provide": "Fornecer Evidências",
+    "save": "Salvar",
+    "submit": "Submeter Todas as Evidências",
+    "progress": "Progresso",
+    "provided": "Fornecido",
+    "remaining": "Restante",
+    "addComment": "Adicionar Comentário",
+    "attachFile": "Anexar Arquivo"
+  },
+  "settings": {
+    "title": "Configurações",
+    "mfa": "Autenticação Multi-Fator",
+    "mfaEnabled": "MFA está ativado",
+    "mfaMode": "Modo MFA",
+    "totp": "Aplicativo Autenticador (TOTP)",
+    "push": "Passkey / Biométrico",
+    "passkey": "Gerenciamento de Passkey",
+    "clearPasskeys": "Limpar Passkeys",
+    "registerNew": "Registrar Nova Passkey"
+  },
+  "auditLog": {
+    "title": "Registro de Assinaturas de Auditoria",
+    "action": "Ação",
+    "user": "Usuário",
+    "entity": "Entidade",
+    "timestamp": "Data/Hora",
+    "details": "Detalhes",
+    "today": "Hoje",
+    "total": "Total",
+    "uniqueUsers": "Usuários Únicos"
+  },
+  "invite": {
+    "title": "Gerenciamento de Convites",
+    "clients": "Convites de Clientes",
+    "assessors": "Convites de Avaliadores",
+    "peers": "Avaliadores Pares",
+    "sendClient": "Convidar Cliente",
+    "sendAssessor": "Convidar Avaliador",
+    "email": "E-mail",
+    "name": "Nome",
+    "message": "Mensagem",
+    "send": "Enviar Convite",
+    "resend": "Reenviar",
+    "revoke": "Revogar",
+    "status": "Status",
+    "code": "Código",
+    "expires": "Expira",
+    "pending": "Pendente",
+    "accepted": "Aceito",
+    "revoked": "Revogado",
+    "expired": "Expirado"
+  },
+  "poam": {
+    "title": "Remediação POA&M",
+    "item": "Item",
+    "risk": "Nível de Risco",
+    "deadline": "Prazo",
+    "status": "Status",
+    "evidence": "Evidência",
+    "open": "Aberto",
+    "inProgress": "Em Andamento",
+    "completed": "Concluído",
+    "verified": "Verificado",
+    "overdue": "Atrasado",
+    "submitEvidence": "Enviar Evidência de Remediação"
+  },
+  "error": {
+    "title": "Erro",
+    "notFound": "Página não encontrada",
+    "goHome": "Ir para Início",
+    "tryAgain": "Tentar Novamente"
+  },
+  "success": {
+    "title": "Evidência Enviada",
+    "message": "Sua evidência foi enviada com sucesso.",
+    "ref": "Referência",
+    "date": "Enviado em"
+  },
+  "guidance": {
+    "title": "Relatório de Orientação Web GC",
+    "checklist": "Lista de Verificação de Conformidade",
+    "required": "Obrigatório",
+    "recommended": "Recomendado",
+    "met": "Atendido",
+    "inProgress": "Em Andamento",
+    "na": "N/A",
+    "submit": "Enviar Lista de Verificação",
+    "validate": "Validar",
+    "return": "Devolver para Revisão"
+  },
+  "saAdmin": {
+    "title": "Autoavaliações de Pré-Admissão",
+    "subtitle": "Autoavaliações de segurança enviadas por clientes aguardando revisão",
+    "total": "Total",
+    "pendingReview": "Revisão Pendente",
+    "reviewed": "Revisado",
+    "intakeCreated": "Admissão Criada",
+    "ref": "Ref",
+    "submitter": "Solicitante",
+    "system": "Sistema",
+    "jurisdiction": "Jurisdição",
+    "score": "Pontuação",
+    "review": "Revisar",
+    "noAssessments": "Nenhuma autoavaliação enviada ainda.",
+    "accessRequests": "Solicitações de Acesso",
+    "pending": "pendente",
+    "approve": "Aprovar",
+    "deny": "Negar",
+    "noRequests": "Nenhuma solicitação de acesso ainda.",
+    "reason": "Motivo",
+    "requested": "Solicitado"
+  },
+  "saReview": {
+    "systemJuris": "Sistema e Jurisdição",
+    "systemType": "Tipo de Sistema",
+    "country": "País",
+    "govLevel": "Nível de Governo",
+    "sensitivity": "Sensibilidade dos Dados",
+    "score": "Pontuação de Segurança",
+    "findings": "Descobertas",
+    "critical": "crítico",
+    "warnings": "avisos",
+    "secured": "protegido",
+    "systemDesc": "Descrição do Sistema",
+    "frameworks": "Estruturas Aplicáveis",
+    "criticalGaps": "Lacunas Críticas",
+    "warningSection": "Áreas que Precisam de Melhoria",
+    "securedSection": "Protegido (presumido — verificar independentemente)",
+    "securedWarn": "Auto-relatado pelo cliente. Deve ser verificado durante a avaliação formal.",
+    "adminNotes": "Notas do Administrador",
+    "notesPlaceholder": "Notas internas sobre esta submissão...",
+    "markReviewed": "Marcar como Revisado",
+    "updateNotes": "Atualizar Notas",
+    "linkedIntake": "Registro Vinculado",
+    "viewIntake": "Ver Registro",
+    "clientInvitation": "Convite do Cliente",
+    "hasAccount": "já possui uma conta",
+    "sendEmail": "Enviar E-mail Manualmente",
+    "inviteDesc": "Convidar para registrar, entrar e revisar seu rascunho de registro.",
+    "sendInvite": "Enviar Convite de Registro",
+    "createIntakeFirst": "Crie um rascunho de registro primeiro, depois você pode convidar o cliente.",
+    "createIntake": "Criar Registro",
+    "aiPopulate": "Pré-preencher com IA",
+    "aiPopulateD": "Preencher automaticamente campos do registro a partir da autoavaliação",
+    "generate": "Gerar",
+    "createDraft": "Criar Rascunho de Registro",
+    "projectName": "Nome do Projeto",
+    "description": "Descrição",
+    "department": "Departamento",
+    "appType": "Tipo de Aplicação",
+    "dataClass": "Classificação de Dados",
+    "confidentiality": "Confidencialidade",
+    "integrity": "Integridade",
+    "availability": "Disponibilidade",
+    "pii": "Contém PII?",
+    "pia": "PIA Concluída?",
+    "hostingType": "Hospedagem",
+    "hostingRegion": "Região de Hospedagem",
+    "secProfile": "Perfil de Segurança",
+    "notes": "Notas Adicionais"
+  },
+  "footer": {
+    "contact": "Contato",
+    "terms": "Termos de Serviço",
+    "privacy": "Política de Privacidade",
+    "accessibility": "Acessibilidade",
+    "copyright": "Plataforma de Avaliação e Autorização de Segurança · Conformidade Multi-Framework",
+    "dateModified": "Data de modificação"
+  },
+  "admin": {
+    "dashboard": {
+      "th": {
+        "status": "Estado",
+        "updated": "Atualizado",
+        "project": "Projeto",
+        "classification": "Classificação"
+      }
+    },
+    "intake_review": {
+      "span": {
+        "high": "Alto",
+        "medium": "Médio",
+        "low": "Baixo"
+      },
+      "tattr": {
+        "ai_elaborate": "IA: Elaborar"
+      }
+    },
+    "invitations": {
+      "th": {
+        "email": "Email",
+        "name": "Nome",
+        "code": "Código",
+        "status": "Estado",
+        "sent": "Enviado"
+      },
+      "label": {
+        "name": "Nome",
+        "organization": "Organização"
+      },
+      "small": {
+        "optional": "(opcional)"
+      },
+      "span": {
+        "pending": "Pendente",
+        "accepted": "Aceite",
+        "revoked": "Revogado"
+      },
+      "tattr": {
+        "resend": "Reenviar",
+        "revoke": "Revogar"
+      }
+    },
+    "project_new": {
+      "ph": {
+        "full_name": "Nome completo"
+      }
+    },
+    "self_assessments": {
+      "th": {
+        "status": "Estado"
+      }
+    }
+  },
+  "index": {
+    "span": {
+      "essential_eight": "Essential Eight"
+    }
+  },
+  "layout": {
+    "main": {
+      "h2": {
+        "about_this_site": "Sobre este site"
+      },
+      "h5": {
+        "verification_required": "Verificação Necessária"
+      },
+      "p": {
+        "this_action_requires_verification": "Esta ação requer verificação.",
+        "approve_the_prompt_on_your": "Aprove o pedido no seu dispositivo usando Face ID, Touch ID ou Windows Hello."
+      },
+      "link": {
+        "skip_to_main_content": "Ir para o conteúdo principal",
+        "skip_to_footer": "Ir para o rodapé"
+      },
+      "btn": {
+        "cancel": "Cancelar",
+        "verify_amp_sign": "Verificar &amp; Assinar"
+      },
+      "span": {
+        "waiting_for_biometric": "A aguardar biometria..."
+      }
+    }
+  },
+  "client_dashboard": {
+    "th": {
+      "project": "Projeto",
+      "status": "Estado"
+    }
+  },
+  "guidance_portal": {
+    "span": {
+      "required": "Obrigatório"
+    }
+  },
+  "flash": {
+    "admin": {
+      "project_not_found": "Projeto não encontrado",
+      "assessment_not_found": "Avaliação não encontrada",
+      "selfassessment_not_found": "Autoavaliação não encontrada",
+      "intake_not_found": "Registo não encontrado",
+      "email_address_is_required": "O endereço de email é obrigatório.",
+      "failed_to_send_invitation": "Falha ao enviar convite."
+    },
+    "public": {
+      "please_enter_an_access_code": "Por favor, introduza um código de acesso",
+      "session_expired": "Sessão expirada.",
+      "you_do_not_have_access": "Você não tem acesso a esta entrada.",
+      "failed_to_submit_intake_please": "Falha ao enviar entrada. Por favor, tente novamente.",
+      "assessment_not_found": "Avaliação não encontrada",
+      "all_fields_are_required": "Todos os campos são obrigatórios.",
+      "password_must_be_at_least": "A senha deve ter pelo menos 10 caracteres.",
+      "passwords_do_not_match": "As senhas não coincidem."
+    }
+  }
+}

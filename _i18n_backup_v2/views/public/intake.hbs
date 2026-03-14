@@ -5,14 +5,14 @@
     <div style="width:64px;height:64px;border-radius:16px;background:var(--gc-accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
       <i class="bi bi-clipboard2-data text-white" style="font-size:1.75rem;"></i>
     </div>
-    <h2>Security Assessment Intake</h2>
-    <p class="text-muted">Submit your project for a security assessment. We'll determine the right frameworks and controls based on your operating regions.</p>
+    <h2>{{t 'intake.h2.security_assessment_intake'}}</h2>
+    <p class="text-muted">{{t 'intake.p.submit_your_project_for_a'}}</p>
   </div>
 
   {{#if success}}
   <div class="alert alert-success">
     <i class="bi bi-check-circle me-2"></i>
-    <strong>Intake submitted successfully!</strong> Your submission reference is <strong>{{refCode}}</strong>. Our assessment team will review your submission and reach out to the project owner within 3–5 business days.
+    <strong>{{t 'intake.strong.intake_submitted_successfully'}}</strong> Your submission reference is <strong>{{refCode}}</strong>. Our assessment team will review your submission and reach out to the project owner within 3–5 business days.
   </div>
   {{else}}
 
@@ -21,8 +21,8 @@
     <div class="d-flex align-items-start gap-3">
       <i class="bi bi-pencil-square" style="font-size:1.5rem;margin-top:2px"></i>
       <div>
-        <strong>Complete Your Intake</strong>
-        <p class="mb-1">Your security assessor has created this project and assigned it to you. Please complete the details below and submit for review.</p>
+        <strong>{{t 'intake.strong.complete_your_intake'}}</strong>
+        <p class="mb-1">{{t 'intake.p.your_security_assessor_has_created'}}</p>
         <small class="text-muted">Reference: <code>{{editData.ref_code}}</code>{{#if editData.project_name}} — Project: <strong>{{editData.project_name}}</strong>{{/if}}</small>
       </div>
     </div>
@@ -36,10 +36,10 @@
     <div class="card border-primary mb-4">
       <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
         <strong><i class="bi bi-globe me-2"></i>Step 1 of 2 — Where Does This Application Operate?</strong>
-        <span class="badge bg-light text-primary">Required</span>
+        <span class="badge bg-light text-primary">{{t 'intake.span.required'}}</span>
       </div>
       <div class="card-body">
-        <p class="text-muted mb-3">Select all regions and jurisdictions where this application will be deployed, store data, or serve users. This determines which security frameworks and compliance requirements apply.</p>
+        <p class="text-muted mb-3">{{t 'intake.p.select_all_regions_and_jurisdictions'}}</p>
 
         <div class="row g-4">
           <!-- North America -->
@@ -50,37 +50,37 @@
                 <div class="form-check mb-2">
                   <input class="form-check-input region-check" type="checkbox" value="canada" id="reg-canada" data-frameworks="ITSG-33,CCCS-MEDIUM" data-label="Canada (Federal)">
                   <label class="form-check-label" for="reg-canada">
-                    <strong>Canada</strong> <small class="text-muted">— ITSG-33, CCCS Medium</small>
+                    <strong>{{t 'intake.strong.canada'}}</strong> <small class="text-muted">{{t 'intake.small.itsg33_cccs_medium'}}</small>
                   </label>
                 </div>
                 <div class="form-check mb-2 ms-3 region-sub" data-parent="canada" style="display:none">
                   <input class="form-check-input region-check" type="checkbox" value="canada-finance" id="reg-canada-fin" data-frameworks="OSFI-B13" data-label="Canada (Financial)">
                   <label class="form-check-label small" for="reg-canada-fin">
-                    Financial sector <small class="text-muted">— OSFI B-13</small>
+                    Financial sector <small class="text-muted">{{t 'intake.small.osfi_b13'}}</small>
                   </label>
                 </div>
                 <div class="form-check mb-2">
                   <input class="form-check-input region-check" type="checkbox" value="usa" id="reg-usa" data-frameworks="NIST-800-53,FEDRAMP" data-label="United States">
                   <label class="form-check-label" for="reg-usa">
-                    <strong>United States</strong> <small class="text-muted">— NIST 800-53, FedRAMP</small>
+                    <strong>{{t 'intake.strong.united_states'}}</strong> <small class="text-muted">{{t 'intake.small.nist_80053_fedramp'}}</small>
                   </label>
                 </div>
                 <div class="form-check mb-2 ms-3 region-sub" data-parent="usa" style="display:none">
                   <input class="form-check-input region-check" type="checkbox" value="usa-defense" id="reg-usa-def" data-frameworks="CMMC" data-label="US Defense">
                   <label class="form-check-label small" for="reg-usa-def">
-                    Defense / DoD supply chain <small class="text-muted">— CMMC 2.0</small>
+                    Defense / DoD supply chain <small class="text-muted">{{t 'intake.small.cmmc_20'}}</small>
                   </label>
                 </div>
                 <div class="form-check mb-2 ms-3 region-sub" data-parent="usa" style="display:none">
                   <input class="form-check-input region-check" type="checkbox" value="usa-state" id="reg-usa-state" data-frameworks="STATERAMP" data-label="US State/Local">
                   <label class="form-check-label small" for="reg-usa-state">
-                    State / local government <small class="text-muted">— StateRAMP</small>
+                    State / local government <small class="text-muted">{{t 'intake.small.stateramp'}}</small>
                   </label>
                 </div>
                 <div class="form-check mb-2 ms-3 region-sub" data-parent="usa" style="display:none">
                   <input class="form-check-input region-check" type="checkbox" value="usa-finance" id="reg-usa-fin" data-frameworks="NYDFS-500" data-label="US Financial">
                   <label class="form-check-label small" for="reg-usa-fin">
-                    NY financial services <small class="text-muted">— NYDFS 500</small>
+                    NY financial services <small class="text-muted">{{t 'intake.small.nydfs_500'}}</small>
                   </label>
                 </div>
               </div>
@@ -95,37 +95,37 @@
                 <div class="form-check mb-2">
                   <input class="form-check-input region-check" type="checkbox" value="eu" id="reg-eu" data-frameworks="NIS2" data-label="European Union">
                   <label class="form-check-label" for="reg-eu">
-                    <strong>European Union</strong> <small class="text-muted">— NIS2 Directive</small>
+                    <strong>{{t 'intake.strong.european_union'}}</strong> <small class="text-muted">{{t 'intake.small.nis2_directive'}}</small>
                   </label>
                 </div>
                 <div class="form-check mb-2 ms-3 region-sub" data-parent="eu" style="display:none">
                   <input class="form-check-input region-check" type="checkbox" value="eu-finance" id="reg-eu-fin" data-frameworks="DORA" data-label="EU Financial">
                   <label class="form-check-label small" for="reg-eu-fin">
-                    EU financial services <small class="text-muted">— DORA</small>
+                    EU financial services <small class="text-muted">{{t 'intake.small.dora'}}</small>
                   </label>
                 </div>
                 <div class="form-check mb-2">
                   <input class="form-check-input region-check" type="checkbox" value="germany" id="reg-germany" data-frameworks="BSI-GRUNDSCHUTZ" data-label="Germany">
                   <label class="form-check-label" for="reg-germany">
-                    <strong>Germany</strong> <small class="text-muted">— BSI IT-Grundschutz</small>
+                    <strong>{{t 'intake.strong.germany'}}</strong> <small class="text-muted">{{t 'intake.small.bsi_itgrundschutz'}}</small>
                   </label>
                 </div>
                 <div class="form-check mb-2">
                   <input class="form-check-input region-check" type="checkbox" value="france" id="reg-france" data-frameworks="ANSSI-RGS" data-label="France">
                   <label class="form-check-label" for="reg-france">
-                    <strong>France</strong> <small class="text-muted">— ANSSI RGS / EBIOS RM</small>
+                    <strong>{{t 'intake.strong.france'}}</strong> <small class="text-muted">{{t 'intake.small.anssi_rgs_ebios_rm'}}</small>
                   </label>
                 </div>
                 <div class="form-check mb-2">
                   <input class="form-check-input region-check" type="checkbox" value="uk" id="reg-uk" data-frameworks="NCSC-CAF" data-label="United Kingdom">
                   <label class="form-check-label" for="reg-uk">
-                    <strong>United Kingdom</strong> <small class="text-muted">— NCSC CAF</small>
+                    <strong>{{t 'intake.strong.united_kingdom'}}</strong> <small class="text-muted">{{t 'intake.small.ncsc_caf'}}</small>
                   </label>
                 </div>
                 <div class="form-check mb-2">
                   <input class="form-check-input region-check" type="checkbox" value="spain" id="reg-spain" data-frameworks="ENS" data-label="Spain">
                   <label class="form-check-label" for="reg-spain">
-                    <strong>Spain</strong> <small class="text-muted">— ENS (CCN-STIC)</small>
+                    <strong>{{t 'intake.strong.spain'}}</strong> <small class="text-muted">{{t 'intake.small.ens_ccnstic'}}</small>
                   </label>
                 </div>
               </div>
@@ -140,13 +140,13 @@
                 <div class="form-check mb-2">
                   <input class="form-check-input region-check" type="checkbox" value="australia" id="reg-australia" data-frameworks="ASD-ISM,ASD-E8" data-label="Australia">
                   <label class="form-check-label" for="reg-australia">
-                    <strong>Australia</strong> <small class="text-muted">— ASD ISM, Essential Eight</small>
+                    <strong>{{t 'intake.strong.australia'}}</strong> <small class="text-muted">{{t 'intake.small.asd_ism_essential_eight'}}</small>
                   </label>
                 </div>
                 <div class="form-check mb-2 ms-3 region-sub" data-parent="australia" style="display:none">
                   <input class="form-check-input region-check" type="checkbox" value="australia-finance" id="reg-au-fin" data-frameworks="APRA-CPS234" data-label="Australia Financial">
                   <label class="form-check-label small" for="reg-au-fin">
-                    Financial sector <small class="text-muted">— APRA CPS 234</small>
+                    Financial sector <small class="text-muted">{{t 'intake.small.apra_cps_234'}}</small>
                   </label>
                 </div>
               </div>
@@ -161,25 +161,25 @@
                 <div class="form-check mb-2">
                   <input class="form-check-input region-check" type="checkbox" value="global" id="reg-global" data-frameworks="ISO-27001" data-label="Global">
                   <label class="form-check-label" for="reg-global">
-                    <strong>Global / Worldwide</strong> <small class="text-muted">— ISO 27001</small>
+                    <strong>{{t 'intake.strong.global_worldwide'}}</strong> <small class="text-muted">{{t 'intake.small.iso_27001'}}</small>
                   </label>
                 </div>
                 <div class="form-check mb-2">
                   <input class="form-check-input region-check" type="checkbox" value="soc2" id="reg-soc2" data-frameworks="SOC2" data-label="SOC 2">
                   <label class="form-check-label" for="reg-soc2">
-                    <strong>SOC 2 Required</strong> <small class="text-muted">— Service organization controls</small>
+                    <strong>SOC 2 Required</strong> <small class="text-muted">{{t 'intake.small.service_organization_controls'}}</small>
                   </label>
                 </div>
                 <div class="form-check mb-2">
                   <input class="form-check-input region-check" type="checkbox" value="pci" id="reg-pci" data-frameworks="PCI-DSS" data-label="PCI DSS">
                   <label class="form-check-label" for="reg-pci">
-                    <strong>Handles Payment Cards</strong> <small class="text-muted">— PCI DSS 4.0</small>
+                    <strong>{{t 'intake.strong.handles_payment_cards'}}</strong> <small class="text-muted">{{t 'intake.small.pci_dss_40'}}</small>
                   </label>
                 </div>
                 <div class="form-check mb-2">
                   <input class="form-check-input region-check" type="checkbox" value="cis" id="reg-cis" data-frameworks="CIS-CONTROLS" data-label="CIS Controls">
                   <label class="form-check-label" for="reg-cis">
-                    <strong>CIS Controls</strong> <small class="text-muted">— v8.1 (Municipal / General)</small>
+                    <strong>CIS Controls</strong> <small class="text-muted">{{t 'intake.small.v81_municipal_general'}}</small>
                   </label>
                 </div>
               </div>
@@ -192,7 +192,7 @@
           <div class="d-flex justify-content-between align-items-center">
             <div>
               <i class="bi bi-shield-check text-primary me-2"></i>
-              <strong class="small" id="regionSummaryText">Select at least one region to continue</strong>
+              <strong class="small" id="regionSummaryText">{{t 'intake.strong.select_at_least_one_region'}}</strong>
             </div>
             <div>
               <span class="small text-muted" id="suggestedFrameworksList"></span>
@@ -218,12 +218,11 @@
     <div class="alert alert-primary d-flex justify-content-between align-items-center mb-3" id="regionContextBar">
       <div>
         <i class="bi bi-globe me-2"></i>
-        <strong>Operating Regions:</strong>
+        <strong>{{t 'intake.strong.operating_regions'}}</strong>
         <span id="regionContextLabels"></span>
       </div>
       <button type="button" class="btn btn-sm btn-outline-primary" id="wizardBackBtn">
-        <i class="bi bi-pencil me-1"></i>Change Regions
-      </button>
+        <i class="bi bi-pencil me-1"></i>{{t 'intake.btn.change_regions'}}</button>
     </div>
 
   <form method="POST" action="{{#if editMode}}/intake/{{editData.ref_code}}/edit{{else}}/intake{{/if}}" enctype="multipart/form-data" id="intakeForm" class="mfa-protected" data-mfa-label="Submitting security intake form">
@@ -231,8 +230,8 @@
     <!-- ─── AI Quick Start ─── -->
     <div class="form-section" style="border-left:3px solid #8b5cf6; background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);">
       <div class="section-header" style="border-bottom-color:#e9d5ff;">
-        <h4 class="section-title" style="color:#6d28d9;"><i class="bi bi-stars me-2"></i>AI-Assisted Intake <span class="badge bg-purple text-white" style="font-size:0.65rem; background:#8b5cf6 !important; vertical-align:middle;">BETA</span></h4>
-        <p class="section-description">Upload a project document or describe your system in plain language and AI will suggest how to fill out this form.</p>
+        <h4 class="section-title" style="color:#6d28d9;"><i class="bi bi-stars me-2"></i>AI-Assisted Intake <span class="badge bg-purple text-white" style="font-size:0.65rem; background:#8b5cf6 !important; vertical-align:middle;">{{t 'intake.span.beta'}}</span></h4>
+        <p class="section-description">{{t 'intake.p.upload_a_project_document_or'}}</p>
       </div>
 
       <div class="row g-3">
@@ -241,11 +240,10 @@
           <div class="card h-100" style="border-color:#e9d5ff;">
             <div class="card-body">
               <h6 class="fw-bold mb-2"><i class="bi bi-file-earmark-arrow-up me-1 text-purple" style="color:#8b5cf6;"></i> Upload a Document</h6>
-              <p class="text-muted small mb-2">Upload a design doc, SA, PIA, architecture diagram, or project charter (PDF, TXT, DOCX, PNG/JPG).</p>
+              <p class="text-muted small mb-2">{{t 'intake.p.upload_a_design_doc_sa'}}</p>
               <input type="file" class="form-control form-control-sm" id="aiDocUpload" accept=".pdf,.txt,.md,.doc,.docx,.png,.jpg,.jpeg">
               <button type="button" class="btn btn-sm w-100 mt-2 text-white" style="background:#8b5cf6;" id="aiDocParseBtn" disabled onclick="aiParseDocument()">
-                <i class="bi bi-stars me-1"></i>Analyze & Pre-fill
-              </button>
+                <i class="bi bi-stars me-1"></i>{{t 'intake.btn.analyze_prefill'}}</button>
             </div>
           </div>
         </div>
@@ -255,11 +253,10 @@
           <div class="card h-100" style="border-color:#e9d5ff;">
             <div class="card-body">
               <h6 class="fw-bold mb-2"><i class="bi bi-chat-text me-1 text-purple" style="color:#8b5cf6;"></i> Describe Your Project</h6>
-              <p class="text-muted small mb-2">Describe what your system does, who uses it, and what data it handles.</p>
-              <textarea class="form-control form-control-sm" id="aiPlainDesc" rows="3" placeholder="e.g. We're building a portal for tax professionals to submit client returns. It connects to CRA mainframe and handles SIN, financial data. Hosted on Azure in Canada..."></textarea>
+              <p class="text-muted small mb-2">{{t 'intake.p.describe_what_your_system_does'}}</p>
+              <textarea class="form-control form-control-sm" id="aiPlainDesc" rows="3" placeholder="{{t 'intake.ph.eg_were_building_a_portal'}}"></textarea>
               <button type="button" class="btn btn-sm w-100 mt-2 text-white" style="background:#8b5cf6;" id="aiSuggestBtn" disabled onclick="aiSuggestFromDescription()">
-                <i class="bi bi-stars me-1"></i>Get Suggestions
-              </button>
+                <i class="bi bi-stars me-1"></i>{{t 'intake.btn.get_suggestions'}}</button>
             </div>
           </div>
         </div>
@@ -273,37 +270,37 @@
     <div class="form-section">
       <div class="section-header">
         <h4 class="section-title"><span class="section-number">1</span> Project Information</h4>
-        <p class="section-description">Tell us about your project or system that requires a security assessment.</p>
+        <p class="section-description">{{t 'intake.p.tell_us_about_your_project'}}</p>
       </div>
 
       <div class="mb-3">
         <label class="form-label" for="projectName">Project / System Name <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" id="projectName" name="projectName" required placeholder="e.g. HR Case Management Portal">
+        <input type="text" class="form-control" id="projectName" name="projectName" required placeholder="{{t 'intake.ph.eg_hr_case_management_portal'}}">
       </div>
 
       <div class="mb-3">
         <label class="form-label" for="projectDescription">Project Description <span class="text-danger">*</span></label>
-        <textarea class="form-control" id="projectDescription" name="projectDescription" rows="4" required placeholder="Describe the purpose, scope, and key features of the system..."></textarea>
+        <textarea class="form-control" id="projectDescription" name="projectDescription" rows="4" required placeholder="{{t 'intake.ph.describe_the_purpose_scope_and'}}"></textarea>
       </div>
 
       <div class="row g-3 mb-3">
         <div class="col-md-6">
           <label class="form-label" for="department" id="lbl-department">Department / Agency <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" id="department" name="department" required placeholder="e.g. Employment and Social Development Canada">
+          <input type="text" class="form-control" id="department" name="department" required placeholder="{{t 'intake.ph.eg_employment_and_social_development'}}">
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="branch" id="lbl-branch">Branch / Directorate</label>
-          <input type="text" class="form-control" id="branch" name="branch" placeholder="e.g. Innovation, Information and Technology Branch">
+          <label class="form-label" for="branch" id="lbl-branch">{{t 'intake.label.branch_directorate'}}</label>
+          <input type="text" class="form-control" id="branch" name="branch" placeholder="{{t 'intake.ph.eg_innovation_information_and_technology'}}">
         </div>
       </div>
 
       <div class="row g-3 mb-3">
         <div class="col-md-4">
-          <label class="form-label" for="targetDate">Target Go-Live Date</label>
+          <label class="form-label" for="targetDate">{{t 'intake.label.target_golive_date'}}</label>
           <input type="date" class="form-control" id="targetDate" name="targetDate">
         </div>
         <div class="col-md-4">
-          <label class="form-label" for="userCount">Estimated User Count</label>
+          <label class="form-label" for="userCount">{{t 'intake.label.estimated_user_count'}}</label>
           <select class="form-select" id="userCount" name="userCount">
             <option value="">Select...</option>
             <option value="1-50">1 – 50</option>
@@ -328,14 +325,14 @@
     <div class="form-section" id="sec-categorization">
       <div class="section-header">
         <h4 class="section-title" id="sec2-title"><span class="section-number">2</span> Security Categorization</h4>
-        <p class="section-description" id="sec2-desc">Categorize your system across three independent security dimensions per the <strong>TBS Directive on Security Management (Appendix J)</strong> and <strong>ITSG-33</strong>. The tool will automatically determine the applicable security control profile.</p>
+        <p class="section-description" id="sec2-desc">Categorize your system across three independent security dimensions per the <strong>{{t 'intake.strong.tbs_directive_on_security_management'}}</strong> and <strong>ITSG-33</strong>. The tool will automatically determine the applicable security control profile.</p>
       </div>
 
       <!-- ── 2A: Confidentiality ── -->
       <div class="card mb-3 border-0 bg-light">
         <div class="card-body">
           <h6 class="fw-bold mb-1" id="conf-heading"><i class="bi bi-shield-lock me-1"></i> Confidentiality Level <span class="text-danger">*</span></h6>
-          <p class="text-muted small mb-2" id="conf-help">What is the highest sensitivity of information the system will process, store, or transmit?</p>
+          <p class="text-muted small mb-2" id="conf-help">{{t 'intake.p.what_is_the_highest_sensitivity'}}</p>
 
           <select class="form-select cia-input" id="confidentialityLevel" name="confidentialityLevel" required>
             <option value="">Select confidentiality level...</option>
@@ -359,7 +356,7 @@
       <div class="card mb-3 border-0 bg-light">
         <div class="card-body">
           <h6 class="fw-bold mb-1"><i class="bi bi-check2-square me-1"></i> Integrity Level <span class="text-danger">*</span></h6>
-          <p class="text-muted small mb-2">What is the expected impact if data is modified, corrupted, or destroyed without authorization?</p>
+          <p class="text-muted small mb-2">{{t 'intake.p.what_is_the_expected_impact'}}</p>
 
           <select class="form-select cia-input" id="integrityLevel" name="integrityLevel" required>
             <option value="low">Low — Limited impact; minor data corruption tolerable with manual workarounds</option>
@@ -373,7 +370,7 @@
       <div class="card mb-3 border-0 bg-light">
         <div class="card-body">
           <h6 class="fw-bold mb-1"><i class="bi bi-clock-history me-1"></i> Availability Level <span class="text-danger">*</span></h6>
-          <p class="text-muted small mb-2">What is the expected impact if the system is unavailable or disrupted?</p>
+          <p class="text-muted small mb-2">{{t 'intake.p.what_is_the_expected_impact_2'}}</p>
 
           <select class="form-select cia-input" id="availabilityLevel" name="availabilityLevel" required>
             <option value="low">Low — Extended outages (days) tolerable; alternative processes exist</option>
@@ -390,7 +387,7 @@
             <input class="form-check-input cia-input" type="checkbox" id="isHVA" name="isHVA" value="1">
             <label class="form-check-label" for="isHVA" id="hva-label">
               <strong><i class="bi bi-star me-1"></i> High Value Asset (HVA)</strong>
-              <small class="d-block text-muted">Check if this system supports delivery of services at a national scale, is determined to be a significant solution handling sensitive information, or has been designated as a High Value Asset by your department. Adds the <strong>PBHVA overlay</strong> (137 additional controls).</small>
+              <small class="d-block text-muted">Check if this system supports delivery of services at a national scale, is determined to be a significant solution handling sensitive information, or has been designated as a High Value Asset by your department. Adds the <strong>{{t 'intake.strong.pbhva_overlay'}}</strong> (137 additional controls).</small>
             </label>
           </div>
         </div>
@@ -401,7 +398,7 @@
         <div class="d-flex align-items-center mb-2">
           <i class="bi bi-cpu fs-5 me-2"></i>
           <div>
-            <strong>Determined Security Profile:</strong>
+            <strong>{{t 'intake.strong.determined_security_profile'}}</strong>
             <span id="profileBadge" class="badge ms-2">—</span>
           </div>
         </div>
@@ -409,7 +406,7 @@
         <div id="profileDesc" class="small mb-1"></div>
         <div id="profileControls" class="small text-muted"></div>
         <div id="profileTailoring" class="small mt-2" style="display:none;">
-          <strong>Tailoring notes:</strong>
+          <strong>{{t 'intake.strong.tailoring_notes'}}</strong>
           <ul id="tailoringList" class="mb-0 mt-1 small"></ul>
         </div>
       </div>
@@ -418,16 +415,16 @@
 
       <!-- ── 2E: PII Checklist ── -->
       <div class="mb-3" id="pii-section">
-        <label class="form-label fw-bold" id="pii-heading">Personal Information (PII) Checklist</label>
-        <p class="text-muted small mb-2">Does your system collect, process, store, or transmit any of the following? Check all that apply.</p>
+        <label class="form-label fw-bold" id="pii-heading">{{t 'intake.label.personal_information_pii_checklist'}}</label>
+        <p class="text-muted small mb-2">{{t 'intake.p.does_your_system_collect_process'}}</p>
 
         <div class="row g-2">
           <div class="col-md-6">
             <div class="form-check p-3 rounded border bg-white mb-1">
               <input class="form-check-input" type="checkbox" name="piiTypes" value="name-address" id="pii-name">
               <label class="form-check-label" for="pii-name">
-                <strong>Name, address, or contact info</strong>
-                <small class="d-block text-muted">Full name, home/work address, phone, email</small>
+                <strong>{{t 'intake.strong.name_address_or_contact_info'}}</strong>
+                <small class="d-block text-muted">{{t 'intake.small.full_name_homework_address_phone'}}</small>
               </label>
             </div>
           </div>
@@ -435,8 +432,8 @@
             <div class="form-check p-3 rounded border bg-white mb-1">
               <input class="form-check-input" type="checkbox" name="piiTypes" value="sin" id="pii-sin">
               <label class="form-check-label" for="pii-sin" id="pii-sin-label">
-                <strong>Social Insurance Number (SIN)</strong>
-                <small class="d-block text-muted">SIN or business number</small>
+                <strong>{{t 'intake.strong.social_insurance_number_sin'}}</strong>
+                <small class="d-block text-muted">{{t 'intake.small.sin_or_business_number'}}</small>
               </label>
             </div>
           </div>
@@ -444,8 +441,8 @@
             <div class="form-check p-3 rounded border bg-white mb-1">
               <input class="form-check-input" type="checkbox" name="piiTypes" value="financial" id="pii-financial">
               <label class="form-check-label" for="pii-financial" id="pii-financial-label">
-                <strong>Financial information</strong>
-                <small class="d-block text-muted">Bank accounts, tax records, pay info, CRA data</small>
+                <strong>{{t 'intake.strong.financial_information'}}</strong>
+                <small class="d-block text-muted">{{t 'intake.small.bank_accounts_tax_records_pay'}}</small>
               </label>
             </div>
           </div>
@@ -453,8 +450,8 @@
             <div class="form-check p-3 rounded border bg-white mb-1">
               <input class="form-check-input" type="checkbox" name="piiTypes" value="health" id="pii-health">
               <label class="form-check-label" for="pii-health">
-                <strong>Health / Medical records</strong>
-                <small class="d-block text-muted">Medical history, disability, mental health info</small>
+                <strong>{{t 'intake.strong.health_medical_records'}}</strong>
+                <small class="d-block text-muted">{{t 'intake.small.medical_history_disability_mental_health'}}</small>
               </label>
             </div>
           </div>
@@ -462,8 +459,8 @@
             <div class="form-check p-3 rounded border bg-white mb-1">
               <input class="form-check-input" type="checkbox" name="piiTypes" value="biometric" id="pii-bio">
               <label class="form-check-label" for="pii-bio">
-                <strong>Biometric data</strong>
-                <small class="d-block text-muted">Fingerprints, facial recognition, voice prints</small>
+                <strong>{{t 'intake.strong.biometric_data'}}</strong>
+                <small class="d-block text-muted">{{t 'intake.small.fingerprints_facial_recognition_voice_prints'}}</small>
               </label>
             </div>
           </div>
@@ -471,8 +468,8 @@
             <div class="form-check p-3 rounded border bg-white mb-1">
               <input class="form-check-input" type="checkbox" name="piiTypes" value="employment" id="pii-emp">
               <label class="form-check-label" for="pii-emp">
-                <strong>Employment / HR records</strong>
-                <small class="d-block text-muted">Performance reviews, staffing actions, leave, grievances</small>
+                <strong>{{t 'intake.strong.employment_hr_records'}}</strong>
+                <small class="d-block text-muted">{{t 'intake.small.performance_reviews_staffing_actions_leave'}}</small>
               </label>
             </div>
           </div>
@@ -480,8 +477,8 @@
             <div class="form-check p-3 rounded border bg-white mb-1">
               <input class="form-check-input" type="checkbox" name="piiTypes" value="immigration" id="pii-imm">
               <label class="form-check-label" for="pii-imm">
-                <strong>Immigration / Citizenship data</strong>
-                <small class="d-block text-muted">Visa applications, travel documents, citizenship status</small>
+                <strong>{{t 'intake.strong.immigration_citizenship_data'}}</strong>
+                <small class="d-block text-muted">{{t 'intake.small.visa_applications_travel_documents_citizenship'}}</small>
               </label>
             </div>
           </div>
@@ -489,8 +486,8 @@
             <div class="form-check p-3 rounded border bg-white mb-1">
               <input class="form-check-input" type="checkbox" name="piiTypes" value="law-enforcement" id="pii-law">
               <label class="form-check-label" for="pii-law">
-                <strong>Law enforcement / Criminal records</strong>
-                <small class="d-block text-muted">Case files, criminal history, investigations</small>
+                <strong>{{t 'intake.strong.law_enforcement_criminal_records'}}</strong>
+                <small class="d-block text-muted">{{t 'intake.small.case_files_criminal_history_investigations'}}</small>
               </label>
             </div>
           </div>
@@ -498,8 +495,8 @@
             <div class="form-check p-3 rounded border bg-white mb-1">
               <input class="form-check-input" type="checkbox" name="piiTypes" value="indigenous" id="pii-indig">
               <label class="form-check-label" for="pii-indig">
-                <strong>Indigenous / Treaty data</strong>
-                <small class="d-block text-muted">Band membership, treaty info, land claims</small>
+                <strong>{{t 'intake.strong.indigenous_treaty_data'}}</strong>
+                <small class="d-block text-muted">{{t 'intake.small.band_membership_treaty_info_land'}}</small>
               </label>
             </div>
           </div>
@@ -507,8 +504,8 @@
             <div class="form-check p-3 rounded border bg-white mb-1">
               <input class="form-check-input" type="checkbox" name="piiTypes" value="none" id="pii-none">
               <label class="form-check-label" for="pii-none">
-                <strong>None of the above</strong>
-                <small class="d-block text-muted">No personal information is collected or stored</small>
+                <strong>{{t 'intake.strong.none_of_the_above'}}</strong>
+                <small class="d-block text-muted">{{t 'intake.small.no_personal_information_is_collected'}}</small>
               </label>
             </div>
           </div>
@@ -518,7 +515,7 @@
       <!-- Additional data sensitivity questions -->
       <div class="row g-3 mt-2" id="data-sensitivity-row">
         <div class="col-md-6" id="atip-wrap">
-          <label class="form-label" id="atip-label">Does the system process data subject to <strong>ATIP</strong> requests?</label>
+          <label class="form-label" id="atip-label">Does the system process data subject to <strong>{{t 'intake.strong.atip'}}</strong> requests?</label>
           <select class="form-select" name="atipSubject" id="atipSubject">
             <option value="">Select...</option>
             <option value="yes">Yes</option>
@@ -527,7 +524,7 @@
           </select>
         </div>
         <div class="col-md-6" id="pia-wrap">
-          <label class="form-label" id="pia-label">Has a <strong>Privacy Impact Assessment (PIA)</strong> been completed?</label>
+          <label class="form-label" id="pia-label">Has a <strong>{{t 'intake.strong.privacy_impact_assessment_pia'}}</strong> been completed?</label>
           <select class="form-select" name="piaCompleted" id="piaCompleted">
             <option value="">Select...</option>
             <option value="yes">Yes — completed</option>
@@ -543,7 +540,7 @@
     <div class="form-section">
       <div class="section-header">
         <h4 class="section-title"><span class="section-number">3</span> Hosting & Technology Stack</h4>
-        <p class="section-description">Where will the system be hosted, and which technologies are planned or already in use?</p>
+        <p class="section-description">{{t 'intake.p.where_will_the_system_be'}}</p>
       </div>
 
       <div class="row g-3 mb-3">
@@ -561,7 +558,7 @@
           </select>
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="hostingRegion">Data Residency</label>
+          <label class="form-label" for="hostingRegion">{{t 'intake.label.data_residency'}}</label>
           <select class="form-select" id="hostingRegion" name="hostingRegion">
             <option value="">Select...</option>
             <option value="canada-only" selected>Canada Only</option>
@@ -574,51 +571,51 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label fw-bold">Technology Stack</label>
-        <p class="text-muted small mb-2">Check all technologies that are part of this implementation.</p>
+        <label class="form-label fw-bold">{{t 'intake.label.technology_stack'}}</label>
+        <p class="text-muted small mb-2">{{t 'intake.p.check_all_technologies_that_are'}}</p>
 
-        <h6 class="text-muted small text-uppercase mt-3 mb-2">Identity & Access</h6>
+        <h6 class="text-muted small text-uppercase mt-3 mb-2">{{t 'intake.h6.identity_access'}}</h6>
         <div class="row g-2">
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="entra-id" id="tech-entra"><label class="form-check-label" for="tech-entra">Microsoft Entra ID (Azure AD)</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="active-directory" id="tech-ad"><label class="form-check-label" for="tech-ad">Active Directory (On-Prem)</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="mfa" id="tech-mfa"><label class="form-check-label" for="tech-mfa">Multi-Factor Authentication</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="pim" id="tech-pim"><label class="form-check-label" for="tech-pim">Privileged Identity Management</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="entra-id" id="tech-entra"><label class="form-check-label" for="tech-entra">{{t 'intake.label.microsoft_entra_id_azure_ad'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="active-directory" id="tech-ad"><label class="form-check-label" for="tech-ad">{{t 'intake.label.active_directory_onprem'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="mfa" id="tech-mfa"><label class="form-check-label" for="tech-mfa">{{t 'intake.label.multifactor_authentication'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="pim" id="tech-pim"><label class="form-check-label" for="tech-pim">{{t 'intake.label.privileged_identity_management'}}</label></div></div>
         </div>
 
-        <h6 class="text-muted small text-uppercase mt-3 mb-2">Cloud & Infrastructure</h6>
+        <h6 class="text-muted small text-uppercase mt-3 mb-2">{{t 'intake.h6.cloud_infrastructure'}}</h6>
         <div class="row g-2">
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="azure" id="tech-azure"><label class="form-check-label" for="tech-azure">Microsoft Azure</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="aws" id="tech-aws"><label class="form-check-label" for="tech-aws">Amazon Web Services</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gcp" id="tech-gcp"><label class="form-check-label" for="tech-gcp">Google Cloud Platform</label></div></div>
-          <div class="col-md-4" id="tech-ssc-wrap"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="ssc-dc" id="tech-ssc"><label class="form-check-label" for="tech-ssc">SSC Data Centre</label></div></div>
-          <div class="col-md-4" id="tech-gcnet-wrap"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gc-network" id="tech-gcnet"><label class="form-check-label" for="tech-gcnet">GC Network (GCNet)</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="azure" id="tech-azure"><label class="form-check-label" for="tech-azure">{{t 'intake.label.microsoft_azure'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="aws" id="tech-aws"><label class="form-check-label" for="tech-aws">{{t 'intake.label.amazon_web_services'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gcp" id="tech-gcp"><label class="form-check-label" for="tech-gcp">{{t 'intake.label.google_cloud_platform'}}</label></div></div>
+          <div class="col-md-4" id="tech-ssc-wrap"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="ssc-dc" id="tech-ssc"><label class="form-check-label" for="tech-ssc">{{t 'intake.label.ssc_data_centre'}}</label></div></div>
+          <div class="col-md-4" id="tech-gcnet-wrap"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gc-network" id="tech-gcnet"><label class="form-check-label" for="tech-gcnet">{{t 'intake.label.gc_network_gcnet'}}</label></div></div>
         </div>
 
-        <h6 class="text-muted small text-uppercase mt-3 mb-2">Security & Monitoring</h6>
+        <h6 class="text-muted small text-uppercase mt-3 mb-2">{{t 'intake.h6.security_monitoring'}}</h6>
         <div class="row g-2">
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="siem-sentinel" id="tech-sentinel"><label class="form-check-label" for="tech-sentinel">Microsoft Sentinel (SIEM)</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="siem-splunk" id="tech-splunk"><label class="form-check-label" for="tech-splunk">Splunk (SIEM)</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="defender" id="tech-defender"><label class="form-check-label" for="tech-defender">Microsoft Defender</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="crowdstrike" id="tech-cs"><label class="form-check-label" for="tech-cs">CrowdStrike Falcon</label></div></div>
-          <div class="col-md-4" id="tech-cse-wrap"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gc-cse" id="tech-cse"><label class="form-check-label" for="tech-cse">CSE / CCCS Services</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="waf" id="tech-waf"><label class="form-check-label" for="tech-waf">Web Application Firewall</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="siem-sentinel" id="tech-sentinel"><label class="form-check-label" for="tech-sentinel">{{t 'intake.label.microsoft_sentinel_siem'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="siem-splunk" id="tech-splunk"><label class="form-check-label" for="tech-splunk">{{t 'intake.label.splunk_siem'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="defender" id="tech-defender"><label class="form-check-label" for="tech-defender">{{t 'intake.label.microsoft_defender'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="crowdstrike" id="tech-cs"><label class="form-check-label" for="tech-cs">{{t 'intake.label.crowdstrike_falcon'}}</label></div></div>
+          <div class="col-md-4" id="tech-cse-wrap"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="gc-cse" id="tech-cse"><label class="form-check-label" for="tech-cse">{{t 'intake.label.cse_cccs_services'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="waf" id="tech-waf"><label class="form-check-label" for="tech-waf">{{t 'intake.label.web_application_firewall'}}</label></div></div>
         </div>
 
-        <h6 class="text-muted small text-uppercase mt-3 mb-2">DevOps, Encryption & Management</h6>
+        <h6 class="text-muted small text-uppercase mt-3 mb-2">{{t 'intake.h6.devops_encryption_management'}}</h6>
         <div class="row g-2">
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="azure-devops" id="tech-ado"><label class="form-check-label" for="tech-ado">Azure DevOps</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="github" id="tech-gh"><label class="form-check-label" for="tech-gh">GitHub Enterprise</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="intune" id="tech-intune"><label class="form-check-label" for="tech-intune">Microsoft Intune (MDM)</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="key-vault" id="tech-kv"><label class="form-check-label" for="tech-kv">Azure Key Vault</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="aws-kms" id="tech-kms"><label class="form-check-label" for="tech-kms">AWS KMS</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="azure-devops" id="tech-ado"><label class="form-check-label" for="tech-ado">{{t 'intake.label.azure_devops'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="github" id="tech-gh"><label class="form-check-label" for="tech-gh">{{t 'intake.label.github_enterprise'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="intune" id="tech-intune"><label class="form-check-label" for="tech-intune">{{t 'intake.label.microsoft_intune_mdm'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="key-vault" id="tech-kv"><label class="form-check-label" for="tech-kv">{{t 'intake.label.azure_key_vault'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="aws-kms" id="tech-kms"><label class="form-check-label" for="tech-kms">{{t 'intake.label.aws_kms'}}</label></div></div>
           <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="ssl-tls" id="tech-tls"><label class="form-check-label" for="tech-tls">TLS 1.2 / 1.3</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="backup-azure" id="tech-backup"><label class="form-check-label" for="tech-backup">Azure Backup</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="technologies" value="backup-azure" id="tech-backup"><label class="form-check-label" for="tech-backup">{{t 'intake.label.azure_backup'}}</label></div></div>
         </div>
       </div>
 
       <div class="mb-3">
-        <label class="form-label" for="otherTech">Other Technologies / Notes</label>
-        <textarea class="form-control" id="otherTech" name="otherTech" rows="2" placeholder="List any technologies not covered above (e.g. Oracle DB, SAP, Dynamics 365, Power Platform, etc.)"></textarea>
+        <label class="form-label" for="otherTech">{{t 'intake.label.other_technologies_notes'}}</label>
+        <textarea class="form-control" id="otherTech" name="otherTech" rows="2" placeholder="{{t 'intake.ph.list_any_technologies_not_covered'}}"></textarea>
       </div>
     </div>
 
@@ -626,7 +623,7 @@
     <div class="form-section">
       <div class="section-header">
         <h4 class="section-title"><span class="section-number">4</span> Architecture & Integrations</h4>
-        <p class="section-description">Help us understand how the system connects to other systems and the internet.</p>
+        <p class="section-description">{{t 'intake.p.help_us_understand_how_the'}}</p>
       </div>
 
       <div class="row g-3 mb-3">
@@ -641,7 +638,7 @@
           </select>
         </div>
         <div class="col-md-6">
-          <label class="form-label" id="lbl-gc-interconnect">Does the system connect to other <strong>GC systems</strong>?</label>
+          <label class="form-label" id="lbl-gc-interconnect">Does the system connect to other <strong>{{t 'intake.strong.gc_systems'}}</strong>?</label>
           <select class="form-select" name="gcInterconnections">
             <option value="">Select...</option>
             <option value="yes">Yes</option>
@@ -652,13 +649,13 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label" for="interconnections">List Known Interconnections / Integrations</label>
-        <textarea class="form-control" id="interconnections" name="interconnections" rows="3" placeholder="e.g. GCcase (via API), SAP (file transfer), GCDOCS (document storage), Canada.ca (public portal)..."></textarea>
+        <label class="form-label" for="interconnections">{{t 'intake.label.list_known_interconnections_integrations'}}</label>
+        <textarea class="form-control" id="interconnections" name="interconnections" rows="3" placeholder="{{t 'intake.ph.eg_gccase_via_api_sap'}}"></textarea>
       </div>
 
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label">Will the system support <strong>mobile / BYOD</strong> access?</label>
+          <label class="form-label">Will the system support <strong>{{t 'intake.strong.mobile_byod'}}</strong> access?</label>
           <select class="form-select" name="mobileAccess">
             <option value="">Select...</option>
             <option value="yes">Yes</option>
@@ -667,7 +664,7 @@
           </select>
         </div>
         <div class="col-md-6">
-          <label class="form-label" id="lbl-ext-users">Will <strong>external users</strong> (non-GC) access the system?</label>
+          <label class="form-label" id="lbl-ext-users">Will <strong>{{t 'intake.strong.external_users'}}</strong> (non-GC) access the system?</label>
           <select class="form-select" name="externalUsers" id="externalUsers">
             <option value="">Select...</option>
             <option value="yes">Yes — public or partner access</option>
@@ -682,19 +679,19 @@
     <div class="form-section">
       <div class="section-header">
         <h4 class="section-title"><span class="section-number">5</span> Existing Security Posture</h4>
-        <p class="section-description">Let us know what security work has already been completed.</p>
+        <p class="section-description">{{t 'intake.p.let_us_know_what_security'}}</p>
       </div>
 
       <div class="mb-3">
-        <label class="form-label fw-bold">Completed Security Activities</label>
-        <p class="text-muted small mb-2">Check all that have been completed or are in progress.</p>
+        <label class="form-label fw-bold">{{t 'intake.label.completed_security_activities'}}</label>
+        <p class="text-muted small mb-2">{{t 'intake.p.check_all_that_have_been'}}</p>
         <div class="row g-2">
-          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="tra" id="act-tra"><label class="form-check-label" for="act-tra"><strong>Threat & Risk Assessment (TRA)</strong></label></div></div>
-          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="pia" id="act-pia"><label class="form-check-label" for="act-pia"><strong>Privacy Impact Assessment (PIA)</strong></label></div></div>
-          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="ssp" id="act-ssp"><label class="form-check-label" for="act-ssp"><strong>System Security Plan (SSP)</strong></label></div></div>
-          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="vapt" id="act-vapt"><label class="form-check-label" for="act-vapt"><strong>Vulnerability Assessment / Pen Test</strong></label></div></div>
-          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="network-diagram" id="act-nd"><label class="form-check-label" for="act-nd"><strong>Network / Architecture Diagram</strong></label></div></div>
-          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="previous-sa" id="act-sa"><label class="form-check-label" for="act-sa" id="lbl-previous-sa"><strong>Previous SA&A / ATO</strong></label></div></div>
+          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="tra" id="act-tra"><label class="form-check-label" for="act-tra"><strong>{{t 'intake.strong.threat_risk_assessment_tra'}}</strong></label></div></div>
+          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="pia" id="act-pia"><label class="form-check-label" for="act-pia"><strong>{{t 'intake.strong.privacy_impact_assessment_pia'}}</strong></label></div></div>
+          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="ssp" id="act-ssp"><label class="form-check-label" for="act-ssp"><strong>{{t 'intake.strong.system_security_plan_ssp'}}</strong></label></div></div>
+          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="vapt" id="act-vapt"><label class="form-check-label" for="act-vapt"><strong>{{t 'intake.strong.vulnerability_assessment_pen_test'}}</strong></label></div></div>
+          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="network-diagram" id="act-nd"><label class="form-check-label" for="act-nd"><strong>{{t 'intake.strong.network_architecture_diagram'}}</strong></label></div></div>
+          <div class="col-md-6"><div class="form-check p-3 rounded border bg-white"><input class="form-check-input" type="checkbox" name="completedActivities" value="previous-sa" id="act-sa"><label class="form-check-label" for="act-sa" id="lbl-previous-sa"><strong>{{t 'intake.strong.previous_saa_ato'}}</strong></label></div></div>
         </div>
       </div>
     </div>
@@ -703,36 +700,36 @@
     <div class="form-section">
       <div class="section-header">
         <h4 class="section-title"><span class="section-number">6</span> Key Contacts</h4>
-        <p class="section-description">Provide contact details for the people involved in this assessment.</p>
+        <p class="section-description">{{t 'intake.p.provide_contact_details_for_the'}}</p>
       </div>
 
       <h6 class="fw-bold mb-2">Project Owner / Submitter <span class="text-danger">*</span></h6>
       <div class="row g-3 mb-3">
         <div class="col-md-4">
-          <input type="text" class="form-control" name="ownerName" required placeholder="Full name">
+          <input type="text" class="form-control" name="ownerName" required placeholder="{{t 'intake.ph.full_name'}}">
         </div>
         <div class="col-md-4">
-          <input type="email" class="form-control" name="ownerEmail" required placeholder="Email address">
+          <input type="email" class="form-control" name="ownerEmail" required placeholder="{{t 'intake.ph.email_address'}}">
         </div>
         <div class="col-md-4">
-          <input type="text" class="form-control" name="ownerTitle" placeholder="Title / Role">
+          <input type="text" class="form-control" name="ownerTitle" placeholder="{{t 'intake.ph.title_role'}}">
         </div>
       </div>
 
-      <h6 class="fw-bold mb-2">Technical Lead</h6>
+      <h6 class="fw-bold mb-2">{{t 'intake.h6.technical_lead'}}</h6>
       <div class="row g-3 mb-3">
         <div class="col-md-4">
-          <input type="text" class="form-control" name="techLeadName" placeholder="Full name">
+          <input type="text" class="form-control" name="techLeadName" placeholder="{{t 'intake.ph.full_name'}}">
         </div>
         <div class="col-md-4">
-          <input type="email" class="form-control" name="techLeadEmail" placeholder="Email address">
+          <input type="email" class="form-control" name="techLeadEmail" placeholder="{{t 'intake.ph.email_address'}}">
         </div>
         <div class="col-md-4">
-          <input type="text" class="form-control" name="techLeadTitle" placeholder="Title / Role">
+          <input type="text" class="form-control" name="techLeadTitle" placeholder="{{t 'intake.ph.title_role'}}">
         </div>
       </div>
 
-      <h6 class="fw-bold mb-2" id="lbl-authority">Authorizing Official (DG / Director)</h6>
+      <h6 class="fw-bold mb-2" id="lbl-authority">{{t 'intake.h6.authorizing_official_dg_director'}}</h6>
       <div class="row g-3">
         <div class="col-md-4">
           <input type="text" class="form-control" name="authorityName" placeholder="Full name">
@@ -750,17 +747,17 @@
     <div class="form-section">
       <div class="section-header">
         <h4 class="section-title"><span class="section-number">7</span> Supporting Documents</h4>
-        <p class="section-description">Upload any existing documentation that will help our assessment team. Accepted formats: PDF, Word, Excel, PowerPoint, images, Visio. Max 25 MB per file.</p>
+        <p class="section-description">{{t 'intake.p.upload_any_existing_documentation_that'}}</p>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Attachments</label>
+        <label class="form-label">{{t 'intake.label.attachments'}}</label>
         <input type="file" class="form-control" name="attachments" id="attachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.pptx,.ppt,.png,.jpg,.jpeg,.gif,.vsdx,.vsd,.txt,.md,.csv">
-        <small class="text-muted" id="attachments-help">You can select multiple files. Examples: architecture diagrams, TRA reports, SSP documents, network diagrams, previous ATO letters.</small>
+        <small class="text-muted" id="attachments-help">{{t 'intake.small.you_can_select_multiple_files'}}</small>
       </div>
 
       <div id="fileList" class="mb-3" style="display:none;">
-        <label class="form-label fw-bold small text-muted">Selected files:</label>
+        <label class="form-label fw-bold small text-muted">{{t 'intake.label.selected_files'}}</label>
         <div id="fileListContent"></div>
       </div>
     </div>
@@ -769,21 +766,20 @@
     <div class="form-section">
       <div class="section-header">
         <h4 class="section-title"><span class="section-number">8</span> Additional Context</h4>
-        <p class="section-description">Any other information that would help us prepare your assessment.</p>
+        <p class="section-description">{{t 'intake.p.any_other_information_that_would'}}</p>
       </div>
 
       <div class="mb-3">
-        <label class="form-label" for="additionalNotes">Notes / Questions / Special Considerations</label>
-        <textarea class="form-control" id="additionalNotes" name="additionalNotes" rows="4" placeholder="e.g. tight deadline, need iATO first, migrating from legacy system, specific compliance requirements..."></textarea>
+        <label class="form-label" for="additionalNotes">{{t 'intake.label.notes_questions_special_considerations'}}</label>
+        <textarea class="form-control" id="additionalNotes" name="additionalNotes" rows="4" placeholder="{{t 'intake.ph.eg_tight_deadline_need_iato'}}"></textarea>
       </div>
     </div>
 
     <!-- Submit -->
     <div class="d-flex justify-content-between align-items-center mt-4 mb-5">
-      <a href="/" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Back</a>
+      <a href="/" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {{t 'intake.link.back'}}</a>
       <button type="submit" class="btn btn-primary btn-lg px-5" id="submitBtn">
-        <i class="bi bi-send me-2"></i>Submit Intake
-      </button>
+        <i class="bi bi-send me-2"></i>{{t 'intake.btn.submit_intake'}}</button>
     </div>
   </form>
 

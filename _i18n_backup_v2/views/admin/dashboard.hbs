@@ -1,12 +1,11 @@
 <div class="container">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h1 class="mb-1">Dashboard</h1>
+      <h1 class="mb-1">{{t 'admin.dashboard.h1.dashboard'}}</h1>
       <p class="text-muted mb-0">Welcome back, {{admin.name}}</p>
     </div>
     <a href="/admin/projects/new" class="btn btn-primary">
-      <i class="bi bi-plus-lg me-1"></i>New Project
-    </a>
+      <i class="bi bi-plus-lg me-1"></i>{{t 'admin.dashboard.link.new_project'}}</a>
   </div>
 
   <!-- Stats Cards -->
@@ -17,7 +16,7 @@
           <i class="bi bi-folder2-open"></i>
         </div>
         <div class="stat-number">{{stats.totalProjects}}</div>
-        <div class="stat-label">Total Projects</div>
+        <div class="stat-label">{{t 'admin.dashboard.stat.total_projects'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
@@ -26,7 +25,7 @@
           <i class="bi bi-clipboard-check"></i>
         </div>
         <div class="stat-number">{{stats.activeAssessments}}</div>
-        <div class="stat-label">Active Assessments</div>
+        <div class="stat-label">{{t 'admin.dashboard.stat.active_assessments'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
@@ -35,7 +34,7 @@
           <i class="bi bi-search"></i>
         </div>
         <div class="stat-number">{{stats.pendingAudits}}</div>
-        <div class="stat-label">Pending Audits</div>
+        <div class="stat-label">{{t 'admin.dashboard.stat.pending_audits'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
@@ -44,7 +43,7 @@
           <i class="bi bi-patch-check"></i>
         </div>
         <div class="stat-number">{{stats.activeATOs}}</div>
-        <div class="stat-label">Active ATOs</div>
+        <div class="stat-label">{{t 'admin.dashboard.stat.active_atos'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
@@ -54,7 +53,7 @@
             <i class="bi bi-inbox"></i>
           </div>
           <div class="stat-number">{{stats.pendingIntakes}}</div>
-          <div class="stat-label">Pending Intakes</div>
+          <div class="stat-label">{{t 'admin.dashboard.stat.pending_intakes'}}</div>
         </div>
       </a>
     </div>
@@ -65,7 +64,7 @@
             <i class="bi bi-clipboard2-pulse"></i>
           </div>
           <div class="stat-number">{{stats.pendingSelfAssessments}}</div>
-          <div class="stat-label">Pre-Assessments</div>
+          <div class="stat-label">{{t 'admin.dashboard.stat.preassessments'}}</div>
         </div>
       </a>
     </div>
@@ -76,8 +75,8 @@
     <div class="col-lg-6">
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span><i class="bi bi-folder2-open me-2"></i>Recent Projects</span>
-          <a href="/admin/projects" class="btn btn-sm btn-outline-light">View All</a>
+          <span><i class="bi bi-folder2-open me-2"></i>{{t 'admin.dashboard.span.recent_projects'}}</span>
+          <a href="/admin/projects" class="btn btn-sm btn-outline-light">{{t 'admin.dashboard.link.view_all'}}</a>
         </div>
         <div class="card-body p-0">
           {{#if projects.length}}
@@ -85,10 +84,10 @@
               <table class="table table-hover mb-0">
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>Classification</th>
-                    <th>Status</th>
-                    <th>Updated</th>
+                    <th>{{t 'admin.dashboard.th.name'}}</th>
+                    <th>{{t 'admin.dashboard.th.classification'}}</th>
+                    <th>{{t 'admin.dashboard.th.status'}}</th>
+                    <th>{{t 'admin.dashboard.th.updated'}}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -106,7 +105,7 @@
           {{else}}
             <div class="p-4 text-center text-muted">
               <i class="bi bi-folder-plus" style="font-size:2rem"></i>
-              <p class="mt-2 mb-0">No projects yet. <a href="/admin/projects/new">Create your first project</a></p>
+              <p class="mt-2 mb-0">No projects yet. <a href="/admin/projects/new">{{t 'admin.dashboard.link.create_your_first_project'}}</a></p>
             </div>
           {{/if}}
         </div>
@@ -117,8 +116,8 @@
     <div class="col-lg-6">
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span><i class="bi bi-clipboard-check me-2"></i>Recent Assessments</span>
-          <a href="/admin/assessments" class="btn btn-sm btn-outline-light">View All</a>
+          <span><i class="bi bi-clipboard-check me-2"></i>{{t 'admin.dashboard.span.recent_assessments'}}</span>
+          <a href="/admin/assessments" class="btn btn-sm btn-outline-light">{{t 'admin.dashboard.link.view_all_2'}}</a>
         </div>
         <div class="card-body p-0">
           {{#if assessments.length}}
@@ -126,10 +125,10 @@
               <table class="table table-hover mb-0">
                 <thead>
                   <tr>
-                    <th>Project</th>
-                    <th>Status</th>
-                    <th>Result</th>
-                    <th>Updated</th>
+                    <th>{{t 'admin.dashboard.th.project'}}</th>
+                    <th>{{t 'admin.dashboard.th.status'}}</th>
+                    <th>{{t 'admin.dashboard.th.result'}}</th>
+                    <th>{{t 'admin.dashboard.th.updated'}}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -149,7 +148,7 @@
           {{else}}
             <div class="p-4 text-center text-muted">
               <i class="bi bi-clipboard-plus" style="font-size:2rem"></i>
-              <p class="mt-2 mb-0">No assessments yet.</p>
+              <p class="mt-2 mb-0">{{t 'admin.dashboard.p.no_assessments_yet'}}</p>
             </div>
           {{/if}}
         </div>
@@ -173,8 +172,8 @@
     <div class="col-12">
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span><i class="bi bi-inbox me-2"></i>Recent Intakes</span>
-          <a href="/admin/intakes" class="btn btn-sm btn-outline-light">View All</a>
+          <span><i class="bi bi-inbox me-2"></i>{{t 'admin.dashboard.span.recent_intakes'}}</span>
+          <a href="/admin/intakes" class="btn btn-sm btn-outline-light">{{t 'admin.dashboard.link.view_all_3'}}</a>
         </div>
         <div class="card-body p-0">
           {{#if recentIntakes.length}}
@@ -182,12 +181,12 @@
               <table class="table table-hover mb-0">
                 <thead>
                   <tr>
-                    <th>Ref</th>
-                    <th>Project</th>
-                    <th>Department</th>
-                    <th>Classification</th>
+                    <th>{{t 'admin.dashboard.th.ref'}}</th>
+                    <th>{{t 'admin.dashboard.th.project'}}</th>
+                    <th>{{t 'admin.dashboard.th.department'}}</th>
+                    <th>{{t 'admin.dashboard.th.classification'}}</th>
                     <th>Status</th>
-                    <th>Submitted</th>
+                    <th>{{t 'admin.dashboard.th.submitted'}}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -198,10 +197,10 @@
                       <td class="text-muted small">{{this.department}}</td>
                       <td><span class="badge bg-info">{{this.data_classification}}</span></td>
                       <td>
-                        {{#ifCond this.status '==' 'pending'}}<span class="badge bg-warning text-dark">Pending</span>{{/ifCond}}
-                        {{#ifCond this.status '==' 'in-review'}}<span class="badge bg-info">In Review</span>{{/ifCond}}
-                        {{#ifCond this.status '==' 'accepted'}}<span class="badge bg-success">Accepted</span>{{/ifCond}}
-                        {{#ifCond this.status '==' 'declined'}}<span class="badge bg-danger">Declined</span>{{/ifCond}}
+                        {{#ifCond this.status '==' 'pending'}}<span class="badge bg-warning text-dark">{{t 'admin.dashboard.span.pending'}}</span>{{/ifCond}}
+                        {{#ifCond this.status '==' 'in-review'}}<span class="badge bg-info">{{t 'admin.dashboard.span.in_review'}}</span>{{/ifCond}}
+                        {{#ifCond this.status '==' 'accepted'}}<span class="badge bg-success">{{t 'admin.dashboard.span.accepted'}}</span>{{/ifCond}}
+                        {{#ifCond this.status '==' 'declined'}}<span class="badge bg-danger">{{t 'admin.dashboard.span.declined'}}</span>{{/ifCond}}
                       </td>
                       <td class="text-muted small">{{formatDate this.created_at}}</td>
                     </tr>
@@ -212,7 +211,7 @@
           {{else}}
             <div class="p-4 text-center text-muted">
               <i class="bi bi-inbox" style="font-size:2rem"></i>
-              <p class="mt-2 mb-0">No intakes submitted yet. Share the <a href="/intake" target="_blank">intake form</a> with project teams.</p>
+              <p class="mt-2 mb-0">No intakes submitted yet. Share the <a href="/intake" target="_blank">{{t 'admin.dashboard.link.intake_form'}}</a> with project teams.</p>
             </div>
           {{/if}}
         </div>

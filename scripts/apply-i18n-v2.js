@@ -301,8 +301,18 @@ async function main() {
 
   if (TRANS) {
     try { require('dotenv').config({ path: path.join(ROOT, fs.existsSync(path.join(ROOT, '.env.dev')) ? '.env.dev' : '.env') }); } catch(e) {}
-    await translateLocale('en', 'fr', 'French');
-    await translateLocale('en', 'es', 'Spanish');
+    const targets = [
+      ['fr', 'French'],
+      ['es', 'Spanish'],
+      ['de', 'German'],
+      ['pt', 'Portuguese'],
+      ['it', 'Italian'],
+      ['nl', 'Dutch'],
+      ['ja', 'Japanese'],
+    ];
+    for (const [code, name] of targets) {
+      await translateLocale('en', code, name);
+    }
     console.log('\nDone!');
     return;
   }

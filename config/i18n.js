@@ -3,9 +3,12 @@ const i18nextMiddleware = require('i18next-http-middleware');
 const Backend = require('i18next-fs-backend');
 const path = require('path');
 
-const SUPPORTED_LANGS = ['en', 'fr', 'es'];
+const SUPPORTED_LANGS = ['en', 'fr', 'es', 'de', 'pt', 'it', 'nl', 'ja'];
 const DEFAULT_LANG = 'en';
-const langNames = { en: 'English', fr: 'Français', es: 'Español' };
+const langNames = {
+  en: 'English', fr: 'Français', es: 'Español', de: 'Deutsch',
+  pt: 'Português', it: 'Italiano', nl: 'Nederlands', ja: '日本語'
+};
 
 function initI18n() {
   return i18next

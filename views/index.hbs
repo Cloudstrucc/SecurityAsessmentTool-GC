@@ -10,9 +10,8 @@
 .hero-brand .brand-product{font-weight:400;opacity:0.75;font-size:0.88rem}
 .btn-existing{font-size:0.78rem;padding:0.3rem 0.85rem;border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.06);text-decoration:none;transition:all 0.2s}
 .btn-existing:hover{background:rgba(255,255,255,0.12);color:#fff}
-.lang-switch a{font-size:0.72rem;padding:0.15rem 0.45rem;border-radius:4px;text-decoration:none}
-.lang-switch a.active{background:rgba(255,255,255,0.15);color:#fff;font-weight:600}
-.lang-switch a:not(.active){color:rgba(255,255,255,0.5)}
+.lang-dd a.dropdown-toggle{font-size:0.78rem;color:rgba(255,255,255,0.7);padding:0.2rem 0.5rem;border:1px solid rgba(255,255,255,0.2);border-radius:5px;text-decoration:none}
+.lang-dd .dropdown-menu{min-width:140px;font-size:0.82rem}
 .hero-main{padding:3rem 0 2.5rem;position:relative;z-index:1}
 .hero h1{color:#fff;font-weight:800;font-size:2.2rem;line-height:1.2}
 .hero h1 span{color:#f0c36d}
@@ -55,8 +54,13 @@
         <span><span class="brand-name">{{t 'brand.company'}}</span><span class="brand-sep">|</span><span class="brand-product">{{t 'brand.product'}}</span></span>
       </a>
       <div class="d-flex align-items-center gap-2">
-        <div class="lang-switch d-flex gap-1">
-          {{#each supportedLangs}}<a href="?lang={{this.code}}" class="{{#if this.active}}active{{/if}}">{{this.short}}</a>{{/each}}
+        <div class="lang-dd dropdown">
+          <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-globe2 me-1"></i>{{#each supportedLangs}}{{#if this.active}}{{this.short}}{{/if}}{{/each}}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            {{#each supportedLangs}}<li><a class="dropdown-item {{#if this.active}}active{{/if}}" href="?lang={{this.code}}">{{this.short}} — {{this.name}}</a></li>{{/each}}
+          </ul>
         </div>
         <a href="/portal" class="btn-existing"><i class="bi bi-box-arrow-in-right me-1"></i>{{t 'nav.existingClient'}}</a>
       </div>

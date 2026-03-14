@@ -1,8 +1,8 @@
 <div class="container" style="max-width:1100px">
   <div class="d-flex justify-content-between align-items-center mb-1">
     <div>
-      <h1 class="mb-0">Team & Invitations</h1>
-      <p class="text-muted mb-0">Invite clients and peer assessors to the portal</p>
+      <h1 class="mb-0">{{t 'admin.invitations.h1.team_invitations'}}</h1>
+      <p class="text-muted mb-0">{{t 'admin.invitations.p.invite_clients_and_peer_assessors'}}</p>
     </div>
   </div>
 
@@ -39,26 +39,26 @@
             Invite a Client
           </h3>
         </div>
-        <p class="text-muted small">The client must register using the exact email you specify. They'll receive a link and invite code.</p>
+        <p class="text-muted small">{{t 'admin.invitations.p.the_client_must_register_using'}}</p>
         <form method="POST" action="/admin/invitations/client" class="row g-3">
           <div class="col-md-6">
             <label class="form-label">Email Address <span class="text-danger">*</span></label>
             <input type="email" class="form-control" name="email" required placeholder="jane.doe@client-org.com">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Name</label>
-            <input type="text" class="form-control" name="name" placeholder="Jane Doe">
+            <label class="form-label">{{t 'admin.invitations.label.name'}}</label>
+            <input type="text" class="form-control" name="name" placeholder="{{t 'admin.invitations.ph.jane_doe'}}">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Organization</label>
-            <input type="text" class="form-control" name="organization" placeholder="Client Organization Name">
+            <label class="form-label">{{t 'admin.invitations.label.organization'}}</label>
+            <input type="text" class="form-control" name="organization" placeholder="{{t 'admin.invitations.ph.client_organization_name'}}">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Message <small class="text-muted">(optional)</small></label>
-            <input type="text" class="form-control" name="message" placeholder="Brief note to include in the email">
+            <label class="form-label">Message <small class="text-muted">{{t 'admin.invitations.small.optional'}}</small></label>
+            <input type="text" class="form-control" name="message" placeholder="{{t 'admin.invitations.ph.brief_note_to_include_in'}}">
           </div>
           <div class="col-12">
-            <button type="submit" class="btn btn-primary"><i class="bi bi-send me-2"></i>Send Client Invite</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-send me-2"></i>{{t 'admin.invitations.btn.send_client_invite'}}</button>
           </div>
         </form>
       </div>
@@ -76,12 +76,12 @@
           <table class="table table-hover align-middle">
             <thead class="table-light">
               <tr>
-                <th>Email</th>
-                <th>Name</th>
-                <th>Code</th>
-                <th>Status</th>
-                <th>Sent</th>
-                <th>Expires</th>
+                <th>{{t 'admin.invitations.th.email'}}</th>
+                <th>{{t 'admin.invitations.th.name'}}</th>
+                <th>{{t 'admin.invitations.th.code'}}</th>
+                <th>{{t 'admin.invitations.th.status'}}</th>
+                <th>{{t 'admin.invitations.th.sent'}}</th>
+                <th>{{t 'admin.invitations.th.expires'}}</th>
                 <th></th>
               </tr>
             </thead>
@@ -92,9 +92,9 @@
                 <td>{{this.name}}</td>
                 <td><code class="fw-bold">{{this.invite_code}}</code></td>
                 <td>
-                  {{#eq this.status "pending"}}<span class="badge bg-warning text-dark">Pending</span>{{/eq}}
-                  {{#eq this.status "accepted"}}<span class="badge bg-success">Accepted</span>{{/eq}}
-                  {{#eq this.status "revoked"}}<span class="badge bg-danger">Revoked</span>{{/eq}}
+                  {{#eq this.status "pending"}}<span class="badge bg-warning text-dark">{{t 'admin.invitations.span.pending'}}</span>{{/eq}}
+                  {{#eq this.status "accepted"}}<span class="badge bg-success">{{t 'admin.invitations.span.accepted'}}</span>{{/eq}}
+                  {{#eq this.status "revoked"}}<span class="badge bg-danger">{{t 'admin.invitations.span.revoked'}}</span>{{/eq}}
                 </td>
                 <td><small>{{this.created_at}}</small></td>
                 <td><small>{{this.expires_at}}</small></td>
@@ -102,10 +102,10 @@
                   {{#eq this.status "pending"}}
                   <div class="btn-group btn-group-sm">
                     <form method="POST" action="/admin/invitations/{{this.id}}/resend" class="d-inline">
-                      <button type="submit" class="btn btn-outline-primary btn-sm" title="Resend"><i class="bi bi-arrow-repeat"></i></button>
+                      <button type="submit" class="btn btn-outline-primary btn-sm" title="{{t 'admin.invitations.tattr.resend'}}"><i class="bi bi-arrow-repeat"></i></button>
                     </form>
                     <form method="POST" action="/admin/invitations/{{this.id}}/revoke" class="d-inline" onsubmit="return confirm('Revoke this invitation?')">
-                      <button type="submit" class="btn btn-outline-danger btn-sm" title="Revoke"><i class="bi bi-x-lg"></i></button>
+                      <button type="submit" class="btn btn-outline-danger btn-sm" title="{{t 'admin.invitations.tattr.revoke'}}"><i class="bi bi-x-lg"></i></button>
                     </form>
                   </div>
                   {{/eq}}
@@ -132,7 +132,7 @@
         </div>
         <div class="alert alert-info small mb-3">
           <i class="bi bi-info-circle me-1"></i>
-          <strong>Peer assessors</strong> can view and work on assessments you assign to them. Only you (as the originating assessor) can create, delete, or reassign records. You can revoke their access at any time.
+          <strong>{{t 'admin.invitations.strong.peer_assessors'}}</strong> can view and work on assessments you assign to them. Only you (as the originating assessor) can create, delete, or reassign records. You can revoke their access at any time.
         </div>
         <form method="POST" action="/admin/invitations/assessor" class="row g-3">
           <div class="col-md-6">
@@ -140,19 +140,19 @@
             <input type="email" class="form-control" name="email" required placeholder="colleague@agency.gc.ca">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Name</label>
-            <input type="text" class="form-control" name="name" placeholder="John Smith">
+            <label class="form-label">{{t 'admin.invitations.label.name'}}</label>
+            <input type="text" class="form-control" name="name" placeholder="{{t 'admin.invitations.ph.john_smith'}}">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Organization</label>
-            <input type="text" class="form-control" name="organization" placeholder="Organization">
+            <label class="form-label">{{t 'admin.invitations.label.organization'}}</label>
+            <input type="text" class="form-control" name="organization" placeholder="{{t 'admin.invitations.ph.organization'}}">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Message <small class="text-muted">(optional)</small></label>
-            <input type="text" class="form-control" name="message" placeholder="Brief note about the collaboration">
+            <label class="form-label">Message <small class="text-muted">{{t 'admin.invitations.small.optional'}}</small></label>
+            <input type="text" class="form-control" name="message" placeholder="{{t 'admin.invitations.ph.brief_note_about_the_collaboration'}}">
           </div>
           <div class="col-12">
-            <button type="submit" class="btn btn-dark"><i class="bi bi-shield-plus me-2"></i>Send Assessor Invite</button>
+            <button type="submit" class="btn btn-dark"><i class="bi bi-shield-plus me-2"></i>{{t 'admin.invitations.btn.send_assessor_invite'}}</button>
           </div>
         </form>
       </div>
@@ -170,11 +170,11 @@
           <table class="table table-hover align-middle">
             <thead class="table-light">
               <tr>
-                <th>Email</th>
-                <th>Name</th>
-                <th>Code</th>
-                <th>Status</th>
-                <th>Sent</th>
+                <th>{{t 'admin.invitations.th.email'}}</th>
+                <th>{{t 'admin.invitations.th.name'}}</th>
+                <th>{{t 'admin.invitations.th.code'}}</th>
+                <th>{{t 'admin.invitations.th.status'}}</th>
+                <th>{{t 'admin.invitations.th.sent'}}</th>
                 <th></th>
               </tr>
             </thead>
@@ -185,19 +185,19 @@
                 <td>{{this.name}} {{#if this.accepted_name}}<span class="badge bg-success">→ {{this.accepted_name}}</span>{{/if}}</td>
                 <td><code class="fw-bold">{{this.invite_code}}</code></td>
                 <td>
-                  {{#eq this.status "pending"}}<span class="badge bg-warning text-dark">Pending</span>{{/eq}}
-                  {{#eq this.status "accepted"}}<span class="badge bg-success">Accepted</span>{{/eq}}
-                  {{#eq this.status "revoked"}}<span class="badge bg-danger">Revoked</span>{{/eq}}
+                  {{#eq this.status "pending"}}<span class="badge bg-warning text-dark">{{t 'admin.invitations.span.pending'}}</span>{{/eq}}
+                  {{#eq this.status "accepted"}}<span class="badge bg-success">{{t 'admin.invitations.span.accepted'}}</span>{{/eq}}
+                  {{#eq this.status "revoked"}}<span class="badge bg-danger">{{t 'admin.invitations.span.revoked'}}</span>{{/eq}}
                 </td>
                 <td><small>{{this.created_at}}</small></td>
                 <td>
                   {{#eq this.status "pending"}}
                   <div class="btn-group btn-group-sm">
                     <form method="POST" action="/admin/invitations/{{this.id}}/resend" class="d-inline">
-                      <button type="submit" class="btn btn-outline-primary btn-sm" title="Resend"><i class="bi bi-arrow-repeat"></i></button>
+                      <button type="submit" class="btn btn-outline-primary btn-sm" title="{{t 'admin.invitations.tattr.resend'}}"><i class="bi bi-arrow-repeat"></i></button>
                     </form>
                     <form method="POST" action="/admin/invitations/{{this.id}}/revoke" class="d-inline" onsubmit="return confirm('Revoke this invitation?')">
-                      <button type="submit" class="btn btn-outline-danger btn-sm" title="Revoke"><i class="bi bi-x-lg"></i></button>
+                      <button type="submit" class="btn btn-outline-danger btn-sm" title="{{t 'admin.invitations.tattr.revoke'}}"><i class="bi bi-x-lg"></i></button>
                     </form>
                   </div>
                   {{/eq}}
@@ -222,7 +222,7 @@
             Active Peer Assessors
           </h3>
         </div>
-        <p class="text-muted small">These assessors have accepted your invitation and can be assigned to your assessments.</p>
+        <p class="text-muted small">{{t 'admin.invitations.p.these_assessors_have_accepted_your'}}</p>
         {{#if peerAssessors.length}}
         <div class="table-responsive">
           <table class="table table-hover align-middle">
@@ -230,9 +230,9 @@
               <tr>
                 <th>Name</th>
                 <th>Email</th>
-                <th>Organization</th>
-                <th>Joined</th>
-                <th>Last Login</th>
+                <th>{{t 'admin.invitations.th.organization'}}</th>
+                <th>{{t 'admin.invitations.th.joined'}}</th>
+                <th>{{t 'admin.invitations.th.last_login'}}</th>
               </tr>
             </thead>
             <tbody>
@@ -251,7 +251,7 @@
         {{else}}
         <div class="text-center py-4">
           <i class="bi bi-people" style="font-size:2.5rem;color:#ccc;"></i>
-          <p class="text-muted mt-2">No peer assessors yet. Invite colleagues from the Assessor Invitations tab.</p>
+          <p class="text-muted mt-2">{{t 'admin.invitations.p.no_peer_assessors_yet_invite'}}</p>
         </div>
         {{/if}}
       </div>
