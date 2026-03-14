@@ -1544,7 +1544,7 @@ router.get('/projects/:projectId/guidance', ensureAdminMfa, (req, res) => {
 
 router.post('/projects/:projectId/guidance/send-invite', ensureAdminMfa, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
-  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+  if (!project) { req.flash('error', req.t('flash.admin.project_not_found')); return res.redirect('/admin/projects'); }
 
   let report = get('SELECT * FROM guidance_reports WHERE project_id = ?', [project.id]);
   const inviteCode = uuidv4().substring(0, 8).toUpperCase();
@@ -1723,7 +1723,7 @@ router.post('/assessments/:id/add-controls', ensureAdminMfa, (req, res) => {
 // Remove a control from an assessment
 router.post('/assessments/:id/remove-control/:controlId', ensureAdminMfa, (req, res) => {
   const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
-  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+  if (!assessment) { req.flash('error', req.t('flash.admin.assessment_not_found')); return res.redirect('/admin/assessments'); }
 
   const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?',
     [req.params.controlId, assessment.id]);

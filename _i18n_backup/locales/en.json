@@ -16,7 +16,17 @@
     "settings": "Settings",
     "signOut": "Sign out",
     "startIntake": "Start Intake",
-    "backHome": "Back to Home"
+    "backHome": "Back to Home",
+    "appTitle": "Security Assessment & Authorization",
+    "menu": "Menu",
+    "projects": "Projects",
+    "assessments": "Assessments",
+    "preAssessments": "Pre-Assessments",
+    "intakes": "Intakes",
+    "team": "Team",
+    "auditLog": "Audit Log",
+    "newIntake": "New Intake",
+    "newProject": "New Project"
   },
   "home": {
     "badge": "Multi-Framework Compliance Platform",
@@ -71,7 +81,10 @@
     "accessCode": "Access Code",
     "accessBtn": "Access Assessment",
     "practitioner": "Security Practitioner",
-    "practitionerD": "Security assessors and practitioners can log in to manage projects, review intakes, create assessments, and conduct audits."
+    "practitionerD": "Security assessors and practitioners can log in to manage projects, review intakes, create assessments, and conduct audits.",
+    "ph": {
+      "a1b2c3d4": "A1b2c3d4"
+    }
   },
   "gate": {
     "title": "Security Self-Assessment",
@@ -175,5 +188,1940 @@
   "bq.sns": "System & Network Security",
   "bq.mir": "Monitoring & Incident Response",
   "bq.gpa": "Governance, Policy & Awareness",
-  "bq.ssc": "System-Specific Considerations"
+  "bq.ssc": "System-Specific Considerations",
+  "auth.login": "Sign In",
+  "auth.loginTitle": "Assessor Login",
+  "auth.clientLogin": "Client Sign In",
+  "auth.email": "Email address",
+  "auth.password": "Password",
+  "auth.signIn": "Sign In",
+  "auth.forgotPassword": "Forgot password?",
+  "auth.noAccount": "Don't have an account?",
+  "auth.registerHere": "Register here",
+  "auth.verifyMfa": "Verify MFA",
+  "auth.enterCode": "Enter the 6-digit code from your authenticator app",
+  "auth.verify": "Verify",
+  "auth.usePasskey": "Use Passkey Instead",
+  "auth.or": "or",
+  "auth.mfaSetup": "MFA Setup",
+  "auth.scanQr": "Scan this QR code with your authenticator app",
+  "auth.manualEntry": "Manual entry",
+  "auth.enterToken": "Enter verification code",
+  "auth.enableMfa": "Enable MFA",
+  "auth.register": "Register",
+  "auth.name": "Full Name",
+  "auth.organization": "Organization",
+  "auth.confirmPassword": "Confirm Password",
+  "auth.inviteCode": "Invite Code",
+  "auth.inviteHint": "Enter the code from your invitation email.",
+  "auth.createAccount": "Create Account",
+  "auth.alreadyHave": "Already have an account?",
+  "auth.passkey": "Passkey / Biometric",
+  "auth.passkeyDesc": "Register a passkey to enable biometric verification for login and critical actions.",
+  "auth.registerPasskey": "Register Passkey",
+  "auth.skipPasskey": "Skip for Now",
+  "auth.passkeyRegistered": "Passkey registered! You can use biometric sign-in.",
+  "auth.tryAgain": "Try Again",
+  "auth.continueToApp": "Continue to Dashboard",
+  "dash.title": "Dashboard",
+  "dash.welcome": "Welcome back,",
+  "dash.newProject": "New Project",
+  "dash.totalProjects": "Total Projects",
+  "dash.activeAssessments": "Active Assessments",
+  "dash.pendingAudits": "Pending Audits",
+  "dash.activeATOs": "Active ATOs",
+  "dash.pendingIntakes": "Pending Intakes",
+  "dash.preAssessments": "Pre-Assessments",
+  "dash.recentProjects": "Recent Projects",
+  "dash.recentAssessments": "Recent Assessments",
+  "dash.viewAll": "View All",
+  "dash.noProjects": "No projects yet.",
+  "dash.noAssessments": "No assessments yet.",
+  "proj.title": "Projects",
+  "proj.new": "New Project",
+  "proj.name": "Project Name",
+  "proj.description": "Description",
+  "proj.department": "Department",
+  "proj.branch": "Branch",
+  "proj.dataClass": "Data Classification",
+  "proj.hosting": "Hosting Type",
+  "proj.appType": "Application Type",
+  "proj.status": "Status",
+  "proj.created": "Created",
+  "proj.actions": "Actions",
+  "proj.view": "View",
+  "proj.noProjects": "No projects found.",
+  "proj.delete": "Delete Project",
+  "proj.deleteConfirm": "Are you sure?",
+  "assess.title": "Assessments",
+  "assess.new": "New Assessment",
+  "assess.project": "Project",
+  "assess.type": "Type",
+  "assess.status": "Status",
+  "assess.score": "Score",
+  "assess.controls": "Controls",
+  "assess.view": "View",
+  "assess.sendInvite": "Send Invite",
+  "assess.startAudit": "Start Audit",
+  "assess.completeAudit": "Complete Audit",
+  "assess.noAssessments": "No assessments found.",
+  "assess.evidenceGathering": "Evidence Gathering",
+  "assess.submitted": "Submitted",
+  "assess.audit": "Audit",
+  "assess.completed": "Completed",
+  "assess.met": "Met",
+  "assess.partiallyMet": "Partially Met",
+  "assess.notMet": "Not Met",
+  "assess.pending": "Pending",
+  "assess.inherited": "Inherited",
+  "assess.applicable": "Applicable",
+  "assess.priority": "Priority",
+  "intake.title": "Intake Submissions",
+  "intake.ref": "Reference",
+  "intake.projectName": "Project Name",
+  "intake.submitter": "Submitter",
+  "intake.status": "Status",
+  "intake.submitted": "Submitted",
+  "intake.review": "Review",
+  "intake.accept": "Accept",
+  "intake.decline": "Decline",
+  "intake.noIntakes": "No intake submissions yet.",
+  "intake.form": "Security Assessment Intake",
+  "intake.systemInfo": "System Information",
+  "intake.dataInfo": "Data & Classification",
+  "intake.hosting": "Hosting & Technology",
+  "intake.contacts": "Contacts",
+  "intake.additional": "Additional Information",
+  "intake.submit": "Submit Intake",
+  "intake.draft": "Draft",
+  "intake.inReview": "In Review",
+  "intake.accepted": "Accepted",
+  "intake.declined": "Declined",
+  "client.dashboard": "My Dashboard",
+  "client.myIntakes": "My Intakes",
+  "client.myAssessments": "My Assessments",
+  "client.newIntake": "New Intake",
+  "client.noIntakes": "You haven't submitted any intakes yet.",
+  "client.noAssessments": "No assessments assigned to you yet.",
+  "client.viewIntake": "View",
+  "client.editDraft": "Edit Draft",
+  "client.settings": "Settings",
+  "client.profile": "Profile",
+  "client.changePassword": "Change Password",
+  "client.mfaSettings": "MFA Settings",
+  "client.passkeySettings": "Passkey Settings",
+  "evidence.title": "Evidence Submission",
+  "evidence.control": "Control",
+  "evidence.description": "Description",
+  "evidence.guidance": "Evidence Guidance",
+  "evidence.provide": "Provide Evidence",
+  "evidence.save": "Save",
+  "evidence.submit": "Submit All Evidence",
+  "evidence.progress": "Progress",
+  "evidence.provided": "Provided",
+  "evidence.remaining": "Remaining",
+  "evidence.addComment": "Add Comment",
+  "evidence.attachFile": "Attach File",
+  "settings.title": "Settings",
+  "settings.mfa": "Multi-Factor Authentication",
+  "settings.mfaEnabled": "MFA is enabled",
+  "settings.mfaMode": "MFA Mode",
+  "settings.totp": "Authenticator App (TOTP)",
+  "settings.push": "Passkey / Biometric",
+  "settings.passkey": "Passkey Management",
+  "settings.clearPasskeys": "Clear Passkeys",
+  "settings.registerNew": "Register New Passkey",
+  "auditLog.title": "Audit Signature Log",
+  "auditLog.action": "Action",
+  "auditLog.user": "User",
+  "auditLog.entity": "Entity",
+  "auditLog.timestamp": "Timestamp",
+  "auditLog.details": "Details",
+  "auditLog.today": "Today",
+  "auditLog.total": "Total",
+  "auditLog.uniqueUsers": "Unique Users",
+  "invite.title": "Invitation Management",
+  "invite.clients": "Client Invitations",
+  "invite.assessors": "Assessor Invitations",
+  "invite.peers": "Peer Assessors",
+  "invite.sendClient": "Invite Client",
+  "invite.sendAssessor": "Invite Assessor",
+  "invite.email": "Email",
+  "invite.name": "Name",
+  "invite.message": "Message",
+  "invite.send": "Send Invitation",
+  "invite.resend": "Resend",
+  "invite.revoke": "Revoke",
+  "invite.status": "Status",
+  "invite.code": "Code",
+  "invite.expires": "Expires",
+  "invite.pending": "Pending",
+  "invite.accepted": "Accepted",
+  "invite.revoked": "Revoked",
+  "invite.expired": "Expired",
+  "poam.title": "POA&M Remediation",
+  "poam.item": "Item",
+  "poam.risk": "Risk Level",
+  "poam.deadline": "Deadline",
+  "poam.status": "Status",
+  "poam.evidence": "Evidence",
+  "poam.open": "Open",
+  "poam.inProgress": "In Progress",
+  "poam.completed": "Completed",
+  "poam.verified": "Verified",
+  "poam.overdue": "Overdue",
+  "poam.submitEvidence": "Submit Remediation Evidence",
+  "error.title": "Error",
+  "error.notFound": "Page not found",
+  "error.goHome": "Go to Home",
+  "error.tryAgain": "Try Again",
+  "success.title": "Evidence Submitted",
+  "success.message": "Your evidence has been submitted successfully.",
+  "success.ref": "Reference",
+  "success.date": "Submitted on",
+  "guidance.title": "GC Web Guidance Report",
+  "guidance.checklist": "Compliance Checklist",
+  "guidance.required": "Required",
+  "guidance.recommended": "Recommended",
+  "guidance.met": "Met",
+  "guidance.inProgress": "In Progress",
+  "guidance.na": "N/A",
+  "guidance.submit": "Submit Checklist",
+  "guidance.validate": "Validate",
+  "guidance.return": "Return for Revision",
+  "saAdmin.title": "Pre-Intake Self-Assessments",
+  "saAdmin.subtitle": "Client-submitted security self-assessments awaiting review",
+  "saAdmin.total": "Total",
+  "saAdmin.pendingReview": "Pending Review",
+  "saAdmin.reviewed": "Reviewed",
+  "saAdmin.intakeCreated": "Intake Created",
+  "saAdmin.ref": "Ref",
+  "saAdmin.submitter": "Submitter",
+  "saAdmin.system": "System",
+  "saAdmin.jurisdiction": "Jurisdiction",
+  "saAdmin.score": "Score",
+  "saAdmin.review": "Review",
+  "saAdmin.noAssessments": "No self-assessments submitted yet.",
+  "saAdmin.accessRequests": "Access Requests",
+  "saAdmin.pending": "pending",
+  "saAdmin.approve": "Approve",
+  "saAdmin.deny": "Deny",
+  "saAdmin.noRequests": "No access requests yet.",
+  "saAdmin.reason": "Reason",
+  "saAdmin.requested": "Requested",
+  "saReview.systemJuris": "System & Jurisdiction",
+  "saReview.systemType": "System Type",
+  "saReview.country": "Country",
+  "saReview.govLevel": "Government Level",
+  "saReview.sensitivity": "Data Sensitivity",
+  "saReview.score": "Security Score",
+  "saReview.findings": "Findings",
+  "saReview.critical": "critical",
+  "saReview.warnings": "warnings",
+  "saReview.secured": "secured",
+  "saReview.systemDesc": "System Description",
+  "saReview.frameworks": "Applicable Frameworks",
+  "saReview.criticalGaps": "Critical Gaps",
+  "saReview.warningSection": "Areas Needing Improvement",
+  "saReview.securedSection": "Secured (assumed — verify independently)",
+  "saReview.securedWarn": "Self-reported by the client. Should be verified during formal assessment.",
+  "saReview.adminNotes": "Admin Notes",
+  "saReview.notesPlaceholder": "Internal notes about this submission...",
+  "saReview.markReviewed": "Mark as Reviewed",
+  "saReview.updateNotes": "Update Notes",
+  "saReview.linkedIntake": "Linked Intake",
+  "saReview.viewIntake": "View Intake",
+  "saReview.clientInvitation": "Client Invitation",
+  "saReview.hasAccount": "already has an account",
+  "saReview.sendEmail": "Send Email Manually",
+  "saReview.inviteDesc": "Invite to register, sign in, and review their draft intake.",
+  "saReview.sendInvite": "Send Registration Invite",
+  "saReview.createIntakeFirst": "Create a draft intake first, then you can invite the client.",
+  "saReview.createIntake": "Create Intake",
+  "saReview.aiPopulate": "Pre-populate with AI",
+  "saReview.aiPopulateD": "Auto-fill intake fields from self-assessment",
+  "saReview.generate": "Generate",
+  "saReview.createDraft": "Create Draft Intake",
+  "saReview.projectName": "Project Name",
+  "saReview.description": "Description",
+  "saReview.department": "Department",
+  "saReview.appType": "App Type",
+  "saReview.dataClass": "Data Classification",
+  "saReview.confidentiality": "Confidentiality",
+  "saReview.integrity": "Integrity",
+  "saReview.availability": "Availability",
+  "saReview.pii": "Contains PII?",
+  "saReview.pia": "PIA Completed?",
+  "saReview.hostingType": "Hosting",
+  "saReview.hostingRegion": "Hosting Region",
+  "saReview.secProfile": "Security Profile",
+  "saReview.notes": "Additional Notes",
+  "auth.confirmIdentity": "Confirm your identity to continue.",
+  "auth.saPortal": "Security Assessment & Authorization Portal",
+  "auth.approvePasskey": "Approve with your passkey (Face ID, Touch ID, or Windows Hello).",
+  "auth.signInPasskey": "Sign In with Passkey",
+  "auth.useTotpInstead": "Use TOTP code instead",
+  "auth.enter6digit": "Enter the 6-digit code from your authenticator app.",
+  "auth.verifySignIn": "Verify & Sign In",
+  "auth.differentUser": "Sign in as different user",
+  "auth.registerInvite": "Register with Invite Code",
+  "auth.backPortal": "Back to Portal Home",
+  "auth.clientSignIn": "Client Sign In",
+  "footer.contact": "Contact",
+  "footer.terms": "Terms of Service",
+  "footer.privacy": "Privacy Policy",
+  "footer.accessibility": "Accessibility",
+  "footer.copyright": "Security Assessment & Authorization Platform · Multi-Framework Compliance",
+  "footer.dateModified": "Date modified",
+  "nav.appTitle": "Security Assessment & Authorization",
+  "footer": {
+    "contact": "Contact",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "accessibility": "Accessibility",
+    "copyright": "Security Assessment & Authorization Platform · Multi-Framework Compliance",
+    "dateModified": "Date modified"
+  },
+  "admin": {
+    "dashboard": {
+      "th": {
+        "status": "Status",
+        "updated": "Updated",
+        "project": "Project",
+        "classification": "Classification",
+        "name": "Name",
+        "result": "Result",
+        "ref": "Ref",
+        "department": "Department",
+        "submitted": "Submitted"
+      },
+      "h1": {
+        "dashboard": "Dashboard"
+      },
+      "link": {
+        "new_project": "New Project",
+        "view_all": "View All",
+        "create_your_first_project": "Create Your First Project",
+        "view_all_2": "View All",
+        "view_all_3": "View All",
+        "intake_form": "Intake Form"
+      },
+      "stat": {
+        "total_projects": "Total Projects",
+        "active_assessments": "Active Assessments",
+        "pending_audits": "Pending Audits",
+        "active_atos": "Active Atos",
+        "pending_intakes": "Pending Intakes",
+        "preassessments": "Preassessments"
+      },
+      "span": {
+        "recent_projects": "Recent Projects",
+        "recent_assessments": "Recent Assessments",
+        "recent_intakes": "Recent Intakes",
+        "pending": "Pending",
+        "in_review": "In Review",
+        "accepted": "Accepted",
+        "declined": "Declined"
+      },
+      "p": {
+        "no_assessments_yet": "No Assessments Yet"
+      }
+    },
+    "intake_review": {
+      "span": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low",
+        "pending_review": "Pending Review",
+        "in_review": "In Review",
+        "accepted": "Accepted",
+        "internal_only": "Internal Only",
+        "external_public": "External Public",
+        "hybrid": "Hybrid",
+        "top_secret": "Top Secret",
+        "secret": "Secret",
+        "confidential": "Confidential",
+        "protected_c": "Protected C",
+        "protected_b": "Protected B",
+        "protected_a": "Protected A",
+        "hva": "Hva",
+        "yes": "Yes",
+        "estimated_controls": "Estimated Controls",
+        "p1_mandatory": "P1 Mandatory",
+        "p2_conditional": "P2 Conditional",
+        "p3_situational": "P3 Situational",
+        "inherited_controls": "Inherited Controls",
+        "already_selected": "Already Selected",
+        "mandatory": "Mandatory"
+      },
+      "tattr": {
+        "ai_elaborate": "AI: Elaborate"
+      },
+      "link": {
+        "back_to_intakes": "Back To Intakes"
+      },
+      "btn": {
+        "ai_review": "Ai Review",
+        "mark_in_review": "Mark In Review",
+        "create_project_assessment": "Create Project Assessment",
+        "decline_intake": "Decline Intake"
+      },
+      "label": {
+        "department_agency": "Department Agency",
+        "branch_directorate": "Branch Directorate",
+        "application_type": "Application Type",
+        "target_golive": "Target Golive",
+        "estimated_users": "Estimated Users",
+        "project_description": "Project Description",
+        "atip_subject": "Atip Subject",
+        "pia_status": "Pia Status",
+        "contains_pii": "Contains Pii",
+        "pii_types_identified": "Pii Types Identified",
+        "hosting": "Hosting",
+        "data_residency": "Data Residency",
+        "technologies": "Technologies",
+        "other_technologies": "Other Technologies",
+        "gc_interconnections": "Gc Interconnections",
+        "mobile_byod": "Mobile Byod",
+        "listed_interconnections": "Listed Interconnections",
+        "external_users": "External Users",
+        "project_owner": "Project Owner",
+        "technical_lead": "Technical Lead",
+        "authorizing_official": "Authorizing Official",
+        "override_confidentiality": "Override Confidentiality",
+        "override_integrity": "Override Integrity",
+        "override_availability": "Override Availability",
+        "high_value_asset_hva": "High Value Asset Hva",
+        "override_app_type": "Override App Type",
+        "additional_technologies": "Additional Technologies",
+        "additional_description_context": "Additional Description Context",
+        "assessor_notes_internal": "Assessor Notes Internal",
+        "assessment_type": "Assessment Type"
+      },
+      "strong": {
+        "determined_profile": "Determined Profile",
+        "saampa_required": "Saampa Required",
+        "no_saampa_required": "No Saampa Required",
+        "accepted": "Accepted"
+      },
+      "div": {
+        "no_pii_identified": "No Pii Identified"
+      },
+      "card": {
+        "engine_preview": "Engine Preview",
+        "assessor_context": "Assessor Context"
+      },
+      "small": {
+        "gc_web_guidance_report_will": "Gc Web Guidance Report Will",
+        "based_on_submitted_project_details": "Based On Submitted Project Details",
+        "appended_to_the_project_description": "Appended To The Project Description",
+        "frameworks_below_have_been_preselected": "Frameworks Below Have Been Preselected"
+      },
+      "p": {
+        "add_context_or_adjust_details": "Add Context Or Adjust Details",
+        "add_technologies_the_client_may": "Add Technologies The Client May"
+      },
+      "ph": {
+        "add_keywords_for_the_engine": "Add Keywords For The Engine",
+        "internal_notes_about_this_intake": "Internal Notes About This Intake",
+        "reason_for_declining_optional": "Reason For Declining Optional"
+      }
+    },
+    "invitations": {
+      "th": {
+        "email": "Email",
+        "name": "Name",
+        "code": "Code",
+        "status": "Status",
+        "sent": "Sent",
+        "expires": "Expires",
+        "organization": "Organization",
+        "joined": "Joined",
+        "last_login": "Last Login"
+      },
+      "label": {
+        "name": "Name",
+        "organization": "Organization"
+      },
+      "small": {
+        "optional": "(optional)"
+      },
+      "span": {
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "revoked": "Revoked"
+      },
+      "tattr": {
+        "resend": "Resend",
+        "revoke": "Revoke"
+      },
+      "h1": {
+        "team_invitations": "Team Invitations"
+      },
+      "p": {
+        "invite_clients_and_peer_assessors": "Invite Clients And Peer Assessors",
+        "the_client_must_register_using": "The Client Must Register Using",
+        "these_assessors_have_accepted_your": "These Assessors Have Accepted Your",
+        "no_peer_assessors_yet_invite": "No Peer Assessors Yet Invite"
+      },
+      "ph": {
+        "jane_doe": "Jane Doe",
+        "client_organization_name": "Client Organization Name",
+        "brief_note_to_include_in": "Brief Note To Include In",
+        "john_smith": "John Smith",
+        "organization": "Organization",
+        "brief_note_about_the_collaboration": "Brief Note About The Collaboration"
+      },
+      "btn": {
+        "send_client_invite": "Send Client Invite",
+        "send_assessor_invite": "Send Assessor Invite"
+      },
+      "strong": {
+        "peer_assessors": "Peer Assessors"
+      }
+    },
+    "project_new": {
+      "ph": {
+        "full_name": "Full name",
+        "eg_hr_case_management_system": "Eg Hr Case Management System",
+        "describe_the_systems_purpose_users": "Describe The Systems Purpose Users",
+        "employment_and_social_development_canada": "Employment And Social Development Canada",
+        "innovation_information_and_technology_branch": "Innovation Information And Technology Branch",
+        "architecture_details_integration_points_apis": "Architecture Details Integration Points Apis",
+        "jane_smith": "Jane Smith",
+        "acme_corp": "Acme Corp",
+        "welcome_to_the_assessment_portal": "Welcome To The Assessment Portal"
+      },
+      "h1": {
+        "new_project": "New Project"
+      },
+      "p": {
+        "create_a_security_assessment_project": "Create A Security Assessment Project",
+        "select_all_regions_and_jurisdictions": "Select All Regions And Jurisdictions",
+        "basic_details_about_the_system": "Basic Details About The System",
+        "classify_data_sensitivity_using_the": "Classify Data Sensitivity Using The",
+        "where_the_system_is_deployed": "Where The System Is Deployed",
+        "individuals_involved_in_the_assessment": "Individuals Involved In The Assessment",
+        "assign_this_project_to_a": "Assign This Project To A",
+        "no_registered_clients_yet_use": "No Registered Clients Yet Use"
+      },
+      "span": {
+        "optional": "Optional",
+        "required": "Required",
+        "pending": "Pending"
+      },
+      "btn": {
+        "skip_to_client_assignment": "Skip To Client Assignment",
+        "back_to_region_selection": "Back To Region Selection",
+        "skip_to_client_assignment_2": "Skip To Client Assignment",
+        "back_to_regions": "Back To Regions",
+        "back_to_previous_step": "Back To Previous Step",
+        "create_project_send_intake": "Create Project Send Intake"
+      },
+      "strong": {
+        "canada_federal": "Canada Federal",
+        "canada_financial": "Canada Financial",
+        "united_states": "United States",
+        "us_defense": "Us Defense",
+        "us_statelocal": "Us Statelocal",
+        "us_financial": "Us Financial",
+        "european_union": "European Union",
+        "eu_financial": "Eu Financial",
+        "germany": "Germany",
+        "france": "France",
+        "united_kingdom": "United Kingdom",
+        "spain": "Spain",
+        "australia": "Australia",
+        "australia_financial": "Australia Financial",
+        "global": "Global",
+        "how_it_works": "How It Works"
+      },
+      "small": {
+        "itsg33": "Itsg33",
+        "osfi_b13": "Osfi B13",
+        "nist_80053": "Nist",
+        "cmmc": "Cmmc",
+        "stateramp": "Stateramp",
+        "nydfs_500": "Nydfs",
+        "nis2_gdpr": "Nis2 Gdpr",
+        "dora": "Dora",
+        "bsi_itgrundschutz": "Bsi Itgrundschutz",
+        "anssi_rgs": "Anssi Rgs",
+        "ncsc_caf": "Ncsc Caf",
+        "ens": "Ens",
+        "asd_ism_essential_eight": "Asd Ism Essential Eight",
+        "apra_cps_234": "Apra Cps",
+        "iso_27001": "Iso",
+        "trust_service_criteria": "Trust Service Criteria",
+        "payment_card_security": "Payment Card Security",
+        "v81_municipal_general": "V81 Municipal General",
+        "choose_a_registered_client": "Choose A Registered Client",
+        "send_a_registration_invite": "Send A Registration Invite"
+      },
+      "label": {
+        "department_agency": "Department Agency",
+        "branch_directorate": "Branch Directorate",
+        "technical_specifications_optional": "Technical Specifications Optional",
+        "authorizing_official_dg_director": "Authorizing Official Dg Director",
+        "authority_email": "Authority Email",
+        "cio_delegated_authority_name": "Cio Delegated Authority Name",
+        "cio_delegated_authority_email": "Cio Delegated Authority Email",
+        "full_name": "Full Name",
+        "organization": "Organization",
+        "message_optional": "Message Optional"
+      },
+      "h6": {
+        "existing_client": "Existing Client",
+        "invite_new_client": "Invite New Client"
+      }
+    },
+    "self_assessments": {
+      "th": {
+        "status": "Status",
+        "ref": "Ref",
+        "submitter": "Submitter",
+        "system": "System",
+        "jurisdiction": "Jurisdiction",
+        "score": "Score",
+        "submitted": "Submitted",
+        "name": "Name",
+        "email": "Email",
+        "organization": "Organization",
+        "reason": "Reason",
+        "requested": "Requested"
+      },
+      "h1": {
+        "preintake_selfassessments": "Preintake Selfassessments"
+      },
+      "p": {
+        "clientsubmitted_security_selfassessments_awaiting_review": "Clientsubmitted Security Selfassessments Awaiting Review",
+        "no_selfassessments_submitted_yet": "No Selfassessments Submitted Yet",
+        "no_access_requests_yet": "No Access Requests Yet"
+      },
+      "div": {
+        "total": "Total",
+        "pending_review": "Pending Review",
+        "reviewed": "Reviewed",
+        "intake_created": "Intake Created"
+      },
+      "span": {
+        "pending_review": "Pending Review",
+        "reviewed": "Reviewed",
+        "intake_created": "Intake Created",
+        "pending": "Pending",
+        "approved": "Approved",
+        "denied": "Denied"
+      },
+      "tattr": {
+        "approve_send_code": "Approve Send Code",
+        "deny": "Deny"
+      }
+    },
+    "assessment_detail": {
+      "span": {
+        "invite_code": "Invite Code",
+        "owner": "Owner",
+        "classification": "Classification",
+        "score": "Score",
+        "result": "Result",
+        "owner_2": "Owner",
+        "assigned": "Assigned",
+        "active": "Active",
+        "audit_progress": "Audit Progress",
+        "required_for_iato_per_tbs": "Required For Iato Per Tbs",
+        "high_risk": "High Risk",
+        "med_risk": "Med Risk",
+        "low_risk": "Low Risk",
+        "audit": "Audit"
+      },
+      "btn": {
+        "send_invite": "Send Invite",
+        "delete": "Delete",
+        "resend_invite": "Resend Invite",
+        "start_audit": "Start Audit",
+        "reactivate": "Reactivate",
+        "complete_audit": "Complete Audit",
+        "revoke": "Revoke",
+        "assign": "Assign",
+        "complete_audit_issue_decision": "Complete Audit Issue Decision",
+        "autopopulate": "Autopopulate"
+      },
+      "tattr": {
+        "open_the_public_evidence_submission": "Open The Public Evidence Submission",
+        "autogenerate_from_findings": "Autogenerate From Findings",
+        "delete": "Delete",
+        "partially_met": "Partially Met",
+        "not_met": "Not Met",
+        "ai_elaborate": "Ai Elaborate"
+      },
+      "stat": {
+        "total_controls": "Total Controls",
+        "inherited": "Inherited",
+        "evidence_provided": "Evidence Provided",
+        "met": "Met",
+        "partially_met": "Partially Met",
+        "not_met": "Not Met",
+        "high_risk_tbs": "High Risk Tbs"
+      },
+      "strong": {
+        "team": "Team",
+        "tbs_policy": "Tbs Policy",
+        "plan_of_action_milestones_poam": "Plan Of Action Milestones Poam",
+        "risk_acceptance": "Risk Acceptance"
+      },
+      "label": {
+        "assign_peer_assessor": "Assign Peer Assessor",
+        "override_result": "Override Result",
+        "iato_expiry_date": "Iato Expiry Date",
+        "poam_notes": "Poam Notes"
+      },
+      "ph": {
+        "notes_optional": "Notes Optional",
+        "poam_context_notes": "Poam Context Notes",
+        "document_residual_risk_acceptance_rationale": "Document Residual Risk Acceptance Rationale",
+        "remediation_item_description": "Remediation Item Description",
+        "assigned_to": "Assigned To",
+        "remediation_plan_optional": "Remediation Plan Optional",
+        "milestone_optional": "Milestone Optional",
+        "auditor_comments": "Auditor Comments",
+        "add_a_comment": "Add A Comment",
+        "filter_families": "Filter Families"
+      },
+      "link": {
+        "invite_peer_assessors": "Invite Peer Assessors"
+      },
+      "card": {
+        "complete_audit_tbs_authorization_decision": "Complete Audit Tbs Authorization Decision"
+      },
+      "small": {
+        "highrisk_findings": "Highrisk Findings",
+        "controls_met": "Controls Met",
+        "partially_met": "Partially Met",
+        "not_met": "Not Met",
+        "default_90_days_if_iato": "Default 90 Days If Iato",
+        "tailored_description": "Tailored Description"
+      },
+      "th": {
+        "risk": "Risk",
+        "item": "Item",
+        "control": "Control",
+        "deadline": "Deadline",
+        "assigned": "Assigned",
+        "status": "Status"
+      },
+      "p": {
+        "no_poam_items_yet_use": "No Poam Items Yet Use"
+      },
+      "div": {
+        "loading_comments": "Loading Comments"
+      }
+    },
+    "assessment_new": {
+      "h1": {
+        "new_assessment": "New Assessment"
+      },
+      "btn": {
+        "select_all": "Select All",
+        "deselect_all": "Deselect All",
+        "create_assessment": "Create Assessment",
+        "create_assessment_package": "Create Assessment Package"
+      },
+      "span": {
+        "inherited": "Inherited",
+        "template": "Template"
+      },
+      "label": {
+        "tailored_description": "Tailored Description",
+        "evidence_guidance": "Evidence Guidance",
+        "applicability": "Applicability"
+      },
+      "ph": {
+        "projectspecific_description_for_this_control": "Projectspecific Description For This Control",
+        "what_evidence_the_project_owner": "What Evidence The Project Owner"
+      }
+    },
+    "assessments": {
+      "h1": {
+        "assessments": "Assessments"
+      },
+      "p": {
+        "all_security_assessment_packages": "All Security Assessment Packages",
+        "no_assessments_yet": "No Assessments Yet",
+        "create_a_project_first_then": "Create A Project First Then"
+      },
+      "th": {
+        "project": "Project",
+        "type": "Type",
+        "status": "Status",
+        "score": "Score",
+        "result": "Result",
+        "invite_code": "Invite Code",
+        "created": "Created",
+        "updated": "Updated"
+      },
+      "tattr": {
+        "delete_draft": "Delete Draft"
+      },
+      "link": {
+        "view_projects": "View Projects"
+      }
+    },
+    "assessor_mfa_setup": {
+      "h3": {
+        "set_up_multifactor_authentication": "Set Up Multifactor Authentication"
+      },
+      "strong": {
+        "microsoft_authenticator": "Microsoft Authenticator",
+        "google_authenticator": "Google Authenticator",
+        "authy": "Authy"
+      },
+      "p": {
+        "step_1_scan_this_qr": "Step 1 Scan This Qr",
+        "cant_scan_enter_this_key": "Cant Scan Enter This Key"
+      },
+      "label": {
+        "step_2_enter_the_6digit": "Step 2 Enter The 6digit"
+      },
+      "btn": {
+        "verify_complete_registration": "Verify Complete Registration"
+      }
+    },
+    "audit_log": {
+      "link": {
+        "dashboard": "Dashboard",
+        "clear": "Clear"
+      },
+      "div": {
+        "total_signatures": "Total Signatures",
+        "today": "Today",
+        "unique_signers": "Unique Signers",
+        "signatures_are_logged_when_users": "Signatures Are Logged When Users"
+      },
+      "label": {
+        "entity_type": "Entity Type",
+        "action": "Action"
+      },
+      "ph": {
+        "eg_auditcomplete": "Eg Auditcomplete"
+      },
+      "btn": {
+        "filter": "Filter"
+      },
+      "th": {
+        "timestamp": "Timestamp",
+        "user": "User",
+        "role": "Role",
+        "action": "Action",
+        "entity": "Entity"
+      },
+      "span": {
+        "assessor": "Assessor",
+        "client": "Client"
+      }
+    },
+    "guidance_report": {
+      "p": {
+        "gc_web_standards_amp_guidance": "Gc Web Standards & Guidance"
+      },
+      "btn": {
+        "print": "Print",
+        "resend_invite": "Resend Invite",
+        "send_invite_to_owner": "Send Invite To Owner",
+        "validate_amp_approve": "Validate & Approve",
+        "return_for_revision": "Return For Revision",
+        "save_notes": "Save Notes"
+      },
+      "span": {
+        "invite_code": "Invite Code",
+        "status": "Status",
+        "draft": "Draft",
+        "sent_awaiting_response": "Sent Awaiting Response",
+        "submitted_awaiting_review": "Submitted Awaiting Review",
+        "returned_for_revision": "Returned For Revision",
+        "validated": "Validated",
+        "respondent": "Respondent",
+        "submitted": "Submitted",
+        "no_invite_sent_yet": "No Invite Sent Yet",
+        "no_pii": "No Pii",
+        "required": "Required",
+        "required_2": "Required",
+        "recommended": "Recommended",
+        "met": "Met",
+        "in_progress": "In Progress",
+        "na": "Na",
+        "pending": "Pending"
+      },
+      "card": {
+        "review_amp_validate": "Review & Validate",
+        "additional_considerations": "Additional Considerations",
+        "assessor_notes": "Assessor Notes"
+      },
+      "small": {
+        "met": "Met",
+        "in_progress": "In Progress",
+        "na": "Na",
+        "pending": "Pending"
+      },
+      "label": {
+        "reviewer_notes": "Reviewer Notes"
+      },
+      "ph": {
+        "notes_for_the_project_owner": "Notes For The Project Owner",
+        "add_any_assessor_notes_for": "Add Any Assessor Notes For"
+      },
+      "strong": {
+        "validated": "Validated"
+      },
+      "th": {
+        "requirement": "Requirement",
+        "level": "Level",
+        "status": "Status",
+        "notes": "Notes"
+      },
+      "li": {
+        "data_classification_increases_to_protected": "Data Classification Increases To Protected",
+        "personal_information_pii_is_collected": "Personal Information Pii Is Collected",
+        "user_authentication_or_accounts_are": "User Authentication Or Accounts Are",
+        "integration_with_other_gc_systems": "Integration With Other Gc Systems",
+        "payment_processing_or_financial_transactions": "Payment Processing Or Financial Transactions",
+        "the_application_scope_expands_beyond": "The Application Scope Expands Beyond"
+      },
+      "link": {
+        "standard_on_web_accessibility": "Standard On Web Accessibility",
+        "wcag_21_quick_reference": "Wcag 21 Quick Reference",
+        "canadaca_design_system": "Canadaca Design System",
+        "gc_digital_standards": "Gc Digital Standards",
+        "web_experience_toolkit_wet": "Web Experience Toolkit Wet"
+      }
+    },
+    "intakes": {
+      "p": {
+        "review_project_intake_requests_from": "Review Project Intake Requests From"
+      },
+      "link": {
+        "dashboard": "Dashboard"
+      },
+      "stat": {
+        "total_submissions": "Total Submissions",
+        "pending_review": "Pending Review",
+        "accepted": "Accepted",
+        "in_review": "In Review"
+      },
+      "span": {
+        "all_submissions": "All Submissions",
+        "protected_b": "Protected B",
+        "protected_a": "Protected A",
+        "yes": "Yes",
+        "pending": "Pending",
+        "in_review": "In Review",
+        "accepted": "Accepted",
+        "declined": "Declined"
+      },
+      "th": {
+        "ref": "Ref",
+        "project_name": "Project Name",
+        "department": "Department",
+        "classification": "Classification",
+        "pii": "Pii",
+        "hosting": "Hosting",
+        "submitted_by": "Submitted By",
+        "status": "Status",
+        "date": "Date"
+      },
+      "h5": {
+        "no_intake_submissions_yet": "No Intake Submissions Yet"
+      }
+    },
+    "login": {
+      "p": {
+        "scan_the_qr_code_with": "Scan The Qr Code With",
+        "confirm_your_identity_to_continue": "Confirm Your Identity To Continue",
+        "security_assessment_amp_authorization_portal": "Security Assessment & Authorization Portal",
+        "approve_with_your_passkey_face": "Approve With Your Passkey Face"
+      },
+      "h2": {
+        "verify_identity": "Verify Identity",
+        "assessor_login": "Assessor Login"
+      },
+      "label": {
+        "manual_entry_key": "Manual Entry Key",
+        "verification_code": "Verification Code",
+        "authentication_code": "Authentication Code",
+        "email_address": "Email Address",
+        "password": "Password"
+      },
+      "btn": {
+        "verify_amp_enable_mfa": "Verify & Enable Mfa",
+        "sign_in_with_passkey": "Sign In With Passkey",
+        "verify_amp_sign_in": "Verify & Sign In",
+        "sign_in": "Sign In"
+      },
+      "link": {
+        "use_totp_code_instead": "Use Totp Code Instead",
+        "use_passkey_instead": "Use Passkey Instead",
+        "sign_in_as_different_user": "Sign In As Different User",
+        "register_with_invite_code": "Register With Invite Code",
+        "back_to_portal_home": "Back To Portal Home"
+      },
+      "ph": {
+        "enter_password": "Enter Password"
+      }
+    },
+    "manage_controls": {
+      "h1": {
+        "manage_controls": "Manage Controls"
+      },
+      "strong": {
+        "draft": "Draft",
+        "add_controls": "Add Controls"
+      },
+      "span": {
+        "inherited": "Inherited",
+        "added": "Added"
+      },
+      "tattr": {
+        "remove_from_assessment": "Remove From Assessment"
+      },
+      "label": {
+        "tailored_description": "Tailored Description",
+        "evidence_guidance": "Evidence Guidance",
+        "applicability": "Applicability",
+        "inherited": "Inherited",
+        "inherited_from": "Inherited From"
+      },
+      "ph": {
+        "projectspecific_description": "Projectspecific Description",
+        "what_evidence_should_be_provided": "What Evidence Should Be Provided",
+        "eg_azure_ssc": "Eg Azure Ssc",
+        "filter_by_id_or_keyword": "Filter By Id Or Keyword"
+      },
+      "btn": {
+        "save_changes": "Save Changes",
+        "add_selected": "Add Selected",
+        "add_selected_controls": "Add Selected Controls"
+      }
+    },
+    "passkey_setup": {
+      "h2": {
+        "register_a_passkey": "Register A Passkey"
+      },
+      "p": {
+        "use_face_id_touch_id": "Use Face Id Touch Id"
+      },
+      "strong": {
+        "passkey_registered": "Passkey Registered"
+      },
+      "btn": {
+        "register_passkey": "Register Passkey"
+      },
+      "link": {
+        "skip_use_totp_only": "Skip Use Totp Only"
+      }
+    },
+    "project_detail": {
+      "p": {
+        "project_details_assessments": "Project Details Assessments",
+        "no_assessments_yet_for_this": "No Assessments Yet For This"
+      },
+      "btn": {
+        "delete_project": "Delete Project"
+      },
+      "card": {
+        "project_information": "Project Information",
+        "key_contacts": "Key Contacts"
+      },
+      "span": {
+        "yes": "Yes",
+        "assessments": "Assessments"
+      },
+      "h6": {
+        "description": "Description",
+        "technology_stack": "Technology Stack"
+      },
+      "div": {
+        "project_owner_architect": "Project Owner Architect",
+        "project_authority": "Project Authority",
+        "cio_delegated_authority": "Cio Delegated Authority"
+      },
+      "th": {
+        "type": "Type",
+        "status": "Status",
+        "score": "Score",
+        "result": "Result",
+        "invite_code": "Invite Code",
+        "updated": "Updated"
+      },
+      "tattr": {
+        "delete_draft": "Delete Draft"
+      }
+    },
+    "projects": {
+      "h1": {
+        "projects": "Projects"
+      },
+      "p": {
+        "manage_your_security_assessment_projects": "Manage Your Security Assessment Projects",
+        "create_your_first_project_to": "Create Your First Project To"
+      },
+      "link": {
+        "new_project": "New Project",
+        "create_project": "Create Project"
+      },
+      "th": {
+        "project_name": "Project Name",
+        "classification": "Classification",
+        "hosting": "Hosting",
+        "owner": "Owner",
+        "status": "Status",
+        "created": "Created"
+      },
+      "span": {
+        "pii": "Pii"
+      },
+      "tattr": {
+        "delete_project": "Delete Project"
+      },
+      "h4": {
+        "no_projects_yet": "No Projects Yet"
+      }
+    },
+    "register": {
+      "h3": {
+        "account_registration": "Account Registration"
+      },
+      "p": {
+        "register_your_account_using_a": "Register Your Account Using A"
+      },
+      "ph": {
+        "xxxxxxxx": "Xxxxxxxx",
+        "eg_jane_doe": "Eg Jane Doe",
+        "must_match_the_invited_email": "Must Match The Invited Email",
+        "your_organization": "Your Organization",
+        "minimum_10_characters": "Minimum 10 Characters"
+      },
+      "small": {
+        "enter_the_code_from_your": "Enter The Code From Your",
+        "you_must_use_the_email": "You Must Use The Email",
+        "at_least_10_characters_with": "At Least 10 Characters With"
+      },
+      "label": {
+        "organization": "Organization"
+      },
+      "btn": {
+        "continue_to_mfa_setup": "Continue To Mfa Setup"
+      },
+      "span": {
+        "already_have_an_account": "Already Have An Account"
+      },
+      "link": {
+        "sign_in": "Sign In"
+      }
+    },
+    "self_assessment_review": {
+      "link": {
+        "back_to_selfassessments": "Back To Selfassessments"
+      },
+      "span": {
+        "pending_review": "Pending Review",
+        "reviewed": "Reviewed",
+        "intake_created": "Intake Created"
+      },
+      "card": {
+        "system_jurisdiction": "System Jurisdiction",
+        "admin_notes": "Admin Notes",
+        "linked_intake": "Linked Intake",
+        "client_invitation": "Client Invitation",
+        "create_intake": "Create Intake"
+      },
+      "div": {
+        "system_type": "System Type",
+        "country": "Country",
+        "government_level": "Government Level",
+        "data_sensitivity": "Data Sensitivity",
+        "security_score": "Security Score",
+        "findings": "Findings",
+        "system_description": "System Description",
+        "applicable_frameworks": "Applicable Frameworks",
+        "prepopulate_with_ai": "Prepopulate With Ai",
+        "autofill_intake_fields_from_selfassessment": "Autofill Intake Fields From Selfassessment"
+      },
+      "ph": {
+        "internal_notes_about_this_submission": "Internal Notes About This Submission",
+        "eg_citizen_feedback_portal": "Eg Citizen Feedback Portal",
+        "brief_description_of_the_system": "Brief Description Of The System",
+        "eg_canada": "Eg Canada",
+        "key_findings_notes_for_the": "Key Findings Notes For The"
+      },
+      "btn": {
+        "send_registration_invite": "Send Registration Invite",
+        "generate": "Generate",
+        "create_draft_intake": "Create Draft Intake"
+      },
+      "p": {
+        "create_a_draft_intake_first": "Create A Draft Intake First"
+      },
+      "label": {
+        "project_name": "Project Name",
+        "description": "Description",
+        "department": "Department",
+        "app_type": "App Type",
+        "data_classification": "Data Classification",
+        "confidentiality": "Confidentiality",
+        "integrity": "Integrity",
+        "availability": "Availability",
+        "contains_pii": "Contains Pii",
+        "pia_completed": "Pia Completed",
+        "hosting": "Hosting",
+        "hosting_region": "Hosting Region",
+        "security_profile": "Security Profile",
+        "additional_notes": "Additional Notes"
+      }
+    },
+    "settings": {
+      "h1": {
+        "settings": "Settings"
+      },
+      "p": {
+        "application_configuration": "Application Configuration",
+        "register_a_passkey_to_enable": "Register A Passkey To Enable",
+        "government_of_canada_security_assessment": "Government Of Canada Security Assessment",
+        "built_with_nodejs_express_bootstrap": "Built With Nodejs Express Bootstrap"
+      },
+      "span": {
+        "authenticator_app_configured": "Authenticator App Configured",
+        "registered": "Registered",
+        "passkey_enrolled_face_id_touch": "Passkey Enrolled Face Id Touch"
+      },
+      "link": {
+        "reenroll": "Reenroll",
+        "set_up_mfa_now": "Set Up Mfa Now",
+        "audit_log": "Audit Log"
+      },
+      "div": {
+        "approve_with_face_id_touch": "Approve With Face Id Touch",
+        "enter_a_6digit_code_from": "Enter A 6digit Code From",
+        "critical_actions_proceed_without_mfa": "Critical Actions Proceed Without Mfa"
+      },
+      "btn": {
+        "reregister": "Reregister",
+        "register_passkey": "Register Passkey"
+      }
+    }
+  },
+  "index": {
+    "span": {
+      "essential_eight": "Essential Eight"
+    }
+  },
+  "layout": {
+    "main": {
+      "h2": {
+        "about_this_site": "About this site"
+      },
+      "h5": {
+        "verification_required": "Verification Required"
+      },
+      "p": {
+        "this_action_requires_verification": "This action requires verification.",
+        "approve_the_prompt_on_your": "Approve the prompt on your device using Face ID, Touch ID, or Windows Hello."
+      },
+      "link": {
+        "skip_to_main_content": "Skip to main content",
+        "skip_to_footer": "Skip to footer"
+      },
+      "btn": {
+        "cancel": "Cancel",
+        "verify_amp_sign": "Verify &amp; Sign"
+      },
+      "span": {
+        "waiting_for_biometric": "Waiting for biometric..."
+      }
+    },
+    "minimal": {
+      "link": {
+        "sign_in": "Sign In"
+      }
+    }
+  },
+  "client_dashboard": {
+    "th": {
+      "project": "Project",
+      "status": "Status",
+      "invite_code": "Invite Code",
+      "created": "Created",
+      "reference": "Reference",
+      "department": "Department",
+      "submitted": "Submitted"
+    },
+    "h1": {
+      "my_dashboard": "My Dashboard"
+    },
+    "link": {
+      "new_intake": "New Intake",
+      "submit_your_first_intake": "Submit Your First Intake"
+    },
+    "span": {
+      "draft": "Draft",
+      "evidence_gathering": "Evidence Gathering",
+      "submitted": "Submitted",
+      "under_audit": "Under Audit",
+      "completed": "Completed",
+      "draft_needs_completion": "Draft Needs Completion",
+      "pending_review": "Pending Review",
+      "in_review": "In Review",
+      "accepted": "Accepted",
+      "declined": "Declined"
+    },
+    "p": {
+      "received_an_invite_code_from": "Received An Invite Code From"
+    },
+    "ph": {
+      "eg_a1b2c3d4": "Eg A1b2c3d4"
+    },
+    "btn": {
+      "go": "Go"
+    }
+  },
+  "guidance_portal": {
+    "span": {
+      "required": "Required",
+      "recommended": "Recommended"
+    },
+    "h2": {
+      "gc_web_standards_checklist": "Gc Web Standards Checklist"
+    },
+    "strong": {
+      "this_checklist_has_been_validated": "This Checklist Has Been Validated",
+      "returned_for_revision": "Returned For Revision",
+      "assessor_notes": "Assessor Notes",
+      "submitted_and_awaiting_review": "Submitted And Awaiting Review"
+    },
+    "ph": {
+      "notes_or_evidence_reference_optional": "Notes Or Evidence Reference Optional",
+      "eg_jane_doe": "Eg Jane Doe",
+      "eg_janedoeagencygcca": "Eg Janedoeagencygcca",
+      "any_questions_clarifications_or_additional": "Any Questions Clarifications Or Additional"
+    },
+    "card": {
+      "submit_checklist_for_review": "Submit Checklist For Review"
+    },
+    "p": {
+      "once_youve_addressed_the_items": "Once Youve Addressed The Items"
+    },
+    "label": {
+      "additional_notes": "Additional Notes"
+    },
+    "btn": {
+      "submit_for_review": "Submit For Review"
+    }
+  },
+  "intake": {
+    "strong": {
+      "privacy_impact_assessment_pia": "Privacy Impact Assessment (PIA)",
+      "intake_submitted_successfully": "Intake Submitted Successfully",
+      "complete_your_intake": "Complete Your Intake",
+      "canada": "Canada",
+      "united_states": "United States",
+      "european_union": "European Union",
+      "germany": "Germany",
+      "france": "France",
+      "united_kingdom": "United Kingdom",
+      "spain": "Spain",
+      "australia": "Australia",
+      "global_worldwide": "Global Worldwide",
+      "handles_payment_cards": "Handles Payment Cards",
+      "select_at_least_one_region": "Select At Least One Region",
+      "operating_regions": "Operating Regions",
+      "tbs_directive_on_security_management": "Tbs Directive On Security Management",
+      "pbhva_overlay": "Pbhva Overlay",
+      "determined_security_profile": "Determined Security Profile",
+      "tailoring_notes": "Tailoring Notes",
+      "name_address_or_contact_info": "Name Address Or Contact Info",
+      "social_insurance_number_sin": "Social Insurance Number Sin",
+      "financial_information": "Financial Information",
+      "health_medical_records": "Health Medical Records",
+      "biometric_data": "Biometric Data",
+      "employment_hr_records": "Employment Hr Records",
+      "immigration_citizenship_data": "Immigration Citizenship Data",
+      "law_enforcement_criminal_records": "Law Enforcement Criminal Records",
+      "indigenous_treaty_data": "Indigenous Treaty Data",
+      "none_of_the_above": "None Of The Above",
+      "atip": "Atip",
+      "gc_systems": "Gc Systems",
+      "mobile_byod": "Mobile Byod",
+      "external_users": "External Users",
+      "threat_risk_assessment_tra": "Threat Risk Assessment Tra",
+      "system_security_plan_ssp": "System Security Plan Ssp",
+      "vulnerability_assessment_pen_test": "Vulnerability Assessment Pen Test",
+      "network_architecture_diagram": "Network Architecture Diagram",
+      "previous_saa_ato": "Previous Saa Ato"
+    },
+    "ph": {
+      "full_name": "Full name",
+      "email_address": "Email address",
+      "title_role": "Title / Role",
+      "eg_were_building_a_portal": "Eg Were Building A Portal",
+      "eg_hr_case_management_portal": "Eg Hr Case Management Portal",
+      "describe_the_purpose_scope_and": "Describe The Purpose Scope And",
+      "eg_employment_and_social_development": "Eg Employment And Social Development",
+      "eg_innovation_information_and_technology": "Eg Innovation Information And Technology",
+      "list_any_technologies_not_covered": "List Any Technologies Not Covered",
+      "eg_gccase_via_api_sap": "Eg Gccase Via Api Sap",
+      "eg_tight_deadline_need_iato": "Eg Tight Deadline Need Iato"
+    },
+    "h2": {
+      "security_assessment_intake": "Security Assessment Intake"
+    },
+    "p": {
+      "submit_your_project_for_a": "Submit Your Project For A",
+      "your_security_assessor_has_created": "Your Security Assessor Has Created",
+      "select_all_regions_and_jurisdictions": "Select All Regions And Jurisdictions",
+      "upload_a_project_document_or": "Upload A Project Document Or",
+      "upload_a_design_doc_sa": "Upload A Design Doc Sa",
+      "describe_what_your_system_does": "Describe What Your System Does",
+      "tell_us_about_your_project": "Tell Us About Your Project",
+      "what_is_the_highest_sensitivity": "What Is The Highest Sensitivity",
+      "what_is_the_expected_impact": "What Is The Expected Impact",
+      "what_is_the_expected_impact_2": "What Is The Expected Impact",
+      "does_your_system_collect_process": "Does Your System Collect Process",
+      "where_will_the_system_be": "Where Will The System Be",
+      "check_all_technologies_that_are": "Check All Technologies That Are",
+      "help_us_understand_how_the": "Help Us Understand How The",
+      "let_us_know_what_security": "Let Us Know What Security",
+      "check_all_that_have_been": "Check All That Have Been",
+      "provide_contact_details_for_the": "Provide Contact Details For The",
+      "upload_any_existing_documentation_that": "Upload Any Existing Documentation That",
+      "any_other_information_that_would": "Any Other Information That Would"
+    },
+    "span": {
+      "required": "Required",
+      "beta": "Beta"
+    },
+    "small": {
+      "itsg33_cccs_medium": "Itsg33 Cccs Medium",
+      "osfi_b13": "Osfi B13",
+      "nist_80053_fedramp": "Nist 80053 Fedramp",
+      "cmmc_20": "Cmmc",
+      "stateramp": "Stateramp",
+      "nydfs_500": "Nydfs",
+      "nis2_directive": "Nis2 Directive",
+      "dora": "Dora",
+      "bsi_itgrundschutz": "Bsi Itgrundschutz",
+      "anssi_rgs_ebios_rm": "Anssi Rgs Ebios Rm",
+      "ncsc_caf": "Ncsc Caf",
+      "ens_ccnstic": "Ens Ccnstic",
+      "asd_ism_essential_eight": "Asd Ism Essential Eight",
+      "apra_cps_234": "Apra Cps",
+      "iso_27001": "Iso",
+      "service_organization_controls": "Service Organization Controls",
+      "pci_dss_40": "Pci Dss",
+      "v81_municipal_general": "V81 Municipal General",
+      "full_name_homework_address_phone": "Full Name Homework Address Phone",
+      "sin_or_business_number": "Sin Or Business Number",
+      "bank_accounts_tax_records_pay": "Bank Accounts Tax Records Pay",
+      "medical_history_disability_mental_health": "Medical History Disability Mental Health",
+      "fingerprints_facial_recognition_voice_prints": "Fingerprints Facial Recognition Voice Prints",
+      "performance_reviews_staffing_actions_leave": "Performance Reviews Staffing Actions Leave",
+      "visa_applications_travel_documents_citizenship": "Visa Applications Travel Documents Citizenship",
+      "case_files_criminal_history_investigations": "Case Files Criminal History Investigations",
+      "band_membership_treaty_info_land": "Band Membership Treaty Info Land",
+      "no_personal_information_is_collected": "No Personal Information Is Collected",
+      "you_can_select_multiple_files": "You Can Select Multiple Files"
+    },
+    "btn": {
+      "change_regions": "Change Regions",
+      "analyze_prefill": "Analyze Prefill",
+      "get_suggestions": "Get Suggestions",
+      "submit_intake": "Submit Intake"
+    },
+    "label": {
+      "branch_directorate": "Branch Directorate",
+      "target_golive_date": "Target Golive Date",
+      "estimated_user_count": "Estimated User Count",
+      "personal_information_pii_checklist": "Personal Information Pii Checklist",
+      "data_residency": "Data Residency",
+      "technology_stack": "Technology Stack",
+      "microsoft_entra_id_azure_ad": "Microsoft Entra Id Azure Ad",
+      "active_directory_onprem": "Active Directory Onprem",
+      "multifactor_authentication": "Multifactor Authentication",
+      "privileged_identity_management": "Privileged Identity Management",
+      "microsoft_azure": "Microsoft Azure",
+      "amazon_web_services": "Amazon Web Services",
+      "google_cloud_platform": "Google Cloud Platform",
+      "ssc_data_centre": "Ssc Data Centre",
+      "gc_network_gcnet": "Gc Network Gcnet",
+      "microsoft_sentinel_siem": "Microsoft Sentinel Siem",
+      "splunk_siem": "Splunk Siem",
+      "microsoft_defender": "Microsoft Defender",
+      "crowdstrike_falcon": "Crowdstrike Falcon",
+      "cse_cccs_services": "Cse Cccs Services",
+      "web_application_firewall": "Web Application Firewall",
+      "azure_devops": "Azure Devops",
+      "github_enterprise": "Github Enterprise",
+      "microsoft_intune_mdm": "Microsoft Intune Mdm",
+      "azure_key_vault": "Azure Key Vault",
+      "aws_kms": "Aws Kms",
+      "azure_backup": "Azure Backup",
+      "other_technologies_notes": "Other Technologies Notes",
+      "list_known_interconnections_integrations": "List Known Interconnections Integrations",
+      "completed_security_activities": "Completed Security Activities",
+      "attachments": "Attachments",
+      "selected_files": "Selected Files",
+      "notes_questions_special_considerations": "Notes Questions Special Considerations"
+    },
+    "h6": {
+      "identity_access": "Identity Access",
+      "cloud_infrastructure": "Cloud Infrastructure",
+      "security_monitoring": "Security Monitoring",
+      "devops_encryption_management": "Devops Encryption Management",
+      "technical_lead": "Technical Lead",
+      "authorizing_official_dg_director": "Authorizing Official Dg Director"
+    },
+    "link": {
+      "back": "Back"
+    }
+  },
+  "flash": {
+    "admin": {
+      "project_not_found": "Project not found",
+      "assessment_not_found": "Assessment not found",
+      "selfassessment_not_found": "Self-assessment not found",
+      "intake_not_found": "Intake not found",
+      "email_address_is_required": "Email address is required.",
+      "failed_to_send_invitation": "Failed to send invitation.",
+      "passkey_verification_failed_please_try": "Passkey Verification Failed Please Try",
+      "invalid_authentication_code_please_try": "Invalid Authentication Code Please Try",
+      "failed_to_generate_qr_code": "Failed To Generate Qr Code",
+      "setup_failed_please_try_again": "Setup Failed Please Try Again",
+      "invalid_code_make_sure_your": "Invalid Code Make Sure Your",
+      "mfa_enabled_you_can_optionally": "Mfa Enabled You Can Optionally",
+      "please_log_in_to_access": "Please Log In To Access",
+      "project_created_successfully": "Project Created Successfully",
+      "you_do_not_have_access": "You Do Not Have Access",
+      "audit_started": "Audit Started",
+      "poam_item_added": "Poam Item Added",
+      "poam_item_updated": "Poam Item Updated",
+      "poam_item_removed": "Poam Item Removed",
+      "submission_reactivated_for_updates": "Submission Reactivated For Updates",
+      "failed_to_generate_pdf": "Failed To Generate Pdf",
+      "failed_to_generate_ato_document": "Failed To Generate Ato Document",
+      "draft_assessment_deleted_successfully": "Draft Assessment Deleted Successfully",
+      "selfassessment_marked_as_reviewed": "Selfassessment Marked As Reviewed",
+      "request_not_found": "Request Not Found",
+      "access_request_denied": "Access Request Denied",
+      "attachment_not_found": "Attachment Not Found",
+      "guidance_report_not_found": "Guidance Report Not Found",
+      "guidance_checklist_validated_and_approved": "Guidance Checklist Validated And Approved",
+      "checklist_returned_to_project_owner": "Checklist Returned To Project Owner",
+      "notes_saved": "Notes Saved",
+      "no_new_controls_to_add": "No New Controls To Add",
+      "control_not_found": "Control Not Found",
+      "control_updated": "Control Updated",
+      "invitation_not_found_or_you": "Invitation Not Found Or You",
+      "invitation_not_found_or_not": "Invitation Not Found Or Not",
+      "all_fields_are_required": "All Fields Are Required",
+      "password_must_be_at_least": "Password Must Be At Least",
+      "passwords_do_not_match": "Passwords Do Not Match",
+      "invalid_or_expired_invite_code": "Invalid Or Expired Invite Code",
+      "this_invitation_has_expired_please": "This Invitation Has Expired Please",
+      "an_account_with_this_email": "An Account With This Email",
+      "account_created_you_can_now": "Account Created You Can Now",
+      "registration_failed_please_try_again": "Registration Failed Please Try Again",
+      "invalid_mfa_code_please_try": "Invalid Mfa Code Please Try",
+      "registration_complete_mfa_enabled_please": "Registration Complete Mfa Enabled Please",
+      "only_the_assessment_owner_can": "Only The Assessment Owner Can",
+      "selected_assessor_not_found_or": "Selected Assessor Not Found Or",
+      "you_can_only_assign_assessors": "You Can Only Assign Assessors",
+      "assignment_not_found": "Assignment Not Found"
+    },
+    "public": {
+      "please_enter_an_access_code": "Please enter an access code",
+      "session_expired": "Session expired.",
+      "you_do_not_have_access": "You do not have access to this intake.",
+      "failed_to_submit_intake_please": "Failed to submit intake. Please try again.",
+      "assessment_not_found": "Assessment not found",
+      "all_fields_are_required": "All fields are required.",
+      "password_must_be_at_least": "Password must be at least 10 characters.",
+      "passwords_do_not_match": "Passwords do not match.",
+      "this_access_code_has_expired": "This Access Code Has Expired",
+      "invalid_or_expired_access_code": "Invalid Or Expired Access Code",
+      "email_is_required": "Email Is Required",
+      "a_request_from_this_email": "A Request From This Email",
+      "you_already_have_an_active": "You Already Have An Active",
+      "failed_to_submit_request_please": "Failed To Submit Request Please",
+      "please_sign_in_to_access": "Please Sign In To Access",
+      "invalid_or_expired_invite_code": "Invalid Or Expired Invite Code",
+      "this_invitation_has_expired_please": "This Invitation Has Expired Please",
+      "an_account_with_this_email": "An Account With This Email",
+      "registration_failed_please_try_again": "Registration Failed Please Try Again",
+      "failed_to_generate_qr_code": "Failed To Generate Qr Code",
+      "user_not_found_please_register": "User Not Found Please Register",
+      "invalid_code_please_try_again": "Invalid Code Please Try Again",
+      "mfa_enabled_you_can_optionally": "Mfa Enabled You Can Optionally",
+      "invalid_email_or_password": "Invalid Email Or Password",
+      "please_complete_your_mfa_setup": "Please Complete Your Mfa Setup",
+      "session_expired_please_sign_in": "Session Expired Please Sign In",
+      "invalid_authentication_code_please_try": "Invalid Authentication Code Please Try",
+      "passkey_not_available": "Passkey Not Available",
+      "verification_failed": "Verification Failed",
+      "you_have_been_signed_out": "You Have Been Signed Out",
+      "intake_not_found": "Intake Not Found",
+      "this_intake_has_already_been": "This Intake Has Already Been",
+      "intake_not_found_or_already": "Intake Not Found Or Already",
+      "this_assessment_is_assigned_to": "This Assessment Is Assigned To",
+      "not_authenticated": "Not Authenticated",
+      "remediation_evidence_submitted_for_assessor": "Remediation Evidence Submitted For Assessor",
+      "invalid_code": "Invalid Code",
+      "already_validated": "Already Validated",
+      "provisioning_is_not_available_please": "Provisioning Is Not Available Please",
+      "verification_failed_please_try_again": "Verification Failed Please Try Again",
+      "verification_error_please_try_again": "Verification Error Please Try Again",
+      "an_instance_for_this_organization": "An Instance For This Organization",
+      "an_error_occurred_please_try": "An Error Occurred Please Try",
+      "provisioning_job_not_found": "Provisioning Job Not Found"
+    }
+  },
+  "error": {
+    "p": {
+      "try_entering_your_access_code": "Try Entering Your Access Code"
+    },
+    "ph": {
+      "access_code": "Access Code"
+    },
+    "link": {
+      "back_to_home": "Back To Home"
+    }
+  },
+  "partial": {
+    "ai_panel": {
+      "tattr": {
+        "ai_assistant": "Ai Assistant"
+      },
+      "h5": {
+        "ai_assistant": "Ai Assistant"
+      },
+      "small": {
+        "powered_by_claude": "Powered By Claude"
+      },
+      "p": {
+        "select_an_ai_action_to": "Select An Ai Action To"
+      }
+    }
+  },
+  "checklist": {
+    "h1": {
+      "iato_remediation_checklist": "Iato Remediation Checklist"
+    },
+    "strong": {
+      "interim_authority_to_operate_iato": "Interim Authority To Operate Iato"
+    },
+    "th": {
+      "description": "Description",
+      "control": "Control",
+      "deadline": "Deadline",
+      "assigned_to": "Assigned To",
+      "status": "Status"
+    },
+    "span": {
+      "progress": "Progress"
+    },
+    "p": {
+      "no_checklist_items_have_been": "No Checklist Items Have Been",
+      "contact_your_security_assessor_if": "Contact Your Security Assessor If"
+    }
+  },
+  "client_login": {
+    "h3": {
+      "client_sign_in": "Client Sign In"
+    },
+    "p": {
+      "sign_in_to_submit_or": "Sign In To Submit Or",
+      "approve_with_your_passkey_face": "Approve With Your Passkey Face"
+    },
+    "label": {
+      "email_address": "Email Address",
+      "password": "Password",
+      "authentication_code": "Authentication Code"
+    },
+    "btn": {
+      "continue": "Continue",
+      "verify_sign_in": "Verify Sign In"
+    },
+    "link": {
+      "use_totp_code_instead": "Use Totp Code Instead",
+      "use_passkey_instead": "Use Passkey Instead",
+      "register_here": "Register Here"
+    },
+    "span": {
+      "dont_have_an_account": "Dont Have An Account"
+    }
+  },
+  "client_settings": {
+    "h1": {
+      "settings": "Settings"
+    },
+    "p": {
+      "account_security_preferences": "Account Security Preferences",
+      "controls_how_critical_actions_submitting": "Controls How Critical Actions Submitting",
+      "register_a_passkey_to_enable": "Register A Passkey To Enable"
+    },
+    "span": {
+      "authenticator_app_configured": "Authenticator App Configured",
+      "registered": "Registered",
+      "passkey_enrolled_face_id_touch": "Passkey Enrolled Face Id Touch"
+    },
+    "div": {
+      "approve_with_face_id_touch": "Approve With Face Id Touch",
+      "enter_a_6digit_code_from": "Enter A 6digit Code From",
+      "critical_actions_proceed_without_mfa": "Critical Actions Proceed Without Mfa"
+    },
+    "btn": {
+      "reregister": "Reregister",
+      "register_passkey": "Register Passkey"
+    }
+  },
+  "guidance_submitted": {
+    "h2": {
+      "checklist_submitted": "Checklist Submitted"
+    },
+    "span": {
+      "access_code": "Access Code",
+      "status": "Status",
+      "awaiting_review": "Awaiting Review"
+    }
+  },
+  "mfa_setup": {
+    "h3": {
+      "set_up_multifactor_authentication": "Set Up Multifactor Authentication"
+    },
+    "strong": {
+      "microsoft_authenticator": "Microsoft Authenticator",
+      "google_authenticator": "Google Authenticator",
+      "authy": "Authy"
+    },
+    "p": {
+      "step_1_scan_this_qr": "Step 1 Scan This Qr",
+      "cant_scan_enter_this_key": "Cant Scan Enter This Key"
+    },
+    "label": {
+      "step_2_enter_the_6digit": "Step 2 Enter The 6digit"
+    },
+    "btn": {
+      "verify_activate_mfa": "Verify Activate Mfa"
+    }
+  },
+  "passkey_setup": {
+    "h3": {
+      "register_a_passkey": "Register A Passkey"
+    },
+    "p": {
+      "use_face_id_touch_id": "Use Face Id Touch Id"
+    },
+    "strong": {
+      "passkey_already_registered": "Passkey Already Registered"
+    },
+    "btn": {
+      "register_passkey_now": "Register Passkey Now"
+    },
+    "link": {
+      "skip_use_totp_only": "Skip Use Totp Only"
+    }
+  },
+  "poam_remediation": {
+    "h1": {
+      "poam_remediation": "Poam Remediation"
+    },
+    "div": {
+      "total_items": "Total Items",
+      "open": "Open",
+      "your_submissions": "Your Submissions",
+      "verified": "Verified"
+    },
+    "label": {
+      "original_finding": "Original Finding",
+      "required_remediation": "Required Remediation",
+      "your_remediation_evidence": "Your Remediation Evidence"
+    },
+    "ph": {
+      "describe_what_was_done_to": "Describe What Was Done To"
+    },
+    "tattr": {
+      "ai_elaborate_on_your_text": "Ai Elaborate On Your Text"
+    },
+    "span": {
+      "submitted_for_review": "Submitted For Review"
+    },
+    "btn": {
+      "submit_all_remediation_evidence": "Submit All Remediation Evidence"
+    }
+  },
+  "product_signup": {
+    "h1": {
+      "start_your_free_14day_trial": "Start Your Free 14day Trial"
+    },
+    "div": {
+      "active_assessments": "Active Assessments",
+      "new_assessment_limit": "New Assessment Limit",
+      "ai_tokens_month": "Ai Tokens Month",
+      "team_member": "Team Member"
+    },
+    "h4": {
+      "dedicated_tenant_isolation": "Dedicated Tenant Isolation"
+    },
+    "p": {
+      "every_trial_gets_its_own": "Every Trial Gets Its Own",
+      "this_becomes_your_security_assessor": "This Becomes Your Security Assessor"
+    },
+    "h3": {
+      "create_your_account": "Create Your Account"
+    },
+    "ph": {
+      "jane": "Jane",
+      "smith": "Smith",
+      "acme_security_corp": "Acme Security Corp",
+      "min_10_characters": "Min 10 Characters",
+      "reenter_your_password": "Reenter Your Password"
+    },
+    "span": {
+      "your_instance": "Your Instance"
+    },
+    "btn": {
+      "deploy_my_instance": "Deploy My Instance"
+    },
+    "link": {
+      "terms_of_service": "Terms Of Service",
+      "privacy_policy": "Privacy Policy"
+    }
+  },
+  "provision_status": {
+    "span": {
+      "vanguard_cloud_services_inc": "Vanguard Cloud Services Inc",
+      "initializing": "Initializing",
+      "validating_azure_credentials": "Validating Azure Credentials",
+      "creating_resource_group": "Creating Resource Group",
+      "creating_app_service_plan": "Creating App Service Plan",
+      "creating_web_application": "Creating Web Application",
+      "configuring_environment_amp_credentials": "Configuring Environment & Credentials",
+      "deploying_application_code": "Deploying Application Code",
+      "health_check_amp_finalization": "Health Check & Finalization",
+      "instance_url": "Instance Url",
+      "login_email": "Login Email",
+      "role": "Role",
+      "security_assessor_admin": "Security Assessor Admin",
+      "plan": "Plan"
+    },
+    "h2": {
+      "deploying_your_instance": "Deploying Your Instance"
+    },
+    "link": {
+      "launch_your_saa_platform": "Launch Your Saa Platform",
+      "try_again": "Try Again"
+    },
+    "strong": {
+      "provisioning_failed": "Provisioning Failed"
+    }
+  },
+  "register": {
+    "h3": {
+      "account_registration": "Account Registration"
+    },
+    "p": {
+      "register_your_account_using_a": "Register Your Account Using A"
+    },
+    "ph": {
+      "xxxxxxxx": "Xxxxxxxx",
+      "eg_jane_doe": "Eg Jane Doe",
+      "must_match_the_invited_email": "Must Match The Invited Email",
+      "your_organization": "Your Organization",
+      "minimum_10_characters": "Minimum 10 Characters"
+    },
+    "small": {
+      "enter_the_code_from_your": "Enter The Code From Your",
+      "at_least_10_characters_with": "At Least 10 Characters With"
+    },
+    "label": {
+      "organization": "Organization"
+    },
+    "btn": {
+      "continue_to_mfa_setup": "Continue To Mfa Setup"
+    },
+    "span": {
+      "already_have_an_account": "Already Have An Account"
+    },
+    "link": {
+      "sign_in": "Sign In"
+    }
+  },
+  "respond": {
+    "span": {
+      "submitted": "Submitted",
+      "done": "Done"
+    },
+    "strong": {
+      "interim_ato_issued": "Interim Ato Issued",
+      "poam_items": "Poam Items"
+    },
+    "label": {
+      "your_evidence": "Your Evidence",
+      "attachments": "Attachments"
+    },
+    "ph": {
+      "enter_your_evidence_here": "Enter Your Evidence Here",
+      "add_a_comment": "Add A Comment"
+    },
+    "tattr": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "bullet_list": "Bullet List",
+      "numbered_list": "Numbered List",
+      "ai_elaborate_on_your_text": "Ai Elaborate On Your Text"
+    },
+    "div": {
+      "loading": "Loading"
+    },
+    "btn": {
+      "submit_all_evidence": "Submit All Evidence"
+    }
+  },
+  "self_assessment_gate": {
+    "ph": {
+      "a1b2c3d4": "A1b2c3d4",
+      "jane_doe": "Jane Doe"
+    }
+  },
+  "self_assessment": {
+    "h2": {
+      "security_selfassessment": "Security Selfassessment"
+    },
+    "p": {
+      "evaluate_your_systems_security_posture": "Evaluate Your Systems Security Posture",
+      "select_the_type_jurisdiction_and": "Select The Type Jurisdiction And"
+    },
+    "card": {
+      "tell_us_about_your_system": "Tell Us About Your System"
+    },
+    "ph": {
+      "eg_we_have_a_publicfacing": "Eg We Have A Publicfacing",
+      "jane_doe": "Jane Doe"
+    },
+    "btn": {
+      "generate_security_questions": "Generate Security Questions",
+      "back": "Back",
+      "generate_report": "Generate Report"
+    }
+  },
+  "success": {
+    "h1": {
+      "evidence_submitted_successfully": "Evidence Submitted Successfully"
+    },
+    "span": {
+      "under_review": "Under Review"
+    },
+    "p": {
+      "your_security_assessor_has_been": "Your Security Assessor Has Been"
+    },
+    "link": {
+      "return_home": "Return Home"
+    }
+  }
 }

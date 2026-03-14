@@ -115,11 +115,37 @@ function slug(text) {
 
 function keyToEnglish(key) {
   const last = key.split('.').pop();
-  return last
-    .replace(/_(\d+)$/, '')
-    .replace(/_/g, ' ')
-    .replace(/\bamp\b/g, '&')
-    .replace(/\b\w/g, c => c.toUpperCase());
+  let text = last
+    .replace(/_(\d+)$/, '')       // strip _2 suffix
+    .replace(/_/g, ' ')           // underscores to spaces
+    .replace(/\bamp\b/g, '&');    // amp → &
+
+  // Split known compound words that lost their separator during slugification
+  const compounds = {
+    'selfassessment': 'Self-Assessment', 'selfassessments': 'Self-Assessments',
+    'preassessment': 'Pre-Assessment', 'preassessments': 'Pre-Assessments',
+    'preintake': 'Pre-Intake', 'prefill': 'Pre-fill', 'prepopulate': 'Pre-populate',
+    'autopopulate': 'Auto-populate', 'autofill': 'Auto-fill', 'autogenerate': 'Auto-generate',
+    'multifactor': 'Multi-Factor', 'multiframework': 'Multi-Framework',
+    'multitenant': 'Multi-Tenant', 'multijurisdiction': 'Multi-Jurisdiction',
+    'golive': 'Go-Live', 'reenter': 'Re-enter', 'reenroll': 'Re-enroll',
+    'reregister': 'Re-register', 'reactivate': 'Reactivate',
+    'onprem': 'On-Prem', 'byod': 'BYOD',
+    'username': 'Username', 'timestamp': 'Timestamp', 'workflow': 'Workflow',
+    'checkbox': 'Checkbox', 'dropdown': 'Dropdown', 'readonly': 'Read-only',
+    'signup': 'Sign Up', 'signin': 'Sign In', 'signout': 'Sign Out',
+    'login': 'Login', 'logout': 'Logout',
+    'saampa': 'SA&A', 'poam': 'POA&M', 'iato': 'iATO',
+    'webapp': 'Web App', 'webauthn': 'WebAuthn',
+    'gcnet': 'GCNet', 'gccase': 'GCCase', 'gcdocs': 'GCDocs',
+    'projectspecific': 'Project-specific',
+    'statelocal': 'State/Local', 'stateramp': 'StateRAMP',
+    '6digit': '6-digit', '14day': '14-day', '10characters': '10 characters',
+  };
+  text = text.replace(/\b\w+\b/g, word => compounds[word.toLowerCase()] || word);
+
+  // Title case remaining words (skip already-cased compound replacements)
+  return text.replace(/\b([a-z])(\w*)\b/g, (m, first, rest) => first.toUpperCase() + rest);
 }
 
 function shouldSkip(t) {
@@ -273,6 +299,7 @@ function repairLocale(en) {
   const flatEn = flat(en);
   const allKeys = new Set();
   let added = 0;
+  let fixed = 0;
 
   // Scan .hbs for {{t 'key'}}
   for (const f of findFiles(VIEWS, '.hbs')) {
@@ -288,15 +315,34 @@ function repairLocale(en) {
     for (const m of content.matchAll(/req\.t\(\s*'([^']+)'\s*\)/g)) allKeys.add(m[1]);
   }
 
-  // Add missing keys with English derived from key name
+  // Helper: what the OLD bad keyToEnglish would have produced
+  function oldKeyToEnglish(key) {
+    return key.split('.').pop().replace(/_(\d+)$/, '').replace(/_/g, ' ').replace(/\bamp\b/g, '&').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
   for (const key of allKeys) {
-    if (!flatEn[key]) {
+    const existing = flatEn[key];
+    if (!existing) {
+      // Missing — add it
       setNested(en, key, keyToEnglish(key));
       added++;
+    } else {
+      // Check if the existing value looks like a bad auto-generated one
+      // (matches what old keyToEnglish would produce but differs from improved version)
+      const oldVal = oldKeyToEnglish(key);
+      const newVal = keyToEnglish(key);
+      if (existing === oldVal && oldVal !== newVal) {
+        // Overwrite with improved value
+        const p = key.split('.');
+        let c = en;
+        for (let i = 0; i < p.length - 1; i++) c = c[p[i]];
+        c[p[p.length - 1]] = newVal;
+        fixed++;
+      }
     }
   }
 
-  return { total: allKeys.size, existing: allKeys.size - added, added };
+  return { total: allKeys.size, existing: allKeys.size - added, added, fixed };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -484,7 +530,7 @@ async function main() {
     console.log(`[repair preview]`);
     console.log(`  {{t}} keys found in templates: ${repair.total}`);
     console.log(`  Already in en.json: ${repair.existing}`);
-    console.log(`  Would add: ${repair.added}`);
+    console.log(`  Would add: ${repair.added}, Would fix: ${repair.fixed}`);
     console.log(`\n  DRY RUN — no files changed.`);
     console.log(`  Run: node scripts/i18n.js --apply\n`);
     return;
@@ -529,7 +575,7 @@ async function main() {
   console.log(`  DONE`);
   console.log(`${'─'.repeat(60)}`);
   console.log(`  Replacements: ${modTotal} in ${modFiles} files`);
-  console.log(`  en.json: +${newKeys} extracted, +${repair.added} repaired`);
+  console.log(`  en.json: +${newKeys} extracted, +${repair.added} repaired, ${repair.fixed} fixed`);
   console.log(`  en.json total: ${totalEnKeys} keys`);
   console.log(`  Backups: _i18n_backup/`);
   console.log(`${'─'.repeat(60)}`);

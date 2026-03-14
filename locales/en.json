@@ -512,7 +512,7 @@
         "pending_audits": "Pending Audits",
         "active_atos": "Active Atos",
         "pending_intakes": "Pending Intakes",
-        "preassessments": "Preassessments"
+        "preassessments": "Pre-Assessments"
       },
       "span": {
         "recent_projects": "Recent Projects",
@@ -570,7 +570,7 @@
         "department_agency": "Department Agency",
         "branch_directorate": "Branch Directorate",
         "application_type": "Application Type",
-        "target_golive": "Target Golive",
+        "target_golive": "Target Go-Live",
         "estimated_users": "Estimated Users",
         "project_description": "Project Description",
         "atip_subject": "Atip Subject",
@@ -582,7 +582,7 @@
         "technologies": "Technologies",
         "other_technologies": "Other Technologies",
         "gc_interconnections": "Gc Interconnections",
-        "mobile_byod": "Mobile Byod",
+        "mobile_byod": "Mobile BYOD",
         "listed_interconnections": "Listed Interconnections",
         "external_users": "External Users",
         "project_owner": "Project Owner",
@@ -600,8 +600,8 @@
       },
       "strong": {
         "determined_profile": "Determined Profile",
-        "saampa_required": "Saampa Required",
-        "no_saampa_required": "No Saampa Required",
+        "saampa_required": "SA&A Required",
+        "no_saampa_required": "No SA&A Required",
         "accepted": "Accepted"
       },
       "div": {
@@ -723,7 +723,7 @@
         "canada_financial": "Canada Financial",
         "united_states": "United States",
         "us_defense": "Us Defense",
-        "us_statelocal": "Us Statelocal",
+        "us_statelocal": "Us State/Local",
         "us_financial": "Us Financial",
         "european_union": "European Union",
         "eu_financial": "Eu Financial",
@@ -741,7 +741,7 @@
         "osfi_b13": "Osfi B13",
         "nist_80053": "Nist",
         "cmmc": "Cmmc",
-        "stateramp": "Stateramp",
+        "stateramp": "StateRAMP",
         "nydfs_500": "Nydfs",
         "nis2_gdpr": "Nis2 Gdpr",
         "dora": "Dora",
@@ -791,11 +791,11 @@
         "requested": "Requested"
       },
       "h1": {
-        "preintake_selfassessments": "Preintake Selfassessments"
+        "preintake_selfassessments": "Pre-Intake Self-Assessments"
       },
       "p": {
-        "clientsubmitted_security_selfassessments_awaiting_review": "Clientsubmitted Security Selfassessments Awaiting Review",
-        "no_selfassessments_submitted_yet": "No Selfassessments Submitted Yet",
+        "clientsubmitted_security_selfassessments_awaiting_review": "Clientsubmitted Security Self-Assessments Awaiting Review",
+        "no_selfassessments_submitted_yet": "No Self-Assessments Submitted Yet",
         "no_access_requests_yet": "No Access Requests Yet"
       },
       "div": {
@@ -828,7 +828,7 @@
         "assigned": "Assigned",
         "active": "Active",
         "audit_progress": "Audit Progress",
-        "required_for_iato_per_tbs": "Required For Iato Per Tbs",
+        "required_for_iato_per_tbs": "Required For IATO Per Tbs",
         "high_risk": "High Risk",
         "med_risk": "Med Risk",
         "low_risk": "Low Risk",
@@ -844,11 +844,11 @@
         "revoke": "Revoke",
         "assign": "Assign",
         "complete_audit_issue_decision": "Complete Audit Issue Decision",
-        "autopopulate": "Autopopulate"
+        "autopopulate": "Auto-Populate"
       },
       "tattr": {
         "open_the_public_evidence_submission": "Open The Public Evidence Submission",
-        "autogenerate_from_findings": "Autogenerate From Findings",
+        "autogenerate_from_findings": "Auto-Generate From Findings",
         "delete": "Delete",
         "partially_met": "Partially Met",
         "not_met": "Not Met",
@@ -866,18 +866,18 @@
       "strong": {
         "team": "Team",
         "tbs_policy": "Tbs Policy",
-        "plan_of_action_milestones_poam": "Plan Of Action Milestones Poam",
+        "plan_of_action_milestones_poam": "Plan Of Action Milestones POA&M",
         "risk_acceptance": "Risk Acceptance"
       },
       "label": {
         "assign_peer_assessor": "Assign Peer Assessor",
         "override_result": "Override Result",
-        "iato_expiry_date": "Iato Expiry Date",
-        "poam_notes": "Poam Notes"
+        "iato_expiry_date": "IATO Expiry Date",
+        "poam_notes": "POA&M Notes"
       },
       "ph": {
         "notes_optional": "Notes Optional",
-        "poam_context_notes": "Poam Context Notes",
+        "poam_context_notes": "POA&M Context Notes",
         "document_residual_risk_acceptance_rationale": "Document Residual Risk Acceptance Rationale",
         "remediation_item_description": "Remediation Item Description",
         "assigned_to": "Assigned To",
@@ -898,7 +898,7 @@
         "controls_met": "Controls Met",
         "partially_met": "Partially Met",
         "not_met": "Not Met",
-        "default_90_days_if_iato": "Default 90 Days If Iato",
+        "default_90_days_if_iato": "Default 90 Days If IATO",
         "tailored_description": "Tailored Description"
       },
       "th": {
@@ -910,7 +910,7 @@
         "status": "Status"
       },
       "p": {
-        "no_poam_items_yet_use": "No Poam Items Yet Use"
+        "no_poam_items_yet_use": "No POA&M Items Yet Use"
       },
       "div": {
         "loading_comments": "Loading Comments"
@@ -936,7 +936,7 @@
         "applicability": "Applicability"
       },
       "ph": {
-        "projectspecific_description_for_this_control": "Projectspecific Description For This Control",
+        "projectspecific_description_for_this_control": "Project-Specific Description For This Control",
         "what_evidence_the_project_owner": "What Evidence The Project Owner"
       }
     },
@@ -968,7 +968,7 @@
     },
     "assessor_mfa_setup": {
       "h3": {
-        "set_up_multifactor_authentication": "Set Up Multifactor Authentication"
+        "set_up_multifactor_authentication": "Set Up Multi-Factor Authentication"
       },
       "strong": {
         "microsoft_authenticator": "Microsoft Authenticator",
@@ -980,7 +980,7 @@
         "cant_scan_enter_this_key": "Cant Scan Enter This Key"
       },
       "label": {
-        "step_2_enter_the_6digit": "Step 2 Enter The 6digit"
+        "step_2_enter_the_6digit": "Step 2 Enter The 6-Digit"
       },
       "btn": {
         "verify_complete_registration": "Verify Complete Registration"
@@ -1190,7 +1190,7 @@
         "inherited_from": "Inherited From"
       },
       "ph": {
-        "projectspecific_description": "Projectspecific Description",
+        "projectspecific_description": "Project-Specific Description",
         "what_evidence_should_be_provided": "What Evidence Should Be Provided",
         "eg_azure_ssc": "Eg Azure Ssc",
         "filter_by_id_or_keyword": "Filter By Id Or Keyword"
@@ -1319,7 +1319,7 @@
     },
     "self_assessment_review": {
       "link": {
-        "back_to_selfassessments": "Back To Selfassessments"
+        "back_to_selfassessments": "Back To Self-Assessments"
       },
       "span": {
         "pending_review": "Pending Review",
@@ -1342,8 +1342,8 @@
         "findings": "Findings",
         "system_description": "System Description",
         "applicable_frameworks": "Applicable Frameworks",
-        "prepopulate_with_ai": "Prepopulate With Ai",
-        "autofill_intake_fields_from_selfassessment": "Autofill Intake Fields From Selfassessment"
+        "prepopulate_with_ai": "Pre-Populate With Ai",
+        "autofill_intake_fields_from_selfassessment": "Auto-Fill Intake Fields From Self-Assessment"
       },
       "ph": {
         "internal_notes_about_this_submission": "Internal Notes About This Submission",
@@ -1393,17 +1393,17 @@
         "passkey_enrolled_face_id_touch": "Passkey Enrolled Face Id Touch"
       },
       "link": {
-        "reenroll": "Reenroll",
+        "reenroll": "Re-Enroll",
         "set_up_mfa_now": "Set Up Mfa Now",
         "audit_log": "Audit Log"
       },
       "div": {
         "approve_with_face_id_touch": "Approve With Face Id Touch",
-        "enter_a_6digit_code_from": "Enter A 6digit Code From",
+        "enter_a_6digit_code_from": "Enter A 6-Digit Code From",
         "critical_actions_proceed_without_mfa": "Critical Actions Proceed Without Mfa"
       },
       "btn": {
-        "reregister": "Reregister",
+        "reregister": "Re-Register",
         "register_passkey": "Register Passkey"
       }
     }
@@ -1548,7 +1548,7 @@
       "none_of_the_above": "None Of The Above",
       "atip": "Atip",
       "gc_systems": "Gc Systems",
-      "mobile_byod": "Mobile Byod",
+      "mobile_byod": "Mobile BYOD",
       "external_users": "External Users",
       "threat_risk_assessment_tra": "Threat Risk Assessment Tra",
       "system_security_plan_ssp": "System Security Plan Ssp",
@@ -1566,8 +1566,8 @@
       "eg_employment_and_social_development": "Eg Employment And Social Development",
       "eg_innovation_information_and_technology": "Eg Innovation Information And Technology",
       "list_any_technologies_not_covered": "List Any Technologies Not Covered",
-      "eg_gccase_via_api_sap": "Eg Gccase Via Api Sap",
-      "eg_tight_deadline_need_iato": "Eg Tight Deadline Need Iato"
+      "eg_gccase_via_api_sap": "Eg GCCase Via Api Sap",
+      "eg_tight_deadline_need_iato": "Eg Tight Deadline Need IATO"
     },
     "h2": {
       "security_assessment_intake": "Security Assessment Intake"
@@ -1602,7 +1602,7 @@
       "osfi_b13": "Osfi B13",
       "nist_80053_fedramp": "Nist 80053 Fedramp",
       "cmmc_20": "Cmmc",
-      "stateramp": "Stateramp",
+      "stateramp": "StateRAMP",
       "nydfs_500": "Nydfs",
       "nis2_directive": "Nis2 Directive",
       "dora": "Dora",
@@ -1630,26 +1630,26 @@
     },
     "btn": {
       "change_regions": "Change Regions",
-      "analyze_prefill": "Analyze Prefill",
+      "analyze_prefill": "Analyze Pre-Fill",
       "get_suggestions": "Get Suggestions",
       "submit_intake": "Submit Intake"
     },
     "label": {
       "branch_directorate": "Branch Directorate",
-      "target_golive_date": "Target Golive Date",
+      "target_golive_date": "Target Go-Live Date",
       "estimated_user_count": "Estimated User Count",
       "personal_information_pii_checklist": "Personal Information Pii Checklist",
       "data_residency": "Data Residency",
       "technology_stack": "Technology Stack",
       "microsoft_entra_id_azure_ad": "Microsoft Entra Id Azure Ad",
-      "active_directory_onprem": "Active Directory Onprem",
-      "multifactor_authentication": "Multifactor Authentication",
+      "active_directory_onprem": "Active Directory On-Prem",
+      "multifactor_authentication": "Multi-Factor Authentication",
       "privileged_identity_management": "Privileged Identity Management",
       "microsoft_azure": "Microsoft Azure",
       "amazon_web_services": "Amazon Web Services",
       "google_cloud_platform": "Google Cloud Platform",
       "ssc_data_centre": "Ssc Data Centre",
-      "gc_network_gcnet": "Gc Network Gcnet",
+      "gc_network_gcnet": "Gc Network GCNet",
       "microsoft_sentinel_siem": "Microsoft Sentinel Siem",
       "splunk_siem": "Splunk Siem",
       "microsoft_defender": "Microsoft Defender",
@@ -1699,14 +1699,14 @@
       "project_created_successfully": "Project Created Successfully",
       "you_do_not_have_access": "You Do Not Have Access",
       "audit_started": "Audit Started",
-      "poam_item_added": "Poam Item Added",
-      "poam_item_updated": "Poam Item Updated",
-      "poam_item_removed": "Poam Item Removed",
+      "poam_item_added": "POA&M Item Added",
+      "poam_item_updated": "POA&M Item Updated",
+      "poam_item_removed": "POA&M Item Removed",
       "submission_reactivated_for_updates": "Submission Reactivated For Updates",
       "failed_to_generate_pdf": "Failed To Generate Pdf",
       "failed_to_generate_ato_document": "Failed To Generate Ato Document",
       "draft_assessment_deleted_successfully": "Draft Assessment Deleted Successfully",
-      "selfassessment_marked_as_reviewed": "Selfassessment Marked As Reviewed",
+      "selfassessment_marked_as_reviewed": "Self-Assessment Marked As Reviewed",
       "request_not_found": "Request Not Found",
       "access_request_denied": "Access Request Denied",
       "attachment_not_found": "Attachment Not Found",
@@ -1810,10 +1810,10 @@
   },
   "checklist": {
     "h1": {
-      "iato_remediation_checklist": "Iato Remediation Checklist"
+      "iato_remediation_checklist": "IATO Remediation Checklist"
     },
     "strong": {
-      "interim_authority_to_operate_iato": "Interim Authority To Operate Iato"
+      "interim_authority_to_operate_iato": "Interim Authority To Operate IATO"
     },
     "th": {
       "description": "Description",
@@ -1872,11 +1872,11 @@
     },
     "div": {
       "approve_with_face_id_touch": "Approve With Face Id Touch",
-      "enter_a_6digit_code_from": "Enter A 6digit Code From",
+      "enter_a_6digit_code_from": "Enter A 6-Digit Code From",
       "critical_actions_proceed_without_mfa": "Critical Actions Proceed Without Mfa"
     },
     "btn": {
-      "reregister": "Reregister",
+      "reregister": "Re-Register",
       "register_passkey": "Register Passkey"
     }
   },
@@ -1892,7 +1892,7 @@
   },
   "mfa_setup": {
     "h3": {
-      "set_up_multifactor_authentication": "Set Up Multifactor Authentication"
+      "set_up_multifactor_authentication": "Set Up Multi-Factor Authentication"
     },
     "strong": {
       "microsoft_authenticator": "Microsoft Authenticator",
@@ -1904,7 +1904,7 @@
       "cant_scan_enter_this_key": "Cant Scan Enter This Key"
     },
     "label": {
-      "step_2_enter_the_6digit": "Step 2 Enter The 6digit"
+      "step_2_enter_the_6digit": "Step 2 Enter The 6-Digit"
     },
     "btn": {
       "verify_activate_mfa": "Verify Activate Mfa"
@@ -1929,7 +1929,7 @@
   },
   "poam_remediation": {
     "h1": {
-      "poam_remediation": "Poam Remediation"
+      "poam_remediation": "POA&M Remediation"
     },
     "div": {
       "total_items": "Total Items",
@@ -1957,7 +1957,7 @@
   },
   "product_signup": {
     "h1": {
-      "start_your_free_14day_trial": "Start Your Free 14day Trial"
+      "start_your_free_14day_trial": "Start Your Free 14-Day Trial"
     },
     "div": {
       "active_assessments": "Active Assessments",
@@ -1980,7 +1980,7 @@
       "smith": "Smith",
       "acme_security_corp": "Acme Security Corp",
       "min_10_characters": "Min 10 Characters",
-      "reenter_your_password": "Reenter Your Password"
+      "reenter_your_password": "Re-Enter Your Password"
     },
     "span": {
       "your_instance": "Your Instance"
@@ -2059,7 +2059,7 @@
     },
     "strong": {
       "interim_ato_issued": "Interim Ato Issued",
-      "poam_items": "Poam Items"
+      "poam_items": "POA&M Items"
     },
     "label": {
       "your_evidence": "Your Evidence",
@@ -2091,7 +2091,7 @@
   },
   "self_assessment": {
     "h2": {
-      "security_selfassessment": "Security Selfassessment"
+      "security_selfassessment": "Security Self-Assessment"
     },
     "p": {
       "evaluate_your_systems_security_posture": "Evaluate Your Systems Security Posture",
