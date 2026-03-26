@@ -516,6 +516,10 @@ async function initDatabase() {
       expires_at DATETIME,
       FOREIGN KEY (approved_by) REFERENCES users(id)
     )`],
+    // v8.15: Intake submitter tracking + password reset
+    ['intake_submissions', 'submitted_by', 'ALTER TABLE intake_submissions ADD COLUMN submitted_by INTEGER'],
+    ['users', 'reset_token', 'ALTER TABLE users ADD COLUMN reset_token TEXT'],
+    ['users', 'reset_token_expires', 'ALTER TABLE users ADD COLUMN reset_token_expires DATETIME'],
   ];
 
   migrations.forEach(([table, column, sql]) => {

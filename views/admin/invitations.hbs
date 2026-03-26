@@ -119,6 +119,55 @@
         <p class="text-muted text-center py-3"><i class="bi bi-inbox me-2"></i>No client invitations sent yet.</p>
         {{/if}}
       </div>
+    
+      <!-- Registered Client Users -->
+      <div class="form-section mt-4">
+        <div class="section-header">
+          <h3 class="section-title">
+            <span class="section-number"><i class="bi bi-people-fill"></i></span>
+            Registered Client Users
+          </h3>
+        </div>
+        <p class="text-muted small">Manage registered client accounts. Reset password will invalidate their current credentials and MFA — share the reset link with the client.</p>
+        {{#if clientUsers.length}}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Organization</th>
+                <th>Last Login</th>
+                <th>MFA</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each clientUsers}}
+              <tr>
+                <td><i class="bi bi-person me-1"></i>{{this.name}}</td>
+                <td><code>{{this.email}}</code></td>
+                <td>{{this.organization}}</td>
+                <td><small class="text-muted">{{this.last_login}}</small></td>
+                <td>
+                  {{#if this.mfa_enabled}}<span class="badge bg-success">Active</span>{{else}}<span class="badge bg-secondary">Off</span>{{/if}}
+                </td>
+                <td>
+                  <form action="/admin/invitations/reset-password/{{this.id}}" method="POST" class="d-inline mfa-protected" data-mfa-label="Reset password & MFA for {{this.name}}?" onsubmit="return confirm('This will invalidate the user\'s password and MFA. They will need to use the reset link to set a new password and re-enroll MFA. Continue?')">
+                    <button type="submit" class="btn btn-sm btn-outline-warning" title="Reset password & MFA">
+                      <i class="bi bi-key me-1"></i>Reset
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+        {{else}}
+        <p class="text-muted text-center py-3"><i class="bi bi-person-x me-2"></i>No registered client users yet.</p>
+        {{/if}}
+      </div>
     </div>
 
     <!-- ══ ASSESSOR INVITATIONS ══ -->

@@ -561,8 +561,9 @@ router.get('/client/dashboard', ensureClientAuth, (req, res) => {
     SELECT a.*, p.name as project_name, p.project_owner_email
     FROM assessments a JOIN projects p ON a.project_id = p.id
     WHERE LOWER(a.client_email) = LOWER(?) OR LOWER(p.project_owner_email) = LOWER(?)
+      OR p.id IN (SELECT project_id FROM intake_submissions WHERE submitted_by_user_id = ? AND project_id IS NOT NULL)
     ORDER BY a.created_at DESC
-  `, [clientUser.email, clientUser.email]);
+  `, [clientUser.email, clientUser.email, clientUser.id]);
 
   res.render('public/client-dashboard', {
     title: 'My Dashboard',

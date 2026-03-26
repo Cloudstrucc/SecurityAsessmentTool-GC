@@ -1801,6 +1801,15 @@ router.get('/invitations', ensureAdminMfa, (req, res) => {
      WHERE u.role = 'assessor' AND u.is_active = 1
      ORDER BY i.accepted_at DESC`, [req.user.id]
   );
+  // Get registered client users (accepted invites from this assessor)
+  const clientUsers = all(
+    `SELECT u.id, u.name, u.email, u.organization, u.last_login, u.mfa_enabled
+     FROM users u
+     INNER JOIN invitations i ON i.accepted_by_user_id = u.id AND i.invited_by = ? AND i.type = 'client' AND i.status = 'accepted'
+     WHERE u.role = 'client' AND u.is_active = 1
+     ORDER BY u.name ASC`, [req.user.id]
+  );
+
   res.render('admin/invitations', {
     title: 'Invitation Management',
     isAdmin: true,
@@ -1808,6 +1817,7 @@ router.get('/invitations', ensureAdminMfa, (req, res) => {
     clientInvites,
     assessorInvites,
     peerAssessors,
+    clientUsers,
     user: req.user
   });
 });
