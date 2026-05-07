@@ -8,6 +8,10 @@ Node.js/Express application for managing Government of Canada security assessmen
 - Lets assessors create projects directly from the admin dashboard.
 - Creates a project intake record when a project is created by an assessor.
 - Lets assessors create assessments from projects and link them back to the related intake.
+- Stores project documentation for later AI analysis, evidence guidance, audit traceability, and reporting references.
+- Lets assessors tailor assessment controls, edit guidance/evidence fields, and preserve AI guidance provenance.
+- Provides project-level report branding, control exports, full project exports, ATO/iATO records, and POA&M management.
+- Includes an admin security control catalog at `/admin/security-controls`.
 - Lets assessors assign intakes and assessments to existing users or invite new client/assessor users.
 - Supports TOTP MFA and passkeys, with TOTP available as a fallback whenever a passkey is used.
 - Supports a controlled break-glass assessor account that uses password-only login for emergency recovery.
@@ -180,10 +184,42 @@ Create an assessment from a project:
 
 1. Open the project detail page.
 2. Choose Create Assessment.
-3. Select or tailor controls.
+3. Review the tailored recommended controls or switch to the full baseline.
 4. Save the assessment.
+5. Use Tailor on the assessment page to edit applicability, descriptions, guidance, evidence, notes, status, and risk.
 
 The assessment is linked to both the project and the project intake record.
+
+Project documentation:
+
+1. Open the project detail page.
+2. Use the Documentation section to upload project documents.
+3. Uploaded documents are associated with the project and can be downloaded, removed, used for control suggestion, or selected for AI evidence guidance.
+4. Full project reports list associated documents but do not embed uploaded attachments.
+
+AI evidence guidance:
+
+1. Upload one or more project documents.
+2. Open the assessment page.
+3. In AI Guidance From Project Documentation, select documents and controls.
+4. Generate a preview.
+5. Review, edit, and save approved guidance.
+
+The app does not silently overwrite existing assessor-entered guidance unless the save action confirms replacement.
+
+ATO/iATO and POA&M:
+
+1. Open a project.
+2. Use Reports & Authorization to create an ATO or iATO record.
+3. Edit all authorization sections before export.
+4. Add POA&M items from an assessment and link them to controls and ATO/iATO records.
+5. Manage owners, due dates, status, mitigation plans, milestones, residual risk, and assessor notes.
+
+Admin control catalog:
+
+- Browse `/admin/security-controls`.
+- Filter by framework, family, category, baseline, applicability, status, or keyword.
+- Export the visible catalog data as CSV.
 
 Assignment flow:
 
@@ -221,6 +257,11 @@ Current executable checks:
 - Client can sign in with TOTP and create an intake.
 - Admin can create a project and linked project intake.
 - Admin can create an assessment linked to the project intake.
+- Admin can upload the SADD HTML document to project documentation and download it later.
+- Admin can tailor assessment controls and persist description, guidance, evidence, notes, status, applicability, and risk changes.
+- Admin can preview and save AI evidence guidance generated from uploaded project documentation.
+- Admin can create editable ATO/iATO records and manage linked POA&M items.
+- Admin can browse the security control catalog.
 
 Current skipped check:
 

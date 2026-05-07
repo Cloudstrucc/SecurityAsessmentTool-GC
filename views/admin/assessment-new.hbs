@@ -9,18 +9,42 @@
 
   <div class="alert alert-info">
     <i class="bi bi-lightbulb me-2"></i>
-    <strong>{{controlCount}} controls recommended</strong> based on project characteristics
+    <strong>{{controlCount}} controls recommended</strong> {{#if usingTailoredRecommendation}}from the tailored project context{{else}}from the full baseline{{/if}}
     ({{project.data_classification}}, {{project.hosting_type}}, {{project.app_type}}{{#if project.has_pii}}, PII{{/if}}).
-    Review, tailor descriptions, confirm inheritance, then create the assessment package.
+    Review the recommended controls, approve or reject selections, add more manually later, and then create the assessment package.
+    {{#if usingTailoredRecommendation}}<br><small class="text-muted">Full baseline available: {{baselineCount}} controls. The assessor remains in control of the final selected set.</small>{{/if}}
     {{#if saaReason}}<br><small class="text-muted">Determination: {{saaReason}}</small>{{/if}}
     {{#if intake}}<br><small class="text-muted">Linked intake: <code>{{intake.ref_code}}</code></small>{{/if}}
   </div>
 
   <div class="d-flex gap-2 mb-3">
+    {{#if usingTailoredRecommendation}}
+      <a href="/admin/projects/{{project.id}}/assessments/new?all=1" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-list-ul me-1"></i>Review Full Baseline ({{baselineCount}})
+      </a>
+    {{else}}
+      <a href="/admin/projects/{{project.id}}/assessments/new" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-stars me-1"></i>Use Tailored Recommendation
+      </a>
+    {{/if}}
     <a href="/admin/projects/{{project.id}}/guidance" class="btn btn-outline-success btn-sm">
       <i class="bi bi-file-text me-1"></i>View GC Web Guidance Report Instead
     </a>
   </div>
+
+  {{#if documents.length}}
+    <div class="card mb-3">
+      <div class="card-header bg-light"><i class="bi bi-stars me-2"></i>AI-Assisted Control Selection Inputs</div>
+      <div class="card-body small">
+        <p class="text-muted mb-2">The tailored recommendation can use these uploaded project documents as context. You can still add or remove controls before saving.</p>
+        <div class="d-flex flex-wrap gap-2">
+          {{#each documents}}
+            <span class="badge bg-light text-dark border"><i class="bi bi-file-earmark me-1"></i>{{this.original_name}}</span>
+          {{/each}}
+        </div>
+      </div>
+    </div>
+  {{/if}}
 
   <form method="POST" action="/admin/projects/{{project.id}}/assessments/new" id="assessmentForm">
 
@@ -75,6 +99,7 @@
             <!-- Hidden fields for standard data -->
             <input type="hidden" name="title_{{this.id}}" value="{{this.title}}">
             <input type="hidden" name="desc_{{this.id}}" value="{{this.description}}">
+            <input type="hidden" name="control_guidance_{{this.id}}" value="{{this.evidenceGuidance}}">
             <input type="hidden" name="priority_{{this.id}}" value="{{this.priority}}">
             {{#if this.inheritedFrom}}
               <input type="hidden" name="inherited[{{this.id}}]" value="1">

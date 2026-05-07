@@ -196,6 +196,7 @@ async function initDatabase() {
       evidence_text TEXT,
       created_by INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (assessment_id) REFERENCES assessments(id) ON DELETE CASCADE,
       FOREIGN KEY (created_by) REFERENCES users(id)
     )
@@ -259,6 +260,41 @@ async function initDatabase() {
     )
   `);
 
+  // ── EDITABLE ATO / iATO RECORDS ──
+  db.run(`
+    CREATE TABLE IF NOT EXISTS ato_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      assessment_id INTEGER,
+      record_type TEXT NOT NULL DEFAULT 'ato',
+      title TEXT,
+      system_name TEXT,
+      organization_name TEXT,
+      authorizing_official TEXT,
+      assessor TEXT,
+      authorization_status TEXT DEFAULT 'draft',
+      authorization_date TEXT,
+      expiry_date TEXT,
+      executive_summary TEXT,
+      system_description TEXT,
+      assessment_scope TEXT,
+      risk_summary TEXT,
+      residual_risk_statement TEXT,
+      conditions_of_authorization TEXT,
+      security_control_summary TEXT,
+      poam_summary TEXT,
+      assessor_notes TEXT,
+      static_sections TEXT,
+      custom_sections TEXT,
+      created_by INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+      FOREIGN KEY (assessment_id) REFERENCES assessments(id),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    )
+  `);
+
   // ── REUSABLE TEMPLATES (from completed assessments) ──
   db.run(`
     CREATE TABLE IF NOT EXISTS control_templates (
@@ -273,6 +309,27 @@ async function initDatabase() {
       usage_count INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (source_project_id) REFERENCES projects(id)
+    )
+  `);
+
+  // ── SECURITY CONTROL CATALOG ──
+  db.run(`
+    CREATE TABLE IF NOT EXISTS security_control_catalog (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      framework TEXT NOT NULL,
+      control_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      family TEXT,
+      description TEXT,
+      guidance TEXT,
+      definitions TEXT,
+      related_controls TEXT,
+      baseline TEXT,
+      category TEXT,
+      applicability_notes TEXT,
+      status TEXT DEFAULT 'active',
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(framework, control_id)
     )
   `);
 
@@ -356,6 +413,51 @@ async function initDatabase() {
       size INTEGER,
       uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (intake_id) REFERENCES intake_submissions(id) ON DELETE CASCADE
+    )
+  `);
+
+  // ── PROJECT DOCUMENTS (documents reusable for AI, reports, and traceability) ──
+  db.run(`
+    CREATE TABLE IF NOT EXISTS project_documents (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      intake_id INTEGER,
+      filename TEXT NOT NULL,
+      original_name TEXT NOT NULL,
+      document_type TEXT,
+      mime_type TEXT,
+      size INTEGER,
+      uploaded_by_user_id INTEGER,
+      uploaded_by_name TEXT,
+      status TEXT DEFAULT 'active',
+      ai_summary TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      deleted_at DATETIME,
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+      FOREIGN KEY (intake_id) REFERENCES intake_submissions(id),
+      FOREIGN KEY (uploaded_by_user_id) REFERENCES users(id)
+    )
+  `);
+
+  // ── REPORT BRANDING ──
+  db.run(`
+    CREATE TABLE IF NOT EXISTS report_branding (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      scope_type TEXT DEFAULT 'project',
+      project_id INTEGER,
+      organization_name TEXT,
+      logo_filename TEXT,
+      logo_original_name TEXT,
+      logo_mime_type TEXT,
+      report_subtitle TEXT,
+      classification_label TEXT,
+      assessor_company_name TEXT,
+      created_by INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+      FOREIGN KEY (created_by) REFERENCES users(id)
     )
   `);
 
@@ -481,6 +583,17 @@ async function initDatabase() {
     ['assessment_assignments', 'accepted_at', 'ALTER TABLE assessment_assignments ADD COLUMN accepted_at DATETIME'],
     ['projects', 'description', 'ALTER TABLE projects ADD COLUMN description TEXT'],
     ['projects', 'technologies', "ALTER TABLE projects ADD COLUMN technologies TEXT DEFAULT '[]'"],
+    ['assessment_controls', 'control_guidance', 'ALTER TABLE assessment_controls ADD COLUMN control_guidance TEXT'],
+    ['assessment_controls', 'assessor_notes', 'ALTER TABLE assessment_controls ADD COLUMN assessor_notes TEXT'],
+    ['assessment_controls', 'guidance_source', "ALTER TABLE assessment_controls ADD COLUMN guidance_source TEXT DEFAULT 'manual'"],
+    ['assessment_controls', 'ai_generated_at', 'ALTER TABLE assessment_controls ADD COLUMN ai_generated_at DATETIME'],
+    ['assessment_controls', 'guidance_edited_at', 'ALTER TABLE assessment_controls ADD COLUMN guidance_edited_at DATETIME'],
+    ['assessment_controls', 'framework', "ALTER TABLE assessment_controls ADD COLUMN framework TEXT DEFAULT 'ITSG-33'"],
+    ['iato_checklist', 'project_id', 'ALTER TABLE iato_checklist ADD COLUMN project_id INTEGER'],
+    ['iato_checklist', 'ato_record_id', 'ALTER TABLE iato_checklist ADD COLUMN ato_record_id INTEGER'],
+    ['iato_checklist', 'residual_risk', 'ALTER TABLE iato_checklist ADD COLUMN residual_risk TEXT'],
+    ['iato_checklist', 'assessor_notes', 'ALTER TABLE iato_checklist ADD COLUMN assessor_notes TEXT'],
+    ['iato_checklist', 'updated_at', 'ALTER TABLE iato_checklist ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP'],
   ];
 
   migrations.forEach(([table, column, sql]) => {
@@ -506,6 +619,39 @@ async function initDatabase() {
     db.run(`INSERT INTO users (email, password, name, role, title, organization) VALUES (?, ?, ?, ?, ?, ?)`,
       [adminEmail, hashedPassword, process.env.ADMIN_NAME || 'Administrator', 'assessor', 'IT Security Assessor', 'Your Agency']);
     console.log('Default assessor account created:', adminEmail);
+  }
+
+  try {
+    const { CONTROLS, CONTROL_FAMILIES } = require('../config/itsg33-controls');
+    const existingCatalog = db.exec("SELECT COUNT(*) FROM security_control_catalog WHERE framework = 'ITSG-33'");
+    const existingCount = existingCatalog[0]?.values[0]?.[0] || 0;
+    if (existingCount < CONTROLS.length) {
+      const insert = db.prepare(`INSERT OR REPLACE INTO security_control_catalog
+        (framework, control_id, title, family, description, guidance, definitions, related_controls, baseline, category, applicability_notes, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+      CONTROLS.forEach(control => {
+        insert.bind([
+          'ITSG-33',
+          control.id,
+          control.title,
+          control.family,
+          control.description || '',
+          control.evidenceGuidance || '',
+          JSON.stringify(control.tags || []),
+          JSON.stringify([]),
+          (control.profiles || []).join(', '),
+          CONTROL_FAMILIES[control.family] || control.family,
+          (control.commonInheritance || []).join(', '),
+          'active'
+        ]);
+        insert.step();
+        insert.reset();
+      });
+      insert.free();
+      console.log(`Security control catalog seeded (${CONTROLS.length} ITSG-33 controls)`);
+    }
+  } catch (e) {
+    console.warn('Security control catalog seed skipped:', e.message);
   }
 
   saveDatabase();

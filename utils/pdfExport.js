@@ -503,4 +503,353 @@ function generateATODocument(assessment, project, atoType, controls, outputPath,
   });
 }
 
-module.exports = { generateAssessmentReport, generateATODocument };
+function cleanText(value, fallback = 'N/A') {
+  const text = stripHtml(value === null || value === undefined ? '' : String(value)).replace(/\s+/g, ' ').trim();
+  return text || fallback;
+}
+
+function formatDateValue(value) {
+  if (!value) return 'N/A';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleDateString('en-CA');
+}
+
+function resolveLogoPath(branding = {}, logoDir) {
+  if (!branding.logo_filename || !logoDir) return null;
+  const logoPath = path.join(logoDir, branding.logo_filename);
+  return fs.existsSync(logoPath) ? logoPath : null;
+}
+
+function brandConfig(project = {}, options = {}) {
+  const branding = options.branding || {};
+  return {
+    organization: branding.organization_name || project.department || project.organization_name || 'Security Assessment',
+    subtitle: branding.report_subtitle || 'Security Assessment and Authorization',
+    classification: branding.classification_label || project.data_classification || '',
+    assessorCompany: branding.assessor_company_name || '',
+    logoPath: resolveLogoPath(branding, options.logoDir)
+  };
+}
+
+function brandedHeader(doc, title, project = {}, options = {}) {
+  const brand = brandConfig(project, options);
+  const accent = '#d4a017';
+  const teal = '#0f766e';
+  doc.rect(0, 0, doc.page.width, 86).fill(COLORS.navy);
+  doc.rect(0, 82, doc.page.width, 4).fill(accent);
+
+  if (brand.logoPath) {
+    try {
+      doc.image(brand.logoPath, 50, 18, { fit: [58, 42], align: 'left', valign: 'center' });
+    } catch (err) {
+      // Keep report generation resilient if an uploaded logo is invalid.
+    }
+  }
+
+  const textX = brand.logoPath ? 122 : 50;
+  doc.fontSize(9).fillColor('#dbe6f3').text(brand.organization, textX, 16, { width: doc.page.width - textX - 50 });
+  doc.fontSize(17).fillColor(COLORS.white).text(title, textX, 32, { width: doc.page.width - textX - 50 });
+  doc.fontSize(9).fillColor('#dbe6f3').text(brand.subtitle, textX, 57, { width: doc.page.width - textX - 50 });
+  if (brand.classification) {
+    doc.roundedRect(doc.page.width - 180, 15, 130, 20, 3).fill(teal);
+    doc.fontSize(8).fillColor(COLORS.white).text(String(brand.classification).toUpperCase(), doc.page.width - 172, 20, { width: 114, align: 'center' });
+  }
+  doc.y = 112;
+  doc.fillColor(COLORS.text);
+}
+
+function ensureSpace(doc, needed = 80, options = {}) {
+  if (doc.y + needed > doc.page.height - 56) {
+    doc.addPage();
+    if (options.title) brandedHeader(doc, options.title, options.project, options);
+  }
+}
+
+function brandedSection(doc, title, options = {}) {
+  ensureSpace(doc, 54, options);
+  doc.moveDown(0.3);
+  doc.rect(50, doc.y, doc.page.width - 100, 1).fill('#d4a017');
+  doc.moveDown(0.4);
+  doc.fontSize(12).fillColor(COLORS.navy).text(title);
+  doc.moveDown(0.3);
+  doc.fillColor(COLORS.text);
+}
+
+function brandedInfoRows(doc, rows, options = {}) {
+  rows.filter(row => row && row.length).forEach(([label, value]) => {
+    ensureSpace(doc, 20, options);
+    doc.fontSize(8).fillColor(COLORS.muted).text(String(label) + ':', { continued: true });
+    doc.fillColor(COLORS.text).text('  ' + cleanText(value, 'N/A'));
+  });
+  doc.moveDown(0.3);
+}
+
+function paragraph(doc, text, options = {}) {
+  ensureSpace(doc, 60, options);
+  doc.fontSize(9).fillColor(COLORS.text).text(cleanText(text, 'None provided.'), { lineGap: 2 });
+  doc.moveDown(0.4);
+}
+
+function drawProjectControl(doc, control, options = {}) {
+  ensureSpace(doc, 145, options);
+  const title = `${control.control_id || ''} - ${control.title || 'Untitled Control'}`;
+  const applicable = control.is_applicable ? 'Applicable' : 'Not Applicable';
+  const status = control.audit_result || control.evidence_status || control.assessment_status || 'pending';
+  const risk = control.risk_level || 'medium';
+
+  doc.roundedRect(50, doc.y, doc.page.width - 100, 20, 3).fill(COLORS.lightBg);
+  doc.fontSize(9).fillColor(COLORS.navy).text(title, 58, doc.y + 5, { width: doc.page.width - 116 });
+  doc.moveDown(1.5);
+  doc.fontSize(8).fillColor(COLORS.muted)
+    .text(`Framework: ${control.framework || 'ITSG-33'}   Family: ${control.family_name || control.family || 'N/A'}   Status: ${status}   Applicability: ${applicable}   Risk: ${risk}`);
+  doc.moveDown(0.2);
+
+  [
+    ['Description', control.description],
+    ['Control Guidance', control.control_guidance],
+    ['Evidence Guidance', control.evidence_guidance],
+    ['Evidence Collected', control.evidence_text || control.evidence_html],
+    ['Assessor Notes', control.assessor_notes || control.audit_comments]
+  ].forEach(([label, value]) => {
+    const body = cleanText(value, '');
+    if (!body) return;
+    ensureSpace(doc, 42, options);
+    doc.fontSize(8).fillColor(COLORS.muted).text(label + ':');
+    doc.fontSize(8).fillColor(COLORS.text).text(truncate(body, 850), { lineGap: 1, indent: 10 });
+  });
+  doc.moveDown(0.4);
+}
+
+function drawPoamItem(doc, item, options = {}) {
+  ensureSpace(doc, 95, options);
+  const riskColor = item.risk_level === 'high' ? COLORS.danger : item.risk_level === 'medium' ? COLORS.warning : '#0f766e';
+  doc.fontSize(9).fillColor(riskColor).text(`[${(item.risk_level || 'medium').toUpperCase()}] `, { continued: true });
+  doc.fillColor(COLORS.navy).text(cleanText(item.description, 'POA&M item'));
+  doc.fontSize(8).fillColor(COLORS.muted)
+    .text(`Control: ${item.control_id || 'N/A'}   Owner: ${item.assigned_to || 'N/A'}   Due: ${formatDateValue(item.deadline)}   Status: ${item.status || 'open'}`);
+  if (item.remediation_plan) doc.fontSize(8).fillColor(COLORS.text).text('Mitigation Plan: ' + truncate(cleanText(item.remediation_plan, ''), 450), { indent: 10 });
+  if (item.milestone) doc.fontSize(8).fillColor(COLORS.text).text('Milestones: ' + truncate(cleanText(item.milestone, ''), 350), { indent: 10 });
+  if (item.residual_risk) doc.fontSize(8).fillColor(COLORS.text).text('Residual Risk: ' + truncate(cleanText(item.residual_risk, ''), 350), { indent: 10 });
+  if (item.assessor_notes) doc.fontSize(8).fillColor(COLORS.text).text('Assessor Notes: ' + truncate(cleanText(item.assessor_notes, ''), 350), { indent: 10 });
+  doc.moveDown(0.4);
+}
+
+function finishBrandedDocument(doc, footerText) {
+  addFooters(doc, footerText);
+  doc.end();
+}
+
+function generateControlsReport(project, controls, outputPath, options = {}) {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 50, size: 'LETTER', bufferPages: true });
+    const stream = fs.createWriteStream(outputPath);
+    doc.pipe(stream);
+
+    const headerOptions = { ...options, title: 'Project Control Assessment Report', project };
+    brandedHeader(doc, headerOptions.title, project, options);
+    brandedInfoRows(doc, [
+      ['Project Name', project.name],
+      ['Organization', (options.branding || {}).organization_name || project.department],
+      ['Report Generated', new Date().toLocaleDateString('en-CA')],
+      ['Control Count', controls.length],
+      ['Classification', project.data_classification],
+      ['Security Profile', project.security_profile]
+    ], headerOptions);
+
+    const stats = computeStats(controls);
+    brandedSection(doc, 'Control Summary', headerOptions);
+    doc.fontSize(9).fillColor(COLORS.text)
+      .text(`Total: ${controls.length}   Applicable: ${stats.applicable.length}   Met: ${stats.met.length}   Partially Met: ${stats.partial.length}   Not Met: ${stats.notMet.length}   Pending: ${stats.pending.length}`);
+    doc.moveDown(0.4);
+    drawScoreBar(doc, stats, 400);
+
+    brandedSection(doc, 'Controls', headerOptions);
+    controls.forEach(control => drawProjectControl(doc, control, headerOptions));
+
+    finishBrandedDocument(doc, `${brandConfig(project, options).organization} - Controls Report - ${project.name}`);
+    stream.on('finish', () => resolve(outputPath));
+    stream.on('error', reject);
+  });
+}
+
+function generateFullProjectReport(project, data, outputPath) {
+  return new Promise((resolve, reject) => {
+    data = data || {};
+    const options = { ...(data || {}), title: 'Full Project Security Report', project };
+    const doc = new PDFDocument({ margin: 50, size: 'LETTER', bufferPages: true });
+    const stream = fs.createWriteStream(outputPath);
+    doc.pipe(stream);
+
+    brandedHeader(doc, options.title, project, data || {});
+    brandedInfoRows(doc, [
+      ['Project Name', project.name],
+      ['Organization', (data.branding || {}).organization_name || project.department],
+      ['Generated', new Date().toLocaleDateString('en-CA')],
+      ['Classification', project.data_classification],
+      ['Security Profile', project.security_profile],
+      ['Hosting', project.hosting_type],
+      ['Application Type', project.app_type]
+    ], options);
+
+    brandedSection(doc, 'Project Overview', options);
+    paragraph(doc, project.description || project.specifications || 'No project description provided.', options);
+
+    brandedSection(doc, 'Organization Information', options);
+    brandedInfoRows(doc, [
+      ['Department', project.department],
+      ['Branch', project.branch],
+      ['Project Owner', project.project_owner_name],
+      ['Project Owner Email', project.project_owner_email],
+      ['Project Authority', project.project_authority_name],
+      ['CIO', project.cio_name]
+    ], options);
+
+    brandedSection(doc, 'Documentation List', options);
+    if ((data.documents || []).length) {
+      (data.documents || []).forEach(document => {
+        ensureSpace(doc, 30, options);
+        doc.fontSize(8).fillColor(COLORS.text)
+          .text(`${document.original_name}   Type: ${document.document_type || document.mime_type || 'N/A'}   Uploaded: ${formatDateValue(document.created_at)}   Size: ${document.size || 0} bytes`);
+      });
+      doc.moveDown(0.3);
+    } else {
+      paragraph(doc, 'No project documents are associated with this project. Attachments are intentionally not embedded in this report.', options);
+    }
+
+    brandedSection(doc, 'Assessment Summary', options);
+    if ((data.assessments || []).length) {
+      (data.assessments || []).forEach(assessment => {
+        brandedInfoRows(doc, [
+          ['Assessment', `${assessment.invite_code || assessment.id} (${assessment.status || 'draft'})`],
+          ['Result', assessment.result || 'Pending'],
+          ['Created', assessment.created_at],
+          ['Updated', assessment.updated_at]
+        ], options);
+      });
+    } else {
+      paragraph(doc, 'No assessments have been created for this project yet.', options);
+    }
+
+    brandedSection(doc, 'Control Assessment Results', options);
+    if ((data.controls || []).length) {
+      data.controls.forEach(control => drawProjectControl(doc, control, options));
+    } else {
+      paragraph(doc, 'No tailored controls have been saved yet.', options);
+    }
+
+    brandedSection(doc, 'POA&M Items', options);
+    if ((data.poamItems || []).length) {
+      data.poamItems.forEach(item => drawPoamItem(doc, item, options));
+    } else {
+      paragraph(doc, 'No POA&M items are currently recorded.', options);
+    }
+
+    brandedSection(doc, 'ATO/iATO Summary', options);
+    if ((data.atoRecords || []).length) {
+      data.atoRecords.forEach(ato => {
+        brandedInfoRows(doc, [
+          ['Record', `${(ato.record_type || 'ato').toUpperCase()} - ${ato.title || ato.system_name || project.name}`],
+          ['Status', ato.authorization_status],
+          ['Authorization Date', ato.authorization_date],
+          ['Expiry Date', ato.expiry_date]
+        ], options);
+      });
+    } else {
+      paragraph(doc, 'No ATO/iATO records have been created for this project.', options);
+    }
+
+    brandedSection(doc, 'Report Metadata', options);
+    paragraph(doc, 'Uploaded attachments are listed for traceability but are not embedded in this full project report.', options);
+
+    finishBrandedDocument(doc, `${brandConfig(project, data || {}).organization} - Full Project Report - ${project.name}`);
+    stream.on('finish', () => resolve(outputPath));
+    stream.on('error', reject);
+  });
+}
+
+function generateATORecordReport(ato, project, data, outputPath) {
+  return new Promise((resolve, reject) => {
+    data = data || {};
+    const title = `${(ato.record_type || 'ato').toUpperCase()} Authorization Package`;
+    const options = { ...(data || {}), title, project };
+    const doc = new PDFDocument({ margin: 50, size: 'LETTER', bufferPages: true });
+    const stream = fs.createWriteStream(outputPath);
+    doc.pipe(stream);
+
+    brandedHeader(doc, title, project, data || {});
+    brandedInfoRows(doc, [
+      ['ATO/iATO ID', ato.id],
+      ['Title', ato.title],
+      ['System Name', ato.system_name || project.name],
+      ['Organization', ato.organization_name || (data.branding || {}).organization_name],
+      ['Authorizing Official', ato.authorizing_official],
+      ['Assessor', ato.assessor],
+      ['Authorization Status', ato.authorization_status],
+      ['Authorization Date', ato.authorization_date],
+      ['Expiry Date', ato.expiry_date],
+      ['Generated', new Date().toLocaleDateString('en-CA')]
+    ], options);
+
+    const sections = [
+      ['Executive Summary', ato.executive_summary],
+      ['System Description', ato.system_description || project.description],
+      ['Assessment Scope', ato.assessment_scope],
+      ['Control Assessment Summary', ato.security_control_summary],
+      ['Risk Summary', ato.risk_summary],
+      ['Residual Risk Statement', ato.residual_risk_statement],
+      ['POA&M Summary', ato.poam_summary],
+      ['Conditions of Authorization', ato.conditions_of_authorization],
+      ['Assessor Notes', ato.assessor_notes],
+      ['Static Report Text', ato.static_sections],
+      ['Custom Sections', ato.custom_sections]
+    ];
+
+    sections.forEach(([heading, body]) => {
+      brandedSection(doc, heading, options);
+      paragraph(doc, body, options);
+    });
+
+    brandedSection(doc, 'Control Assessment Appendix', options);
+    if ((data.controls || []).length) {
+      const stats = computeStats(data.controls || []);
+      doc.fontSize(9).fillColor(COLORS.text)
+        .text(`Total Controls: ${data.controls.length}   Applicable: ${stats.applicable.length}   Met: ${stats.met.length}   Partially Met: ${stats.partial.length}   Not Met: ${stats.notMet.length}`);
+      doc.moveDown(0.4);
+      (data.controls || []).slice(0, 40).forEach(control => drawProjectControl(doc, control, options));
+      if ((data.controls || []).length > 40) paragraph(doc, `${data.controls.length - 40} additional controls omitted from this appendix preview. Use the controls export for the full detail set.`, options);
+    } else {
+      paragraph(doc, 'No controls are linked to this authorization record.', options);
+    }
+
+    brandedSection(doc, 'Plan of Action and Milestones', options);
+    if ((data.poamItems || []).length) {
+      data.poamItems.forEach(item => drawPoamItem(doc, item, options));
+    } else {
+      paragraph(doc, 'No POA&M items are linked to this authorization record.', options);
+    }
+
+    brandedSection(doc, 'Signature and Approval', options);
+    ensureSpace(doc, 150, options);
+    const sigY = doc.y + 20;
+    doc.fontSize(9).fillColor(COLORS.text);
+    doc.text('_________________________________', 50, sigY);
+    doc.text('Authorizing Official', 50, sigY + 18);
+    doc.text('Date: ____________________', 50, sigY + 34);
+    doc.text('_________________________________', 320, sigY);
+    doc.text('Security Assessor', 320, sigY + 18);
+    doc.text('Date: ____________________', 320, sigY + 34);
+
+    finishBrandedDocument(doc, `${brandConfig(project, data || {}).organization} - ${title} - ${project.name}`);
+    stream.on('finish', () => resolve(outputPath));
+    stream.on('error', reject);
+  });
+}
+
+module.exports = {
+  generateAssessmentReport,
+  generateATODocument,
+  generateControlsReport,
+  generateFullProjectReport,
+  generateATORecordReport
+};

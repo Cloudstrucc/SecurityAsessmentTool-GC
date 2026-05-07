@@ -1,0 +1,158 @@
+<div class="container" style="max-width:1100px;">
+  <div class="d-flex align-items-center mb-4">
+    <a href="/admin/projects/{{project.id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
+    <div class="flex-grow-1">
+      <h1 class="mb-0">{{#if ato.id}}Edit{{else}}New{{/if}} ATO / iATO</h1>
+      <p class="text-muted mb-0">{{project.name}} authorization record</p>
+    </div>
+    {{#if ato.id}}
+      <a href="/admin/ato/{{ato.id}}/export-pdf" class="btn btn-outline-danger">
+        <i class="bi bi-file-earmark-pdf me-1"></i>Export PDF
+      </a>
+    {{/if}}
+  </div>
+
+  <form method="POST" action="{{#if ato.id}}/admin/ato/{{ato.id}}{{else}}/admin/projects/{{project.id}}/ato/new{{/if}}">
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="form-section">
+          <div class="section-header">
+            <h3 class="section-title"><span class="section-number">1</span>Authorization Details</h3>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label" for="record_type">Type</label>
+              <select class="form-select" id="record_type" name="record_type">
+                <option value="ato" {{#eq ato.record_type "ato"}}selected{{/eq}}>ATO</option>
+                <option value="iato" {{#eq ato.record_type "iato"}}selected{{/eq}}>iATO</option>
+              </select>
+            </div>
+            <div class="col-md-9">
+              <label class="form-label" for="title">Title</label>
+              <input type="text" class="form-control" id="title" name="title" value="{{ato.title}}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="system_name">System Name</label>
+              <input type="text" class="form-control" id="system_name" name="system_name" value="{{ato.system_name}}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="organization_name">Organization Name</label>
+              <input type="text" class="form-control" id="organization_name" name="organization_name" value="{{ato.organization_name}}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="authorizing_official">Authorizing Official</label>
+              <input type="text" class="form-control" id="authorizing_official" name="authorizing_official" value="{{ato.authorizing_official}}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="assessor">Assessor</label>
+              <input type="text" class="form-control" id="assessor" name="assessor" value="{{ato.assessor}}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="authorization_status">Status</label>
+              <select class="form-select" id="authorization_status" name="authorization_status">
+                <option value="draft" {{#eq ato.authorization_status "draft"}}selected{{/eq}}>Draft</option>
+                <option value="review" {{#eq ato.authorization_status "review"}}selected{{/eq}}>In Review</option>
+                <option value="approved" {{#eq ato.authorization_status "approved"}}selected{{/eq}}>Approved</option>
+                <option value="expired" {{#eq ato.authorization_status "expired"}}selected{{/eq}}>Expired</option>
+                <option value="revoked" {{#eq ato.authorization_status "revoked"}}selected{{/eq}}>Revoked</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="authorization_date">Authorization Date</label>
+              <input type="date" class="form-control" id="authorization_date" name="authorization_date" value="{{ato.authorization_date}}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="expiry_date">Expiry Date</label>
+              <input type="date" class="form-control" id="expiry_date" name="expiry_date" value="{{ato.expiry_date}}">
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="assessment_id">Linked Assessment</label>
+              <select class="form-select" id="assessment_id" name="assessment_id">
+                <option value="">Project-level authorization</option>
+                {{#each assessments}}
+                  <option value="{{this.id}}" {{#eq ../ato.assessment_id this.id}}selected{{/eq}}>Assessment {{this.id}} - {{this.status}} {{#if this.invite_code}}({{this.invite_code}}){{/if}}</option>
+                {{/each}}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-header">
+            <h3 class="section-title"><span class="section-number">2</span>Editable Report Content</h3>
+            <p class="section-description">All generated/static content remains editable before export.</p>
+          </div>
+          <label class="form-label" for="executive_summary">Executive Summary</label>
+          <textarea class="form-control mb-3" id="executive_summary" name="executive_summary" rows="4">{{ato.executive_summary}}</textarea>
+
+          <label class="form-label" for="system_description">System Description</label>
+          <textarea class="form-control mb-3" id="system_description" name="system_description" rows="4">{{ato.system_description}}</textarea>
+
+          <label class="form-label" for="assessment_scope">Assessment Scope</label>
+          <textarea class="form-control mb-3" id="assessment_scope" name="assessment_scope" rows="3">{{ato.assessment_scope}}</textarea>
+
+          <label class="form-label" for="risk_summary">Risk Summary</label>
+          <textarea class="form-control mb-3" id="risk_summary" name="risk_summary" rows="3">{{ato.risk_summary}}</textarea>
+
+          <label class="form-label" for="residual_risk_statement">Residual Risk Statement</label>
+          <textarea class="form-control mb-3" id="residual_risk_statement" name="residual_risk_statement" rows="3">{{ato.residual_risk_statement}}</textarea>
+
+          <label class="form-label" for="conditions_of_authorization">Conditions Of Authorization</label>
+          <textarea class="form-control mb-3" id="conditions_of_authorization" name="conditions_of_authorization" rows="4">{{ato.conditions_of_authorization}}</textarea>
+
+          <label class="form-label" for="security_control_summary">Security Control Summary</label>
+          <textarea class="form-control mb-3" id="security_control_summary" name="security_control_summary" rows="3">{{ato.security_control_summary}}</textarea>
+
+          <label class="form-label" for="poam_summary">POA&M Summary</label>
+          <textarea class="form-control mb-3" id="poam_summary" name="poam_summary" rows="3">{{ato.poam_summary}}</textarea>
+
+          <label class="form-label" for="assessor_notes">Assessor Notes</label>
+          <textarea class="form-control mb-3" id="assessor_notes" name="assessor_notes" rows="3">{{ato.assessor_notes}}</textarea>
+
+          <label class="form-label" for="static_sections">Static Text Sections</label>
+          <textarea class="form-control mb-3" id="static_sections" name="static_sections" rows="4">{{ato.static_sections}}</textarea>
+
+          <label class="form-label" for="custom_sections">Custom Sections</label>
+          <textarea class="form-control" id="custom_sections" name="custom_sections" rows="4">{{ato.custom_sections}}</textarea>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card mb-3">
+          <div class="card-header bg-light"><i class="bi bi-palette me-2"></i>Report Branding</div>
+          <div class="card-body small">
+            <div><strong>Organization:</strong> {{#if branding.organization_name}}{{branding.organization_name}}{{else}}Not configured{{/if}}</div>
+            <div><strong>Logo:</strong> {{#if branding.logo_original_name}}{{branding.logo_original_name}}{{else}}None{{/if}}</div>
+            <div><strong>Classification:</strong> {{branding.classification_label}}</div>
+            <a href="/admin/projects/{{project.id}}#reporting" class="btn btn-sm btn-outline-primary mt-3">Edit Branding</a>
+          </div>
+        </div>
+
+        {{#if poamItems.length}}
+        <div class="card">
+          <div class="card-header bg-light"><i class="bi bi-list-check me-2"></i>Linked POA&M</div>
+          <div class="card-body p-0">
+            <table class="table table-sm mb-0">
+              <thead><tr><th>Control</th><th>Status</th><th>Due</th></tr></thead>
+              <tbody>
+                {{#each poamItems}}
+                  <tr>
+                    <td><code>{{this.control_id}}</code></td>
+                    <td>{{this.status}}</td>
+                    <td class="small">{{formatDate this.deadline}}</td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center my-4">
+      <a href="/admin/projects/{{project.id}}" class="btn btn-outline-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-save me-2"></i>Save ATO/iATO</button>
+    </div>
+  </form>
+</div>

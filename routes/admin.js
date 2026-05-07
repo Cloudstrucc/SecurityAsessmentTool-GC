@@ -20,6 +20,18 @@ const intakeUpload = multer({
   dest: intakeUploadDir,
   limits: { fileSize: 25 * 1024 * 1024 }
 });
+const projectUploadDir = path.join(__dirname, '..', 'uploads', 'projects');
+if (!fs.existsSync(projectUploadDir)) fs.mkdirSync(projectUploadDir, { recursive: true });
+const projectUpload = multer({
+  dest: projectUploadDir,
+  limits: { fileSize: 25 * 1024 * 1024 }
+});
+const brandingUploadDir = path.join(__dirname, '..', 'uploads', 'branding');
+if (!fs.existsSync(brandingUploadDir)) fs.mkdirSync(brandingUploadDir, { recursive: true });
+const brandingUpload = multer({
+  dest: brandingUploadDir,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
 
 function asArray(value) {
   if (Array.isArray(value)) return value.filter(Boolean);
@@ -136,6 +148,149 @@ function createProjectIntake({ projectId, body, createdBy, files = [], status = 
   });
 
   return intakeId;
+}
+
+function recordProjectDocuments({ projectId, intakeId, files = [], user }) {
+  files.forEach(file => {
+    const ext = path.extname(file.originalname || '').toLowerCase().replace('.', '') || 'document';
+    run(
+      `INSERT INTO project_documents
+        (project_id, intake_id, filename, original_name, document_type, mime_type, size, uploaded_by_user_id, uploaded_by_name)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        projectId,
+        intakeId || null,
+        file.filename,
+        file.originalname,
+        ext,
+        file.mimetype || '',
+        file.size || 0,
+        user?.id || null,
+        user?.name || ''
+      ]
+    );
+  });
+}
+
+function getProjectDocuments(projectId) {
+  return all(`
+    SELECT d.*, p.name AS project_name
+    FROM project_documents d
+    JOIN projects p ON p.id = d.project_id
+    WHERE d.project_id = ? AND d.status != 'deleted'
+    ORDER BY d.created_at DESC
+  `, [projectId]);
+}
+
+function getProjectBranding(projectId) {
+  return get(`
+    SELECT *
+    FROM report_branding
+    WHERE project_id = ?
+    ORDER BY updated_at DESC, created_at DESC
+    LIMIT 1
+  `, [projectId]) || {};
+}
+
+function resolveProjectDocumentPath(document) {
+  const candidates = [
+    path.join(projectUploadDir, document.filename),
+    path.join(intakeUploadDir, document.filename)
+  ];
+  return candidates.find(p => fs.existsSync(p));
+}
+
+function formatBytes(bytes) {
+  const size = Number(bytes || 0);
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  return `${(size / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function csvEscape(value) {
+  const text = value === null || value === undefined ? '' : String(value);
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+function sendCsv(res, filename, rows) {
+  const csv = rows.map(row => row.map(csvEscape).join(',')).join('\r\n') + '\r\n';
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send('\uFEFF' + csv);
+}
+
+function catalogFilterParts(query = {}) {
+  const filters = [];
+  const params = [];
+  const framework = query.framework || '';
+  const family = query.family || '';
+  const keyword = (query.q || '').trim().toLowerCase();
+  const baseline = query.baseline || '';
+  const category = query.category || '';
+  const applicability = query.applicability || '';
+  const status = query.status || '';
+
+  if (framework) { filters.push('framework = ?'); params.push(framework); }
+  if (family) { filters.push('family = ?'); params.push(family); }
+  if (baseline) { filters.push('baseline LIKE ?'); params.push(`%${baseline}%`); }
+  if (category) { filters.push('category = ?'); params.push(category); }
+  if (applicability) { filters.push('applicability_notes LIKE ?'); params.push(`%${applicability}%`); }
+  if (status) { filters.push('status = ?'); params.push(status); }
+  if (keyword) {
+    filters.push('(LOWER(control_id) LIKE ? OR LOWER(title) LIKE ? OR LOWER(description) LIKE ? OR LOWER(guidance) LIKE ? OR LOWER(definitions) LIKE ?)');
+    params.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
+  }
+
+  return {
+    where: filters.length ? `WHERE ${filters.join(' AND ')}` : '',
+    params,
+    filters: { framework, family, q: query.q || '', baseline, category, applicability, status }
+  };
+}
+
+function projectSlugName(name) {
+  return (name || 'project').replace(/[^a-z0-9]+/gi, '-').replace(/(^-|-$)/g, '').toLowerCase() || 'project';
+}
+
+function readDocumentText(document) {
+  const filePath = resolveProjectDocumentPath(document);
+  if (!filePath) return '';
+  const ext = path.extname(document.original_name || document.filename).toLowerCase();
+  if (['.txt', '.md', '.html', '.htm', '.csv', '.json', '.xml'].includes(ext)) {
+    return fs.readFileSync(filePath, 'utf8').slice(0, 60000);
+  }
+  return `[${document.original_name}] is a binary document (${document.mime_type || 'unknown type'}).`;
+}
+
+function selectRelevantControls(projectInfo, documents = []) {
+  const baseline = getRecommendedControls(projectInfo);
+  const context = [
+    projectInfo.description || '',
+    projectInfo.technologies || '',
+    projectInfo.hostingType || '',
+    projectInfo.appType || '',
+    documents.map(d => `${d.original_name || ''} ${d.ai_summary || ''}`).join(' ')
+  ].join(' ').toLowerCase();
+
+  const essentialFamilies = new Set(['AC', 'AU', 'CA', 'CM', 'IA', 'IR', 'PL', 'RA', 'SC', 'SI']);
+  const selected = baseline.filter(control => {
+    if (control.priority === 'P1' && essentialFamilies.has(control.family)) return true;
+    if (projectInfo.hasPII && ['AP', 'DM', 'UL'].includes(control.family)) return true;
+    if (projectInfo.isHVA && control.priority === 'P1') return true;
+    const tags = (control.tags || []).join(' ').toLowerCase();
+    if (tags && context.split(/\W+/).some(word => word.length > 3 && tags.includes(word))) return true;
+    if (context.includes('azure') && ['CA', 'CM', 'SC', 'SI', 'IA'].includes(control.family)) return true;
+    if (context.includes('api') && ['AC', 'IA', 'SC', 'SI'].includes(control.family)) return true;
+    if (context.includes('document') && ['MP', 'PL', 'RA'].includes(control.family)) return true;
+    return false;
+  });
+
+  const seen = new Set();
+  return selected.filter(control => {
+    if (seen.has(control.id)) return false;
+    seen.add(control.id);
+    return true;
+  });
 }
 
 function getPrimaryIntakeForProject(projectId) {
@@ -617,6 +772,41 @@ router.get('/projects', ensureAuthenticated, (req, res) => {
   });
 });
 
+router.get('/security-controls', ensureAuthenticated, (req, res) => {
+  const { where, params, filters } = catalogFilterParts(req.query);
+  const controls = all(`SELECT * FROM security_control_catalog ${where} ORDER BY framework, family, control_id`, params);
+  const frameworks = all('SELECT DISTINCT framework FROM security_control_catalog ORDER BY framework');
+  const families = all('SELECT DISTINCT family, category FROM security_control_catalog ORDER BY family');
+  const categories = all('SELECT DISTINCT category FROM security_control_catalog WHERE category IS NOT NULL AND category != \'\' ORDER BY category');
+  const statuses = all('SELECT DISTINCT status FROM security_control_catalog WHERE status IS NOT NULL AND status != \'\' ORDER BY status');
+  res.render('admin/security-controls', {
+    title: 'Security Control Catalog',
+    isAdmin: true,
+    isControls: true,
+    admin: req.user,
+    controls,
+    frameworks,
+    families,
+    categories,
+    statuses,
+    filters
+  });
+});
+
+router.get('/security-controls.csv', ensureAuthenticated, (req, res) => {
+  const { where, params } = catalogFilterParts(req.query);
+  const controls = all(`SELECT * FROM security_control_catalog ${where} ORDER BY framework, family, control_id`, params);
+  const rows = [[
+    'Framework', 'Control ID', 'Control Title', 'Family', 'Description', 'Guidance',
+    'Definitions', 'Related Controls', 'Baseline', 'Category', 'Applicability Notes', 'Status', 'Last Updated'
+  ]];
+  controls.forEach(c => rows.push([
+    c.framework, c.control_id, c.title, c.family, c.description, c.guidance,
+    c.definitions, c.related_controls, c.baseline, c.category, c.applicability_notes, c.status, c.updated_at
+  ]));
+  sendCsv(res, 'security-control-catalog.csv', rows);
+});
+
 router.get('/projects/new', ensureAuthenticated, (req, res) => {
   res.render('admin/project-new', {
     title: 'New Project', isAdmin: true, isProjects: true,
@@ -679,6 +869,7 @@ router.post('/projects/new', ensureAuthenticated, intakeUpload.array('attachment
       files: req.files || [],
       status: 'in-review'
     });
+    recordProjectDocuments({ projectId, intakeId, files: req.files || [], user: req.user });
 
     const assignmentMode = req.body.assignment_mode;
     if (assignmentMode === 'existing' || assignmentMode === 'invite') {
@@ -714,16 +905,302 @@ router.get('/projects/:id', ensureAuthenticated, (req, res) => {
   const intakes = all('SELECT * FROM intake_submissions WHERE project_id = ? ORDER BY created_at DESC', [project.id]);
   const intakeAssignments = getEntityAssignments('intake', intakes.map(i => i.id));
   const assessmentAssignments = getEntityAssignments('assessment', assessments.map(a => a.id));
+  const documents = getProjectDocuments(project.id).map(d => ({ ...d, display_size: formatBytes(d.size) }));
+  const branding = getProjectBranding(project.id);
+  const atoRecords = all('SELECT * FROM ato_records WHERE project_id = ? ORDER BY updated_at DESC, created_at DESC', [project.id]);
+  const projectPoamItems = all(`
+    SELECT ic.*, ac.title AS control_title
+    FROM iato_checklist ic
+    LEFT JOIN assessment_controls ac ON ac.assessment_id = ic.assessment_id AND ac.control_id = ic.control_id
+    WHERE ic.project_id = ? OR ic.assessment_id IN (SELECT id FROM assessments WHERE project_id = ?)
+    ORDER BY CASE ic.risk_level WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END, ic.deadline
+  `, [project.id, project.id]);
   let techs = [];
   try { techs = JSON.parse(project.technologies || '[]'); } catch(e) {}
 
   res.render('admin/project-detail', {
     title: project.name, isAdmin: true, isProjects: true,
     admin: req.user, project, assessments, intakes,
-    intakeAssignments, assessmentAssignments,
+    intakeAssignments, assessmentAssignments, documents, branding, atoRecords, projectPoamItems,
     users: getAssignableUsers(),
     techNames: techs.map(t => COMMON_TECHNOLOGIES[t]?.name || t)
   });
+});
+
+router.post('/projects/:id/documents', ensureAuthenticated, projectUpload.array('documents', 10), (req, res) => {
+  try {
+    const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+    if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+    recordProjectDocuments({ projectId: project.id, files: req.files || [], user: req.user });
+    req.flash('success', `Uploaded ${(req.files || []).length} document(s) to ${project.name}.`);
+    res.redirect(`/admin/projects/${project.id}#documentation`);
+  } catch (err) {
+    console.error('Project document upload error:', err);
+    req.flash('error', 'Failed to upload documents: ' + err.message);
+    res.redirect(`/admin/projects/${req.params.id}`);
+  }
+});
+
+router.get('/projects/:id/documents/:docId/download', ensureAuthenticated, (req, res) => {
+  const document = get('SELECT * FROM project_documents WHERE id = ? AND project_id = ? AND status != \'deleted\'', [req.params.docId, req.params.id]);
+  if (!document) { req.flash('error', 'Document not found'); return res.redirect(`/admin/projects/${req.params.id}`); }
+  const filePath = resolveProjectDocumentPath(document);
+  if (!filePath) { req.flash('error', 'Document file is missing from storage.'); return res.redirect(`/admin/projects/${req.params.id}`); }
+  res.download(filePath, document.original_name);
+});
+
+router.post('/projects/:id/documents/:docId/delete', ensureAuthenticated, (req, res) => {
+  const document = get('SELECT * FROM project_documents WHERE id = ? AND project_id = ?', [req.params.docId, req.params.id]);
+  if (!document) { req.flash('error', 'Document not found'); return res.redirect(`/admin/projects/${req.params.id}`); }
+  run(`UPDATE project_documents SET status = 'deleted', deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND project_id = ?`,
+    [req.params.docId, req.params.id]);
+  req.flash('success', 'Document reference removed.');
+  res.redirect(`/admin/projects/${req.params.id}#documentation`);
+});
+
+router.post('/projects/:id/branding', ensureAuthenticated, brandingUpload.single('logo'), (req, res) => {
+  try {
+    const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+    if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+    const existing = getProjectBranding(project.id);
+    const logoFilename = req.file?.filename || existing.logo_filename || '';
+    const logoOriginalName = req.file?.originalname || existing.logo_original_name || '';
+    const logoMimeType = req.file?.mimetype || existing.logo_mime_type || '';
+
+    if (existing.id) {
+      run(`UPDATE report_branding SET organization_name = ?, logo_filename = ?, logo_original_name = ?,
+        logo_mime_type = ?, report_subtitle = ?, classification_label = ?, assessor_company_name = ?,
+        updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        [req.body.organization_name || '', logoFilename, logoOriginalName, logoMimeType,
+          req.body.report_subtitle || '', req.body.classification_label || '', req.body.assessor_company_name || '',
+          existing.id]);
+    } else {
+      run(`INSERT INTO report_branding
+        (scope_type, project_id, organization_name, logo_filename, logo_original_name, logo_mime_type,
+          report_subtitle, classification_label, assessor_company_name, created_by)
+        VALUES ('project', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [project.id, req.body.organization_name || '', logoFilename, logoOriginalName, logoMimeType,
+          req.body.report_subtitle || '', req.body.classification_label || '', req.body.assessor_company_name || '', req.user.id]);
+    }
+
+    req.flash('success', 'Report branding saved.');
+    res.redirect(`/admin/projects/${project.id}#reporting`);
+  } catch (err) {
+    console.error('Branding save error:', err);
+    req.flash('error', 'Failed to save branding: ' + err.message);
+    res.redirect(`/admin/projects/${req.params.id}`);
+  }
+});
+
+router.get('/projects/:id/controls.csv', ensureAuthenticated, (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+  const rows = [[
+    'Control ID', 'Control Title', 'Control Family', 'Framework', 'Description', 'Guidance',
+    'Evidence Guidance', 'Evidence Collected', 'Assessor Notes', 'Assessment Status',
+    'Applicability', 'Risk Level', 'POA&M Reference', 'Last Updated'
+  ]];
+  const controls = all(`
+    SELECT ac.*, a.status AS assessment_status
+    FROM assessment_controls ac
+    JOIN assessments a ON a.id = ac.assessment_id
+    WHERE a.project_id = ?
+    ORDER BY ac.family, ac.control_id
+  `, [project.id]);
+  controls.forEach(control => {
+    const poam = get(`
+      SELECT id FROM iato_checklist
+      WHERE (assessment_id = ? OR project_id = ?) AND control_id = ?
+      ORDER BY id LIMIT 1
+    `, [control.assessment_id, project.id, control.control_id]);
+    rows.push([
+      control.control_id, control.title, control.family_name || control.family, control.framework || 'ITSG-33',
+      control.description, control.control_guidance || '', control.evidence_guidance || '',
+      control.evidence_text || control.evidence_html || '', control.assessor_notes || control.audit_comments || '',
+      control.audit_result || control.evidence_status || control.assessment_status || '',
+      control.is_applicable ? 'Applicable' : 'Not Applicable', control.risk_level || '',
+      poam ? `POAM-${poam.id}` : '', control.updated_at || ''
+    ]);
+  });
+  sendCsv(res, `${projectSlugName(project.name)}-controls.csv`, rows);
+});
+
+router.get('/projects/:id/controls.pdf', ensureAuthenticated, async (req, res) => {
+  try {
+    const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+    if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+    const controls = all(`
+      SELECT ac.*, a.status AS assessment_status, a.invite_code
+      FROM assessment_controls ac
+      JOIN assessments a ON a.id = ac.assessment_id
+      WHERE a.project_id = ?
+      ORDER BY ac.family, ac.control_id
+    `, [project.id]);
+    const branding = getProjectBranding(project.id);
+    const outputDir = path.join(__dirname, '..', 'data', 'exports');
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+    const outputPath = path.join(outputDir, `project-controls-${project.id}-${Date.now()}.pdf`);
+    await pdfExport.generateControlsReport(project, controls, outputPath, { branding, logoDir: brandingUploadDir });
+    res.download(outputPath);
+  } catch (err) {
+    console.error('Control PDF export error:', err);
+    req.flash('error', 'Failed to export controls PDF: ' + err.message);
+    res.redirect(`/admin/projects/${req.params.id}`);
+  }
+});
+
+router.get('/projects/:id/report.pdf', ensureAuthenticated, async (req, res) => {
+  try {
+    const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+    if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+    const assessments = all('SELECT * FROM assessments WHERE project_id = ? ORDER BY created_at DESC', [project.id]);
+    const controls = all(`
+      SELECT ac.*, a.status AS assessment_status
+      FROM assessment_controls ac JOIN assessments a ON a.id = ac.assessment_id
+      WHERE a.project_id = ? ORDER BY ac.family, ac.control_id
+    `, [project.id]);
+    const documents = getProjectDocuments(project.id);
+    const poamItems = all(`SELECT * FROM iato_checklist WHERE project_id = ? OR assessment_id IN (SELECT id FROM assessments WHERE project_id = ?)`, [project.id, project.id]);
+    const atoRecords = all('SELECT * FROM ato_records WHERE project_id = ? ORDER BY updated_at DESC', [project.id]);
+    const branding = getProjectBranding(project.id);
+    const outputDir = path.join(__dirname, '..', 'data', 'exports');
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+    const outputPath = path.join(outputDir, `project-report-${project.id}-${Date.now()}.pdf`);
+    await pdfExport.generateFullProjectReport(project, { assessments, controls, documents, poamItems, atoRecords, branding, logoDir: brandingUploadDir }, outputPath);
+    res.download(outputPath);
+  } catch (err) {
+    console.error('Project report export error:', err);
+    req.flash('error', 'Failed to export project report: ' + err.message);
+    res.redirect(`/admin/projects/${req.params.id}`);
+  }
+});
+
+router.get('/projects/:projectId/ato/new', ensureAuthenticated, (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+  const assessments = all('SELECT * FROM assessments WHERE project_id = ? ORDER BY created_at DESC', [project.id]);
+  const branding = getProjectBranding(project.id);
+  res.render('admin/ato-edit', {
+    title: 'New ATO/iATO',
+    isAdmin: true,
+    isProjects: true,
+    admin: req.user,
+    project,
+    assessments,
+    branding,
+    ato: {
+      record_type: req.query.type === 'iato' ? 'iato' : 'ato',
+      title: req.query.type === 'iato' ? `Interim Authority to Operate - ${project.name}` : `Authority to Operate - ${project.name}`,
+      system_name: project.name,
+      organization_name: branding.organization_name || project.department || '',
+      assessor: req.user.name,
+      authorization_status: 'draft',
+      system_description: project.description || ''
+    }
+  });
+});
+
+router.post('/projects/:projectId/ato/new', ensureAuthenticated, (req, res) => {
+  try {
+    const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
+    if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+    const atoId = run(`INSERT INTO ato_records
+      (project_id, assessment_id, record_type, title, system_name, organization_name, authorizing_official,
+        assessor, authorization_status, authorization_date, expiry_date, executive_summary, system_description,
+        assessment_scope, risk_summary, residual_risk_statement, conditions_of_authorization,
+        security_control_summary, poam_summary, assessor_notes, static_sections, custom_sections, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        project.id, req.body.assessment_id || null, req.body.record_type || 'ato', req.body.title || '',
+        req.body.system_name || project.name, req.body.organization_name || '', req.body.authorizing_official || '',
+        req.body.assessor || req.user.name, req.body.authorization_status || 'draft', req.body.authorization_date || '',
+        req.body.expiry_date || '', req.body.executive_summary || '', req.body.system_description || '',
+        req.body.assessment_scope || '', req.body.risk_summary || '', req.body.residual_risk_statement || '',
+        req.body.conditions_of_authorization || '', req.body.security_control_summary || '',
+        req.body.poam_summary || '', req.body.assessor_notes || '', req.body.static_sections || '',
+        req.body.custom_sections || '', req.user.id
+      ]);
+    req.flash('success', 'ATO/iATO record created.');
+    res.redirect(`/admin/ato/${atoId}`);
+  } catch (err) {
+    console.error('ATO create error:', err);
+    req.flash('error', 'Failed to create ATO/iATO: ' + err.message);
+    res.redirect(`/admin/projects/${req.params.projectId}`);
+  }
+});
+
+router.get('/ato/:id', ensureAuthenticated, (req, res) => {
+  const ato = get('SELECT * FROM ato_records WHERE id = ?', [req.params.id]);
+  if (!ato) { req.flash('error', 'ATO/iATO record not found'); return res.redirect('/admin/projects'); }
+  const project = get('SELECT * FROM projects WHERE id = ?', [ato.project_id]);
+  const assessments = all('SELECT * FROM assessments WHERE project_id = ? ORDER BY created_at DESC', [ato.project_id]);
+  const poamItems = all('SELECT * FROM iato_checklist WHERE ato_record_id = ? OR project_id = ? ORDER BY deadline', [ato.id, ato.project_id]);
+  const branding = getProjectBranding(ato.project_id);
+  res.render('admin/ato-edit', {
+    title: ato.title || 'ATO/iATO',
+    isAdmin: true,
+    isProjects: true,
+    admin: req.user,
+    ato,
+    project,
+    assessments,
+    poamItems,
+    branding
+  });
+});
+
+router.post('/ato/:id', ensureAuthenticated, (req, res) => {
+  try {
+    const ato = get('SELECT * FROM ato_records WHERE id = ?', [req.params.id]);
+    if (!ato) { req.flash('error', 'ATO/iATO record not found'); return res.redirect('/admin/projects'); }
+    run(`UPDATE ato_records SET
+      assessment_id = ?, record_type = ?, title = ?, system_name = ?, organization_name = ?,
+      authorizing_official = ?, assessor = ?, authorization_status = ?, authorization_date = ?,
+      expiry_date = ?, executive_summary = ?, system_description = ?, assessment_scope = ?,
+      risk_summary = ?, residual_risk_statement = ?, conditions_of_authorization = ?,
+      security_control_summary = ?, poam_summary = ?, assessor_notes = ?, static_sections = ?,
+      custom_sections = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?`,
+      [
+        req.body.assessment_id || null, req.body.record_type || 'ato', req.body.title || '',
+        req.body.system_name || '', req.body.organization_name || '', req.body.authorizing_official || '',
+        req.body.assessor || '', req.body.authorization_status || 'draft', req.body.authorization_date || '',
+        req.body.expiry_date || '', req.body.executive_summary || '', req.body.system_description || '',
+        req.body.assessment_scope || '', req.body.risk_summary || '', req.body.residual_risk_statement || '',
+        req.body.conditions_of_authorization || '', req.body.security_control_summary || '',
+        req.body.poam_summary || '', req.body.assessor_notes || '', req.body.static_sections || '',
+        req.body.custom_sections || '', ato.id
+      ]);
+    req.flash('success', 'ATO/iATO record saved.');
+    res.redirect(`/admin/ato/${ato.id}`);
+  } catch (err) {
+    console.error('ATO update error:', err);
+    req.flash('error', 'Failed to save ATO/iATO: ' + err.message);
+    res.redirect(`/admin/ato/${req.params.id}`);
+  }
+});
+
+router.get('/ato/:id/export-pdf', ensureAuthenticated, async (req, res) => {
+  try {
+    const ato = get('SELECT * FROM ato_records WHERE id = ?', [req.params.id]);
+    if (!ato) { req.flash('error', 'ATO/iATO record not found'); return res.redirect('/admin/projects'); }
+    const project = get('SELECT * FROM projects WHERE id = ?', [ato.project_id]);
+    const assessment = ato.assessment_id ? get('SELECT * FROM assessments WHERE id = ?', [ato.assessment_id]) : null;
+    const controls = assessment
+      ? all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessment.id])
+      : all(`SELECT ac.* FROM assessment_controls ac JOIN assessments a ON a.id = ac.assessment_id WHERE a.project_id = ? ORDER BY ac.family, ac.control_id`, [project.id]);
+    const poamItems = all('SELECT * FROM iato_checklist WHERE ato_record_id = ? OR project_id = ? OR assessment_id = ? ORDER BY deadline', [ato.id, project.id, assessment?.id || 0]);
+    const branding = getProjectBranding(project.id);
+    const outputDir = path.join(__dirname, '..', 'data', 'exports');
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+    const outputPath = path.join(outputDir, `ato-record-${ato.id}-${Date.now()}.pdf`);
+    await pdfExport.generateATORecordReport(ato, project, { assessment, controls, poamItems, branding, logoDir: brandingUploadDir }, outputPath);
+    res.download(outputPath);
+  } catch (err) {
+    console.error('ATO record export error:', err);
+    req.flash('error', 'Failed to export ATO/iATO PDF: ' + err.message);
+    res.redirect(`/admin/ato/${req.params.id}`);
+  }
 });
 
 router.post('/projects/:id/intake/create', ensureAuthenticated, (req, res) => {
@@ -792,6 +1269,38 @@ router.post('/projects/:id/assign', ensureAuthenticated, (req, res) => {
   }
 });
 
+router.post('/projects/:id/ai/suggest-controls', ensureAuthenticated, express.json(), (req, res) => {
+  try {
+    const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+    if (!project) return res.status(404).json({ error: 'Project not found' });
+    let techs = [];
+    try { techs = JSON.parse(project.technologies || '[]'); } catch(e) {}
+    const documentIds = asArray(req.body.document_ids);
+    const documents = documentIds.length
+      ? all(`SELECT * FROM project_documents WHERE project_id = ? AND status != 'deleted' AND id IN (${documentIds.map(() => '?').join(',')})`, [project.id, ...documentIds])
+      : getProjectDocuments(project.id);
+    const controls = selectRelevantControls({
+      dataClassification: project.data_classification,
+      confidentiality: project.confidentiality_level || project.data_classification,
+      hostingType: project.hosting_type,
+      appType: project.app_type,
+      hasPII: !!project.has_pii,
+      technologies: techs,
+      description: project.description,
+      securityProfile: project.security_profile || 'PBMM',
+      isHVA: !!project.is_hva
+    }, documents);
+    res.json({
+      success: true,
+      controlIds: controls.map(c => c.id),
+      controls: controls.map(c => ({ id: c.id, title: c.title, family: c.family, reason: 'Matched project profile, technology, or documentation context.' }))
+    });
+  } catch (err) {
+    console.error('Project AI control suggestion error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── ASSESSMENTS ──
 router.get('/projects/:projectId/assessments/new', ensureAuthenticated, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
@@ -820,7 +1329,9 @@ router.get('/projects/:projectId/assessments/new', ensureAuthenticated, (req, re
     return res.redirect(`/admin/projects/${project.id}/guidance`);
   }
 
-  const controls = getRecommendedControls(projectInfo);
+  const baselineControls = getRecommendedControls(projectInfo);
+  const documents = getProjectDocuments(project.id);
+  const controls = req.query.all === '1' ? baselineControls : selectRelevantControls(projectInfo, documents);
   const families = groupByFamily(controls);
 
   // Check for reusable templates
@@ -843,6 +1354,9 @@ router.get('/projects/:projectId/assessments/new', ensureAuthenticated, (req, re
   res.render('admin/assessment-new', {
     title: 'New Assessment', isAdmin: true, isProjects: true,
     admin: req.user, project, intake, families, controlCount: controls.length,
+    baselineCount: baselineControls.length,
+    usingTailoredRecommendation: req.query.all !== '1',
+    documents,
     saaReason: saaCheck.reason
   });
 });
@@ -873,18 +1387,21 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
       const family = cid.split('-')[0];
       return {
         sql: `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title, 
-          description, tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority, risk_level)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          description, control_guidance, tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority, risk_level, framework, guidance_source)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         params: [assessmentId, cid, family, CONTROL_FAMILIES[family] || family,
           req.body[`title_${cid}`] || cid,
           req.body[`desc_${cid}`] || '',
+          req.body[`control_guidance_${cid}`] || '',
           tailored[cid] || req.body[`tailored_${cid}`] || '',
           guidance[cid] || req.body[`guidance_${cid}`] || '',
           inherited[cid] ? 1 : 0,
           inheritedFrom[cid] || '',
           applicable[cid] !== '0' ? 1 : 0,
           req.body[`priority_${cid}`] || 'P1',
-          computeRiskLevel({ family, priority: req.body[`priority_${cid}`] || 'P1' })
+          computeRiskLevel({ family, priority: req.body[`priority_${cid}`] || 'P1' }),
+          'ITSG-33',
+          guidance[cid] || req.body[`guidance_${cid}`] ? 'manual' : 'catalog'
         ]
       };
     });
@@ -958,6 +1475,8 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
 
   const checklistItems = all('SELECT * FROM iato_checklist WHERE assessment_id = ? ORDER BY CASE risk_level WHEN \'high\' THEN 0 WHEN \'medium\' THEN 1 ELSE 2 END, deadline', [assessment.id]);
   const assignments = getEntityAssignments('assessment', [assessment.id]);
+  const documents = getProjectDocuments(assessment.project_id).map(d => ({ ...d, display_size: formatBytes(d.size) }));
+  const atoRecords = all('SELECT id, record_type, title, authorization_status FROM ato_records WHERE project_id = ? ORDER BY updated_at DESC, created_at DESC', [assessment.project_id]);
   const poamStats = {
     total: checklistItems.length,
     open: checklistItems.filter(i => i.status === 'open').length,
@@ -974,7 +1493,8 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     title: `Assessment: ${assessment.project_name}`,
     isAdmin: true, isAssessments: true,
     admin: req.user, assessment, assignments, users: getAssignableUsers(),
-    families: Object.values(families), controls, stats, checklistItems, poamStats,
+    families: Object.values(families), controls, stats, checklistItems, poamStats, documents, atoRecords,
+    tailorMode: req.query.tailor === '1',
     projectContextJSON: JSON.stringify({
       name: assessment.project_name,
       description: assessment.project_description || '',
@@ -986,6 +1506,163 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
       security_profile: assessment.security_profile || 'PBMM'
     })
   });
+});
+
+router.post('/assessments/:id/tailoring', ensureAuthenticated, (req, res) => {
+  try {
+    const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+    if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+
+    const controlIds = asArray(req.body.control_db_ids);
+    const removeIds = new Set(asArray(req.body.remove_control_ids).map(String));
+
+    controlIds.forEach(controlDbId => {
+      if (removeIds.has(String(controlDbId))) {
+        run('DELETE FROM assessment_controls WHERE id = ? AND assessment_id = ?', [controlDbId, assessment.id]);
+        return;
+      }
+      const guidanceSource = req.body[`guidance_source_${controlDbId}`] || 'manual';
+      run(`UPDATE assessment_controls SET
+          title = ?, description = ?, control_guidance = ?, tailored_description = ?,
+          evidence_guidance = ?, evidence_text = ?, evidence_status = ?,
+          assessor_notes = ?, audit_comments = ?, audit_result = ?, is_applicable = ?,
+          is_inherited = ?, inherited_from = ?, priority = ?, risk_level = ?,
+          guidance_source = CASE WHEN evidence_guidance != ? THEN 'edited-after-ai' ELSE ? END,
+          guidance_edited_at = CASE WHEN evidence_guidance != ? THEN CURRENT_TIMESTAMP ELSE guidance_edited_at END,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ? AND assessment_id = ?`,
+        [
+          req.body[`title_${controlDbId}`] || '',
+          req.body[`description_${controlDbId}`] || '',
+          req.body[`control_guidance_${controlDbId}`] || '',
+          req.body[`tailored_description_${controlDbId}`] || '',
+          req.body[`evidence_guidance_${controlDbId}`] || '',
+          req.body[`evidence_text_${controlDbId}`] || '',
+          req.body[`evidence_status_${controlDbId}`] || 'pending',
+          req.body[`assessor_notes_${controlDbId}`] || '',
+          req.body[`audit_comments_${controlDbId}`] || '',
+          req.body[`audit_result_${controlDbId}`] || '',
+          req.body[`is_applicable_${controlDbId}`] === '0' ? 0 : 1,
+          req.body[`is_inherited_${controlDbId}`] === '1' ? 1 : 0,
+          req.body[`inherited_from_${controlDbId}`] || '',
+          req.body[`priority_${controlDbId}`] || 'P1',
+          req.body[`risk_level_${controlDbId}`] || 'medium',
+          req.body[`evidence_guidance_${controlDbId}`] || '',
+          guidanceSource,
+          req.body[`evidence_guidance_${controlDbId}`] || '',
+          controlDbId,
+          assessment.id
+        ]);
+    });
+
+    req.flash('success', 'Tailoring changes saved.');
+    res.redirect(`/admin/assessments/${assessment.id}`);
+  } catch (err) {
+    console.error('Tailoring save error:', err);
+    req.flash('error', 'Failed to save tailoring changes: ' + err.message);
+    res.redirect(`/admin/assessments/${req.params.id}?tailor=1`);
+  }
+});
+
+router.post('/assessments/:id/ai/document-guidance', ensureAuthenticated, express.json(), async (req, res) => {
+  try {
+    const assessment = get(`
+      SELECT a.*, p.name AS project_name, p.description AS project_description, p.technologies,
+        p.hosting_type, p.confidentiality_level, p.integrity_level, p.availability_level, p.security_profile
+      FROM assessments a JOIN projects p ON p.id = a.project_id
+      WHERE a.id = ?
+    `, [req.params.id]);
+    if (!assessment) return res.status(404).json({ error: 'Assessment not found' });
+
+    const documentIds = asArray(req.body.document_ids);
+    const controlDbIds = asArray(req.body.control_db_ids);
+    if (!documentIds.length) return res.status(400).json({ error: 'Select at least one project document.' });
+    if (!controlDbIds.length) return res.status(400).json({ error: 'Select at least one control.' });
+
+    const placeholders = documentIds.map(() => '?').join(',');
+    const documents = all(
+      `SELECT * FROM project_documents WHERE project_id = ? AND status != 'deleted' AND id IN (${placeholders})`,
+      [assessment.project_id, ...documentIds]
+    );
+    const documentText = documents.map(d => `DOCUMENT: ${d.original_name}\n${readDocumentText(d)}`).join('\n\n').slice(0, 90000);
+    const controlPlaceholders = controlDbIds.map(() => '?').join(',');
+    const controls = all(
+      `SELECT * FROM assessment_controls WHERE assessment_id = ? AND id IN (${controlPlaceholders}) ORDER BY family, control_id`,
+      [assessment.id, ...controlDbIds]
+    );
+
+    const ai = require('../config/ai-service');
+    if (!ai.isConfigured() && process.env.NODE_ENV !== 'test') {
+      return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
+    }
+
+    const projectContext = {
+      name: assessment.project_name,
+      description: assessment.project_description || '',
+      technologies: assessment.technologies || '',
+      hosting_type: assessment.hosting_type || '',
+      confidentiality_level: assessment.confidentiality_level || 'protected-b',
+      integrity_level: assessment.integrity_level || 'medium',
+      availability_level: assessment.availability_level || 'medium',
+      security_profile: assessment.security_profile || 'PBMM',
+      documents: documentText
+    };
+
+    const guidance = [];
+    for (const control of controls) {
+      let text;
+      if (!ai.isConfigured() && process.env.NODE_ENV === 'test') {
+        text = [
+          `Provide the sections of the selected project documentation that describe ${control.control_id} - ${control.title}.`,
+          'Provide screenshots, configuration exports, or policy excerpts that prove the described design is implemented.',
+          'Identify document version, owner, approval date, and any gaps requiring assessor follow-up.'
+        ].join('\n');
+      } else {
+        text = await ai.generateEvidenceGuidance({
+          control_id: control.control_id,
+          title: control.title,
+          description: `${control.description || ''}\n\nProject document excerpts:\n${documentText.slice(0, 12000)}`
+        }, projectContext);
+      }
+      guidance.push({
+        controlDbId: control.id,
+        controlId: control.control_id,
+        title: control.title,
+        currentGuidance: control.evidence_guidance || '',
+        guidance: text,
+        sourceDocuments: documents.map(d => d.original_name)
+      });
+    }
+
+    res.json({ success: true, guidance });
+  } catch (err) {
+    console.error('Document guidance AI error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/assessments/:id/ai/document-guidance/save', ensureAuthenticated, express.json(), (req, res) => {
+  try {
+    const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+    if (!assessment) return res.status(404).json({ error: 'Assessment not found' });
+    const items = Array.isArray(req.body.items) ? req.body.items : [];
+    let saved = 0;
+    items.forEach(item => {
+      if (!item.controlDbId || !item.guidance) return;
+      const existing = get('SELECT evidence_guidance FROM assessment_controls WHERE id = ? AND assessment_id = ?', [item.controlDbId, assessment.id]);
+      if (!existing) return;
+      if (existing.evidence_guidance && !item.confirmOverwrite) return;
+      run(`UPDATE assessment_controls SET evidence_guidance = ?, guidance_source = 'ai-generated',
+        ai_generated_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ? AND assessment_id = ?`,
+        [item.guidance, item.controlDbId, assessment.id]);
+      saved++;
+    });
+    res.json({ success: true, saved });
+  } catch (err) {
+    console.error('Save document guidance error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ── SEND INVITE ──
@@ -1151,10 +1828,10 @@ router.post('/assessments/:id/complete-audit', ensureAuthenticated, (req, res) =
         const defaultDeadline = new Date();
         defaultDeadline.setDate(defaultDeadline.getDate() + (riskLevel === 'high' ? 30 : riskLevel === 'medium' ? 60 : 90));
 
-        run(`INSERT INTO iato_checklist (assessment_id, control_id, description, risk_level,
+        run(`INSERT INTO iato_checklist (project_id, assessment_id, control_id, description, risk_level,
           original_finding, deadline, status, created_by)
-          VALUES (?, ?, ?, ?, ?, ?, 'open', ?)`,
-          [req.params.id, c.control_id,
+          VALUES (?, ?, ?, ?, ?, ?, ?, 'open', ?)`,
+          [project.id, req.params.id, c.control_id,
            `Remediate ${c.control_id} — ${c.title} (${c.audit_result === 'not-met' ? 'Not Met' : 'Partially Met'})`,
            riskLevel,
            c.audit_comments || `Control ${c.audit_result}: ${c.title}`,
@@ -1187,21 +1864,25 @@ router.post('/assessments/:id/complete-audit', ensureAuthenticated, (req, res) =
 
 // ── POA&M MANAGEMENT ──
 router.post('/assessments/:id/checklist/add', ensureAuthenticated, (req, res) => {
-  const { description, deadline, control_id, assigned_to, risk_level, remediation_plan, milestone } = req.body;
-  run(`INSERT INTO iato_checklist (assessment_id, control_id, description, risk_level,
-    remediation_plan, milestone, deadline, assigned_to, created_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [req.params.id, control_id, description, risk_level || 'medium',
-     remediation_plan || '', milestone || '', deadline, assigned_to, req.user.id]);
+  const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+  if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+  const { description, deadline, control_id, assigned_to, risk_level, remediation_plan, milestone, residual_risk, assessor_notes, ato_record_id } = req.body;
+  run(`INSERT INTO iato_checklist (project_id, assessment_id, ato_record_id, control_id, description, risk_level,
+    remediation_plan, milestone, deadline, assigned_to, residual_risk, assessor_notes, created_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [assessment.project_id, req.params.id, ato_record_id || null, control_id, description, risk_level || 'medium',
+     remediation_plan || '', milestone || '', deadline, assigned_to, residual_risk || '', assessor_notes || '', req.user.id]);
   req.flash('success', 'POA&M item added');
   res.redirect(`/admin/assessments/${req.params.id}`);
 });
 
 router.post('/assessments/:id/poam/:itemId/update', ensureAuthenticated, (req, res) => {
-  const { status, risk_level, assigned_to, deadline, remediation_plan, milestone, evidence_text } = req.body;
+  const { status, risk_level, assigned_to, deadline, remediation_plan, milestone, evidence_text, residual_risk, assessor_notes, ato_record_id, description, original_finding } = req.body;
   const updates = [];
   const params = [];
 
+  if (description !== undefined) { updates.push('description = ?'); params.push(description); }
+  if (original_finding !== undefined) { updates.push('original_finding = ?'); params.push(original_finding); }
   if (status) { updates.push('status = ?'); params.push(status); }
   if (risk_level) { updates.push('risk_level = ?'); params.push(risk_level); }
   if (assigned_to !== undefined) { updates.push('assigned_to = ?'); params.push(assigned_to); }
@@ -1209,6 +1890,9 @@ router.post('/assessments/:id/poam/:itemId/update', ensureAuthenticated, (req, r
   if (remediation_plan !== undefined) { updates.push('remediation_plan = ?'); params.push(remediation_plan); }
   if (milestone !== undefined) { updates.push('milestone = ?'); params.push(milestone); }
   if (evidence_text !== undefined) { updates.push('evidence_text = ?'); params.push(evidence_text); }
+  if (residual_risk !== undefined) { updates.push('residual_risk = ?'); params.push(residual_risk); }
+  if (assessor_notes !== undefined) { updates.push('assessor_notes = ?'); params.push(assessor_notes); }
+  if (ato_record_id !== undefined) { updates.push('ato_record_id = ?'); params.push(ato_record_id || null); }
 
   if (status === 'completed') {
     updates.push('completed_at = CURRENT_TIMESTAMP');
@@ -1219,6 +1903,7 @@ router.post('/assessments/:id/poam/:itemId/update', ensureAuthenticated, (req, r
   }
 
   if (updates.length) {
+    updates.push('updated_at = CURRENT_TIMESTAMP');
     params.push(req.params.itemId, req.params.id);
     run(`UPDATE iato_checklist SET ${updates.join(', ')} WHERE id = ? AND assessment_id = ?`, params);
   }
@@ -1247,10 +1932,11 @@ router.post('/assessments/:id/poam/auto-populate', ensureAuthenticated, (req, re
       const riskLevel = c.risk_level || computeRiskLevel(c);
       const defaultDeadline = new Date();
       defaultDeadline.setDate(defaultDeadline.getDate() + (riskLevel === 'high' ? 30 : riskLevel === 'medium' ? 60 : 90));
-      run(`INSERT INTO iato_checklist (assessment_id, control_id, description, risk_level,
+      const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+      run(`INSERT INTO iato_checklist (project_id, assessment_id, control_id, description, risk_level,
         original_finding, deadline, status, created_by)
-        VALUES (?, ?, ?, ?, ?, ?, 'open', ?)`,
-        [req.params.id, c.control_id,
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'open', ?)`,
+        [assessment?.project_id || null, req.params.id, c.control_id,
          `Remediate ${c.control_id} — ${c.title}`,
          riskLevel, c.audit_comments || `${c.audit_result}: ${c.title}`,
          defaultDeadline.toISOString().split('T')[0], req.user.id]);
@@ -1900,10 +2586,11 @@ router.post('/assessments/:id/add-controls', ensureAuthenticated, (req, res) => 
     const family = cid.split('-')[0];
     statements.push({
       sql: `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title, 
-        description, tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        description, control_guidance, tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority, risk_level, framework, guidance_source)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       params: [assessment.id, cid, family, CONTROL_FAMILIES[family] || family,
-        ctrl.title, ctrl.description, '', ctrl.evidenceGuidance || '', 0, '', 1, ctrl.priority]
+        ctrl.title, ctrl.description, ctrl.evidenceGuidance || '', '', ctrl.evidenceGuidance || '', 0, '', 1, ctrl.priority,
+        computeRiskLevel({ family, priority: ctrl.priority || 'P1' }), 'ITSG-33', 'catalog']
     });
   });
 
@@ -1935,14 +2622,15 @@ router.post('/assessments/:id/update-control/:controlId', ensureAuthenticated, (
   const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
   if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
 
-  const { tailored_description, evidence_guidance, is_applicable, is_inherited, inherited_from } = req.body;
+  const { tailored_description, evidence_guidance, control_guidance, assessor_notes, is_applicable, is_inherited, inherited_from, risk_level } = req.body;
   run(`UPDATE assessment_controls SET 
-    tailored_description = ?, evidence_guidance = ?, is_applicable = ?, 
-    is_inherited = ?, inherited_from = ?, updated_at = CURRENT_TIMESTAMP
+    tailored_description = ?, evidence_guidance = ?, control_guidance = ?, assessor_notes = ?, is_applicable = ?, 
+    is_inherited = ?, inherited_from = ?, risk_level = ?, guidance_source = CASE WHEN guidance_source = 'ai-generated' THEN 'edited-after-ai' ELSE guidance_source END,
+    guidance_edited_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
     WHERE id = ? AND assessment_id = ?`,
-    [tailored_description || '', evidence_guidance || '',
+    [tailored_description || '', evidence_guidance || '', control_guidance || '', assessor_notes || '',
      is_applicable === '0' ? 0 : 1, is_inherited === '1' ? 1 : 0,
-     inherited_from || '', req.params.controlId, assessment.id]);
+     inherited_from || '', risk_level || 'medium', req.params.controlId, assessment.id]);
 
   req.flash('success', 'Control updated.');
   res.redirect(`/admin/assessments/${assessment.id}/manage-controls`);

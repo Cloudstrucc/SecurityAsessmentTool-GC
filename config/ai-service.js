@@ -403,6 +403,7 @@ PROJECT CONTEXT:
 - Hosting: ${projectContext.hosting_type || 'N/A'}
 - Classification: ${projectContext.confidentiality_level || 'Protected B'} / ${projectContext.integrity_level || 'Medium'} / ${projectContext.availability_level || 'Medium'}
 - Profile: ${projectContext.security_profile || 'PBMM'}
+${projectContext.documents ? `\nSELECTED PROJECT DOCUMENT EXCERPTS:\n${projectContext.documents}` : ''}
 
 Write evidence guidance for this control:`;
 

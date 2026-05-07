@@ -389,7 +389,8 @@ router.post('/ai/save-guidance/:controlDbId', ensureAuthenticated, express.json(
   try {
     const { guidance } = req.body;
     const { run } = require('../models/database');
-    run('UPDATE assessment_controls SET evidence_guidance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+    run(`UPDATE assessment_controls SET evidence_guidance = ?, guidance_source = 'ai-generated',
+      ai_generated_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
       [guidance, req.params.controlDbId]);
     res.json({ success: true });
   } catch (err) {

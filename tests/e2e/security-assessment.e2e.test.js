@@ -12,6 +12,7 @@ const PORT = String(43000 + Math.floor(Math.random() * 1000));
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const DB_PATH = path.join(TMP, 'data', 'sa-tool.db');
 const TEST_SECRET = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
+const SADD_PATH = '/Users/frederickpearson/repos/nintex-dataverse/SADD.html';
 
 const USERS = {
   assessor: { email: 'e2e.assessor@example.test', password: 'TestPassword123!' },
@@ -67,12 +68,19 @@ function runUserScript(args) {
   });
 }
 
-async function request(jar, method, url, { form, redirect = 'manual' } = {}) {
-  const headers = {};
+async function request(jar, method, url, { form, json, body: rawBody, headers: extraHeaders, redirect = 'manual' } = {}) {
+  const headers = { ...(extraHeaders || {}) };
   let body;
   if (form) {
     headers['content-type'] = 'application/x-www-form-urlencoded';
     body = new URLSearchParams(form).toString();
+  }
+  if (json) {
+    headers['content-type'] = 'application/json';
+    body = JSON.stringify(json);
+  }
+  if (rawBody) {
+    body = rawBody;
   }
   const cookie = jar?.header();
   if (cookie) headers.cookie = cookie;
@@ -128,6 +136,63 @@ async function loginClientWithTotp() {
   });
   assert.equal(step2.status, 302);
   return jar;
+}
+
+async function createAdminProject(jar, name = 'E2E Workflow Project') {
+  const response = await request(jar, 'POST', '/admin/projects/new', {
+    form: {
+      name,
+      description: 'A protected B Azure case management system with APIs, audit logging, identity controls, and supporting documentation.',
+      department: 'E2E Department',
+      branch: 'Security Testing',
+      data_classification: 'protected-b',
+      confidentiality_level: 'protected-b',
+      integrity_level: 'medium',
+      availability_level: 'medium',
+      hosting_type: 'azure',
+      app_type: 'internal',
+      has_pii: '1',
+      project_owner_name: 'E2E Owner',
+      project_owner_email: 'owner@example.test',
+      technologies: 'azure'
+    }
+  });
+  assert.equal(response.status, 302);
+  const projectPath = response.headers.get('location');
+  assert.match(projectPath, /^\/admin\/projects\/\d+$/);
+  return { projectPath, projectId: projectPath.match(/(\d+)$/)[1] };
+}
+
+async function createSingleControlAssessment(jar, projectId) {
+  const response = await request(jar, 'POST', `/admin/projects/${projectId}/assessments/new`, {
+    form: {
+      control_ids: 'AC-2',
+      'title_AC-2': 'Account Management',
+      'desc_AC-2': 'Access Control: Account Management',
+      'control_guidance_AC-2': 'Review account lifecycle governance, approvals, and monitoring.',
+      'priority_AC-2': 'P1',
+      'tailored[AC-2]': 'Tailored account-management control.',
+      'guidance[AC-2]': 'Provide account inventory and lifecycle evidence.',
+      'applicable[AC-2]': '1'
+    }
+  });
+  assert.equal(response.status, 302);
+  const assessmentPath = response.headers.get('location');
+  assert.match(assessmentPath, /^\/admin\/assessments\/\d+$/);
+  return { assessmentPath, assessmentId: assessmentPath.match(/(\d+)$/)[1] };
+}
+
+async function uploadSaddDocument(jar, projectId) {
+  assert.ok(fs.existsSync(SADD_PATH), `SADD test document missing at ${SADD_PATH}`);
+  const formData = new FormData();
+  formData.append('documents', new Blob([fs.readFileSync(SADD_PATH)], { type: 'text/html' }), 'SADD.html');
+  const upload = await request(jar, 'POST', `/admin/projects/${projectId}/documents`, { body: formData });
+  assert.equal(upload.status, 302);
+  const detail = await getText(jar, `/admin/projects/${projectId}`);
+  assert.match(detail.text, /SADD\.html/);
+  const docId = detail.text.match(/\/admin\/projects\/\d+\/documents\/(\d+)\/download/)?.[1];
+  assert.ok(docId, 'uploaded document id should be present in project dashboard');
+  return docId;
 }
 
 test.before(async () => {
@@ -328,6 +393,185 @@ test('admin can create an assessment linked to the project intake', async () => 
   assert.match(assessmentDetail.text, /Intake/);
   assert.match(assessmentDetail.text, /INT-/);
   assert.match(assessmentDetail.text, /AC-2/);
+});
+
+test('admin can upload SADD documentation to a project and download it later', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E SADD Documentation Project');
+  const docId = await uploadSaddDocument(jar, projectId);
+
+  const download = await request(jar, 'GET', `/admin/projects/${projectId}/documents/${docId}/download`, { redirect: 'manual' });
+  assert.equal(download.status, 200);
+  assert.match(download.headers.get('content-disposition') || '', /SADD\.html/);
+  assert.match(await download.text(), /SADD.*ESign Elections Canada/i);
+});
+
+test('admin can tailor assessment controls and persist rich control fields', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Tailoring Project');
+  const { assessmentPath } = await createSingleControlAssessment(jar, projectId);
+
+  const tailorPage = await getText(jar, `${assessmentPath}?tailor=1`);
+  assert.equal(tailorPage.response.status, 200);
+  assert.match(tailorPage.text, /Tailoring mode enabled/);
+  const controlDbId = tailorPage.text.match(/name="control_db_ids" value="(\d+)"/)?.[1];
+  assert.ok(controlDbId, 'control db id should be present in tailoring form');
+
+  const save = await request(jar, 'POST', `${assessmentPath}/tailoring`, {
+    form: {
+      control_db_ids: controlDbId,
+      [`title_${controlDbId}`]: 'Account Management - Tailored',
+      [`description_${controlDbId}`]: 'Tailored description for account lifecycle governance.',
+      [`control_guidance_${controlDbId}`]: 'Assess account request, approval, review, and disablement practices.',
+      [`tailored_description_${controlDbId}`]: 'Apply account governance to project administrators and privileged service accounts.',
+      [`evidence_guidance_${controlDbId}`]: 'Provide SSO group exports, joiner mover leaver records, and quarterly access review evidence.',
+      [`evidence_text_${controlDbId}`]: 'Evidence collected from identity governance export.',
+      [`evidence_status_${controlDbId}`]: 'provided',
+      [`assessor_notes_${controlDbId}`]: 'Assessor note persisted from tailoring mode.',
+      [`audit_comments_${controlDbId}`]: 'Audit comment persisted from tailoring mode.',
+      [`audit_result_${controlDbId}`]: 'partially-met',
+      [`is_applicable_${controlDbId}`]: '1',
+      [`is_inherited_${controlDbId}`]: '0',
+      [`inherited_from_${controlDbId}`]: '',
+      [`priority_${controlDbId}`]: 'P1',
+      [`risk_level_${controlDbId}`]: 'high',
+      [`guidance_source_${controlDbId}`]: 'manual'
+    }
+  });
+  assert.equal(save.status, 302);
+
+  const refreshed = await getText(jar, assessmentPath);
+  assert.match(refreshed.text, /Account Management - Tailored/);
+  assert.match(refreshed.text, /Tailored description for account lifecycle governance/);
+  assert.match(refreshed.text, /Provide SSO group exports/);
+  assert.match(refreshed.text, /Evidence collected from identity governance export/);
+  assert.match(refreshed.text, /Assessor note persisted from tailoring mode/);
+  assert.match(refreshed.text, /partially-met/);
+});
+
+test('admin can generate previewed AI evidence guidance from uploaded SADD documentation', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E AI Guidance Project');
+  const docId = await uploadSaddDocument(jar, projectId);
+  const { assessmentPath, assessmentId } = await createSingleControlAssessment(jar, projectId);
+
+  const detail = await getText(jar, assessmentPath);
+  const controlDbId = detail.text.match(/id="ai-ev-btn-(\d+)"/)?.[1];
+  assert.ok(controlDbId, 'control db id should be present for AI guidance');
+
+  const preview = await request(jar, 'POST', `/admin/assessments/${assessmentId}/ai/document-guidance`, {
+    json: { document_ids: [docId], control_db_ids: [controlDbId] }
+  });
+  assert.equal(preview.status, 200);
+  const previewData = await preview.json();
+  assert.equal(previewData.success, true);
+  assert.equal(previewData.guidance.length, 1);
+  assert.match(previewData.guidance[0].guidance, /selected project documentation/);
+
+  const save = await request(jar, 'POST', `/admin/assessments/${assessmentId}/ai/document-guidance/save`, {
+    json: {
+      items: [{
+        controlDbId,
+        guidance: previewData.guidance[0].guidance + '\nSaved during E2E AI guidance test.',
+        confirmOverwrite: true
+      }]
+    }
+  });
+  assert.equal(save.status, 200);
+  const saveData = await save.json();
+  assert.equal(saveData.success, true);
+  assert.equal(saveData.saved, 1);
+
+  const refreshed = await getText(jar, assessmentPath);
+  assert.match(refreshed.text, /Saved during E2E AI guidance test/);
+  assert.match(refreshed.text, /ai-generated/);
+});
+
+test('admin can create editable ATO records and manage linked POA&M items', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E ATO POAM Project');
+  const { assessmentPath, assessmentId } = await createSingleControlAssessment(jar, projectId);
+
+  const atoCreate = await request(jar, 'POST', `/admin/projects/${projectId}/ato/new`, {
+    form: {
+      assessment_id: assessmentId,
+      record_type: 'iato',
+      title: 'E2E Interim Authorization',
+      system_name: 'E2E ATO POAM Project',
+      organization_name: 'E2E Department',
+      authorizing_official: 'Authorizing Official',
+      assessor: 'E2E Assessor',
+      authorization_status: 'draft',
+      executive_summary: 'Editable iATO summary.',
+      system_description: 'Editable system description.',
+      assessment_scope: 'Editable assessment scope.',
+      risk_summary: 'Editable risk summary.',
+      residual_risk_statement: 'Editable residual risk statement.',
+      conditions_of_authorization: 'Editable authorization conditions.',
+      security_control_summary: 'Editable control summary.',
+      poam_summary: 'Editable POA&M summary.',
+      assessor_notes: 'Editable assessor notes.'
+    }
+  });
+  assert.equal(atoCreate.status, 302);
+  const atoPath = atoCreate.headers.get('location');
+  assert.match(atoPath, /^\/admin\/ato\/\d+$/);
+  const atoId = atoPath.match(/(\d+)$/)[1];
+
+  const atoPage = await getText(jar, atoPath);
+  assert.match(atoPage.text, /E2E Interim Authorization/);
+  assert.match(atoPage.text, /Editable iATO summary/);
+
+  const addPoam = await request(jar, 'POST', `/admin/assessments/${assessmentId}/checklist/add`, {
+    form: {
+      ato_record_id: atoId,
+      control_id: 'AC-2',
+      description: 'E2E finding requiring remediation',
+      risk_level: 'medium',
+      deadline: '2026-12-31',
+      assigned_to: 'Control Owner',
+      remediation_plan: 'Initial mitigation plan',
+      milestone: 'Initial milestone',
+      residual_risk: 'Initial residual risk',
+      assessor_notes: 'Initial POA&M assessor note'
+    }
+  });
+  assert.equal(addPoam.status, 302);
+  const poamPage = await getText(jar, assessmentPath);
+  assert.match(poamPage.text, /E2E finding requiring remediation/);
+  assert.match(poamPage.text, /Initial mitigation plan/);
+  const itemId = poamPage.text.match(/\/admin\/assessments\/\d+\/poam\/(\d+)\/delete/)?.[1];
+  assert.ok(itemId, 'POA&M item id should be visible in delete form');
+
+  const updatePoam = await request(jar, 'POST', `/admin/assessments/${assessmentId}/poam/${itemId}/update`, {
+    form: {
+      description: 'E2E finding updated after review',
+      status: 'in-progress',
+      risk_level: 'high',
+      deadline: '2026-11-30',
+      assigned_to: 'Updated Owner',
+      remediation_plan: 'Updated mitigation plan',
+      milestone: 'Updated milestone note',
+      residual_risk: 'Updated residual risk note',
+      assessor_notes: 'Updated assessor POA&M note',
+      ato_record_id: atoId
+    }
+  });
+  assert.equal(updatePoam.status, 302);
+  const updated = await getText(jar, assessmentPath);
+  assert.match(updated.text, /E2E finding updated after review/);
+  assert.match(updated.text, /Updated mitigation plan/);
+  assert.match(updated.text, /Updated residual risk note/);
+  assert.match(updated.text, /Updated assessor POA(?:&amp;|&)M note/);
+});
+
+test('admin can browse the security control catalog', async () => {
+  const jar = await loginAdminWithTotp();
+  const page = await getText(jar, '/admin/security-controls?q=account');
+  assert.equal(page.response.status, 200);
+  assert.match(page.text, /Security Control Catalog/);
+  assert.match(page.text, /AC-2/);
+  assert.match(page.text, /Account Management/);
 });
 
 test.skip('self-assessment creation flow', () => {

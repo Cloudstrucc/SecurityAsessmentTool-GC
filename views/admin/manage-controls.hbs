@@ -65,6 +65,9 @@
           </div>
 
           <p class="control-desc mb-2 small">{{this.description}}</p>
+          {{#if this.control_guidance}}
+            <div class="small text-muted mb-2"><strong>Guidance:</strong> {{this.control_guidance}}</div>
+          {{/if}}
 
           <!-- Inline edit -->
           <div class="collapse" id="edit-{{this.id}}">
@@ -80,23 +83,41 @@
                   <textarea class="form-control form-control-sm" name="evidence_guidance" rows="3"
                     placeholder="What evidence should be provided...">{{this.evidence_guidance}}</textarea>
                 </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Control Guidance</label>
+                  <textarea class="form-control form-control-sm" name="control_guidance" rows="3"
+                    placeholder="Catalog or assessor guidance...">{{this.control_guidance}}</textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Assessor Notes</label>
+                  <textarea class="form-control form-control-sm" name="assessor_notes" rows="3"
+                    placeholder="Internal notes for the assessment team...">{{this.assessor_notes}}</textarea>
+                </div>
               </div>
               <div class="row g-2 mt-1">
-                <div class="col-md-4">
+                <div class="col-md-3">
                   <label class="form-label small fw-semibold">Applicability</label>
                   <select class="form-select form-select-sm" name="is_applicable">
                     <option value="1" {{#if this.is_applicable}}selected{{/if}}>In Scope</option>
                     <option value="0" {{#unless this.is_applicable}}selected{{/unless}}>Out of Scope</option>
                   </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                   <label class="form-label small fw-semibold">Inherited</label>
                   <select class="form-select form-select-sm" name="is_inherited">
                     <option value="0" {{#unless this.is_inherited}}selected{{/unless}}>No</option>
                     <option value="1" {{#if this.is_inherited}}selected{{/if}}>Yes</option>
                   </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                  <label class="form-label small fw-semibold">Risk Level</label>
+                  <select class="form-select form-select-sm" name="risk_level">
+                    <option value="high" {{#eq this.risk_level "high"}}selected{{/eq}}>High</option>
+                    <option value="medium" {{#eq this.risk_level "medium"}}selected{{/eq}}>Medium</option>
+                    <option value="low" {{#eq this.risk_level "low"}}selected{{/eq}}>Low</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
                   <label class="form-label small fw-semibold">Inherited From</label>
                   <input type="text" class="form-control form-control-sm" name="inherited_from"
                     value="{{this.inherited_from}}" placeholder="e.g. Azure, SSC">

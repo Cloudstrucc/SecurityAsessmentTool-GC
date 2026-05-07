@@ -63,9 +63,21 @@
           <div class="d-flex flex-wrap gap-2 justify-content-md-end">
             {{!-- Action buttons based on status --}}
             {{#eq assessment.status "draft"}}
-              <a href="/admin/assessments/{{assessment.id}}/manage-controls" class="btn btn-outline-primary">
-                <i class="bi bi-gear me-1"></i>Manage Controls
-              </a>
+              {{#if tailorMode}}
+                <button type="submit" form="tailoringForm" class="btn btn-success">
+                  <i class="bi bi-save me-1"></i>Save Tailoring
+                </button>
+                <a href="/admin/assessments/{{assessment.id}}" class="btn btn-outline-secondary">
+                  <i class="bi bi-x-lg me-1"></i>Cancel
+                </a>
+              {{else}}
+                <a href="/admin/assessments/{{assessment.id}}?tailor=1" class="btn btn-outline-primary">
+                  <i class="bi bi-pencil-square me-1"></i>Tailor
+                </a>
+                <a href="/admin/assessments/{{assessment.id}}/manage-controls" class="btn btn-outline-primary">
+                  <i class="bi bi-gear me-1"></i>Manage Controls
+                </a>
+              {{/if}}
               <form method="POST" action="/admin/assessments/{{assessment.id}}/send-invite" class="d-inline">
                 <button class="btn btn-primary"><i class="bi bi-send me-1"></i>Send Invite</button>
               </form>
@@ -111,6 +123,12 @@
 
             <a href="/admin/assessments/{{assessment.id}}/export-pdf" class="btn btn-outline-primary btn-sm">
               <i class="bi bi-download me-1"></i>Export PDF
+            </a>
+            <a href="/admin/projects/{{assessment.project_id}}/controls.csv" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-filetype-csv me-1"></i>Controls CSV
+            </a>
+            <a href="/admin/projects/{{assessment.project_id}}/controls.pdf" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-file-earmark-pdf me-1"></i>Controls PDF
             </a>
           </div>
         </div>
@@ -177,6 +195,43 @@
       </form>
     </div>
   </div>
+
+  {{#if documents.length}}
+  <div class="card mb-4" id="ai-doc-guidance">
+    <div class="card-header bg-light"><i class="bi bi-stars me-2"></i>AI Guidance From Project Documentation</div>
+    <div class="card-body">
+      <p class="text-muted small mb-3">Select project documents and controls, preview Anthropic-generated evidence guidance, then save only the guidance you approve.</p>
+      <div class="row g-3">
+        <div class="col-md-5">
+          <label class="form-label small fw-semibold">Project Documents</label>
+          <div class="border rounded p-2" style="max-height:180px;overflow:auto;">
+            {{#each documents}}
+              <div class="form-check small">
+                <input class="form-check-input ai-doc-checkbox" type="checkbox" value="{{this.id}}" id="ai-doc-{{this.id}}">
+                <label class="form-check-label" for="ai-doc-{{this.id}}">{{this.original_name}} <span class="text-muted">({{this.display_size}})</span></label>
+              </div>
+            {{/each}}
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold">Control Scope</label>
+          <select class="form-select form-select-sm" id="aiControlScope">
+            <option value="visible">Visible controls on page</option>
+            <option value="selected">Checked controls only</option>
+          </select>
+          <div class="form-text">Use tailoring checkboxes below to choose a smaller set.</div>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <button type="button" class="btn btn-sm text-white w-100" style="background:#8b5cf6;" onclick="aiGenerateFromDocuments()">
+            <i class="bi bi-stars me-1"></i>Preview Guidance
+          </button>
+        </div>
+      </div>
+      <div id="aiDocGuidanceStatus" class="small mt-3"></div>
+      <div id="aiDocGuidancePreview" class="mt-3"></div>
+    </div>
+  </div>
+  {{/if}}
 
   <!-- Stats -->
   <div class="row g-3 mb-4">
@@ -324,8 +379,7 @@
   </div>
   {{/eq}}
 
-  <!-- POA&M Section (replaces basic iATO checklist) -->
-  {{#eq assessment.result "iato"}}
+  <!-- POA&M Section -->
     <div class="card mb-4" id="poam-section">
       <div class="card-header d-flex justify-content-between align-items-center" style="background:var(--gc-warning)">
         <span><i class="bi bi-clipboard2-check me-2"></i><strong>Plan of Action & Milestones (POA&M)</strong></span>
@@ -378,7 +432,7 @@
                 <th style="width:100px">Deadline</th>
                 <th style="width:100px">Assigned</th>
                 <th style="width:120px">Status</th>
-                <th style="width:60px"></th>
+                <th style="width:90px"></th>
               </tr>
             </thead>
             <tbody>
@@ -393,6 +447,9 @@
                     <span class="fw-semibold">{{this.description}}</span>
                     {{#if this.original_finding}}<br><small class="text-muted">Finding: {{this.original_finding}}</small>{{/if}}
                     {{#if this.remediation_plan}}<br><small class="text-primary">Plan: {{this.remediation_plan}}</small>{{/if}}
+                    {{#if this.milestone}}<br><small class="text-muted">Milestone: {{this.milestone}}</small>{{/if}}
+                    {{#if this.residual_risk}}<br><small class="text-danger">Residual Risk: {{this.residual_risk}}</small>{{/if}}
+                    {{#if this.assessor_notes}}<br><small class="text-muted">Assessor Notes: {{this.assessor_notes}}</small>{{/if}}
                   </td>
                   <td><code>{{this.control_id}}</code></td>
                   <td>
@@ -413,9 +470,82 @@
                     </form>
                   </td>
                   <td>
+                    <button class="btn btn-sm btn-outline-primary p-0 px-1 me-1" type="button"
+                      data-bs-toggle="collapse" data-bs-target="#poam-edit-{{this.id}}" title="Edit">
+                      <i class="bi bi-pencil"></i>
+                    </button>
                     <form method="POST" action="/admin/assessments/{{../assessment.id}}/poam/{{this.id}}/delete"
                       onsubmit="return confirm('Remove this POA&M item?')" class="d-inline">
                       <button class="btn btn-sm btn-outline-danger p-0 px-1" title="Delete"><i class="bi bi-trash"></i></button>
+                    </form>
+                  </td>
+                </tr>
+                <tr class="collapse" id="poam-edit-{{this.id}}">
+                  <td colspan="7" class="bg-light">
+                    <form method="POST" action="/admin/assessments/{{../assessment.id}}/poam/{{this.id}}/update" class="p-2">
+                      <div class="row g-2">
+                        <div class="col-md-6">
+                          <label class="form-label small fw-semibold">Finding / Weakness</label>
+                          <input type="text" class="form-control form-control-sm" name="description" value="{{this.description}}">
+                        </div>
+                        <div class="col-md-2">
+                          <label class="form-label small fw-semibold">Risk</label>
+                          <select class="form-select form-select-sm" name="risk_level">
+                            <option value="high" {{#eq this.risk_level "high"}}selected{{/eq}}>High</option>
+                            <option value="medium" {{#eq this.risk_level "medium"}}selected{{/eq}}>Medium</option>
+                            <option value="low" {{#eq this.risk_level "low"}}selected{{/eq}}>Low</option>
+                          </select>
+                        </div>
+                        <div class="col-md-2">
+                          <label class="form-label small fw-semibold">Status</label>
+                          <select class="form-select form-select-sm" name="status">
+                            <option value="open" {{#eq this.status "open"}}selected{{/eq}}>Open</option>
+                            <option value="in-progress" {{#eq this.status "in-progress"}}selected{{/eq}}>In Progress</option>
+                            <option value="completed" {{#eq this.status "completed"}}selected{{/eq}}>Completed</option>
+                            <option value="verified" {{#eq this.status "verified"}}selected{{/eq}}>Verified</option>
+                          </select>
+                        </div>
+                        <div class="col-md-2">
+                          <label class="form-label small fw-semibold">Target Date</label>
+                          <input type="date" class="form-control form-control-sm" name="deadline" value="{{this.deadline}}">
+                        </div>
+                        <div class="col-md-4">
+                          <label class="form-label small fw-semibold">Owner</label>
+                          <input type="text" class="form-control form-control-sm" name="assigned_to" value="{{this.assigned_to}}">
+                        </div>
+                        <div class="col-md-4">
+                          <label class="form-label small fw-semibold">Related ATO/iATO</label>
+                          <select class="form-select form-select-sm" name="ato_record_id">
+                            <option value="">None</option>
+                            {{#each ../atoRecords}}
+                              <option value="{{this.id}}">{{this.record_type}} - {{this.title}}</option>
+                            {{/each}}
+                          </select>
+                        </div>
+                        <div class="col-md-4">
+                          <label class="form-label small fw-semibold">Original Finding</label>
+                          <input type="text" class="form-control form-control-sm" name="original_finding" value="{{this.original_finding}}">
+                        </div>
+                        <div class="col-md-6">
+                          <label class="form-label small fw-semibold">Mitigation Plan</label>
+                          <textarea class="form-control form-control-sm" name="remediation_plan" rows="2">{{this.remediation_plan}}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                          <label class="form-label small fw-semibold">Milestone Notes</label>
+                          <textarea class="form-control form-control-sm" name="milestone" rows="2">{{this.milestone}}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                          <label class="form-label small fw-semibold">Residual Risk</label>
+                          <textarea class="form-control form-control-sm" name="residual_risk" rows="2">{{this.residual_risk}}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                          <label class="form-label small fw-semibold">Assessor Notes</label>
+                          <textarea class="form-control form-control-sm" name="assessor_notes" rows="2">{{this.assessor_notes}}</textarea>
+                        </div>
+                        <div class="col-12">
+                          <button class="btn btn-sm btn-primary"><i class="bi bi-save me-1"></i>Save POA&M Item</button>
+                        </div>
+                      </div>
                     </form>
                   </td>
                 </tr>
@@ -470,10 +600,33 @@
               <input type="text" class="form-control form-control-sm" name="milestone" placeholder="Milestone (optional)">
             </div>
           </div>
+          <div class="row g-2 mt-2">
+            <div class="col-md-4">
+              <select class="form-select form-select-sm" name="ato_record_id">
+                <option value="">Related ATO/iATO (optional)</option>
+                {{#each atoRecords}}
+                  <option value="{{this.id}}">{{this.record_type}} - {{this.title}}</option>
+                {{/each}}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <input type="text" class="form-control form-control-sm" name="residual_risk" placeholder="Residual risk notes (optional)">
+            </div>
+            <div class="col-md-4">
+              <input type="text" class="form-control form-control-sm" name="assessor_notes" placeholder="Assessor notes (optional)">
+            </div>
+          </div>
         </form>
       </div>
     </div>
-  {{/eq}}
+
+  {{#if tailorMode}}
+  <form id="tailoringForm" method="POST" action="/admin/assessments/{{assessment.id}}/tailoring">
+    <div class="alert alert-warning d-flex justify-content-between align-items-center">
+      <div><i class="bi bi-pencil-square me-2"></i><strong>Tailoring mode enabled.</strong> Edit fields, mark applicability, or remove controls, then save.</div>
+      <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-save me-1"></i>Save Tailoring</button>
+    </div>
+  {{/if}}
 
   <!-- Layout: Controls + Family Nav -->
   <div class="row">
@@ -505,6 +658,12 @@
           <div class="d-flex justify-content-between align-items-start">
             <div>
               <div class="d-flex align-items-center gap-2 mb-1">
+                {{#if ../../tailorMode}}
+                  <input type="checkbox" class="form-check-input ai-control-checkbox" value="{{this.id}}" checked>
+                  <input type="hidden" name="control_db_ids" value="{{this.id}}">
+                {{else}}
+                  <input type="checkbox" class="form-check-input ai-control-checkbox" value="{{this.id}}" style="display:none;">
+                {{/if}}
                 {{{controlResultIcon this.audit_result}}}
                 <span class="control-id">{{this.control_id}}</span>
                 <span class="control-title">{{this.title}}</span>
@@ -522,6 +681,114 @@
             </div>
           </div>
 
+          {{#if ../../tailorMode}}
+            <div class="border rounded p-3 mt-3" style="background:#f8f9fa;">
+              <div class="row g-2">
+                <div class="col-md-8">
+                  <label class="form-label small fw-semibold">Control Title</label>
+                  <input type="text" class="form-control form-control-sm" name="title_{{this.id}}" value="{{this.title}}">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label small fw-semibold">Priority</label>
+                  <select class="form-select form-select-sm" name="priority_{{this.id}}">
+                    <option value="P1" {{#eq this.priority "P1"}}selected{{/eq}}>P1</option>
+                    <option value="P2" {{#eq this.priority "P2"}}selected{{/eq}}>P2</option>
+                    <option value="P3" {{#eq this.priority "P3"}}selected{{/eq}}>P3</option>
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label small fw-semibold">Risk</label>
+                  <select class="form-select form-select-sm" name="risk_level_{{this.id}}">
+                    <option value="high" {{#eq this.risk_level "high"}}selected{{/eq}}>High</option>
+                    <option value="medium" {{#eq this.risk_level "medium"}}selected{{/eq}}>Medium</option>
+                    <option value="low" {{#eq this.risk_level "low"}}selected{{/eq}}>Low</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label small fw-semibold">Control Description</label>
+                  <textarea class="form-control form-control-sm" name="description_{{this.id}}" rows="2">{{this.description}}</textarea>
+                </div>
+                <div class="col-12">
+                  <label class="form-label small fw-semibold">Control Guidance</label>
+                  <textarea class="form-control form-control-sm" name="control_guidance_{{this.id}}" rows="2">{{this.control_guidance}}</textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Tailored Description</label>
+                  <textarea class="form-control form-control-sm" name="tailored_description_{{this.id}}" rows="3">{{this.tailored_description}}</textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Evidence Guidance</label>
+                  <textarea class="form-control form-control-sm" name="evidence_guidance_{{this.id}}" rows="3">{{this.evidence_guidance}}</textarea>
+                  <input type="hidden" name="guidance_source_{{this.id}}" value="{{this.guidance_source}}">
+                  {{#if this.guidance_source}}<div class="form-text">Source: {{this.guidance_source}}{{#if this.ai_generated_at}} on {{formatDate this.ai_generated_at}}{{/if}}</div>{{/if}}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Evidence Collected</label>
+                  <textarea class="form-control form-control-sm" name="evidence_text_{{this.id}}" rows="3">{{this.evidence_text}}</textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Assessor Notes</label>
+                  <textarea class="form-control form-control-sm" name="assessor_notes_{{this.id}}" rows="3">{{this.assessor_notes}}</textarea>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small fw-semibold">Evidence Status</label>
+                  <select class="form-select form-select-sm" name="evidence_status_{{this.id}}">
+                    <option value="pending" {{#eq this.evidence_status "pending"}}selected{{/eq}}>Pending</option>
+                    <option value="provided" {{#eq this.evidence_status "provided"}}selected{{/eq}}>Provided</option>
+                    <option value="reviewed" {{#eq this.evidence_status "reviewed"}}selected{{/eq}}>Reviewed</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small fw-semibold">Assessment Status</label>
+                  <select class="form-select form-select-sm" name="audit_result_{{this.id}}">
+                    <option value="" {{#unless this.audit_result}}selected{{/unless}}>Pending</option>
+                    <option value="met" {{#eq this.audit_result "met"}}selected{{/eq}}>Met</option>
+                    <option value="partially-met" {{#eq this.audit_result "partially-met"}}selected{{/eq}}>Partially Met</option>
+                    <option value="not-met" {{#eq this.audit_result "not-met"}}selected{{/eq}}>Not Met</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small fw-semibold">Applicability</label>
+                  <select class="form-select form-select-sm" name="is_applicable_{{this.id}}">
+                    <option value="1" {{#if this.is_applicable}}selected{{/if}}>Applicable</option>
+                    <option value="0" {{#unless this.is_applicable}}selected{{/unless}}>Not Applicable</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small fw-semibold">Remove</label>
+                  <div class="form-check mt-1">
+                    <input class="form-check-input" type="checkbox" name="remove_control_ids" value="{{this.id}}" id="remove-{{this.id}}">
+                    <label class="form-check-label small" for="remove-{{this.id}}">Remove from assessment</label>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small fw-semibold">Inherited</label>
+                  <select class="form-select form-select-sm" name="is_inherited_{{this.id}}">
+                    <option value="0" {{#unless this.is_inherited}}selected{{/unless}}>No</option>
+                    <option value="1" {{#if this.is_inherited}}selected{{/if}}>Yes</option>
+                  </select>
+                </div>
+                <div class="col-md-9">
+                  <label class="form-label small fw-semibold">Inherited From</label>
+                  <input type="text" class="form-control form-control-sm" name="inherited_from_{{this.id}}" value="{{this.inherited_from}}">
+                </div>
+              </div>
+            </div>
+          {{else}}
+            {{#if this.description}}
+              <div class="mt-2 p-2 rounded" style="background:#f8f9fa">
+                <small class="text-muted fw-semibold d-block mb-1">Control Description</small>
+                <small>{{this.description}}</small>
+              </div>
+            {{/if}}
+            {{#if this.control_guidance}}
+              <div class="mt-2 p-2 rounded" style="background:#eef5ff">
+                <small class="text-muted fw-semibold d-block mb-1">Control Guidance</small>
+                <small>{{this.control_guidance}}</small>
+              </div>
+            {{/if}}
+          {{/if}}
+
           {{#if this.tailored_description}}
             <div class="mt-2 p-2 rounded" style="background:#f8f9fa">
               <small class="text-muted fw-semibold d-block mb-1">Tailored Description</small>
@@ -533,6 +800,7 @@
             <div class="mt-2 p-2 rounded" style="background:#fff8e1">
               <small class="text-muted fw-semibold d-block mb-1"><i class="bi bi-info-circle me-1"></i>Evidence Guidance</small>
               <small>{{this.evidence_guidance}}</small>
+              {{#if this.guidance_source}}<small class="d-block text-muted mt-1">Source: {{this.guidance_source}}</small>{{/if}}
             </div>
           {{/if}}
 
@@ -560,6 +828,25 @@
               {{/if}}
             </div>
           {{/eq}}
+          {{#unless this.evidence_text}}
+            <div class="mt-2 p-2 rounded border" style="background:#fff">
+              <small class="text-muted fw-semibold d-block mb-1">Evidence Collected</small>
+              <small class="text-muted">No evidence collected yet.</small>
+            </div>
+          {{/unless}}
+
+          <div class="mt-2 d-flex flex-wrap gap-2 small">
+            <span class="badge {{#if this.is_applicable}}bg-success{{else}}bg-secondary{{/if}}">Applicability: {{#if this.is_applicable}}Applicable{{else}}Not Applicable{{/if}}</span>
+            <span class="badge bg-light text-dark border">Evidence: {{this.evidence_status}}</span>
+            <span class="badge bg-light text-dark border">Assessment: {{#if this.audit_result}}{{this.audit_result}}{{else}}pending{{/if}}</span>
+          </div>
+
+          {{#if this.assessor_notes}}
+            <div class="mt-2 p-2 rounded" style="background:#f5f3ff">
+              <small class="fw-semibold d-block mb-1"><i class="bi bi-journal-text me-1"></i>Assessor Notes</small>
+              <small>{{this.assessor_notes}}</small>
+            </div>
+          {{/if}}
 
           {{!-- Audit controls (only in audit status) --}}
           {{#eq ../../assessment.status "audit"}}
@@ -655,6 +942,10 @@
       </div>
     </div>
   </div><!-- end row -->
+
+  {{#if tailorMode}}
+  </form>
+  {{/if}}
 </div><!-- end container -->
 
 <script>
@@ -740,6 +1031,89 @@ document.querySelectorAll('.assignment-mode').forEach(select => {
   select.addEventListener('change', sync);
   sync();
 });
+
+async function aiGenerateFromDocuments() {
+  const statusEl = document.getElementById('aiDocGuidanceStatus');
+  const previewEl = document.getElementById('aiDocGuidancePreview');
+  const documentIds = Array.from(document.querySelectorAll('.ai-doc-checkbox:checked')).map(cb => cb.value);
+  const scope = document.getElementById('aiControlScope')?.value || 'visible';
+  const controlIds = scope === 'selected'
+    ? Array.from(document.querySelectorAll('.ai-control-checkbox:checked')).map(cb => cb.value)
+    : Array.from(document.querySelectorAll('[id^="ai-ev-btn-"]')).map(btn => btn.id.replace('ai-ev-btn-', ''));
+
+  if (!documentIds.length) {
+    statusEl.innerHTML = '<span class="text-danger">Select at least one document.</span>';
+    return;
+  }
+  if (!controlIds.length) {
+    statusEl.innerHTML = '<span class="text-danger">Select at least one control.</span>';
+    return;
+  }
+
+  statusEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Analyzing selected documentation...';
+  previewEl.innerHTML = '';
+
+  try {
+    const resp = await fetch('/admin/assessments/' + ASSESSMENT_ID + '/ai/document-guidance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ document_ids: documentIds, control_db_ids: controlIds.slice(0, 10) })
+    });
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error || 'AI guidance failed');
+    window._documentGuidancePreview = data.guidance;
+    statusEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Preview ready. Review before saving.</span>';
+    previewEl.innerHTML = data.guidance.map((item, index) => `
+      <div class="border rounded p-3 mb-2 ai-doc-guidance-card" data-index="${index}">
+        <div class="d-flex justify-content-between gap-2">
+          <div>
+            <strong>${item.controlId}</strong> ${item.title}
+            ${item.currentGuidance ? '<span class="badge bg-warning text-dark ms-2">Existing guidance</span>' : ''}
+          </div>
+          <div class="form-check">
+            <input class="form-check-input ai-save-guidance" type="checkbox" id="ai-save-${index}" checked>
+            <label class="form-check-label small" for="ai-save-${index}">Save</label>
+          </div>
+        </div>
+        <textarea class="form-control form-control-sm mt-2 ai-guidance-text" rows="5">${item.guidance}</textarea>
+        ${item.currentGuidance ? `<details class="small mt-2"><summary>Existing guidance</summary><div class="text-muted mt-1">${item.currentGuidance}</div></details>` : ''}
+      </div>
+    `).join('') + `
+      <button type="button" class="btn btn-sm btn-success" onclick="aiSaveDocumentGuidance()">
+        <i class="bi bi-save me-1"></i>Save Approved Guidance
+      </button>`;
+  } catch (err) {
+    statusEl.innerHTML = '<span class="text-danger">' + err.message + '</span>';
+  }
+}
+
+async function aiSaveDocumentGuidance() {
+  const cards = Array.from(document.querySelectorAll('.ai-doc-guidance-card'));
+  const items = cards.map(card => {
+    const index = Number(card.dataset.index);
+    const item = window._documentGuidancePreview[index];
+    return {
+      controlDbId: item.controlDbId,
+      guidance: card.querySelector('.ai-guidance-text').value,
+      confirmOverwrite: true,
+      save: card.querySelector('.ai-save-guidance').checked
+    };
+  }).filter(item => item.save);
+  const statusEl = document.getElementById('aiDocGuidanceStatus');
+  statusEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving approved guidance...';
+  const resp = await fetch('/admin/assessments/' + ASSESSMENT_ID + '/ai/document-guidance/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items })
+  });
+  const data = await resp.json();
+  if (data.success) {
+    statusEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Saved ' + data.saved + ' guidance item(s). Refreshing...</span>';
+    setTimeout(() => window.location.reload(), 700);
+  } else {
+    statusEl.innerHTML = '<span class="text-danger">' + (data.error || 'Save failed') + '</span>';
+  }
+}
 
 // ── Single control evidence GUIDANCE generation (assessor generates for client) ──
 async function aiGenerateGuidance(controlDbId, controlId, title) {

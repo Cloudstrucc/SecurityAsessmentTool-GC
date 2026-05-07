@@ -106,6 +106,38 @@
         </div>
       </div>
 
+      <div class="card mt-3" id="reporting">
+        <div class="card-header bg-light"><i class="bi bi-palette me-2"></i>Report Branding</div>
+        <div class="card-body">
+          <form method="POST" action="/admin/projects/{{project.id}}/branding" enctype="multipart/form-data">
+            <div class="mb-2">
+              <label class="form-label small fw-semibold" for="organization_name">Organization Name</label>
+              <input type="text" class="form-control form-control-sm" id="organization_name" name="organization_name" value="{{branding.organization_name}}" placeholder="Vanguard Cybersecurity">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small fw-semibold" for="logo">Organization Logo</label>
+              <input type="file" class="form-control form-control-sm" id="logo" name="logo" accept=".png,.jpg,.jpeg">
+              {{#if branding.logo_original_name}}<div class="form-text">Current logo: {{branding.logo_original_name}}</div>{{/if}}
+            </div>
+            <div class="mb-2">
+              <label class="form-label small fw-semibold" for="report_subtitle">Report Subtitle</label>
+              <input type="text" class="form-control form-control-sm" id="report_subtitle" name="report_subtitle" value="{{branding.report_subtitle}}">
+            </div>
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold" for="classification_label">Classification Label</label>
+                <input type="text" class="form-control form-control-sm" id="classification_label" name="classification_label" value="{{branding.classification_label}}" placeholder="Protected B">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold" for="assessor_company_name">Assessor / Company</label>
+                <input type="text" class="form-control form-control-sm" id="assessor_company_name" name="assessor_company_name" value="{{branding.assessor_company_name}}" placeholder="VanguardCS.ca">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-sm btn-primary mt-3"><i class="bi bi-save me-1"></i>Save Branding</button>
+          </form>
+        </div>
+      </div>
+
       <div class="card mt-3">
         <div class="card-header bg-light"><i class="bi bi-person-check me-2"></i>Assignment</div>
         <div class="card-body">
@@ -229,6 +261,67 @@
         </div>
       </div>
 
+      <div class="card mb-3" id="documentation">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-files me-2"></i>Documentation</span>
+          <span class="badge bg-light text-dark">{{documents.length}} document(s)</span>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="/admin/projects/{{project.id}}/documents" enctype="multipart/form-data" class="mb-3">
+            <label class="form-label small fw-semibold" for="documents">Upload Project Documents</label>
+            <div class="input-group input-group-sm">
+              <input type="file" class="form-control" id="documents" name="documents" multiple accept=".pdf,.doc,.docx,.txt,.md,.html,.htm,.png,.jpg,.jpeg,.csv,.xlsx,.pptx">
+              <button type="submit" class="btn btn-primary"><i class="bi bi-upload me-1"></i>Upload</button>
+            </div>
+            <div class="form-text">Documents are retained for AI guidance, control tailoring, reporting references, and audit traceability.</div>
+          </form>
+
+          {{#if documents.length}}
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Document</th>
+                    <th>Type</th>
+                    <th>Uploaded</th>
+                    <th>Uploaded By</th>
+                    <th>Size</th>
+                    <th>Related Project</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#each documents}}
+                    <tr>
+                      <td class="fw-semibold">{{this.original_name}}</td>
+                      <td><span class="badge bg-light text-dark border">{{this.document_type}}</span></td>
+                      <td class="small text-muted">{{formatDate this.created_at}}</td>
+                      <td class="small">{{this.uploaded_by_name}}</td>
+                      <td class="small">{{this.display_size}}</td>
+                      <td class="small">{{this.project_name}}</td>
+                      <td class="text-end text-nowrap">
+                        <a href="/admin/projects/{{../project.id}}/documents/{{this.id}}/download" class="btn btn-sm btn-outline-primary" title="View or download">
+                          <i class="bi bi-download"></i>
+                        </a>
+                        <a href="/admin/projects/{{../project.id}}/assessments/new?documents={{this.id}}" class="btn btn-sm btn-outline-success" title="Use for AI-assisted control selection">
+                          <i class="bi bi-stars"></i>
+                        </a>
+                        <form method="POST" action="/admin/projects/{{../project.id}}/documents/{{this.id}}/delete" class="d-inline"
+                          onsubmit="return confirm('Remove this document reference?')">
+                          <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete reference"><i class="bi bi-trash"></i></button>
+                        </form>
+                      </td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          {{else}}
+            <p class="text-muted small mb-0">No project documents uploaded yet.</p>
+          {{/if}}
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <span><i class="bi bi-clipboard-check me-2"></i>Assessments</span>
@@ -296,6 +389,62 @@
               <a href="/admin/projects/{{project.id}}/assessments/new" class="btn btn-primary">
                 <i class="bi bi-plus-lg me-1"></i>Start Assessment
               </a>
+            </div>
+          {{/if}}
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-header"><i class="bi bi-file-earmark-bar-graph me-2"></i>Reports & Authorization</div>
+        <div class="card-body">
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <a href="/admin/projects/{{project.id}}/controls.csv" class="btn btn-sm btn-outline-primary"><i class="bi bi-filetype-csv me-1"></i>Controls CSV</a>
+            <a href="/admin/projects/{{project.id}}/controls.pdf" class="btn btn-sm btn-outline-primary"><i class="bi bi-file-earmark-pdf me-1"></i>Controls PDF</a>
+            <a href="/admin/projects/{{project.id}}/report.pdf" class="btn btn-sm btn-outline-primary"><i class="bi bi-file-richtext me-1"></i>Full Project PDF</a>
+            <a href="/admin/projects/{{project.id}}/ato/new?type=ato" class="btn btn-sm btn-success"><i class="bi bi-shield-check me-1"></i>New ATO</a>
+            <a href="/admin/projects/{{project.id}}/ato/new?type=iato" class="btn btn-sm btn-warning"><i class="bi bi-shield-exclamation me-1"></i>New iATO</a>
+          </div>
+
+          {{#if atoRecords.length}}
+            <h6 class="fw-semibold small text-muted text-uppercase">ATO / iATO Records</h6>
+            <div class="table-responsive mb-3">
+              <table class="table table-sm mb-0">
+                <thead><tr><th>Type</th><th>Title</th><th>Status</th><th>Updated</th><th></th></tr></thead>
+                <tbody>
+                  {{#each atoRecords}}
+                    <tr>
+                      <td class="text-uppercase">{{this.record_type}}</td>
+                      <td>{{this.title}}</td>
+                      <td>{{this.authorization_status}}</td>
+                      <td class="small text-muted">{{formatDate this.updated_at}}</td>
+                      <td class="text-end">
+                        <a href="/admin/ato/{{this.id}}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                        <a href="/admin/ato/{{this.id}}/export-pdf" class="btn btn-sm btn-outline-danger"><i class="bi bi-file-earmark-pdf"></i></a>
+                      </td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          {{/if}}
+
+          {{#if projectPoamItems.length}}
+            <h6 class="fw-semibold small text-muted text-uppercase">Project POA&M Items</h6>
+            <div class="table-responsive">
+              <table class="table table-sm mb-0">
+                <thead><tr><th>Control</th><th>Finding</th><th>Owner</th><th>Due</th><th>Status</th></tr></thead>
+                <tbody>
+                  {{#each projectPoamItems}}
+                    <tr>
+                      <td><code>{{this.control_id}}</code></td>
+                      <td>{{this.description}}</td>
+                      <td>{{this.assigned_to}}</td>
+                      <td class="small">{{formatDate this.deadline}}</td>
+                      <td>{{this.status}}</td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
             </div>
           {{/if}}
         </div>

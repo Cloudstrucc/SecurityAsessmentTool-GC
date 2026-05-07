@@ -69,6 +69,47 @@ The system creates both the project and a linked project intake record.
 
 The assessment is associated with the project and the linked intake.
 
+### Manage Project Documentation
+
+1. Open the project dashboard.
+2. Use Documentation to upload architecture designs, SADDs, security plans, diagrams, or related files.
+3. Confirm uploaded documents appear in the table.
+4. Use Download to retrieve a copy.
+5. Use the AI analysis option when you want the document to support control selection or evidence guidance.
+6. Delete a document reference only when it should no longer be used for assessment traceability.
+
+### Tailor Controls
+
+1. Open an assessment.
+2. Choose Tailor.
+3. Edit applicability, description, control guidance, evidence guidance, evidence collected, assessor notes, status, risk, and inheritance as needed.
+4. Save Tailoring.
+5. Refresh the page to confirm the tailored fields persist.
+
+### Generate AI Evidence Guidance
+
+1. Upload project documentation first.
+2. Open the assessment.
+3. Select one or more documents in the AI guidance area.
+4. Choose the controls to analyze.
+5. Preview the generated guidance.
+6. Edit the guidance if needed, then save approved items.
+
+AI-generated content should be reviewed by the assessor before it is sent to a client or used in a final report.
+
+### ATO, iATO, And POA&M
+
+1. Open the project.
+2. Use Reports & Authorization to create an ATO or iATO.
+3. Edit the authorization title, system description, scope, risk statements, conditions, summaries, notes, and custom sections.
+4. Add POA&M items from the assessment page.
+5. Link POA&M items to controls and, when appropriate, to an ATO/iATO record.
+6. Track owner, target date, status, mitigation plan, milestones, residual risk, and assessor notes.
+
+### Security Control Catalog
+
+Admin assessors can open `/admin/security-controls` to search, sort, filter, and export the supported security control catalog.
+
 ### Assign Work
 
 You can assign an intake or assessment to:
