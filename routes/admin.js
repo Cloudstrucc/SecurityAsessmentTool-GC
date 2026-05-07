@@ -13,21 +13,22 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
 const QRCode = require('qrcode');
+const {
+  INTAKE_UPLOAD_DIR: intakeUploadDir,
+  PROJECT_UPLOAD_DIR: projectUploadDir,
+  BRANDING_UPLOAD_DIR: brandingUploadDir,
+  ensureUploadDirs
+} = require('../config/storage');
 
-const intakeUploadDir = path.join(__dirname, '..', 'uploads', 'intakes');
-if (!fs.existsSync(intakeUploadDir)) fs.mkdirSync(intakeUploadDir, { recursive: true });
+ensureUploadDirs();
 const intakeUpload = multer({
   dest: intakeUploadDir,
   limits: { fileSize: 25 * 1024 * 1024 }
 });
-const projectUploadDir = path.join(__dirname, '..', 'uploads', 'projects');
-if (!fs.existsSync(projectUploadDir)) fs.mkdirSync(projectUploadDir, { recursive: true });
 const projectUpload = multer({
   dest: projectUploadDir,
   limits: { fileSize: 25 * 1024 * 1024 }
 });
-const brandingUploadDir = path.join(__dirname, '..', 'uploads', 'branding');
-if (!fs.existsSync(brandingUploadDir)) fs.mkdirSync(brandingUploadDir, { recursive: true });
 const brandingUpload = multer({
   dest: brandingUploadDir,
   limits: { fileSize: 5 * 1024 * 1024 }
@@ -805,6 +806,14 @@ router.get('/security-controls.csv', ensureAuthenticated, (req, res) => {
     c.definitions, c.related_controls, c.baseline, c.category, c.applicability_notes, c.status, c.updated_at
   ]));
   sendCsv(res, 'security-control-catalog.csv', rows);
+});
+
+router.get('/help', ensureAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'docs', 'client-assessor-guide.html'));
+});
+
+router.get('/assets/guide/:file', ensureAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'docs', 'assets', 'guide', path.basename(req.params.file)));
 });
 
 router.get('/projects/new', ensureAuthenticated, (req, res) => {

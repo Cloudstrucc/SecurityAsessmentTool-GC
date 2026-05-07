@@ -27,16 +27,19 @@ set -euo pipefail
 # ── Parse flags ────────────────────────────────────────────────────────────────
 UPDATE_ONLY=false
 SETTINGS_ONLY=false
+ASSUME_YES=false
 for arg in "$@"; do
   case $arg in
     --update-only)  UPDATE_ONLY=true ;;
     --settings-only) SETTINGS_ONLY=true ;;
+    --yes|-y) ASSUME_YES=true ;;
     --help|-h)
       echo "Usage: ./deploy-azure.sh [OPTIONS]"
       echo ""
       echo "Options:"
       echo "  --update-only    Deploy code only (skip resource creation/checks)"
       echo "  --settings-only  Update app settings only (no code deploy)"
+      echo "  -y, --yes        Do not prompt for deployment confirmation"
       echo "  -h, --help       Show this help"
       echo ""
       echo "Environment variables:"
@@ -178,12 +181,16 @@ if $UPDATE_ONLY && ! $EXISTING_APP; then
   err "--update-only specified but app '$APP_NAME' not found in resource group '$RESOURCE_GROUP'"
 fi
 
-read -p "  Proceed? (y/N) " -n 1 -r
-echo ""
+if ! $ASSUME_YES; then
+  read -p "  Proceed? (y/N) " -n 1 -r
+  echo ""
 
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-  warn "Deployment cancelled."
-  exit 0
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    warn "Deployment cancelled."
+    exit 0
+  fi
+else
+  log "Confirmation skipped (--yes)"
 fi
 
 # ── Create resources (only if they don't exist) ───────────────────────────────
@@ -249,6 +256,9 @@ if ! $UPDATE_ONLY; then
         ADMIN_EMAIL="$ADMIN_EMAIL" \
         ADMIN_PASSWORD="$ADMIN_PASSWORD" \
         ADMIN_NAME="$ADMIN_NAME" \
+        DATA_DIR="/home/site/data" \
+        DB_PATH="/home/site/data/sa-tool.db" \
+        UPLOAD_DIR="/home/site/uploads" \
         WEBSITE_NODE_DEFAULT_VERSION="~20" \
         WEBSITES_ENABLE_APP_SERVICE_STORAGE="true" \
       --output none
@@ -310,6 +320,18 @@ if $SETTINGS_ONLY; then
   exit 0
 fi
 
+if $EXISTING_APP; then
+  info "Confirming safe runtime settings for existing app..."
+  az webapp config appsettings set \
+    --name "$APP_NAME" \
+    --resource-group "$RESOURCE_GROUP" \
+    --settings \
+      WEBSITE_NODE_DEFAULT_VERSION="~20" \
+      WEBSITES_ENABLE_APP_SERVICE_STORAGE="true" \
+    --output none
+  log "Runtime storage settings confirmed"
+fi
+
 # ── Deploy code via ZIP ────────────────────────────────────────────────────────
 info "Packaging application for deployment..."
 
@@ -322,9 +344,11 @@ zip -r "$DEPLOY_ZIP" . \
   -x "*.git*" \
   -x "node_modules/.cache/*" \
   -x "*.env" \
+  -x ".env.*" \
   -x "deploy-azure.sh" \
-  -x "data/*.db" \
+  -x "data/*" \
   -x "uploads/*" \
+  -x "tests/reports/*" \
   -x "*.tar.gz" \
   -x "cookies.txt" \
   -x ".DS_Store" \
@@ -332,6 +356,7 @@ zip -r "$DEPLOY_ZIP" . \
 
 DEPLOY_SIZE=$(du -sh "$DEPLOY_ZIP" | cut -f1)
 log "Deployment package ready ($DEPLOY_SIZE)"
+log "Data safety: local data/uploads are excluded and Azure deploy uses --clean false"
 
 info "Deploying to Azure (this may take 2-5 minutes)..."
 az webapp deploy \
@@ -339,6 +364,7 @@ az webapp deploy \
   --resource-group "$RESOURCE_GROUP" \
   --src-path "$DEPLOY_ZIP" \
   --type zip \
+  --clean false \
   --output none
 log "Deployment complete"
 

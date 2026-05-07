@@ -4,19 +4,18 @@ const { run, all, get } = require('../models/database');
 const emailService = require('../utils/emailService');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
 const QRCode = require('qrcode');
+const { UPLOAD_DIR, INTAKE_UPLOAD_DIR: intakeUploadDir, ensureUploadDirs } = require('../config/storage');
 
+ensureUploadDirs();
 const upload = multer({
-  dest: path.join(__dirname, '..', 'uploads'),
+  dest: UPLOAD_DIR,
   limits: { fileSize: 25 * 1024 * 1024 }
 });
 
-const intakeUploadDir = path.join(__dirname, '..', 'uploads', 'intakes');
-if (!fs.existsSync(intakeUploadDir)) fs.mkdirSync(intakeUploadDir, { recursive: true });
 const intakeUpload = multer({
   dest: intakeUploadDir,
   limits: { fileSize: 25 * 1024 * 1024 }
@@ -449,6 +448,14 @@ router.get('/client/passkey-setup', (req, res) => {
     title: 'Register Passkey',
     hasWebAuthn: !!user?.webauthn_credential_id
   });
+});
+
+router.get('/help', ensureClientAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'docs', 'client-assessor-guide.html'));
+});
+
+router.get('/assets/guide/:file', ensureClientAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'docs', 'assets', 'guide', path.basename(req.params.file)));
 });
 
 // ── CLIENT LOGOUT ──

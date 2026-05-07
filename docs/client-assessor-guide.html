@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Security Assessment &amp; Authorization Tool Guide</title>
+  <style>
+    :root {
+      --nav: #26374a;
+      --red: #af3c43;
+      --link: #2b4380;
+      --accent: #2572b4;
+      --gold: #d4a017;
+      --green: #278400;
+      --teal: #0f766e;
+      --text: #333333;
+      --muted: #595959;
+      --border: #dcdee1;
+      --light: #f8f8f8;
+      --white: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Noto Sans", Arial, sans-serif;
+      color: var(--text);
+      background: var(--light);
+      line-height: 1.6;
+    }
+    a { color: var(--link); }
+    .topbar {
+      background: var(--nav);
+      color: var(--white);
+      border-bottom: 4px solid var(--red);
+    }
+    .topbar-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 22px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 6px;
+      background: var(--white);
+      color: var(--red);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 22px;
+    }
+    .brand h1 {
+      margin: 0;
+      color: var(--white);
+      font-size: 1.35rem;
+      line-height: 1.2;
+    }
+    .brand p {
+      margin: 4px 0 0;
+      color: #dbe6f3;
+      font-size: .92rem;
+    }
+    .meta {
+      text-align: right;
+      color: #dbe6f3;
+      font-size: .86rem;
+    }
+    .guide-shell {
+      max-width: 1180px;
+      margin: 24px auto;
+      padding: 0 24px 32px;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 24px;
+    }
+    .toc {
+      position: sticky;
+      top: 20px;
+      align-self: start;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 6px;
+      padding: 16px;
+    }
+    .toc h2 {
+      margin: 0 0 10px;
+      color: var(--nav);
+      font-size: 1rem;
+    }
+    .toc button {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: var(--link);
+      text-align: left;
+      padding: 8px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      font: inherit;
+      font-size: .9rem;
+    }
+    .toc button:hover,
+    .toc button.active {
+      background: #e8f0fe;
+      color: var(--nav);
+      font-weight: 700;
+    }
+    .guide-main {
+      min-width: 0;
+    }
+    .guide-page {
+      display: none;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 28px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    }
+    .guide-page.active { display: block; }
+    .page-kicker {
+      color: var(--red);
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      font-size: .76rem;
+      margin-bottom: 8px;
+    }
+    h2 {
+      margin: 0 0 12px;
+      color: var(--nav);
+      font-size: 1.65rem;
+      line-height: 1.2;
+    }
+    h3 {
+      color: var(--nav);
+      margin-top: 24px;
+    }
+    .lede {
+      font-size: 1.05rem;
+      color: var(--muted);
+      margin-top: 0;
+    }
+    .screenshot {
+      margin: 18px 0;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      background: #eef2f7;
+    }
+    .screenshot img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    .caption {
+      margin: 0;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: .85rem;
+      background: var(--light);
+      border-top: 1px solid var(--border);
+    }
+    .callout {
+      border-left: 4px solid var(--gold);
+      background: #fff8e1;
+      padding: 14px 16px;
+      border-radius: 4px;
+      margin: 16px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .tile {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+      background: #fbfcfd;
+    }
+    .tile strong {
+      color: var(--nav);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .pager {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-top: 18px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+    }
+    .pager button {
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: var(--white);
+      border-radius: 4px;
+      padding: 9px 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .pager button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+    .page-count {
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    .footer {
+      max-width: 1180px;
+      margin: 0 auto 30px;
+      padding: 0 24px;
+      color: var(--muted);
+      font-size: .86rem;
+    }
+    @media (max-width: 900px) {
+      .guide-shell { grid-template-columns: 1fr; }
+      .toc { position: static; }
+      .grid { grid-template-columns: 1fr; }
+      .meta { text-align: left; }
+    }
+    @media print {
+      body { background: var(--white); }
+      .toc, .pager { display: none; }
+      .guide-shell { display: block; margin: 0; padding: 0; }
+      .guide-page { display: block; border: 0; box-shadow: none; page-break-after: always; }
+      .topbar { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark">SA</div>
+        <div>
+          <h1>Security Assessment &amp; Authorization Tool Guide</h1>
+          <p>Client and assessor workflows for intake, evidence, tailoring, reporting, ATO/iATO, and POA&amp;M</p>
+        </div>
+      </div>
+      <div class="meta">
+        <div>Version 2026-05-07</div>
+        <div>Authenticated user help</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="guide-shell">
+    <nav class="toc" aria-label="Guide pages">
+      <h2>Guide Pages</h2>
+      <button type="button" class="active" data-page="0">1. Roles and access</button>
+      <button type="button" data-page="1">2. Assessor dashboard</button>
+      <button type="button" data-page="2">3. Project documentation</button>
+      <button type="button" data-page="3">4. Assessment tailoring</button>
+      <button type="button" data-page="4">5. AI evidence guidance</button>
+      <button type="button" data-page="5">6. ATO, iATO, POA&amp;M</button>
+      <button type="button" data-page="6">7. Control catalog</button>
+      <button type="button" data-page="7">8. Client workflow</button>
+      <button type="button" data-page="8">9. Help and troubleshooting</button>
+    </nav>
+
+    <main class="guide-main">
+      <section class="guide-page active">
+        <div class="page-kicker">Page 1</div>
+        <h2>Roles And Access</h2>
+        <p class="lede">The tool supports assessor-led project security assessment work and client evidence collection in one connected workflow.</p>
+        <figure class="screenshot">
+          <img src="assets/guide/screenshot-admin-dashboard.png" alt="Admin dashboard screenshot">
+          <figcaption class="caption">Admin dashboard with authenticated navigation and work queues.</figcaption>
+        </figure>
+        <div class="grid">
+          <div class="tile"><strong>Admin assessor</strong>Creates projects, reviews intakes, tailors controls, assigns work, manages ATO/iATO records, and exports reports.</div>
+          <div class="tile"><strong>Client evidence provider</strong>Submits intakes, responds to assigned assessments, uploads evidence, and comments on controls.</div>
+          <div class="tile"><strong>MFA</strong>Normal users use TOTP. Passkeys are optional, and TOTP remains available as fallback.</div>
+          <div class="tile"><strong>Break glass</strong>Password-only emergency assessor accounts should be rare, vaulted, and audited after use.</div>
+        </div>
+      </section>
+
+      <section class="guide-page">
+        <div class="page-kicker">Page 2</div>
+        <h2>Assessor Dashboard</h2>
+        <p class="lede">Assessors start from Projects, Intakes, Assessments, or the security control catalog.</p>
+        <figure class="screenshot">
+          <img src="assets/guide/screenshot-project-dashboard.png" alt="Project dashboard screenshot">
+          <figcaption class="caption">Project dashboard with intake, assessment, documentation, assignment, reporting, and authorization areas.</figcaption>
+        </figure>
+        <ol>
+          <li>Open or create a project.</li>
+          <li>Upload project documentation and confirm it appears in the Documentation table.</li>
+          <li>Create an assessment from the project and linked intake.</li>
+          <li>Tailor the control set and guidance.</li>
+          <li>Assign the work to a client user, another assessor, or a new invitee.</li>
+          <li>Manage reports, ATO/iATO records, and POA&amp;M items from the project dashboard.</li>
+        </ol>
+      </section>
+
+      <section class="guide-page">
+        <div class="page-kicker">Page 3</div>
+        <h2>Project Documentation</h2>
+        <p class="lede">Project documents are stored with the project so they can be reused for AI guidance, control tailoring, reporting references, and audit traceability.</p>
+        <figure class="screenshot">
+          <img src="assets/guide/screenshot-project-documents.png" alt="Project documentation table screenshot">
+          <figcaption class="caption">Documentation table with document name, type, upload date, uploader, file size, related project, and actions.</figcaption>
+        </figure>
+        <div class="callout">Use SADDs, architecture diagrams, security plans, privacy artifacts, and previous assessment packages as high-value source documents.</div>
+        <p>Documents can be downloaded, removed as project references, used for AI analysis, and listed in project reports without embedding the attachment itself.</p>
+      </section>
+
+      <section class="guide-page">
+        <div class="page-kicker">Page 4</div>
+        <h2>Assessment Tailoring</h2>
+        <p class="lede">AI can help, but the assessor decides the final control set.</p>
+        <figure class="screenshot">
+          <img src="assets/guide/screenshot-assessment-tailoring.png" alt="Assessment tailoring screenshot">
+          <figcaption class="caption">Tailoring mode exposes editable control fields and save controls.</figcaption>
+        </figure>
+        <p>Use Tailor to edit applicability, description, control guidance, tailored description, evidence guidance, evidence collected, assessor notes, assessment status, evidence status, inheritance, priority, and risk level.</p>
+        <div class="callout">Save tailoring changes before refreshing or leaving the page. Saved changes persist after refresh.</div>
+      </section>
+
+      <section class="guide-page">
+        <div class="page-kicker">Page 5</div>
+        <h2>AI Evidence Guidance</h2>
+        <p class="lede">AI-generated text is a draft for assessor review, never an automatic final decision.</p>
+        <figure class="screenshot">
+          <img src="assets/guide/screenshot-ai-guidance.png" alt="AI guidance screenshot">
+          <figcaption class="caption">Select project documents and controls, generate a preview, then save approved guidance.</figcaption>
+        </figure>
+        <ol>
+          <li>Select project documentation.</li>
+          <li>Select target controls.</li>
+          <li>Generate a preview.</li>
+          <li>Edit or reject generated content.</li>
+          <li>Save approved guidance only.</li>
+        </ol>
+        <p>The system tracks AI-generated guidance and marks content edited after generation.</p>
+      </section>
+
+      <section class="guide-page">
+        <div class="page-kicker">Page 6</div>
+        <h2>ATO, iATO, And POA&amp;M</h2>
+        <p class="lede">Authorization records and POA&amp;M items stay editable so the package can mature with the assessment.</p>
+        <div class="grid">
+          <div class="tile"><strong>ATO/iATO records</strong>Edit title, system description, scope, summaries, risk statements, authorization conditions, notes, static text, and custom sections.</div>
+          <div class="tile"><strong>POA&amp;M items</strong>Track finding, risk rating, owner, target date, status, mitigation plan, milestones, residual risk, and assessor notes.</div>
+        </div>
+        <p>POA&amp;M items can be linked to controls and to an ATO/iATO record. Project reports include POA&amp;M data where applicable.</p>
+      </section>
+
+      <section class="guide-page">
+        <div class="page-kicker">Page 7</div>
+        <h2>Security Control Catalog</h2>
+        <p class="lede">The catalog gives admin assessors a searchable view of supported framework controls.</p>
+        <figure class="screenshot">
+          <img src="assets/guide/screenshot-security-controls.png" alt="Security control catalog screenshot">
+          <figcaption class="caption">Search, sort, filter, and export security controls.</figcaption>
+        </figure>
+        <p>Filter by framework, family, category, baseline, applicability, status, or keyword. Export to CSV for Excel-compatible review.</p>
+      </section>
+
+      <section class="guide-page">
+        <div class="page-kicker">Page 8</div>
+        <h2>Client Evidence Workflow</h2>
+        <p class="lede">Clients provide the project details and evidence assessors need to review controls.</p>
+        <figure class="screenshot">
+          <img src="assets/guide/screenshot-client-intake.png" alt="Client intake screenshot">
+          <figcaption class="caption">Authenticated client intake page.</figcaption>
+        </figure>
+        <ol>
+          <li>Sign in with TOTP.</li>
+          <li>Submit an intake or open an assigned assessment link.</li>
+          <li>Review assessor evidence guidance.</li>
+          <li>Provide evidence text and supporting attachments.</li>
+          <li>Save progress and submit when ready.</li>
+        </ol>
+      </section>
+
+      <section class="guide-page">
+        <div class="page-kicker">Page 9</div>
+        <h2>Help And Troubleshooting</h2>
+        <p class="lede">Authenticated users can open Help from the application header.</p>
+        <figure class="screenshot">
+          <img src="assets/guide/screenshot-help-menu.png" alt="Help menu screenshot">
+          <figcaption class="caption">Help appears in the header for signed-in assessors and clients.</figcaption>
+        </figure>
+        <ul>
+          <li>If a page does not show expected work, confirm you are signed in with the assigned account.</li>
+          <li>If TOTP fails, check device time and use the newest code.</li>
+          <li>If uploads fail, check file size and file type.</li>
+          <li>If AI guidance is unavailable, confirm the Anthropic API key is configured.</li>
+          <li>If an export fails, confirm the project has the required assessment or authorization records.</li>
+        </ul>
+      </section>
+
+      <div class="pager" aria-label="Pagination">
+        <button type="button" id="prevPage">Previous</button>
+        <span class="page-count" id="pageCount">Page 1 of 9</span>
+        <button type="button" id="nextPage">Next</button>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    Security Assessment &amp; Authorization Tool Guide. This standalone HTML file can be opened locally or from the authenticated Help menu.
+  </footer>
+
+  <script>
+    const pages = Array.from(document.querySelectorAll('.guide-page'));
+    const buttons = Array.from(document.querySelectorAll('.toc button'));
+    const prev = document.getElementById('prevPage');
+    const next = document.getElementById('nextPage');
+    const count = document.getElementById('pageCount');
+    let current = 0;
+
+    function showPage(index) {
+      current = Math.max(0, Math.min(index, pages.length - 1));
+      pages.forEach((page, i) => page.classList.toggle('active', i === current));
+      buttons.forEach((button, i) => button.classList.toggle('active', i === current));
+      prev.disabled = current === 0;
+      next.disabled = current === pages.length - 1;
+      count.textContent = 'Page ' + (current + 1) + ' of ' + pages.length;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    buttons.forEach((button, i) => button.addEventListener('click', () => showPage(i)));
+    prev.addEventListener('click', () => showPage(current - 1));
+    next.addEventListener('click', () => showPage(current + 1));
+    showPage(0);
+  </script>
+</body>
+</html>

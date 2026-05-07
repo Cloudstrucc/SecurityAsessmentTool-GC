@@ -12,6 +12,7 @@ Node.js/Express application for managing Government of Canada security assessmen
 - Lets assessors tailor assessment controls, edit guidance/evidence fields, and preserve AI guidance provenance.
 - Provides project-level report branding, control exports, full project exports, ATO/iATO records, and POA&M management.
 - Includes an admin security control catalog at `/admin/security-controls`.
+- Includes an authenticated Help guide with screenshots, plus standalone Markdown and HTML guide files under `docs/`.
 - Lets assessors assign intakes and assessments to existing users or invite new client/assessor users.
 - Supports TOTP MFA and passkeys, with TOTP available as a fallback whenever a passkey is used.
 - Supports a controlled break-glass assessor account that uses password-only login for emergency recovery.
@@ -300,7 +301,7 @@ export AZURE_SKU=B1
 Update an existing app:
 
 ```bash
-AZURE_RESOURCE_GROUP=gc-sa-tool-rg AZURE_APP_NAME=gc-sa-tool-prod ./deploy-azure.sh --update-only
+AZURE_RESOURCE_GROUP=gc-sa-tool-rg AZURE_APP_NAME=gc-sa-tool-prod ./deploy-azure.sh --update-only --yes
 ```
 
 Update settings only:
@@ -333,6 +334,7 @@ node scripts/manage-users.js admin --email admin@youragency.gc.ca --password 'Ne
 Azure notes:
 
 - The deployment script enables App Service storage with `WEBSITES_ENABLE_APP_SERVICE_STORAGE=true`.
+- Code deploys use `az webapp deploy --clean false` and exclude local `data/`, `uploads/`, and generated test reports from the ZIP package.
 - SQLite is acceptable for a small single-instance deployment. For production scale or multiple instances, plan a move to Azure SQL or another managed database.
 - Keep `SESSION_SECRET`, admin passwords, SMTP secrets, and API keys in App Service application settings.
 - After deploying, create or rotate the break-glass account from an SSH session and store the generated password offline.

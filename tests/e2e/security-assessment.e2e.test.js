@@ -247,6 +247,19 @@ test('MFA-enabled assessor sees passkey setup while TOTP remains available', asy
   assert.match(page.text, /TOTP remains available/);
 });
 
+test('authenticated users can open the help guide', async () => {
+  const adminJar = await loginAdminWithTotp();
+  const adminHelp = await getText(adminJar, '/admin/help');
+  assert.equal(adminHelp.response.status, 200);
+  assert.match(adminHelp.text, /Security Assessment &amp; Authorization Tool Guide/);
+  assert.match(adminHelp.text, /Guide Pages/);
+
+  const clientJar = await loginClientWithTotp();
+  const clientHelp = await getText(clientJar, '/help');
+  assert.equal(clientHelp.response.status, 200);
+  assert.match(clientHelp.text, /Client Evidence Workflow/);
+});
+
 test('client can create an intake after TOTP login', async () => {
   const jar = await loginClientWithTotp();
   const response = await request(jar, 'POST', '/intake', {

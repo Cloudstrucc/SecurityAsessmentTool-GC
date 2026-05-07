@@ -15,13 +15,15 @@ const adminRoutes = require('./routes/admin');
 const publicRoutes = require('./routes/public');
 const apiRoutes = require('./routes/api');
 const emailService = require('./utils/emailService');
+const { UPLOAD_DIR, ensureUploadDirs } = require('./config/storage');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // File upload config
+ensureUploadDirs();
 const upload = multer({
-  dest: path.join(__dirname, 'uploads'),
+  dest: UPLOAD_DIR,
   limits: { fileSize: (parseInt(process.env.MAX_FILE_SIZE_MB) || 25) * 1024 * 1024 }
 });
 app.locals.upload = upload;
@@ -140,7 +142,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb', parameterLimit: 10000 }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(UPLOAD_DIR));
 
 app.set('trust proxy', 1);
 app.use(session({

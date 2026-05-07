@@ -1,4 +1,10 @@
-# Client And Assessor Guide
+# Security Assessment & Authorization Tool
+
+## Client And Assessor Guide
+
+This guide is the quick Markdown version of the authenticated help guide. A branded, paginated HTML version with the same screenshots is available at [docs/client-assessor-guide.html](docs/client-assessor-guide.html), and authenticated users can open it from Help in the application header.
+
+![Security Assessment & Authorization dashboard](docs/assets/guide/screenshot-admin-dashboard.png)
 
 This guide is for people using the GC Security Assessment Tool after it has been installed.
 
@@ -50,6 +56,8 @@ Break-glass accounts:
 
 ### Create A Project
 
+![Project dashboard](docs/assets/guide/screenshot-project-dashboard.png)
+
 1. Sign in at `/admin/login`.
 2. Open Projects.
 3. Choose New Project.
@@ -71,6 +79,8 @@ The assessment is associated with the project and the linked intake.
 
 ### Manage Project Documentation
 
+![Project documentation table](docs/assets/guide/screenshot-project-documents.png)
+
 1. Open the project dashboard.
 2. Use Documentation to upload architecture designs, SADDs, security plans, diagrams, or related files.
 3. Confirm uploaded documents appear in the table.
@@ -80,6 +90,8 @@ The assessment is associated with the project and the linked intake.
 
 ### Tailor Controls
 
+![Assessment tailoring mode](docs/assets/guide/screenshot-assessment-tailoring.png)
+
 1. Open an assessment.
 2. Choose Tailor.
 3. Edit applicability, description, control guidance, evidence guidance, evidence collected, assessor notes, status, risk, and inheritance as needed.
@@ -87,6 +99,8 @@ The assessment is associated with the project and the linked intake.
 5. Refresh the page to confirm the tailored fields persist.
 
 ### Generate AI Evidence Guidance
+
+![AI evidence guidance](docs/assets/guide/screenshot-ai-guidance.png)
 
 1. Upload project documentation first.
 2. Open the assessment.
@@ -107,6 +121,8 @@ AI-generated content should be reviewed by the assessor before it is sent to a c
 6. Track owner, target date, status, mitigation plan, milestones, residual risk, and assessor notes.
 
 ### Security Control Catalog
+
+![Security control catalog](docs/assets/guide/screenshot-security-controls.png)
 
 Admin assessors can open `/admin/security-controls` to search, sort, filter, and export the supported security control catalog.
 
@@ -152,6 +168,8 @@ Use the intake and assessment detail pages to:
 4. Configure TOTP when prompted.
 
 ### Submit An Intake
+
+![Client intake form](docs/assets/guide/screenshot-client-intake.png)
 
 1. Sign in at `/client/login`.
 2. Open `/intake`.

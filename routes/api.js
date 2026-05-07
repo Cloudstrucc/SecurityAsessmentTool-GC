@@ -231,10 +231,12 @@ const ai = require('../config/ai-service');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { AI_TEMP_UPLOAD_DIR: aiTempUploadDir, ensureUploadDirs } = require('../config/storage');
 
 // File upload for AI doc parsing (temp storage)
+ensureUploadDirs();
 const aiUpload = multer({
-  dest: path.join(__dirname, '..', 'uploads', 'ai-temp'),
+  dest: aiTempUploadDir,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
   fileFilter: (req, file, cb) => {
     const allowed = ['.pdf','.txt','.md','.doc','.docx','.png','.jpg','.jpeg'];
