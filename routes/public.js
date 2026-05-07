@@ -70,6 +70,19 @@ router.get('/respond/:code', (req, res) => {
     return res.render('error', { title: 'Expired', message: 'This invitation has expired.', showAccessForm: false });
   }
 
+  if (assessment.assigned_to_email && assessment.assigned_to_role === 'client') {
+    if (!req.session.clientId) {
+      req.session.pendingInviteCode = code;
+      req.flash('info', 'Please sign in with the assigned client account to access this assessment.');
+      return res.redirect('/client/login?email=' + encodeURIComponent(assessment.assigned_to_email));
+    }
+    const client = get('SELECT email FROM users WHERE id = ?', [req.session.clientId]);
+    if (!client || client.email.toLowerCase().trim() !== assessment.assigned_to_email.toLowerCase().trim()) {
+      req.flash('error', 'This assessment is assigned to a different client account.');
+      return res.redirect('/client/login?email=' + encodeURIComponent(assessment.assigned_to_email));
+    }
+  }
+
   const controls = all(`
     SELECT * FROM assessment_controls 
     WHERE assessment_id = ? AND is_applicable = 1
@@ -213,32 +226,54 @@ function ensureClientAuth(req, res, next) {
 // ── CLIENT REGISTRATION ──
 
 router.get('/client/register', (req, res) => {
-  res.render('public/register', { title: 'Register', formData: {} });
+  const inviteCode = req.query.invite || '';
+  let formData = {};
+  if (inviteCode) {
+    const invite = get("SELECT email, name, organization FROM invitations WHERE invite_code = ? AND type = 'client' AND status = 'pending'", [inviteCode.trim().toUpperCase()]);
+    if (invite) formData = { email: invite.email, name: invite.name, organization: invite.organization };
+  }
+  res.render('public/register', { title: 'Register', formData, inviteCode });
 });
 
 router.post('/client/register', (req, res) => {
   try {
-    const { name, email, organization, password, confirmPassword } = req.body;
+    const { name, email, organization, password, confirmPassword, invite_code } = req.body;
 
     if (!name || !email || !organization || !password) {
       req.flash('error', 'All fields are required.');
-      return res.render('public/register', { title: 'Register', formData: req.body });
+      return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code || '' });
     }
 
     if (password.length < 10) {
       req.flash('error', 'Password must be at least 10 characters.');
-      return res.render('public/register', { title: 'Register', formData: req.body });
+      return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code || '' });
     }
 
     if (password !== confirmPassword) {
       req.flash('error', 'Passwords do not match.');
-      return res.render('public/register', { title: 'Register', formData: req.body });
+      return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code || '' });
     }
 
-    const existing = get('SELECT id FROM users WHERE email = ?', [email]);
+    let invite = null;
+    if (invite_code && invite_code.trim()) {
+      invite = get(
+        "SELECT * FROM invitations WHERE invite_code = ? AND type = 'client' AND status = 'pending'",
+        [invite_code.trim().toUpperCase()]
+      );
+      if (!invite || new Date(invite.expires_at) < new Date()) {
+        req.flash('error', 'Invalid or expired invitation code.');
+        return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code || '' });
+      }
+      if (email.toLowerCase().trim() !== invite.email.toLowerCase().trim()) {
+        req.flash('error', `Please register with the invited email address (${invite.email}).`);
+        return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code || '' });
+      }
+    }
+
+    const existing = get('SELECT id FROM users WHERE email = ?', [email.toLowerCase().trim()]);
     if (existing) {
       req.flash('error', 'An account with this email already exists.');
-      return res.render('public/register', { title: 'Register', formData: req.body });
+      return res.render('public/register', { title: 'Register', formData: req.body, inviteCode: invite_code || '' });
     }
 
     const hashedPassword = bcrypt.hashSync(password, 12);
@@ -247,8 +282,15 @@ router.post('/client/register', (req, res) => {
     const userId = run(
       `INSERT INTO users (email, password, name, role, organization, totp_secret, mfa_enabled, is_active)
        VALUES (?,?,?,?,?,?,?,?)`,
-      [email, hashedPassword, name, 'client', organization, secret, 0, 1]
+      [email.toLowerCase().trim(), hashedPassword, name, 'client', organization, secret, 0, 1]
     );
+
+    if (invite) {
+      run("UPDATE invitations SET status = 'accepted', accepted_at = CURRENT_TIMESTAMP, accepted_by_user_id = ? WHERE id = ?", [userId, invite.id]);
+      run("UPDATE assessment_assignments SET assigned_to = ?, status = 'active', accepted_at = CURRENT_TIMESTAMP WHERE invitation_id = ?", [userId, invite.id]);
+      run("UPDATE assessments SET assigned_to_user_id = ? WHERE LOWER(assigned_to_email) = ?", [userId, email.toLowerCase().trim()]);
+      run("UPDATE intake_submissions SET assigned_to_user_id = ? WHERE LOWER(assigned_to_email) = ?", [userId, email.toLowerCase().trim()]);
+    }
 
     // Redirect to MFA setup
     req.session.pendingMfaUserId = userId;
@@ -309,19 +351,19 @@ router.post('/client/mfa-setup', (req, res) => {
 
   // Log them in
   req.session.clientId = user.id;
-  req.flash('success', 'Account created and MFA enabled! You can now submit intakes.');
-  res.redirect('/intake');
+  req.flash('success', 'Account created and MFA enabled. You can optionally register a passkey; TOTP will remain available.');
+  res.redirect('/client/passkey-setup');
 });
 
 // ── CLIENT LOGIN ──
 
 router.get('/client/login', (req, res) => {
-  res.render('public/client-login', { title: 'Client Sign In' });
+  res.render('public/client-login', { title: 'Client Sign In', prefillEmail: req.query.email || '' });
 });
 
 router.post('/client/login', (req, res) => {
   const { email, password } = req.body;
-  const user = get('SELECT * FROM users WHERE email = ? AND is_active = 1', [email]);
+  const user = get('SELECT * FROM users WHERE email = ? AND is_active = 1', [(email || '').toLowerCase().trim()]);
 
   if (!user || !bcrypt.compareSync(password, user.password)) {
     req.flash('error', 'Invalid email or password.');
@@ -340,7 +382,8 @@ router.post('/client/login', (req, res) => {
   res.render('public/client-login', {
     title: 'Verify MFA',
     mfaStep: true,
-    userId: user.id
+    userId: user.id,
+    hasWebAuthn: !!user.webauthn_credential_id
   });
 });
 
@@ -369,7 +412,43 @@ router.post('/client/login/mfa', (req, res) => {
   run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
 
   req.flash('success', 'Welcome back, ' + user.name + '!');
-  res.redirect('/intake');
+  const pendingInvite = req.session.pendingInviteCode;
+  delete req.session.pendingInviteCode;
+  res.redirect(pendingInvite ? `/respond/${pendingInvite}` : '/intake');
+});
+
+router.post('/client/login/webauthn', (req, res) => {
+  const userId = req.session.pendingLoginUserId || req.body.userId;
+  const { consumeToken } = require('../config/mfa-signature');
+  const tokenUserId = consumeToken(req.body._sig_token);
+  if (!userId || !tokenUserId || parseInt(userId) !== tokenUserId) {
+    req.flash('error', 'Passkey verification failed. Please try again or use TOTP.');
+    return res.redirect('/client/login');
+  }
+
+  const user = get('SELECT id, name FROM users WHERE id = ? AND is_active = 1', [userId]);
+  if (!user) {
+    req.flash('error', 'Session expired. Please sign in again.');
+    return res.redirect('/client/login');
+  }
+
+  delete req.session.pendingLoginUserId;
+  req.session.clientId = user.id;
+  run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
+
+  req.flash('success', 'Welcome back, ' + user.name + '!');
+  const pendingInvite = req.session.pendingInviteCode;
+  delete req.session.pendingInviteCode;
+  res.redirect(pendingInvite ? `/respond/${pendingInvite}` : '/intake');
+});
+
+router.get('/client/passkey-setup', (req, res) => {
+  if (!req.session.clientId) return res.redirect('/client/login');
+  const user = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [req.session.clientId]);
+  res.render('public/passkey-setup', {
+    title: 'Register Passkey',
+    hasWebAuthn: !!user?.webauthn_credential_id
+  });
 });
 
 // ── CLIENT LOGOUT ──

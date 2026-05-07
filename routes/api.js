@@ -2,6 +2,177 @@ const express = require('express');
 const router = express.Router();
 const { run, all, get } = require('../models/database');
 const { ensureAuthenticated } = require('../config/passport');
+const { verifyMfaAndIssueToken, issueToken, getUserMfaMode, storeChallenge, getChallenge } = require('../config/mfa-signature');
+
+let simpleWebAuthn = null;
+let isoBase64URL = null;
+try {
+  simpleWebAuthn = require('@simplewebauthn/server');
+  isoBase64URL = require('@simplewebauthn/server/helpers').isoBase64URL;
+} catch (err) {
+  simpleWebAuthn = null;
+}
+
+const RP_NAME = 'GC SA&A Portal';
+const RP_ID = process.env.WEBAUTHN_RP_ID || 'localhost';
+const ORIGIN = process.env.WEBAUTHN_ORIGIN || `http://localhost:${process.env.PORT || 3000}`;
+
+function getAuthUserId(req) {
+  if (req.user) return req.user.id;
+  if (req.session?.clientId) return req.session.clientId;
+  return null;
+}
+
+function requireWebAuthn(res) {
+  if (simpleWebAuthn && isoBase64URL) return true;
+  res.status(503).json({ error: 'Passkey support is not installed. Use TOTP instead.' });
+  return false;
+}
+
+router.post('/verify-mfa', express.json(), (req, res) => {
+  const userId = getAuthUserId(req);
+  if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+  const { token } = req.body;
+  if (!token || !/^\d{6}$/.test(token)) return res.status(400).json({ error: 'Please enter a 6-digit code.' });
+  const result = verifyMfaAndIssueToken(userId, token);
+  if (!result.valid) return res.status(403).json({ error: result.error || 'Invalid code.' });
+  res.json({ success: true, sig_token: result.token });
+});
+
+router.get('/mfa-mode', (req, res) => {
+  const userId = getAuthUserId(req);
+  if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+  const user = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [userId]);
+  res.json({ mfa_mode: getUserMfaMode(userId), has_webauthn: !!user?.webauthn_credential_id, totp_available: true });
+});
+
+router.post('/mfa-mode', express.json(), (req, res) => {
+  const userId = getAuthUserId(req);
+  if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+  const mode = req.body.mode;
+  if (!['totp', 'push', 'none'].includes(mode)) return res.status(400).json({ error: 'Invalid MFA mode.' });
+  if (mode === 'push') {
+    const user = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [userId]);
+    if (!user?.webauthn_credential_id) return res.status(400).json({ error: 'Register a passkey first.' });
+  }
+  run('UPDATE users SET mfa_mode = ? WHERE id = ?', [mode, userId]);
+  res.json({ success: true, mfa_mode: mode, totp_available: true });
+});
+
+router.post('/webauthn/register-options', express.json(), async (req, res) => {
+  if (!requireWebAuthn(res)) return;
+  const userId = getAuthUserId(req);
+  if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+  const user = get('SELECT id, email, name FROM users WHERE id = ?', [userId]);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  try {
+    const options = await simpleWebAuthn.generateRegistrationOptions({
+      rpName: RP_NAME,
+      rpID: RP_ID,
+      userName: user.email,
+      userDisplayName: user.name || user.email,
+      authenticatorSelection: { residentKey: 'preferred', userVerification: 'required' },
+      attestationType: 'none'
+    });
+    storeChallenge(userId, options.challenge);
+    res.json(options);
+  } catch (err) {
+    console.error('[WebAuthn] register-options:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/webauthn/register-verify', express.json(), async (req, res) => {
+  if (!requireWebAuthn(res)) return;
+  const userId = getAuthUserId(req);
+  if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+  const expectedChallenge = getChallenge(userId);
+  if (!expectedChallenge) return res.status(400).json({ error: 'Challenge expired. Please try again.' });
+
+  try {
+    const verification = await simpleWebAuthn.verifyRegistrationResponse({
+      response: req.body,
+      expectedChallenge,
+      expectedOrigin: ORIGIN,
+      expectedRPID: RP_ID,
+      requireUserVerification: true
+    });
+
+    if (!verification.verified || !verification.registrationInfo) {
+      return res.status(400).json({ error: 'Passkey verification failed.' });
+    }
+
+    const { credential } = verification.registrationInfo;
+    const publicKey = isoBase64URL.fromBuffer(credential.publicKey);
+    run(
+      `UPDATE users SET webauthn_credential_id = ?, webauthn_public_key = ?, webauthn_counter = ?, mfa_mode = 'push' WHERE id = ?`,
+      [credential.id, publicKey, credential.counter || 0, userId]
+    );
+    res.json({ success: true, verified: true, totp_available: true });
+  } catch (err) {
+    console.error('[WebAuthn] register-verify:', err);
+    res.status(400).json({ error: err.message || 'Passkey verification failed.' });
+  }
+});
+
+router.post('/webauthn/auth-options', express.json(), async (req, res) => {
+  if (!requireWebAuthn(res)) return;
+  let userId = getAuthUserId(req);
+  if (!userId && req.body.userId) userId = parseInt(req.body.userId);
+  if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+
+  const user = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [userId]);
+  if (!user?.webauthn_credential_id) return res.status(400).json({ error: 'No passkey registered. Use TOTP instead.' });
+
+  try {
+    const options = await simpleWebAuthn.generateAuthenticationOptions({
+      rpID: RP_ID,
+      allowCredentials: [{ id: user.webauthn_credential_id }],
+      userVerification: 'required'
+    });
+    storeChallenge(userId, options.challenge);
+    res.json(options);
+  } catch (err) {
+    console.error('[WebAuthn] auth-options:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/webauthn/auth-verify', express.json(), async (req, res) => {
+  if (!requireWebAuthn(res)) return;
+  let userId = getAuthUserId(req);
+  if (!userId && req.body._userId) userId = parseInt(req.body._userId);
+  if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+
+  const expectedChallenge = getChallenge(userId);
+  if (!expectedChallenge) return res.status(400).json({ error: 'Challenge expired. Use TOTP or try passkey again.' });
+  const user = get('SELECT webauthn_credential_id, webauthn_public_key, webauthn_counter FROM users WHERE id = ?', [userId]);
+  if (!user?.webauthn_credential_id) return res.status(400).json({ error: 'No passkey registered. Use TOTP instead.' });
+
+  try {
+    const verification = await simpleWebAuthn.verifyAuthenticationResponse({
+      response: req.body,
+      expectedChallenge,
+      expectedOrigin: ORIGIN,
+      expectedRPID: RP_ID,
+      requireUserVerification: true,
+      credential: {
+        id: user.webauthn_credential_id,
+        publicKey: isoBase64URL.toBuffer(user.webauthn_public_key),
+        counter: user.webauthn_counter || 0
+      }
+    });
+
+    if (!verification.verified) return res.status(403).json({ error: 'Passkey verification failed. Use TOTP instead.' });
+
+    run('UPDATE users SET webauthn_counter = ? WHERE id = ?', [verification.authenticationInfo.newCounter, userId]);
+    res.json({ success: true, sig_token: issueToken(userId), verified: true, totp_available: true });
+  } catch (err) {
+    console.error('[WebAuthn] auth-verify:', err);
+    res.status(400).json({ error: err.message || 'Passkey verification failed. Use TOTP instead.' });
+  }
+});
 
 // Get comments for a control
 router.get('/comments/:controlId', (req, res) => {

@@ -9,21 +9,577 @@ const emailService = require('../utils/emailService');
 const pdfExport = require('../utils/pdfExport');
 const path = require('path');
 const fs = require('fs');
+const multer = require('multer');
+const bcrypt = require('bcryptjs');
+const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
+const QRCode = require('qrcode');
+
+const intakeUploadDir = path.join(__dirname, '..', 'uploads', 'intakes');
+if (!fs.existsSync(intakeUploadDir)) fs.mkdirSync(intakeUploadDir, { recursive: true });
+const intakeUpload = multer({
+  dest: intakeUploadDir,
+  limits: { fileSize: 25 * 1024 * 1024 }
+});
+
+function asArray(value) {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  return value ? [value] : [];
+}
+
+function normalizeEmail(email) {
+  return (email || '').trim().toLowerCase();
+}
+
+function makeSlug(name) {
+  const base = slugBase(name);
+  let slug = base;
+  let i = 2;
+  while (get('SELECT id FROM projects WHERE slug = ?', [slug])) {
+    slug = `${base}-${i++}`;
+  }
+  return slug;
+}
+
+function slugBase(name) {
+  return (name || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'untitled';
+}
+
+function findProjectForIntake(body) {
+  const name = (body.name || body.projectName || '').trim();
+  if (!name) return null;
+
+  const slug = slugBase(name);
+  const existingProject = get(
+    `SELECT * FROM projects
+     WHERE slug = ? OR LOWER(name) = LOWER(?)
+     ORDER BY updated_at DESC
+     LIMIT 1`,
+    [slug, name]
+  );
+  if (existingProject) return existingProject;
+
+  return get(
+    `SELECT p.*
+     FROM intake_submissions i
+     JOIN projects p ON p.id = i.project_id
+     WHERE LOWER(i.project_name) = LOWER(?)
+     ORDER BY i.updated_at DESC
+     LIMIT 1`,
+    [name]
+  );
+}
+
+function getSecurityProfileFromBody(body, hasPII) {
+  if (body.security_profile) return body.security_profile;
+  const confLevel = body.confidentiality_level || body.data_classification || 'protected-b';
+  const intLevel = body.integrity_level || 'medium';
+  const avaLevel = body.availability_level || 'medium';
+  const profileResult = determineProfile({
+    confidentiality: confLevel,
+    integrity: intLevel,
+    availability: avaLevel,
+    hasPII: hasPII === 1,
+    isHVA: body.is_hva === '1' || body.is_hva === 'on',
+    hasComplexity: detectComplexity(body.description || body.project_description || '')
+  });
+  return profileResult.profile.id;
+}
+
+function createProjectIntake({ projectId, body, createdBy, files = [], status = 'in-review' }) {
+  const refCode = 'INT-' + uuidv4().substring(0, 8).toUpperCase();
+  const technologies = asArray(body.technologies);
+  const piiTypes = asArray(body.piiTypes);
+  const activities = asArray(body.completedActivities);
+  const hasPII = body.has_pii || (piiTypes.length > 0 && !piiTypes.includes('none')) ? 1 : 0;
+  const confLevel = body.confidentiality_level || body.data_classification || 'protected-b';
+  const intLevel = body.integrity_level || 'medium';
+  const avaLevel = body.availability_level || 'medium';
+  const securityProfile = getSecurityProfileFromBody(body, hasPII);
+
+  const intakeId = run(
+    `INSERT INTO intake_submissions (
+      ref_code, status, project_name, project_description, department, branch,
+      target_date, user_count, app_type, data_classification,
+      confidentiality_level, integrity_level, availability_level, is_hva,
+      security_profile, pii_types, has_pii, atip_subject, pia_completed,
+      hosting_type, hosting_region, technologies, other_tech,
+      has_apis, gc_interconnections, interconnections, mobile_access, external_users,
+      completed_activities, owner_name, owner_email, owner_title,
+      tech_lead_name, tech_lead_email, tech_lead_title,
+      authority_name, authority_email, authority_title,
+      additional_notes, project_id, created_by_assessor_id
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+    [
+      refCode, status, body.name || body.projectName || '', body.description || body.projectDescription || '',
+      body.department || '', body.branch || '',
+      body.targetDate || body.target_date || '', body.userCount || body.user_count || '', body.app_type || '',
+      confLevel, confLevel, intLevel, avaLevel, body.is_hva ? 1 : 0,
+      securityProfile, JSON.stringify(piiTypes), hasPII,
+      body.atipSubject || body.atip_subject || '', body.piaCompleted || body.pia_completed || '',
+      body.hosting_type || body.hostingType || '', body.hostingRegion || body.hosting_region || '',
+      JSON.stringify(technologies), body.otherTech || body.other_tech || body.specifications || '',
+      body.hasAPIs || body.has_apis || '', body.gcInterconnections || body.gc_interconnections || '',
+      body.interconnections || '', body.mobileAccess || body.mobile_access || '', body.externalUsers || body.external_users || '',
+      JSON.stringify(activities),
+      body.project_owner_name || body.ownerName || '', normalizeEmail(body.project_owner_email || body.ownerEmail), body.ownerTitle || '',
+      body.techLeadName || '', normalizeEmail(body.techLeadEmail), body.techLeadTitle || '',
+      body.project_authority_name || body.authorityName || '', normalizeEmail(body.project_authority_email || body.authorityEmail), body.authorityTitle || '',
+      body.additional_notes || body.additionalNotes || '', projectId, createdBy
+    ]
+  );
+
+  files.forEach(file => {
+    run(
+      `INSERT INTO intake_attachments (intake_id, filename, original_name, mime_type, size) VALUES (?,?,?,?,?)`,
+      [intakeId, file.filename, file.originalname, file.mimetype, file.size]
+    );
+  });
+
+  return intakeId;
+}
+
+function getPrimaryIntakeForProject(projectId) {
+  return get('SELECT * FROM intake_submissions WHERE project_id = ? ORDER BY created_at ASC LIMIT 1', [projectId]);
+}
+
+function ensureProjectIntake(project, createdBy) {
+  const existing = getPrimaryIntakeForProject(project.id);
+  if (existing) return existing.id;
+
+  return createProjectIntake({
+    projectId: project.id,
+    createdBy,
+    status: 'in-review',
+    body: {
+      name: project.name,
+      description: project.description,
+      data_classification: project.data_classification,
+      confidentiality_level: project.confidentiality_level || project.data_classification,
+      integrity_level: project.integrity_level || 'medium',
+      availability_level: project.availability_level || 'medium',
+      security_profile: project.security_profile || 'PBMM',
+      is_hva: project.is_hva ? '1' : '',
+      hosting_type: project.hosting_type,
+      app_type: project.app_type,
+      has_pii: project.has_pii ? '1' : '',
+      technologies: JSON.parse(project.technologies || '[]'),
+      specifications: project.specifications,
+      project_owner_name: project.project_owner_name,
+      project_owner_email: project.project_owner_email,
+      project_authority_name: project.project_authority_name,
+      project_authority_email: project.project_authority_email,
+      department: project.department,
+      branch: project.branch
+    }
+  });
+}
+
+function getAssignableUsers() {
+  return all(`
+    SELECT id, name, email, role, organization
+    FROM users
+    WHERE is_active = 1 AND role IN ('client','assessor')
+    ORDER BY role, name, email
+  `);
+}
+
+function getEntityAssignments(entityType, ids) {
+  if (!ids.length) return [];
+  const placeholders = ids.map(() => '?').join(',');
+  return all(
+    `SELECT aa.*, u.name AS assignee_name, u.email AS user_email, u.role AS user_role
+     FROM assessment_assignments aa
+     LEFT JOIN users u ON u.id = aa.assigned_to
+     WHERE aa.entity_type = ? AND aa.entity_id IN (${placeholders}) AND aa.status != 'revoked'
+     ORDER BY aa.created_at DESC`,
+    [entityType, ...ids]
+  );
+}
+
+function createInvitation({ type, email, name, organization, message, invitedBy, req, entityType, entityId }) {
+  const inviteCode = uuidv4().substring(0, 8).toUpperCase();
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const invitationId = run(
+    `INSERT INTO invitations (type, email, name, organization, invite_code, invited_by, expires_at, message, entity_type, entity_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [type, email, name || '', organization || '', inviteCode, invitedBy, expiresAt, message || '', entityType || '', entityId || null]
+  );
+
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  emailService.sendUserInvitation({
+    to: email,
+    recipientName: name || '',
+    inviteCode,
+    invitedByName: req.user.name,
+    role: type,
+    organization: organization || req.user.organization || '',
+    baseUrl,
+    message: message || ''
+  }).catch(err => console.error('[Email] Invitation failed:', err.message));
+
+  return { invitationId, inviteCode };
+}
+
+function upsertEntityAssignment({ entityType, entityId, user, email, assigneeRole, assignedBy, invitationId, notes }) {
+  const existing = user
+    ? get(
+      `SELECT id FROM assessment_assignments
+       WHERE entity_type = ? AND entity_id = ? AND assigned_to = ? AND status != 'revoked'`,
+      [entityType, entityId, user.id]
+    )
+    : get(
+      `SELECT id FROM assessment_assignments
+       WHERE entity_type = ? AND entity_id = ? AND LOWER(assignee_email) = ? AND status != 'revoked'`,
+      [entityType, entityId, email]
+    );
+
+  if (existing) return existing.id;
+
+  return run(
+    `INSERT INTO assessment_assignments
+      (entity_type, entity_id, assigned_to, assignee_email, assignee_role, assigned_by, invitation_id, status, notes)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [entityType, entityId, user?.id || null, email || user?.email || '', assigneeRole, assignedBy, invitationId || null, user ? 'active' : 'pending', notes || '']
+  );
+}
+
+function updateAssignmentColumns(entityType, entityId, user, email, role) {
+  if (entityType === 'intake') {
+    run(
+      `UPDATE intake_submissions SET assigned_to_user_id = ?, assigned_to_email = ?, assigned_to_role = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [user?.id || null, email || user?.email || '', role, entityId]
+    );
+  }
+  if (entityType === 'assessment') {
+    run(
+      `UPDATE assessments SET assigned_to_user_id = ?, assigned_to_email = ?, assigned_to_role = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [user?.id || null, email || user?.email || '', role, entityId]
+    );
+  }
+}
+
+function assignEntityFromRequest({ req, entityType, entityId, entityName }) {
+  const mode = req.body.assignment_mode || 'existing';
+  const assigneeRole = req.body.assignee_role || 'client';
+  const notes = req.body.assignment_notes || '';
+
+  if (mode === 'existing') {
+    const user = get(
+      `SELECT * FROM users WHERE id = ? AND role IN ('client','assessor') AND is_active = 1`,
+      [req.body.assignee_user_id]
+    );
+    if (!user) throw new Error('Selected user was not found.');
+
+    upsertEntityAssignment({ entityType, entityId, user, assigneeRole: user.role, assignedBy: req.user.id, notes });
+    updateAssignmentColumns(entityType, entityId, user, user.email, user.role);
+
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    emailService.sendAssignmentNotification({
+      to: user.email,
+      recipientName: user.name,
+      entityType,
+      entityName,
+      assignedByName: req.user.name,
+      baseUrl,
+      message: notes
+    }).catch(err => console.error('[Email] Assignment notification failed:', err.message));
+
+    return { email: user.email, name: user.name, pending: false };
+  }
+
+  const email = normalizeEmail(req.body.invite_email);
+  if (!email) throw new Error('Email is required to invite a new user.');
+
+  const existingUser = get('SELECT * FROM users WHERE email = ? AND is_active = 1', [email]);
+  if (existingUser) {
+    upsertEntityAssignment({ entityType, entityId, user: existingUser, assigneeRole: existingUser.role, assignedBy: req.user.id, notes });
+    updateAssignmentColumns(entityType, entityId, existingUser, existingUser.email, existingUser.role);
+    return { email: existingUser.email, name: existingUser.name, pending: false };
+  }
+
+  let invitation = get(
+    `SELECT * FROM invitations WHERE LOWER(email) = ? AND type = ? AND status = 'pending'`,
+    [email, assigneeRole]
+  );
+  let inviteCode = invitation?.invite_code;
+  if (!invitation) {
+    const created = createInvitation({
+      type: assigneeRole,
+      email,
+      name: req.body.invite_name || '',
+      organization: req.body.invite_organization || '',
+      message: req.body.invite_message || '',
+      invitedBy: req.user.id,
+      req,
+      entityType,
+      entityId
+    });
+    invitation = { id: created.invitationId };
+    inviteCode = created.inviteCode;
+  }
+
+  upsertEntityAssignment({
+    entityType,
+    entityId,
+    email,
+    assigneeRole,
+    assignedBy: req.user.id,
+    invitationId: invitation.id,
+    notes
+  });
+  updateAssignmentColumns(entityType, entityId, null, email, assigneeRole);
+
+  return { email, name: req.body.invite_name || email, pending: true, inviteCode };
+}
+
+function copyIntakeAssignmentsToAssessment(intakeId, assessmentId, assignedBy) {
+  const assignments = all(
+    `SELECT * FROM assessment_assignments
+     WHERE entity_type = 'intake' AND entity_id = ? AND status != 'revoked'`,
+    [intakeId]
+  );
+  assignments.forEach(a => {
+    upsertEntityAssignment({
+      entityType: 'assessment',
+      entityId: assessmentId,
+      user: a.assigned_to ? { id: a.assigned_to, email: a.assignee_email } : null,
+      email: a.assignee_email,
+      assigneeRole: a.assignee_role || 'client',
+      assignedBy: assignedBy || a.assigned_by,
+      invitationId: a.invitation_id,
+      notes: a.notes || 'Copied from linked intake'
+    });
+    if (a.assigned_to) {
+      const user = get('SELECT id, email, role FROM users WHERE id = ?', [a.assigned_to]);
+      if (user) updateAssignmentColumns('assessment', assessmentId, user, user.email, user.role);
+    } else if (a.assignee_email) {
+      updateAssignmentColumns('assessment', assessmentId, null, a.assignee_email, a.assignee_role || 'client');
+    }
+  });
+}
 
 // ── AUTH ──
 router.get('/login', (req, res) => {
-  if (req.isAuthenticated()) return res.redirect('/admin/dashboard');
-  res.render('admin/login', { title: 'Assessor Login', layout: 'main' });
+  if (req.isAuthenticated() && req.session.adminMfaVerified) return res.redirect('/admin/dashboard');
+  if (req.isAuthenticated()) {
+    const user = get('SELECT mfa_enabled, totp_secret, webauthn_credential_id, is_break_glass FROM users WHERE id = ?', [req.user.id]);
+    if (user?.is_break_glass) {
+      req.session.adminMfaVerified = true;
+      return res.redirect('/admin/dashboard');
+    }
+    if (!user?.mfa_enabled || !user?.totp_secret) return res.redirect('/admin/mfa-setup');
+    return res.render('admin/login', {
+      title: 'Verify MFA',
+      layout: 'main',
+      mfaStep: true,
+      userId: req.user.id,
+      hasWebAuthn: !!user.webauthn_credential_id
+    });
+  }
+  res.render('admin/login', { title: 'Assessor Login', layout: 'main', prefillEmail: req.query.email || '' });
 });
 
-router.post('/login', passport.authenticate('local', {
-  successRedirect: '/admin/dashboard',
-  failureRedirect: '/admin/login',
-  failureFlash: true
-}));
+router.post('/login', (req, res, next) => {
+  if (req.body._mfa_step && req.isAuthenticated()) {
+    const user = get('SELECT id, totp_secret, mfa_enabled, webauthn_credential_id FROM users WHERE id = ?', [req.user.id]);
+    if (!user || !user.mfa_enabled || !user.totp_secret) return res.redirect('/admin/mfa-setup');
+
+    const isValid = otpVerify({ secret: user.totp_secret, token: req.body.token, window: 1 }).valid;
+    if (!isValid) {
+      req.flash('error', 'Invalid authentication code. Please try again.');
+      return res.render('admin/login', {
+        title: 'Verify MFA',
+        layout: 'main',
+        mfaStep: true,
+        userId: user.id,
+        hasWebAuthn: !!user.webauthn_credential_id
+      });
+    }
+
+    req.session.adminMfaVerified = true;
+    run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
+    return res.redirect('/admin/dashboard');
+  }
+
+  if (req.body._webauthn_step && req.isAuthenticated()) {
+    const { consumeToken } = require('../config/mfa-signature');
+    const tokenUserId = consumeToken(req.body._sig_token);
+    if (!tokenUserId || tokenUserId !== req.user.id) {
+      req.flash('error', 'Passkey verification failed. Please try again or use TOTP.');
+      const user = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [req.user.id]);
+      return res.render('admin/login', {
+        title: 'Verify MFA',
+        layout: 'main',
+        mfaStep: true,
+        userId: req.user.id,
+        hasWebAuthn: !!user?.webauthn_credential_id
+      });
+    }
+    req.session.adminMfaVerified = true;
+    run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [req.user.id]);
+    return res.redirect('/admin/dashboard');
+  }
+
+  passport.authenticate('local', (err, user, info) => {
+    if (err) return next(err);
+    if (!user) {
+      req.flash('error', info?.message || 'Invalid credentials');
+      return res.redirect('/admin/login');
+    }
+    req.logIn(user, (err) => {
+      if (err) return next(err);
+      const dbUser = get('SELECT mfa_enabled, totp_secret, webauthn_credential_id, is_break_glass FROM users WHERE id = ?', [user.id]);
+      if (dbUser?.is_break_glass) {
+        req.session.adminMfaVerified = true;
+        return res.redirect('/admin/dashboard');
+      }
+      if (!dbUser?.mfa_enabled || !dbUser?.totp_secret) {
+        req.session.adminMfaVerified = false;
+        return res.redirect('/admin/mfa-setup');
+      }
+
+      req.session.adminMfaVerified = false;
+      return res.render('admin/login', {
+        title: 'Verify MFA',
+        layout: 'main',
+        mfaStep: true,
+        userId: user.id,
+        hasWebAuthn: !!dbUser.webauthn_credential_id
+      });
+    });
+  })(req, res, next);
+});
 
 router.get('/logout', (req, res) => {
+  delete req.session.adminMfaVerified;
   req.logout(() => res.redirect('/admin/login'));
+});
+
+router.get('/mfa-setup', async (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/admin/login');
+  const user = get('SELECT id, email, totp_secret, mfa_enabled FROM users WHERE id = ?', [req.user.id]);
+  if (!user) return res.redirect('/admin/login');
+
+  let secret = user.totp_secret;
+  if (!secret) {
+    secret = otpGenerateSecret();
+    run('UPDATE users SET totp_secret = ? WHERE id = ?', [secret, user.id]);
+  }
+
+  const otpauth = otpGenerateURI({ issuer: 'GC SA&A Portal', label: user.email, secret });
+  try {
+    const qrCodeUrl = await QRCode.toDataURL(otpauth);
+    res.render('admin/login', {
+      title: 'MFA Setup',
+      layout: 'main',
+      mfaSetup: true,
+      qrCodeUrl,
+      secret,
+      mfaAlreadyEnabled: user.mfa_enabled === 1
+    });
+  } catch (err) {
+    console.error('QR code error:', err);
+    req.flash('error', 'Failed to generate QR code.');
+    res.redirect('/admin/login');
+  }
+});
+
+router.post('/mfa-setup', (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/admin/login');
+  const user = get('SELECT id, totp_secret FROM users WHERE id = ?', [req.user.id]);
+  if (!user || !user.totp_secret) {
+    req.flash('error', 'MFA setup failed. Please try again.');
+    return res.redirect('/admin/mfa-setup');
+  }
+
+  const isValid = otpVerify({ secret: user.totp_secret, token: req.body.token, window: 1 }).valid;
+  if (!isValid) {
+    req.flash('error', 'Invalid code. Please try again.');
+    return res.redirect('/admin/mfa-setup');
+  }
+
+  run('UPDATE users SET mfa_enabled = 1 WHERE id = ?', [user.id]);
+  req.session.adminMfaVerified = true;
+  req.flash('success', 'MFA enabled. You can optionally register a passkey; TOTP will remain available.');
+  res.redirect('/admin/passkey-setup');
+});
+
+router.get('/passkey-setup', (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/admin/login');
+  if (!req.session.adminMfaVerified) return res.redirect('/admin/login');
+  const user = get('SELECT webauthn_credential_id FROM users WHERE id = ?', [req.user.id]);
+  res.render('admin/passkey-setup', {
+    title: 'Register Passkey',
+    layout: 'main',
+    hasWebAuthn: !!user?.webauthn_credential_id
+  });
+});
+
+router.get('/register', (req, res) => {
+  const inviteCode = req.query.invite || '';
+  let formData = {};
+  if (inviteCode) {
+    const invite = get("SELECT email, name, organization FROM invitations WHERE invite_code = ? AND status = 'pending'", [inviteCode.trim().toUpperCase()]);
+    if (invite) formData = { email: invite.email, name: invite.name, organization: invite.organization };
+  }
+  res.render('admin/register', {
+    title: 'Assessor Registration',
+    layout: 'main',
+    inviteCode,
+    formData
+  });
+});
+
+router.post('/register', (req, res) => {
+  try {
+    const { name, email, organization, password, confirmPassword, invite_code } = req.body;
+    if (!name || !email || !password || !invite_code) {
+      req.flash('error', 'Name, email, password, and invitation code are required.');
+      return res.render('admin/register', { title: 'Assessor Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+    }
+    if (password.length < 10) {
+      req.flash('error', 'Password must be at least 10 characters.');
+      return res.render('admin/register', { title: 'Assessor Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+    }
+    if (password !== confirmPassword) {
+      req.flash('error', 'Passwords do not match.');
+      return res.render('admin/register', { title: 'Assessor Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+    }
+
+    const invite = get(
+      "SELECT * FROM invitations WHERE invite_code = ? AND type = 'assessor' AND status = 'pending'",
+      [invite_code.trim().toUpperCase()]
+    );
+    if (!invite || new Date(invite.expires_at) < new Date()) {
+      req.flash('error', 'Invalid or expired invitation code.');
+      return res.render('admin/register', { title: 'Assessor Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+    }
+    if (normalizeEmail(email) !== normalizeEmail(invite.email)) {
+      req.flash('error', `Please register with the invited email address (${invite.email}).`);
+      return res.render('admin/register', { title: 'Assessor Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+    }
+    if (get('SELECT id FROM users WHERE email = ?', [normalizeEmail(email)])) {
+      req.flash('error', 'An account with this email already exists.');
+      return res.render('admin/register', { title: 'Assessor Registration', layout: 'main', inviteCode: invite_code, formData: req.body });
+    }
+
+    const userId = run(
+      `INSERT INTO users (email, password, name, role, organization, totp_secret, mfa_enabled, is_active)
+       VALUES (?, ?, ?, 'assessor', ?, ?, 0, 1)`,
+      [normalizeEmail(email), bcrypt.hashSync(password, 12), name, organization || invite.organization || '', otpGenerateSecret()]
+    );
+    run("UPDATE invitations SET status = 'accepted', accepted_at = CURRENT_TIMESTAMP, accepted_by_user_id = ? WHERE id = ?", [userId, invite.id]);
+    run("UPDATE assessment_assignments SET assigned_to = ?, status = 'active', accepted_at = CURRENT_TIMESTAMP WHERE invitation_id = ?", [userId, invite.id]);
+    run("UPDATE assessments SET assigned_to_user_id = ? WHERE LOWER(assigned_to_email) = ?", [userId, normalizeEmail(email)]);
+    run("UPDATE intake_submissions SET assigned_to_user_id = ? WHERE LOWER(assigned_to_email) = ?", [userId, normalizeEmail(email)]);
+
+    req.flash('success', 'Account created. Please sign in and set up MFA.');
+    res.redirect('/admin/login');
+  } catch (err) {
+    console.error('Assessor registration error:', err);
+    req.flash('error', 'Registration failed: ' + err.message);
+    res.redirect('/admin/register');
+  }
 });
 
 // ── DASHBOARD ──
@@ -65,30 +621,78 @@ router.get('/projects/new', ensureAuthenticated, (req, res) => {
   res.render('admin/project-new', {
     title: 'New Project', isAdmin: true, isProjects: true,
     admin: req.user,
-    technologies: COMMON_TECHNOLOGIES
+    technologies: COMMON_TECHNOLOGIES,
+    users: getAssignableUsers()
   });
 });
 
-router.post('/projects/new', ensureAuthenticated, (req, res) => {
+router.post('/projects/new', ensureAuthenticated, intakeUpload.array('attachments', 10), (req, res) => {
   try {
     const { name, description, data_classification, hosting_type, app_type, has_pii,
       technologies, specifications, project_owner_name, project_owner_email,
-      project_authority_name, project_authority_email, cio_name, cio_email } = req.body;
+      project_authority_name, project_authority_email, cio_name, cio_email,
+      department, branch, confidentiality_level, integrity_level, availability_level,
+      security_profile, is_hva } = req.body;
 
-    const slug = (name || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const techArray = Array.isArray(technologies) ? technologies : (technologies ? [technologies] : []);
+    const techArray = asArray(technologies);
+    const piiTypes = asArray(req.body.piiTypes);
+    const hasPII = has_pii || (piiTypes.length > 0 && !piiTypes.includes('none')) ? 1 : 0;
+    const confLevel = confidentiality_level || data_classification || 'protected-b';
+    const intLevel = integrity_level || 'medium';
+    const avaLevel = availability_level || 'medium';
+    const profile = security_profile || getSecurityProfileFromBody(req.body, hasPII);
+    const existingProject = findProjectForIntake(req.body);
+    let projectId;
 
-    run(`INSERT INTO projects (name, slug, description, data_classification, hosting_type, app_type, has_pii, 
-      technologies, specifications, project_owner_name, project_owner_email, project_authority_name, 
-      project_authority_email, cio_name, cio_email, status, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)`,
-      [name, slug, description || '', data_classification || 'protected-b', hosting_type || '', app_type || '',
-        has_pii ? 1 : 0, JSON.stringify(techArray), specifications || '',
-        project_owner_name || '', project_owner_email || '', project_authority_name || '', project_authority_email || '',
-        cio_name || '', cio_email || '', req.user.id]);
+    if (existingProject) {
+      projectId = existingProject.id;
+      run(`UPDATE projects SET
+        name = ?, description = ?, data_classification = ?,
+        confidentiality_level = ?, integrity_level = ?, availability_level = ?, security_profile = ?, is_hva = ?,
+        hosting_type = ?, app_type = ?, has_pii = ?, technologies = ?, specifications = ?,
+        project_owner_name = ?, project_owner_email = ?, project_authority_name = ?, project_authority_email = ?,
+        cio_name = ?, cio_email = ?, department = ?, branch = ?, status = 'active', updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?`,
+        [name, description || '', data_classification || confLevel || 'protected-b',
+          confLevel, intLevel, avaLevel, profile, is_hva ? 1 : 0,
+          hosting_type || '', app_type || '', hasPII, JSON.stringify(techArray), specifications || '',
+          project_owner_name || '', normalizeEmail(project_owner_email), project_authority_name || '', normalizeEmail(project_authority_email),
+          cio_name || '', normalizeEmail(cio_email), department || '', branch || '', projectId]);
+    } else {
+      const slug = makeSlug(name);
+      projectId = run(`INSERT INTO projects (name, slug, description, data_classification,
+        confidentiality_level, integrity_level, availability_level, security_profile, is_hva,
+        hosting_type, app_type, has_pii, technologies, specifications, project_owner_name, project_owner_email,
+        project_authority_name, project_authority_email, cio_name, cio_email, department, branch, status, created_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)`,
+        [name, slug, description || '', data_classification || confLevel || 'protected-b',
+          confLevel, intLevel, avaLevel, profile, is_hva ? 1 : 0,
+          hosting_type || '', app_type || '', hasPII, JSON.stringify(techArray), specifications || '',
+          project_owner_name || '', normalizeEmail(project_owner_email), project_authority_name || '', normalizeEmail(project_authority_email),
+          cio_name || '', normalizeEmail(cio_email), department || '', branch || '', req.user.id]);
+    }
 
-    req.flash('success', 'Project created successfully');
-    res.redirect('/admin/projects');
+    const intakeId = createProjectIntake({
+      projectId,
+      body: req.body,
+      createdBy: req.user.id,
+      files: req.files || [],
+      status: 'in-review'
+    });
+
+    const assignmentMode = req.body.assignment_mode;
+    if (assignmentMode === 'existing' || assignmentMode === 'invite') {
+      const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [intakeId]);
+      assignEntityFromRequest({
+        req,
+        entityType: 'intake',
+        entityId: intakeId,
+        entityName: intake?.project_name || name
+      });
+    }
+
+    req.flash('success', `${existingProject ? 'Project updated' : 'Project created'} and associated intake ${get('SELECT ref_code FROM intake_submissions WHERE id = ?', [intakeId])?.ref_code || ''} created successfully`);
+    res.redirect(`/admin/projects/${projectId}`);
   } catch (err) {
     console.error(err);
     req.flash('error', 'Failed to create project: ' + err.message);
@@ -100,21 +704,99 @@ router.get('/projects/:id', ensureAuthenticated, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
   if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
-  const assessments = all('SELECT * FROM assessments WHERE project_id = ? ORDER BY created_at DESC', [project.id]);
+  const assessments = all(`
+    SELECT a.*, i.ref_code AS intake_ref_code
+    FROM assessments a
+    LEFT JOIN intake_submissions i ON i.id = a.intake_id
+    WHERE a.project_id = ?
+    ORDER BY a.created_at DESC
+  `, [project.id]);
+  const intakes = all('SELECT * FROM intake_submissions WHERE project_id = ? ORDER BY created_at DESC', [project.id]);
+  const intakeAssignments = getEntityAssignments('intake', intakes.map(i => i.id));
+  const assessmentAssignments = getEntityAssignments('assessment', assessments.map(a => a.id));
   let techs = [];
   try { techs = JSON.parse(project.technologies || '[]'); } catch(e) {}
 
   res.render('admin/project-detail', {
     title: project.name, isAdmin: true, isProjects: true,
-    admin: req.user, project, assessments,
+    admin: req.user, project, assessments, intakes,
+    intakeAssignments, assessmentAssignments,
+    users: getAssignableUsers(),
     techNames: techs.map(t => COMMON_TECHNOLOGIES[t]?.name || t)
   });
+});
+
+router.post('/projects/:id/intake/create', ensureAuthenticated, (req, res) => {
+  try {
+    const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+    if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+
+    const existing = getPrimaryIntakeForProject(project.id);
+    if (existing) {
+      req.flash('info', `This project already has intake ${existing.ref_code}.`);
+      return res.redirect(`/admin/projects/${project.id}`);
+    }
+
+    const intakeId = ensureProjectIntake(project, req.user.id);
+    const intake = get('SELECT ref_code FROM intake_submissions WHERE id = ?', [intakeId]);
+    req.flash('success', `Created intake ${intake?.ref_code || ''} for this project.`);
+    res.redirect(`/admin/projects/${project.id}`);
+  } catch (err) {
+    console.error('Create project intake error:', err);
+    req.flash('error', 'Failed to create intake: ' + err.message);
+    res.redirect(`/admin/projects/${req.params.id}`);
+  }
+});
+
+router.post('/projects/:id/assign', ensureAuthenticated, (req, res) => {
+  try {
+    const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+    if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+
+    const target = req.body.assign_target || 'all';
+    const targets = [];
+    if (target === 'all' || target.startsWith('intake:')) {
+      const intakeIds = target.startsWith('intake:')
+        ? [parseInt(target.split(':')[1])]
+        : all('SELECT id FROM intake_submissions WHERE project_id = ?', [project.id]).map(i => i.id);
+      intakeIds.forEach(id => targets.push({ entityType: 'intake', entityId: id }));
+    }
+    if (target === 'all' || target.startsWith('assessment:')) {
+      const assessmentIds = target.startsWith('assessment:')
+        ? [parseInt(target.split(':')[1])]
+        : all('SELECT id FROM assessments WHERE project_id = ?', [project.id]).map(a => a.id);
+      assessmentIds.forEach(id => targets.push({ entityType: 'assessment', entityId: id }));
+    }
+
+    if (!targets.length) {
+      req.flash('error', 'There is no intake or assessment to assign yet.');
+      return res.redirect(`/admin/projects/${project.id}`);
+    }
+
+    let result;
+    targets.forEach(t => {
+      result = assignEntityFromRequest({
+        req,
+        entityType: t.entityType,
+        entityId: t.entityId,
+        entityName: project.name
+      });
+    });
+
+    req.flash('success', `${target === 'all' ? 'Project intake and assessments' : 'Selected item'} assigned to ${result.name || result.email}${result.pending ? ` (invitation code ${result.inviteCode})` : ''}.`);
+    res.redirect(`/admin/projects/${project.id}`);
+  } catch (err) {
+    console.error('Project assignment error:', err);
+    req.flash('error', 'Assignment failed: ' + err.message);
+    res.redirect(`/admin/projects/${req.params.id}`);
+  }
 });
 
 // ── ASSESSMENTS ──
 router.get('/projects/:projectId/assessments/new', ensureAuthenticated, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
   if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+  const intake = getPrimaryIntakeForProject(project.id);
 
   let techs = [];
   try { techs = JSON.parse(project.technologies || '[]'); } catch(e) {}
@@ -160,7 +842,7 @@ router.get('/projects/:projectId/assessments/new', ensureAuthenticated, (req, re
 
   res.render('admin/assessment-new', {
     title: 'New Assessment', isAdmin: true, isProjects: true,
-    admin: req.user, project, families, controlCount: controls.length,
+    admin: req.user, project, intake, families, controlCount: controls.length,
     saaReason: saaCheck.reason
   });
 });
@@ -169,10 +851,12 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
   try {
     const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
     if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+    const intakeId = ensureProjectIntake(project, req.user.id);
 
     const inviteCode = uuidv4().substring(0, 8).toUpperCase();
-    const assessmentId = run(`INSERT INTO assessments (project_id, type, status, invite_code, created_by)
-      VALUES (?, 'initial', 'draft', ?, ?)`, [project.id, inviteCode, req.user.id]);
+    const assessmentId = run(`INSERT INTO assessments (project_id, intake_id, type, status, invite_code, created_by)
+      VALUES (?, ?, 'initial', 'draft', ?, ?)`, [project.id, intakeId, inviteCode, req.user.id]);
+    copyIntakeAssignmentsToAssessment(intakeId, assessmentId, req.user.id);
 
     console.log('[Assessment] Created assessment ID:', assessmentId, 'invite:', inviteCode);
 
@@ -221,8 +905,9 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
 
 router.get('/assessments', ensureAuthenticated, (req, res) => {
   const assessments = all(`
-    SELECT a.*, p.name as project_name 
+    SELECT a.*, p.name as project_name, i.ref_code as intake_ref_code
     FROM assessments a JOIN projects p ON a.project_id = p.id 
+    LEFT JOIN intake_submissions i ON i.id = a.intake_id
     ORDER BY a.updated_at DESC
   `);
   res.render('admin/assessments', {
@@ -236,8 +921,12 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     SELECT a.*, p.name as project_name, p.project_owner_name, p.project_owner_email,
       p.data_classification, p.hosting_type, p.app_type,
       p.description as project_description, p.technologies, p.confidentiality_level,
-      p.integrity_level, p.availability_level, p.security_profile
-    FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?
+      p.integrity_level, p.availability_level, p.security_profile,
+      i.ref_code as intake_ref_code, i.status as intake_status
+    FROM assessments a
+    JOIN projects p ON a.project_id = p.id
+    LEFT JOIN intake_submissions i ON i.id = a.intake_id
+    WHERE a.id = ?
   `, [req.params.id]);
   if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
 
@@ -268,6 +957,7 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
   controls.forEach(c => { if (!c.risk_level) c.risk_level = computeRiskLevel(c); });
 
   const checklistItems = all('SELECT * FROM iato_checklist WHERE assessment_id = ? ORDER BY CASE risk_level WHEN \'high\' THEN 0 WHEN \'medium\' THEN 1 ELSE 2 END, deadline', [assessment.id]);
+  const assignments = getEntityAssignments('assessment', [assessment.id]);
   const poamStats = {
     total: checklistItems.length,
     open: checklistItems.filter(i => i.status === 'open').length,
@@ -283,7 +973,7 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
   res.render('admin/assessment-detail', {
     title: `Assessment: ${assessment.project_name}`,
     isAdmin: true, isAssessments: true,
-    admin: req.user, assessment,
+    admin: req.user, assessment, assignments, users: getAssignableUsers(),
     families: Object.values(families), controls, stats, checklistItems, poamStats,
     projectContextJSON: JSON.stringify({
       name: assessment.project_name,
@@ -316,9 +1006,17 @@ router.post('/assessments/:id/send-invite', ensureAuthenticated, async (req, res
       [expiresAt.toISOString(), assessment.id]);
 
     const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const recipientEmail = assessment.assigned_to_email || assessment.project_owner_email;
+    const recipientName = assessment.assigned_to_user_id
+      ? (get('SELECT name FROM users WHERE id = ?', [assessment.assigned_to_user_id])?.name || assessment.project_owner_name)
+      : assessment.project_owner_name;
+    if (!recipientEmail) {
+      req.flash('error', 'No assigned user or project owner email is available for this assessment.');
+      return res.redirect(`/admin/assessments/${assessment.id}`);
+    }
     const emailResult = await emailService.sendInvite({
-      to: assessment.project_owner_email,
-      recipientName: assessment.project_owner_name,
+      to: recipientEmail,
+      recipientName,
       projectName: assessment.project_name,
       inviteCode: assessment.invite_code,
       expiresAt: expiresAt.toISOString(),
@@ -327,7 +1025,7 @@ router.post('/assessments/:id/send-invite', ensureAuthenticated, async (req, res
     });
 
     if (emailResult.sent) {
-      req.flash('success', `Invite emailed to ${assessment.project_owner_email} with code: ${assessment.invite_code}`);
+      req.flash('success', `Invite emailed to ${recipientEmail} with code: ${assessment.invite_code}`);
     } else {
       req.flash('success', `Assessment activated with code: ${assessment.invite_code}. Email could not be sent (${emailResult.error || 'not configured'}) — share the code manually.`);
     }
@@ -335,6 +1033,40 @@ router.post('/assessments/:id/send-invite', ensureAuthenticated, async (req, res
   } catch (err) {
     console.error(err);
     req.flash('error', 'Failed to send invite: ' + err.message);
+    res.redirect(`/admin/assessments/${req.params.id}`);
+  }
+});
+
+router.post('/assessments/:id/assign', ensureAuthenticated, (req, res) => {
+  try {
+    const assessment = get(`
+      SELECT a.*, p.name AS project_name
+      FROM assessments a JOIN projects p ON p.id = a.project_id
+      WHERE a.id = ?
+    `, [req.params.id]);
+    if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+
+    const result = assignEntityFromRequest({
+      req,
+      entityType: 'assessment',
+      entityId: assessment.id,
+      entityName: assessment.project_name
+    });
+
+    if (assessment.intake_id) {
+      assignEntityFromRequest({
+        req,
+        entityType: 'intake',
+        entityId: assessment.intake_id,
+        entityName: assessment.project_name
+      });
+    }
+
+    req.flash('success', `Assessment${assessment.intake_id ? ' and linked intake' : ''} assigned to ${result.name || result.email}${result.pending ? ` (invitation code ${result.inviteCode})` : ''}.`);
+    res.redirect(`/admin/assessments/${assessment.id}`);
+  } catch (err) {
+    console.error('Assessment assignment error:', err);
+    req.flash('error', 'Assignment failed: ' + err.message);
     res.redirect(`/admin/assessments/${req.params.id}`);
   }
 });
@@ -595,6 +1327,7 @@ router.post('/assessments/:id/delete', ensureAuthenticated, (req, res) => {
   run('DELETE FROM comments WHERE assessment_control_id IN (SELECT id FROM assessment_controls WHERE assessment_id = ?)', [assessment.id]);
   run('DELETE FROM attachments WHERE assessment_control_id IN (SELECT id FROM assessment_controls WHERE assessment_id = ?)', [assessment.id]);
   run('DELETE FROM iato_checklist WHERE assessment_id = ?', [assessment.id]);
+  run("UPDATE assessment_assignments SET status = 'revoked', revoked_at = CURRENT_TIMESTAMP WHERE entity_type = 'assessment' AND entity_id = ?", [assessment.id]);
   run('DELETE FROM assessment_controls WHERE assessment_id = ?', [assessment.id]);
   run('DELETE FROM assessments WHERE id = ?', [assessment.id]);
 
@@ -626,8 +1359,17 @@ router.post('/projects/:id/delete', ensureAuthenticated, (req, res) => {
     run('DELETE FROM attachments WHERE assessment_control_id IN (SELECT id FROM assessment_controls WHERE assessment_id = ?)', [a.id]);
     run('DELETE FROM iato_checklist WHERE assessment_id = ?', [a.id]);
     run('DELETE FROM assessment_controls WHERE assessment_id = ?', [a.id]);
+    run("UPDATE assessment_assignments SET status = 'revoked', revoked_at = CURRENT_TIMESTAMP WHERE entity_type = 'assessment' AND entity_id = ?", [a.id]);
     run('DELETE FROM assessments WHERE id = ?', [a.id]);
   });
+
+  const projectIntakes = all('SELECT id FROM intake_submissions WHERE project_id = ?', [project.id]);
+  projectIntakes.forEach(i => {
+    run("UPDATE assessment_assignments SET status = 'revoked', revoked_at = CURRENT_TIMESTAMP WHERE entity_type = 'intake' AND entity_id = ?", [i.id]);
+  });
+  run('DELETE FROM intake_attachments WHERE intake_id IN (SELECT id FROM intake_submissions WHERE project_id = ?)', [project.id]);
+  run('DELETE FROM intake_submissions WHERE project_id = ?', [project.id]);
+  run("UPDATE assessment_assignments SET status = 'revoked', revoked_at = CURRENT_TIMESTAMP WHERE entity_type = 'project' AND entity_id = ?", [project.id]);
 
   // Delete the project itself
   run('DELETE FROM projects WHERE id = ?', [project.id]);
@@ -697,6 +1439,8 @@ router.get('/intakes/:id', ensureAuthenticated, (req, res) => {
   const allTechnologies = Object.entries(COMMON_TECHNOLOGIES).map(([key, val]) => ({
     key, name: val.name, alreadySelected: technologies.includes(key)
   }));
+  const assignments = getEntityAssignments('intake', [intake.id]);
+  const linkedAssessments = all('SELECT id, type, status, invite_code FROM assessments WHERE intake_id = ? ORDER BY created_at DESC', [intake.id]);
 
   // Engine preview
   let engineDesc = intake.project_description || '';
@@ -735,7 +1479,8 @@ router.get('/intakes/:id', ensureAuthenticated, (req, res) => {
 
   res.render('admin/intake-review', {
     title: 'Review: ' + intake.project_name, isAdmin: true,
-    user: req.user, intake, attachments,
+    user: req.user, intake, attachments, assignments, linkedAssessments,
+    users: getAssignableUsers(),
     piiList: piiTypes.filter(p => p !== 'none').map(p => PII_LABELS[p] || p),
     techList: technologies.map(t => COMMON_TECHNOLOGIES[t]?.name || t),
     activityList: activities.map(a => ACTIVITY_LABELS[a] || a),
@@ -756,6 +1501,37 @@ router.get('/intakes/:id', ensureAuthenticated, (req, res) => {
     tailoringNotes: profileResult.tailoringNotes,
     profileColor: profileResult.profile.color
   });
+});
+
+router.post('/intakes/:id/assign', ensureAuthenticated, (req, res) => {
+  try {
+    const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
+    if (!intake) { req.flash('error', 'Intake not found'); return res.redirect('/admin/intakes'); }
+
+    const result = assignEntityFromRequest({
+      req,
+      entityType: 'intake',
+      entityId: intake.id,
+      entityName: intake.project_name
+    });
+
+    if (req.body.assign_linked_assessments === '1') {
+      const linked = all('SELECT id FROM assessments WHERE intake_id = ?', [intake.id]);
+      linked.forEach(a => assignEntityFromRequest({
+        req,
+        entityType: 'assessment',
+        entityId: a.id,
+        entityName: intake.project_name
+      }));
+    }
+
+    req.flash('success', `Intake assigned to ${result.name || result.email}${result.pending ? ` (invitation code ${result.inviteCode})` : ''}.`);
+    res.redirect(`/admin/intakes/${intake.id}`);
+  } catch (err) {
+    console.error('Intake assignment error:', err);
+    req.flash('error', 'Assignment failed: ' + err.message);
+    res.redirect(`/admin/intakes/${req.params.id}`);
+  }
 });
 
 // Update intake status
@@ -814,14 +1590,15 @@ router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
         confidentiality_level, integrity_level, availability_level, security_profile, is_hva,
         hosting_type, app_type, has_pii, technologies, specifications,
         project_owner_name, project_owner_email,
-        project_authority_name, project_authority_email, status, created_by
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        project_authority_name, project_authority_email, department, branch, status, created_by
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [intake.project_name, slug, fullDescription, classification,
         confLevel, intLevel, avaLevel, securityProfile, isHVA,
         intake.hosting_type, appType,
         intake.has_pii, JSON.stringify(allTech), intake.other_tech || '',
         intake.owner_name, intake.owner_email,
-        intake.authority_name || '', intake.authority_email || '', 'active', req.user.id]
+        intake.authority_name || '', intake.authority_email || '',
+        intake.department || '', intake.branch || '', 'active', req.user.id]
     );
 
     // Check if SA&A is required
@@ -864,9 +1641,10 @@ router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
 
     const inviteCode = uuidv4().substring(0, 8).toUpperCase();
     const assessmentId = run(
-      `INSERT INTO assessments (project_id, type, status, invite_code, created_by) VALUES (?,?,?,?,?)`,
-      [projectId, req.body.assessmentType || 'initial', 'draft', inviteCode, req.user.id]
+      `INSERT INTO assessments (project_id, intake_id, type, status, invite_code, created_by) VALUES (?,?,?,?,?,?)`,
+      [projectId, intake.id, req.body.assessmentType || 'initial', 'draft', inviteCode, req.user.id]
     );
+    copyIntakeAssignmentsToAssessment(intake.id, assessmentId, req.user.id);
 
     const grouped = groupByFamily(filtered);
     grouped.forEach(family => {

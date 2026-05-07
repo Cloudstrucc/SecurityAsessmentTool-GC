@@ -334,6 +334,62 @@
         </div>
       </div>
 
+      <div class="card mb-3">
+        <div class="card-header bg-light" style="color:var(--gc-text);"><i class="bi bi-person-check me-2"></i>Assignment</div>
+        <div class="card-body">
+          {{#if assignments.length}}
+            {{#each assignments}}
+              <div class="border rounded p-2 small mb-2">
+                <div class="fw-semibold">{{#if this.assignee_name}}{{this.assignee_name}}{{else}}{{this.assignee_email}}{{/if}}</div>
+                <div class="text-muted">{{#if this.user_email}}{{this.user_email}}{{else}}{{this.assignee_email}}{{/if}}</div>
+                <span class="badge bg-light text-dark border">{{this.assignee_role}} {{#if (eq this.status 'pending')}}pending{{/if}}</span>
+              </div>
+            {{/each}}
+          {{else}}
+            <p class="text-muted small">No one has been assigned to this intake yet.</p>
+          {{/if}}
+          <form method="POST" action="/admin/intakes/{{intake.id}}/assign">
+            <div class="mb-2">
+              <select class="form-select form-select-sm assignment-mode" name="assignment_mode" data-scope="intake">
+                <option value="existing">Select existing user</option>
+                <option value="invite">Invite new user</option>
+              </select>
+            </div>
+            <div class="assignment-existing-intake mb-2">
+              <select class="form-select form-select-sm" name="assignee_user_id">
+                <option value="">Choose a user...</option>
+                {{#each users}}
+                  <option value="{{this.id}}">{{this.name}} — {{this.email}} ({{this.role}})</option>
+                {{/each}}
+              </select>
+            </div>
+            <div class="assignment-invite-intake d-none">
+              <div class="row g-2">
+                <div class="col-5">
+                  <select class="form-select form-select-sm" name="assignee_role">
+                    <option value="client">Client</option>
+                    <option value="assessor">Assessor</option>
+                  </select>
+                </div>
+                <div class="col-7"><input type="text" class="form-control form-control-sm" name="invite_name" placeholder="Name"></div>
+                <div class="col-12"><input type="email" class="form-control form-control-sm" name="invite_email" placeholder="Email"></div>
+                <div class="col-12"><input type="text" class="form-control form-control-sm" name="invite_organization" placeholder="Organization"></div>
+              </div>
+            </div>
+            {{#if linkedAssessments.length}}
+              <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" id="assign_linked_assessments" name="assign_linked_assessments" value="1" checked>
+                <label class="form-check-label small" for="assign_linked_assessments">Also assign linked assessments</label>
+              </div>
+            {{/if}}
+            <textarea class="form-control form-control-sm mt-2" name="assignment_notes" rows="2" placeholder="Optional message"></textarea>
+            <button type="submit" class="btn btn-sm btn-primary w-100 mt-2">
+              <i class="bi bi-person-plus me-1"></i>Assign Intake
+            </button>
+          </form>
+        </div>
+      </div>
+
       <!-- Assessor Actions -->
       {{#if (neq intake.status 'accepted')}}
       <div class="card mb-3">
@@ -506,6 +562,16 @@
 // ADMIN AI REVIEW INTEGRATION
 // ═══════════════════════════════════════════════════════════════════════════════
 const INTAKE_ID = '{{intake.id}}';
+
+document.querySelectorAll('.assignment-mode').forEach(select => {
+  const sync = () => {
+    const scope = select.dataset.scope;
+    document.querySelectorAll('.assignment-existing-' + scope).forEach(el => el.classList.toggle('d-none', select.value !== 'existing'));
+    document.querySelectorAll('.assignment-invite-' + scope).forEach(el => el.classList.toggle('d-none', select.value !== 'invite'));
+  };
+  select.addEventListener('change', sync);
+  sync();
+});
 
 function riskBadge(level) {
   const map = { low: 'ai-badge-low', medium: 'ai-badge-medium', high: 'ai-badge-high', critical: 'ai-badge-critical' };

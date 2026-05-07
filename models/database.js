@@ -3,14 +3,18 @@ const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
-const DB_PATH = path.join(__dirname, '..', 'data', 'sa-tool.db');
-const DATA_DIR = path.join(__dirname, '..', 'data');
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
+const DB_PATH = process.env.DB_PATH || path.join(DATA_DIR, 'sa-tool.db');
 
 let db = null;
 
 async function initDatabase() {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+  const dbDir = path.dirname(DB_PATH);
+  if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
   }
 
   const SQL = await initSqlJs();
@@ -36,7 +40,8 @@ async function initDatabase() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       last_login DATETIME,
       totp_secret TEXT,
-      mfa_enabled INTEGER DEFAULT 0
+      mfa_enabled INTEGER DEFAULT 0,
+      is_break_glass INTEGER DEFAULT 0
     )
   `);
 
@@ -78,6 +83,7 @@ async function initDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       project_id INTEGER NOT NULL,
       type TEXT DEFAULT 'initial',
+      intake_id INTEGER,
       status TEXT DEFAULT 'draft',
       invite_code TEXT UNIQUE,
       invite_sent_at DATETIME,
@@ -93,10 +99,15 @@ async function initDatabase() {
       assessor_signed_at DATETIME,
       authority_signed_at DATETIME,
       cio_signed_at DATETIME,
+      assigned_to_user_id INTEGER,
+      assigned_to_email TEXT,
+      assigned_to_role TEXT,
       created_by INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (project_id) REFERENCES projects(id),
+      FOREIGN KEY (intake_id) REFERENCES intake_submissions(id),
+      FOREIGN KEY (assigned_to_user_id) REFERENCES users(id),
       FOREIGN KEY (created_by) REFERENCES users(id)
     )
   `);
@@ -320,9 +331,17 @@ async function initDatabase() {
       assessor_description TEXT,
       decline_reason TEXT,
       project_id INTEGER,
+      created_by_assessor_id INTEGER,
+      submitted_by_user_id INTEGER,
+      assigned_to_user_id INTEGER,
+      assigned_to_email TEXT,
+      assigned_to_role TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (project_id) REFERENCES projects(id)
+      FOREIGN KEY (project_id) REFERENCES projects(id),
+      FOREIGN KEY (created_by_assessor_id) REFERENCES users(id),
+      FOREIGN KEY (submitted_by_user_id) REFERENCES users(id),
+      FOREIGN KEY (assigned_to_user_id) REFERENCES users(id)
     )
   `);
 
@@ -340,6 +359,52 @@ async function initDatabase() {
     )
   `);
 
+  // ── USER INVITATIONS ──
+  db.run(`
+    CREATE TABLE IF NOT EXISTS invitations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT NOT NULL DEFAULT 'client',
+      email TEXT NOT NULL,
+      name TEXT,
+      organization TEXT,
+      invite_code TEXT UNIQUE NOT NULL,
+      invited_by INTEGER NOT NULL,
+      status TEXT DEFAULT 'pending',
+      message TEXT,
+      entity_type TEXT,
+      entity_id INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      expires_at DATETIME NOT NULL,
+      accepted_at DATETIME,
+      accepted_by_user_id INTEGER,
+      FOREIGN KEY (invited_by) REFERENCES users(id),
+      FOREIGN KEY (accepted_by_user_id) REFERENCES users(id)
+    )
+  `);
+
+  // ── ASSIGNMENTS (intakes, assessments, and pending invitations) ──
+  db.run(`
+    CREATE TABLE IF NOT EXISTS assessment_assignments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      entity_type TEXT NOT NULL DEFAULT 'assessment',
+      entity_id INTEGER NOT NULL,
+      assigned_to INTEGER,
+      assignee_email TEXT,
+      assignee_role TEXT DEFAULT 'client',
+      assigned_by INTEGER NOT NULL,
+      invitation_id INTEGER,
+      role TEXT DEFAULT 'assigned',
+      status TEXT DEFAULT 'active',
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      accepted_at DATETIME,
+      revoked_at DATETIME,
+      FOREIGN KEY (assigned_to) REFERENCES users(id),
+      FOREIGN KEY (assigned_by) REFERENCES users(id),
+      FOREIGN KEY (invitation_id) REFERENCES invitations(id)
+    )
+  `);
+
   // Create default admin
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@youragency.gc.ca';
   const adminPassword = process.env.ADMIN_PASSWORD || 'ChangeThisPassword123!';
@@ -348,22 +413,82 @@ async function initDatabase() {
   const migrations = [
     ['users', 'totp_secret', 'ALTER TABLE users ADD COLUMN totp_secret TEXT'],
     ['users', 'mfa_enabled', 'ALTER TABLE users ADD COLUMN mfa_enabled INTEGER DEFAULT 0'],
+    ['users', 'is_break_glass', 'ALTER TABLE users ADD COLUMN is_break_glass INTEGER DEFAULT 0'],
+    ['users', 'webauthn_credential_id', 'ALTER TABLE users ADD COLUMN webauthn_credential_id TEXT'],
+    ['users', 'webauthn_public_key', 'ALTER TABLE users ADD COLUMN webauthn_public_key TEXT'],
+    ['users', 'webauthn_counter', 'ALTER TABLE users ADD COLUMN webauthn_counter INTEGER DEFAULT 0'],
+    ['users', 'mfa_mode', "ALTER TABLE users ADD COLUMN mfa_mode TEXT DEFAULT 'totp'"],
     ['projects', 'confidentiality_level', "ALTER TABLE projects ADD COLUMN confidentiality_level TEXT DEFAULT 'protected-b'"],
     ['projects', 'integrity_level', "ALTER TABLE projects ADD COLUMN integrity_level TEXT DEFAULT 'medium'"],
     ['projects', 'availability_level', "ALTER TABLE projects ADD COLUMN availability_level TEXT DEFAULT 'medium'"],
     ['projects', 'security_profile', "ALTER TABLE projects ADD COLUMN security_profile TEXT DEFAULT 'PBMM'"],
     ['projects', 'is_hva', 'ALTER TABLE projects ADD COLUMN is_hva INTEGER DEFAULT 0'],
+    ['projects', 'department', 'ALTER TABLE projects ADD COLUMN department TEXT'],
+    ['projects', 'branch', 'ALTER TABLE projects ADD COLUMN branch TEXT'],
+    ['projects', 'client_user_id', 'ALTER TABLE projects ADD COLUMN client_user_id INTEGER'],
     ['intake_submissions', 'confidentiality_level', "ALTER TABLE intake_submissions ADD COLUMN confidentiality_level TEXT DEFAULT 'protected-b'"],
     ['intake_submissions', 'integrity_level', "ALTER TABLE intake_submissions ADD COLUMN integrity_level TEXT DEFAULT 'medium'"],
     ['intake_submissions', 'availability_level', "ALTER TABLE intake_submissions ADD COLUMN availability_level TEXT DEFAULT 'medium'"],
     ['intake_submissions', 'security_profile', "ALTER TABLE intake_submissions ADD COLUMN security_profile TEXT DEFAULT 'PBMM'"],
     ['intake_submissions', 'is_hva', 'ALTER TABLE intake_submissions ADD COLUMN is_hva INTEGER DEFAULT 0'],
+    ['intake_submissions', 'created_by_assessor_id', 'ALTER TABLE intake_submissions ADD COLUMN created_by_assessor_id INTEGER'],
+    ['intake_submissions', 'submitted_by_user_id', 'ALTER TABLE intake_submissions ADD COLUMN submitted_by_user_id INTEGER'],
+    ['intake_submissions', 'assigned_to_user_id', 'ALTER TABLE intake_submissions ADD COLUMN assigned_to_user_id INTEGER'],
+    ['intake_submissions', 'assigned_to_email', 'ALTER TABLE intake_submissions ADD COLUMN assigned_to_email TEXT'],
+    ['intake_submissions', 'assigned_to_role', 'ALTER TABLE intake_submissions ADD COLUMN assigned_to_role TEXT'],
+    ['assessments', 'intake_id', 'ALTER TABLE assessments ADD COLUMN intake_id INTEGER'],
+    ['assessments', 'assigned_to_user_id', 'ALTER TABLE assessments ADD COLUMN assigned_to_user_id INTEGER'],
+    ['assessments', 'assigned_to_email', 'ALTER TABLE assessments ADD COLUMN assigned_to_email TEXT'],
+    ['assessments', 'assigned_to_role', 'ALTER TABLE assessments ADD COLUMN assigned_to_role TEXT'],
+    ['invitations', null, `CREATE TABLE IF NOT EXISTS invitations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT NOT NULL DEFAULT 'client',
+      email TEXT NOT NULL,
+      name TEXT,
+      organization TEXT,
+      invite_code TEXT UNIQUE NOT NULL,
+      invited_by INTEGER NOT NULL,
+      status TEXT DEFAULT 'pending',
+      message TEXT,
+      entity_type TEXT,
+      entity_id INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      expires_at DATETIME NOT NULL,
+      accepted_at DATETIME,
+      accepted_by_user_id INTEGER
+    )`],
+    ['invitations', 'entity_type', 'ALTER TABLE invitations ADD COLUMN entity_type TEXT'],
+    ['invitations', 'entity_id', 'ALTER TABLE invitations ADD COLUMN entity_id INTEGER'],
+    ['assessment_assignments', null, `CREATE TABLE IF NOT EXISTS assessment_assignments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      entity_type TEXT NOT NULL DEFAULT 'assessment',
+      entity_id INTEGER NOT NULL,
+      assigned_to INTEGER,
+      assignee_email TEXT,
+      assignee_role TEXT DEFAULT 'client',
+      assigned_by INTEGER NOT NULL,
+      invitation_id INTEGER,
+      role TEXT DEFAULT 'assigned',
+      status TEXT DEFAULT 'active',
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      accepted_at DATETIME,
+      revoked_at DATETIME
+    )`],
+    ['assessment_assignments', 'assignee_email', 'ALTER TABLE assessment_assignments ADD COLUMN assignee_email TEXT'],
+    ['assessment_assignments', 'assignee_role', "ALTER TABLE assessment_assignments ADD COLUMN assignee_role TEXT DEFAULT 'client'"],
+    ['assessment_assignments', 'invitation_id', 'ALTER TABLE assessment_assignments ADD COLUMN invitation_id INTEGER'],
+    ['assessment_assignments', 'accepted_at', 'ALTER TABLE assessment_assignments ADD COLUMN accepted_at DATETIME'],
     ['projects', 'description', 'ALTER TABLE projects ADD COLUMN description TEXT'],
     ['projects', 'technologies', "ALTER TABLE projects ADD COLUMN technologies TEXT DEFAULT '[]'"],
   ];
 
   migrations.forEach(([table, column, sql]) => {
     try {
+      if (!column) {
+        db.run(sql);
+        return;
+      }
       const cols = db.exec(`PRAGMA table_info(${table})`);
       const hasCol = cols.length && cols[0].values.some(row => row[1] === column);
       if (!hasCol) {

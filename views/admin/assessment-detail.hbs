@@ -17,11 +17,25 @@
               <span class="small text-muted d-block">Invite Code</span>
               <code class="fs-5 fw-bold">{{assessment.invite_code}}</code>
             </div>
+            {{#if assessment.intake_ref_code}}
+              <div class="vr d-none d-md-block"></div>
+              <div>
+                <span class="small text-muted d-block">Intake</span>
+                <a href="/admin/intakes/{{assessment.intake_id}}" class="text-decoration-none"><code>{{assessment.intake_ref_code}}</code></a>
+              </div>
+            {{/if}}
             <div class="vr d-none d-md-block"></div>
             <div>
               <span class="small text-muted d-block">Owner</span>
               <span class="fw-semibold">{{assessment.project_owner_name}}</span>
             </div>
+            {{#if assessment.assigned_to_email}}
+              <div class="vr d-none d-md-block"></div>
+              <div>
+                <span class="small text-muted d-block">Assigned To</span>
+                <span class="fw-semibold">{{assessment.assigned_to_email}}</span>
+              </div>
+            {{/if}}
             <div class="vr d-none d-md-block"></div>
             <div>
               <span class="small text-muted d-block">Classification</span>
@@ -101,6 +115,66 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header bg-light"><i class="bi bi-person-check me-2"></i>Assignment</div>
+    <div class="card-body">
+      {{#if assignments.length}}
+        <div class="row g-2 mb-3">
+          {{#each assignments}}
+            <div class="col-md-6">
+              <div class="border rounded p-2 small">
+                <div class="fw-semibold">{{#if this.assignee_name}}{{this.assignee_name}}{{else}}{{this.assignee_email}}{{/if}}</div>
+                <div class="text-muted">{{#if this.user_email}}{{this.user_email}}{{else}}{{this.assignee_email}}{{/if}}</div>
+                <span class="badge bg-light text-dark border">{{this.assignee_role}} {{#if (eq this.status 'pending')}}pending{{/if}}</span>
+              </div>
+            </div>
+          {{/each}}
+        </div>
+      {{else}}
+        <p class="text-muted small">No one has been assigned to this assessment yet.</p>
+      {{/if}}
+      <form method="POST" action="/admin/assessments/{{assessment.id}}/assign" class="row g-2 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold" for="assessment_assignment_mode">User</label>
+          <select class="form-select form-select-sm assignment-mode" id="assessment_assignment_mode" name="assignment_mode" data-scope="assessment">
+            <option value="existing">Existing user</option>
+            <option value="invite">Invite new user</option>
+          </select>
+        </div>
+        <div class="col-md-5 assignment-existing-assessment">
+          <label class="form-label small fw-semibold" for="assignee_user_id">Existing User</label>
+          <select class="form-select form-select-sm" id="assignee_user_id" name="assignee_user_id">
+            <option value="">Choose a user...</option>
+            {{#each users}}
+              <option value="{{this.id}}">{{this.name}} — {{this.email}} ({{this.role}})</option>
+            {{/each}}
+          </select>
+        </div>
+        <div class="col-md-4 assignment-existing-assessment">
+          <label class="form-label small fw-semibold" for="assignment_notes_existing">Notes</label>
+          <input type="text" class="form-control form-control-sm" id="assignment_notes_existing" name="assignment_notes">
+        </div>
+        <div class="col-12 assignment-invite-assessment d-none">
+          <div class="row g-2">
+            <div class="col-md-2">
+              <select class="form-select form-select-sm" name="assignee_role">
+                <option value="client">Client</option>
+                <option value="assessor">Assessor</option>
+              </select>
+            </div>
+            <div class="col-md-3"><input type="text" class="form-control form-control-sm" name="invite_name" placeholder="Name"></div>
+            <div class="col-md-3"><input type="email" class="form-control form-control-sm" name="invite_email" placeholder="Email"></div>
+            <div class="col-md-2"><input type="text" class="form-control form-control-sm" name="invite_organization" placeholder="Organization"></div>
+            <div class="col-md-2"><input type="text" class="form-control form-control-sm" name="invite_message" placeholder="Invite message"></div>
+          </div>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-person-plus me-1"></i>Assign Assessment & Intake</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -656,6 +730,16 @@ document.querySelectorAll('[id^="comments-"]').forEach(el => {
 // ═══════════════════════════════════════════════════════════════════════════════
 const PROJECT_CONTEXT = {{{projectContextJSON}}};
 const ASSESSMENT_ID = '{{assessment.id}}';
+
+document.querySelectorAll('.assignment-mode').forEach(select => {
+  const sync = () => {
+    const scope = select.dataset.scope;
+    document.querySelectorAll('.assignment-existing-' + scope).forEach(el => el.classList.toggle('d-none', select.value !== 'existing'));
+    document.querySelectorAll('.assignment-invite-' + scope).forEach(el => el.classList.toggle('d-none', select.value !== 'invite'));
+  };
+  select.addEventListener('change', sync);
+  sync();
+});
 
 // ── Single control evidence GUIDANCE generation (assessor generates for client) ──
 async function aiGenerateGuidance(controlDbId, controlId, title) {

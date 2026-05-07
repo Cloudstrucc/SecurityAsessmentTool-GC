@@ -101,6 +101,54 @@ async function sendInvite({ to, recipientName, projectName, inviteCode, expiresA
   });
 }
 
+async function sendUserInvitation({ to, recipientName, inviteCode, invitedByName, role, organization, baseUrl, message }) {
+  const isAssessor = role === 'assessor';
+  const path = isAssessor ? '/admin/register' : '/client/register';
+  const url = `${baseUrl}${path}?invite=${inviteCode}`;
+  const roleLabel = isAssessor ? 'assessor' : 'client';
+
+  return safeSend({
+    from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+    to,
+    subject: `Invitation to join the Security Assessment Portal`,
+    html: `
+      <div style="font-family: 'Noto Sans', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #26374a; color: white; padding: 24px; border-radius: 8px 8px 0 0;">
+          <h2 style="margin:0;">GC Security Assessment Portal</h2>
+        </div>
+        <div style="padding: 24px; background: #f8f9fa; border: 1px solid #e0e0e0;">
+          <p>Dear ${recipientName || 'colleague'},</p>
+          <p>${invitedByName || 'An assessor'} has invited you to join the portal as a <strong>${roleLabel}</strong>${organization ? ` for <strong>${organization}</strong>` : ''}.</p>
+          ${message ? `<p>${message}</p>` : ''}
+          <p><strong>Your invitation code:</strong></p>
+          <div style="background: white; border: 2px solid #2b4380; border-radius: 8px; padding: 16px; text-align: center; font-size: 24px; font-weight: 700; letter-spacing: 4px; margin: 16px 0;">
+            ${inviteCode}
+          </div>
+          <p><a href="${url}" style="display: inline-block; background: #2b4380; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">Create Account</a></p>
+        </div>
+      </div>
+    `
+  });
+}
+
+async function sendAssignmentNotification({ to, recipientName, entityType, entityName, assignedByName, baseUrl, message }) {
+  return safeSend({
+    from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+    to,
+    subject: `Assigned to ${entityType}: ${entityName}`,
+    html: `
+      <p>Dear ${recipientName || 'colleague'},</p>
+      <p>${assignedByName || 'An assessor'} assigned you to the ${entityType} <strong>${entityName}</strong>.</p>
+      ${message ? `<p>${message}</p>` : ''}
+      <p><a href="${baseUrl}/admin/dashboard">Open the portal</a></p>
+    `
+  });
+}
+
+async function sendMail(mailOptions) {
+  return safeSend(mailOptions);
+}
+
 async function sendSubmissionNotification({ assessorEmail, projectName, submitterName }) {
   return safeSend({
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
@@ -119,4 +167,12 @@ async function sendATONotification({ to, projectName, atoType, message }) {
   });
 }
 
-module.exports = { initialize, sendInvite, sendSubmissionNotification, sendATONotification };
+module.exports = {
+  initialize,
+  sendInvite,
+  sendUserInvitation,
+  sendAssignmentNotification,
+  sendSubmissionNotification,
+  sendATONotification,
+  sendMail
+};

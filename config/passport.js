@@ -8,7 +8,7 @@ function initializePassport() {
     { usernameField: 'email' },
     (email, password, done) => {
       try {
-        const user = get('SELECT * FROM users WHERE email = ? AND is_active = 1', [email]);
+        const user = get('SELECT * FROM users WHERE email = ? AND is_active = 1', [(email || '').toLowerCase().trim()]);
         if (!user) return done(null, false, { message: 'Invalid credentials' });
         if (!bcrypt.compareSync(password, user.password)) return done(null, false, { message: 'Invalid credentials' });
         
@@ -24,7 +24,7 @@ function initializePassport() {
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser((id, done) => {
     try {
-      const user = get('SELECT id, email, name, role, title, organization FROM users WHERE id = ?', [id]);
+      const user = get('SELECT id, email, name, role, title, organization, is_break_glass FROM users WHERE id = ?', [id]);
       done(null, user);
     } catch (err) {
       done(err);
@@ -33,7 +33,15 @@ function initializePassport() {
 }
 
 function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) return next();
+  if (req.isAuthenticated()) {
+    if (req.user?.role !== 'client' && !req.user?.is_break_glass && !req.session?.adminMfaVerified) {
+      const user = get('SELECT mfa_enabled, totp_secret FROM users WHERE id = ?', [req.user.id]);
+      if (!user?.mfa_enabled || !user?.totp_secret) return res.redirect('/admin/mfa-setup');
+      req.flash('error', 'Please complete MFA verification.');
+      return res.redirect('/admin/login');
+    }
+    return next();
+  }
   req.flash('error', 'Please log in to access the admin area');
   res.redirect('/admin/login');
 }

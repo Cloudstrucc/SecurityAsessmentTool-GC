@@ -13,6 +13,7 @@
     ({{project.data_classification}}, {{project.hosting_type}}, {{project.app_type}}{{#if project.has_pii}}, PII{{/if}}).
     Review, tailor descriptions, confirm inheritance, then create the assessment package.
     {{#if saaReason}}<br><small class="text-muted">Determination: {{saaReason}}</small>{{/if}}
+    {{#if intake}}<br><small class="text-muted">Linked intake: <code>{{intake.ref_code}}</code></small>{{/if}}
   </div>
 
   <div class="d-flex gap-2 mb-3">

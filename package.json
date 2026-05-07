@@ -5,9 +5,15 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "NODE_ENV=development node app.js"
+    "dev": "NODE_ENV=development node app.js",
+    "users": "node scripts/manage-users.js",
+    "user:admin": "node scripts/manage-users.js admin",
+    "user:break-glass": "node scripts/manage-users.js break-glass",
+    "test:e2e": "node scripts/run-e2e-tests.js",
+    "test:e2e:raw": "node --test tests/e2e/*.test.js"
   },
   "dependencies": {
+    "@simplewebauthn/server": "^11.0.0",
     "bcryptjs": "^2.4.3",
     "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.6",

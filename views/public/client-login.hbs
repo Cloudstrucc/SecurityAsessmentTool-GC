@@ -15,7 +15,7 @@
       <form method="POST" action="/client/login">
         <div class="mb-3">
           <label class="form-label" for="email">Email Address</label>
-          <input type="email" class="form-control" id="email" name="email" required placeholder="your.name@agency.gc.ca" autofocus>
+          <input type="email" class="form-control" id="email" name="email" required placeholder="your.name@agency.gc.ca" autofocus value="{{prefillEmail}}">
         </div>
         <div class="mb-4">
           <label class="form-label" for="password">Password</label>
@@ -26,11 +26,28 @@
         </button>
       </form>
       {{else}}
-      <!-- Step 2: MFA Code -->
-      <div class="alert alert-info small mb-3">
-        <i class="bi bi-shield-lock me-1"></i>
-        Enter the 6-digit code from your authenticator app.
+      <!-- Step 2: MFA -->
+      {{#if hasWebAuthn}}
+      <div id="passkeyLoginSection">
+        <div class="text-center mb-3">
+          <i class="bi bi-person-bounding-box" style="font-size:3rem;color:var(--gc-nav,#26374a)"></i>
+        </div>
+        <p class="text-center text-muted small mb-3">Sign in with your passkey, or use your TOTP authenticator code instead.</p>
+        <div id="passkeyError" class="alert alert-danger small py-2 d-none"></div>
+        <button class="btn btn-primary w-100 py-2 mb-3" id="passkeyLoginBtn" data-user-id="{{userId}}">
+          <i class="bi bi-person-bounding-box me-1"></i>Sign In with Passkey
+        </button>
+        <div class="text-center">
+          <a href="#" class="small text-muted" id="switchToTotpBtn"><i class="bi bi-key me-1"></i>Use TOTP code instead</a>
+        </div>
       </div>
+      {{/if}}
+
+      <div id="totpLoginSection" {{#if hasWebAuthn}}class="d-none"{{/if}}>
+        <div class="alert alert-info small mb-3">
+          <i class="bi bi-shield-lock me-1"></i>
+          Enter the 6-digit code from your authenticator app.
+        </div>
       <form method="POST" action="/client/login/mfa">
         <input type="hidden" name="userId" value="{{userId}}">
         <div class="mb-4">
@@ -44,6 +61,12 @@
           <i class="bi bi-check-circle me-2"></i>Verify & Sign In
         </button>
       </form>
+        {{#if hasWebAuthn}}
+        <div class="text-center mt-3">
+          <a href="#" class="small text-muted" id="switchToPasskeyBtn"><i class="bi bi-person-bounding-box me-1"></i>Use passkey instead</a>
+        </div>
+        {{/if}}
+      </div>
       {{/unless}}
     </div>
   </div>
@@ -53,3 +76,60 @@
     <a href="/client/register">Register here</a>
   </div>
 </div>
+
+{{#if mfaStep}}
+<script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@11/dist/bundle/index.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const passkeySection = document.getElementById('passkeyLoginSection');
+  const totpSection = document.getElementById('totpLoginSection');
+  document.getElementById('switchToTotpBtn')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    passkeySection?.classList.add('d-none');
+    totpSection?.classList.remove('d-none');
+    totpSection?.querySelector('input[name="token"]')?.focus();
+  });
+  document.getElementById('switchToPasskeyBtn')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    totpSection?.classList.add('d-none');
+    passkeySection?.classList.remove('d-none');
+  });
+
+  document.getElementById('passkeyLoginBtn')?.addEventListener('click', async function() {
+    const errEl = document.getElementById('passkeyError');
+    const userId = this.dataset.userId;
+    this.disabled = true;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Waiting for passkey...';
+    errEl.classList.add('d-none');
+    try {
+      const optResp = await fetch('/api/webauthn/auth-options', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: parseInt(userId) })
+      });
+      const opts = await optResp.json();
+      if (opts.error) throw new Error(opts.error);
+      const authResult = await SimpleWebAuthnBrowser.startAuthentication({ optionsJSON: opts });
+      const verifyResp = await fetch('/api/webauthn/auth-verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...authResult, _userId: userId })
+      });
+      const verifyData = await verifyResp.json();
+      if (!verifyData.success || !verifyData.sig_token) throw new Error(verifyData.error || 'Verification failed');
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/client/login/webauthn';
+      form.innerHTML = '<input type="hidden" name="_sig_token" value="' + verifyData.sig_token + '">';
+      document.body.appendChild(form);
+      form.submit();
+    } catch (err) {
+      errEl.textContent = err.name === 'NotAllowedError' ? 'Cancelled. Use TOTP or try again.' : err.message;
+      errEl.classList.remove('d-none');
+      this.disabled = false;
+      this.innerHTML = '<i class="bi bi-person-bounding-box me-1"></i>Try Passkey Again';
+    }
+  });
+});
+</script>
+{{/if}}

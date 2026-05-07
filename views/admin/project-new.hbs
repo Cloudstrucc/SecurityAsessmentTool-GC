@@ -7,7 +7,48 @@
     </div>
   </div>
 
-  <form method="POST" action="/admin/projects/new" id="projectForm">
+  <form method="POST" action="/admin/projects/new" id="projectForm" enctype="multipart/form-data">
+
+    <!-- AI Quick Start -->
+    <div class="form-section" style="border-left:3px solid #8b5cf6; background:linear-gradient(135deg,#faf5ff 0%,#f5f3ff 100%);">
+      <div class="section-header" style="border-bottom-color:#e9d5ff;">
+        <h3 class="section-title" style="color:#6d28d9;">
+          <i class="bi bi-stars me-2"></i>AI-Assisted Project Intake
+          <span class="badge text-white" style="font-size:0.65rem;background:#8b5cf6;vertical-align:middle;">BETA</span>
+        </h3>
+        <p class="section-description">Upload a project document or describe the system in plain language. The AI assistant will propose field values before anything is saved.</p>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="card h-100" style="border-color:#e9d5ff;">
+            <div class="card-body">
+              <h6 class="fw-bold mb-2"><i class="bi bi-file-earmark-arrow-up me-1" style="color:#8b5cf6;"></i>Upload A Document</h6>
+              <p class="text-muted small mb-2">Use a design doc, PIA, TRA, architecture diagram, charter, or requirements file.</p>
+              <input type="file" class="form-control form-control-sm" id="aiDocUpload" accept=".pdf,.txt,.md,.doc,.docx,.png,.jpg,.jpeg">
+              <button type="button" class="btn btn-sm w-100 mt-2 text-white" style="background:#8b5cf6;" id="aiDocParseBtn" disabled onclick="aiParseDocument()">
+                <i class="bi bi-stars me-1"></i>Analyze & Pre-Fill
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card h-100" style="border-color:#e9d5ff;">
+            <div class="card-body">
+              <h6 class="fw-bold mb-2"><i class="bi bi-chat-text me-1" style="color:#8b5cf6;"></i>Describe The Project</h6>
+              <p class="text-muted small mb-2">Describe the purpose, users, data, hosting, and integrations.</p>
+              <textarea class="form-control form-control-sm" id="aiPlainDesc" rows="3" placeholder="e.g. A Protected B Azure portal used by case workers to manage applications, exchange documents with clients, and connect to GCcase and Entra ID..."></textarea>
+              <button type="button" class="btn btn-sm w-100 mt-2 text-white" style="background:#8b5cf6;" id="aiSuggestBtn" disabled onclick="aiSuggestFromDescription()">
+                <i class="bi bi-stars me-1"></i>Get Suggestions
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="aiProjectStatus" class="mt-2" style="display:none;"></div>
+    </div>
 
     <!-- Section 1: Project Information -->
     <div class="form-section">
@@ -33,6 +74,31 @@
         <textarea class="form-control" id="specifications" name="specifications" rows="3"
           placeholder="Architecture details, integration points, APIs, etc. Markdown supported."></textarea>
       </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="department">Department / Agency</label>
+          <input type="text" class="form-control" id="department" name="department" placeholder="e.g., Treasury Board Secretariat">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="branch">Branch / Directorate</label>
+          <input type="text" class="form-control" id="branch" name="branch" placeholder="e.g., Digital Services">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="user_count">Estimated User Count</label>
+          <select class="form-select" id="user_count" name="user_count">
+            <option value="">Select...</option>
+            <option value="1-50">1 - 50</option>
+            <option value="51-500">51 - 500</option>
+            <option value="501-5000">501 - 5,000</option>
+            <option value="5001+">5,000+</option>
+          </select>
+        </div>
+      </div>
+      <div class="mt-3">
+        <label class="form-label" for="attachments">Project Documents</label>
+        <input type="file" class="form-control" id="attachments" name="attachments" multiple>
+        <div class="form-text">Upload architecture notes, diagrams, requirements, or other intake documents.</div>
+      </div>
     </div>
 
     <!-- Section 2: Classification & Data -->
@@ -51,6 +117,10 @@
             <option value="unclassified">Unclassified</option>
             <option value="protected-a">Protected A</option>
             <option value="protected-b" selected>Protected B</option>
+            <option value="protected-c">Protected C</option>
+            <option value="confidential">Confidential</option>
+            <option value="secret">Secret</option>
+            <option value="top-secret">Top Secret</option>
           </select>
         </div>
         <div class="col-md-6">
@@ -58,7 +128,37 @@
           <select class="form-select" id="app_type" name="app_type" required>
             <option value="internal">Internal-Facing</option>
             <option value="external">External-Facing (Public)</option>
-            <option value="both">Both Internal & External</option>
+            <option value="hybrid">Both Internal & External</option>
+          </select>
+        </div>
+      </div>
+      <div class="row g-3 mt-1">
+        <div class="col-md-4">
+          <label class="form-label" for="confidentiality_level">Confidentiality</label>
+          <select class="form-select" id="confidentiality_level" name="confidentiality_level">
+            <option value="unclassified">Unclassified</option>
+            <option value="protected-a">Protected A</option>
+            <option value="protected-b" selected>Protected B</option>
+            <option value="protected-c">Protected C</option>
+            <option value="confidential">Confidential</option>
+            <option value="secret">Secret</option>
+            <option value="top-secret">Top Secret</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="integrity_level">Integrity</label>
+          <select class="form-select" id="integrity_level" name="integrity_level">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="availability_level">Availability</label>
+          <select class="form-select" id="availability_level" name="availability_level">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
           </select>
         </div>
       </div>
@@ -69,6 +169,50 @@
             <i class="bi bi-person-badge me-1"></i>System processes Personally Identifiable Information (PII)
           </label>
           <div class="form-text ms-4">Enabling this adds privacy-specific controls (e.g., AP, UL, DM families)</div>
+        </div>
+      </div>
+      <div class="mt-2">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="is_hva" name="is_hva" value="1">
+          <label class="form-check-label fw-semibold" for="is_hva">
+            High Value Asset (HVA)
+          </label>
+        </div>
+      </div>
+      <div class="mt-3">
+        <label class="form-label fw-semibold">PII Types</label>
+        <div class="row g-2">
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="name-address" id="pii-name"><label class="form-check-label" for="pii-name">Name or contact info</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="sin" id="pii-sin"><label class="form-check-label" for="pii-sin">SIN</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="financial" id="pii-financial"><label class="form-check-label" for="pii-financial">Financial</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="health" id="pii-health"><label class="form-check-label" for="pii-health">Health</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="biometric" id="pii-biometric"><label class="form-check-label" for="pii-biometric">Biometric</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="employment" id="pii-employment"><label class="form-check-label" for="pii-employment">Employment / HR</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="immigration" id="pii-immigration"><label class="form-check-label" for="pii-immigration">Immigration</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="law-enforcement" id="pii-law"><label class="form-check-label" for="pii-law">Law enforcement</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="indigenous" id="pii-indigenous"><label class="form-check-label" for="pii-indigenous">Indigenous / Treaty</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="none" id="pii-none"><label class="form-check-label" for="pii-none">None</label></div></div>
+        </div>
+      </div>
+      <div class="row g-3 mt-1">
+        <div class="col-md-6">
+          <label class="form-label" for="atip_subject">ATIP Subject</label>
+          <select class="form-select" id="atip_subject" name="atip_subject">
+            <option value="">Select...</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="unsure">Unsure</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="pia_completed">PIA Status</label>
+          <select class="form-select" id="pia_completed" name="pia_completed">
+            <option value="">Select...</option>
+            <option value="yes">Yes - completed</option>
+            <option value="in-progress">In progress</option>
+            <option value="no">No - not started</option>
+            <option value="not-required">Not required</option>
+          </select>
         </div>
       </div>
     </div>
@@ -93,15 +237,138 @@
           <option value="on-premises">On-Premises</option>
           <option value="hybrid">Hybrid (Cloud + On-Premises)</option>
           <option value="saas">SaaS / Third-Party Hosted</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="hosting_region">Data Residency</label>
+        <select class="form-select" id="hosting_region" name="hosting_region">
+          <option value="">Select...</option>
+          <option value="canada-only" selected>Canada Only</option>
+          <option value="canada-primary">Canada Primary With Limited Failover</option>
+          <option value="north-america">North America</option>
+          <option value="global">Global</option>
+          <option value="unsure">Unsure</option>
         </select>
       </div>
     </div>
 
-    <!-- Section 4: Technology Stack -->
+    <!-- Section 4: Architecture & Integrations -->
     <div class="form-section">
       <div class="section-header">
         <h3 class="section-title">
           <span class="section-number">4</span>
+          Architecture & Integrations
+        </h3>
+        <p class="section-description">Capture the same intake context clients provide when describing system connections and access patterns.</p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="has_apis">APIs</label>
+          <select class="form-select" id="has_apis" name="has_apis">
+            <option value="">Select...</option>
+            <option value="exposes">Exposes APIs</option>
+            <option value="consumes">Consumes APIs</option>
+            <option value="both">Both exposes and consumes APIs</option>
+            <option value="no">No APIs</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="gc_interconnections">GC Interconnections</label>
+          <select class="form-select" id="gc_interconnections" name="gc_interconnections">
+            <option value="">Select...</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="planned">Planned</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="interconnections">Known Interconnections</label>
+          <textarea class="form-control" id="interconnections" name="interconnections" rows="3" placeholder="APIs, file transfers, GC systems, identity providers, payment systems, document repositories..."></textarea>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="mobile_access">Mobile / BYOD Access</label>
+          <select class="form-select" id="mobile_access" name="mobile_access">
+            <option value="">Select...</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="planned">Planned</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="external_users">External Users</label>
+          <select class="form-select" id="external_users" name="external_users">
+            <option value="">Select...</option>
+            <option value="yes">Public or partner users</option>
+            <option value="no">GC employees only</option>
+            <option value="contractors">Contractors / consultants only</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 5: Assignment -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <span class="section-number">5</span>
+          Initial Assignment
+        </h3>
+        <p class="section-description">Optionally assign the new intake to an existing user or invite a new client/assessor.</p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label" for="assignment_mode">Assignment</label>
+          <select class="form-select" id="assignment_mode" name="assignment_mode">
+            <option value="">Do not assign yet</option>
+            <option value="existing">Select existing user</option>
+            <option value="invite">Invite new user</option>
+          </select>
+        </div>
+        <div class="col-md-8 assignment-existing d-none">
+          <label class="form-label" for="assignee_user_id">Existing User</label>
+          <select class="form-select" id="assignee_user_id" name="assignee_user_id">
+            <option value="">Choose a user...</option>
+            {{#each users}}
+              <option value="{{this.id}}">{{this.name}} — {{this.email}} ({{this.role}})</option>
+            {{/each}}
+          </select>
+        </div>
+      </div>
+      <div class="assignment-invite d-none mt-3">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label" for="assignee_role">Invite As</label>
+            <select class="form-select" id="assignee_role" name="assignee_role">
+              <option value="client">Client User</option>
+              <option value="assessor">Assessor</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="invite_name">Name</label>
+            <input type="text" class="form-control" id="invite_name" name="invite_name">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="invite_email">Email</label>
+            <input type="email" class="form-control" id="invite_email" name="invite_email">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="invite_organization">Organization</label>
+            <input type="text" class="form-control" id="invite_organization" name="invite_organization">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="invite_message">Message</label>
+            <input type="text" class="form-control" id="invite_message" name="invite_message">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 6: Technology Stack -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <span class="section-number">6</span>
           Technology Stack
         </h3>
         <p class="section-description">Select all technologies currently in use. These help identify inherited security controls.</p>
@@ -120,13 +387,36 @@
           </div>
         {{/each}}
       </div>
+      <div class="mt-3">
+        <label class="form-label" for="other_tech">Other Technologies / Notes</label>
+        <textarea class="form-control" id="other_tech" name="other_tech" rows="2" placeholder="List technologies not covered above."></textarea>
+      </div>
     </div>
 
-    <!-- Section 5: Contacts -->
+    <!-- Section 7: Existing Security Posture -->
     <div class="form-section">
       <div class="section-header">
         <h3 class="section-title">
-          <span class="section-number">5</span>
+          <span class="section-number">7</span>
+          Existing Security Posture
+        </h3>
+        <p class="section-description">Record security activities already completed or in progress.</p>
+      </div>
+      <div class="row g-2">
+        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="tra" id="act-tra"><label class="form-check-label" for="act-tra">Threat & Risk Assessment (TRA)</label></div></div>
+        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="pia" id="act-pia"><label class="form-check-label" for="act-pia">Privacy Impact Assessment (PIA)</label></div></div>
+        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="ssp" id="act-ssp"><label class="form-check-label" for="act-ssp">System Security Plan (SSP)</label></div></div>
+        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="vapt" id="act-vapt"><label class="form-check-label" for="act-vapt">Vulnerability Assessment / Pen Test</label></div></div>
+        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="network-diagram" id="act-network-diagram"><label class="form-check-label" for="act-network-diagram">Network / Architecture Diagram</label></div></div>
+        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="previous-sa" id="act-previous-sa"><label class="form-check-label" for="act-previous-sa">Previous SA&A / ATO</label></div></div>
+      </div>
+    </div>
+
+    <!-- Section 8: Contacts -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <span class="section-number">8</span>
           Key Contacts
         </h3>
         <p class="section-description">Individuals involved in the assessment and authorization process</p>
@@ -167,3 +457,335 @@
     </div>
   </form>
 </div>
+
+{{> ai-panel }}
+
+<script>
+const assignmentMode = document.getElementById('assignment_mode');
+function syncAssignmentFields() {
+  const mode = assignmentMode.value;
+  document.querySelectorAll('.assignment-existing').forEach(el => el.classList.toggle('d-none', mode !== 'existing'));
+  document.querySelectorAll('.assignment-invite').forEach(el => el.classList.toggle('d-none', mode !== 'invite'));
+}
+assignmentMode.addEventListener('change', syncAssignmentFields);
+syncAssignmentFields();
+
+document.querySelectorAll('input[name="piiTypes"]').forEach(cb => {
+  cb.addEventListener('change', function() {
+    const none = document.getElementById('pii-none');
+    if (this.value === 'none' && this.checked) {
+      document.querySelectorAll('input[name="piiTypes"]:not(#pii-none)').forEach(other => { other.checked = false; });
+      document.getElementById('has_pii').checked = false;
+      return;
+    }
+    if (this.checked && none) none.checked = false;
+    document.getElementById('has_pii').checked = document.querySelectorAll('input[name="piiTypes"]:checked:not(#pii-none)').length > 0;
+  });
+});
+
+document.getElementById('confidentiality_level').addEventListener('change', function() {
+  const dataClassification = document.getElementById('data_classification');
+  if (dataClassification.querySelector(`option[value="${this.value}"]`)) dataClassification.value = this.value;
+});
+
+document.getElementById('data_classification').addEventListener('change', function() {
+  const confidentiality = document.getElementById('confidentiality_level');
+  if (confidentiality.querySelector(`option[value="${this.value}"]`)) confidentiality.value = this.value;
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  const docUpload = document.getElementById('aiDocUpload');
+  const parseBtn = document.getElementById('aiDocParseBtn');
+  const descBox = document.getElementById('aiPlainDesc');
+  const suggestBtn = document.getElementById('aiSuggestBtn');
+  if (docUpload && parseBtn) {
+    docUpload.addEventListener('change', function() {
+      parseBtn.disabled = !this.files.length;
+    });
+  }
+  if (descBox && suggestBtn) {
+    descBox.addEventListener('input', function() {
+      suggestBtn.disabled = this.value.trim().length < 20;
+    });
+  }
+
+  const fab = document.getElementById('aiTriggerBtn');
+  if (fab) {
+    fab.title = 'AI: Pre-fill Project Intake';
+    fab.onclick = function() {
+      document.getElementById('aiPlainDesc')?.focus();
+      AIPanel.open({
+        title: 'AI-Assisted Project Intake',
+        subtitle: 'Use the upload or description controls at the top of the form',
+        body: '<div class="text-muted small">Upload a project document or describe the project to generate suggested field values. You can accept fields one by one or apply all suggestions.</div>',
+        footer: '<button class="btn btn-sm btn-outline-secondary w-100" onclick="AIPanel.close()">Close</button>'
+      });
+    };
+  }
+});
+
+function aiShowStatus(msg, type = 'info') {
+  const el = document.getElementById('aiProjectStatus');
+  el.style.display = 'block';
+  el.className = 'mt-2 alert alert-' + type + ' small py-2';
+  el.innerHTML = msg;
+}
+
+function aiHideStatus() {
+  document.getElementById('aiProjectStatus').style.display = 'none';
+}
+
+const PROJECT_AI_FIELD_MAP = {
+  projectName: { type: 'input', id: 'name' },
+  projectDescription: { type: 'textarea', id: 'description' },
+  department: { type: 'input', id: 'department' },
+  branch: { type: 'input', id: 'branch' },
+  userCount: { type: 'select', id: 'user_count' },
+  appType: { type: 'select', id: 'app_type' },
+  confidentialityLevel: { type: 'select', id: 'confidentiality_level', mirrorId: 'data_classification' },
+  integrityLevel: { type: 'select', id: 'integrity_level' },
+  availabilityLevel: { type: 'select', id: 'availability_level' },
+  isHVA: { type: 'checkbox', id: 'is_hva' },
+  atipSubject: { type: 'select', id: 'atip_subject' },
+  piaCompleted: { type: 'select', id: 'pia_completed' },
+  hostingType: { type: 'select', id: 'hosting_type' },
+  hostingRegion: { type: 'select', id: 'hosting_region' },
+  otherTech: { type: 'textarea', id: 'other_tech' },
+  hasAPIs: { type: 'select', id: 'has_apis' },
+  gcInterconnections: { type: 'select', id: 'gc_interconnections' },
+  interconnections: { type: 'textarea', id: 'interconnections' },
+  mobileAccess: { type: 'select', id: 'mobile_access' },
+  externalUsers: { type: 'select', id: 'external_users' }
+};
+
+function aiSetValue(el, value) {
+  if (!el || value === null || value === undefined) return false;
+  if (el.tagName === 'SELECT') {
+    const normalized = value === 'both' && el.id === 'app_type' ? 'hybrid' : value;
+    if (!el.querySelector(`option[value="${normalized}"]`)) return false;
+    el.value = normalized;
+  } else {
+    el.value = value;
+  }
+  el.classList.add('ai-highlighted');
+  el.dispatchEvent(new Event('change', { bubbles: true }));
+  return true;
+}
+
+function aiApplyField(key, value) {
+  if (value === null || value === undefined) return false;
+  const map = PROJECT_AI_FIELD_MAP[key];
+  if (!map) return false;
+
+  if (map.type === 'checkbox') {
+    const el = document.getElementById(map.id);
+    if (!el) return false;
+    el.checked = !!value;
+    el.classList.add('ai-highlighted');
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  }
+
+  const applied = aiSetValue(document.getElementById(map.id), value);
+  if (applied && map.mirrorId) aiSetValue(document.getElementById(map.mirrorId), value);
+  return applied;
+}
+
+function aiApplyPiiTypes(types) {
+  if (!types || !types.length) return false;
+  document.querySelectorAll('input[name="piiTypes"]').forEach(cb => { cb.checked = false; });
+  const hasSensitivePii = types.some(t => t !== 'none');
+  document.getElementById('has_pii').checked = hasSensitivePii;
+  types.forEach(t => {
+    const el = document.querySelector('input[name="piiTypes"][value="' + t + '"]');
+    if (el) {
+      el.checked = true;
+      el.classList.add('ai-highlighted');
+    }
+  });
+  return true;
+}
+
+function aiApplyTechnologies(techs) {
+  if (!techs || !techs.length) return false;
+  let applied = false;
+  techs.forEach(t => {
+    const el = document.querySelector('input[name="technologies"][value="' + t + '"]');
+    if (el) {
+      el.checked = true;
+      el.classList.add('ai-highlighted');
+      applied = true;
+    }
+  });
+  return applied;
+}
+
+function aiApplyCompletedActivities(activities) {
+  if (!activities || !activities.length) return false;
+  let applied = false;
+  activities.forEach(a => {
+    const el = document.querySelector('input[name="completedActivities"][value="' + a + '"]');
+    if (el) {
+      el.checked = true;
+      el.classList.add('ai-highlighted');
+      applied = true;
+    }
+  });
+  return applied;
+}
+
+function aiApplyAllFields(fields) {
+  let applied = 0;
+  Object.keys(PROJECT_AI_FIELD_MAP).forEach(key => {
+    if (aiApplyField(key, fields[key])) applied++;
+  });
+  if (aiApplyPiiTypes(fields.piiTypes)) applied++;
+  if (aiApplyTechnologies(fields.technologies)) applied++;
+  if (aiApplyCompletedActivities(fields.completedActivities)) applied++;
+  return applied;
+}
+
+function aiShowResults(fields, reasoning) {
+  const labelMap = {
+    projectName: 'Project Name', projectDescription: 'Description', department: 'Department',
+    branch: 'Branch', userCount: 'User Count', appType: 'Application Type',
+    confidentialityLevel: 'Confidentiality', integrityLevel: 'Integrity',
+    availabilityLevel: 'Availability', isHVA: 'High Value Asset',
+    piiTypes: 'PII Types', atipSubject: 'ATIP Subject', piaCompleted: 'PIA Status',
+    hostingType: 'Hosting', hostingRegion: 'Data Residency',
+    technologies: 'Technologies', otherTech: 'Other Technologies',
+    hasAPIs: 'APIs', gcInterconnections: 'GC Interconnections',
+    interconnections: 'Interconnections', mobileAccess: 'Mobile/BYOD',
+    externalUsers: 'External Users', completedActivities: 'Completed Security Activities'
+  };
+
+  const sectionGroups = [
+    { title: '1 - Project Information', keys: ['projectName','projectDescription','department','branch','userCount','appType'] },
+    { title: '2 - Classification & Data', keys: ['confidentialityLevel','integrityLevel','availabilityLevel','isHVA','piiTypes','atipSubject','piaCompleted'] },
+    { title: '3 - Hosting & Technology', keys: ['hostingType','hostingRegion','technologies','otherTech'] },
+    { title: '4 - Architecture & Integrations', keys: ['hasAPIs','gcInterconnections','interconnections','mobileAccess','externalUsers'] },
+    { title: '5 - Security Posture', keys: ['completedActivities'] }
+  ];
+
+  const allFieldKeys = Object.keys(fields).filter(k => k !== 'reasoning' && fields[k] !== null && fields[k] !== undefined);
+  let cardsHtml = '';
+  let cardIndex = 0;
+
+  sectionGroups.forEach(section => {
+    const keys = section.keys.filter(k => allFieldKeys.includes(k));
+    if (!keys.length) return;
+    cardsHtml += `<div class="ai-section-title mt-3">${section.title}</div>`;
+    keys.forEach(key => {
+      const val = fields[key];
+      const displayVal = Array.isArray(val) ? val.join(', ') : (typeof val === 'boolean' ? (val ? 'Yes' : 'No') : String(val));
+      const i = cardIndex++;
+      cardsHtml += `
+        <div class="ai-card" id="ai-project-card-${i}">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-bold small">${labelMap[key] || key}</div>
+              <div class="small text-muted" style="word-break:break-word;">${displayVal.substring(0, 200)}${displayVal.length > 200 ? '...' : ''}</div>
+            </div>
+            <div class="d-flex gap-1 flex-shrink-0 ms-2">
+              <button type="button" class="ai-accept-btn" onclick="aiAcceptSingle('${key}', window._projectAiFields); this.closest('.ai-card').classList.add('accepted');">
+                <i class="bi bi-check2"></i>
+              </button>
+              <button type="button" class="ai-reject-btn" onclick="this.closest('.ai-card').classList.add('rejected');">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+          </div>
+        </div>`;
+    });
+  });
+
+  AIPanel.open({
+    title: 'AI Project Suggestions',
+    subtitle: 'Review and accept individual fields',
+    body: `
+      ${reasoning ? `<div class="ai-section"><div class="ai-section-title">AI Reasoning</div><div class="small text-muted p-2 rounded" style="background:#f5f3ff;">${reasoning}</div></div>` : ''}
+      <div class="ai-section">
+        <div class="ai-section-title">Suggested Fields (${allFieldKeys.length})</div>
+        ${cardsHtml}
+      </div>`,
+    footer: `
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-sm flex-fill text-white" style="background:#8b5cf6;" onclick="aiAcceptAll()"><i class="bi bi-check-all me-1"></i>Accept All</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary flex-fill" onclick="AIPanel.close()">Close</button>
+      </div>`
+  });
+}
+
+function aiAcceptSingle(key, fields) {
+  if (!fields) return;
+  if (key === 'piiTypes') aiApplyPiiTypes(fields[key]);
+  else if (key === 'technologies') aiApplyTechnologies(fields[key]);
+  else if (key === 'completedActivities') aiApplyCompletedActivities(fields[key]);
+  else aiApplyField(key, fields[key]);
+}
+
+function aiAcceptAll() {
+  if (!window._projectAiFields) return;
+  const n = aiApplyAllFields(window._projectAiFields);
+  aiShowStatus('<i class="bi bi-check-circle me-1"></i>Applied ' + n + ' AI suggestions. Review the project intake before saving.', 'success');
+  AIPanel.close();
+}
+
+async function aiParseDocument() {
+  const file = document.getElementById('aiDocUpload').files[0];
+  if (!file) return;
+
+  aiShowStatus('<i class="bi bi-hourglass-split me-1"></i>Uploading and analyzing document...', 'info');
+  AIPanel.open({ title: 'Analyzing Document', subtitle: file.name });
+  AIPanel.showLoading('Reading and analyzing the project document...');
+
+  try {
+    const formData = new FormData();
+    formData.append('document', file);
+    const resp = await fetch('/api/ai/parse-document', { method: 'POST', body: formData });
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error || 'Analysis failed');
+    window._projectAiFields = data.fields;
+    aiHideStatus();
+    aiShowResults(data.fields, data.fields.reasoning);
+  } catch (err) {
+    aiShowStatus('<i class="bi bi-exclamation-triangle me-1"></i>' + err.message, 'danger');
+    AIPanel.showError(err.message);
+  }
+}
+
+async function aiSuggestFromDescription() {
+  const desc = document.getElementById('aiPlainDesc').value.trim();
+  if (desc.length < 20) return;
+
+  aiShowStatus('<i class="bi bi-hourglass-split me-1"></i>Analyzing description...', 'info');
+  AIPanel.open({ title: 'Analyzing Description', subtitle: 'Project intake' });
+  AIPanel.showLoading('Determining likely categorization and project fields...');
+
+  try {
+    const resp = await fetch('/api/ai/suggest-from-description', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description: desc })
+    });
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error || 'Suggestion failed');
+    window._projectAiFields = data.suggestions;
+    aiHideStatus();
+    aiShowResults(data.suggestions, data.suggestions.reasoning);
+  } catch (err) {
+    aiShowStatus('<i class="bi bi-exclamation-triangle me-1"></i>' + err.message, 'danger');
+    AIPanel.showError(err.message);
+  }
+}
+</script>
+
+<style>
+  .ai-highlighted {
+    box-shadow:0 0 0 2px #c4b5fd !important;
+    transition:box-shadow 0.3s;
+  }
+  .ai-highlighted:focus {
+    box-shadow:0 0 0 3px #8b5cf6 !important;
+  }
+</style>
