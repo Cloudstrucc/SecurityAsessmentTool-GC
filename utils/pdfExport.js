@@ -16,6 +16,20 @@ const COLORS = {
   white: '#ffffff'
 };
 
+function fillPageBackground(doc) {
+  doc.save();
+  doc.rect(0, 0, doc.page.width, doc.page.height).fill(COLORS.white);
+  doc.restore();
+  doc.fillColor(COLORS.text);
+  doc.x = doc.page.margins.left || 50;
+  doc.y = doc.page.margins.top || 50;
+}
+
+function initializeDocument(doc) {
+  doc.on('pageAdded', () => fillPageBackground(doc));
+  fillPageBackground(doc);
+}
+
 // ── Helper: add page header ──
 function pageHeader(doc, title, subtitle) {
   doc.rect(0, 0, doc.page.width, 80).fill(COLORS.navy);
@@ -23,25 +37,42 @@ function pageHeader(doc, title, subtitle) {
   if (subtitle) {
     doc.fontSize(10).fillColor('#aabbcc').text(subtitle, 50, 48, { width: doc.page.width - 100 });
   }
-  doc.moveDown(4);
+  doc.x = 50;
+  doc.y = 104;
   doc.fillColor(COLORS.text);
 }
 
 // ── Helper: section heading ──
 function sectionHeading(doc, text) {
   if (doc.y > 680) doc.addPage();
-  doc.moveDown(0.5);
-  doc.rect(50, doc.y, doc.page.width - 100, 1).fill(COLORS.red);
-  doc.moveDown(0.3);
-  doc.fontSize(13).fillColor(COLORS.navy).text(text, { underline: false });
-  doc.moveDown(0.4);
+  const y = doc.y + 6;
+  doc.rect(50, y, doc.page.width - 100, 1).fill(COLORS.red);
+  doc.fontSize(13).fillColor(COLORS.navy).text(text, 50, y + 7, { width: doc.page.width - 100, underline: false });
+  doc.x = 50;
+  doc.y += 6;
   doc.fillColor(COLORS.text);
+}
+
+function labelValueRow(doc, label, value, options = {}) {
+  const x = options.x || 50;
+  const labelWidth = options.labelWidth || 112;
+  const gap = options.gap || 8;
+  const valueWidth = doc.page.width - x - (doc.page.margins.right || 50) - labelWidth - gap;
+  const y = doc.y;
+  const text = cleanText(value, options.fallback || 'N/A');
+
+  doc.fontSize(options.fontSize || 8);
+  const labelHeight = doc.heightOfString(`${label}:`, { width: labelWidth });
+  const valueHeight = doc.heightOfString(text, { width: valueWidth });
+  doc.fillColor(COLORS.muted).text(`${label}:`, x, y, { width: labelWidth });
+  doc.fillColor(COLORS.text).text(text, x + labelWidth + gap, y, { width: valueWidth, lineGap: 1 });
+  doc.x = x;
+  doc.y = y + Math.max(labelHeight, valueHeight) + 3;
 }
 
 // ── Helper: info row ──
 function infoRow(doc, label, value) {
-  doc.fontSize(9).fillColor(COLORS.muted).text(label + ':', { continued: true });
-  doc.fillColor(COLORS.text).text('  ' + (value || 'N/A'));
+  labelValueRow(doc, label, value, { fontSize: 9, labelWidth: 120 });
 }
 
 // ── Helper: status label ──
@@ -153,10 +184,13 @@ function drawControlDetail(doc, control, verbose) {
   if (doc.y > 640) doc.addPage();
 
   const sColor = statusColor(control.audit_result);
-  doc.fontSize(9).fillColor(sColor).text('● ', { continued: true });
-  doc.fillColor(COLORS.navy).text(`${control.control_id}`, { continued: true });
-  doc.fillColor(COLORS.text).text(` – ${control.title}`, { continued: true });
-  doc.fillColor(sColor).text(`   [${statusText(control.audit_result)}]`);
+  const headingY = doc.y;
+  doc.fontSize(9).fillColor(COLORS.navy)
+    .text(`${control.control_id} - ${control.title}`, 50, headingY, { width: doc.page.width - 190 });
+  doc.fontSize(8).fillColor(sColor)
+    .text(`[${statusText(control.audit_result)}]`, doc.page.width - 130, headingY, { width: 80, align: 'right' });
+  doc.x = 50;
+  doc.y = Math.max(doc.y, headingY + 13);
 
   // Badges line
   doc.fontSize(8).fillColor(COLORS.muted);
@@ -225,6 +259,7 @@ function generateAssessmentReport(assessment, controls, project, outputPath) {
     const doc = new PDFDocument({ margin: 50, size: 'LETTER', bufferPages: true });
     const stream = fs.createWriteStream(outputPath);
     doc.pipe(stream);
+    initializeDocument(doc);
 
     const stats = computeStats(controls);
 
@@ -298,6 +333,7 @@ function generateATODocument(assessment, project, atoType, controls, outputPath,
     const doc = new PDFDocument({ margin: 50, size: 'LETTER', bufferPages: true });
     const stream = fs.createWriteStream(outputPath);
     doc.pipe(stream);
+    initializeDocument(doc);
 
     const isIATO = atoType === 'iato';
     const title = isIATO ? 'Interim Authority to Operate (iATO)' : 'Authority to Operate (ATO)';
@@ -306,11 +342,12 @@ function generateATODocument(assessment, project, atoType, controls, outputPath,
 
     // ── Official header ──
     doc.rect(0, 0, doc.page.width, 90).fill(COLORS.navy);
-    doc.fontSize(11).fillColor('#aabbcc').text('GOVERNMENT OF CANADA', 50, 15, { align: 'center' });
-    doc.fontSize(20).fillColor(COLORS.white).text(title, 50, 35, { align: 'center' });
-    doc.fontSize(10).fillColor('#aabbcc').text('ITSG-33 Security Assessment & Authorization', 50, 65, { align: 'center' });
+    doc.fontSize(11).fillColor('#aabbcc').text('GOVERNMENT OF CANADA', 50, 15, { width: doc.page.width - 100, align: 'center' });
+    doc.fontSize(20).fillColor(COLORS.white).text(title, 50, 35, { width: doc.page.width - 100, align: 'center' });
+    doc.fontSize(10).fillColor('#aabbcc').text('ITSG-33 Security Assessment & Authorization', 50, 65, { width: doc.page.width - 100, align: 'center' });
 
-    doc.moveDown(5.5);
+    doc.x = 50;
+    doc.y = 112;
     doc.fillColor(COLORS.text);
 
     // ── System Details ──
@@ -579,8 +616,7 @@ function brandedSection(doc, title, options = {}) {
 function brandedInfoRows(doc, rows, options = {}) {
   rows.filter(row => row && row.length).forEach(([label, value]) => {
     ensureSpace(doc, 20, options);
-    doc.fontSize(8).fillColor(COLORS.muted).text(String(label) + ':', { continued: true });
-    doc.fillColor(COLORS.text).text('  ' + cleanText(value, 'N/A'));
+    labelValueRow(doc, label, value, { fontSize: 8, labelWidth: 110, fallback: 'N/A' });
   });
   doc.moveDown(0.3);
 }
@@ -624,8 +660,13 @@ function drawProjectControl(doc, control, options = {}) {
 function drawPoamItem(doc, item, options = {}) {
   ensureSpace(doc, 95, options);
   const riskColor = item.risk_level === 'high' ? COLORS.danger : item.risk_level === 'medium' ? COLORS.warning : '#0f766e';
-  doc.fontSize(9).fillColor(riskColor).text(`[${(item.risk_level || 'medium').toUpperCase()}] `, { continued: true });
-  doc.fillColor(COLORS.navy).text(cleanText(item.description, 'POA&M item'));
+  const y = doc.y;
+  doc.fontSize(8).fillColor(riskColor)
+    .text(`[${(item.risk_level || 'medium').toUpperCase()}]`, 50, y, { width: 48 });
+  doc.fontSize(9).fillColor(COLORS.navy)
+    .text(cleanText(item.description, 'POA&M item'), 104, y, { width: doc.page.width - 154 });
+  doc.x = 50;
+  doc.y += 2;
   doc.fontSize(8).fillColor(COLORS.muted)
     .text(`Control: ${item.control_id || 'N/A'}   Owner: ${item.assigned_to || 'N/A'}   Due: ${formatDateValue(item.deadline)}   Status: ${item.status || 'open'}`);
   if (item.remediation_plan) doc.fontSize(8).fillColor(COLORS.text).text('Mitigation Plan: ' + truncate(cleanText(item.remediation_plan, ''), 450), { indent: 10 });
@@ -645,6 +686,7 @@ function generateControlsReport(project, controls, outputPath, options = {}) {
     const doc = new PDFDocument({ margin: 50, size: 'LETTER', bufferPages: true });
     const stream = fs.createWriteStream(outputPath);
     doc.pipe(stream);
+    initializeDocument(doc);
 
     const headerOptions = { ...options, title: 'Project Control Assessment Report', project };
     brandedHeader(doc, headerOptions.title, project, options);
@@ -680,6 +722,7 @@ function generateFullProjectReport(project, data, outputPath) {
     const doc = new PDFDocument({ margin: 50, size: 'LETTER', bufferPages: true });
     const stream = fs.createWriteStream(outputPath);
     doc.pipe(stream);
+    initializeDocument(doc);
 
     brandedHeader(doc, options.title, project, data || {});
     brandedInfoRows(doc, [
@@ -776,6 +819,7 @@ function generateATORecordReport(ato, project, data, outputPath) {
     const doc = new PDFDocument({ margin: 50, size: 'LETTER', bufferPages: true });
     const stream = fs.createWriteStream(outputPath);
     doc.pipe(stream);
+    initializeDocument(doc);
 
     brandedHeader(doc, title, project, data || {});
     brandedInfoRows(doc, [

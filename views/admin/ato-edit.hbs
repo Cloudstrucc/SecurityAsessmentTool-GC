@@ -128,25 +128,20 @@
           </div>
         </div>
 
-        {{#if poamItems.length}}
         <div class="card">
-          <div class="card-header bg-light"><i class="bi bi-list-check me-2"></i>Linked POA&M</div>
-          <div class="card-body p-0">
-            <table class="table table-sm mb-0">
-              <thead><tr><th>Control</th><th>Status</th><th>Due</th></tr></thead>
-              <tbody>
-                {{#each poamItems}}
-                  <tr>
-                    <td><code>{{this.control_id}}</code></td>
-                    <td>{{this.status}}</td>
-                    <td class="small">{{formatDate this.deadline}}</td>
-                  </tr>
-                {{/each}}
-              </tbody>
-            </table>
+          <div class="card-header bg-light"><i class="bi bi-list-check me-2"></i>Risk Remediation</div>
+          <div class="card-body small">
+            {{#if ato.id}}
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>Linked POA&M items</span>
+                <span class="badge bg-dark">{{poamItems.length}}</span>
+              </div>
+              <a href="#poam-section" class="btn btn-sm btn-outline-primary w-100">Manage Items</a>
+            {{else}}
+              <p class="text-muted mb-0">Save the ATO/iATO record before adding remediation items.</p>
+            {{/if}}
           </div>
         </div>
-        {{/if}}
       </div>
     </div>
 
@@ -155,4 +150,245 @@
       <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-save me-2"></i>Save ATO/iATO</button>
     </div>
   </form>
+
+  {{#if ato.id}}
+  <div class="card mb-4" id="poam-section">
+    <div class="card-header d-flex justify-content-between align-items-center" style="background:var(--gc-warning)">
+      <span><i class="bi bi-clipboard2-check me-2"></i><strong>Risk Remediation Items / POA&M</strong></span>
+      <span class="badge bg-dark">{{poamItems.length}} item(s)</span>
+    </div>
+    <div class="card-body">
+      {{#if poamItems.length}}
+        <div class="table-responsive mb-4">
+          <table class="table table-hover table-sm align-middle mb-0" style="font-size:.85rem">
+            <thead>
+              <tr>
+                <th style="width:65px">Risk</th>
+                <th>Finding / Weakness</th>
+                <th style="width:100px">Control</th>
+                <th style="width:115px">Due</th>
+                <th style="width:130px">Owner</th>
+                <th style="width:125px">Status</th>
+                <th style="width:90px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each poamItems}}
+                <tr>
+                  <td>
+                    {{#eq this.risk_level "high"}}<span class="badge bg-danger">High</span>{{/eq}}
+                    {{#eq this.risk_level "medium"}}<span class="badge bg-warning text-dark">Medium</span>{{/eq}}
+                    {{#eq this.risk_level "low"}}<span class="badge bg-info">Low</span>{{/eq}}
+                  </td>
+                  <td>
+                    <div class="fw-semibold">{{this.description}}</div>
+                    {{#if this.original_finding}}<small class="text-muted d-block">Finding: {{this.original_finding}}</small>{{/if}}
+                    {{#if this.remediation_plan}}<small class="text-primary d-block">Plan: {{this.remediation_plan}}</small>{{/if}}
+                    {{#if this.milestone}}<small class="text-muted d-block">Milestone: {{this.milestone}}</small>{{/if}}
+                    {{#if this.residual_risk}}<small class="text-danger d-block">Residual Risk: {{this.residual_risk}}</small>{{/if}}
+                    {{#if this.assessor_notes}}<small class="text-muted d-block">Assessor Notes: {{this.assessor_notes}}</small>{{/if}}
+                  </td>
+                  <td>
+                    {{#if this.control_id}}<code>{{this.control_id}}</code>{{else}}<span class="text-muted">Project</span>{{/if}}
+                    {{#if this.assessment_invite_code}}<small class="text-muted d-block">{{this.assessment_invite_code}}</small>{{/if}}
+                  </td>
+                  <td class="small">{{formatDate this.deadline}}</td>
+                  <td class="small">{{this.assigned_to}}</td>
+                  <td>
+                    <form method="POST" action="/admin/ato/{{../ato.id}}/poam/{{this.id}}/update">
+                      <input type="hidden" name="assessment_id" value="{{this.assessment_id}}">
+                      <input type="hidden" name="control_id" value="{{this.control_id}}">
+                      <input type="hidden" name="description" value="{{this.description}}">
+                      <input type="hidden" name="risk_level" value="{{this.risk_level}}">
+                      <input type="hidden" name="original_finding" value="{{this.original_finding}}">
+                      <input type="hidden" name="remediation_plan" value="{{this.remediation_plan}}">
+                      <input type="hidden" name="milestone" value="{{this.milestone}}">
+                      <input type="hidden" name="deadline" value="{{this.deadline}}">
+                      <input type="hidden" name="assigned_to" value="{{this.assigned_to}}">
+                      <input type="hidden" name="residual_risk" value="{{this.residual_risk}}">
+                      <input type="hidden" name="assessor_notes" value="{{this.assessor_notes}}">
+                      <select class="form-select form-select-sm" name="status" onchange="this.form.submit()" style="font-size:.78rem">
+                        <option value="open" {{#eq this.status "open"}}selected{{/eq}}>Open</option>
+                        <option value="in-progress" {{#eq this.status "in-progress"}}selected{{/eq}}>In Progress</option>
+                        <option value="completed" {{#eq this.status "completed"}}selected{{/eq}}>Completed</option>
+                        <option value="verified" {{#eq this.status "verified"}}selected{{/eq}}>Verified</option>
+                      </select>
+                    </form>
+                  </td>
+                  <td class="text-nowrap">
+                    <button class="btn btn-sm btn-outline-primary p-0 px-1 me-1" type="button"
+                      data-bs-toggle="collapse" data-bs-target="#ato-poam-edit-{{this.id}}" title="Edit">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <form method="POST" action="/admin/ato/{{../ato.id}}/poam/{{this.id}}/delete"
+                      onsubmit="return confirm('Remove this remediation item?')" class="d-inline">
+                      <button class="btn btn-sm btn-outline-danger p-0 px-1" title="Delete"><i class="bi bi-trash"></i></button>
+                    </form>
+                  </td>
+                </tr>
+                <tr class="collapse" id="ato-poam-edit-{{this.id}}">
+                  <td colspan="7" class="bg-light">
+                    <form method="POST" action="/admin/ato/{{../ato.id}}/poam/{{this.id}}/update" class="p-2">
+                      <div class="row g-2">
+                        <div class="col-md-7">
+                          <label class="form-label small fw-semibold">Finding / Weakness</label>
+                          <input type="text" class="form-control form-control-sm" name="description" value="{{this.description}}" required>
+                        </div>
+                        <div class="col-md-2">
+                          <label class="form-label small fw-semibold">Risk</label>
+                          <select class="form-select form-select-sm" name="risk_level">
+                            <option value="high" {{#eq this.risk_level "high"}}selected{{/eq}}>High</option>
+                            <option value="medium" {{#eq this.risk_level "medium"}}selected{{/eq}}>Medium</option>
+                            <option value="low" {{#eq this.risk_level "low"}}selected{{/eq}}>Low</option>
+                          </select>
+                        </div>
+                        <div class="col-md-3">
+                          <label class="form-label small fw-semibold">Status</label>
+                          <select class="form-select form-select-sm" name="status">
+                            <option value="open" {{#eq this.status "open"}}selected{{/eq}}>Open</option>
+                            <option value="in-progress" {{#eq this.status "in-progress"}}selected{{/eq}}>In Progress</option>
+                            <option value="completed" {{#eq this.status "completed"}}selected{{/eq}}>Completed</option>
+                            <option value="verified" {{#eq this.status "verified"}}selected{{/eq}}>Verified</option>
+                          </select>
+                        </div>
+                        <div class="col-md-4">
+                          <label class="form-label small fw-semibold">Assessment</label>
+                          <select class="form-select form-select-sm" name="assessment_id">
+                            <option value="">Project-level item</option>
+                            {{#each ../assessments}}
+                              <option value="{{this.id}}" {{#eq ../assessment_id this.id}}selected{{/eq}}>Assessment {{this.id}} {{#if this.invite_code}}({{this.invite_code}}){{/if}}</option>
+                            {{/each}}
+                          </select>
+                        </div>
+                        <div class="col-md-4">
+                          <label class="form-label small fw-semibold">Related Control</label>
+                          <select class="form-select form-select-sm" name="control_id">
+                            <option value="">Project-level finding</option>
+                            {{#each ../controlOptions}}
+                              <option value="{{this.control_id}}" {{#eq ../control_id this.control_id}}selected{{/eq}}>{{this.control_id}} - {{this.title}}</option>
+                            {{/each}}
+                          </select>
+                        </div>
+                        <div class="col-md-2">
+                          <label class="form-label small fw-semibold">Target Date</label>
+                          <input type="date" class="form-control form-control-sm" name="deadline" value="{{this.deadline}}">
+                        </div>
+                        <div class="col-md-2">
+                          <label class="form-label small fw-semibold">Owner</label>
+                          <input type="text" class="form-control form-control-sm" name="assigned_to" value="{{this.assigned_to}}">
+                        </div>
+                        <div class="col-md-6">
+                          <label class="form-label small fw-semibold">Original Finding</label>
+                          <textarea class="form-control form-control-sm" name="original_finding" rows="2">{{this.original_finding}}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                          <label class="form-label small fw-semibold">Mitigation Plan</label>
+                          <textarea class="form-control form-control-sm" name="remediation_plan" rows="2">{{this.remediation_plan}}</textarea>
+                        </div>
+                        <div class="col-md-4">
+                          <label class="form-label small fw-semibold">Milestone Notes</label>
+                          <textarea class="form-control form-control-sm" name="milestone" rows="2">{{this.milestone}}</textarea>
+                        </div>
+                        <div class="col-md-4">
+                          <label class="form-label small fw-semibold">Residual Risk</label>
+                          <textarea class="form-control form-control-sm" name="residual_risk" rows="2">{{this.residual_risk}}</textarea>
+                        </div>
+                        <div class="col-md-4">
+                          <label class="form-label small fw-semibold">Assessor Notes</label>
+                          <textarea class="form-control form-control-sm" name="assessor_notes" rows="2">{{this.assessor_notes}}</textarea>
+                        </div>
+                        <div class="col-12">
+                          <button class="btn btn-sm btn-primary"><i class="bi bi-save me-1"></i>Save Remediation Item</button>
+                        </div>
+                      </div>
+                    </form>
+                  </td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+      {{else}}
+        <p class="text-muted">No remediation items are linked to this ATO/iATO yet.</p>
+      {{/if}}
+
+      <hr>
+      <h6 class="fw-semibold mb-3"><i class="bi bi-plus-circle me-1"></i>Add Risk Remediation Item</h6>
+      <form method="POST" action="/admin/ato/{{ato.id}}/poam/add">
+        <div class="row g-2">
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Finding / Weakness</label>
+            <input type="text" class="form-control form-control-sm" name="description" placeholder="Describe the finding or weakness" required>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small fw-semibold">Risk</label>
+            <select class="form-select form-select-sm" name="risk_level">
+              <option value="high">High</option>
+              <option value="medium" selected>Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small fw-semibold">Status</label>
+            <select class="form-select form-select-sm" name="status">
+              <option value="open" selected>Open</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="verified">Verified</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small fw-semibold">Target Date</label>
+            <input type="date" class="form-control form-control-sm" name="deadline">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small fw-semibold">Owner</label>
+            <input type="text" class="form-control form-control-sm" name="assigned_to" placeholder="Owner">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Assessment</label>
+            <select class="form-select form-select-sm" name="assessment_id">
+              <option value="">Project-level item</option>
+              {{#each assessments}}
+                <option value="{{this.id}}" {{#eq ../ato.assessment_id this.id}}selected{{/eq}}>Assessment {{this.id}} {{#if this.invite_code}}({{this.invite_code}}){{/if}}</option>
+              {{/each}}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Related Control</label>
+            <select class="form-select form-select-sm" name="control_id">
+              <option value="">Project-level finding</option>
+              {{#each controlOptions}}
+                <option value="{{this.control_id}}">{{this.control_id}} - {{this.title}}</option>
+              {{/each}}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Original Finding</label>
+            <input type="text" class="form-control form-control-sm" name="original_finding" placeholder="Finding source or summary">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Mitigation Plan</label>
+            <textarea class="form-control form-control-sm" name="remediation_plan" rows="2"></textarea>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Milestone Notes</label>
+            <textarea class="form-control form-control-sm" name="milestone" rows="2"></textarea>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Residual Risk</label>
+            <textarea class="form-control form-control-sm" name="residual_risk" rows="2"></textarea>
+          </div>
+          <div class="col-md-8">
+            <label class="form-label small fw-semibold">Assessor Notes</label>
+            <textarea class="form-control form-control-sm" name="assessor_notes" rows="2"></textarea>
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-warning w-100"><i class="bi bi-plus-lg me-1"></i>Add Remediation Item</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  {{/if}}
 </div>

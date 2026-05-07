@@ -613,6 +613,69 @@ async function initDatabase() {
     }
   });
 
+  // Older databases created POA&M items with assessment_id NOT NULL. ATO/iATO
+  // remediation can be project-level, so relax that constraint while preserving rows.
+  try {
+    const poamInfo = db.exec('PRAGMA table_info(iato_checklist)');
+    const assessmentIdCol = poamInfo[0]?.values.find(row => row[1] === 'assessment_id');
+    if (assessmentIdCol && Number(assessmentIdCol[3]) === 1) {
+      db.run('BEGIN TRANSACTION');
+      db.run('ALTER TABLE iato_checklist RENAME TO iato_checklist_old');
+      db.run(`
+        CREATE TABLE iato_checklist (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          assessment_id INTEGER,
+          project_id INTEGER,
+          ato_record_id INTEGER,
+          control_id TEXT,
+          description TEXT NOT NULL,
+          risk_level TEXT DEFAULT 'medium',
+          original_finding TEXT,
+          remediation_plan TEXT,
+          milestone TEXT,
+          deadline DATETIME,
+          status TEXT DEFAULT 'open',
+          assigned_to TEXT,
+          estimated_cost TEXT,
+          resources_required TEXT,
+          completed_at DATETIME,
+          verified_at DATETIME,
+          verified_by INTEGER,
+          evidence_text TEXT,
+          residual_risk TEXT,
+          assessor_notes TEXT,
+          created_by INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (assessment_id) REFERENCES assessments(id) ON DELETE CASCADE,
+          FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+          FOREIGN KEY (ato_record_id) REFERENCES ato_records(id) ON DELETE SET NULL,
+          FOREIGN KEY (created_by) REFERENCES users(id)
+        )
+      `);
+      db.run(`
+        INSERT INTO iato_checklist (
+          id, assessment_id, project_id, ato_record_id, control_id, description, risk_level,
+          original_finding, remediation_plan, milestone, deadline, status, assigned_to,
+          estimated_cost, resources_required, completed_at, verified_at, verified_by,
+          evidence_text, residual_risk, assessor_notes, created_by, created_at, updated_at
+        )
+        SELECT
+          id, assessment_id, project_id, ato_record_id, control_id, description, risk_level,
+          original_finding, remediation_plan, milestone, deadline, status, assigned_to,
+          estimated_cost, resources_required, completed_at, verified_at, verified_by,
+          evidence_text, residual_risk, assessor_notes, created_by, created_at, updated_at
+        FROM iato_checklist_old
+      `);
+      db.run('DROP TABLE iato_checklist_old');
+      db.run('COMMIT');
+      console.log('Migration: relaxed iato_checklist.assessment_id constraint');
+    }
+  } catch (e) {
+    try { db.run('ROLLBACK'); } catch (_) {}
+    console.warn('POA&M assessment_id constraint migration skipped:', e.message);
+  }
+
   const existingAdmin = db.exec(`SELECT id FROM users WHERE email = '${adminEmail}'`);
   if (!existingAdmin.length || !existingAdmin[0].values.length) {
     const hashedPassword = bcrypt.hashSync(adminPassword, 10);

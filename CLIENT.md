@@ -2,229 +2,150 @@
 
 ## Client And Assessor Guide
 
-This guide is the quick Markdown version of the authenticated help guide. A branded, paginated HTML version with the same screenshots is available at [docs/client-assessor-guide.html](docs/client-assessor-guide.html), and authenticated users can open it from Help in the application header.
+This Markdown guide is for assessor/admin users and client evidence providers. A branded, paginated HTML version with the same full-width screenshots is available at [docs/client-assessor-guide.html](docs/client-assessor-guide.html), and authenticated users can open it from **Help** in the application header.
 
-![Security Assessment & Authorization dashboard](docs/assets/guide/screenshot-admin-dashboard.png)
-
-This guide is for people using the GC Security Assessment Tool after it has been installed.
-
-## Roles
-
-Admin assessor:
-
-- Creates and reviews intakes.
-- Creates projects and assessments.
-- Assigns work to clients or other assessors.
-- Reviews evidence, manages POA&M items, and completes assessment/audit work.
-
-Client evidence provider:
-
-- Creates intake submissions.
-- Responds to assigned assessments.
-- Uploads evidence and comments.
-- Does not have admin dashboard access.
-
-## Sign-In And MFA
-
-Assessor login:
-
-- Go to `/admin/login`.
-- Sign in with your assessor email and password.
-- On first login, configure TOTP with an authenticator app.
-- After TOTP is configured, you may register a passkey.
-- TOTP remains available even if you use a passkey.
-
-Client login:
-
-- Go to `/client/login`.
-- Sign in with your client email and password.
-- Configure TOTP if prompted.
-- Use passkey setup only after TOTP is working.
-
-Lost MFA:
-
-- Contact an admin assessor.
-- Do not create a second account unless the admin tells you to.
-
-Break-glass accounts:
-
-- These are emergency admin accounts.
-- They are not for normal work.
-- They do not require TOTP or passkey.
+![Assessor dashboard](docs/assets/guide/desktop-01-admin-dashboard.png)
 
 ## Assessor Workflow
 
-### Create A Project
+### 1. Create A Project And Intake
 
-![Project dashboard](docs/assets/guide/screenshot-project-dashboard.png)
+![Create project and intake](docs/assets/guide/desktop-02-project-new-intake-ai.png)
 
 1. Sign in at `/admin/login`.
-2. Open Projects.
-3. Choose New Project.
-4. Enter the project name, description, department, branch, categorization, hosting, technologies, contacts, and notes.
-5. Upload a supporting document if you have one.
-6. Save.
+2. Open **Projects** and choose **New Project**.
+3. Upload a SADD or paste a project description in the AI-assisted intake area.
+4. Review proposed field values before using them.
+5. Complete project name, description, department, branch, classification, hosting, technologies, privacy details, and contacts.
+6. Optionally assign the intake to an existing user or invite a new client/assessor.
+7. Save the project.
 
-The system creates both the project and a linked project intake record.
+Saving creates the project and a linked project intake record.
 
-### Create An Assessment
+### 2. Manage The Project Dashboard
 
-1. Open the project.
-2. Choose Create Assessment.
-3. Review the recommended controls.
-4. Tailor controls and evidence guidance as needed.
-5. Save.
+![Project dashboard](docs/assets/guide/desktop-03-project-dashboard.png)
 
-The assessment is associated with the project and the linked intake.
+Use the project dashboard to review project information, linked intakes, documentation, assignments, assessments, report branding, POA&M items, and ATO/iATO records.
 
-### Manage Project Documentation
+### 3. Upload Project Documentation
 
-![Project documentation table](docs/assets/guide/screenshot-project-documents.png)
+![Project documents and reports](docs/assets/guide/desktop-06-project-documents-reports.png)
 
 1. Open the project dashboard.
-2. Use Documentation to upload architecture designs, SADDs, security plans, diagrams, or related files.
-3. Confirm uploaded documents appear in the table.
-4. Use Download to retrieve a copy.
-5. Use the AI analysis option when you want the document to support control selection or evidence guidance.
-6. Delete a document reference only when it should no longer be used for assessment traceability.
+2. Use **Documentation** to upload SADDs, diagrams, security plans, data-flow documents, or privacy material.
+3. Confirm the document appears in the table.
+4. Use download to verify the stored file.
+5. Use the AI action when the document should support control selection or evidence guidance.
 
-### Tailor Controls
+### 4. Create And Tailor An Assessment
 
-![Assessment tailoring mode](docs/assets/guide/screenshot-assessment-tailoring.png)
+![Assessment tailoring](docs/assets/guide/desktop-09-assessment-tailoring.png)
 
-1. Open an assessment.
-2. Choose Tailor.
-3. Edit applicability, description, control guidance, evidence guidance, evidence collected, assessor notes, status, risk, and inheritance as needed.
-4. Save Tailoring.
-5. Refresh the page to confirm the tailored fields persist.
+1. From the project dashboard, choose **New Assessment**.
+2. Review suggested controls and create the assessment.
+3. Open the assessment and choose **Tailor**.
+4. Edit applicability, control description, control guidance, evidence guidance, evidence collected, assessor notes, status, inheritance, priority, and risk.
+5. Remove non-applicable controls.
+6. Save tailoring changes and refresh to confirm persistence.
 
-### Generate AI Evidence Guidance
+### 5. Assign Existing Users
 
-![AI evidence guidance](docs/assets/guide/screenshot-ai-guidance.png)
+![Existing user assignment](docs/assets/guide/desktop-04-project-assignment-existing.png)
 
-1. Upload project documentation first.
-2. Open the assessment.
-3. Select one or more documents in the AI guidance area.
-4. Choose the controls to analyze.
-5. Preview the generated guidance.
-6. Edit the guidance if needed, then save approved items.
+1. Open the project or assessment.
+2. Choose the target intake, assessment, or all linked work.
+3. Select **Existing user**.
+4. Choose the client or assessor.
+5. Add notes and assign.
 
-AI-generated content should be reviewed by the assessor before it is sent to a client or used in a final report.
+### 6. Invite New Users
 
-### ATO, iATO, And POA&M
+![Invite new user from project](docs/assets/guide/desktop-05-project-assignment-invite.png)
 
-1. Open the project.
-2. Use Reports & Authorization to create an ATO or iATO.
-3. Edit the authorization title, system description, scope, risk statements, conditions, summaries, notes, and custom sections.
-4. Add POA&M items from the assessment page.
-5. Link POA&M items to controls and, when appropriate, to an ATO/iATO record.
-6. Track owner, target date, status, mitigation plan, milestones, residual risk, and assessor notes.
+1. Select **Invite new user**.
+2. Choose client or assessor.
+3. Enter name, email, organization, and message.
+4. Assign the work.
+5. If email is not configured, share the invitation code through an approved channel.
 
-### Security Control Catalog
+![Invite new user from assessment](docs/assets/guide/desktop-08-assessment-invite-user.png)
 
-![Security control catalog](docs/assets/guide/screenshot-security-controls.png)
+### 7. Manage POA&M Items
 
-Admin assessors can open `/admin/security-controls` to search, sort, filter, and export the supported security control catalog.
+![Assessment POA&M](docs/assets/guide/desktop-10-assessment-poam.png)
 
-### Assign Work
+1. Open the assessment.
+2. Use **Auto-Populate** to create POA&M items from findings or add items manually.
+3. Track finding, risk, owner, target date, status, mitigation plan, milestones, residual risk, and assessor notes.
+4. Link items to controls and ATO/iATO records where appropriate.
 
-You can assign an intake or assessment to:
+### 8. Create ATO/iATO Records
 
-- An existing client user.
-- An existing assessor user.
-- A new invited client user.
-- A new invited assessor user.
+![ATO/iATO edit](docs/assets/guide/desktop-11-ato-edit.png)
 
-If the user already exists, select them from the existing-user list.
+1. Open the project dashboard.
+2. Select **New ATO** or **New iATO**.
+3. Link the assessment.
+4. Edit title, system details, authorizing official, dates, summary text, risk statements, conditions, POA&M summary, notes, static text, and custom sections.
+5. Save and export when ready.
 
-If the user does not exist:
+### 9. Manage ATO/iATO Remediation Items
 
-1. Choose the invite/new-user option.
-2. Enter their email, name, organization, and role.
-3. Add a message if useful.
-4. Submit the assignment.
-5. Share the invitation code if email delivery is not configured.
+![ATO/iATO POA&M CRUD](docs/assets/guide/desktop-12-ato-poam-crud.png)
 
-### Review Intake And Evidence
+1. Open the ATO/iATO record.
+2. Scroll to **Risk Remediation Items / POA&M**.
+3. Add, edit, update status, or delete remediation items.
+4. Link each item to a project, assessment, control, and authorization package as needed.
 
-Use the intake and assessment detail pages to:
+### 10. Export Reports
 
-- Confirm categorization.
-- Review uploaded documents.
-- Check assigned users.
-- Start evidence collection.
-- Review submitted evidence.
-- Record audit results.
-- Track POA&M items.
-- Export reports when ready.
+Export controls CSV, controls PDF, full project PDF, assessment PDF, and ATO/iATO PDF from the project or assessment pages. Full project reports list uploaded documents but do not embed attachments.
+
+### 11. Browse The Security Control Catalog
+
+![Security control catalog](docs/assets/guide/desktop-13-security-control-catalog.png)
+
+Open `/admin/security-controls` to search, filter, sort, and export the supported security control catalog.
 
 ## Client Workflow
 
-### Register
+### 1. Submit An Intake
 
-1. Open the registration link or go to `/client/register`.
-2. Enter your name, organization, email, and password.
-3. If you received an invitation code, enter it during registration.
-4. Configure TOTP when prompted.
-
-### Submit An Intake
-
-![Client intake form](docs/assets/guide/screenshot-client-intake.png)
+![Client intake](docs/assets/guide/desktop-15-client-intake.png)
 
 1. Sign in at `/client/login`.
-2. Open `/intake`.
-3. Describe the project clearly.
-4. Fill in categorization, hosting, technology, privacy, and contact details.
-5. Upload supporting documents such as architecture diagrams, project briefs, or security plans.
+2. Complete TOTP verification.
+3. Open `/intake`.
+4. Enter project description, categorization, hosting, technology, privacy, and contact details.
+5. Upload supporting documents.
 6. Submit the intake.
 
-### Provide Assessment Evidence
+### 2. Respond To An Assessment
 
-1. Open the assessment link or enter the invite code from your assessor.
-2. Sign in if prompted.
+![Client evidence portal](docs/assets/guide/desktop-16-client-evidence-portal.png)
+
+1. Open the assessment link or enter the invite code.
+2. Sign in with the assigned account.
 3. Review each control request.
-4. Add evidence text, links, screenshots, documents, or explanations.
-5. Save as you work.
+4. Add evidence text, links, exports, screenshots, or document references.
+5. Save progress.
 6. Submit when the evidence package is ready.
 
-### Respond To Follow-Up
+Good evidence is current, clearly named, dated, tied to the system under assessment, and specific about which control it supports.
 
-Your assessor may ask for more detail or remediation evidence. Keep comments specific and attach updated evidence where possible.
+## Help And Troubleshooting
 
-## Good Evidence Practices
+![Authenticated help guide](docs/assets/guide/desktop-14-help-guide.png)
 
-- Use current documents.
-- Name files clearly.
-- Include dates and system names.
-- Explain where evidence satisfies the control.
-- Avoid uploading unnecessary personal information.
-- Tell your assessor if evidence is stored in another system and cannot be uploaded.
+Use **Help** in the application header for the full paginated guide.
 
-## Common Problems
+Common issues:
 
-Invitation code does not work:
-
-- Check for extra spaces.
-- Confirm the code has not expired.
-- Confirm you are using the same email address the assessor assigned.
-
-Cannot access an assessment:
-
-- Sign out and sign in with the assigned account.
-- Ask the assessor to confirm the assignment email.
-
-TOTP code fails:
-
-- Check your device time.
-- Use the newest code.
-- Ask an admin assessor to reset MFA if needed.
-
-Upload fails:
-
-- Confirm the file is under the configured size limit.
-- Try a PDF, image, text file, or Office document.
-- Contact the assessor if the document is too large.
-
-Submitted by mistake:
-
-- Contact your assessor. They can review status and decide whether to reopen or request follow-up.
+- Invitation code fails: check spaces, expiry, and invited email address.
+- Assigned work is missing: sign in with the exact assigned account.
+- TOTP fails: check device time and use the newest code.
+- Upload fails: check file type and file size.
+- AI guidance unavailable: confirm the Anthropic API key is configured.
+- PDF export fails: confirm the project has required assessment, controls, branding, or authorization records.

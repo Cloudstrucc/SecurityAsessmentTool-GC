@@ -193,6 +193,35 @@ function getProjectBranding(projectId) {
   `, [projectId]) || {};
 }
 
+function getProjectControlOptions(projectId, assessmentId) {
+  const params = [projectId];
+  let assessmentFilter = '';
+  if (assessmentId) {
+    assessmentFilter = 'AND ac.assessment_id = ?';
+    params.push(assessmentId);
+  }
+  return all(`
+    SELECT ac.control_id, ac.title, ac.family, ac.assessment_id, a.invite_code
+    FROM assessment_controls ac
+    JOIN assessments a ON a.id = ac.assessment_id
+    WHERE a.project_id = ? ${assessmentFilter}
+    ORDER BY ac.family, ac.control_id
+  `, params);
+}
+
+function getAtoPoamItems(ato) {
+  if (!ato?.id) return [];
+  return all(`
+    SELECT ic.*, ac.title AS control_title, ac.family AS control_family, a.invite_code AS assessment_invite_code
+    FROM iato_checklist ic
+    LEFT JOIN assessments a ON a.id = ic.assessment_id
+    LEFT JOIN assessment_controls ac ON ac.assessment_id = ic.assessment_id AND ac.control_id = ic.control_id
+    WHERE ic.ato_record_id = ?
+    ORDER BY CASE ic.risk_level WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END,
+      COALESCE(ic.deadline, ic.updated_at, ic.created_at)
+  `, [ato.id]);
+}
+
 function resolveProjectDocumentPath(document) {
   const candidates = [
     path.join(projectUploadDir, document.filename),
@@ -1089,6 +1118,7 @@ router.get('/projects/:projectId/ato/new', ensureAuthenticated, (req, res) => {
   if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
   const assessments = all('SELECT * FROM assessments WHERE project_id = ? ORDER BY created_at DESC', [project.id]);
   const branding = getProjectBranding(project.id);
+  const controlOptions = getProjectControlOptions(project.id, req.query.assessment_id || null);
   res.render('admin/ato-edit', {
     title: 'New ATO/iATO',
     isAdmin: true,
@@ -1096,6 +1126,8 @@ router.get('/projects/:projectId/ato/new', ensureAuthenticated, (req, res) => {
     admin: req.user,
     project,
     assessments,
+    controlOptions,
+    poamItems: [],
     branding,
     ato: {
       record_type: req.query.type === 'iato' ? 'iato' : 'ato',
@@ -1143,7 +1175,8 @@ router.get('/ato/:id', ensureAuthenticated, (req, res) => {
   if (!ato) { req.flash('error', 'ATO/iATO record not found'); return res.redirect('/admin/projects'); }
   const project = get('SELECT * FROM projects WHERE id = ?', [ato.project_id]);
   const assessments = all('SELECT * FROM assessments WHERE project_id = ? ORDER BY created_at DESC', [ato.project_id]);
-  const poamItems = all('SELECT * FROM iato_checklist WHERE ato_record_id = ? OR project_id = ? ORDER BY deadline', [ato.id, ato.project_id]);
+  const poamItems = getAtoPoamItems(ato);
+  const controlOptions = getProjectControlOptions(ato.project_id, ato.assessment_id);
   const branding = getProjectBranding(ato.project_id);
   res.render('admin/ato-edit', {
     title: ato.title || 'ATO/iATO',
@@ -1153,6 +1186,7 @@ router.get('/ato/:id', ensureAuthenticated, (req, res) => {
     ato,
     project,
     assessments,
+    controlOptions,
     poamItems,
     branding
   });
@@ -1189,6 +1223,93 @@ router.post('/ato/:id', ensureAuthenticated, (req, res) => {
   }
 });
 
+router.post('/ato/:id/poam/add', ensureAuthenticated, (req, res) => {
+  try {
+    const ato = get('SELECT * FROM ato_records WHERE id = ?', [req.params.id]);
+    if (!ato) { req.flash('error', 'ATO/iATO record not found'); return res.redirect('/admin/projects'); }
+    const assessmentId = req.body.assessment_id || ato.assessment_id || null;
+    run(`INSERT INTO iato_checklist (project_id, assessment_id, ato_record_id, control_id, description, risk_level,
+      original_finding, remediation_plan, milestone, deadline, status, assigned_to, residual_risk, assessor_notes, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        ato.project_id,
+        assessmentId,
+        ato.id,
+        req.body.control_id || '',
+        req.body.description || 'Risk remediation item',
+        req.body.risk_level || 'medium',
+        req.body.original_finding || '',
+        req.body.remediation_plan || '',
+        req.body.milestone || '',
+        req.body.deadline || '',
+        req.body.status || 'open',
+        req.body.assigned_to || '',
+        req.body.residual_risk || '',
+        req.body.assessor_notes || '',
+        req.user.id
+      ]);
+    req.flash('success', 'Risk remediation item added.');
+    res.redirect(`/admin/ato/${ato.id}#poam-section`);
+  } catch (err) {
+    console.error('ATO POA&M add error:', err);
+    req.flash('error', 'Failed to add risk remediation item: ' + err.message);
+    res.redirect(`/admin/ato/${req.params.id}`);
+  }
+});
+
+router.post('/ato/:id/poam/:itemId/update', ensureAuthenticated, (req, res) => {
+  try {
+    const ato = get('SELECT * FROM ato_records WHERE id = ?', [req.params.id]);
+    if (!ato) { req.flash('error', 'ATO/iATO record not found'); return res.redirect('/admin/projects'); }
+    const item = get('SELECT * FROM iato_checklist WHERE id = ? AND ato_record_id = ?', [req.params.itemId, ato.id]);
+    if (!item) { req.flash('error', 'Risk remediation item not found for this ATO/iATO.'); return res.redirect(`/admin/ato/${ato.id}#poam-section`); }
+
+    run(`UPDATE iato_checklist SET
+        assessment_id = ?, control_id = ?, description = ?, risk_level = ?, original_finding = ?,
+        remediation_plan = ?, milestone = ?, deadline = ?, status = ?, assigned_to = ?,
+        residual_risk = ?, assessor_notes = ?,
+        completed_at = CASE WHEN ? = 'completed' THEN COALESCE(completed_at, CURRENT_TIMESTAMP) ELSE completed_at END,
+        verified_at = CASE WHEN ? = 'verified' THEN COALESCE(verified_at, CURRENT_TIMESTAMP) ELSE verified_at END,
+        verified_by = CASE WHEN ? = 'verified' THEN ? ELSE verified_by END,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ? AND ato_record_id = ?`,
+      [
+        req.body.assessment_id || ato.assessment_id || null,
+        req.body.control_id || '',
+        req.body.description || '',
+        req.body.risk_level || 'medium',
+        req.body.original_finding || '',
+        req.body.remediation_plan || '',
+        req.body.milestone || '',
+        req.body.deadline || '',
+        req.body.status || 'open',
+        req.body.assigned_to || '',
+        req.body.residual_risk || '',
+        req.body.assessor_notes || '',
+        req.body.status || 'open',
+        req.body.status || 'open',
+        req.body.status || 'open',
+        req.user.id,
+        req.params.itemId,
+        ato.id
+      ]);
+    req.flash('success', 'Risk remediation item updated.');
+    res.redirect(`/admin/ato/${ato.id}#poam-section`);
+  } catch (err) {
+    console.error('ATO POA&M update error:', err);
+    req.flash('error', 'Failed to update risk remediation item: ' + err.message);
+    res.redirect(`/admin/ato/${req.params.id}#poam-section`);
+  }
+});
+
+router.post('/ato/:id/poam/:itemId/delete', ensureAuthenticated, (req, res) => {
+  const ato = get('SELECT * FROM ato_records WHERE id = ?', [req.params.id]);
+  if (!ato) { req.flash('error', 'ATO/iATO record not found'); return res.redirect('/admin/projects'); }
+  run('DELETE FROM iato_checklist WHERE id = ? AND ato_record_id = ?', [req.params.itemId, ato.id]);
+  req.flash('success', 'Risk remediation item removed.');
+  res.redirect(`/admin/ato/${ato.id}#poam-section`);
+});
+
 router.get('/ato/:id/export-pdf', ensureAuthenticated, async (req, res) => {
   try {
     const ato = get('SELECT * FROM ato_records WHERE id = ?', [req.params.id]);
@@ -1198,7 +1319,7 @@ router.get('/ato/:id/export-pdf', ensureAuthenticated, async (req, res) => {
     const controls = assessment
       ? all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessment.id])
       : all(`SELECT ac.* FROM assessment_controls ac JOIN assessments a ON a.id = ac.assessment_id WHERE a.project_id = ? ORDER BY ac.family, ac.control_id`, [project.id]);
-    const poamItems = all('SELECT * FROM iato_checklist WHERE ato_record_id = ? OR project_id = ? OR assessment_id = ? ORDER BY deadline', [ato.id, project.id, assessment?.id || 0]);
+    const poamItems = getAtoPoamItems(ato);
     const branding = getProjectBranding(project.id);
     const outputDir = path.join(__dirname, '..', 'data', 'exports');
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
@@ -1776,6 +1897,12 @@ router.post('/assessments/:id/audit-control/:controlId', ensureAuthenticated, (r
 
 router.post('/assessments/:id/complete-audit', ensureAuthenticated, (req, res) => {
   const controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? AND is_applicable = 1', [req.params.id]);
+  const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+  const project = assessment ? get('SELECT * FROM projects WHERE id = ?', [assessment.project_id]) : null;
+  if (!assessment || !project) {
+    req.flash('error', 'Assessment or project not found.');
+    return res.redirect(`/admin/assessments/${req.params.id}`);
+  }
   const met = controls.filter(c => c.audit_result === 'met').length;
   const partial = controls.filter(c => c.audit_result === 'partially-met').length;
   const notMet = controls.filter(c => c.audit_result === 'not-met').length;
@@ -1851,8 +1978,6 @@ router.post('/assessments/:id/complete-audit', ensureAuthenticated, (req, res) =
   }
 
   // Save templates for reuse
-  const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
-  const project = get('SELECT * FROM projects WHERE id = ?', [assessment.project_id]);
   controls.filter(c => c.audit_result === 'met' && c.evidence_text).forEach(c => {
     const existing = get('SELECT id FROM control_templates WHERE control_id = ? AND hosting_type = ?',
       [c.control_id, project.hosting_type]);

@@ -195,6 +195,18 @@ async function uploadSaddDocument(jar, projectId) {
   return docId;
 }
 
+async function assertPdfDownload(jar, url, label) {
+  const response = await request(jar, 'GET', url, { redirect: 'manual' });
+  assert.equal(response.status, 200, `${label} should download`);
+  const buffer = Buffer.from(await response.arrayBuffer());
+  assert.equal(buffer.subarray(0, 4).toString(), '%PDF', `${label} should be a PDF`);
+  assert.ok(buffer.length > 1500, `${label} should have report content`);
+  const pageCount = (buffer.toString('latin1').match(/\/Type\s*\/Page\b/g) || []).length;
+  assert.ok(pageCount >= 1, `${label} should have at least one page`);
+  assert.ok(pageCount < 25, `${label} should not generate excessive blank pages for the one-control fixture`);
+  return buffer;
+}
+
 test.before(async () => {
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
   runUserScript(['test-assessor', '--email', USERS.assessor.email, '--password', USERS.assessor.password, '--totp-secret', TEST_SECRET]);
@@ -576,6 +588,101 @@ test('admin can create editable ATO records and manage linked POA&M items', asyn
   assert.match(updated.text, /Updated mitigation plan/);
   assert.match(updated.text, /Updated residual risk note/);
   assert.match(updated.text, /Updated assessor POA(?:&amp;|&)M note/);
+
+  const addAtoPoam = await request(jar, 'POST', `/admin/ato/${atoId}/poam/add`, {
+    form: {
+      assessment_id: assessmentId,
+      control_id: 'AC-2',
+      description: 'ATO-level remediation item created from authorization package',
+      risk_level: 'high',
+      status: 'open',
+      deadline: '2026-10-31',
+      assigned_to: 'Authorization Owner',
+      original_finding: 'Authorization finding requiring tracked remediation',
+      remediation_plan: 'Authorization package mitigation plan',
+      milestone: 'Authorization package milestone',
+      residual_risk: 'Authorization residual risk',
+      assessor_notes: 'Authorization assessor note'
+    }
+  });
+  assert.equal(addAtoPoam.status, 302);
+
+  const atoWithPoam = await getText(jar, atoPath);
+  assert.match(atoWithPoam.text, /ATO-level remediation item created from authorization package/);
+  assert.match(atoWithPoam.text, /Authorization package mitigation plan/);
+  const atoPoamItemId = atoWithPoam.text.match(/\/admin\/ato\/\d+\/poam\/(\d+)\/delete/)?.[1];
+  assert.ok(atoPoamItemId, 'ATO POA&M item id should be visible in delete form');
+
+  const updateAtoPoam = await request(jar, 'POST', `/admin/ato/${atoId}/poam/${atoPoamItemId}/update`, {
+    form: {
+      assessment_id: assessmentId,
+      control_id: 'AC-2',
+      description: 'ATO-level remediation item updated from authorization package',
+      risk_level: 'medium',
+      status: 'in-progress',
+      deadline: '2026-09-30',
+      assigned_to: 'Updated Authorization Owner',
+      original_finding: 'Updated authorization finding',
+      remediation_plan: 'Updated authorization mitigation plan',
+      milestone: 'Updated authorization milestone',
+      residual_risk: 'Updated authorization residual risk',
+      assessor_notes: 'Updated authorization assessor note'
+    }
+  });
+  assert.equal(updateAtoPoam.status, 302);
+  const atoUpdated = await getText(jar, atoPath);
+  assert.match(atoUpdated.text, /ATO-level remediation item updated from authorization package/);
+  assert.match(atoUpdated.text, /Updated authorization mitigation plan/);
+
+  const deleteAtoPoam = await request(jar, 'POST', `/admin/ato/${atoId}/poam/${atoPoamItemId}/delete`);
+  assert.equal(deleteAtoPoam.status, 302);
+  const atoAfterDelete = await getText(jar, atoPath);
+  assert.doesNotMatch(atoAfterDelete.text, /ATO-level remediation item updated from authorization package/);
+});
+
+test('admin can export assessment, controls, full project, and ATO PDFs', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E PDF Export Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+
+  const atoCreate = await request(jar, 'POST', `/admin/projects/${projectId}/ato/new`, {
+    form: {
+      assessment_id: assessmentId,
+      record_type: 'iato',
+      title: 'E2E PDF Export iATO',
+      system_name: 'E2E PDF Export Project',
+      organization_name: 'E2E Department',
+      authorization_status: 'draft',
+      executive_summary: 'PDF export authorization summary.',
+      system_description: 'PDF export system description.',
+      assessment_scope: 'PDF export assessment scope.',
+      risk_summary: 'PDF export risk summary.',
+      residual_risk_statement: 'PDF export residual risk.',
+      conditions_of_authorization: 'PDF export authorization conditions.',
+      security_control_summary: 'PDF export control summary.',
+      poam_summary: 'PDF export POA&M summary.',
+      assessor_notes: 'PDF export assessor notes.'
+    }
+  });
+  assert.equal(atoCreate.status, 302);
+  const atoId = atoCreate.headers.get('location').match(/(\d+)$/)[1];
+
+  await request(jar, 'POST', `/admin/ato/${atoId}/poam/add`, {
+    form: {
+      assessment_id: assessmentId,
+      control_id: 'AC-2',
+      description: 'PDF export remediation item',
+      risk_level: 'medium',
+      deadline: '2026-12-31',
+      assigned_to: 'PDF Owner',
+      remediation_plan: 'PDF mitigation plan'
+    }
+  });
+
+  await assertPdfDownload(jar, `/admin/assessments/${assessmentId}/export-pdf`, 'assessment PDF');
+  await assertPdfDownload(jar, `/admin/projects/${projectId}/controls.pdf`, 'controls PDF');
+  await assertPdfDownload(jar, `/admin/projects/${projectId}/report.pdf`, 'full project PDF');
+  await assertPdfDownload(jar, `/admin/ato/${atoId}/export-pdf`, 'ATO PDF');
 });
 
 test('admin can browse the security control catalog', async () => {

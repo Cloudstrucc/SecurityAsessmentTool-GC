@@ -8,39 +8,38 @@
     :root {
       --nav: #26374a;
       --red: #af3c43;
-      --link: #2b4380;
       --accent: #2572b4;
       --gold: #d4a017;
       --green: #278400;
       --teal: #0f766e;
-      --text: #333333;
-      --muted: #595959;
-      --border: #dcdee1;
-      --light: #f8f8f8;
+      --text: #30353b;
+      --muted: #5f6b77;
+      --border: #d8dde3;
+      --light: #f5f7fa;
       --white: #ffffff;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: "Noto Sans", Arial, sans-serif;
       color: var(--text);
       background: var(--light);
-      line-height: 1.6;
+      font-family: "Noto Sans", Arial, sans-serif;
+      line-height: 1.58;
     }
-    a { color: var(--link); }
+    a { color: #1f5f99; }
     .topbar {
       background: var(--nav);
       color: var(--white);
       border-bottom: 4px solid var(--red);
     }
     .topbar-inner {
-      max-width: 1180px;
+      max-width: 1240px;
       margin: 0 auto;
       padding: 22px 24px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 16px;
+      justify-content: space-between;
+      gap: 20px;
       flex-wrap: wrap;
     }
     .brand {
@@ -49,15 +48,15 @@
       gap: 14px;
     }
     .brand-mark {
-      width: 44px;
-      height: 44px;
+      width: 48px;
+      height: 48px;
       border-radius: 6px;
-      background: var(--white);
-      color: var(--red);
       display: grid;
       place-items: center;
+      background: var(--white);
+      color: var(--red);
       font-weight: 800;
-      font-size: 22px;
+      font-size: 1.4rem;
     }
     .brand h1 {
       margin: 0;
@@ -67,20 +66,20 @@
     }
     .brand p {
       margin: 4px 0 0;
-      color: #dbe6f3;
-      font-size: .92rem;
+      color: #d9e6f3;
+      font-size: .94rem;
     }
     .meta {
+      color: #d9e6f3;
       text-align: right;
-      color: #dbe6f3;
-      font-size: .86rem;
+      font-size: .88rem;
     }
-    .guide-shell {
-      max-width: 1180px;
+    .shell {
+      max-width: 1240px;
       margin: 24px auto;
-      padding: 0 24px 32px;
+      padding: 0 24px 36px;
       display: grid;
-      grid-template-columns: 260px minmax(0, 1fr);
+      grid-template-columns: 280px minmax(0, 1fr);
       gap: 24px;
     }
     .toc {
@@ -101,11 +100,11 @@
     .toc button {
       width: 100%;
       border: 0;
-      background: transparent;
-      color: var(--link);
-      text-align: left;
-      padding: 8px 6px;
       border-radius: 4px;
+      background: transparent;
+      color: #1f5f99;
+      text-align: left;
+      padding: 8px 7px;
       cursor: pointer;
       font: inherit;
       font-size: .9rem;
@@ -116,47 +115,45 @@
       color: var(--nav);
       font-weight: 700;
     }
-    .guide-main {
-      min-width: 0;
-    }
-    .guide-page {
+    .page {
       display: none;
       background: var(--white);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 28px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+      padding: 30px;
+      box-shadow: 0 1px 5px rgba(0,0,0,.06);
     }
-    .guide-page.active { display: block; }
-    .page-kicker {
+    .page.active { display: block; }
+    .kicker {
       color: var(--red);
+      font-size: .78rem;
       font-weight: 800;
       letter-spacing: .04em;
       text-transform: uppercase;
-      font-size: .76rem;
-      margin-bottom: 8px;
+      margin-bottom: 7px;
     }
     h2 {
       margin: 0 0 12px;
       color: var(--nav);
-      font-size: 1.65rem;
+      font-size: 1.7rem;
       line-height: 1.2;
     }
     h3 {
       color: var(--nav);
       margin-top: 24px;
+      font-size: 1.14rem;
     }
     .lede {
-      font-size: 1.05rem;
-      color: var(--muted);
       margin-top: 0;
+      color: var(--muted);
+      font-size: 1.04rem;
     }
     .screenshot {
-      margin: 18px 0;
+      margin: 18px 0 20px;
       border: 1px solid var(--border);
       border-radius: 6px;
       overflow: hidden;
-      background: #eef2f7;
+      background: #edf2f7;
     }
     .screenshot img {
       display: block;
@@ -167,13 +164,13 @@
       margin: 0;
       padding: 10px 12px;
       color: var(--muted);
-      font-size: .85rem;
-      background: var(--light);
+      font-size: .86rem;
+      background: #fafbfc;
       border-top: 1px solid var(--border);
     }
     .callout {
       border-left: 4px solid var(--gold);
-      background: #fff8e1;
+      background: #fff8df;
       padding: 14px 16px;
       border-radius: 4px;
       margin: 16px 0;
@@ -182,6 +179,7 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 14px;
+      margin: 16px 0;
     }
     .tile {
       border: 1px solid var(--border);
@@ -190,9 +188,17 @@
       background: #fbfcfd;
     }
     .tile strong {
-      color: var(--nav);
       display: block;
+      color: var(--nav);
       margin-bottom: 4px;
+    }
+    ol, ul { padding-left: 1.25rem; }
+    li { margin: 5px 0; }
+    code {
+      background: #eef2f7;
+      border: 1px solid #dbe2ea;
+      border-radius: 4px;
+      padding: 1px 5px;
     }
     .pager {
       display: flex;
@@ -221,26 +227,20 @@
     .page-count {
       color: var(--muted);
       font-size: .9rem;
-    }
-    .footer {
-      max-width: 1180px;
-      margin: 0 auto 30px;
-      padding: 0 24px;
-      color: var(--muted);
-      font-size: .86rem;
+      text-align: center;
     }
     @media (max-width: 900px) {
-      .guide-shell { grid-template-columns: 1fr; }
+      .shell { grid-template-columns: 1fr; }
       .toc { position: static; }
       .grid { grid-template-columns: 1fr; }
       .meta { text-align: left; }
     }
     @media print {
       body { background: var(--white); }
+      .shell { display: block; max-width: none; padding: 0; margin: 0; }
       .toc, .pager { display: none; }
-      .guide-shell { display: block; margin: 0; padding: 0; }
-      .guide-page { display: block; border: 0; box-shadow: none; page-break-after: always; }
-      .topbar { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .page { display: block !important; break-after: page; box-shadow: none; border: 0; }
+      .topbar { border-bottom-color: var(--gold); }
     }
   </style>
 </head>
@@ -251,194 +251,339 @@
         <div class="brand-mark">SA</div>
         <div>
           <h1>Security Assessment &amp; Authorization Tool Guide</h1>
-          <p>Client and assessor workflows for intake, evidence, tailoring, reporting, ATO/iATO, and POA&amp;M</p>
+          <p>Step-by-step assessor and client operating manual</p>
         </div>
       </div>
       <div class="meta">
-        <div>Version 2026-05-07</div>
-        <div>Authenticated user help</div>
+        Version 2026-05-07<br>
+        Project, assessment, POA&amp;M, ATO/iATO, and evidence workflows
       </div>
     </div>
   </header>
 
-  <div class="guide-shell">
-    <nav class="toc" aria-label="Guide pages">
+  <main class="shell">
+    <aside class="toc" aria-label="Guide pages">
       <h2>Guide Pages</h2>
-      <button type="button" class="active" data-page="0">1. Roles and access</button>
-      <button type="button" data-page="1">2. Assessor dashboard</button>
-      <button type="button" data-page="2">3. Project documentation</button>
-      <button type="button" data-page="3">4. Assessment tailoring</button>
-      <button type="button" data-page="4">5. AI evidence guidance</button>
-      <button type="button" data-page="5">6. ATO, iATO, POA&amp;M</button>
-      <button type="button" data-page="6">7. Control catalog</button>
-      <button type="button" data-page="7">8. Client workflow</button>
-      <button type="button" data-page="8">9. Help and troubleshooting</button>
-    </nav>
+      <div id="tocButtons"></div>
+    </aside>
 
-    <main class="guide-main">
-      <section class="guide-page active">
-        <div class="page-kicker">Page 1</div>
-        <h2>Roles And Access</h2>
-        <p class="lede">The tool supports assessor-led project security assessment work and client evidence collection in one connected workflow.</p>
-        <figure class="screenshot">
-          <img src="assets/guide/screenshot-admin-dashboard.png" alt="Admin dashboard screenshot">
-          <figcaption class="caption">Admin dashboard with authenticated navigation and work queues.</figcaption>
-        </figure>
-        <div class="grid">
-          <div class="tile"><strong>Admin assessor</strong>Creates projects, reviews intakes, tailors controls, assigns work, manages ATO/iATO records, and exports reports.</div>
-          <div class="tile"><strong>Client evidence provider</strong>Submits intakes, responds to assigned assessments, uploads evidence, and comments on controls.</div>
-          <div class="tile"><strong>MFA</strong>Normal users use TOTP. Passkeys are optional, and TOTP remains available as fallback.</div>
-          <div class="tile"><strong>Break glass</strong>Password-only emergency assessor accounts should be rare, vaulted, and audited after use.</div>
+    <section>
+      <article class="page active" data-title="Roles And Access">
+        <div class="kicker">Page 1</div>
+        <h2>Roles, Access, And MFA</h2>
+        <p class="lede">Use this guide as the operating checklist for moving from project creation through assessment, client evidence collection, POA&amp;M, and ATO/iATO reporting.</p>
+        <div class="screenshot">
+          <img src="assets/guide/desktop-01-admin-dashboard.png" alt="Assessor dashboard with sample project and assessment data">
+          <p class="caption">Assessor dashboard with active projects, intakes, and authorization work.</p>
         </div>
-      </section>
-
-      <section class="guide-page">
-        <div class="page-kicker">Page 2</div>
-        <h2>Assessor Dashboard</h2>
-        <p class="lede">Assessors start from Projects, Intakes, Assessments, or the security control catalog.</p>
-        <figure class="screenshot">
-          <img src="assets/guide/screenshot-project-dashboard.png" alt="Project dashboard screenshot">
-          <figcaption class="caption">Project dashboard with intake, assessment, documentation, assignment, reporting, and authorization areas.</figcaption>
-        </figure>
-        <ol>
-          <li>Open or create a project.</li>
-          <li>Upload project documentation and confirm it appears in the Documentation table.</li>
-          <li>Create an assessment from the project and linked intake.</li>
-          <li>Tailor the control set and guidance.</li>
-          <li>Assign the work to a client user, another assessor, or a new invitee.</li>
-          <li>Manage reports, ATO/iATO records, and POA&amp;M items from the project dashboard.</li>
-        </ol>
-      </section>
-
-      <section class="guide-page">
-        <div class="page-kicker">Page 3</div>
-        <h2>Project Documentation</h2>
-        <p class="lede">Project documents are stored with the project so they can be reused for AI guidance, control tailoring, reporting references, and audit traceability.</p>
-        <figure class="screenshot">
-          <img src="assets/guide/screenshot-project-documents.png" alt="Project documentation table screenshot">
-          <figcaption class="caption">Documentation table with document name, type, upload date, uploader, file size, related project, and actions.</figcaption>
-        </figure>
-        <div class="callout">Use SADDs, architecture diagrams, security plans, privacy artifacts, and previous assessment packages as high-value source documents.</div>
-        <p>Documents can be downloaded, removed as project references, used for AI analysis, and listed in project reports without embedding the attachment itself.</p>
-      </section>
-
-      <section class="guide-page">
-        <div class="page-kicker">Page 4</div>
-        <h2>Assessment Tailoring</h2>
-        <p class="lede">AI can help, but the assessor decides the final control set.</p>
-        <figure class="screenshot">
-          <img src="assets/guide/screenshot-assessment-tailoring.png" alt="Assessment tailoring screenshot">
-          <figcaption class="caption">Tailoring mode exposes editable control fields and save controls.</figcaption>
-        </figure>
-        <p>Use Tailor to edit applicability, description, control guidance, tailored description, evidence guidance, evidence collected, assessor notes, assessment status, evidence status, inheritance, priority, and risk level.</p>
-        <div class="callout">Save tailoring changes before refreshing or leaving the page. Saved changes persist after refresh.</div>
-      </section>
-
-      <section class="guide-page">
-        <div class="page-kicker">Page 5</div>
-        <h2>AI Evidence Guidance</h2>
-        <p class="lede">AI-generated text is a draft for assessor review, never an automatic final decision.</p>
-        <figure class="screenshot">
-          <img src="assets/guide/screenshot-ai-guidance.png" alt="AI guidance screenshot">
-          <figcaption class="caption">Select project documents and controls, generate a preview, then save approved guidance.</figcaption>
-        </figure>
-        <ol>
-          <li>Select project documentation.</li>
-          <li>Select target controls.</li>
-          <li>Generate a preview.</li>
-          <li>Edit or reject generated content.</li>
-          <li>Save approved guidance only.</li>
-        </ol>
-        <p>The system tracks AI-generated guidance and marks content edited after generation.</p>
-      </section>
-
-      <section class="guide-page">
-        <div class="page-kicker">Page 6</div>
-        <h2>ATO, iATO, And POA&amp;M</h2>
-        <p class="lede">Authorization records and POA&amp;M items stay editable so the package can mature with the assessment.</p>
         <div class="grid">
-          <div class="tile"><strong>ATO/iATO records</strong>Edit title, system description, scope, summaries, risk statements, authorization conditions, notes, static text, and custom sections.</div>
-          <div class="tile"><strong>POA&amp;M items</strong>Track finding, risk rating, owner, target date, status, mitigation plan, milestones, residual risk, and assessor notes.</div>
+          <div class="tile"><strong>Assessor/admin</strong>Creates projects, reviews intakes, tailors controls, assigns work, manages POA&amp;M, creates ATO/iATO records, and exports reports.</div>
+          <div class="tile"><strong>Client</strong>Submits intakes, responds to assigned assessments, uploads evidence, and submits evidence packages.</div>
         </div>
-        <p>POA&amp;M items can be linked to controls and to an ATO/iATO record. Project reports include POA&amp;M data where applicable.</p>
-      </section>
+        <div class="callout">Normal users should use TOTP MFA. Passkeys are optional after TOTP is configured, and TOTP remains available as a fallback. Break-glass accounts are emergency-only.</div>
+      </article>
 
-      <section class="guide-page">
-        <div class="page-kicker">Page 7</div>
-        <h2>Security Control Catalog</h2>
-        <p class="lede">The catalog gives admin assessors a searchable view of supported framework controls.</p>
-        <figure class="screenshot">
-          <img src="assets/guide/screenshot-security-controls.png" alt="Security control catalog screenshot">
-          <figcaption class="caption">Search, sort, filter, and export security controls.</figcaption>
-        </figure>
-        <p>Filter by framework, family, category, baseline, applicability, status, or keyword. Export to CSV for Excel-compatible review.</p>
-      </section>
+      <article class="page" data-title="Create Project">
+        <div class="kicker">Page 2</div>
+        <h2>Create A Project And Linked Intake</h2>
+        <p class="lede">A new project starts with intake-quality information. The project save creates or updates the linked intake record in the background.</p>
+        <div class="screenshot">
+          <img src="assets/guide/desktop-02-project-new-intake-ai.png" alt="New project form with AI-assisted intake fields">
+          <p class="caption">New project form with document upload, description, categorization, contacts, and assignment fields.</p>
+        </div>
+        <ol>
+          <li>Sign in at <code>/admin/login</code>.</li>
+          <li>Open <strong>Projects</strong> and select <strong>New Project</strong>.</li>
+          <li>Upload a SADD or paste a plain-language project description.</li>
+          <li>Review proposed field values before applying them.</li>
+          <li>Complete classification, hosting, technologies, privacy, contacts, and notes.</li>
+          <li>Optionally assign the intake to an existing user or invite a new user.</li>
+          <li>Save the project and confirm the project dashboard shows a linked intake reference.</li>
+        </ol>
+      </article>
 
-      <section class="guide-page">
-        <div class="page-kicker">Page 8</div>
+      <article class="page" data-title="Project Dashboard">
+        <div class="kicker">Page 3</div>
+        <h2>Use The Project Dashboard</h2>
+        <p class="lede">The project dashboard is the assessor workbench for documentation, assignments, assessments, reports, branding, ATO/iATO records, and POA&amp;M.</p>
+        <div class="screenshot">
+          <img src="assets/guide/desktop-03-project-dashboard.png" alt="Project dashboard with populated project data">
+          <p class="caption">Project dashboard with populated sample data, assignments, intake, documents, and reporting panels.</p>
+        </div>
+        <ol>
+          <li>Confirm classification, hosting, technology stack, contacts, and project status.</li>
+          <li>Open or review the linked intake.</li>
+          <li>Upload documentation for AI analysis and traceability.</li>
+          <li>Create assessments and review assessment status.</li>
+          <li>Configure organization branding for reports.</li>
+          <li>Create ATO/iATO records and export project reports.</li>
+        </ol>
+      </article>
+
+      <article class="page" data-title="Documents">
+        <div class="kicker">Page 4</div>
+        <h2>Upload And Use Project Documentation</h2>
+        <p class="lede">Uploaded project documents are stored with the project and can be used later for AI-assisted control selection, evidence guidance, report references, and audit traceability.</p>
+        <div class="screenshot">
+          <img src="assets/guide/desktop-06-project-documents-reports.png" alt="Documentation table and reporting section">
+          <p class="caption">Documentation table with uploaded SADD and data-flow evidence files.</p>
+        </div>
+        <ol>
+          <li>Open the project dashboard.</li>
+          <li>Upload SADDs, diagrams, security plans, data flows, privacy documents, or prior assessment packages.</li>
+          <li>Confirm each file appears with type, upload date, uploader, size, project, and actions.</li>
+          <li>Download to verify the stored file.</li>
+          <li>Use the AI action when a document should support control selection or evidence guidance.</li>
+          <li>Delete only the project document reference when it should no longer be used.</li>
+        </ol>
+      </article>
+
+      <article class="page" data-title="Tailor Assessment">
+        <div class="kicker">Page 5</div>
+        <h2>Create And Tailor An Assessment</h2>
+        <p class="lede">The assessor remains in control of the final tailored control set. AI can suggest, but the assessor approves, edits, removes, and saves.</p>
+        <div class="screenshot">
+          <img src="assets/guide/desktop-09-assessment-tailoring.png" alt="Assessment tailoring mode with editable control fields">
+          <p class="caption">Tailoring mode with editable control title, description, guidance, evidence, notes, status, applicability, inheritance, and risk.</p>
+        </div>
+        <ol>
+          <li>From the project dashboard, select <strong>New Assessment</strong>.</li>
+          <li>Review suggested controls and create the assessment.</li>
+          <li>Open the assessment and select <strong>Tailor</strong>.</li>
+          <li>Edit control title, description, control guidance, evidence guidance, evidence collected, assessor notes, audit comments, status, applicability, priority, and risk.</li>
+          <li>Remove non-applicable controls.</li>
+          <li>Save tailoring changes and refresh to confirm persistence.</li>
+        </ol>
+      </article>
+
+      <article class="page" data-title="AI Guidance">
+        <div class="kicker">Page 6</div>
+        <h2>Generate AI Evidence Guidance</h2>
+        <p class="lede">Use AI output as assessor-reviewed draft content. Do not send or report generated guidance until it has been reviewed.</p>
+        <div class="screenshot">
+          <img src="assets/guide/desktop-07-assessment-detail-assignment.png" alt="Assessment detail page with assignment and AI guidance areas">
+          <p class="caption">Assessment detail page showing assignment, documents, AI guidance area, and control status.</p>
+        </div>
+        <ol>
+          <li>Upload project documentation first.</li>
+          <li>Open the assessment.</li>
+          <li>Select one or more project documents.</li>
+          <li>Select visible controls or checked controls.</li>
+          <li>Preview generated guidance.</li>
+          <li>Edit the preview if needed.</li>
+          <li>Save only guidance that the assessor approves.</li>
+        </ol>
+        <div class="callout">Existing assessor-entered notes, evidence, or guidance should not be silently overwritten. AI-generated guidance is tracked separately from manual or edited content.</div>
+      </article>
+
+      <article class="page" data-title="Assign Existing">
+        <div class="kicker">Page 7</div>
+        <h2>Assign Existing Users</h2>
+        <p class="lede">Use existing-user assignment when the client or assessor already has an active account.</p>
+        <div class="screenshot">
+          <img src="assets/guide/desktop-04-project-assignment-existing.png" alt="Project assignment form for selecting an existing user">
+          <p class="caption">Project assignment form targeting intake and assessments for an existing user.</p>
+        </div>
+        <ol>
+          <li>Open the project or assessment.</li>
+          <li>Choose the target intake, assessment, or all linked work.</li>
+          <li>Select <strong>Existing user</strong>.</li>
+          <li>Choose a client or assessor from the list.</li>
+          <li>Add notes if useful.</li>
+          <li>Assign and confirm the assignment appears in the assignment list.</li>
+        </ol>
+      </article>
+
+      <article class="page" data-title="Invite Users">
+        <div class="kicker">Page 8</div>
+        <h2>Invite New Clients Or Assessors</h2>
+        <p class="lede">Use invitation assignment when the person does not yet have an account.</p>
+        <div class="screenshot">
+          <img src="assets/guide/desktop-05-project-assignment-invite.png" alt="Project assignment form for inviting a new user">
+          <p class="caption">Project-level invitation workflow for a new client or assessor.</p>
+        </div>
+        <div class="screenshot">
+          <img src="assets/guide/desktop-08-assessment-invite-user.png" alt="Assessment assignment form for inviting a new user">
+          <p class="caption">Assessment-level invitation workflow for a new user.</p>
+        </div>
+        <ol>
+          <li>Set assignment mode to <strong>Invite new user</strong>.</li>
+          <li>Choose client or assessor.</li>
+          <li>Enter name, email, organization, and message.</li>
+          <li>Assign the work.</li>
+          <li>If email is not configured, copy the invitation code from the success message and share it through an approved channel.</li>
+          <li>Confirm the pending invite appears in the assignment list.</li>
+        </ol>
+      </article>
+
+      <article class="page" data-title="Client Intake">
+        <div class="kicker">Page 9</div>
+        <h2>Client Intake Workflow</h2>
+        <p class="lede">Clients can provide project information and supporting documents without admin privileges.</p>
+        <div class="screenshot">
+          <img src="assets/guide/desktop-15-client-intake.png" alt="Client intake form with sample project description">
+          <p class="caption">Client intake form with project description, categorization, hosting, privacy, and contacts.</p>
+        </div>
+        <ol>
+          <li>Sign in at <code>/client/login</code>.</li>
+          <li>Complete TOTP verification.</li>
+          <li>Open <code>/intake</code>.</li>
+          <li>Describe the project purpose, users, data, integrations, hosting, and security dependencies.</li>
+          <li>Upload supporting documents.</li>
+          <li>Submit the intake and keep the reference code.</li>
+        </ol>
+      </article>
+
+      <article class="page" data-title="Client Evidence">
+        <div class="kicker">Page 10</div>
         <h2>Client Evidence Workflow</h2>
-        <p class="lede">Clients provide the project details and evidence assessors need to review controls.</p>
-        <figure class="screenshot">
-          <img src="assets/guide/screenshot-client-intake.png" alt="Client intake screenshot">
-          <figcaption class="caption">Authenticated client intake page.</figcaption>
-        </figure>
+        <p class="lede">Clients respond to assigned assessment requests by providing control-specific evidence.</p>
+        <div class="screenshot">
+          <img src="assets/guide/desktop-16-client-evidence-portal.png" alt="Client evidence portal with assigned assessment controls">
+          <p class="caption">Client evidence portal for assigned controls and evidence responses.</p>
+        </div>
         <ol>
-          <li>Sign in with TOTP.</li>
-          <li>Submit an intake or open an assigned assessment link.</li>
-          <li>Review assessor evidence guidance.</li>
-          <li>Provide evidence text and supporting attachments.</li>
-          <li>Save progress and submit when ready.</li>
+          <li>Open the assessment link or enter the invite code.</li>
+          <li>Sign in with the assigned client account.</li>
+          <li>Review each control request and evidence guidance.</li>
+          <li>Add evidence text, links, exports, screenshots, or document references.</li>
+          <li>Save progress as work continues.</li>
+          <li>Submit the evidence package when ready for assessor review.</li>
         </ol>
-      </section>
+        <div class="callout">Good evidence is current, dated, clearly named, tied to the system under assessment, and specific about which control it supports.</div>
+      </article>
 
-      <section class="guide-page">
-        <div class="page-kicker">Page 9</div>
-        <h2>Help And Troubleshooting</h2>
-        <p class="lede">Authenticated users can open Help from the application header.</p>
-        <figure class="screenshot">
-          <img src="assets/guide/screenshot-help-menu.png" alt="Help menu screenshot">
-          <figcaption class="caption">Help appears in the header for signed-in assessors and clients.</figcaption>
-        </figure>
+      <article class="page" data-title="Assessment POA&M">
+        <div class="kicker">Page 11</div>
+        <h2>Manage Assessment POA&amp;M Items</h2>
+        <p class="lede">POA&amp;M items track findings, owners, due dates, risk, milestones, mitigation, residual risk, and assessor notes.</p>
+        <div class="screenshot">
+          <img src="assets/guide/desktop-10-assessment-poam.png" alt="Assessment POA&M table with edit controls">
+          <p class="caption">Assessment POA&amp;M table with risk, control, owner, due date, status, and edit/delete actions.</p>
+        </div>
+        <ol>
+          <li>Open the assessment.</li>
+          <li>Scroll to <strong>Plan of Action &amp; Milestones</strong>.</li>
+          <li>Use <strong>Auto-Populate</strong> to create items from findings or add an item manually.</li>
+          <li>Set finding, risk, control, owner, target date, status, mitigation plan, milestones, residual risk, and assessor notes.</li>
+          <li>Link the item to an ATO/iATO when it belongs in an authorization package.</li>
+          <li>Update status through open, in progress, completed, and verified.</li>
+        </ol>
+      </article>
+
+      <article class="page" data-title="ATO/iATO">
+        <div class="kicker">Page 12</div>
+        <h2>Create ATO/iATO Records</h2>
+        <p class="lede">ATO/iATO records are editable authorization packages linked to the project and optionally to an assessment.</p>
+        <div class="screenshot">
+          <img src="assets/guide/desktop-11-ato-edit.png" alt="ATO/iATO edit page with authorization fields">
+          <p class="caption">ATO/iATO edit page with authorization metadata and editable report content sections.</p>
+        </div>
+        <ol>
+          <li>Open the project dashboard.</li>
+          <li>Select <strong>New ATO</strong> or <strong>New iATO</strong>.</li>
+          <li>Link an assessment when the authorization is based on an assessment package.</li>
+          <li>Edit title, system details, officials, status, dates, executive summary, system description, assessment scope, risk statements, conditions, security control summary, POA&amp;M summary, notes, static text, and custom sections.</li>
+          <li>Save and export when ready.</li>
+        </ol>
+      </article>
+
+      <article class="page" data-title="ATO POA&M">
+        <div class="kicker">Page 13</div>
+        <h2>Manage ATO/iATO Risk Remediation</h2>
+        <p class="lede">ATO/iATO remediation items can be created, edited, deleted, and included in authorization reports.</p>
+        <div class="screenshot">
+          <img src="assets/guide/desktop-12-ato-poam-crud.png" alt="ATO/iATO POA&M CRUD table">
+          <p class="caption">ATO/iATO remediation table with add, edit, status update, and delete actions.</p>
+        </div>
+        <ol>
+          <li>Open the ATO/iATO record.</li>
+          <li>Scroll to <strong>Risk Remediation Items / POA&amp;M</strong>.</li>
+          <li>Add a project-level or assessment-linked remediation item.</li>
+          <li>Link a control when the item maps to a control finding.</li>
+          <li>Set risk, status, target date, owner, original finding, mitigation, milestones, residual risk, and assessor notes.</li>
+          <li>Edit or delete items as needed.</li>
+        </ol>
+      </article>
+
+      <article class="page" data-title="Reports And Catalog">
+        <div class="kicker">Page 14</div>
+        <h2>Export Reports And Browse Controls</h2>
+        <p class="lede">Export assessment and authorization outputs, then use the catalog for framework-level control review.</p>
+        <div class="screenshot">
+          <img src="assets/guide/desktop-13-security-control-catalog.png" alt="Security control catalog with search results">
+          <p class="caption">Admin security control catalog with search, filters, metadata, and CSV export.</p>
+        </div>
+        <h3>Export reports</h3>
+        <ol>
+          <li>Use <strong>Controls CSV</strong> for Excel-compatible review.</li>
+          <li>Use <strong>Controls PDF</strong> for formatted control details.</li>
+          <li>Use <strong>Full Project PDF</strong> for project overview, documents list, assessments, controls, POA&amp;M, and ATO/iATO summary.</li>
+          <li>Use <strong>Assessment PDF</strong> for the security assessment report.</li>
+          <li>Use <strong>ATO/iATO PDF</strong> for the authorization package.</li>
+        </ol>
+        <h3>Browse controls</h3>
+        <ol>
+          <li>Open <code>/admin/security-controls</code>.</li>
+          <li>Search by control ID, title, keyword, description, guidance, or definitions.</li>
+          <li>Filter by framework, family, baseline, category, applicability, or status.</li>
+          <li>Export the filtered catalog to CSV.</li>
+        </ol>
+      </article>
+
+      <article class="page" data-title="Help">
+        <div class="kicker">Page 15</div>
+        <h2>Help Menu And Troubleshooting</h2>
+        <p class="lede">Authenticated assessors and clients can open this guide from the application header.</p>
+        <div class="screenshot">
+          <img src="assets/guide/desktop-14-help-guide.png" alt="Authenticated help guide in the application">
+          <p class="caption">The authenticated Help link opens this paginated guide inside the app.</p>
+        </div>
         <ul>
-          <li>If a page does not show expected work, confirm you are signed in with the assigned account.</li>
-          <li>If TOTP fails, check device time and use the newest code.</li>
-          <li>If uploads fail, check file size and file type.</li>
-          <li>If AI guidance is unavailable, confirm the Anthropic API key is configured.</li>
-          <li>If an export fails, confirm the project has the required assessment or authorization records.</li>
+          <li><strong>Invitation code fails:</strong> check spaces, expiry, and invited email address.</li>
+          <li><strong>Assigned work is missing:</strong> sign in with the exact assigned account.</li>
+          <li><strong>TOTP fails:</strong> check device time and use the newest code.</li>
+          <li><strong>Upload fails:</strong> confirm file type and file size.</li>
+          <li><strong>AI guidance unavailable:</strong> confirm the Anthropic API key is configured.</li>
+          <li><strong>PDF export fails:</strong> confirm the project has the required assessment, controls, branding, or authorization records.</li>
+          <li><strong>POA&amp;M item missing from ATO/iATO:</strong> confirm the item is linked to the correct authorization record.</li>
         </ul>
-      </section>
+      </article>
 
-      <div class="pager" aria-label="Pagination">
-        <button type="button" id="prevPage">Previous</button>
-        <span class="page-count" id="pageCount">Page 1 of 9</span>
-        <button type="button" id="nextPage">Next</button>
-      </div>
-    </main>
-  </div>
-
-  <footer class="footer">
-    Security Assessment &amp; Authorization Tool Guide. This standalone HTML file can be opened locally or from the authenticated Help menu.
-  </footer>
+      <nav class="pager" aria-label="Guide pagination">
+        <button type="button" id="prevBtn">Previous</button>
+        <div class="page-count" id="pageCount"></div>
+        <button type="button" id="nextBtn">Next</button>
+      </nav>
+    </section>
+  </main>
 
   <script>
-    const pages = Array.from(document.querySelectorAll('.guide-page'));
-    const buttons = Array.from(document.querySelectorAll('.toc button'));
-    const prev = document.getElementById('prevPage');
-    const next = document.getElementById('nextPage');
+    const pages = Array.from(document.querySelectorAll('.page'));
+    const toc = document.getElementById('tocButtons');
+    const prev = document.getElementById('prevBtn');
+    const next = document.getElementById('nextBtn');
     const count = document.getElementById('pageCount');
     let current = 0;
+
+    pages.forEach((page, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = `${index + 1}. ${page.dataset.title}`;
+      button.addEventListener('click', () => showPage(index));
+      toc.appendChild(button);
+    });
 
     function showPage(index) {
       current = Math.max(0, Math.min(index, pages.length - 1));
       pages.forEach((page, i) => page.classList.toggle('active', i === current));
-      buttons.forEach((button, i) => button.classList.toggle('active', i === current));
+      Array.from(toc.children).forEach((button, i) => button.classList.toggle('active', i === current));
       prev.disabled = current === 0;
       next.disabled = current === pages.length - 1;
-      count.textContent = 'Page ' + (current + 1) + ' of ' + pages.length;
+      count.textContent = `Page ${current + 1} of ${pages.length}`;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    buttons.forEach((button, i) => button.addEventListener('click', () => showPage(i)));
     prev.addEventListener('click', () => showPage(current - 1));
     next.addEventListener('click', () => showPage(current + 1));
     showPage(0);
