@@ -107,7 +107,7 @@ Export controls CSV, controls PDF, full project PDF, assessment PDF, and ATO/iAT
 
 ![Security control catalog](docs/assets/guide/desktop-13-security-control-catalog.png)
 
-Open `/admin/security-controls` to search, filter, sort, and export the supported security control catalog.
+Open `/admin/security-controls` to search, filter, sort, and export the supported security control catalog across ITSG-33, CIS Controls v8, ISO/IEC 27001:2022 Annex A, FedRAMP Rev. 5, NIST SP 800-53 Rev. 5, ASD ISM, and ACSC Essential Eight.
 
 ## Client Workflow
 

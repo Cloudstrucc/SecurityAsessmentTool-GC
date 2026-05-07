@@ -694,6 +694,28 @@ test('admin can browse the security control catalog', async () => {
   assert.match(page.text, /Account Management/);
 });
 
+test('security control catalog includes major non-ITSG frameworks', async () => {
+  const jar = await loginAdminWithTotp();
+  const checks = [
+    ['/admin/security-controls?framework=CIS%20Controls%20v8', /Inventory and Control of Enterprise Assets/],
+    ['/admin/security-controls?framework=ISO%2FIEC%2027001%3A2022%20Annex%20A&q=A.5.1', /Policies for information security/],
+    ['/admin/security-controls?framework=FedRAMP%20Rev.%205&q=AC-2', /FedRAMP Rev\. 5/],
+    ['/admin/security-controls?framework=NIST%20SP%20800-53%20Rev.%205&q=AC-2', /NIST SP 800-53 Rev\. 5/],
+    ['/admin/security-controls?framework=ASD%20ISM&q=GOV-01', /Executive cyber security accountability/],
+    ['/admin/security-controls?framework=ACSC%20Essential%20Eight', /Multi-factor authentication/]
+  ];
+
+  for (const [url, expected] of checks) {
+    const page = await getText(jar, url);
+    assert.equal(page.response.status, 200);
+    assert.match(page.text, expected);
+  }
+
+  const csv = await request(jar, 'GET', '/admin/security-controls.csv?framework=ISO%2FIEC%2027001%3A2022%20Annex%20A');
+  assert.equal(csv.status, 200);
+  assert.match(await csv.text(), /A\.5\.1/);
+});
+
 test.skip('self-assessment creation flow', () => {
   // This main branch does not currently include /self-assessment routes.
   // Add executable coverage here when that feature lands on main.

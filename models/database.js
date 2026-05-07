@@ -686,33 +686,55 @@ async function initDatabase() {
 
   try {
     const { CONTROLS, CONTROL_FAMILIES } = require('../config/itsg33-controls');
-    const existingCatalog = db.exec("SELECT COUNT(*) FROM security_control_catalog WHERE framework = 'ITSG-33'");
-    const existingCount = existingCatalog[0]?.values[0]?.[0] || 0;
-    if (existingCount < CONTROLS.length) {
-      const insert = db.prepare(`INSERT OR REPLACE INTO security_control_catalog
-        (framework, control_id, title, family, description, guidance, definitions, related_controls, baseline, category, applicability_notes, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-      CONTROLS.forEach(control => {
-        insert.bind([
-          'ITSG-33',
-          control.id,
-          control.title,
-          control.family,
-          control.description || '',
-          control.evidenceGuidance || '',
-          JSON.stringify(control.tags || []),
-          JSON.stringify([]),
-          (control.profiles || []).join(', '),
-          CONTROL_FAMILIES[control.family] || control.family,
-          (control.commonInheritance || []).join(', '),
-          'active'
-        ]);
-        insert.step();
-        insert.reset();
-      });
-      insert.free();
-      console.log(`Security control catalog seeded (${CONTROLS.length} ITSG-33 controls)`);
-    }
+    const frameworkCatalog = require('../config/framework-control-data.json');
+    const insert = db.prepare(`INSERT OR REPLACE INTO security_control_catalog
+      (framework, control_id, title, family, description, guidance, definitions, related_controls, baseline, category, applicability_notes, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+    let seededCount = 0;
+    const seededByFramework = {};
+    const upsertCatalogRow = (row) => {
+      insert.bind([
+        row.framework,
+        row.control_id,
+        row.title,
+        row.family || '',
+        row.description || '',
+        row.guidance || '',
+        row.definitions || '',
+        row.related_controls || '',
+        row.baseline || '',
+        row.category || '',
+        row.applicability_notes || '',
+        row.status || 'active'
+      ]);
+      insert.step();
+      insert.reset();
+      seededCount += 1;
+      seededByFramework[row.framework] = (seededByFramework[row.framework] || 0) + 1;
+    };
+
+    CONTROLS.forEach(control => upsertCatalogRow({
+      framework: 'ITSG-33',
+      control_id: control.id,
+      title: control.title,
+      family: control.family,
+      description: control.description || '',
+      guidance: control.evidenceGuidance || '',
+      definitions: JSON.stringify(control.tags || []),
+      related_controls: JSON.stringify([]),
+      baseline: (control.profiles || []).join(', '),
+      category: CONTROL_FAMILIES[control.family] || control.family,
+      applicability_notes: (control.commonInheritance || []).join(', '),
+      status: 'active'
+    }));
+
+    (frameworkCatalog.controls || []).forEach(upsertCatalogRow);
+    insert.free();
+    const summary = Object.entries(seededByFramework)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([framework, count]) => `${framework}: ${count}`)
+      .join('; ');
+    console.log(`Security control catalog upserted (${seededCount} controls; ${summary})`);
   } catch (e) {
     console.warn('Security control catalog seed skipped:', e.message);
   }

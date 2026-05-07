@@ -11,7 +11,7 @@ Node.js/Express application for managing Government of Canada security assessmen
 - Stores project documentation for later AI analysis, evidence guidance, audit traceability, and reporting references.
 - Lets assessors tailor assessment controls, edit guidance/evidence fields, and preserve AI guidance provenance.
 - Provides project-level report branding, control exports, full project exports, ATO/iATO records, and POA&M management.
-- Includes an admin security control catalog at `/admin/security-controls`.
+- Includes an admin security control catalog at `/admin/security-controls` with ITSG-33, CIS, ISO/IEC 27001, FedRAMP, NIST SP 800-53, ASD ISM, and ACSC Essential Eight entries.
 - Includes an authenticated Help guide with screenshots, plus standalone Markdown and HTML guide files under `docs/`.
 - Lets assessors assign intakes and assessments to existing users or invite new client/assessor users.
 - Supports TOTP MFA and passkeys, with TOTP available as a fallback whenever a passkey is used.
@@ -219,8 +219,11 @@ ATO/iATO and POA&M:
 Admin control catalog:
 
 - Browse `/admin/security-controls`.
+- Current seeded frameworks: ITSG-33, CIS Controls v8, ISO/IEC 27001:2022 Annex A, FedRAMP Rev. 5, NIST SP 800-53 Rev. 5, ASD ISM, and ACSC Essential Eight.
 - Filter by framework, family, category, baseline, applicability, status, or keyword.
 - Export the visible catalog data as CSV.
+- Regenerate the non-ITSG catalog data from official machine-readable sources with `npm run catalog:generate`.
+- CIS and ISO entries intentionally include identifiers, titles, and conservative metadata only. Use the official publications for normative control text.
 
 Assignment flow:
 

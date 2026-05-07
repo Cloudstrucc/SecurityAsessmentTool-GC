@@ -238,10 +238,11 @@ Project reports list uploaded documents for traceability but do not embed the up
 ![Security control catalog](assets/guide/desktop-13-security-control-catalog.png)
 
 1. Open `/admin/security-controls`.
-2. Search by keyword, control ID, title, description, guidance, or definitions.
-3. Filter by framework, family, baseline, category, applicability, or status.
-4. Sort and review the control metadata.
-5. Export the filtered catalog to CSV when you need an offline or Excel-compatible view.
+2. Use the Framework filter to review ITSG-33, CIS Controls v8, ISO/IEC 27001:2022 Annex A, FedRAMP Rev. 5, NIST SP 800-53 Rev. 5, ASD ISM, or ACSC Essential Eight.
+3. Search by keyword, control ID, title, description, guidance, or definitions.
+4. Filter by family, baseline, category, applicability, or status.
+5. Sort and review the control metadata.
+6. Export the filtered catalog to CSV when you need an offline or Excel-compatible view.
 
 ## 16. Help Menu And Troubleshooting
 

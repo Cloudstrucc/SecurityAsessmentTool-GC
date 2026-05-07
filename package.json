@@ -9,6 +9,7 @@
     "users": "node scripts/manage-users.js",
     "user:admin": "node scripts/manage-users.js admin",
     "user:break-glass": "node scripts/manage-users.js break-glass",
+    "catalog:generate": "node scripts/generate-framework-catalog.js",
     "test:e2e": "node scripts/run-e2e-tests.js",
     "test:e2e:raw": "node --test tests/e2e/*.test.js"
   },
