@@ -33,13 +33,17 @@ const intakeUpload = multer({
 // Home page
 router.get('/', (req, res) => {
   res.render('index', {
-    title: 'Security Assessment & Authorization Platform',
+    title: 'Vanguard Cloud Services - SA&A Platform',
+    layout: 'home',
     frameworkHighlights: ['ITSG-33', 'CIS Controls v8', 'ISO 27001', 'FedRAMP', 'NIST SP 800-53', 'ASD ISM', 'Essential Eight']
   });
 });
 
 router.get('/portal', (req, res) => {
-  res.redirect('/');
+  res.render('portal', {
+    title: 'Client Portal - Vanguard Cloud Services',
+    layout: 'home'
+  });
 });
 
 // ── SECURITY SELF-ASSESSMENT (access-code gated) ──

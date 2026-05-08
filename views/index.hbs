@@ -1,84 +1,339 @@
 <style>
-  .home-hero { margin:-1.5rem -15px 0; padding:4rem 0 3.25rem; background:linear-gradient(135deg,#26374a 0%,#1c578a 62%,#2572b4 100%); color:#fff; border-bottom:4px solid var(--gc-red); }
-  .home-hero h1 { color:#fff; font-size:clamp(2rem,4vw,3.6rem); }
-  .home-hero p { color:rgba(255,255,255,.82); max-width:760px; }
-  .home-action { height:100%; border-radius:8px; border:1px solid var(--gc-border); box-shadow:0 8px 20px rgba(0,0,0,.08); }
-  .framework-strip { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:1.5rem; }
-  .framework-strip span { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.22); color:#fff; border-radius:4px; padding:.3rem .55rem; font-size:.8rem; }
+.hero {
+  background:linear-gradient(135deg,#1a2e42 0%,#2d4a6a 52%,#3a5a7c 100%);
+  position:relative;
+  overflow:hidden;
+  border-bottom:3px solid #0ea5e9;
+}
+.hero-brand {
+  padding:.85rem 0;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  position:relative;
+  z-index:2;
+}
+.brand-link {
+  color:#fff;
+  text-decoration:none;
+  display:flex;
+  align-items:center;
+  gap:.6rem;
+  font-size:.95rem;
+}
+.brand-link:hover { color:#fff; }
+.brand-icon {
+  width:38px;
+  min-width:38px;
+  display:flex;
+  align-items:center;
+}
+.brand-icon img { height:30px; width:auto; }
+.brand-name { font-weight:800; letter-spacing:-.01em; }
+.brand-sep { color:rgba(255,255,255,.28); margin:0 .2rem; font-weight:300; }
+.brand-product { font-weight:500; opacity:.78; font-size:.88rem; }
+.btn-existing {
+  font-size:.78rem;
+  padding:.35rem .9rem;
+  border:1px solid rgba(255,255,255,.28);
+  border-radius:6px;
+  color:rgba(255,255,255,.86);
+  background:rgba(255,255,255,.07);
+  text-decoration:none;
+  transition:all .2s;
+}
+.btn-existing:hover { background:rgba(255,255,255,.14); color:#fff; }
+.hero-main {
+  padding:3.2rem 0 2.7rem;
+  position:relative;
+  z-index:1;
+}
+.hero h1 {
+  color:#fff;
+  font-weight:800;
+  font-size:clamp(2.1rem,4vw,3.8rem);
+  line-height:1.08;
+  letter-spacing:0;
+}
+.hero h1 span { color:#f0c36d; }
+.hero .lead {
+  color:rgba(255,255,255,.76);
+  font-size:1.08rem;
+  max-width:620px;
+}
+.hero-point {
+  color:rgba(255,255,255,.72);
+  font-size:.86rem;
+  display:flex;
+  align-items:center;
+  gap:.45rem;
+}
+.hero-point i { color:#22c55e; }
+.sa-hero-card {
+  background:#fff;
+  border-radius:12px;
+  box-shadow:0 10px 34px rgba(0,0,0,.22);
+  overflow:hidden;
+  max-width:430px;
+  margin-left:auto;
+}
+.sa-hero-card .sa-header {
+  background:linear-gradient(135deg,#284162,#1a8a4a);
+  padding:1.5rem;
+  text-align:center;
+}
+.sa-hero-card .sa-header i {
+  font-size:2.5rem;
+  color:#fff;
+  display:block;
+  margin-bottom:.5rem;
+}
+.sa-hero-card .sa-header h3 {
+  color:#fff;
+  font-size:1.1rem;
+  font-weight:800;
+  margin:0;
+}
+.sa-hero-card .sa-header p {
+  color:rgba(255,255,255,.82);
+  font-size:.82rem;
+  margin:.3rem 0 0;
+}
+.sa-body { padding:1.5rem; }
+.sa-step {
+  display:flex;
+  gap:.75rem;
+  align-items:flex-start;
+  margin-bottom:.85rem;
+  padding-bottom:.85rem;
+  border-bottom:1px solid #eef1f5;
+}
+.sa-step:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
+.sa-step-num {
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  background:#284162;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:.75rem;
+  font-weight:800;
+  flex-shrink:0;
+}
+.sa-step-text { font-size:.86rem; color:#334155; line-height:1.45; }
+.sa-step-text strong { color:#26374a; }
+.btn-sa-start {
+  background:linear-gradient(135deg,#1a8a4a,#15713d);
+  color:#fff;
+  border:none;
+  width:100%;
+  padding:.88rem;
+  border-radius:8px;
+  font-weight:800;
+  font-size:1rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.5rem;
+  transition:all .2s;
+  cursor:pointer;
+  text-decoration:none;
+  box-shadow:0 4px 12px rgba(26,138,74,.3);
+}
+.btn-sa-start:hover {
+  background:linear-gradient(135deg,#15713d,#0f5c30);
+  transform:translateY(-1px);
+  box-shadow:0 6px 18px rgba(26,138,74,.35);
+  color:#fff;
+}
+.sa-note {
+  font-size:.72rem;
+  color:#8c96a2;
+  text-align:center;
+  margin-top:.75rem;
+}
+.fw-ticker {
+  background:rgba(255,255,255,.06);
+  border-top:1px solid rgba(255,255,255,.08);
+  padding:.75rem 0;
+  position:relative;
+  z-index:1;
+}
+.fw-ticker-inner {
+  display:flex;
+  align-items:center;
+  gap:.65rem;
+  overflow:hidden;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.fw-label {
+  color:rgba(255,255,255,.48);
+  font-size:.72rem;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  white-space:nowrap;
+}
+.fw-badge {
+  padding:.22rem .65rem;
+  border-radius:4px;
+  font-size:.72rem;
+  font-weight:700;
+  background:rgba(255,255,255,.08);
+  color:rgba(255,255,255,.7);
+  border:1px solid rgba(255,255,255,.1);
+}
+.platform-section { padding:2.5rem 0; }
+.platform-section h2 {
+  font-size:1.3rem;
+  font-weight:800;
+  color:#26374a;
+}
+.cap-item { text-align:center; padding:1rem; }
+.cap-item i { font-size:1.8rem; color:#284162; }
+.cap-title {
+  font-weight:800;
+  font-size:.9rem;
+  margin-top:.5rem;
+  color:#26374a;
+}
+.cap-desc {
+  font-size:.76rem;
+  color:#64748b;
+  margin-top:.2rem;
+}
+.site-footer { background:#26374a; padding:1.25rem 0; }
+.site-footer p { color:rgba(255,255,255,.58); font-size:.78rem; margin:0; }
+.site-footer a { color:rgba(255,255,255,.78); text-decoration:none; }
+.site-footer a:hover { color:#fff; }
+@media(max-width:991px) {
+  .hero-main { padding:2.5rem 0; }
+  .sa-hero-card { margin:1.25rem auto 0; }
+}
+@media(max-width:575px) {
+  .brand-product,.brand-sep { display:none; }
+  .hero-brand .container { gap:.75rem; }
+  .hero h1 { font-size:2.05rem; }
+}
 </style>
 
-<section class="home-hero">
-  <div class="container">
-    <div class="row align-items-center g-4">
-      <div class="col-lg-8">
-        <div class="d-inline-flex align-items-center gap-2 mb-3 px-3 py-2 rounded" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2)">
-          <i class="bi bi-shield-lock-fill"></i>
-          <span class="small fw-semibold">Security Assessment &amp; Authorization Platform</span>
+<div class="hero">
+  <div class="hero-brand">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a href="/" class="brand-link" aria-label="Vanguard Cloud Services Security Assessment Platform">
+        <span class="brand-icon"><img src="/images/logo-large@2xVCS.png" alt="VCS"></span>
+        <span>
+          <span class="brand-name">Vanguard Cloud Services</span>
+          <span class="brand-sep">|</span>
+          <span class="brand-product">SA&amp;A Platform</span>
+        </span>
+      </a>
+      <a href="/portal" class="btn-existing">
+        <i class="bi bi-box-arrow-in-right me-1"></i>Existing Client
+      </a>
+    </div>
+  </div>
+
+  <div class="container hero-main">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7">
+        <div class="mb-2">
+          <span class="badge" style="background:rgba(240,195,109,.15);color:#f0c36d;font-size:.72rem;font-weight:700;padding:.3rem .8rem;border-radius:20px;">
+            <i class="bi bi-shield-check me-1"></i>Multi-framework security readiness
+          </span>
         </div>
-        <h1 class="mb-3">From quick self-assessment to full ATO/iATO package.</h1>
-        <p class="lead mb-0">Start with a guided preliminary review, submit an intake, collect evidence, tailor controls, manage POA&amp;M items, and export professional authorization reports.</p>
-        <div class="framework-strip">
-          {{#each frameworkHighlights}}<span>{{this}}</span>{{/each}}
+        <h1 class="mb-3">Know your security posture before the audit starts.<br><span>Move from signal to action.</span></h1>
+        <p class="lead mb-4">Run a guided preliminary self-assessment, identify critical gaps, and request a full assessment when you are ready to move into intake, evidence, ATO/iATO, and POA&amp;M workflows.</p>
+        <div class="d-flex flex-wrap gap-3 mb-3">
+          <div class="hero-point"><i class="bi bi-check-circle-fill"></i>No account required to request access</div>
+          <div class="hero-point"><i class="bi bi-check-circle-fill"></i>Plain-language questions</div>
+          <div class="hero-point"><i class="bi bi-check-circle-fill"></i>Instant red, amber, green feedback</div>
+        </div>
+        <div class="d-flex flex-wrap gap-3 mt-4 d-lg-none">
+          <a href="/self-assessment" class="btn-sa-start" style="max-width:320px;"><i class="bi bi-shield-check"></i>Start Self-Assessment</a>
         </div>
       </div>
-      <div class="col-lg-4">
-        {{#if user}}
-          <div class="card home-action">
-            <div class="card-header"><i class="bi bi-person-check me-2"></i>Welcome Back</div>
-            <div class="card-body p-4">
-              <p class="text-muted">Continue where you left off as <strong>{{user.name}}</strong>.</p>
-              {{#if (eq user.role 'client')}}
-                <a href="/intake" class="btn btn-primary w-100 mb-2"><i class="bi bi-clipboard-plus me-1"></i>Submit Intake</a>
-                <a href="/help" class="btn btn-outline-primary w-100"><i class="bi bi-question-circle me-1"></i>Open Guide</a>
-              {{else}}
-                <a href="/admin/dashboard" class="btn btn-primary w-100 mb-2"><i class="bi bi-speedometer2 me-1"></i>Admin Dashboard</a>
-                <a href="/admin/projects/new" class="btn btn-outline-primary w-100"><i class="bi bi-folder-plus me-1"></i>New Project</a>
-              {{/if}}
-            </div>
+      <div class="col-lg-5 d-none d-lg-block">
+        <div class="sa-hero-card">
+          <div class="sa-header">
+            <i class="bi bi-clipboard2-pulse"></i>
+            <h3>Security Self-Assessment</h3>
+            <p>Fast preliminary review for project teams</p>
           </div>
-        {{else}}
-          <div class="card home-action">
-            <div class="card-header"><i class="bi bi-compass me-2"></i>Start Here</div>
-            <div class="card-body p-4">
-              <a href="/self-assessment" class="btn btn-primary w-100 py-2 mb-2"><i class="bi bi-clipboard2-pulse me-1"></i>Security Self-Assessment</a>
-              <a href="/client/login" class="btn btn-outline-primary w-100 py-2 mb-2"><i class="bi bi-box-arrow-in-right me-1"></i>Client Sign In</a>
-              <a href="/admin/login" class="btn btn-dark w-100 py-2"><i class="bi bi-shield-check me-1"></i>Assessor Login</a>
+          <div class="sa-body">
+            <div class="sa-step">
+              <div class="sa-step-num">1</div>
+              <div class="sa-step-text"><strong>Request or enter an access code.</strong> Start the preliminary assessment without creating a full portal account.</div>
             </div>
+            <div class="sa-step">
+              <div class="sa-step-num">2</div>
+              <div class="sa-step-text"><strong>Answer guided questions.</strong> The questions adapt to system type, sensitivity, region, and likely framework obligations.</div>
+            </div>
+            <div class="sa-step">
+              <div class="sa-step-num">3</div>
+              <div class="sa-step-text"><strong>Receive actionable feedback.</strong> Review critical, warning, and green findings, then request a formal assessment.</div>
+            </div>
+            <a href="/self-assessment" class="btn-sa-start mt-3"><i class="bi bi-shield-check"></i>Start Self-Assessment</a>
+            <div class="sa-note"><i class="bi bi-lock me-1"></i>Access-code gated and reviewed by an assessor.</div>
           </div>
-        {{/if}}
+        </div>
       </div>
     </div>
   </div>
-</section>
 
-<div class="container py-5">
-  <div class="row g-4">
-    <div class="col-md-4">
-      <div class="card home-action">
-        <div class="card-header bg-light"><i class="bi bi-clipboard2-pulse me-2"></i>Self-Assessment</div>
-        <div class="card-body p-4">
-          <p class="text-muted">Anonymous users with an approved access code can complete a guided preliminary review and receive critical, warning, and green feedback.</p>
-          <a href="/self-assessment" class="btn btn-outline-primary w-100">Open Self-Assessment</a>
-        </div>
+  <div class="fw-ticker">
+    <div class="container">
+      <div class="fw-ticker-inner">
+        <span class="fw-label">Frameworks</span>
+        {{#each frameworkHighlights}}<span class="fw-badge">{{this}}</span>{{/each}}
+        <span class="fw-badge">SOC 2</span>
+        <span class="fw-badge">PCI DSS</span>
+        <span class="fw-badge">CMMC</span>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="card home-action">
-        <div class="card-header"><i class="bi bi-clipboard2-data me-2"></i>Intake and Evidence</div>
-        <div class="card-body p-4">
-          <p class="text-muted">Clients submit project details and documents; assessors assign intakes and assessments to existing users or invited users.</p>
-          <a href="/client/login" class="btn btn-primary w-100">Client Portal</a>
-        </div>
-      </div>
+  </div>
+</div>
+
+<div class="container platform-section">
+  <div class="text-center mb-4">
+    <h2><i class="bi bi-grid-3x3-gap me-2"></i>Assessment platform capabilities</h2>
+    <p class="text-muted mb-0">A practical path from preliminary security posture review to formal authorization package.</p>
+  </div>
+  <div class="row g-3">
+    <div class="col-6 col-md-3">
+      <div class="cap-item"><i class="bi bi-globe2"></i><div class="cap-title">Multi-Jurisdiction</div><div class="cap-desc">Canada, US, EU, UK, Australia, and global frameworks.</div></div>
     </div>
-    <div class="col-md-4">
-      <div class="card home-action">
-        <div class="card-header"><i class="bi bi-person-badge me-2"></i>Assessor Workspace</div>
-        <div class="card-body p-4">
-          <p class="text-muted">Assessors manage projects, tailor controls across supported frameworks, create ATO/iATO records, and export reports.</p>
-          <a href="/admin/login" class="btn btn-dark w-100">Assessor Login</a>
-        </div>
-      </div>
+    <div class="col-6 col-md-3">
+      <div class="cap-item"><i class="bi bi-clipboard-check"></i><div class="cap-title">SA&amp;A Lifecycle</div><div class="cap-desc">Intake, assessment, tailoring, evidence, and approvals.</div></div>
     </div>
+    <div class="col-6 col-md-3">
+      <div class="cap-item"><i class="bi bi-people-fill"></i><div class="cap-title">Collaboration</div><div class="cap-desc">Assign clients, assessors, intakes, and assessments.</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="cap-item"><i class="bi bi-shield-fill-check"></i><div class="cap-title">Strong Identity</div><div class="cap-desc">TOTP, passkeys, invitations, and audit-aware actions.</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="cap-item"><i class="bi bi-file-earmark-ruled"></i><div class="cap-title">ATO/iATO</div><div class="cap-desc">Authorization records, POA&amp;M items, and report exports.</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="cap-item"><i class="bi bi-robot"></i><div class="cap-title">AI Guidance</div><div class="cap-desc">AI-assisted control selection and evidence guidance.</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="cap-item"><i class="bi bi-building"></i><div class="cap-title">Project Context</div><div class="cap-desc">Documents, branding, organization details, and reports.</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="cap-item"><i class="bi bi-award"></i><div class="cap-title">Client Ready</div><div class="cap-desc">Reports designed for assessor and stakeholder review.</div></div>
+    </div>
+  </div>
+  <div class="text-center mt-4 mb-2">
+    <p class="text-muted small">Security assessment and authorization tooling by <strong>Vanguard Cloud Services Inc.</strong></p>
+  </div>
+</div>
+
+<div class="site-footer">
+  <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <p><img src="/images/logo-large@2xVSCFull.png" alt="Vanguard Cloud Services" style="height:20px"></p>
+    <p><a href="/portal">Client portal</a></p>
   </div>
 </div>
