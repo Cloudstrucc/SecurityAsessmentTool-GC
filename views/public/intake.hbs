@@ -118,8 +118,41 @@
     <div class="form-section">
       <div class="section-header">
         <h4 class="section-title"><span class="section-number">2</span> Security Categorization</h4>
-        <p class="section-description">Categorize your system across three independent security dimensions per the <strong>TBS Directive on Security Management (Appendix J)</strong> and <strong>ITSG-33</strong>. The tool will automatically determine the applicable security control profile.</p>
+        <p class="section-description">Choose the assessment framework first. ITSG-33 projects use C/I/A categorization; other frameworks use framework-specific baseline and category fields.</p>
       </div>
+
+      <div class="card mb-3 border-0 bg-light">
+        <div class="card-body">
+          <label class="form-label fw-bold" for="securityFramework">Security Framework <span class="text-danger">*</span></label>
+          <select class="form-select" id="securityFramework" name="securityFramework" required>
+            {{#each frameworkOptions}}
+              <option value="{{this.id}}">{{this.label}}</option>
+            {{/each}}
+          </select>
+          <div class="form-text" id="frameworkDescription"></div>
+        </div>
+      </div>
+
+      <div id="frameworkCategorization" class="card mb-3 border-0 bg-light" style="display:none;">
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold" for="frameworkBaseline">Baseline / Implementation Group</label>
+              <select class="form-select" id="frameworkBaseline" name="frameworkBaseline"></select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold" for="frameworkCategory">Category / Applicability</label>
+              <select class="form-select" id="frameworkCategory" name="frameworkCategory"></select>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="frameworkApplicability">Framework Tailoring Notes</label>
+              <textarea class="form-control" id="frameworkApplicability" name="frameworkApplicability" rows="2" placeholder="Describe framework-specific scoping, baseline overrides, regulatory drivers, or Statement of Applicability notes."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="itsgCategorization">
 
       <!-- ── 2A: Confidentiality ── -->
       <div class="card mb-3 border-0 bg-light">
@@ -202,6 +235,8 @@
           <strong>Tailoring notes:</strong>
           <ul id="tailoringList" class="mb-0 mt-1 small"></ul>
         </div>
+      </div>
+
       </div>
 
       <hr class="my-3">
@@ -578,6 +613,34 @@
   </form>
 
   <script>
+    const FRAMEWORK_OPTIONS = {{{frameworkOptionsJSON}}};
+    function currentFrameworkMeta() {
+      const selected = document.getElementById('securityFramework')?.value || 'ITSG-33';
+      return FRAMEWORK_OPTIONS.find(f => f.id === selected) || FRAMEWORK_OPTIONS[0];
+    }
+
+    function populateFrameworkSelect(select, options) {
+      select.innerHTML = (options || []).map(opt => '<option value="' + opt.value + '">' + opt.label + '</option>').join('');
+    }
+
+    function syncFrameworkCategorization() {
+      const meta = currentFrameworkMeta();
+      const isItsg = meta.id === 'ITSG-33';
+      document.getElementById('frameworkDescription').textContent = meta.description || '';
+      document.getElementById('itsgCategorization').style.display = isItsg ? '' : 'none';
+      document.getElementById('frameworkCategorization').style.display = isItsg ? 'none' : '';
+      populateFrameworkSelect(document.getElementById('frameworkBaseline'), meta.baselineOptions || []);
+      populateFrameworkSelect(document.getElementById('frameworkCategory'), meta.categoryOptions || []);
+      document.querySelectorAll('#itsgCategorization select, #itsgCategorization input').forEach(el => {
+        if (['confidentialityLevel', 'integrityLevel', 'availabilityLevel'].includes(el.id)) el.required = isItsg;
+      });
+      document.getElementById('frameworkBaseline').required = !isItsg;
+      document.getElementById('frameworkCategory').required = !isItsg;
+      updateProfilePreview();
+    }
+
+    document.getElementById('securityFramework').addEventListener('change', syncFrameworkCategorization);
+
     // File list preview
     document.getElementById('attachments').addEventListener('change', function() {
       const list = document.getElementById('fileList');
@@ -624,6 +687,7 @@
     };
 
     function determineProfileClient() {
+      if (document.getElementById('securityFramework')?.value !== 'ITSG-33') return null;
       const conf = document.getElementById('confidentialityLevel').value;
       const integ = document.getElementById('integrityLevel').value;
       const avail = document.getElementById('availabilityLevel').value;
@@ -706,7 +770,7 @@
     document.querySelectorAll('.cia-input').forEach(el => el.addEventListener('change', updateProfilePreview));
     document.querySelectorAll('input[name="piiTypes"]').forEach(el => el.addEventListener('change', updateProfilePreview));
     // Initial render
-    updateProfilePreview();
+    syncFrameworkCategorization();
   </script>
 
   {{> ai-panel }}
@@ -758,7 +822,11 @@
     confidentialityLevel: { type: 'select', id: 'confidentialityLevel' },
     integrityLevel: { type: 'select', id: 'integrityLevel' },
     availabilityLevel: { type: 'select', id: 'availabilityLevel' },
-    isHVA: { type: 'checkbox', id: 'hvaCheck' },
+    isHVA: { type: 'checkbox', id: 'isHVA' },
+    securityFramework: { type: 'select', id: 'securityFramework' },
+    frameworkBaseline: { type: 'select', id: 'frameworkBaseline' },
+    frameworkCategory: { type: 'select', id: 'frameworkCategory' },
+    frameworkApplicability: { type: 'textarea', id: 'frameworkApplicability' },
     atipSubject: { type: 'selectByName', name: 'atipSubject' },
     piaCompleted: { type: 'selectByName', name: 'piaCompleted' },
     // Section 3: Hosting & Technology
@@ -860,6 +928,8 @@
       // Section 2
       confidentialityLevel: 'Confidentiality', integrityLevel: 'Integrity',
       availabilityLevel: 'Availability', isHVA: 'High Value Asset',
+      securityFramework: 'Security Framework', frameworkBaseline: 'Framework Baseline',
+      frameworkCategory: 'Framework Category', frameworkApplicability: 'Framework Applicability',
       piiTypes: 'PII Types', atipSubject: 'ATIP Subject', piaCompleted: 'PIA Status',
       // Section 3
       hostingType: 'Hosting Environment', hostingRegion: 'Data Residency',
@@ -874,7 +944,7 @@
     // Section grouping for organized display
     const sectionGroups = [
       { title: '1 — Project Information', keys: ['projectName','projectDescription','department','branch','userCount','appType'] },
-      { title: '2 — Security Categorization', keys: ['confidentialityLevel','integrityLevel','availabilityLevel','isHVA','piiTypes','atipSubject','piaCompleted'] },
+      { title: '2 — Security Categorization', keys: ['securityFramework','frameworkBaseline','frameworkCategory','frameworkApplicability','confidentialityLevel','integrityLevel','availabilityLevel','isHVA','piiTypes','atipSubject','piaCompleted'] },
       { title: '3 — Hosting & Technology', keys: ['hostingType','hostingRegion','technologies','otherTech'] },
       { title: '4 — Architecture & Integrations', keys: ['hasAPIs','gcInterconnections','interconnections','mobileAccess','externalUsers'] },
       { title: '5 — Security Posture', keys: ['completedActivities'] }
@@ -959,6 +1029,7 @@
     try {
       const formData = new FormData();
       formData.append('document', file);
+      formData.append('securityFramework', document.getElementById('securityFramework')?.value || 'ITSG-33');
       const resp = await fetch('/api/ai/parse-document', { method: 'POST', body: formData });
       const data = await resp.json();
 
@@ -986,7 +1057,7 @@
       const resp = await fetch('/api/ai/suggest-from-description', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: desc })
+        body: JSON.stringify({ description: desc, securityFramework: document.getElementById('securityFramework')?.value || 'ITSG-33' })
       });
       const data = await resp.json();
 

@@ -5,6 +5,16 @@ const { run, runBatch, all, get } = require('../models/database');
 const { passport, ensureAuthenticated } = require('../config/passport');
 const { determineProfile, detectComplexity, categorizationLabel, categorizationFullLabel, SECURITY_PROFILES, CONFIDENTIALITY_LEVELS, INTEGRITY_LEVELS, AVAILABILITY_LEVELS } = require('../config/security-profiles');
 const { getRecommendedControls, assessSAARequirement, groupByFamily, COMMON_TECHNOLOGIES, CONTROL_FAMILIES, CONTROLS, GC_WEB_GUIDANCE, computeRiskLevel } = require('../config/itsg33-controls');
+const {
+  normalizeFramework,
+  isItsgFramework,
+  frameworkMetadata,
+  frameworkOptions,
+  defaultBaseline,
+  defaultCategory,
+  buildFrameworkSummary
+} = require('../config/security-frameworks');
+const { countryNames, govLevelNames, sensitivityNames } = require('../config/framework-map');
 const emailService = require('../utils/emailService');
 const pdfExport = require('../utils/pdfExport');
 const path = require('path');
@@ -98,6 +108,158 @@ function getSecurityProfileFromBody(body, hasPII) {
   return profileResult.profile.id;
 }
 
+function getFrameworkFields(body = {}, fallback = {}) {
+  const framework = normalizeFramework(
+    body.security_framework ||
+    body.securityFramework ||
+    fallback.security_framework ||
+    fallback.securityFramework
+  );
+  return {
+    securityFramework: framework,
+    frameworkBaseline: body.framework_baseline || body.frameworkBaseline || fallback.framework_baseline || defaultBaseline(framework),
+    frameworkCategory: body.framework_category || body.frameworkCategory || fallback.framework_category || defaultCategory(framework),
+    frameworkApplicability: body.framework_applicability || body.frameworkApplicability || fallback.framework_applicability || ''
+  };
+}
+
+function getAvailableFrameworkOptions() {
+  const frameworks = all('SELECT DISTINCT framework FROM security_control_catalog ORDER BY framework');
+  return frameworkOptions(frameworks);
+}
+
+function rowToCatalogControl(row) {
+  const family = row.family || String(row.control_id || '').split(/[.\-(]/)[0] || row.framework;
+  const id = row.control_id;
+  return {
+    id,
+    family,
+    familyName: row.category || row.family || row.framework,
+    title: row.title,
+    description: row.description || row.guidance || '',
+    evidenceGuidance: row.guidance || row.applicability_notes || '',
+    controlGuidance: row.guidance || '',
+    priority: row.baseline && /high|ig3|ml3|secret|protected/i.test(row.baseline) ? 'P1' : 'P2',
+    riskLevel: row.baseline && /high|ig3|ml3|secret|protected/i.test(row.baseline) ? 'high' : 'medium',
+    framework: row.framework,
+    baseline: row.baseline || '',
+    category: row.category || ''
+  };
+}
+
+function filterCatalogControls(projectInfo, documents = [], includeAll = false) {
+  const framework = normalizeFramework(projectInfo.securityFramework || projectInfo.security_framework);
+  const baseline = projectInfo.frameworkBaseline || projectInfo.framework_baseline || defaultBaseline(framework);
+  const category = projectInfo.frameworkCategory || projectInfo.framework_category || defaultCategory(framework);
+  const params = [framework];
+  let where = 'framework = ?';
+
+  if (baseline && !['Full control catalog', 'annex-a', 'risk-treatment', 'soa-custom'].includes(baseline)) {
+    const baselineAliases = [baseline, `%${baseline}%`];
+    if (/^IG[123]$/.test(baseline)) baselineAliases.push(`%Implementation Group ${baseline.slice(2)}%`, `%Implementation Groups ${baseline.slice(2)}%`);
+    if (/^ML[123]$/.test(baseline)) baselineAliases.push(`%Maturity Level ${baseline.slice(2)}%`);
+    where += ` AND (baseline = ? OR baseline LIKE ?${baselineAliases.slice(2).map(() => ' OR baseline LIKE ?').join('')} OR baseline = "" OR baseline IS NULL)`;
+    params.push(...baselineAliases);
+  }
+  if (category && category !== 'all' && !category.startsWith('fips-') && !category.includes('custom') && !category.includes('agency') && !category.includes('cloud-service') && !category.includes('federal-')) {
+    where += ' AND (category = ? OR category LIKE ? OR family = ? OR family LIKE ?)';
+    params.push(category, `%${category}%`, category, `%${category}%`);
+  }
+
+  const rows = all(`
+    SELECT * FROM security_control_catalog
+    WHERE ${where}
+    ORDER BY family, control_id
+  `, params);
+  const controls = rows.map(rowToCatalogControl);
+  if (includeAll) return controls;
+
+  const context = [
+    projectInfo.description || '',
+    projectInfo.appType || projectInfo.app_type || '',
+    projectInfo.hostingType || projectInfo.hosting_type || '',
+    projectInfo.technologies || '',
+    projectInfo.frameworkApplicability || projectInfo.framework_applicability || '',
+    documents.map(d => `${d.original_name || ''} ${d.ai_summary || ''}`).join(' ')
+  ].join(' ').toLowerCase();
+
+  const coreTerms = ['access', 'identity', 'asset', 'inventory', 'logging', 'monitoring', 'incident', 'risk', 'vulnerability', 'configuration', 'encryption', 'backup', 'policy'];
+  let selected = controls.filter(control => {
+    const haystack = `${control.id} ${control.title} ${control.description} ${control.evidenceGuidance} ${control.familyName}`.toLowerCase();
+    if (coreTerms.some(term => haystack.includes(term))) return true;
+    if (projectInfo.hasPII && /privacy|personal|data protection|information protection|pii/i.test(haystack)) return true;
+    if (context.includes('cloud') && /cloud|configuration|identity|logging|network|encryption/i.test(haystack)) return true;
+    if (context.includes('api') && /api|interface|authentication|authorization|input|web/i.test(haystack)) return true;
+    return false;
+  });
+
+  if (selected.length < Math.min(25, controls.length)) {
+    selected = controls.slice(0, Math.min(60, controls.length));
+  }
+  return selected.slice(0, 120);
+}
+
+function groupCatalogControls(controls) {
+  const groups = {};
+  controls.forEach(control => {
+    if (!groups[control.family]) groups[control.family] = { code: control.family, name: control.familyName || control.family, controls: [] };
+    groups[control.family].controls.push(control);
+  });
+  return Object.values(groups);
+}
+
+function getAssessmentControlsForProject(project, documents = [], includeAll = false) {
+  let techs = [];
+  try { techs = JSON.parse(project.technologies || '[]'); } catch(e) {}
+  const framework = normalizeFramework(project.security_framework);
+  const commonInfo = {
+    dataClassification: project.data_classification,
+    confidentiality: project.confidentiality_level || project.data_classification,
+    hostingType: project.hosting_type,
+    appType: project.app_type,
+    hasPII: !!project.has_pii,
+    technologies: techs,
+    description: project.description,
+    securityProfile: project.security_profile || 'PBMM',
+    isHVA: !!project.is_hva,
+    securityFramework: framework,
+    frameworkBaseline: project.framework_baseline || defaultBaseline(framework),
+    frameworkCategory: project.framework_category || defaultCategory(framework),
+    frameworkApplicability: project.framework_applicability || ''
+  };
+
+  if (isItsgFramework(framework)) {
+    const normalizeItsgControl = control => ({
+      ...control,
+      familyName: CONTROL_FAMILIES[control.family] || control.family,
+      controlGuidance: control.controlGuidance || control.evidenceGuidance || '',
+      riskLevel: computeRiskLevel({ family: control.family, priority: control.priority || 'P1' }),
+      framework: 'ITSG-33'
+    });
+    const baselineControls = getRecommendedControls(commonInfo).map(normalizeItsgControl);
+    const tailoredControls = selectRelevantControls(commonInfo, documents).map(normalizeItsgControl);
+    return {
+      framework,
+      projectInfo: commonInfo,
+      baselineControls,
+      controls: includeAll ? baselineControls : tailoredControls,
+      families: groupByFamily(includeAll ? baselineControls : tailoredControls),
+      saaCheck: assessSAARequirement(commonInfo)
+    };
+  }
+
+  const baselineControls = filterCatalogControls(commonInfo, documents, true);
+  const controls = filterCatalogControls(commonInfo, documents, includeAll);
+  return {
+    framework,
+    projectInfo: commonInfo,
+    baselineControls,
+    controls,
+    families: groupCatalogControls(controls),
+    saaCheck: { requiresSAA: true, reason: `${frameworkMetadata(framework).label} assessment selected for this project.` }
+  };
+}
+
 function createProjectIntake({ projectId, body, createdBy, files = [], status = 'in-review' }) {
   const refCode = 'INT-' + uuidv4().substring(0, 8).toUpperCase();
   const technologies = asArray(body.technologies);
@@ -107,27 +269,33 @@ function createProjectIntake({ projectId, body, createdBy, files = [], status = 
   const confLevel = body.confidentiality_level || body.data_classification || 'protected-b';
   const intLevel = body.integrity_level || 'medium';
   const avaLevel = body.availability_level || 'medium';
-  const securityProfile = getSecurityProfileFromBody(body, hasPII);
+  const frameworkFields = getFrameworkFields(body);
+  const securityProfile = isItsgFramework(frameworkFields.securityFramework)
+    ? getSecurityProfileFromBody(body, hasPII)
+    : (frameworkFields.frameworkBaseline || getSecurityProfileFromBody(body, hasPII));
 
   const intakeId = run(
     `INSERT INTO intake_submissions (
       ref_code, status, project_name, project_description, department, branch,
       target_date, user_count, app_type, data_classification,
       confidentiality_level, integrity_level, availability_level, is_hva,
-      security_profile, pii_types, has_pii, atip_subject, pia_completed,
+      security_profile, security_framework, framework_baseline, framework_category, framework_applicability,
+      pii_types, has_pii, atip_subject, pia_completed,
       hosting_type, hosting_region, technologies, other_tech,
       has_apis, gc_interconnections, interconnections, mobile_access, external_users,
       completed_activities, owner_name, owner_email, owner_title,
       tech_lead_name, tech_lead_email, tech_lead_title,
       authority_name, authority_email, authority_title,
       additional_notes, project_id, created_by_assessor_id
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     [
       refCode, status, body.name || body.projectName || '', body.description || body.projectDescription || '',
       body.department || '', body.branch || '',
       body.targetDate || body.target_date || '', body.userCount || body.user_count || '', body.app_type || '',
       confLevel, confLevel, intLevel, avaLevel, body.is_hva ? 1 : 0,
-      securityProfile, JSON.stringify(piiTypes), hasPII,
+      securityProfile, frameworkFields.securityFramework, frameworkFields.frameworkBaseline,
+      frameworkFields.frameworkCategory, frameworkFields.frameworkApplicability,
+      JSON.stringify(piiTypes), hasPII,
       body.atipSubject || body.atip_subject || '', body.piaCompleted || body.pia_completed || '',
       body.hosting_type || body.hostingType || '', body.hostingRegion || body.hosting_region || '',
       JSON.stringify(technologies), body.otherTech || body.other_tech || body.specifications || '',
@@ -343,6 +511,10 @@ function ensureProjectIntake(project, createdBy) {
       integrity_level: project.integrity_level || 'medium',
       availability_level: project.availability_level || 'medium',
       security_profile: project.security_profile || 'PBMM',
+      security_framework: project.security_framework || 'ITSG-33',
+      framework_baseline: project.framework_baseline || '',
+      framework_category: project.framework_category || '',
+      framework_applicability: project.framework_applicability || '',
       is_hva: project.is_hva ? '1' : '',
       hosting_type: project.hosting_type,
       app_type: project.app_type,
@@ -783,13 +955,16 @@ router.get('/dashboard', ensureAuthenticated, (req, res) => {
     pendingAudits: get("SELECT COUNT(*) as c FROM assessments WHERE status = 'submitted'")?.c || 0,
     activeATOs: get("SELECT COUNT(*) as c FROM assessments WHERE ato_type = 'ato' AND result = 'ato'")?.c || 0,
     activeIATOs: get("SELECT COUNT(*) as c FROM assessments WHERE ato_type = 'iato' AND result = 'iato'")?.c || 0,
-    pendingIntakes: get("SELECT COUNT(*) as c FROM intake_submissions WHERE status IN ('pending','in-review')")?.c || 0
+    pendingIntakes: get("SELECT COUNT(*) as c FROM intake_submissions WHERE status IN ('pending','in-review')")?.c || 0,
+    pendingSelfAssessments: (get("SELECT COUNT(*) as c FROM self_assessments WHERE status = 'submitted'")?.c || 0) +
+      (get("SELECT COUNT(*) as c FROM sa_access_requests WHERE status = 'pending'")?.c || 0)
   };
+  const pendingInviteCount = get("SELECT COUNT(*) as c FROM invitations WHERE invited_by = ? AND status = 'pending'", [req.user.id])?.c || 0;
 
   res.render('admin/dashboard', {
     title: 'Dashboard',
     isAdmin: true, isDashboard: true,
-    admin: req.user, projects, assessments, recentIntakes, stats
+    admin: req.user, projects, assessments, recentIntakes, stats, pendingInviteCount
   });
 });
 
@@ -850,7 +1025,9 @@ router.get('/projects/new', ensureAuthenticated, (req, res) => {
     title: 'New Project', isAdmin: true, isProjects: true,
     admin: req.user,
     technologies: COMMON_TECHNOLOGIES,
-    users: getAssignableUsers()
+    users: getAssignableUsers(),
+    frameworkOptions: getAvailableFrameworkOptions(),
+    frameworkOptionsJSON: JSON.stringify(getAvailableFrameworkOptions())
   });
 });
 
@@ -865,10 +1042,13 @@ router.post('/projects/new', ensureAuthenticated, intakeUpload.array('attachment
     const techArray = asArray(technologies);
     const piiTypes = asArray(req.body.piiTypes);
     const hasPII = has_pii || (piiTypes.length > 0 && !piiTypes.includes('none')) ? 1 : 0;
+    const frameworkFields = getFrameworkFields(req.body);
     const confLevel = confidentiality_level || data_classification || 'protected-b';
     const intLevel = integrity_level || 'medium';
     const avaLevel = availability_level || 'medium';
-    const profile = security_profile || getSecurityProfileFromBody(req.body, hasPII);
+    const profile = isItsgFramework(frameworkFields.securityFramework)
+      ? (security_profile || getSecurityProfileFromBody(req.body, hasPII))
+      : (frameworkFields.frameworkBaseline || security_profile || 'custom');
     const existingProject = findProjectForIntake(req.body);
     let projectId;
 
@@ -876,25 +1056,29 @@ router.post('/projects/new', ensureAuthenticated, intakeUpload.array('attachment
       projectId = existingProject.id;
       run(`UPDATE projects SET
         name = ?, description = ?, data_classification = ?,
-        confidentiality_level = ?, integrity_level = ?, availability_level = ?, security_profile = ?, is_hva = ?,
+        confidentiality_level = ?, integrity_level = ?, availability_level = ?, security_profile = ?,
+        security_framework = ?, framework_baseline = ?, framework_category = ?, framework_applicability = ?, is_hva = ?,
         hosting_type = ?, app_type = ?, has_pii = ?, technologies = ?, specifications = ?,
         project_owner_name = ?, project_owner_email = ?, project_authority_name = ?, project_authority_email = ?,
         cio_name = ?, cio_email = ?, department = ?, branch = ?, status = 'active', updated_at = CURRENT_TIMESTAMP
         WHERE id = ?`,
         [name, description || '', data_classification || confLevel || 'protected-b',
-          confLevel, intLevel, avaLevel, profile, is_hva ? 1 : 0,
+          confLevel, intLevel, avaLevel, profile, frameworkFields.securityFramework, frameworkFields.frameworkBaseline,
+          frameworkFields.frameworkCategory, frameworkFields.frameworkApplicability, is_hva ? 1 : 0,
           hosting_type || '', app_type || '', hasPII, JSON.stringify(techArray), specifications || '',
           project_owner_name || '', normalizeEmail(project_owner_email), project_authority_name || '', normalizeEmail(project_authority_email),
           cio_name || '', normalizeEmail(cio_email), department || '', branch || '', projectId]);
     } else {
       const slug = makeSlug(name);
       projectId = run(`INSERT INTO projects (name, slug, description, data_classification,
-        confidentiality_level, integrity_level, availability_level, security_profile, is_hva,
+        confidentiality_level, integrity_level, availability_level, security_profile,
+        security_framework, framework_baseline, framework_category, framework_applicability, is_hva,
         hosting_type, app_type, has_pii, technologies, specifications, project_owner_name, project_owner_email,
         project_authority_name, project_authority_email, cio_name, cio_email, department, branch, status, created_by)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)`,
         [name, slug, description || '', data_classification || confLevel || 'protected-b',
-          confLevel, intLevel, avaLevel, profile, is_hva ? 1 : 0,
+          confLevel, intLevel, avaLevel, profile, frameworkFields.securityFramework, frameworkFields.frameworkBaseline,
+          frameworkFields.frameworkCategory, frameworkFields.frameworkApplicability, is_hva ? 1 : 0,
           hosting_type || '', app_type || '', hasPII, JSON.stringify(techArray), specifications || '',
           project_owner_name || '', normalizeEmail(project_owner_email), project_authority_name || '', normalizeEmail(project_authority_email),
           cio_name || '', normalizeEmail(cio_email), department || '', branch || '', req.user.id]);
@@ -1409,17 +1593,8 @@ router.post('/projects/:id/ai/suggest-controls', ensureAuthenticated, express.js
     const documents = documentIds.length
       ? all(`SELECT * FROM project_documents WHERE project_id = ? AND status != 'deleted' AND id IN (${documentIds.map(() => '?').join(',')})`, [project.id, ...documentIds])
       : getProjectDocuments(project.id);
-    const controls = selectRelevantControls({
-      dataClassification: project.data_classification,
-      confidentiality: project.confidentiality_level || project.data_classification,
-      hostingType: project.hosting_type,
-      appType: project.app_type,
-      hasPII: !!project.has_pii,
-      technologies: techs,
-      description: project.description,
-      securityProfile: project.security_profile || 'PBMM',
-      isHVA: !!project.is_hva
-    }, documents);
+    const controlSelection = getAssessmentControlsForProject(project, documents, false);
+    const controls = controlSelection.controls;
     res.json({
       success: true,
       controlIds: controls.map(c => c.id),
@@ -1436,33 +1611,17 @@ router.get('/projects/:projectId/assessments/new', ensureAuthenticated, (req, re
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
   if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
   const intake = getPrimaryIntakeForProject(project.id);
-
-  let techs = [];
-  try { techs = JSON.parse(project.technologies || '[]'); } catch(e) {}
-
-  const projectInfo = {
-    dataClassification: project.data_classification,
-    confidentiality: project.confidentiality_level || project.data_classification,
-    hostingType: project.hosting_type,
-    appType: project.app_type,
-    hasPII: !!project.has_pii,
-    technologies: techs,
-    description: project.description,
-    securityProfile: project.security_profile || 'PBMM',
-    isHVA: !!project.is_hva
-  };
-
-  // Check if SA&A is required
-  const saaCheck = assessSAARequirement(projectInfo);
+  const documents = getProjectDocuments(project.id);
+  const selection = getAssessmentControlsForProject(project, documents, req.query.all === '1');
+  const saaCheck = selection.saaCheck;
   if (!saaCheck.requiresSAA && !req.query.force) {
     // Redirect to guidance report instead
     return res.redirect(`/admin/projects/${project.id}/guidance`);
   }
 
-  const baselineControls = getRecommendedControls(projectInfo);
-  const documents = getProjectDocuments(project.id);
-  const controls = req.query.all === '1' ? baselineControls : selectRelevantControls(projectInfo, documents);
-  const families = groupByFamily(controls);
+  const baselineControls = selection.baselineControls;
+  const controls = selection.controls;
+  const families = selection.families;
 
   // Check for reusable templates
   const templates = all(`SELECT DISTINCT control_id, tailored_description, evidence_guidance, example_evidence 
@@ -1487,7 +1646,10 @@ router.get('/projects/:projectId/assessments/new', ensureAuthenticated, (req, re
     baselineCount: baselineControls.length,
     usingTailoredRecommendation: req.query.all !== '1',
     documents,
-    saaReason: saaCheck.reason
+    saaReason: saaCheck.reason,
+    framework: frameworkMetadata(selection.framework),
+    frameworkSummary: buildFrameworkSummary(project),
+    isItsgFramework: isItsgFramework(selection.framework)
   });
 });
 
@@ -1498,8 +1660,12 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
     const intakeId = ensureProjectIntake(project, req.user.id);
 
     const inviteCode = uuidv4().substring(0, 8).toUpperCase();
-    const assessmentId = run(`INSERT INTO assessments (project_id, intake_id, type, status, invite_code, created_by)
-      VALUES (?, ?, 'initial', 'draft', ?, ?)`, [project.id, intakeId, inviteCode, req.user.id]);
+    const frameworkFields = getFrameworkFields(project);
+    const assessmentId = run(`INSERT INTO assessments
+      (project_id, intake_id, type, status, invite_code, security_framework, framework_baseline, framework_category, framework_applicability, created_by)
+      VALUES (?, ?, 'initial', 'draft', ?, ?, ?, ?, ?, ?)`,
+      [project.id, intakeId, inviteCode, frameworkFields.securityFramework, frameworkFields.frameworkBaseline,
+        frameworkFields.frameworkCategory, frameworkFields.frameworkApplicability, req.user.id]);
     copyIntakeAssignmentsToAssessment(intakeId, assessmentId, req.user.id);
 
     console.log('[Assessment] Created assessment ID:', assessmentId, 'invite:', inviteCode);
@@ -1514,12 +1680,15 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
 
     const controlList = Array.isArray(controlIds) ? controlIds : [controlIds];
     const statements = controlList.map(cid => {
-      const family = cid.split('-')[0];
+      const family = req.body[`family_${cid}`] || cid.split('-')[0];
+      const framework = req.body[`framework_${cid}`] || frameworkFields.securityFramework || 'ITSG-33';
+      const familyName = req.body[`family_name_${cid}`] || CONTROL_FAMILIES[family] || family;
+      const priority = req.body[`priority_${cid}`] || 'P1';
       return {
         sql: `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title, 
           description, control_guidance, tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority, risk_level, framework, guidance_source)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        params: [assessmentId, cid, family, CONTROL_FAMILIES[family] || family,
+        params: [assessmentId, cid, family, familyName,
           req.body[`title_${cid}`] || cid,
           req.body[`desc_${cid}`] || '',
           req.body[`control_guidance_${cid}`] || '',
@@ -1528,9 +1697,9 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
           inherited[cid] ? 1 : 0,
           inheritedFrom[cid] || '',
           applicable[cid] !== '0' ? 1 : 0,
-          req.body[`priority_${cid}`] || 'P1',
-          computeRiskLevel({ family, priority: req.body[`priority_${cid}`] || 'P1' }),
-          'ITSG-33',
+          priority,
+          req.body[`risk_${cid}`] || computeRiskLevel({ family, priority }),
+          framework,
           guidance[cid] || req.body[`guidance_${cid}`] ? 'manual' : 'catalog'
         ]
       };
@@ -1569,6 +1738,8 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
       p.data_classification, p.hosting_type, p.app_type,
       p.description as project_description, p.technologies, p.confidentiality_level,
       p.integrity_level, p.availability_level, p.security_profile,
+      p.security_framework as project_security_framework, p.framework_baseline as project_framework_baseline,
+      p.framework_category as project_framework_category, p.framework_applicability as project_framework_applicability,
       i.ref_code as intake_ref_code, i.status as intake_status
     FROM assessments a
     JOIN projects p ON a.project_id = p.id
@@ -1633,7 +1804,18 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
       confidentiality_level: assessment.confidentiality_level || 'protected-b',
       integrity_level: assessment.integrity_level || 'medium',
       availability_level: assessment.availability_level || 'medium',
-      security_profile: assessment.security_profile || 'PBMM'
+      security_profile: assessment.security_profile || 'PBMM',
+      security_framework: assessment.security_framework || assessment.project_security_framework || 'ITSG-33',
+      framework_summary: buildFrameworkSummary({
+        security_framework: assessment.security_framework || assessment.project_security_framework,
+        framework_baseline: assessment.framework_baseline || assessment.project_framework_baseline,
+        framework_category: assessment.framework_category || assessment.project_framework_category,
+        framework_applicability: assessment.framework_applicability || assessment.project_framework_applicability,
+        security_profile: assessment.security_profile,
+        confidentiality_level: assessment.confidentiality_level,
+        integrity_level: assessment.integrity_level,
+        availability_level: assessment.availability_level
+      })
     })
   });
 });
@@ -2196,6 +2378,294 @@ router.post('/projects/:id/delete', ensureAuthenticated, (req, res) => {
 
   req.flash('success', `Project "${project.name}" and ${draftAssessments.length} draft assessment(s) deleted`);
   res.redirect('/admin/projects');
+});
+
+// ── SELF-ASSESSMENTS (pre-intake submissions) ──
+router.get('/self-assessments', ensureAuthenticated, (req, res) => {
+  const assessments = all('SELECT * FROM self_assessments ORDER BY created_at DESC');
+  const accessRequests = all('SELECT * FROM sa_access_requests ORDER BY created_at DESC');
+  const stats = {
+    total: assessments.length,
+    submitted: assessments.filter(a => a.status === 'submitted').length,
+    reviewed: assessments.filter(a => a.status === 'reviewed').length,
+    intakeCreated: assessments.filter(a => a.status === 'intake-created').length,
+    pendingAccessRequests: accessRequests.filter(r => r.status === 'pending').length
+  };
+  res.render('admin/self-assessments', {
+    title: 'Self-Assessments',
+    isAdmin: true,
+    isSelfAssessments: true,
+    admin: req.user,
+    assessments,
+    accessRequests,
+    stats
+  });
+});
+
+router.get('/self-assessments/:id', ensureAuthenticated, (req, res) => {
+  const sa = get('SELECT * FROM self_assessments WHERE id = ?', [req.params.id]);
+  if (!sa) { req.flash('error', 'Self-assessment not found.'); return res.redirect('/admin/self-assessments'); }
+
+  let report = {}, frameworks = {}, questions = [], answers = {};
+  try { report = JSON.parse(sa.report_json || '{}'); } catch(e) {}
+  try { frameworks = JSON.parse(sa.frameworks_json || '{}'); } catch(e) {}
+  try { questions = JSON.parse(sa.questions_json || '[]'); } catch(e) {}
+  try { answers = JSON.parse(sa.answers_json || '{}'); } catch(e) {}
+
+  const linkedIntake = sa.intake_id ? get('SELECT id, ref_code, status FROM intake_submissions WHERE id = ?', [sa.intake_id]) : null;
+  const existingUser = sa.submitter_email ? get('SELECT id, email, role FROM users WHERE LOWER(email) = ?', [normalizeEmail(sa.submitter_email)]) : null;
+
+  res.render('admin/self-assessment-review', {
+    title: `Self-Assessment ${sa.ref_code}`,
+    isAdmin: true,
+    isSelfAssessments: true,
+    admin: req.user,
+    sa,
+    report,
+    frameworks,
+    questions,
+    answers,
+    linkedIntake,
+    existingUser,
+    countryName: countryNames[sa.country] || sa.country,
+    govLevelName: govLevelNames[sa.gov_level] || sa.gov_level,
+    sensitivityName: sensitivityNames[sa.data_sensitivity] || sa.data_sensitivity
+  });
+});
+
+router.post('/self-assessments/:id/review', ensureAuthenticated, (req, res) => {
+  run(
+    `UPDATE self_assessments
+     SET status = CASE WHEN status = 'submitted' THEN 'reviewed' ELSE status END,
+         reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP, admin_notes = ?, updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`,
+    [req.user.id, req.body.admin_notes || '', req.params.id]
+  );
+  req.flash('success', 'Self-assessment review notes saved.');
+  res.redirect(`/admin/self-assessments/${req.params.id}`);
+});
+
+router.post('/self-assessments/:id/create-intake', ensureAuthenticated, (req, res) => {
+  try {
+    const sa = get('SELECT * FROM self_assessments WHERE id = ?', [req.params.id]);
+    if (!sa) { req.flash('error', 'Self-assessment not found.'); return res.redirect('/admin/self-assessments'); }
+    if (sa.intake_id) {
+      req.flash('info', 'This self-assessment already has a linked intake.');
+      return res.redirect(`/admin/self-assessments/${sa.id}`);
+    }
+
+    let frameworks = {}, report = {};
+    try { frameworks = JSON.parse(sa.frameworks_json || '{}'); } catch(e) {}
+    try { report = JSON.parse(sa.report_json || '{}'); } catch(e) {}
+    const primaryFramework = frameworks.primary || frameworks.all?.[0] || 'ITSG-33';
+    const selectedFramework = primaryFramework.includes('FedRAMP') ? 'FedRAMP Rev. 5'
+      : primaryFramework.includes('NIST') ? 'NIST SP 800-53 Rev. 5'
+      : primaryFramework.includes('CIS') ? 'CIS Controls v8'
+      : primaryFramework.includes('ISO') ? 'ISO/IEC 27001:2022 Annex A'
+      : primaryFramework.includes('ISM') ? 'ASD ISM'
+      : primaryFramework.includes('Essential Eight') ? 'ACSC Essential Eight'
+      : 'ITSG-33';
+
+    const body = {
+      projectName: req.body.project_name || `${sa.submitter_org || 'Client'} ${sa.system_type || 'System'} Assessment`,
+      projectDescription: req.body.project_description || sa.system_description || '',
+      department: req.body.department || sa.submitter_org || '',
+      branch: req.body.branch || '',
+      appType: req.body.app_type || (sa.system_type === 'web-app' ? 'external' : 'internal'),
+      data_classification: req.body.data_classification || (sa.data_sensitivity === 'high' ? 'protected-b' : 'protected-a'),
+      confidentiality_level: req.body.confidentiality_level || (sa.data_sensitivity === 'high' ? 'protected-b' : 'protected-a'),
+      integrity_level: req.body.integrity_level || 'medium',
+      availability_level: req.body.availability_level || 'medium',
+      security_framework: selectedFramework,
+      framework_baseline: req.body.framework_baseline || defaultBaseline(selectedFramework),
+      framework_category: req.body.framework_category || defaultCategory(selectedFramework),
+      framework_applicability: req.body.framework_applicability || `Converted from self-assessment ${sa.ref_code}. Score: ${report.score || sa.score || 0}%.`,
+      has_pii: ['medium', 'high', 'classified'].includes(sa.data_sensitivity) ? '1' : '',
+      hosting_type: req.body.hosting_type || '',
+      additionalNotes: `Self-assessment ${sa.ref_code}. Critical: ${sa.critical_count || 0}; warnings: ${sa.warning_count || 0}; secure: ${sa.secure_count || 0}.`,
+      ownerName: sa.submitter_name || '',
+      ownerEmail: sa.submitter_email || ''
+    };
+
+    const intakeId = createProjectIntake({ projectId: null, body, createdBy: req.user.id, status: 'draft' });
+    run('UPDATE intake_submissions SET self_assessment_id = ? WHERE id = ?', [sa.id, intakeId]);
+    run("UPDATE self_assessments SET status = 'intake-created', intake_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [intakeId, sa.id]);
+    req.flash('success', 'Draft intake created from the self-assessment.');
+    res.redirect(`/admin/self-assessments/${sa.id}`);
+  } catch (err) {
+    console.error('Create intake from self-assessment error:', err);
+    req.flash('error', 'Failed to create intake: ' + err.message);
+    res.redirect(`/admin/self-assessments/${req.params.id}`);
+  }
+});
+
+router.post('/self-assessments/:id/invite-client', ensureAuthenticated, (req, res) => {
+  try {
+    const sa = get('SELECT * FROM self_assessments WHERE id = ?', [req.params.id]);
+    if (!sa) { req.flash('error', 'Self-assessment not found.'); return res.redirect('/admin/self-assessments'); }
+    const email = normalizeEmail(sa.submitter_email);
+    const existing = get('SELECT id FROM users WHERE LOWER(email) = ?', [email]);
+    if (existing) {
+      req.flash('info', `${email} already has an account. Assign their intake or assessment from the project dashboard.`);
+      return res.redirect(`/admin/self-assessments/${sa.id}`);
+    }
+    const created = createInvitation({
+      type: 'client',
+      email,
+      name: sa.submitter_name || '',
+      organization: sa.submitter_org || '',
+      message: `Your preliminary self-assessment ${sa.ref_code} has been reviewed. Please register to continue the full intake.`,
+      invitedBy: req.user.id,
+      req,
+      entityType: 'self-assessment',
+      entityId: sa.id
+    });
+    req.flash('success', `Client invitation created for ${email}. Code: ${created.inviteCode}`);
+    res.redirect(`/admin/self-assessments/${sa.id}`);
+  } catch (err) {
+    console.error('Self-assessment client invite error:', err);
+    req.flash('error', 'Failed to invite client: ' + err.message);
+    res.redirect(`/admin/self-assessments/${req.params.id}`);
+  }
+});
+
+router.post('/self-assessment-requests/:id/approve', ensureAuthenticated, (req, res) => {
+  try {
+    const request = get('SELECT * FROM sa_access_requests WHERE id = ?', [req.params.id]);
+    if (!request) { req.flash('error', 'Access request not found.'); return res.redirect('/admin/self-assessments'); }
+    const code = uuidv4().substring(0, 8).toUpperCase();
+    const expiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    run(
+      "UPDATE sa_access_requests SET status = 'approved', access_code = ?, approved_by = ?, approved_at = CURRENT_TIMESTAMP, expires_at = ? WHERE id = ?",
+      [code, req.user.id, expiry, request.id]
+    );
+    emailService.sendMail({
+      to: request.email,
+      subject: 'Security self-assessment access code',
+      text: `Hello ${request.name || ''},\n\nYour access code is ${code}.\n\nStart here: ${req.protocol}://${req.get('host')}/self-assessment?code=${code}\n\nThis code expires in 30 days.`
+    }).catch(err => console.error('[Email] self-assessment code failed:', err.message));
+    req.flash('success', `Access request approved. Code: ${code}`);
+    res.redirect('/admin/self-assessments');
+  } catch (err) {
+    console.error('Approve self-assessment access request error:', err);
+    req.flash('error', 'Failed to approve request: ' + err.message);
+    res.redirect('/admin/self-assessments');
+  }
+});
+
+router.post('/self-assessment-requests/:id/deny', ensureAuthenticated, (req, res) => {
+  run("UPDATE sa_access_requests SET status = 'denied' WHERE id = ?", [req.params.id]);
+  req.flash('success', 'Access request denied.');
+  res.redirect('/admin/self-assessments');
+});
+
+// ── TEAMS / INVITATIONS ──
+router.get(['/teams', '/invitations'], ensureAuthenticated, (req, res) => {
+  const clientInvites = all(
+    `SELECT i.*, u.name AS accepted_name FROM invitations i
+     LEFT JOIN users u ON u.id = i.accepted_by_user_id
+     WHERE i.type = 'client' AND i.invited_by = ?
+     ORDER BY i.created_at DESC`,
+    [req.user.id]
+  );
+  const assessorInvites = all(
+    `SELECT i.*, u.name AS accepted_name FROM invitations i
+     LEFT JOIN users u ON u.id = i.accepted_by_user_id
+     WHERE i.type = 'assessor' AND i.invited_by = ?
+     ORDER BY i.created_at DESC`,
+    [req.user.id]
+  );
+  const activeUsers = all(`
+    SELECT id, name, email, role, organization, is_active, mfa_enabled, mfa_mode, is_break_glass, created_at, last_login
+    FROM users
+    WHERE role IN ('client','assessor')
+    ORDER BY role, name, email
+  `);
+  res.render('admin/teams', {
+    title: 'Teams',
+    isAdmin: true,
+    isTeams: true,
+    admin: req.user,
+    clientInvites,
+    assessorInvites,
+    activeUsers
+  });
+});
+
+router.post(['/teams/client', '/invitations/client'], ensureAuthenticated, (req, res) => {
+  try {
+    const email = normalizeEmail(req.body.email);
+    if (!email) throw new Error('Email address is required.');
+    if (get('SELECT id FROM users WHERE LOWER(email) = ?', [email])) throw new Error(`A user with ${email} already exists.`);
+    if (get("SELECT id FROM invitations WHERE LOWER(email) = ? AND type = 'client' AND status = 'pending'", [email])) throw new Error(`A pending client invitation already exists for ${email}.`);
+    const created = createInvitation({
+      type: 'client',
+      email,
+      name: req.body.name || '',
+      organization: req.body.organization || '',
+      message: req.body.message || '',
+      invitedBy: req.user.id,
+      req
+    });
+    req.flash('success', `Client invitation created for ${email}. Code: ${created.inviteCode}`);
+  } catch (err) {
+    req.flash('error', err.message);
+  }
+  res.redirect('/admin/teams');
+});
+
+router.post(['/teams/assessor', '/invitations/assessor'], ensureAuthenticated, (req, res) => {
+  try {
+    const email = normalizeEmail(req.body.email);
+    if (!email) throw new Error('Email address is required.');
+    if (get('SELECT id FROM users WHERE LOWER(email) = ?', [email])) throw new Error(`A user with ${email} already exists.`);
+    if (get("SELECT id FROM invitations WHERE LOWER(email) = ? AND type = 'assessor' AND status = 'pending'", [email])) throw new Error(`A pending assessor invitation already exists for ${email}.`);
+    const created = createInvitation({
+      type: 'assessor',
+      email,
+      name: req.body.name || '',
+      organization: req.body.organization || '',
+      message: req.body.message || '',
+      invitedBy: req.user.id,
+      req
+    });
+    req.flash('success', `Assessor invitation created for ${email}. Code: ${created.inviteCode}`);
+  } catch (err) {
+    req.flash('error', err.message);
+  }
+  res.redirect('/admin/teams');
+});
+
+router.post(['/teams/:id/revoke', '/invitations/:id/revoke'], ensureAuthenticated, (req, res) => {
+  const invite = get('SELECT * FROM invitations WHERE id = ? AND invited_by = ?', [req.params.id, req.user.id]);
+  if (!invite) req.flash('error', 'Invitation not found.');
+  else {
+    run("UPDATE invitations SET status = 'revoked' WHERE id = ?", [invite.id]);
+    req.flash('success', `Invitation to ${invite.email} revoked.`);
+  }
+  res.redirect('/admin/teams');
+});
+
+router.post(['/teams/:id/resend', '/invitations/:id/resend'], ensureAuthenticated, (req, res) => {
+  const invite = get('SELECT * FROM invitations WHERE id = ? AND invited_by = ?', [req.params.id, req.user.id]);
+  if (!invite || invite.status !== 'pending') {
+    req.flash('error', 'Invitation not found or not pending.');
+    return res.redirect('/admin/teams');
+  }
+  const newExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  run('UPDATE invitations SET expires_at = ? WHERE id = ?', [newExpiry, invite.id]);
+  emailService.sendUserInvitation({
+    to: invite.email,
+    recipientName: invite.name || '',
+    inviteCode: invite.invite_code,
+    invitedByName: req.user.name,
+    role: invite.type,
+    organization: invite.organization || req.user.organization || '',
+    baseUrl: `${req.protocol}://${req.get('host')}`,
+    message: invite.message || ''
+  }).catch(err => console.error('[Email] Invitation resend failed:', err.message));
+  req.flash('success', `Invitation re-sent to ${invite.email}.`);
+  res.redirect('/admin/teams');
 });
 
 // ── SETTINGS ──

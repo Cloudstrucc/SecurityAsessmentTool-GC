@@ -1,0 +1,151 @@
+<style>
+  .sa-meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.75rem; }
+  .sa-meta-item { background:#f8f9fa; border:1px solid var(--gc-border); border-radius:6px; padding:.75rem; }
+  .sa-meta-item .label { color:var(--gc-muted); font-size:.75rem; text-transform:uppercase; font-weight:700; }
+  .finding-row { display:flex; gap:.65rem; padding:.65rem 0; border-bottom:1px solid #eef0f2; }
+  .finding-row:last-child { border-bottom:none; }
+  .finding-dot { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:0 0 26px; }
+</style>
+
+<div class="container">
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <a href="/admin/self-assessments" class="small text-muted text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Back to Self-Assessments</a>
+      <h1 class="mb-1">{{sa.ref_code}}</h1>
+      <p class="text-muted mb-0">Submitted by <strong>{{sa.submitter_name}}</strong> ({{sa.submitter_email}})</p>
+    </div>
+    <div>
+      {{#if (eq sa.status 'submitted')}}<span class="badge bg-primary fs-6">Pending Review</span>{{/if}}
+      {{#if (eq sa.status 'reviewed')}}<span class="badge bg-warning text-dark fs-6">Reviewed</span>{{/if}}
+      {{#if (eq sa.status 'intake-created')}}<span class="badge bg-success fs-6">Intake Created</span>{{/if}}
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-info-circle me-2"></i>System Summary</div>
+        <div class="card-body">
+          <div class="sa-meta mb-3">
+            <div class="sa-meta-item"><div class="label">System Type</div><div class="fw-semibold">{{sa.system_type}}</div></div>
+            <div class="sa-meta-item"><div class="label">Country</div><div class="fw-semibold">{{countryName}}</div></div>
+            <div class="sa-meta-item"><div class="label">Sector</div><div class="fw-semibold">{{govLevelName}}</div></div>
+            <div class="sa-meta-item"><div class="label">Sensitivity</div><div class="fw-semibold">{{sensitivityName}}</div></div>
+            <div class="sa-meta-item"><div class="label">Score</div><div class="fw-semibold {{#if (gt sa.score 69)}}text-success{{else}}{{#if (gt sa.score 44)}}text-warning{{else}}text-danger{{/if}}{{/if}}">{{sa.score}}%</div></div>
+            <div class="sa-meta-item"><div class="label">Findings</div><div><span class="text-danger">{{sa.critical_count}}</span> critical · <span class="text-warning">{{sa.warning_count}}</span> warning · <span class="text-success">{{sa.secure_count}}</span> green</div></div>
+          </div>
+          {{#if sa.system_description}}
+            <div class="bg-light rounded p-3">{{sa.system_description}}</div>
+          {{/if}}
+          {{#if frameworks.all}}
+            <div class="mt-3">
+              <div class="small text-muted fw-bold mb-1">Likely Frameworks</div>
+              {{#each frameworks.all}}<span class="badge bg-light text-dark border me-1">{{this}}</span>{{/each}}
+            </div>
+          {{/if}}
+        </div>
+      </div>
+
+      {{#if report.critical.length}}
+        <div class="card mb-3">
+          <div class="card-header bg-danger text-white"><i class="bi bi-exclamation-triangle-fill me-2"></i>Critical Gaps</div>
+          <div class="card-body">
+            {{#each report.critical}}
+              <div class="finding-row">
+                <div class="finding-dot bg-danger text-white"><i class="bi bi-x-lg"></i></div>
+                <div>
+                  <div class="fw-semibold">{{this.title}}</div>
+                  <div class="small text-muted">{{this.detail}}</div>
+                  {{#if this.recommendation}}<div class="small text-primary mt-1">{{this.recommendation}}</div>{{/if}}
+                </div>
+              </div>
+            {{/each}}
+          </div>
+        </div>
+      {{/if}}
+
+      {{#if report.warnings.length}}
+        <div class="card mb-3">
+          <div class="card-header bg-warning text-dark"><i class="bi bi-exclamation-circle-fill me-2"></i>Warnings</div>
+          <div class="card-body">
+            {{#each report.warnings}}
+              <div class="finding-row">
+                <div class="finding-dot bg-warning text-dark"><i class="bi bi-exclamation-lg"></i></div>
+                <div>
+                  <div class="fw-semibold">{{this.title}}</div>
+                  <div class="small text-muted">{{this.detail}}</div>
+                  {{#if this.recommendation}}<div class="small text-primary mt-1">{{this.recommendation}}</div>{{/if}}
+                </div>
+              </div>
+            {{/each}}
+          </div>
+        </div>
+      {{/if}}
+
+      {{#if report.secure.length}}
+        <div class="card mb-3">
+          <div class="card-header bg-success text-white"><i class="bi bi-check-circle-fill me-2"></i>Green / Self-Reported Strengths</div>
+          <div class="card-body">
+            <div class="alert alert-warning small py-2">Self-reported strengths should be verified during the formal assessment.</div>
+            {{#each report.secure}}
+              <div class="finding-row">
+                <div class="finding-dot bg-success text-white"><i class="bi bi-check-lg"></i></div>
+                <div>
+                  <div class="fw-semibold">{{this.title}}</div>
+                  <div class="small text-muted">{{this.detail}}</div>
+                </div>
+              </div>
+            {{/each}}
+          </div>
+        </div>
+      {{/if}}
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-pencil me-2"></i>Review Notes</div>
+        <div class="card-body">
+          <form method="POST" action="/admin/self-assessments/{{sa.id}}/review">
+            <textarea class="form-control mb-2" name="admin_notes" rows="4" placeholder="Internal assessor notes...">{{sa.admin_notes}}</textarea>
+            <button class="btn btn-outline-primary w-100" type="submit"><i class="bi bi-check2 me-1"></i>Save Review</button>
+          </form>
+        </div>
+      </div>
+
+      {{#if linkedIntake}}
+        <div class="card mb-3 border-success">
+          <div class="card-header bg-success text-white"><i class="bi bi-link-45deg me-2"></i>Linked Intake</div>
+          <div class="card-body">
+            <div class="fw-semibold"><code>{{linkedIntake.ref_code}}</code></div>
+            <div class="small text-muted mb-2">Status: {{linkedIntake.status}}</div>
+            <a class="btn btn-sm btn-outline-success w-100" href="/admin/intakes/{{linkedIntake.id}}"><i class="bi bi-eye me-1"></i>Open Intake</a>
+          </div>
+        </div>
+      {{else}}
+        <div class="card mb-3">
+          <div class="card-header"><i class="bi bi-clipboard-plus me-2"></i>Create Draft Intake</div>
+          <div class="card-body">
+            <p class="small text-muted">Convert this preliminary submission into a draft intake for formal SA&A/project workflow.</p>
+            <form method="POST" action="/admin/self-assessments/{{sa.id}}/create-intake">
+              <button class="btn btn-primary w-100" type="submit"><i class="bi bi-plus-lg me-1"></i>Create Intake</button>
+            </form>
+          </div>
+        </div>
+      {{/if}}
+
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-person-plus me-2"></i>Client Account</div>
+        <div class="card-body">
+          {{#if existingUser}}
+            <div class="alert alert-info small mb-0">This email already belongs to a {{existingUser.role}} user.</div>
+          {{else}}
+            <p class="small text-muted">Invite this submitter to register as a client and continue with the full intake or evidence workflow.</p>
+            <form method="POST" action="/admin/self-assessments/{{sa.id}}/invite-client">
+              <button class="btn btn-outline-primary w-100" type="submit"><i class="bi bi-send me-1"></i>Create Client Invite</button>
+            </form>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

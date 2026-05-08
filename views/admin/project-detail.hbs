@@ -33,6 +33,13 @@
               <td><span class="badge bg-info">{{project.data_classification}}</span></td>
             </tr>
             <tr>
+              <td class="fw-semibold text-muted">Framework</td>
+              <td>
+                <span class="badge bg-light text-dark border">{{project.security_framework}}</span>
+                {{#if project.framework_baseline}}<div class="small text-muted mt-1">{{project.framework_baseline}}{{#if project.framework_category}} · {{project.framework_category}}{{/if}}</div>{{/if}}
+              </td>
+            </tr>
+            <tr>
               <td class="fw-semibold text-muted">Hosting</td>
               <td>{{project.hosting_type}}</td>
             </tr>

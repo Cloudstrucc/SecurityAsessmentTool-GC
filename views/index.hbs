@@ -1,88 +1,82 @@
-<div class="container">
-  <div class="row justify-content-center mt-5">
-    <div class="col-lg-8 text-center mb-5">
-      <div class="mb-4">
-        <i class="bi bi-shield-lock-fill" style="font-size:4rem;color:var(--gc-red)"></i>
+<style>
+  .home-hero { margin:-1.5rem -15px 0; padding:4rem 0 3.25rem; background:linear-gradient(135deg,#26374a 0%,#1c578a 62%,#2572b4 100%); color:#fff; border-bottom:4px solid var(--gc-red); }
+  .home-hero h1 { color:#fff; font-size:clamp(2rem,4vw,3.6rem); }
+  .home-hero p { color:rgba(255,255,255,.82); max-width:760px; }
+  .home-action { height:100%; border-radius:8px; border:1px solid var(--gc-border); box-shadow:0 8px 20px rgba(0,0,0,.08); }
+  .framework-strip { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:1.5rem; }
+  .framework-strip span { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.22); color:#fff; border-radius:4px; padding:.3rem .55rem; font-size:.8rem; }
+</style>
+
+<section class="home-hero">
+  <div class="container">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-8">
+        <div class="d-inline-flex align-items-center gap-2 mb-3 px-3 py-2 rounded" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2)">
+          <i class="bi bi-shield-lock-fill"></i>
+          <span class="small fw-semibold">Security Assessment &amp; Authorization Platform</span>
+        </div>
+        <h1 class="mb-3">From quick self-assessment to full ATO/iATO package.</h1>
+        <p class="lead mb-0">Start with a guided preliminary review, submit an intake, collect evidence, tailor controls, manage POA&amp;M items, and export professional authorization reports.</p>
+        <div class="framework-strip">
+          {{#each frameworkHighlights}}<span>{{this}}</span>{{/each}}
+        </div>
       </div>
-      <h1 class="mb-3" style="color:var(--gc-nav)">GC Security Assessment &amp; Authorization</h1>
-      <p class="lead text-muted">ITSG-33 / Protected B Compliance Portal for Government of Canada</p>
+      <div class="col-lg-4">
+        {{#if user}}
+          <div class="card home-action">
+            <div class="card-header"><i class="bi bi-person-check me-2"></i>Welcome Back</div>
+            <div class="card-body p-4">
+              <p class="text-muted">Continue where you left off as <strong>{{user.name}}</strong>.</p>
+              {{#if (eq user.role 'client')}}
+                <a href="/intake" class="btn btn-primary w-100 mb-2"><i class="bi bi-clipboard-plus me-1"></i>Submit Intake</a>
+                <a href="/help" class="btn btn-outline-primary w-100"><i class="bi bi-question-circle me-1"></i>Open Guide</a>
+              {{else}}
+                <a href="/admin/dashboard" class="btn btn-primary w-100 mb-2"><i class="bi bi-speedometer2 me-1"></i>Admin Dashboard</a>
+                <a href="/admin/projects/new" class="btn btn-outline-primary w-100"><i class="bi bi-folder-plus me-1"></i>New Project</a>
+              {{/if}}
+            </div>
+          </div>
+        {{else}}
+          <div class="card home-action">
+            <div class="card-header"><i class="bi bi-compass me-2"></i>Start Here</div>
+            <div class="card-body p-4">
+              <a href="/self-assessment" class="btn btn-primary w-100 py-2 mb-2"><i class="bi bi-clipboard2-pulse me-1"></i>Security Self-Assessment</a>
+              <a href="/client/login" class="btn btn-outline-primary w-100 py-2 mb-2"><i class="bi bi-box-arrow-in-right me-1"></i>Client Sign In</a>
+              <a href="/admin/login" class="btn btn-dark w-100 py-2"><i class="bi bi-shield-check me-1"></i>Assessor Login</a>
+            </div>
+          </div>
+        {{/if}}
+      </div>
     </div>
   </div>
+</section>
 
-  <div class="row justify-content-center g-4">
-    <!-- Intake -->
-    <div class="col-lg-4">
-      <div class="card h-100">
-        <div class="card-header" style="background:var(--gc-accent);">
-          <i class="bi bi-clipboard2-data me-2"></i>Submit an Intake
-        </div>
-        <div class="card-body p-4 d-flex flex-column">
-          <p class="text-muted mb-3">Starting a new project? Submit a security assessment intake form with your project details, data classification, and technology stack.</p>
-          <p class="small text-muted mb-3"><i class="bi bi-shield-lock me-1"></i>Account with MFA required.</p>
-          <div class="mt-auto">
-            {{#if user}}
-              <a href="/intake" class="btn btn-primary w-100 py-2">
-                <i class="bi bi-clipboard-plus me-2"></i>Start Intake
-              </a>
-            {{else}}
-              <a href="/client/login" class="btn btn-primary w-100 py-2">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In to Submit
-              </a>
-              <a href="/client/register" class="btn btn-outline-primary w-100 py-2 mt-2">
-                <i class="bi bi-person-plus me-2"></i>Register
-              </a>
-            {{/if}}
-          </div>
+<div class="container py-5">
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card home-action">
+        <div class="card-header bg-light"><i class="bi bi-clipboard2-pulse me-2"></i>Self-Assessment</div>
+        <div class="card-body p-4">
+          <p class="text-muted">Anonymous users with an approved access code can complete a guided preliminary review and receive critical, warning, and green feedback.</p>
+          <a href="/self-assessment" class="btn btn-outline-primary w-100">Open Self-Assessment</a>
         </div>
       </div>
     </div>
-
-    <!-- Access Code -->
-    <div class="col-lg-4">
-      <div class="card h-100">
-        <div class="card-header">
-          <i class="bi bi-key me-2"></i>Enter Access Code
-        </div>
-        <div class="card-body p-4 d-flex flex-column">
-          <p class="text-muted mb-3">Received an invitation from a security practitioner? Enter your access code to provide evidence for your assessment.</p>
-          <form action="/respond/access" method="POST" class="mt-auto">
-            <div class="mb-3">
-              <label for="code" class="form-label">Access Code</label>
-              <input type="text" class="form-control form-control-lg text-center text-uppercase" id="code" name="code"
-                placeholder="e.g. A1B2C3D4" maxlength="10" required
-                style="letter-spacing:3px;font-weight:600;font-family:'Courier New',monospace">
-            </div>
-            <button type="submit" class="btn btn-primary w-100 py-2">
-              <i class="bi bi-box-arrow-in-right me-2"></i>Access Assessment
-            </button>
-          </form>
+    <div class="col-md-4">
+      <div class="card home-action">
+        <div class="card-header"><i class="bi bi-clipboard2-data me-2"></i>Intake and Evidence</div>
+        <div class="card-body p-4">
+          <p class="text-muted">Clients submit project details and documents; assessors assign intakes and assessments to existing users or invited users.</p>
+          <a href="/client/login" class="btn btn-primary w-100">Client Portal</a>
         </div>
       </div>
     </div>
-
-    <!-- Assessor -->
-    <div class="col-lg-4">
-      <div class="card h-100">
-        <div class="card-header bg-light" style="background:var(--gc-light)!important;color:var(--gc-nav)">
-          <i class="bi bi-person-badge me-2"></i>Security Practitioner
-        </div>
-        <div class="card-body p-4 d-flex flex-column">
-          <p class="text-muted mb-3">Security assessors and practitioners can log in to manage projects, review intakes, create assessments, and conduct audits.</p>
-          <div class="mt-auto">
-            <a href="/admin/login" class="btn btn-dark w-100 py-2">
-              <i class="bi bi-shield-check me-2"></i>Assessor Login
-            </a>
-          </div>
-          <hr class="my-3">
-          <div class="small text-muted">
-            <p class="mb-2"><strong>This portal supports:</strong></p>
-            <ul class="ps-3 mb-0">
-              <li>ITSG-33 Control Framework</li>
-              <li>Protected B / PBMM Profile</li>
-              <li>SA&amp;A Lifecycle Management</li>
-              <li>ATO / iATO Generation</li>
-            </ul>
-          </div>
+    <div class="col-md-4">
+      <div class="card home-action">
+        <div class="card-header"><i class="bi bi-person-badge me-2"></i>Assessor Workspace</div>
+        <div class="card-body p-4">
+          <p class="text-muted">Assessors manage projects, tailor controls across supported frameworks, create ATO/iATO records, and export reports.</p>
+          <a href="/admin/login" class="btn btn-dark w-100">Assessor Login</a>
         </div>
       </div>
     </div>

@@ -716,7 +716,194 @@ test('security control catalog includes major non-ITSG frameworks', async () => 
   assert.match(await csv.text(), /A\.5\.1/);
 });
 
-test.skip('self-assessment creation flow', () => {
-  // This main branch does not currently include /self-assessment routes.
-  // Add executable coverage here when that feature lands on main.
+test('anonymous users can request and complete an invite-code self-assessment', async () => {
+  const publicJar = new CookieJar();
+  const landing = await getText(publicJar, '/');
+  assert.equal(landing.response.status, 200);
+  assert.match(landing.text, /Security Self-Assessment/);
+
+  const gate = await getText(publicJar, '/self-assessment');
+  assert.equal(gate.response.status, 200);
+  assert.match(gate.text, /Request Access/);
+
+  const requestAccess = await request(publicJar, 'POST', '/self-assessment/request-access', {
+    form: {
+      name: 'Self Assessment User',
+      email: 'self.assessment@example.test',
+      organization: 'Self Assessment Org',
+      reason: 'Need a preliminary review before requesting a full assessment.'
+    },
+    redirect: 'follow'
+  });
+  assert.equal(requestAccess.status, 200);
+  assert.match(await requestAccess.text(), /Request Submitted/);
+
+  const adminJar = await loginAdminWithTotp();
+  const queue = await getText(adminJar, '/admin/self-assessments');
+  assert.match(queue.text, /self\.assessment@example\.test/);
+  const requestId = queue.text.match(/\/admin\/self-assessment-requests\/(\d+)\/approve/)?.[1];
+  assert.ok(requestId, 'access request id should be visible');
+
+  const approve = await request(adminJar, 'POST', `/admin/self-assessment-requests/${requestId}/approve`);
+  assert.equal(approve.status, 302);
+  const approvedQueue = await getText(adminJar, '/admin/self-assessments');
+  const code = approvedQueue.text.match(/Code:\s*<code>([A-Z0-9]+)<\/code>/)?.[1];
+  assert.ok(code, 'approved access code should be visible');
+
+  const wizard = await getText(publicJar, `/self-assessment?code=${code}`);
+  assert.equal(wizard.response.status, 200);
+  assert.match(wizard.text, /Generate Questions/);
+
+  const questions = await request(publicJar, 'POST', '/api/self-assessment/questions', {
+    json: {
+      systemType: 'web-app',
+      country: 'CA',
+      govLevel: 'federal',
+      sensitivity: 'high',
+      description: 'A cloud web application that collects personal information and exposes APIs.'
+    }
+  });
+  assert.equal(questions.status, 200);
+  const questionData = await questions.json();
+  assert.equal(questionData.success, true);
+  assert.ok(questionData.questions.length >= 5);
+
+  const answers = {};
+  questionData.questions.forEach((group, gi) => {
+    group.questions.forEach((q, qi) => {
+      answers[`q_${gi}_${qi}`] = q.type === 'select' ? (q.options?.[0] || 'Selected') : qi % 2 === 0;
+    });
+  });
+
+  const report = await request(publicJar, 'POST', '/api/self-assessment/report', {
+    json: {
+      systemType: 'web-app',
+      country: 'CA',
+      govLevel: 'federal',
+      sensitivity: 'high',
+      description: 'A cloud web application that collects personal information and exposes APIs.',
+      frameworks: questionData.frameworks,
+      questions: questionData.questions,
+      answers
+    }
+  });
+  assert.equal(report.status, 200);
+  const reportData = await report.json();
+  assert.ok(Number.isInteger(reportData.score));
+  assert.ok(Array.isArray(reportData.critical));
+  assert.ok(Array.isArray(reportData.warnings));
+  assert.ok(Array.isArray(reportData.secure));
+
+  const submit = await request(publicJar, 'POST', '/api/self-assessment/submit', {
+    json: {
+      name: 'Self Assessment User',
+      email: 'self.assessment@example.test',
+      organization: 'Self Assessment Org',
+      systemType: 'web-app',
+      country: 'CA',
+      govLevel: 'federal',
+      sensitivity: 'high',
+      description: 'A cloud web application that collects personal information and exposes APIs.',
+      frameworks: questionData.frameworks,
+      questions: questionData.questions,
+      answers,
+      report: reportData
+    }
+  });
+  assert.equal(submit.status, 200);
+  const submitData = await submit.json();
+  assert.equal(submitData.success, true);
+  assert.match(submitData.refCode, /^SA-/);
+
+  const updatedQueue = await getText(adminJar, '/admin/self-assessments');
+  assert.match(updatedQueue.text, new RegExp(submitData.refCode));
+  const reviewPath = updatedQueue.text.match(new RegExp(`/admin/self-assessments/(\\d+)`))?.[0];
+  assert.ok(reviewPath, 'review path should be available');
+  const review = await getText(adminJar, reviewPath);
+  assert.match(review.text, /Critical Gaps|Warnings|Green/);
+
+  const convert = await request(adminJar, 'POST', `${reviewPath}/create-intake`);
+  assert.equal(convert.status, 302);
+  const convertedReview = await getText(adminJar, reviewPath);
+  assert.match(convertedReview.text, /Linked Intake/);
+});
+
+test('admin can manage Teams invitations and view users', async () => {
+  const jar = await loginAdminWithTotp();
+  const teams = await getText(jar, '/admin/teams');
+  assert.equal(teams.response.status, 200);
+  assert.match(teams.text, /Invite a Client/);
+  assert.match(teams.text, /Invite an Assessor/);
+  assert.match(teams.text, /Active Users/);
+
+  const invite = await request(jar, 'POST', '/admin/teams/client', {
+    form: {
+      email: 'team.client@example.test',
+      name: 'Team Client',
+      organization: 'Team Client Org',
+      message: 'Please join the assessment portal.'
+    }
+  });
+  assert.equal(invite.status, 302);
+  const afterInvite = await getText(jar, '/admin/teams');
+  assert.match(afterInvite.text, /team\.client@example\.test/);
+});
+
+test('project and assessment creation can use non-ITSG framework controls', async () => {
+  const jar = await loginAdminWithTotp();
+  const newProject = await getText(jar, '/admin/projects/new');
+  assert.match(newProject.text, /Security Framework/);
+  assert.match(newProject.text, /CIS Controls v8/);
+
+  const create = await request(jar, 'POST', '/admin/projects/new', {
+    form: {
+      name: 'E2E CIS Framework Project',
+      description: 'A private sector cloud application aligned to CIS Controls v8 implementation group one.',
+      security_framework: 'CIS Controls v8',
+      framework_baseline: 'IG1',
+      framework_category: 'all',
+      framework_applicability: 'Use CIS IG1 as the initial scope with assessor override.',
+      department: 'E2E Organization',
+      branch: 'Security Testing',
+      data_classification: 'unclassified',
+      hosting_type: 'azure',
+      app_type: 'external',
+      project_owner_name: 'E2E Owner',
+      project_owner_email: 'owner@example.test'
+    }
+  });
+  assert.equal(create.status, 302);
+  const projectPath = create.headers.get('location');
+  const projectId = projectPath.match(/(\d+)$/)[1];
+
+  const detail = await getText(jar, projectPath);
+  assert.match(detail.text, /CIS Controls v8/);
+  assert.match(detail.text, /IG1/);
+
+  const assessmentNew = await getText(jar, `/admin/projects/${projectId}/assessments/new`);
+  assert.equal(assessmentNew.response.status, 200);
+  assert.match(assessmentNew.text, /Select &amp; tailor CIS Controls v8 controls/);
+  assert.match(assessmentNew.text, /Inventory and Control of Enterprise Assets/);
+  assert.doesNotMatch(assessmentNew.text, /View GC Web Guidance Report Instead/);
+
+  const assessmentCreate = await request(jar, 'POST', `/admin/projects/${projectId}/assessments/new`, {
+    form: {
+      control_ids: 'CIS-01',
+      'title_CIS-01': 'Inventory and Control of Enterprise Assets',
+      'desc_CIS-01': 'CIS asset inventory control.',
+      'control_guidance_CIS-01': 'Use CIS evidence guidance.',
+      'priority_CIS-01': 'P2',
+      'risk_CIS-01': 'medium',
+      'family_CIS-01': 'CIS Critical Security Controls',
+      'family_name_CIS-01': 'Prioritized cybersecurity actions',
+      'framework_CIS-01': 'CIS Controls v8',
+      'tailored[CIS-01]': 'Tailored CIS asset inventory requirement.',
+      'guidance[CIS-01]': 'Provide asset inventory evidence.',
+      'applicable[CIS-01]': '1'
+    }
+  });
+  assert.equal(assessmentCreate.status, 302);
+  const assessmentDetail = await getText(jar, assessmentCreate.headers.get('location'));
+  assert.match(assessmentDetail.text, /CIS Controls v8/);
+  assert.match(assessmentDetail.text, /CIS-01/);
 });

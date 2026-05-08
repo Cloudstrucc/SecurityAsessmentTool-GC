@@ -232,6 +232,8 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { AI_TEMP_UPLOAD_DIR: aiTempUploadDir, ensureUploadDirs } = require('../config/storage');
+const { mergeQuestions, getFrameworks, countryNames, govLevelNames, sensitivityNames } = require('../config/framework-map');
+const { buildFrameworkSummary } = require('../config/security-frameworks');
 
 // File upload for AI doc parsing (temp storage)
 ensureUploadDirs();
@@ -259,6 +261,7 @@ router.post('/ai/parse-document', aiUpload.single('document'), async (req, res) 
     const filePath = req.file.path;
     const ext = path.extname(req.file.originalname).toLowerCase();
     const filename = req.file.originalname;
+    const securityFramework = req.body.securityFramework || req.body.security_framework || 'ITSG-33';
     let result;
 
     if (['.pdf', '.png', '.jpg', '.jpeg'].includes(ext)) {
@@ -266,11 +269,11 @@ router.post('/ai/parse-document', aiUpload.single('document'), async (req, res) 
       const fileBuffer = fs.readFileSync(filePath);
       const base64 = fileBuffer.toString('base64');
       const mimeMap = { '.pdf': 'application/pdf', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg' };
-      result = await ai.parseDocumentForIntake({ base64, mediaType: mimeMap[ext], filename });
+      result = await ai.parseDocumentForIntake({ base64, mediaType: mimeMap[ext], filename, securityFramework });
     } else {
       // Send as text
       const text = fs.readFileSync(filePath, 'utf-8');
-      result = await ai.parseDocumentForIntake({ text, filename });
+      result = await ai.parseDocumentForIntake({ text, filename, securityFramework });
     }
 
     // Clean up temp file
@@ -288,11 +291,11 @@ router.post('/ai/parse-document', aiUpload.single('document'), async (req, res) 
 router.post('/ai/suggest-from-description', express.json(), async (req, res) => {
   try {
     if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
-    const { description } = req.body;
+    const { description, securityFramework } = req.body;
     if (!description || description.trim().length < 20) {
       return res.status(400).json({ error: 'Please provide a project description of at least 20 characters.' });
     }
-    const result = await ai.suggestFromDescription(description);
+    const result = await ai.suggestFromDescription(description, securityFramework || 'ITSG-33');
     res.json({ success: true, suggestions: result });
   } catch (err) {
     console.error('AI suggest error:', err);
@@ -307,7 +310,7 @@ router.post('/ai/review-intake/:id', ensureAuthenticated, express.json(), async 
     const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
     if (!intake) return res.status(404).json({ error: 'Intake not found' });
 
-    const profileInfo = intake.security_profile || '';
+    const profileInfo = buildFrameworkSummary(intake);
     const result = await ai.reviewIntake(intake, profileInfo);
     res.json({ success: true, review: result });
   } catch (err) {
@@ -412,6 +415,168 @@ router.post('/ai/generate-bulk-evidence', ensureAuthenticated, express.json(), a
     res.json({ success: true, narratives: result });
   } catch (err) {
     console.error('AI bulk evidence error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Self-assessment wizard ──────────────────────────────────────────────────
+router.post('/self-assessment/questions', express.json(), async (req, res) => {
+  try {
+    const { country, govLevel, sensitivity, description, frameworks } = req.body;
+    const selectedFrameworks = frameworks || getFrameworks(country, govLevel, sensitivity);
+    const questions = mergeQuestions(country, govLevel);
+
+    if ((description || '').toLowerCase().includes('api')) {
+      const group = questions.find(q => q.title === 'System and Network Security');
+      group.questions.push({ type: 'checkbox', text: 'APIs require authentication and input validation.', hint: 'Applies to public and internal APIs.', frameworkRef: 'API security' });
+    }
+    if ((description || '').toLowerCase().includes('cloud')) {
+      const group = questions.find(q => q.title === 'System and Network Security');
+      group.questions.push({ type: 'checkbox', text: 'Cloud resources are configured from secure baselines.', hint: 'Infrastructure as code, policy, or configuration guardrails.', frameworkRef: 'Cloud security' });
+    }
+
+    res.json({
+      success: true,
+      questions,
+      frameworks: selectedFrameworks,
+      scopeLabel: `${countryNames[country] || country || 'Selected jurisdiction'} · ${govLevelNames[govLevel] || govLevel || 'sector'} · ${sensitivityNames[sensitivity] || sensitivity || 'sensitivity'}`
+    });
+  } catch (err) {
+    console.error('Self-assessment questions error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+function finding(title, detail, recommendation, framework) {
+  return { title, detail, recommendation, framework };
+}
+
+function buildSelfAssessmentReport({ systemType, country, govLevel, sensitivity, description, frameworks, questions, answers }) {
+  const fw = frameworks || getFrameworks(country, govLevel, sensitivity);
+  const critical = [];
+  const warnings = [];
+  const secure = [];
+  let total = 0;
+  let positive = 0;
+
+  (questions || []).forEach((group, groupIndex) => {
+    (group.questions || []).forEach((question, qIndex) => {
+      total++;
+      const key = `q_${groupIndex}_${qIndex}`;
+      const answer = answers?.[key];
+      const title = question.text.replace(/\.$/, '');
+      const ref = question.frameworkRef || group.frameworkRef || fw.primary;
+      if (question.type === 'checkbox') {
+        if (answer === true || answer === 'true' || answer === 'on') {
+          positive++;
+          secure.push(finding(title, 'Self-reported as implemented.', '', ref));
+        } else if (/mfa|encrypt|incident|patch|log|backup|admin/i.test(question.text)) {
+          critical.push(finding(title, 'This foundational safeguard was not reported as implemented.', 'Prioritize implementation and collect evidence before a formal assessment.', ref));
+        } else {
+          warnings.push(finding(title, 'This control area needs assessor follow-up.', 'Document current practice, owner, and planned remediation.', ref));
+        }
+      } else if (question.type === 'select') {
+        const normalized = String(answer || '').toLowerCase();
+        if (!answer || /unknown|not|never|no policy/.test(normalized)) {
+          warnings.push(finding(title, `Selected answer: ${answer || 'not answered'}.`, 'Clarify this item during intake and define an accountable remediation owner.', ref));
+        } else {
+          positive++;
+          secure.push(finding(title, `Selected answer: ${answer}.`, '', ref));
+        }
+      }
+    });
+  });
+
+  const score = total ? Math.max(0, Math.min(100, Math.round((positive / total) * 100 - critical.length * 5))) : 0;
+  const nextSteps = [
+    'Request a full assessment when the system scope, owner, data sensitivity, and hosting model are ready.',
+    'Collect policy, architecture, IAM, logging, backup, and vulnerability evidence for assessor review.',
+    'Resolve critical gaps before seeking an ATO/iATO decision.'
+  ];
+  if (sensitivity === 'high' || sensitivity === 'classified') {
+    nextSteps.unshift('Confirm regulatory, privacy, and authorization requirements for high-sensitivity data.');
+  }
+
+  return {
+    score,
+    scopeLabel: `${fw.primary}${fw.others?.length ? ' + ' + fw.others.length + ' related framework(s)' : ''}`,
+    critical,
+    warnings,
+    secure,
+    nextSteps,
+    summary: `${systemType || 'System'} self-assessment for ${countryNames[country] || country || 'selected jurisdiction'} using ${fw.primary}. ${description ? 'The submitted description was considered when generating findings.' : ''}`
+  };
+}
+
+router.post('/self-assessment/report', express.json({ limit: '2mb' }), (req, res) => {
+  try {
+    res.json(buildSelfAssessmentReport(req.body));
+  } catch (err) {
+    console.error('Self-assessment report error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/self-assessment/submit', express.json({ limit: '4mb' }), (req, res) => {
+  try {
+    const {
+      name, email, organization, systemType, country, govLevel, sensitivity,
+      description, frameworks, questions, answers, report
+    } = req.body;
+    const normalizedEmail = (email || '').toLowerCase().trim();
+    if (!normalizedEmail) return res.status(400).json({ error: 'Email is required.' });
+    const finalReport = report || buildSelfAssessmentReport(req.body);
+    const refCode = `SA-${require('crypto').randomBytes(4).toString('hex').toUpperCase()}`;
+    run(`INSERT INTO self_assessments
+      (ref_code, submitter_name, submitter_email, submitter_org, system_type, system_description,
+       country, gov_level, data_sensitivity, frameworks_json, questions_json, answers_json, report_json,
+       score, secure_count, warning_count, critical_count)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        refCode,
+        name || '',
+        normalizedEmail,
+        organization || '',
+        systemType || '',
+        description || '',
+        country || '',
+        govLevel || '',
+        sensitivity || '',
+        JSON.stringify(frameworks || getFrameworks(country, govLevel, sensitivity)),
+        JSON.stringify(questions || []),
+        JSON.stringify(answers || {}),
+        JSON.stringify(finalReport),
+        finalReport.score || 0,
+        finalReport.secure?.length || 0,
+        finalReport.warnings?.length || 0,
+        finalReport.critical?.length || 0
+      ]);
+    res.json({ success: true, refCode });
+  } catch (err) {
+    console.error('Self-assessment submit error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/self-assessment/:id/generate-intake', ensureAuthenticated, express.json(), (req, res) => {
+  try {
+    const sa = get('SELECT * FROM self_assessments WHERE id = ?', [req.params.id]);
+    if (!sa) return res.status(404).json({ error: 'Self-assessment not found.' });
+    let frameworks = {};
+    try { frameworks = JSON.parse(sa.frameworks_json || '{}'); } catch(e) {}
+    res.json({
+      success: true,
+      intakeData: {
+        projectName: `${sa.submitter_org || 'Client'} ${sa.system_type || 'System'} Assessment`,
+        projectDescription: sa.system_description || '',
+        department: sa.submitter_org || '',
+        appType: sa.system_type === 'web-app' ? 'external' : 'internal',
+        securityFramework: frameworks.primary || 'ITSG-33',
+        dataClassification: sa.data_sensitivity === 'high' ? 'protected-b' : 'protected-a'
+      }
+    });
+  } catch (err) {
+    console.error('Self-assessment generate-intake error:', err);
     res.status(500).json({ error: err.message });
   }
 });

@@ -3,14 +3,14 @@
     <a href="/admin/projects/{{project.id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
     <div>
       <h1 class="mb-0">New Assessment</h1>
-      <p class="text-muted mb-0">{{project.name}} — Select & tailor ITSG-33 controls</p>
+      <p class="text-muted mb-0">{{project.name}} — Select &amp; tailor {{framework.label}} controls</p>
     </div>
   </div>
 
   <div class="alert alert-info">
     <i class="bi bi-lightbulb me-2"></i>
     <strong>{{controlCount}} controls recommended</strong> {{#if usingTailoredRecommendation}}from the tailored project context{{else}}from the full baseline{{/if}}
-    ({{project.data_classification}}, {{project.hosting_type}}, {{project.app_type}}{{#if project.has_pii}}, PII{{/if}}).
+    ({{frameworkSummary}}).
     Review the recommended controls, approve or reject selections, add more manually later, and then create the assessment package.
     {{#if usingTailoredRecommendation}}<br><small class="text-muted">Full baseline available: {{baselineCount}} controls. The assessor remains in control of the final selected set.</small>{{/if}}
     {{#if saaReason}}<br><small class="text-muted">Determination: {{saaReason}}</small>{{/if}}
@@ -27,9 +27,11 @@
         <i class="bi bi-stars me-1"></i>Use Tailored Recommendation
       </a>
     {{/if}}
-    <a href="/admin/projects/{{project.id}}/guidance" class="btn btn-outline-success btn-sm">
-      <i class="bi bi-file-text me-1"></i>View GC Web Guidance Report Instead
-    </a>
+    {{#if isItsgFramework}}
+      <a href="/admin/projects/{{project.id}}/guidance" class="btn btn-outline-success btn-sm">
+        <i class="bi bi-file-text me-1"></i>View GC Web Guidance Report Instead
+      </a>
+    {{/if}}
   </div>
 
   {{#if documents.length}}
@@ -99,8 +101,12 @@
             <!-- Hidden fields for standard data -->
             <input type="hidden" name="title_{{this.id}}" value="{{this.title}}">
             <input type="hidden" name="desc_{{this.id}}" value="{{this.description}}">
-            <input type="hidden" name="control_guidance_{{this.id}}" value="{{this.evidenceGuidance}}">
+            <input type="hidden" name="control_guidance_{{this.id}}" value="{{this.controlGuidance}}">
             <input type="hidden" name="priority_{{this.id}}" value="{{this.priority}}">
+            <input type="hidden" name="risk_{{this.id}}" value="{{this.riskLevel}}">
+            <input type="hidden" name="family_{{this.id}}" value="{{this.family}}">
+            <input type="hidden" name="family_name_{{this.id}}" value="{{this.familyName}}">
+            <input type="hidden" name="framework_{{this.id}}" value="{{this.framework}}">
             {{#if this.inheritedFrom}}
               <input type="hidden" name="inherited[{{this.id}}]" value="1">
               <input type="hidden" name="inherited_from[{{this.id}}]" value="{{this.inheritedFrom}}">

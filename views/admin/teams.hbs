@@ -1,0 +1,142 @@
+<div class="container" style="max-width:1120px">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">Teams</h1>
+      <p class="text-muted mb-0">Invite clients and assessors, and view active portal users.</p>
+    </div>
+  </div>
+
+  <ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#clients" type="button"><i class="bi bi-person-plus me-1"></i>Client Invites</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#assessors" type="button"><i class="bi bi-shield-plus me-1"></i>Assessor Invites</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#users" type="button"><i class="bi bi-people me-1"></i>Users</button></li>
+  </ul>
+
+  <div class="tab-content pt-3">
+    <div class="tab-pane fade show active" id="clients">
+      <div class="form-section">
+        <div class="section-header">
+          <h3 class="section-title"><span class="section-number"><i class="bi bi-person-plus"></i></span>Invite a Client</h3>
+          <p class="section-description">Clients can submit intakes and provide evidence for assigned assessments.</p>
+        </div>
+        <form method="POST" action="/admin/teams/client" class="row g-3">
+          <div class="col-md-4"><label class="form-label">Email</label><input class="form-control" type="email" name="email" required></div>
+          <div class="col-md-4"><label class="form-label">Name</label><input class="form-control" name="name"></div>
+          <div class="col-md-4"><label class="form-label">Organization</label><input class="form-control" name="organization"></div>
+          <div class="col-12"><label class="form-label">Message</label><input class="form-control" name="message" placeholder="Optional note included in the invitation"></div>
+          <div class="col-12"><button class="btn btn-primary" type="submit"><i class="bi bi-send me-1"></i>Send Client Invite</button></div>
+        </form>
+      </div>
+
+      <div class="card mt-4">
+        <div class="card-header"><i class="bi bi-list-check me-2"></i>Client Invitations</div>
+        <div class="card-body p-0">
+          {{#if clientInvites.length}}
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead><tr><th>Email</th><th>Name</th><th>Code</th><th>Status</th><th>Expires</th><th></th></tr></thead>
+                <tbody>
+                  {{#each clientInvites}}
+                    <tr>
+                      <td><code>{{this.email}}</code></td>
+                      <td>{{this.name}}</td>
+                      <td><code>{{this.invite_code}}</code></td>
+                      <td>{{{statusBadge this.status}}}</td>
+                      <td class="small text-muted">{{formatDate this.expires_at}}</td>
+                      <td>
+                        {{#if (eq this.status 'pending')}}
+                          <div class="btn-group btn-group-sm">
+                            <form method="POST" action="/admin/teams/{{this.id}}/resend"><button class="btn btn-outline-primary" title="Resend"><i class="bi bi-arrow-repeat"></i></button></form>
+                            <form method="POST" action="/admin/teams/{{this.id}}/revoke"><button class="btn btn-outline-danger" title="Revoke"><i class="bi bi-x-lg"></i></button></form>
+                          </div>
+                        {{/if}}
+                      </td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          {{else}}
+            <div class="p-4 text-center text-muted">No client invitations yet.</div>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="assessors">
+      <div class="form-section">
+        <div class="section-header">
+          <h3 class="section-title"><span class="section-number"><i class="bi bi-shield-plus"></i></span>Invite an Assessor</h3>
+          <p class="section-description">Assessors can collaborate on assigned intakes and assessments.</p>
+        </div>
+        <form method="POST" action="/admin/teams/assessor" class="row g-3">
+          <div class="col-md-4"><label class="form-label">Email</label><input class="form-control" type="email" name="email" required></div>
+          <div class="col-md-4"><label class="form-label">Name</label><input class="form-control" name="name"></div>
+          <div class="col-md-4"><label class="form-label">Organization</label><input class="form-control" name="organization"></div>
+          <div class="col-12"><label class="form-label">Message</label><input class="form-control" name="message" placeholder="Optional collaboration note"></div>
+          <div class="col-12"><button class="btn btn-dark" type="submit"><i class="bi bi-send me-1"></i>Send Assessor Invite</button></div>
+        </form>
+      </div>
+
+      <div class="card mt-4">
+        <div class="card-header"><i class="bi bi-list-check me-2"></i>Assessor Invitations</div>
+        <div class="card-body p-0">
+          {{#if assessorInvites.length}}
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead><tr><th>Email</th><th>Name</th><th>Code</th><th>Status</th><th>Accepted By</th><th></th></tr></thead>
+                <tbody>
+                  {{#each assessorInvites}}
+                    <tr>
+                      <td><code>{{this.email}}</code></td>
+                      <td>{{this.name}}</td>
+                      <td><code>{{this.invite_code}}</code></td>
+                      <td>{{{statusBadge this.status}}}</td>
+                      <td>{{this.accepted_name}}</td>
+                      <td>
+                        {{#if (eq this.status 'pending')}}
+                          <div class="btn-group btn-group-sm">
+                            <form method="POST" action="/admin/teams/{{this.id}}/resend"><button class="btn btn-outline-primary" title="Resend"><i class="bi bi-arrow-repeat"></i></button></form>
+                            <form method="POST" action="/admin/teams/{{this.id}}/revoke"><button class="btn btn-outline-danger" title="Revoke"><i class="bi bi-x-lg"></i></button></form>
+                          </div>
+                        {{/if}}
+                      </td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          {{else}}
+            <div class="p-4 text-center text-muted">No assessor invitations yet.</div>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="users">
+      <div class="card">
+        <div class="card-header"><i class="bi bi-people me-2"></i>Active Users</div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Organization</th><th>MFA</th><th>Break Glass</th><th>Last Login</th></tr></thead>
+              <tbody>
+                {{#each activeUsers}}
+                  <tr>
+                    <td class="fw-semibold">{{this.name}}</td>
+                    <td><code>{{this.email}}</code></td>
+                    <td><span class="badge bg-light text-dark border">{{this.role}}</span></td>
+                    <td>{{this.organization}}</td>
+                    <td>{{#if this.mfa_enabled}}<span class="badge bg-success">Enabled</span>{{else}}<span class="badge bg-warning text-dark">Not enabled</span>{{/if}}</td>
+                    <td>{{#if this.is_break_glass}}<span class="badge bg-danger">Yes</span>{{else}}<span class="text-muted">No</span>{{/if}}</td>
+                    <td class="small text-muted">{{formatDate this.last_login}}</td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

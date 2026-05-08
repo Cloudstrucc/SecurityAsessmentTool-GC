@@ -108,8 +108,38 @@
           <span class="section-number">2</span>
           Classification & Data Sensitivity
         </h3>
-        <p class="section-description">Security classification and data handling requirements</p>
+        <p class="section-description">Select the framework first. ITSG-33 uses C/I/A; other frameworks use baseline/category tailoring fields.</p>
       </div>
+      <div class="card mb-3 border-0 bg-light">
+        <div class="card-body">
+          <label class="form-label fw-semibold" for="security_framework">Security Framework</label>
+          <select class="form-select" id="security_framework" name="security_framework" required>
+            {{#each frameworkOptions}}
+              <option value="{{this.id}}">{{this.label}}</option>
+            {{/each}}
+          </select>
+          <div class="form-text" id="projectFrameworkDescription"></div>
+        </div>
+      </div>
+      <div id="projectFrameworkCategorization" class="card mb-3 border-0 bg-light" style="display:none;">
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="framework_baseline">Baseline / Implementation Group</label>
+              <select class="form-select" id="framework_baseline" name="framework_baseline"></select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="framework_category">Category / Applicability</label>
+              <select class="form-select" id="framework_category" name="framework_category"></select>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="framework_applicability">Framework Tailoring Notes</label>
+              <textarea class="form-control" id="framework_applicability" name="framework_applicability" rows="2" placeholder="Framework scoping, baseline override, regulatory driver, or Statement of Applicability note."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="projectItsgCategorization">
       <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label" for="data_classification">Data Classification <span class="text-danger">*</span></label>
@@ -178,6 +208,7 @@
             High Value Asset (HVA)
           </label>
         </div>
+      </div>
       </div>
       <div class="mt-3">
         <label class="form-label fw-semibold">PII Types</label>
@@ -461,6 +492,33 @@
 {{> ai-panel }}
 
 <script>
+const PROJECT_FRAMEWORK_OPTIONS = {{{frameworkOptionsJSON}}};
+function projectCurrentFrameworkMeta() {
+  const id = document.getElementById('security_framework')?.value || 'ITSG-33';
+  return PROJECT_FRAMEWORK_OPTIONS.find(f => f.id === id) || PROJECT_FRAMEWORK_OPTIONS[0];
+}
+function projectPopulateSelect(select, options) {
+  if (!select) return;
+  select.innerHTML = (options || []).map(opt => '<option value="' + opt.value + '">' + opt.label + '</option>').join('');
+}
+function syncProjectFrameworkCategorization() {
+  const meta = projectCurrentFrameworkMeta();
+  const isItsg = meta.id === 'ITSG-33';
+  document.getElementById('projectFrameworkDescription').textContent = meta.description || '';
+  document.getElementById('projectItsgCategorization').style.display = isItsg ? '' : 'none';
+  document.getElementById('projectFrameworkCategorization').style.display = isItsg ? 'none' : '';
+  projectPopulateSelect(document.getElementById('framework_baseline'), meta.baselineOptions || []);
+  projectPopulateSelect(document.getElementById('framework_category'), meta.categoryOptions || []);
+  ['data_classification', 'confidentiality_level', 'integrity_level', 'availability_level'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.required = isItsg && id === 'data_classification';
+  });
+  document.getElementById('framework_baseline').required = !isItsg;
+  document.getElementById('framework_category').required = !isItsg;
+}
+document.getElementById('security_framework').addEventListener('change', syncProjectFrameworkCategorization);
+syncProjectFrameworkCategorization();
+
 const assignmentMode = document.getElementById('assignment_mode');
 function syncAssignmentFields() {
   const mode = assignmentMode.value;
@@ -546,6 +604,10 @@ const PROJECT_AI_FIELD_MAP = {
   integrityLevel: { type: 'select', id: 'integrity_level' },
   availabilityLevel: { type: 'select', id: 'availability_level' },
   isHVA: { type: 'checkbox', id: 'is_hva' },
+  securityFramework: { type: 'select', id: 'security_framework' },
+  frameworkBaseline: { type: 'select', id: 'framework_baseline' },
+  frameworkCategory: { type: 'select', id: 'framework_category' },
+  frameworkApplicability: { type: 'textarea', id: 'framework_applicability' },
   atipSubject: { type: 'select', id: 'atip_subject' },
   piaCompleted: { type: 'select', id: 'pia_completed' },
   hostingType: { type: 'select', id: 'hosting_type' },
@@ -651,6 +713,8 @@ function aiShowResults(fields, reasoning) {
     branch: 'Branch', userCount: 'User Count', appType: 'Application Type',
     confidentialityLevel: 'Confidentiality', integrityLevel: 'Integrity',
     availabilityLevel: 'Availability', isHVA: 'High Value Asset',
+    securityFramework: 'Security Framework', frameworkBaseline: 'Framework Baseline',
+    frameworkCategory: 'Framework Category', frameworkApplicability: 'Framework Applicability',
     piiTypes: 'PII Types', atipSubject: 'ATIP Subject', piaCompleted: 'PIA Status',
     hostingType: 'Hosting', hostingRegion: 'Data Residency',
     technologies: 'Technologies', otherTech: 'Other Technologies',
@@ -661,7 +725,7 @@ function aiShowResults(fields, reasoning) {
 
   const sectionGroups = [
     { title: '1 - Project Information', keys: ['projectName','projectDescription','department','branch','userCount','appType'] },
-    { title: '2 - Classification & Data', keys: ['confidentialityLevel','integrityLevel','availabilityLevel','isHVA','piiTypes','atipSubject','piaCompleted'] },
+    { title: '2 - Classification & Data', keys: ['securityFramework','frameworkBaseline','frameworkCategory','frameworkApplicability','confidentialityLevel','integrityLevel','availabilityLevel','isHVA','piiTypes','atipSubject','piaCompleted'] },
     { title: '3 - Hosting & Technology', keys: ['hostingType','hostingRegion','technologies','otherTech'] },
     { title: '4 - Architecture & Integrations', keys: ['hasAPIs','gcInterconnections','interconnections','mobileAccess','externalUsers'] },
     { title: '5 - Security Posture', keys: ['completedActivities'] }
@@ -742,6 +806,7 @@ async function aiParseDocument() {
   try {
     const formData = new FormData();
     formData.append('document', file);
+    formData.append('securityFramework', document.getElementById('security_framework')?.value || 'ITSG-33');
     const resp = await fetch('/api/ai/parse-document', { method: 'POST', body: formData });
     const data = await resp.json();
     if (!data.success) throw new Error(data.error || 'Analysis failed');
@@ -766,7 +831,7 @@ async function aiSuggestFromDescription() {
     const resp = await fetch('/api/ai/suggest-from-description', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description: desc })
+      body: JSON.stringify({ description: desc, securityFramework: document.getElementById('security_framework')?.value || 'ITSG-33' })
     });
     const data = await resp.json();
     if (!data.success) throw new Error(data.error || 'Suggestion failed');

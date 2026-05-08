@@ -57,6 +57,10 @@ async function initDatabase() {
       integrity_level TEXT DEFAULT 'medium',
       availability_level TEXT DEFAULT 'medium',
       security_profile TEXT DEFAULT 'PBMM',
+      security_framework TEXT DEFAULT 'ITSG-33',
+      framework_baseline TEXT,
+      framework_category TEXT,
+      framework_applicability TEXT,
       is_hva INTEGER DEFAULT 0,
       hosting_type TEXT,
       app_type TEXT,
@@ -102,6 +106,10 @@ async function initDatabase() {
       assigned_to_user_id INTEGER,
       assigned_to_email TEXT,
       assigned_to_role TEXT,
+      security_framework TEXT DEFAULT 'ITSG-33',
+      framework_baseline TEXT,
+      framework_category TEXT,
+      framework_applicability TEXT,
       created_by INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -360,6 +368,10 @@ async function initDatabase() {
       availability_level TEXT DEFAULT 'medium',
       is_hva INTEGER DEFAULT 0,
       security_profile TEXT DEFAULT 'PBMM',
+      security_framework TEXT DEFAULT 'ITSG-33',
+      framework_baseline TEXT,
+      framework_category TEXT,
+      framework_applicability TEXT,
       pii_types TEXT DEFAULT '[]',
       has_pii INTEGER DEFAULT 0,
       atip_subject TEXT,
@@ -461,6 +473,56 @@ async function initDatabase() {
     )
   `);
 
+  // ── SELF-ASSESSMENTS (anonymous/invite-code pre-intake workflow) ──
+  db.run(`
+    CREATE TABLE IF NOT EXISTS self_assessments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ref_code TEXT UNIQUE NOT NULL,
+      status TEXT DEFAULT 'submitted',
+      submitter_name TEXT,
+      submitter_email TEXT NOT NULL,
+      submitter_org TEXT,
+      system_type TEXT,
+      system_description TEXT,
+      country TEXT,
+      gov_level TEXT,
+      data_sensitivity TEXT,
+      frameworks_json TEXT DEFAULT '{}',
+      questions_json TEXT DEFAULT '[]',
+      answers_json TEXT DEFAULT '{}',
+      report_json TEXT DEFAULT '{}',
+      score INTEGER DEFAULT 0,
+      secure_count INTEGER DEFAULT 0,
+      warning_count INTEGER DEFAULT 0,
+      critical_count INTEGER DEFAULT 0,
+      intake_id INTEGER,
+      reviewed_by INTEGER,
+      reviewed_at DATETIME,
+      admin_notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (intake_id) REFERENCES intake_submissions(id),
+      FOREIGN KEY (reviewed_by) REFERENCES users(id)
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS sa_access_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT,
+      email TEXT NOT NULL,
+      organization TEXT,
+      reason TEXT,
+      status TEXT DEFAULT 'pending',
+      access_code TEXT UNIQUE,
+      approved_by INTEGER,
+      approved_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      expires_at DATETIME,
+      FOREIGN KEY (approved_by) REFERENCES users(id)
+    )
+  `);
+
   // ── USER INVITATIONS ──
   db.run(`
     CREATE TABLE IF NOT EXISTS invitations (
@@ -524,6 +586,10 @@ async function initDatabase() {
     ['projects', 'integrity_level', "ALTER TABLE projects ADD COLUMN integrity_level TEXT DEFAULT 'medium'"],
     ['projects', 'availability_level', "ALTER TABLE projects ADD COLUMN availability_level TEXT DEFAULT 'medium'"],
     ['projects', 'security_profile', "ALTER TABLE projects ADD COLUMN security_profile TEXT DEFAULT 'PBMM'"],
+    ['projects', 'security_framework', "ALTER TABLE projects ADD COLUMN security_framework TEXT DEFAULT 'ITSG-33'"],
+    ['projects', 'framework_baseline', 'ALTER TABLE projects ADD COLUMN framework_baseline TEXT'],
+    ['projects', 'framework_category', 'ALTER TABLE projects ADD COLUMN framework_category TEXT'],
+    ['projects', 'framework_applicability', 'ALTER TABLE projects ADD COLUMN framework_applicability TEXT'],
     ['projects', 'is_hva', 'ALTER TABLE projects ADD COLUMN is_hva INTEGER DEFAULT 0'],
     ['projects', 'department', 'ALTER TABLE projects ADD COLUMN department TEXT'],
     ['projects', 'branch', 'ALTER TABLE projects ADD COLUMN branch TEXT'],
@@ -532,6 +598,10 @@ async function initDatabase() {
     ['intake_submissions', 'integrity_level', "ALTER TABLE intake_submissions ADD COLUMN integrity_level TEXT DEFAULT 'medium'"],
     ['intake_submissions', 'availability_level', "ALTER TABLE intake_submissions ADD COLUMN availability_level TEXT DEFAULT 'medium'"],
     ['intake_submissions', 'security_profile', "ALTER TABLE intake_submissions ADD COLUMN security_profile TEXT DEFAULT 'PBMM'"],
+    ['intake_submissions', 'security_framework', "ALTER TABLE intake_submissions ADD COLUMN security_framework TEXT DEFAULT 'ITSG-33'"],
+    ['intake_submissions', 'framework_baseline', 'ALTER TABLE intake_submissions ADD COLUMN framework_baseline TEXT'],
+    ['intake_submissions', 'framework_category', 'ALTER TABLE intake_submissions ADD COLUMN framework_category TEXT'],
+    ['intake_submissions', 'framework_applicability', 'ALTER TABLE intake_submissions ADD COLUMN framework_applicability TEXT'],
     ['intake_submissions', 'is_hva', 'ALTER TABLE intake_submissions ADD COLUMN is_hva INTEGER DEFAULT 0'],
     ['intake_submissions', 'created_by_assessor_id', 'ALTER TABLE intake_submissions ADD COLUMN created_by_assessor_id INTEGER'],
     ['intake_submissions', 'submitted_by_user_id', 'ALTER TABLE intake_submissions ADD COLUMN submitted_by_user_id INTEGER'],
@@ -542,6 +612,10 @@ async function initDatabase() {
     ['assessments', 'assigned_to_user_id', 'ALTER TABLE assessments ADD COLUMN assigned_to_user_id INTEGER'],
     ['assessments', 'assigned_to_email', 'ALTER TABLE assessments ADD COLUMN assigned_to_email TEXT'],
     ['assessments', 'assigned_to_role', 'ALTER TABLE assessments ADD COLUMN assigned_to_role TEXT'],
+    ['assessments', 'security_framework', "ALTER TABLE assessments ADD COLUMN security_framework TEXT DEFAULT 'ITSG-33'"],
+    ['assessments', 'framework_baseline', 'ALTER TABLE assessments ADD COLUMN framework_baseline TEXT'],
+    ['assessments', 'framework_category', 'ALTER TABLE assessments ADD COLUMN framework_category TEXT'],
+    ['assessments', 'framework_applicability', 'ALTER TABLE assessments ADD COLUMN framework_applicability TEXT'],
     ['invitations', null, `CREATE TABLE IF NOT EXISTS invitations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       type TEXT NOT NULL DEFAULT 'client',
@@ -594,6 +668,47 @@ async function initDatabase() {
     ['iato_checklist', 'residual_risk', 'ALTER TABLE iato_checklist ADD COLUMN residual_risk TEXT'],
     ['iato_checklist', 'assessor_notes', 'ALTER TABLE iato_checklist ADD COLUMN assessor_notes TEXT'],
     ['iato_checklist', 'updated_at', 'ALTER TABLE iato_checklist ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP'],
+    ['self_assessments', null, `CREATE TABLE IF NOT EXISTS self_assessments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ref_code TEXT UNIQUE NOT NULL,
+      status TEXT DEFAULT 'submitted',
+      submitter_name TEXT,
+      submitter_email TEXT NOT NULL,
+      submitter_org TEXT,
+      system_type TEXT,
+      system_description TEXT,
+      country TEXT,
+      gov_level TEXT,
+      data_sensitivity TEXT,
+      frameworks_json TEXT DEFAULT '{}',
+      questions_json TEXT DEFAULT '[]',
+      answers_json TEXT DEFAULT '{}',
+      report_json TEXT DEFAULT '{}',
+      score INTEGER DEFAULT 0,
+      secure_count INTEGER DEFAULT 0,
+      warning_count INTEGER DEFAULT 0,
+      critical_count INTEGER DEFAULT 0,
+      intake_id INTEGER,
+      reviewed_by INTEGER,
+      reviewed_at DATETIME,
+      admin_notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`],
+    ['intake_submissions', 'self_assessment_id', 'ALTER TABLE intake_submissions ADD COLUMN self_assessment_id INTEGER'],
+    ['sa_access_requests', null, `CREATE TABLE IF NOT EXISTS sa_access_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT,
+      email TEXT NOT NULL,
+      organization TEXT,
+      reason TEXT,
+      status TEXT DEFAULT 'pending',
+      access_code TEXT UNIQUE,
+      approved_by INTEGER,
+      approved_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      expires_at DATETIME
+    )`],
   ];
 
   migrations.forEach(([table, column, sql]) => {

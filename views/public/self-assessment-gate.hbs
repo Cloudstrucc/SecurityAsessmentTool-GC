@@ -1,0 +1,71 @@
+<style>
+  .sa-gate-hero { margin:-1.5rem -15px 0; padding:3rem 0 4rem; background:linear-gradient(135deg,#26374a,#1c578a); border-bottom:4px solid var(--gc-red); color:#fff; }
+  .sa-gate-card { margin-top:-2.75rem; border-radius:8px; box-shadow:0 10px 28px rgba(0,0,0,.16); }
+</style>
+
+<section class="sa-gate-hero">
+  <div class="container text-center">
+    <i class="bi bi-shield-check" style="font-size:3rem;color:#fff;"></i>
+    <h1 class="text-white mt-3 mb-2">Security Self-Assessment</h1>
+    <p class="mb-0" style="color:rgba(255,255,255,.8)">Use an assessor-approved access code to complete a preliminary security posture review.</p>
+  </div>
+</section>
+
+<div class="container" style="max-width:760px">
+  {{#if requestSubmitted}}
+    <div class="card sa-gate-card">
+      <div class="card-body p-4 text-center">
+        <i class="bi bi-check-circle-fill text-success" style="font-size:3rem;"></i>
+        <h2 class="h4 mt-3">Request Submitted</h2>
+        <p class="text-muted mb-2">A security assessor will review the request for <strong>{{requestEmail}}</strong>.</p>
+        <p class="small text-muted">When approved, you will receive an access code for the self-assessment wizard.</p>
+        <a href="/" class="btn btn-outline-secondary mt-2"><i class="bi bi-arrow-left me-1"></i>Back to Home</a>
+      </div>
+    </div>
+  {{else}}
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="card sa-gate-card h-100">
+          <div class="card-header"><i class="bi bi-key me-2"></i>Enter Access Code</div>
+          <div class="card-body p-4">
+            <form method="GET" action="/self-assessment">
+              <label class="form-label" for="code">Access Code</label>
+              <input class="form-control form-control-lg text-center text-uppercase" id="code" name="code" maxlength="10" required placeholder="A1B2C3D4" style="letter-spacing:3px;font-family:monospace;font-weight:700">
+              <button class="btn btn-primary w-100 mt-3 py-2" type="submit">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Start Self-Assessment
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card sa-gate-card h-100">
+          <div class="card-header bg-light"><i class="bi bi-envelope me-2"></i>Request Access</div>
+          <div class="card-body p-4">
+            <form method="POST" action="/self-assessment/request-access">
+              <div class="mb-2">
+                <label class="form-label" for="req_name">Name</label>
+                <input class="form-control" id="req_name" name="name" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label" for="req_email">Email</label>
+                <input class="form-control" id="req_email" name="email" type="email" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label" for="req_org">Organization</label>
+                <input class="form-control" id="req_org" name="organization">
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="req_reason">System or Request Notes</label>
+                <textarea class="form-control" id="req_reason" name="reason" rows="2"></textarea>
+              </div>
+              <button class="btn btn-outline-primary w-100" type="submit">
+                <i class="bi bi-send me-1"></i>Send Request
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  {{/if}}
+</div>

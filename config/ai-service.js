@@ -91,8 +91,10 @@ function parseJSON(text) {
  * @param {string} opts.mediaType - MIME type (e.g., 'application/pdf', 'image/png')
  * @param {string} opts.filename - Original filename
  */
-async function parseDocumentForIntake({ text, base64, mediaType, filename }) {
-  const system = `You are a Government of Canada IT security specialist helping project owners fill out an SA&A (Security Assessment & Authorization) intake form. You extract information from project documents to pre-populate the intake form.
+async function parseDocumentForIntake({ text, base64, mediaType, filename, securityFramework = 'ITSG-33' }) {
+  const system = `You are an IT security specialist helping project owners fill out a security assessment intake form. You extract information from project documents to pre-populate the intake form.
+
+The assessor-selected framework is: ${securityFramework}. When the selected framework is not ITSG-33, recommend framework-specific baseline/category fields and do not force Government of Canada C/I/A categories unless the document clearly supports them.
 
 You must respond ONLY with a JSON object (no markdown, no explanation) with these fields. Use null for anything you cannot determine from the document:
 
@@ -108,6 +110,10 @@ You must respond ONLY with a JSON object (no markdown, no explanation) with thes
   "integrityLevel": "low|medium|high",
   "availabilityLevel": "low|medium|high",
   "isHVA": false,
+  "securityFramework": "ITSG-33|CIS Controls v8|ISO/IEC 27001:2022 Annex A|FedRAMP Rev. 5|NIST SP 800-53 Rev. 5|ASD ISM|ACSC Essential Eight",
+  "frameworkBaseline": "string",
+  "frameworkCategory": "string",
+  "frameworkApplicability": "string",
   "piiTypes": ["name-address","sin","financial","health","biometric","employment","immigration","law-enforcement","indigenous","none"],
   "atipSubject": "yes|no|unsure",
   "piaCompleted": "yes|in-progress|no|not-required",
@@ -153,8 +159,10 @@ For piiTypes and technologies, only include values that apply. For completedActi
 /**
  * From a plain-language project description, suggest form field values.
  */
-async function suggestFromDescription(description) {
-  const system = `You are a Government of Canada IT security specialist. Given a plain-language project description, suggest appropriate values for ALL sections of an SA&A intake form. Consider data sensitivity, system complexity, GC classification requirements, and ITSG-33 profiles.
+async function suggestFromDescription(description, securityFramework = 'ITSG-33') {
+  const system = `You are an IT security specialist. Given a plain-language project description, suggest appropriate values for ALL sections of a security assessment intake form.
+
+The assessor-selected framework is: ${securityFramework}. For non-ITSG-33 projects, focus on framework-specific baseline/category/applicability and do not default to ITSG-33 or PBMM language unless the project is Canadian federal/GC.
 
 Respond ONLY with a JSON object (no markdown, no explanation). Use null for fields you cannot infer:
 
@@ -170,6 +178,10 @@ Respond ONLY with a JSON object (no markdown, no explanation). Use null for fiel
   "integrityLevel": "low|medium|high",
   "availabilityLevel": "low|medium|high",
   "isHVA": false,
+  "securityFramework": "ITSG-33|CIS Controls v8|ISO/IEC 27001:2022 Annex A|FedRAMP Rev. 5|NIST SP 800-53 Rev. 5|ASD ISM|ACSC Essential Eight",
+  "frameworkBaseline": "string",
+  "frameworkCategory": "string",
+  "frameworkApplicability": "string",
   "piiTypes": ["name-address","sin","financial","health","biometric","employment","immigration","law-enforcement","indigenous","none"],
   "atipSubject": "yes|no|unsure",
   "piaCompleted": "yes|in-progress|no|not-required",
@@ -205,7 +217,7 @@ Be thorough — infer values for ALL fields when possible. For PII, consider wha
  * Returns risk analysis, considerations, and suggested questions.
  */
 async function reviewIntake(intake, securityProfileInfo) {
-  const system = `You are a senior Government of Canada IT Security Assessor conducting an SA&A (Security Assessment & Authorization) review. You are reviewing an intake submission to determine readiness for assessment.
+  const system = `You are a senior security assessor conducting a security assessment readiness review. You are reviewing an intake submission to determine readiness for assessment under the selected framework.
 
 Respond ONLY with a JSON object (no markdown):
 
@@ -236,7 +248,7 @@ INTAKE SUBMISSION:
 - Description: ${intake.project_description}
 - Department: ${intake.department} / ${intake.branch}
 - Classification: ${intake.confidentiality_level} / ${intake.integrity_level} integrity / ${intake.availability_level} availability
-- Security Profile: ${intake.security_profile} ${securityProfileInfo || ''}
+- Framework / Baseline: ${securityProfileInfo || intake.security_profile || 'Not specified'}
 - HVA: ${intake.is_hva ? 'Yes' : 'No'}
 - App Type: ${intake.app_type}
 - User Count: ${intake.user_count}

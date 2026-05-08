@@ -9,6 +9,15 @@ const bcrypt = require('bcryptjs');
 const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
 const QRCode = require('qrcode');
 const { UPLOAD_DIR, INTAKE_UPLOAD_DIR: intakeUploadDir, ensureUploadDirs } = require('../config/storage');
+const { determineProfile, detectComplexity } = require('../config/security-profiles');
+const {
+  normalizeFramework,
+  isItsgFramework,
+  frameworkOptions,
+  defaultBaseline,
+  defaultCategory
+} = require('../config/security-frameworks');
+const { frameworkMap, getFrameworks } = require('../config/framework-map');
 
 ensureUploadDirs();
 const upload = multer({
@@ -23,7 +32,68 @@ const intakeUpload = multer({
 
 // Home page
 router.get('/', (req, res) => {
-  res.render('index', { title: 'GC Security Assessment Portal' });
+  res.render('index', {
+    title: 'Security Assessment & Authorization Platform',
+    frameworkHighlights: ['ITSG-33', 'CIS Controls v8', 'ISO 27001', 'FedRAMP', 'NIST SP 800-53', 'ASD ISM', 'Essential Eight']
+  });
+});
+
+router.get('/portal', (req, res) => {
+  res.redirect('/');
+});
+
+// ── SECURITY SELF-ASSESSMENT (access-code gated) ──
+router.get('/self-assessment', (req, res) => {
+  const code = (req.query.code || req.session.saAccessCode || '').toUpperCase().trim();
+  if (code) {
+    const access = get("SELECT * FROM sa_access_requests WHERE access_code = ? AND status = 'approved'", [code]);
+    if (access && (!access.expires_at || new Date(access.expires_at) >= new Date())) {
+      req.session.saAccessCode = code;
+      return res.render('public/self-assessment', {
+        title: 'Security Self-Assessment',
+        frameworkMapJSON: JSON.stringify(frameworkMap),
+        accessCode: code,
+        accessName: access.name || '',
+        accessEmail: access.email || '',
+        accessOrganization: access.organization || ''
+      });
+    }
+    req.flash('error', access ? 'This access code has expired. Request a new one to continue.' : 'Invalid or expired access code.');
+  }
+  res.render('public/self-assessment-gate', { title: 'Security Self-Assessment' });
+});
+
+router.post('/self-assessment/request-access', (req, res) => {
+  try {
+    const email = (req.body.email || '').toLowerCase().trim();
+    if (!email) {
+      req.flash('error', 'Email is required.');
+      return res.redirect('/self-assessment');
+    }
+    const existingPending = get("SELECT id FROM sa_access_requests WHERE LOWER(email) = ? AND status = 'pending'", [email]);
+    if (existingPending) {
+      req.flash('info', 'A request from this email is already pending review.');
+      return res.redirect('/self-assessment');
+    }
+    const approved = get("SELECT access_code FROM sa_access_requests WHERE LOWER(email) = ? AND status = 'approved' AND (expires_at IS NULL OR expires_at > datetime('now'))", [email]);
+    if (approved) {
+      req.flash('success', 'You already have an active access code. Enter it below to continue.');
+      return res.redirect('/self-assessment');
+    }
+    run(
+      `INSERT INTO sa_access_requests (name, email, organization, reason, status) VALUES (?, ?, ?, ?, 'pending')`,
+      [req.body.name || '', email, req.body.organization || '', req.body.reason || '']
+    );
+    res.render('public/self-assessment-gate', {
+      title: 'Security Self-Assessment',
+      requestSubmitted: true,
+      requestEmail: email
+    });
+  } catch (err) {
+    console.error('Self-assessment access request error:', err);
+    req.flash('error', 'Failed to submit access request.');
+    res.redirect('/self-assessment');
+  }
 });
 
 // Access via code
@@ -472,8 +542,11 @@ router.get('/client/logout', (req, res) => {
 
 // GET /intake — Show the intake form
 router.get('/intake', ensureClientAuth, (req, res) => {
+  const frameworks = frameworkOptions(all('SELECT DISTINCT framework FROM security_control_catalog ORDER BY framework'));
   res.render('public/intake', {
-    title: 'Security Assessment Intake'
+    title: 'Security Assessment Intake',
+    frameworkOptions: frameworks,
+    frameworkOptionsJSON: JSON.stringify(frameworks)
   });
 });
 
@@ -487,8 +560,13 @@ router.post('/intake', ensureClientAuth, intakeUpload.array('attachments', 10), 
     const activities = Array.isArray(req.body.completedActivities) ? req.body.completedActivities : (req.body.completedActivities ? [req.body.completedActivities] : []);
     const hasPII = piiTypes.length > 0 && !piiTypes.includes('none') ? 1 : 0;
 
-    // Determine security profile from C/I/A categorization
-    const { determineProfile, detectComplexity } = require('../config/security-profiles');
+    const framework = normalizeFramework(req.body.securityFramework || req.body.security_framework);
+    const frameworkBaseline = req.body.frameworkBaseline || req.body.framework_baseline || defaultBaseline(framework);
+    const frameworkCategory = req.body.frameworkCategory || req.body.framework_category || defaultCategory(framework);
+    const frameworkApplicability = req.body.frameworkApplicability || req.body.framework_applicability || '';
+
+    // Determine security profile from C/I/A categorization for ITSG-33. For
+    // other frameworks, keep security_profile as the selected baseline.
     const confLevel = req.body.confidentialityLevel || 'protected-b';
     const intLevel = req.body.integrityLevel || 'medium';
     const avaLevel = req.body.availabilityLevel || 'medium';
@@ -498,14 +576,14 @@ router.post('/intake', ensureClientAuth, intakeUpload.array('attachments', 10), 
       confidentiality: confLevel, integrity: intLevel, availability: avaLevel,
       hasPII: hasPII === 1, isHVA: isHVA === 1, hasComplexity
     });
-    const securityProfile = profileResult.profile.id;
+    const securityProfile = isItsgFramework(framework) ? profileResult.profile.id : frameworkBaseline;
 
     const intakeId = run(
       `INSERT INTO intake_submissions (
         ref_code, project_name, project_description, department, branch,
         target_date, user_count, app_type, data_classification,
         confidentiality_level, integrity_level, availability_level, is_hva,
-        security_profile,
+        security_profile, security_framework, framework_baseline, framework_category, framework_applicability,
         pii_types, has_pii, atip_subject, pia_completed,
         hosting_type, hosting_region, technologies, other_tech,
         has_apis, gc_interconnections, interconnections, mobile_access, external_users,
@@ -514,14 +592,14 @@ router.post('/intake', ensureClientAuth, intakeUpload.array('attachments', 10), 
         tech_lead_name, tech_lead_email, tech_lead_title,
         authority_name, authority_email, authority_title,
         additional_notes
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         refCode, req.body.projectName || '', req.body.projectDescription || '',
         req.body.department || '', req.body.branch || '',
         req.body.targetDate || '', req.body.userCount || '', req.body.appType || '',
         confLevel,
         confLevel, intLevel, avaLevel, isHVA,
-        securityProfile,
+        securityProfile, framework, frameworkBaseline, frameworkCategory, frameworkApplicability,
         JSON.stringify(piiTypes), hasPII,
         req.body.atipSubject || '', req.body.piaCompleted || '',
         req.body.hostingType || '', req.body.hostingRegion || '',
@@ -549,7 +627,8 @@ router.post('/intake', ensureClientAuth, intakeUpload.array('attachments', 10), 
     res.render('public/intake', {
       title: 'Intake Submitted',
       success: true,
-      refCode: refCode
+      refCode: refCode,
+      frameworkOptions: frameworkOptions(all('SELECT DISTINCT framework FROM security_control_catalog ORDER BY framework'))
     });
 
   } catch (err) {

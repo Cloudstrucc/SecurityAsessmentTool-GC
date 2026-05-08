@@ -1,0 +1,358 @@
+<style>
+  .sa-wizard { max-width:920px; }
+  .sa-steps { display:flex; gap:0; margin-bottom:1.25rem; }
+  .sa-step { flex:1; padding:.65rem .5rem; text-align:center; background:#e9ecef; color:#6c757d; font-weight:700; font-size:.82rem; }
+  .sa-step:first-child { border-radius:6px 0 0 6px; }
+  .sa-step:last-child { border-radius:0 6px 6px 0; }
+  .sa-step.active { background:var(--gc-accent); color:#fff; }
+  .sa-type-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.75rem; }
+  .sa-type { border:1px solid var(--gc-border); border-radius:6px; background:#fff; padding:.9rem; cursor:pointer; text-align:center; }
+  .sa-type.selected { border-color:var(--gc-accent); box-shadow:0 0 0 3px rgba(37,114,180,.16); }
+  .sa-type i { font-size:1.5rem; color:var(--gc-accent); display:block; margin-bottom:.35rem; }
+  .sa-finding { display:flex; gap:.65rem; padding:.75rem 0; border-bottom:1px solid #eef0f2; }
+  .sa-finding:last-child { border-bottom:none; }
+  .sa-icon { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:0 0 28px; }
+  .sa-critical { background:#fde8e8; color:#b42318; }
+  .sa-warning { background:#fff3cd; color:#8a5a00; }
+  .sa-secure { background:#e6f5ed; color:#1a7f37; }
+  .hidden { display:none!important; }
+</style>
+
+<div class="container sa-wizard py-4">
+  <div class="text-center mb-4">
+    <i class="bi bi-shield-check" style="font-size:2.6rem;color:var(--gc-accent)"></i>
+    <h1 class="h2 mt-2 mb-1">Security Self-Assessment</h1>
+    <p class="text-muted mb-0">Complete a preliminary review, receive critical / warning / green feedback, then request a full assessment when ready.</p>
+  </div>
+
+  <div class="sa-steps">
+    <div class="sa-step active" id="stepLabel1">1. System</div>
+    <div class="sa-step" id="stepLabel2">2. Questions</div>
+    <div class="sa-step" id="stepLabel3">3. Report</div>
+  </div>
+
+  <div id="step1">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-info-circle me-2"></i>System and Jurisdiction</div>
+      <div class="card-body">
+        <div class="sa-type-grid mb-3" id="typeGrid"></div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label" for="saCountry">Country / Region</label>
+            <select class="form-select" id="saCountry" onchange="updateFrameworks()">
+              <option value="">Select...</option>
+              <option value="CA">Canada</option>
+              <option value="US">United States</option>
+              <option value="UK">United Kingdom</option>
+              <option value="AU">Australia</option>
+              <option value="EU">European Union</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="saGovLevel">Sector</label>
+            <select class="form-select" id="saGovLevel" onchange="updateFrameworks()">
+              <option value="">Select...</option>
+              <option value="federal">Federal</option>
+              <option value="state">State / Provincial</option>
+              <option value="municipal">Municipal / Local</option>
+              <option value="private">Private Sector</option>
+              <option value="health">Healthcare</option>
+              <option value="finance">Financial Services</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="saSensitivity">Data Sensitivity</label>
+            <select class="form-select" id="saSensitivity" onchange="updateFrameworks()">
+              <option value="">Select...</option>
+              <option value="public">Public / unclassified</option>
+              <option value="low">Low sensitivity</option>
+              <option value="medium">Medium / personal information</option>
+              <option value="high">High / Protected B / regulated</option>
+              <option value="classified">Classified / secret</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="alert alert-info mt-3 hidden" id="frameworkBanner"></div>
+
+        <div class="mt-3">
+          <label class="form-label" for="saDescription">Describe Your System</label>
+          <textarea class="form-control" id="saDescription" rows="4" placeholder="Describe users, data, hosting, integrations, current security controls, and any known gaps."></textarea>
+        </div>
+
+        <div class="row g-3 mt-1">
+          <div class="col-md-4">
+            <label class="form-label" for="saName">Name</label>
+            <input class="form-control" id="saName" value="{{accessName}}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="saEmail">Email</label>
+            <input class="form-control" id="saEmail" type="email" value="{{accessEmail}}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="saOrg">Organization</label>
+            <input class="form-control" id="saOrg" value="{{accessOrganization}}">
+          </div>
+        </div>
+
+        <div class="text-end mt-4">
+          <button class="btn btn-primary" type="button" onclick="goStep2()">
+            <i class="bi bi-stars me-1"></i>Generate Questions
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="step2" class="hidden">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-clipboard-check me-2"></i>Security Questions</div>
+      <div class="card-body">
+        <div id="questionStatus" class="alert alert-info">Generating questions...</div>
+        <div id="questionsBody"></div>
+        <div class="d-flex justify-content-between mt-4">
+          <button class="btn btn-outline-secondary" type="button" onclick="setStep(1)"><i class="bi bi-arrow-left me-1"></i>Back</button>
+          <button class="btn btn-primary" type="button" onclick="goStep3()"><i class="bi bi-file-earmark-medical me-1"></i>Generate Report</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="step3" class="hidden">
+    <div id="reportBody"></div>
+  </div>
+</div>
+
+<script>
+const frameworkMap = {{{frameworkMapJSON}}};
+const systemTypes = [
+  { id:'web-app', icon:'bi-globe', label:'Web App', desc:'Portal, website, SaaS' },
+  { id:'internal-app', icon:'bi-building', label:'Internal System', desc:'Business application' },
+  { id:'cloud-infra', icon:'bi-cloud', label:'Cloud Infrastructure', desc:'Azure, AWS, GCP' },
+  { id:'mobile-app', icon:'bi-phone', label:'Mobile App', desc:'iOS, Android' },
+  { id:'data-system', icon:'bi-database', label:'Data / Analytics', desc:'Warehouse, reports, BI' },
+  { id:'network', icon:'bi-diagram-3', label:'Network / Devices', desc:'Network, IoT, OT' }
+];
+let selectedType = 'web-app';
+let currentQuestions = [];
+let currentFrameworks = {};
+let currentReport = null;
+
+function esc(text) {
+  return String(text || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function initTypes() {
+  document.getElementById('typeGrid').innerHTML = systemTypes.map(t => `
+    <button class="sa-type ${t.id === selectedType ? 'selected' : ''}" type="button" onclick="selectType('${t.id}')">
+      <i class="bi ${t.icon}"></i>
+      <div class="fw-bold">${t.label}</div>
+      <div class="small text-muted">${t.desc}</div>
+    </button>
+  `).join('');
+}
+
+function selectType(id) {
+  selectedType = id;
+  initTypes();
+}
+
+function updateFrameworks() {
+  const country = document.getElementById('saCountry').value;
+  const sector = document.getElementById('saGovLevel').value;
+  const banner = document.getElementById('frameworkBanner');
+  if (!country || !sector) {
+    banner.classList.add('hidden');
+    return;
+  }
+  const fw = frameworkMap[`${country}-${sector}`] || frameworkMap[`${country}-private`] || frameworkMap['OTHER-private'];
+  currentFrameworks = { primary: fw.primary, others: fw.others || [], all: [fw.primary].concat(fw.others || []) };
+  banner.classList.remove('hidden');
+  banner.innerHTML = `<strong>Likely framework:</strong> ${esc(fw.primary)}<div class="small mt-1">Related: ${esc((fw.others || []).join(', '))}</div>`;
+}
+
+function setStep(num) {
+  [1,2,3].forEach(i => {
+    document.getElementById('step' + i).classList.toggle('hidden', i !== num);
+    document.getElementById('stepLabel' + i).classList.toggle('active', i === num);
+  });
+}
+
+function payload() {
+  return {
+    systemType: selectedType,
+    country: document.getElementById('saCountry').value,
+    govLevel: document.getElementById('saGovLevel').value,
+    sensitivity: document.getElementById('saSensitivity').value,
+    description: document.getElementById('saDescription').value,
+    frameworks: currentFrameworks
+  };
+}
+
+async function goStep2() {
+  updateFrameworks();
+  if (!payload().country || !payload().govLevel || !payload().sensitivity) {
+    alert('Select country/region, sector, and data sensitivity first.');
+    return;
+  }
+  setStep(2);
+  document.getElementById('questionStatus').classList.remove('hidden');
+  document.getElementById('questionsBody').innerHTML = '';
+  const response = await fetch('/api/self-assessment/questions', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload())
+  });
+  const data = await response.json();
+  if (!response.ok || data.error) {
+    document.getElementById('questionStatus').className = 'alert alert-danger';
+    document.getElementById('questionStatus').textContent = data.error || 'Unable to generate questions.';
+    return;
+  }
+  currentQuestions = data.questions || [];
+  currentFrameworks = data.frameworks || currentFrameworks;
+  renderQuestions();
+}
+
+function renderQuestions() {
+  document.getElementById('questionStatus').classList.add('hidden');
+  document.getElementById('questionsBody').innerHTML = currentQuestions.map((group, gi) => `
+    <div class="card mb-3">
+      <div class="card-header bg-light">
+        <i class="bi ${group.icon || 'bi-list-check'} me-2"></i>${esc(group.title)}
+        <span class="badge bg-info ms-2">${esc(group.frameworkRef || '')}</span>
+      </div>
+      <div class="card-body">
+        ${(group.questions || []).map((q, qi) => renderQuestion(q, gi, qi)).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderQuestion(q, gi, qi) {
+  const key = `q_${gi}_${qi}`;
+  if (q.type === 'select') {
+    return `<div class="mb-3">
+      <label class="form-label fw-semibold" for="${key}">${esc(q.text)}</label>
+      <select class="form-select" id="${key}" data-qkey="${key}">
+        <option value="">Select...</option>
+        ${(q.options || []).map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}
+      </select>
+      ${q.hint ? `<div class="form-text">${esc(q.hint)}</div>` : ''}
+    </div>`;
+  }
+  return `<div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" id="${key}" data-qkey="${key}">
+    <label class="form-check-label fw-semibold" for="${key}">${esc(q.text)}</label>
+    ${q.hint ? `<div class="form-text">${esc(q.hint)}</div>` : ''}
+  </div>`;
+}
+
+function collectAnswers() {
+  const answers = {};
+  document.querySelectorAll('[data-qkey]').forEach(el => {
+    answers[el.dataset.qkey] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  return answers;
+}
+
+async function goStep3() {
+  setStep(3);
+  document.getElementById('reportBody').innerHTML = '<div class="alert alert-info"><i class="bi bi-hourglass-split me-1"></i>Generating preliminary report...</div>';
+  const response = await fetch('/api/self-assessment/report', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ ...payload(), frameworks: currentFrameworks, questions: currentQuestions, answers: collectAnswers() })
+  });
+  currentReport = await response.json();
+  if (!response.ok || currentReport.error) {
+    document.getElementById('reportBody').innerHTML = `<div class="alert alert-danger">${esc(currentReport.error || 'Unable to generate report.')}</div>`;
+    return;
+  }
+  renderReport(currentReport);
+}
+
+function renderFinding(item, type) {
+  const icon = type === 'critical' ? 'bi-x-lg' : type === 'warning' ? 'bi-exclamation-lg' : 'bi-check-lg';
+  return `<div class="sa-finding">
+    <div class="sa-icon sa-${type}"><i class="bi ${icon}"></i></div>
+    <div>
+      <div class="fw-semibold">${esc(item.title)}</div>
+      ${item.detail ? `<div class="small text-muted">${esc(item.detail)}</div>` : ''}
+      ${item.recommendation ? `<div class="small text-primary mt-1"><i class="bi bi-lightbulb me-1"></i>${esc(item.recommendation)}</div>` : ''}
+      ${item.framework ? `<div class="small text-muted mt-1"><i class="bi bi-tag me-1"></i>${esc(item.framework)}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderReport(report) {
+  const color = report.score >= 70 ? 'success' : report.score >= 45 ? 'warning' : 'danger';
+  document.getElementById('reportBody').innerHTML = `
+    <div class="card mb-3">
+      <div class="card-header"><i class="bi bi-speedometer2 me-2"></i>Preliminary Security Posture</div>
+      <div class="card-body text-center">
+        <div class="display-5 fw-bold text-${color}">${report.score}%</div>
+        <p class="text-muted mb-2">${esc(report.summary || '')}</p>
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+          <span class="badge bg-danger">${(report.critical || []).length} Critical</span>
+          <span class="badge bg-warning text-dark">${(report.warnings || []).length} Warnings</span>
+          <span class="badge bg-success">${(report.secure || []).length} Green</span>
+        </div>
+      </div>
+    </div>
+    ${section('Critical Gaps', report.critical, 'critical', 'danger')}
+    ${section('Warnings / Needs Attention', report.warnings, 'warning', 'warning')}
+    ${section('Green / Self-Reported Strengths', report.secure, 'secure', 'success')}
+    <div class="card mb-3">
+      <div class="card-header"><i class="bi bi-signpost-split me-2"></i>Recommended Next Steps</div>
+      <div class="card-body">
+        <ol class="mb-0">${(report.nextSteps || []).map(s => `<li>${esc(s)}</li>`).join('')}</ol>
+      </div>
+    </div>
+    <div class="d-flex justify-content-between mb-5">
+      <button class="btn btn-outline-secondary" type="button" onclick="setStep(2)"><i class="bi bi-arrow-left me-1"></i>Back</button>
+      <button class="btn btn-primary" type="button" onclick="submitSelfAssessment(event)"><i class="bi bi-send me-1"></i>Submit and Request Full Assessment</button>
+    </div>
+  `;
+}
+
+function section(title, items, type, color) {
+  if (!items || !items.length) return '';
+  return `<div class="card mb-3">
+    <div class="card-header bg-${color} ${color === 'warning' ? 'text-dark' : 'text-white'}">${esc(title)}</div>
+    <div class="card-body">${items.map(item => renderFinding(item, type)).join('')}</div>
+  </div>`;
+}
+
+async function submitSelfAssessment(event) {
+  const button = event.target.closest('button');
+  button.disabled = true;
+  button.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Submitting...';
+  const response = await fetch('/api/self-assessment/submit', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      ...payload(),
+      name: document.getElementById('saName').value,
+      email: document.getElementById('saEmail').value,
+      organization: document.getElementById('saOrg').value,
+      frameworks: currentFrameworks,
+      questions: currentQuestions,
+      answers: collectAnswers(),
+      report: currentReport
+    })
+  });
+  const data = await response.json();
+  if (!response.ok || data.error) {
+    button.disabled = false;
+    button.innerHTML = '<i class="bi bi-send me-1"></i>Submit and Request Full Assessment';
+    alert(data.error || 'Submission failed.');
+    return;
+  }
+  button.parentElement.insertAdjacentHTML('beforebegin', `<div class="alert alert-success"><i class="bi bi-check-circle-fill me-1"></i><strong>Submitted.</strong> Reference <code>${esc(data.refCode)}</code>. An assessor can now review it from the admin self-assessments queue.</div>`);
+}
+
+initTypes();
+updateFrameworks();
+</script>
