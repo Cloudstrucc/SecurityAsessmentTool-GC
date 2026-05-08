@@ -13,7 +13,7 @@ try {
   simpleWebAuthn = null;
 }
 
-const RP_NAME = 'GC SA&A Portal';
+const RP_NAME = 'Vanguard SA&A Platform';
 const RP_ID = process.env.WEBAUTHN_RP_ID || 'localhost';
 const ORIGIN = process.env.WEBAUTHN_ORIGIN || `http://localhost:${process.env.PORT || 3000}`;
 

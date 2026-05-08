@@ -385,7 +385,7 @@ router.get('/client/mfa-setup', async (req, res) => {
   const user = get('SELECT id, email, totp_secret FROM users WHERE id = ?', [userId]);
   if (!user || !user.totp_secret) { return res.redirect('/client/register'); }
 
-  const otpauth = otpGenerateURI({ issuer: 'GC SA&A Portal', label: user.email, secret: user.totp_secret });
+  const otpauth = otpGenerateURI({ issuer: 'Vanguard SA&A Platform', label: user.email, secret: user.totp_secret });
 
   try {
     const qrCodeUrl = await QRCode.toDataURL(otpauth);

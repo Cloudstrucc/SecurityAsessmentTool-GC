@@ -1,7 +1,7 @@
 {
   "name": "gc-sa-tool",
   "version": "1.0.0",
-  "description": "Government of Canada Security Assessment & Authorization Tool - ITSG-33 / Protected B / PII",
+  "description": "Vanguard Cloud Services Security Assessment & Authorization Platform",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",

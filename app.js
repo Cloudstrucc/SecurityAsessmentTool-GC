@@ -213,8 +213,8 @@ initialize().then(() => {
     console.log(`
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║   GC Security Assessment & Authorization Tool                ║
-║   ITSG-33 / Protected B / PII                               ║
+║   Vanguard Cloud Services SA&A Platform                      ║
+║   Multi-framework security assessment workflows              ║
 ║                                                              ║
 ║   Server:       http://localhost:${PORT}                       ║
 ║   Admin Login:  http://localhost:${PORT}/admin/login            ║

@@ -823,7 +823,7 @@ router.get('/mfa-setup', async (req, res) => {
     run('UPDATE users SET totp_secret = ? WHERE id = ?', [secret, user.id]);
   }
 
-  const otpauth = otpGenerateURI({ issuer: 'GC SA&A Portal', label: user.email, secret });
+  const otpauth = otpGenerateURI({ issuer: 'Vanguard SA&A Platform', label: user.email, secret });
   try {
     const qrCodeUrl = await QRCode.toDataURL(otpauth);
     res.render('admin/login', {
