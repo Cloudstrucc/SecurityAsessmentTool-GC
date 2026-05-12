@@ -1,0 +1,2174 @@
+{
+  "brand": {
+    "company": "Vanguard Cloud Services",
+    "product": "SA&A Platform",
+    "tagline": "Piattaforma di Valutazione e Autorizzazione della Sicurezza",
+    "by": "di"
+  },
+  "nav": {
+    "existingClient": "Cliente Esistente",
+    "clientPortal": "Portale Clienti",
+    "assessorLogin": "Accesso Valutatore",
+    "signIn": "Accedi per Inviare",
+    "register": "Registrati",
+    "registerInvite": "Registrati con Codice Invito",
+    "dashboard": "Dashboard",
+    "settings": "Impostazioni",
+    "signOut": "Esci",
+    "startIntake": "Avvia Intake",
+    "backHome": "Torna alla Home",
+    "appTitle": "Valutazione e Autorizzazione della Sicurezza",
+    "menu": "Menu",
+    "projects": "Progetti",
+    "assessments": "Valutazioni",
+    "preAssessments": "Pre-Valutazioni",
+    "intakes": "Intake",
+    "team": "Team",
+    "auditLog": "Registro di Audit",
+    "newIntake": "Nuovo Intake",
+    "newProject": "Nuovo Progetto",
+    "controls": "Controlli",
+    "help": "Aiuto"
+  },
+  "home": {
+    "badge": "Piattaforma di Conformità Multi-Framework",
+    "headline": "Il tuo sistema è",
+    "headlineAccent": "abbastanza sicuro?",
+    "lead": "Scoprilo in pochi minuti. La nostra procedura guidata di autovalutazione pone domande in linguaggio semplice sul tuo sistema, le associa ai framework di sicurezza appropriati per la tua giurisdizione e ti fornisce un report istantaneo.",
+    "noAccount": "Nessun account richiesto",
+    "fiveMin": "Questionario di 5 minuti",
+    "instantReport": "Report di sicurezza istantaneo",
+    "frameworks": "Framework Supportati"
+  },
+  "saCard": {
+    "title": "Autovalutazione della Sicurezza",
+    "subtitle": "Valutazione preliminare gratuita",
+    "step1": "Descrivi il tuo sistema",
+    "step1d": "— seleziona tipo, giurisdizione e livello di sensibilità",
+    "step2": "Rispondi alle domande",
+    "step2d": "— personalizzate per i tuoi framework (ITSG-33, NIST, GDPR, ecc.)",
+    "step3": "Ottieni il tuo report",
+    "step3d": "— cosa è sicuro, cosa è critico e prossimi passi",
+    "startBtn": "Avvia Valutazione Gratuita",
+    "note": "Codice di accesso richiesto — richiedine uno istantaneamente"
+  },
+  "cap": {
+    "title": "Funzionalità della Piattaforma",
+    "subtitle": "Ciclo di vita completo di valutazione e autorizzazione della sicurezza",
+    "multiJuris": "Multi-Giurisdizione",
+    "multiJurisD": "17+ regioni con selezione automatica del framework",
+    "lifecycle": "Ciclo di Vita SA&A Completo",
+    "lifecycleD": "ATO, iATO, POA&M, categorizzazione del rischio, esportazioni PDF",
+    "collab": "Collaborazione di Team",
+    "collabD": "Portale clienti, assegnazioni di valutatori, inviti",
+    "mfa": "MFA + Passkey",
+    "mfaD": "TOTP, WebAuthn biometrico, registro di audit firmato",
+    "guidance": "Linee guida GC Web",
+    "guidanceD": "Checklist di conformità automatizzate per sistemi a basso rischio",
+    "audit": "Registro di audit",
+    "auditD": "Azioni firmate con MFA con registrazione a prova di manomissione",
+    "tenant": "SaaS Multi-Tenant",
+    "tenantD": "Istanze isolate per organizzazione su Azure",
+    "standards": "Standard di settore",
+    "standardsD": "SOC 2, PCI DSS, CMMC, FedRAMP, DORA, Essential Eight"
+  },
+  "portal": {
+    "title": "Portale Clienti",
+    "subtitle": "Invia richieste, accedi alle valutazioni o accedi per gestire la tua postura di sicurezza.",
+    "submitIntake": "Invia una richiesta",
+    "submitIntakeD": "Stai avviando un nuovo progetto? Invia una richiesta di valutazione della sicurezza con i dettagli del progetto e la classificazione dei dati.",
+    "mfaReq": "Account con MFA richiesto.",
+    "enterCode": "Inserisci codice di accesso",
+    "enterCodeD": "Hai ricevuto un invito da un professionista della sicurezza? Inserisci il tuo codice di accesso per fornire le evidenze per la tua valutazione.",
+    "accessCode": "Codice di accesso",
+    "accessBtn": "Accedi alla valutazione",
+    "practitioner": "Professionista della sicurezza",
+    "practitionerD": "I valutatori e i professionisti della sicurezza possono accedere per gestire progetti, esaminare richieste, creare valutazioni e condurre audit.",
+    "ph": {
+      "a1b2c3d4": "A1b2c3d4"
+    }
+  },
+  "gate": {
+    "title": "Autovalutazione della sicurezza",
+    "subtitle": "Valuta la postura di sicurezza del tuo sistema rispetto ai framework applicabili.",
+    "haveCode": "Ho un codice di accesso",
+    "codeLabel": "Codice di accesso",
+    "startBtn": "Avvia valutazione",
+    "requestAccess": "Richiedi accesso",
+    "requestD": "Non hai un codice? Invia una richiesta e il nostro team di sicurezza la esaminerà. Una volta approvata, riceverai un codice di accesso via email.",
+    "name": "Il tuo nome",
+    "email": "Indirizzo email",
+    "org": "Organizzazione",
+    "systemQ": "Quale sistema vuoi valutare?",
+    "systemP": "Breve descrizione — es. portale web pubblico per feedback dei cittadini",
+    "submitBtn": "Richiedi accesso",
+    "submitted": "Richiesta inviata!",
+    "submittedD": "La tua richiesta è stata inviata al nostro team di sicurezza. Riceverai un'email a <strong>{{email}}</strong> con un codice di accesso una volta approvata.",
+    "submittedNote": "Di solito richiede meno di 24 ore.",
+    "backPortal": "Torna al portale"
+  },
+  "sa": {
+    "title": "Autovalutazione della sicurezza",
+    "subtitle": "Valuta la postura di sicurezza del tuo sistema rispetto ai framework applicabili",
+    "step1": "Sistema e giurisdizione",
+    "step2": "Rispondi alle domande",
+    "step3": "Visualizza report",
+    "tellUs": "Parlaci del tuo sistema",
+    "tellUsD": "Seleziona il tipo, la giurisdizione e descrivi il tuo sistema. Determineremo quali framework di sicurezza si applicano e genereremo domande personalizzate.",
+    "systemType": "Tipo di sistema",
+    "webApp": "Applicazione Web",
+    "webAppD": "Sito web, portale, app SaaS",
+    "internal": "Sistema interno",
+    "internalD": "Intranet, HR, ERP, CRM",
+    "cloud": "Infrastruttura Cloud",
+    "cloudD": "Configurazione AWS, Azure, GCP",
+    "mobile": "App Mobile",
+    "mobileD": "iOS, Android, ibrida",
+    "data": "Dati / Analytics",
+    "dataD": "Database, data warehouse, BI",
+    "network": "Rete / Dispositivi",
+    "networkD": "LAN, Wi-Fi, IoT, endpoint",
+    "country": "Paese",
+    "govLevel": "Livello di Governo",
+    "sensitivity": "Sensibilità dei Dati",
+    "federal": "Federale",
+    "state": "Statale / Provinciale",
+    "municipal": "Municipale / Locale",
+    "private": "Settore Privato",
+    "healthcare": "Sanità",
+    "finance": "Servizi Finanziari",
+    "public": "Pubblico / Non classificato",
+    "lowSens": "Bassa sensibilità",
+    "medSens": "Media (dati personali)",
+    "highSens": "Alta (Protected B / PII)",
+    "classified": "Classificato / Segreto",
+    "fwApply": "Framework di sicurezza che potrebbero applicarsi al tuo sistema:",
+    "describe": "Descrivi il tuo sistema in linguaggio semplice",
+    "describeP": "es. Abbiamo un portale web pubblico costruito su WordPress che raccoglie moduli di feedback dei cittadini.",
+    "generateQ": "Genera Domande di Sicurezza",
+    "analyzing": "Analisi del tuo sistema e della giurisdizione...",
+    "analyzingD": "Generazione di domande di sicurezza personalizzate basate sui framework applicabili",
+    "questionsTitle": "Domande per la Valutazione della Sicurezza",
+    "questionsHint": "Rispondi onestamente — questo aiuta a identificare le lacune. Salta le domande di cui non sei sicuro.",
+    "back": "Indietro",
+    "generateReport": "Genera Report di Sicurezza",
+    "genReport": "Generazione del tuo report di sicurezza...",
+    "genReportD": "Analisi delle risposte e mappatura sui controlli del framework",
+    "doNotClose": "Per favore non chiudere questa pagina — l'operazione potrebbe richiedere fino a 30 secondi.",
+    "reportTitle": "Postura di Sicurezza Preliminare",
+    "score": "Punteggio di Sicurezza",
+    "secured": "Protetto",
+    "needAttn": "Richiede Attenzione",
+    "critical": "Lacune Critiche",
+    "criticalSection": "Lacune Critiche — Azione Immediata Richiesta",
+    "warningSection": "Aree che Necessitano Miglioramento",
+    "securedSection": "Cosa è Già Protetto",
+    "securedNote": "presunto — verificare in modo indipendente",
+    "securedWarn": "Basato sulle tue risposte auto-dichiarate. Da verificare durante una valutazione formale.",
+    "nextSteps": "Prossimi Passi Raccomandati",
+    "requestFull": "Richiedi Valutazione SA&A Completa",
+    "print": "Stampa Report",
+    "startOver": "Ricomincia",
+    "yourName": "Il tuo nome",
+    "yourEmail": "La tua email",
+    "yourOrg": "Organizzazione",
+    "generatingQuestions": "Generazione delle domande...",
+    "likelyFramework": "Framework probabile",
+    "relatedFrameworks": "Correlati",
+    "selectRequired": "Seleziona prima paese/regione, settore e sensibilità dei dati.",
+    "unableQuestions": "Impossibile generare le domande.",
+    "generatingPreliminaryReport": "Generazione del report preliminare...",
+    "unableReport": "Impossibile generare il report.",
+    "warnings": "Avvisi",
+    "green": "Verde",
+    "submitting": "Invio...",
+    "submitted": "Inviato.",
+    "submittedD": "Riferimento {refCode}. Un valutatore può ora esaminarlo dalla coda delle autovalutazioni amministrative.",
+    "submissionFailed": "Invio non riuscito."
+  },
+  "common": {
+    "select": "— Seleziona —",
+    "submit": "Invia",
+    "cancel": "Annulla",
+    "save": "Salva",
+    "required": "obbligatorio",
+    "loading": "Caricamento...",
+    "error": "Si è verificato un errore. Riprova.",
+    "yes": "Sì",
+    "no": "No",
+    "unknown": "Sconosciuto",
+    "continue": "Continua"
+  },
+  "bq": {
+    "iam": "Gestione delle identità e degli accessi",
+    "dp": "Protezione dei dati e privacy",
+    "sns": "Sicurezza di sistema e di rete",
+    "mir": "Monitoraggio e risposta agli incidenti",
+    "gpa": "Governance, policy e sensibilizzazione",
+    "ssc": "Considerazioni specifiche del sistema"
+  },
+  "auth": {
+    "login": "Accedi",
+    "loginTitle": "Accesso valutatore",
+    "clientLogin": "Accesso cliente",
+    "email": "Indirizzo email",
+    "password": "Password",
+    "signIn": "Accedi",
+    "forgotPassword": "Password dimenticata?",
+    "noAccount": "Non hai un account?",
+    "registerHere": "Registrati qui",
+    "verifyMfa": "Verifica MFA",
+    "enterCode": "Inserisci il codice a 6 cifre dalla tua app di autenticazione",
+    "verify": "Verifica",
+    "usePasskey": "Usa Passkey",
+    "or": "oppure",
+    "mfaSetup": "Configurazione MFA",
+    "scanQr": "Scansiona questo codice QR con la tua app di autenticazione",
+    "manualEntry": "Inserimento manuale",
+    "enterToken": "Inserisci il codice di verifica",
+    "enableMfa": "Attiva MFA",
+    "register": "Registrati",
+    "name": "Nome completo",
+    "organization": "Organizzazione",
+    "confirmPassword": "Conferma password",
+    "inviteCode": "Codice di invito",
+    "inviteHint": "Inserisci il codice ricevuto nell'email di invito.",
+    "createAccount": "Crea account",
+    "alreadyHave": "Hai già un account?",
+    "passkey": "Passkey / Biometria",
+    "passkeyDesc": "Registra una passkey per abilitare la verifica biometrica per l'accesso e le operazioni critiche.",
+    "registerPasskey": "Registra Passkey",
+    "skipPasskey": "Salta per ora",
+    "passkeyRegistered": "Passkey registrata! Puoi utilizzare l'accesso biometrico.",
+    "tryAgain": "Riprova",
+    "continueToApp": "Continua alla Dashboard",
+    "confirmIdentity": "Conferma la tua identità per continuare.",
+    "saPortal": "Portale di Valutazione e Autorizzazione della Sicurezza",
+    "approvePasskey": "Approva con la tua passkey (Face ID, Touch ID o Windows Hello).",
+    "signInPasskey": "Accedi con Passkey",
+    "useTotpInstead": "Usa invece il codice TOTP",
+    "enter6digit": "Inserisci il codice a 6 cifre dalla tua app di autenticazione.",
+    "verifySignIn": "Verifica e Accedi",
+    "differentUser": "Accedi come altro utente",
+    "registerInvite": "Registrati con Codice Invito",
+    "backPortal": "Torna alla Home del Portale",
+    "clientSignIn": "Accesso Cliente",
+    "mfaSetupInstructions": "Scansiona il codice QR con un'app di autenticazione, quindi inserisci il codice a 6 cifre. TOTP resta disponibile anche se in seguito aggiungi una passkey.",
+    "authCode": "Codice di autenticazione",
+    "verifyEnableMfa": "Verifica e abilita MFA",
+    "passkeyOrTotp": "Usa la tua passkey registrata o passa al codice dell’app di autenticazione.",
+    "usePasskeyInstead": "Usa invece la passkey",
+    "passwordPlaceholder": "Inserisci la password",
+    "clientSignInD": "Accedi per inviare o visualizzare le tue richieste di valutazione della sicurezza.",
+    "waitingPasskey": "In attesa della passkey...",
+    "cancelledUseTotp": "Annullato. Usa TOTP o riprova.",
+    "tryPasskeyAgain": "Riprova passkey"
+  },
+  "dash": {
+    "title": "Dashboard",
+    "welcome": "Bentornato,",
+    "newProject": "Nuovo Progetto",
+    "totalProjects": "Progetti Totali",
+    "activeAssessments": "Valutazioni Attive",
+    "pendingAudits": "Audit in Attesa",
+    "activeATOs": "ATO Attivi",
+    "pendingIntakes": "Richieste in Attesa",
+    "preAssessments": "Pre-Valutazioni",
+    "recentProjects": "Progetti Recenti",
+    "recentAssessments": "Valutazioni Recenti",
+    "viewAll": "Visualizza Tutto",
+    "noProjects": "Nessun progetto presente.",
+    "noAssessments": "Nessuna valutazione presente."
+  },
+  "proj": {
+    "title": "Progetti",
+    "new": "Nuovo Progetto",
+    "name": "Nome Progetto",
+    "description": "Descrizione",
+    "department": "Dipartimento",
+    "branch": "Divisione",
+    "dataClass": "Classificazione Dati",
+    "hosting": "Tipo di Hosting",
+    "appType": "Tipo di Applicazione",
+    "status": "Stato",
+    "created": "Creato",
+    "actions": "Azioni",
+    "view": "Visualizza",
+    "noProjects": "Nessun progetto trovato.",
+    "delete": "Elimina Progetto",
+    "deleteConfirm": "Sei sicuro?"
+  },
+  "assess": {
+    "title": "Valutazioni",
+    "new": "Nuova Valutazione",
+    "project": "Progetto",
+    "type": "Tipo",
+    "status": "Stato",
+    "score": "Punteggio",
+    "controls": "Controlli",
+    "view": "Visualizza",
+    "sendInvite": "Invia Invito",
+    "startAudit": "Avvia Audit",
+    "completeAudit": "Completa Audit",
+    "noAssessments": "Nessuna valutazione trovata.",
+    "evidenceGathering": "Raccolta Evidenze",
+    "submitted": "Inviato",
+    "audit": "Audit",
+    "completed": "Completato",
+    "met": "Soddisfatto",
+    "partiallyMet": "Parzialmente Soddisfatto",
+    "notMet": "Non Soddisfatto",
+    "pending": "In Attesa",
+    "inherited": "Ereditato",
+    "applicable": "Applicabile",
+    "priority": "Priorità"
+  },
+  "intake": {
+    "title": "Richieste di Valutazione",
+    "ref": "Riferimento",
+    "projectName": "Nome Progetto",
+    "submitter": "Richiedente",
+    "status": "Stato",
+    "submitted": "Inviato",
+    "review": "Revisione",
+    "accept": "Accetta",
+    "decline": "Rifiuta",
+    "noIntakes": "Nessuna richiesta di valutazione presente.",
+    "form": "Richiesta di Valutazione di Sicurezza",
+    "systemInfo": "Informazioni di Sistema",
+    "dataInfo": "Dati e Classificazione",
+    "hosting": "Hosting e Tecnologia",
+    "contacts": "Contatti",
+    "additional": "Informazioni Aggiuntive",
+    "submit": "Invia Richiesta",
+    "draft": "Bozza",
+    "inReview": "In Revisione",
+    "accepted": "Accettato",
+    "declined": "Rifiutato",
+    "strong": {
+      "privacy_impact_assessment_pia": "Valutazione dell'impatto sulla privacy (PIA)",
+      "intake_submitted_successfully": "Richiesta Inviata con Successo",
+      "complete_your_intake": "Completa la Tua Richiesta",
+      "canada": "Canada",
+      "united_states": "Stati Uniti",
+      "european_union": "Unione Europea",
+      "germany": "Germania",
+      "france": "Francia",
+      "united_kingdom": "Regno Unito",
+      "spain": "Spagna",
+      "australia": "Australia",
+      "global_worldwide": "Globale Mondiale",
+      "handles_payment_cards": "Gestisce Carte di Pagamento",
+      "select_at_least_one_region": "Seleziona Almeno Una Regione",
+      "operating_regions": "Regioni Operative",
+      "tbs_directive_on_security_management": "Direttiva Tbs sulla Gestione della Sicurezza",
+      "pbhva_overlay": "Overlay Pbhva",
+      "determined_security_profile": "Profilo di Sicurezza Determinato",
+      "tailoring_notes": "Note di Personalizzazione",
+      "name_address_or_contact_info": "Nome Indirizzo o Informazioni di Contatto",
+      "social_insurance_number_sin": "Numero di Assicurazione Sociale Sin",
+      "financial_information": "Informazioni Finanziarie",
+      "health_medical_records": "Cartelle Cliniche Sanitarie",
+      "biometric_data": "Dati Biometrici",
+      "employment_hr_records": "Registri Occupazionali Hr",
+      "immigration_citizenship_data": "Dati Immigrazione Cittadinanza",
+      "law_enforcement_criminal_records": "Casellario Giudiziale Forze dell'Ordine",
+      "indigenous_treaty_data": "Dati Trattati Indigeni",
+      "none_of_the_above": "Nessuna delle Precedenti",
+      "atip": "Atip",
+      "gc_systems": "Sistemi Gc",
+      "mobile_byod": "Mobile Byod",
+      "external_users": "Utenti Esterni",
+      "threat_risk_assessment_tra": "Valutazione delle Minacce e dei Rischi Tra",
+      "system_security_plan_ssp": "Piano di Sicurezza del Sistema Ssp",
+      "vulnerability_assessment_pen_test": "Valutazione Vulnerabilità Pen Test",
+      "network_architecture_diagram": "Diagramma Architettura di Rete",
+      "previous_saa_ato": "Saa ATO Precedente"
+    },
+    "ph": {
+      "full_name": "Nome completo",
+      "email_address": "Indirizzo email",
+      "title_role": "Titolo / Ruolo",
+      "eg_were_building_a_portal": "Es. Stiamo Costruendo un Portale",
+      "eg_hr_case_management_portal": "Es. Portale Gestione Casi Hr",
+      "describe_the_purpose_scope_and": "Descrivi lo Scopo l'Ambito e",
+      "eg_employment_and_social_development": "Es. Occupazione e Sviluppo Sociale",
+      "eg_innovation_information_and_technology": "Es. Innovazione Informazione e Tecnologia",
+      "list_any_technologies_not_covered": "Elenca Eventuali Tecnologie Non Coperte",
+      "eg_gccase_via_api_sap": "Es. Gccase Tramite Api Sap",
+      "eg_tight_deadline_need_iato": "Es. Scadenza Ravvicinata Necessita Iato"
+    },
+    "h2": {
+      "security_assessment_intake": "Richiesta Valutazione della Sicurezza"
+    },
+    "p": {
+      "submit_your_project_for_a": "Invia il Tuo Progetto per una",
+      "your_security_assessor_has_created": "Il Tuo Valutatore della Sicurezza Ha Creato",
+      "select_all_regions_and_jurisdictions": "Seleziona Tutte le Regioni e Giurisdizioni",
+      "upload_a_project_document_or": "Carica un Documento di Progetto o",
+      "upload_a_design_doc_sa": "Carica un documento di progettazione SA",
+      "describe_what_your_system_does": "Descrivi cosa fa il tuo sistema",
+      "tell_us_about_your_project": "Parlaci del tuo progetto",
+      "what_is_the_highest_sensitivity": "Qual è il livello di sensibilità più alto",
+      "what_is_the_expected_impact": "Qual è l'impatto previsto",
+      "what_is_the_expected_impact_2": "Qual è l'impatto previsto",
+      "does_your_system_collect_process": "Il tuo sistema raccoglie ed elabora",
+      "where_will_the_system_be": "Dove sarà ospitato il sistema",
+      "check_all_technologies_that_are": "Seleziona tutte le tecnologie che sono",
+      "help_us_understand_how_the": "Aiutaci a capire come",
+      "let_us_know_what_security": "Facci sapere quali misure di sicurezza",
+      "check_all_that_have_been": "Seleziona tutte quelle che sono state",
+      "provide_contact_details_for_the": "Fornisci i dettagli di contatto per",
+      "upload_any_existing_documentation_that": "Carica qualsiasi documentazione esistente che",
+      "any_other_information_that_would": "Qualsiasi altra informazione che potrebbe"
+    },
+    "span": {
+      "required": "Obbligatorio",
+      "beta": "Beta"
+    },
+    "small": {
+      "itsg33_cccs_medium": "ITSG-33 CCCS Medium",
+      "osfi_b13": "OSFI B-13",
+      "nist_80053_fedramp": "NIST 800-53 FedRAMP",
+      "cmmc_20": "CMMC",
+      "stateramp": "StateRAMP",
+      "nydfs_500": "NYDFS",
+      "nis2_directive": "Direttiva NIS2",
+      "dora": "DORA",
+      "bsi_itgrundschutz": "BSI IT-Grundschutz",
+      "anssi_rgs_ebios_rm": "ANSSI RGS EBIOS RM",
+      "ncsc_caf": "NCSC CAF",
+      "ens_ccnstic": "ENS CCN-STIC",
+      "asd_ism_essential_eight": "ASD ISM Essential Eight",
+      "apra_cps_234": "APRA CPS 234",
+      "iso_27001": "ISO 27001",
+      "service_organization_controls": "Service Organization Controls",
+      "pci_dss_40": "PCI DSS",
+      "v81_municipal_general": "V81 Comunale Generale",
+      "full_name_homework_address_phone": "Nome completo, indirizzo di residenza, telefono",
+      "sin_or_business_number": "Codice fiscale o partita IVA",
+      "bank_accounts_tax_records_pay": "Conti bancari, documenti fiscali, buste paga",
+      "medical_history_disability_mental_health": "Anamnesi medica, disabilità, salute mentale",
+      "fingerprints_facial_recognition_voice_prints": "Impronte digitali, riconoscimento facciale, impronte vocali",
+      "performance_reviews_staffing_actions_leave": "Valutazioni delle prestazioni, azioni sul personale, congedi",
+      "visa_applications_travel_documents_citizenship": "Domande di visto, documenti di viaggio, cittadinanza",
+      "case_files_criminal_history_investigations": "Fascicoli, precedenti penali, indagini",
+      "band_membership_treaty_info_land": "Appartenenza a comunità, informazioni sui trattati, territorio",
+      "no_personal_information_is_collected": "Nessuna informazione personale viene raccolta",
+      "you_can_select_multiple_files": "Puoi selezionare più file"
+    },
+    "btn": {
+      "change_regions": "Cambia regioni",
+      "analyze_prefill": "Analizza e precompila",
+      "get_suggestions": "Ottieni suggerimenti",
+      "submit_intake": "Invia richiesta"
+    },
+    "label": {
+      "branch_directorate": "Direzione della Filiale",
+      "target_golive_date": "Data Prevista di Go-Live",
+      "estimated_user_count": "Numero Stimato di Utenti",
+      "personal_information_pii_checklist": "Checklist delle Informazioni Personali (PII)",
+      "data_residency": "Residenza dei Dati",
+      "technology_stack": "Stack Tecnologico",
+      "microsoft_entra_id_azure_ad": "Microsoft Entra Id Azure Ad",
+      "active_directory_onprem": "Active Directory On-Prem",
+      "multifactor_authentication": "Autenticazione a Più Fattori",
+      "privileged_identity_management": "Gestione delle Identità Privilegiate",
+      "microsoft_azure": "Microsoft Azure",
+      "amazon_web_services": "Amazon Web Services",
+      "google_cloud_platform": "Google Cloud Platform",
+      "ssc_data_centre": "Data Centre SSC",
+      "gc_network_gcnet": "Rete GC (GCnet)",
+      "microsoft_sentinel_siem": "Microsoft Sentinel SIEM",
+      "splunk_siem": "Splunk SIEM",
+      "microsoft_defender": "Microsoft Defender",
+      "crowdstrike_falcon": "CrowdStrike Falcon",
+      "cse_cccs_services": "Servizi CSE CCCS",
+      "web_application_firewall": "Web Application Firewall",
+      "azure_devops": "Azure DevOps",
+      "github_enterprise": "GitHub Enterprise",
+      "microsoft_intune_mdm": "Microsoft Intune MDM",
+      "azure_key_vault": "Azure Key Vault",
+      "aws_kms": "AWS KMS",
+      "azure_backup": "Azure Backup",
+      "other_technologies_notes": "Note su Altre Tecnologie",
+      "list_known_interconnections_integrations": "Elenco delle Interconnessioni e Integrazioni Note",
+      "completed_security_activities": "Attività di Sicurezza Completate",
+      "attachments": "Allegati",
+      "selected_files": "File Selezionati",
+      "notes_questions_special_considerations": "Note, Domande e Considerazioni Speciali"
+    },
+    "h6": {
+      "identity_access": "Identità e Accesso",
+      "cloud_infrastructure": "Infrastruttura Cloud",
+      "security_monitoring": "Monitoraggio della Sicurezza",
+      "devops_encryption_management": "Gestione DevOps e Crittografia",
+      "technical_lead": "Responsabile Tecnico",
+      "authorizing_official_dg_director": "Funzionario Autorizzatore (DG/Direttore)"
+    },
+    "link": {
+      "back": "Indietro"
+    }
+  },
+  "client": {
+    "dashboard": "La Mia Dashboard",
+    "myIntakes": "Le Mie Richieste",
+    "myAssessments": "Le Mie Valutazioni",
+    "newIntake": "Nuova Richiesta",
+    "noIntakes": "Non hai ancora inviato nessuna richiesta.",
+    "noAssessments": "Nessuna valutazione ancora assegnata.",
+    "viewIntake": "Visualizza",
+    "editDraft": "Modifica Bozza",
+    "settings": "Impostazioni",
+    "profile": "Profilo",
+    "changePassword": "Cambia Password",
+    "mfaSettings": "Impostazioni MFA",
+    "passkeySettings": "Impostazioni Passkey"
+  },
+  "evidence": {
+    "title": "Invio delle Evidenze",
+    "control": "Controllo",
+    "description": "Descrizione",
+    "guidance": "Guida per le Evidenze",
+    "provide": "Fornisci Evidenza",
+    "save": "Salva",
+    "submit": "Invia Tutte le Evidenze",
+    "progress": "Avanzamento",
+    "provided": "Fornito",
+    "remaining": "Rimanente",
+    "addComment": "Aggiungi Commento",
+    "attachFile": "Allega File"
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "mfa": "Autenticazione Multi-Fattore",
+    "mfaEnabled": "MFA è abilitata",
+    "mfaMode": "Modalità MFA",
+    "totp": "App di Autenticazione (TOTP)",
+    "push": "Passkey / Biometria",
+    "passkey": "Gestione Passkey",
+    "clearPasskeys": "Cancella Passkey",
+    "registerNew": "Registra Nuova Passkey"
+  },
+  "auditLog": {
+    "title": "Registro Firme di Audit",
+    "action": "Azione",
+    "user": "Utente",
+    "entity": "Entità",
+    "timestamp": "Data e Ora",
+    "details": "Dettagli",
+    "today": "Oggi",
+    "total": "Totale",
+    "uniqueUsers": "Utenti Unici"
+  },
+  "invite": {
+    "title": "Gestione Inviti",
+    "clients": "Inviti Clienti",
+    "assessors": "Inviti Valutatori",
+    "peers": "Valutatori Pari",
+    "sendClient": "Invita Cliente",
+    "sendAssessor": "Invita Valutatore",
+    "email": "Email",
+    "name": "Nome",
+    "message": "Messaggio",
+    "send": "Invia Invito",
+    "resend": "Reinvia",
+    "revoke": "Revoca",
+    "status": "Stato",
+    "code": "Codice",
+    "expires": "Scadenza",
+    "pending": "In Attesa",
+    "accepted": "Accettato",
+    "revoked": "Revocato",
+    "expired": "Scaduto"
+  },
+  "poam": {
+    "title": "Remediation POA&M",
+    "item": "Elemento",
+    "risk": "Livello di Rischio",
+    "deadline": "Scadenza",
+    "status": "Stato",
+    "evidence": "Evidenza",
+    "open": "Aperto",
+    "inProgress": "In Corso",
+    "completed": "Completato",
+    "verified": "Verificato",
+    "overdue": "In Ritardo",
+    "submitEvidence": "Invia prove di correzione"
+  },
+  "error": {
+    "title": "Errore",
+    "notFound": "Pagina non trovata",
+    "goHome": "Vai alla Home",
+    "tryAgain": "Riprova",
+    "p": {
+      "try_entering_your_access_code": "Prova a inserire il tuo codice di accesso"
+    },
+    "ph": {
+      "access_code": "Codice di accesso"
+    },
+    "link": {
+      "back_to_home": "Torna alla home"
+    }
+  },
+  "success": {
+    "title": "Prove inviate",
+    "message": "Le tue prove sono state inviate con successo.",
+    "ref": "Riferimento",
+    "date": "Inviato il",
+    "h1": {
+      "evidence_submitted_successfully": "Evidenze Inviate con Successo"
+    },
+    "span": {
+      "under_review": "In Revisione"
+    },
+    "p": {
+      "your_security_assessor_has_been": "Il Tuo Valutatore di Sicurezza È Stato"
+    },
+    "link": {
+      "return_home": "Torna alla Home"
+    }
+  },
+  "guidance": {
+    "title": "Rapporto sulle linee guida GC Web",
+    "checklist": "Lista di controllo conformità",
+    "required": "Obbligatorio",
+    "recommended": "Consigliato",
+    "met": "Soddisfatto",
+    "inProgress": "In corso",
+    "na": "N/D",
+    "submit": "Invia lista di controllo",
+    "validate": "Convalida",
+    "return": "Restituisci per revisione"
+  },
+  "saAdmin": {
+    "title": "Autovalutazioni pre-ammissione",
+    "subtitle": "Autovalutazioni di sicurezza inviate dai clienti in attesa di revisione",
+    "total": "Totale",
+    "pendingReview": "In attesa di revisione",
+    "reviewed": "Revisionato",
+    "intakeCreated": "Ammissione creata",
+    "ref": "Rif",
+    "submitter": "Mittente",
+    "system": "Sistema",
+    "jurisdiction": "Giurisdizione",
+    "score": "Punteggio",
+    "review": "Revisiona",
+    "noAssessments": "Nessuna autovalutazione inviata ancora.",
+    "accessRequests": "Richieste di accesso",
+    "pending": "in sospeso",
+    "approve": "Approva",
+    "deny": "Rifiuta",
+    "noRequests": "Nessuna richiesta di accesso ancora.",
+    "reason": "Motivo",
+    "requested": "Richiesto"
+  },
+  "saReview": {
+    "systemJuris": "Sistema e giurisdizione",
+    "systemType": "Tipo di sistema",
+    "country": "Paese",
+    "govLevel": "Livello di governo",
+    "sensitivity": "Sensibilità dei dati",
+    "score": "Punteggio di sicurezza",
+    "findings": "Risultati",
+    "critical": "critici",
+    "warnings": "avvisi",
+    "secured": "protetti",
+    "systemDesc": "Descrizione del sistema",
+    "frameworks": "Framework Applicabili",
+    "criticalGaps": "Lacune Critiche",
+    "warningSection": "Aree che Necessitano Miglioramento",
+    "securedSection": "Protetto (presunto — verificare in modo indipendente)",
+    "securedWarn": "Auto-dichiarato dal cliente. Da verificare durante la valutazione formale.",
+    "adminNotes": "Note Amministratore",
+    "notesPlaceholder": "Note interne su questa richiesta...",
+    "markReviewed": "Segna come Revisionato",
+    "updateNotes": "Aggiorna Note",
+    "linkedIntake": "Intake Collegato",
+    "viewIntake": "Visualizza Intake",
+    "clientInvitation": "Invito Cliente",
+    "hasAccount": "ha già un account",
+    "sendEmail": "Invia Email Manualmente",
+    "inviteDesc": "Invita a registrarsi, accedere e revisionare la bozza dell'intake.",
+    "sendInvite": "Invia Invito di Registrazione",
+    "createIntakeFirst": "Crea prima una bozza dell'intake, poi potrai invitare il cliente.",
+    "createIntake": "Crea Intake",
+    "aiPopulate": "Pre-compila con AI",
+    "aiPopulateD": "Compila automaticamente i campi dell'intake dall'autovalutazione",
+    "generate": "Genera",
+    "createDraft": "Crea Bozza Intake",
+    "projectName": "Nome Progetto",
+    "description": "Descrizione",
+    "department": "Dipartimento",
+    "appType": "Tipo di Applicazione",
+    "dataClass": "Classificazione dei Dati",
+    "confidentiality": "Riservatezza",
+    "integrity": "Integrità",
+    "availability": "Disponibilità",
+    "pii": "Contiene PII?",
+    "pia": "PIA Completata?",
+    "hostingType": "Hosting",
+    "hostingRegion": "Regione di Hosting",
+    "secProfile": "Profilo di Sicurezza",
+    "notes": "Note Aggiuntive"
+  },
+  "footer": {
+    "contact": "Contatti",
+    "terms": "Termini di Servizio",
+    "privacy": "Informativa sulla Privacy",
+    "accessibility": "Accessibilità",
+    "copyright": "Piattaforma di Valutazione e Autorizzazione della Sicurezza · Conformità Multi-Framework",
+    "dateModified": "Data di modifica"
+  },
+  "admin": {
+    "dashboard": {
+      "th": {
+        "status": "Stato",
+        "updated": "Aggiornato",
+        "project": "Progetto",
+        "classification": "Classificazione",
+        "name": "Nome",
+        "result": "Risultato",
+        "ref": "Rif",
+        "department": "Dipartimento",
+        "submitted": "Inviato"
+      },
+      "h1": {
+        "dashboard": "Pannello di controllo"
+      },
+      "link": {
+        "new_project": "Nuovo Progetto",
+        "view_all": "Visualizza Tutti",
+        "create_your_first_project": "Crea il Tuo Primo Progetto",
+        "view_all_2": "Visualizza Tutti",
+        "view_all_3": "Visualizza Tutti",
+        "intake_form": "Modulo di Intake"
+      },
+      "stat": {
+        "total_projects": "Progetti Totali",
+        "active_assessments": "Valutazioni Attive",
+        "pending_audits": "Audit in Attesa",
+        "active_atos": "ATO Attivi",
+        "pending_intakes": "Intake in Attesa",
+        "preassessments": "Prevalutazioni"
+      },
+      "span": {
+        "recent_projects": "Progetti Recenti",
+        "recent_assessments": "Valutazioni Recenti",
+        "recent_intakes": "Intake Recenti",
+        "pending": "In Attesa",
+        "in_review": "In Revisione",
+        "accepted": "Accettato",
+        "declined": "Rifiutato"
+      },
+      "p": {
+        "no_assessments_yet": "Nessuna Valutazione Ancora"
+      }
+    },
+    "intake_review": {
+      "span": {
+        "high": "Alto",
+        "medium": "Medio",
+        "low": "Basso",
+        "pending_review": "In Attesa di Revisione",
+        "in_review": "In Revisione",
+        "accepted": "Accettato",
+        "internal_only": "Solo Interno",
+        "external_public": "Esterno Pubblico",
+        "hybrid": "Ibrido",
+        "top_secret": "Top Secret",
+        "secret": "Segreto",
+        "confidential": "Riservato",
+        "protected_c": "Protetto C",
+        "protected_b": "Protetto B",
+        "protected_a": "Protetto A",
+        "hva": "HVA",
+        "yes": "Sì",
+        "estimated_controls": "Controlli Stimati",
+        "p1_mandatory": "P1 Obbligatorio",
+        "p2_conditional": "P2 Condizionale",
+        "p3_situational": "P3 Situazionale",
+        "inherited_controls": "Controlli Ereditati",
+        "already_selected": "Già Selezionato",
+        "mandatory": "Obbligatorio"
+      },
+      "tattr": {
+        "ai_elaborate": "AI: Elabora"
+      },
+      "link": {
+        "back_to_intakes": "Torna agli Intake"
+      },
+      "btn": {
+        "ai_review": "Revisione AI",
+        "mark_in_review": "Segna in revisione",
+        "create_project_assessment": "Crea valutazione progetto",
+        "decline_intake": "Rifiuta richiesta"
+      },
+      "label": {
+        "department_agency": "Dipartimento/Agenzia",
+        "branch_directorate": "Ramo/Direzione",
+        "application_type": "Tipo di applicazione",
+        "target_golive": "Data di lancio prevista",
+        "estimated_users": "Utenti stimati",
+        "project_description": "Descrizione del progetto",
+        "atip_subject": "Soggetto ATIP",
+        "pia_status": "Stato PIA",
+        "contains_pii": "Contiene PII",
+        "pii_types_identified": "Tipi di PII identificati",
+        "hosting": "Hosting",
+        "data_residency": "Residenza dei dati",
+        "technologies": "Tecnologie",
+        "other_technologies": "Altre tecnologie",
+        "gc_interconnections": "Interconnessioni GC",
+        "mobile_byod": "Mobile BYOD",
+        "listed_interconnections": "Interconnessioni elencate",
+        "external_users": "Utenti esterni",
+        "project_owner": "Responsabile del progetto",
+        "technical_lead": "Responsabile tecnico",
+        "authorizing_official": "Funzionario autorizzante",
+        "override_confidentiality": "Sovrascrivi riservatezza",
+        "override_integrity": "Sovrascrivi integrità",
+        "override_availability": "Sovrascrivi disponibilità",
+        "high_value_asset_hva": "Asset di alto valore (HVA)",
+        "override_app_type": "Sovrascrivi tipo di app",
+        "additional_technologies": "Tecnologie aggiuntive",
+        "additional_description_context": "Contesto descrittivo aggiuntivo",
+        "assessor_notes_internal": "Note interne del valutatore",
+        "assessment_type": "Tipo di valutazione"
+      },
+      "strong": {
+        "determined_profile": "Profilo determinato",
+        "saampa_required": "SAAMPA richiesto",
+        "no_saampa_required": "SAAMPA non richiesto",
+        "accepted": "Accettato"
+      },
+      "div": {
+        "no_pii_identified": "Nessun PII identificato"
+      },
+      "card": {
+        "engine_preview": "Anteprima del motore",
+        "assessor_context": "Contesto del valutatore"
+      },
+      "small": {
+        "gc_web_guidance_report_will": "Il report delle linee guida web GC verrà",
+        "based_on_submitted_project_details": "In base ai dettagli del progetto inviati",
+        "appended_to_the_project_description": "Aggiunto alla descrizione del progetto",
+        "frameworks_below_have_been_preselected": "I framework seguenti sono stati preselezionati"
+      },
+      "p": {
+        "add_context_or_adjust_details": "Aggiungi contesto o modifica i dettagli",
+        "add_technologies_the_client_may": "Aggiungi tecnologie che il cliente potrebbe"
+      },
+      "ph": {
+        "add_keywords_for_the_engine": "Aggiungi parole chiave per il motore",
+        "internal_notes_about_this_intake": "Note interne su questa richiesta",
+        "reason_for_declining_optional": "Motivo del rifiuto (facoltativo)"
+      }
+    },
+    "invitations": {
+      "th": {
+        "email": "Email",
+        "name": "Nome",
+        "code": "Codice",
+        "status": "Stato",
+        "sent": "Inviato",
+        "expires": "Scade",
+        "organization": "Organizzazione",
+        "joined": "Iscritto",
+        "last_login": "Ultimo Accesso"
+      },
+      "label": {
+        "name": "Nome",
+        "organization": "Organizzazione"
+      },
+      "small": {
+        "optional": "(facoltativo)"
+      },
+      "span": {
+        "pending": "In attesa",
+        "accepted": "Accettato",
+        "revoked": "Revocato"
+      },
+      "tattr": {
+        "resend": "Reinvia",
+        "revoke": "Revoca"
+      },
+      "h1": {
+        "team_invitations": "Inviti del Team"
+      },
+      "p": {
+        "invite_clients_and_peer_assessors": "Invita Clienti e Valutatori Colleghi",
+        "the_client_must_register_using": "Il Cliente Deve Registrarsi Utilizzando",
+        "these_assessors_have_accepted_your": "Questi Valutatori Hanno Accettato Il Tuo",
+        "no_peer_assessors_yet_invite": "Nessun Valutatore Collega Ancora Invita"
+      },
+      "ph": {
+        "jane_doe": "Maria Rossi",
+        "client_organization_name": "Nome Organizzazione Cliente",
+        "brief_note_to_include_in": "Breve Nota Da Includere In",
+        "john_smith": "Mario Bianchi",
+        "organization": "Organizzazione",
+        "brief_note_about_the_collaboration": "Breve Nota Sulla Collaborazione"
+      },
+      "btn": {
+        "send_client_invite": "Invia Invito Cliente",
+        "send_assessor_invite": "Invia Invito Valutatore"
+      },
+      "strong": {
+        "peer_assessors": "Valutatori Colleghi"
+      }
+    },
+    "project_new": {
+      "ph": {
+        "full_name": "Nome completo",
+        "eg_hr_case_management_system": "Es Sistema Di Gestione Casi HR",
+        "describe_the_systems_purpose_users": "Descrivi Lo Scopo Del Sistema Utenti",
+        "employment_and_social_development_canada": "Occupazione E Sviluppo Sociale Canada",
+        "innovation_information_and_technology_branch": "Ramo Innovazione Informazione E Tecnologia",
+        "architecture_details_integration_points_apis": "Dettagli Architettura Punti Di Integrazione Api",
+        "jane_smith": "Maria Bianchi",
+        "acme_corp": "Acme Corp",
+        "welcome_to_the_assessment_portal": "Benvenuto Nel Portale Di Valutazione"
+      },
+      "h1": {
+        "new_project": "Nuovo Progetto"
+      },
+      "p": {
+        "create_a_security_assessment_project": "Crea Un Progetto Di Valutazione Della Sicurezza",
+        "select_all_regions_and_jurisdictions": "Seleziona Tutte Le Regioni E Giurisdizioni",
+        "basic_details_about_the_system": "Dettagli Base Sul Sistema",
+        "classify_data_sensitivity_using_the": "Classifica La Sensibilità Dei Dati Utilizzando Il",
+        "where_the_system_is_deployed": "Dove Il Sistema È Distribuito",
+        "individuals_involved_in_the_assessment": "Individui Coinvolti Nella Valutazione",
+        "assign_this_project_to_a": "Assegna Questo Progetto A Un",
+        "no_registered_clients_yet_use": "Nessun Cliente Registrato Ancora Usa"
+      },
+      "span": {
+        "optional": "Opzionale",
+        "required": "Obbligatorio",
+        "pending": "In Attesa"
+      },
+      "btn": {
+        "skip_to_client_assignment": "Passa All'Assegnazione Cliente",
+        "back_to_region_selection": "Torna Alla Selezione Regione",
+        "skip_to_client_assignment_2": "Passa All'Assegnazione Cliente",
+        "back_to_regions": "Torna Alle Regioni",
+        "back_to_previous_step": "Torna Al Passaggio Precedente",
+        "create_project_send_intake": "Crea Progetto Invia Intake"
+      },
+      "strong": {
+        "canada_federal": "Canada Federale",
+        "canada_financial": "Canada Finanziario",
+        "united_states": "Stati Uniti",
+        "us_defense": "Difesa USA",
+        "us_statelocal": "USA Statale/Locale",
+        "us_financial": "USA Finanziario",
+        "european_union": "Unione Europea",
+        "eu_financial": "Finanza UE",
+        "germany": "Germania",
+        "france": "Francia",
+        "united_kingdom": "Regno Unito",
+        "spain": "Spagna",
+        "australia": "Australia",
+        "australia_financial": "Finanza Australia",
+        "global": "Globale",
+        "how_it_works": "Come Funziona"
+      },
+      "small": {
+        "itsg33": "ITSG-33",
+        "osfi_b13": "OSFI B13",
+        "nist_80053": "NIST",
+        "cmmc": "CMMC",
+        "stateramp": "StateRAMP",
+        "nydfs_500": "NYDFS",
+        "nis2_gdpr": "NIS2 GDPR",
+        "dora": "DORA",
+        "bsi_itgrundschutz": "BSI IT-Grundschutz",
+        "anssi_rgs": "ANSSI RGS",
+        "ncsc_caf": "NCSC CAF",
+        "ens": "ENS",
+        "asd_ism_essential_eight": "ASD ISM Essential Eight",
+        "apra_cps_234": "APRA CPS",
+        "iso_27001": "ISO",
+        "trust_service_criteria": "Trust Service Criteria",
+        "payment_card_security": "Sicurezza Carte di Pagamento",
+        "v81_municipal_general": "V81 Municipale Generale",
+        "choose_a_registered_client": "Scegli un Cliente Registrato",
+        "send_a_registration_invite": "Invia un Invito di Registrazione"
+      },
+      "label": {
+        "department_agency": "Dipartimento Agenzia",
+        "branch_directorate": "Direzione Filiale",
+        "technical_specifications_optional": "Specifiche Tecniche Opzionali",
+        "authorizing_official_dg_director": "Funzionario Autorizzante DG Direttore",
+        "authority_email": "Email Autorità",
+        "cio_delegated_authority_name": "Nome Autorità Delegata CIO",
+        "cio_delegated_authority_email": "Email Autorità Delegata CIO",
+        "full_name": "Nome Completo",
+        "organization": "Organizzazione",
+        "message_optional": "Messaggio Opzionale"
+      },
+      "h6": {
+        "existing_client": "Cliente Esistente",
+        "invite_new_client": "Invita Nuovo Cliente"
+      }
+    },
+    "self_assessments": {
+      "th": {
+        "status": "Stato",
+        "ref": "Rif",
+        "submitter": "Mittente",
+        "system": "Sistema",
+        "jurisdiction": "Giurisdizione",
+        "score": "Punteggio",
+        "submitted": "Inviato",
+        "name": "Nome",
+        "email": "Email",
+        "organization": "Organizzazione",
+        "reason": "Motivo",
+        "requested": "Richiesto"
+      },
+      "h1": {
+        "preintake_selfassessments": "Autovalutazioni Preliminari"
+      },
+      "p": {
+        "clientsubmitted_security_selfassessments_awaiting_review": "Autovalutazioni di Sicurezza Inviate dai Clienti in Attesa di Revisione",
+        "no_selfassessments_submitted_yet": "Nessuna Autovalutazione Inviata",
+        "no_access_requests_yet": "Nessuna Richiesta di Accesso"
+      },
+      "div": {
+        "total": "Totale",
+        "pending_review": "In Attesa di Revisione",
+        "reviewed": "Revisionato",
+        "intake_created": "Intake Creato"
+      },
+      "span": {
+        "pending_review": "In Attesa di Revisione",
+        "reviewed": "Revisionato",
+        "intake_created": "Intake Creato",
+        "pending": "In Attesa",
+        "approved": "Approvato",
+        "denied": "Rifiutato"
+      },
+      "tattr": {
+        "approve_send_code": "Approva e Invia Codice",
+        "deny": "Rifiuta"
+      }
+    },
+    "assessment_detail": {
+      "span": {
+        "invite_code": "Codice Invito",
+        "owner": "Proprietario",
+        "classification": "Classificazione",
+        "score": "Punteggio",
+        "result": "Risultato",
+        "owner_2": "Proprietario",
+        "assigned": "Assegnato",
+        "active": "Attivo",
+        "audit_progress": "Avanzamento Audit",
+        "required_for_iato_per_tbs": "Richiesto per IATO secondo TBS",
+        "high_risk": "Rischio Alto",
+        "med_risk": "Rischio Medio",
+        "low_risk": "Rischio Basso",
+        "audit": "Audit"
+      },
+      "btn": {
+        "send_invite": "Invia Invito",
+        "delete": "Elimina",
+        "resend_invite": "Reinvia Invito",
+        "start_audit": "Avvia Audit",
+        "reactivate": "Riattiva",
+        "complete_audit": "Completa Audit",
+        "revoke": "Revoca",
+        "assign": "Assegna",
+        "complete_audit_issue_decision": "Completa Audit ed Emetti Decisione",
+        "autopopulate": "Compila Automaticamente"
+      },
+      "tattr": {
+        "open_the_public_evidence_submission": "Apri l'Invio Pubblico delle Evidenze",
+        "autogenerate_from_findings": "Genera Automaticamente dai Risultati",
+        "delete": "Elimina",
+        "partially_met": "Parzialmente Soddisfatto",
+        "not_met": "Non Soddisfatto",
+        "ai_elaborate": "Elaborazione AI"
+      },
+      "stat": {
+        "total_controls": "Controlli Totali",
+        "inherited": "Ereditati",
+        "evidence_provided": "Evidenza Fornita",
+        "met": "Soddisfatto",
+        "partially_met": "Parzialmente Soddisfatto",
+        "not_met": "Non Soddisfatto",
+        "high_risk_tbs": "Alto Rischio TBS"
+      },
+      "strong": {
+        "team": "Team",
+        "tbs_policy": "Politica TBS",
+        "plan_of_action_milestones_poam": "Piano d'Azione e Milestone POA&M",
+        "risk_acceptance": "Accettazione del Rischio"
+      },
+      "label": {
+        "assign_peer_assessor": "Assegna Valutatore Pari",
+        "override_result": "Sovrascrivi Risultato",
+        "iato_expiry_date": "Data di Scadenza IATO",
+        "poam_notes": "Note POA&M"
+      },
+      "ph": {
+        "notes_optional": "Note Opzionali",
+        "poam_context_notes": "Note di Contesto POA&M",
+        "document_residual_risk_acceptance_rationale": "Documenta la Motivazione per l'Accettazione del Rischio Residuo",
+        "remediation_item_description": "Descrizione dell'Elemento di Rimedio",
+        "assigned_to": "Assegnato A",
+        "remediation_plan_optional": "Piano di Rimedio Opzionale",
+        "milestone_optional": "Milestone Opzionale",
+        "auditor_comments": "Commenti del Revisore",
+        "add_a_comment": "Aggiungi un Commento",
+        "filter_families": "Filtra Famiglie"
+      },
+      "link": {
+        "invite_peer_assessors": "Invita Valutatori Pari"
+      },
+      "card": {
+        "complete_audit_tbs_authorization_decision": "Completa la Decisione di Autorizzazione dell'Audit TBS"
+      },
+      "small": {
+        "highrisk_findings": "Risultanze ad Alto Rischio",
+        "controls_met": "Controlli Soddisfatti",
+        "partially_met": "Parzialmente Soddisfatto",
+        "not_met": "Non Soddisfatto",
+        "default_90_days_if_iato": "Predefinito 90 Giorni se IATO",
+        "tailored_description": "Descrizione Personalizzata"
+      },
+      "th": {
+        "risk": "Rischio",
+        "item": "Elemento",
+        "control": "Controllo",
+        "deadline": "Scadenza",
+        "assigned": "Assegnato",
+        "status": "Stato"
+      },
+      "p": {
+        "no_poam_items_yet_use": "Nessun Elemento POA&M Ancora Utilizza"
+      },
+      "div": {
+        "loading_comments": "Caricamento Commenti"
+      }
+    },
+    "assessment_new": {
+      "h1": {
+        "new_assessment": "Nuova Valutazione"
+      },
+      "btn": {
+        "select_all": "Seleziona Tutto",
+        "deselect_all": "Deseleziona Tutto",
+        "create_assessment": "Crea Valutazione",
+        "create_assessment_package": "Crea Pacchetto di Valutazione"
+      },
+      "span": {
+        "inherited": "Ereditato",
+        "template": "Modello"
+      },
+      "label": {
+        "tailored_description": "Descrizione Personalizzata",
+        "evidence_guidance": "Guida alle Evidenze",
+        "applicability": "Applicabilità"
+      },
+      "ph": {
+        "projectspecific_description_for_this_control": "Descrizione Specifica del Progetto per Questo Controllo",
+        "what_evidence_the_project_owner": "Quali prove il proprietario del progetto"
+      }
+    },
+    "assessments": {
+      "h1": {
+        "assessments": "Valutazioni"
+      },
+      "p": {
+        "all_security_assessment_packages": "Tutti i pacchetti di valutazione della sicurezza",
+        "no_assessments_yet": "Nessuna valutazione ancora",
+        "create_a_project_first_then": "Prima crea un progetto poi"
+      },
+      "th": {
+        "project": "Progetto",
+        "type": "Tipo",
+        "status": "Stato",
+        "score": "Punteggio",
+        "result": "Risultato",
+        "invite_code": "Codice invito",
+        "created": "Creato",
+        "updated": "Aggiornato"
+      },
+      "tattr": {
+        "delete_draft": "Elimina bozza"
+      },
+      "link": {
+        "view_projects": "Visualizza progetti"
+      }
+    },
+    "assessor_mfa_setup": {
+      "h3": {
+        "set_up_multifactor_authentication": "Configura l'autenticazione multifattore"
+      },
+      "strong": {
+        "microsoft_authenticator": "Microsoft Authenticator",
+        "google_authenticator": "Google Authenticator",
+        "authy": "Authy"
+      },
+      "p": {
+        "step_1_scan_this_qr": "Passaggio 1 Scansiona questo QR",
+        "cant_scan_enter_this_key": "Non riesci a scansionare? Inserisci questa chiave"
+      },
+      "label": {
+        "step_2_enter_the_6digit": "Passaggio 2 Inserisci il codice a 6 cifre"
+      },
+      "btn": {
+        "verify_complete_registration": "Verifica e completa la registrazione"
+      }
+    },
+    "audit_log": {
+      "link": {
+        "dashboard": "Dashboard",
+        "clear": "Cancella"
+      },
+      "div": {
+        "total_signatures": "Firme totali",
+        "today": "Oggi",
+        "unique_signers": "Firmatari unici",
+        "signatures_are_logged_when_users": "Le firme vengono registrate quando gli utenti"
+      },
+      "label": {
+        "entity_type": "Tipo di entità",
+        "action": "Azione"
+      },
+      "ph": {
+        "eg_auditcomplete": "Es. auditcomplete"
+      },
+      "btn": {
+        "filter": "Filtra"
+      },
+      "th": {
+        "timestamp": "Data e ora",
+        "user": "Utente",
+        "role": "Ruolo",
+        "action": "Azione",
+        "entity": "Entità"
+      },
+      "span": {
+        "assessor": "Valutatore",
+        "client": "Cliente"
+      }
+    },
+    "guidance_report": {
+      "p": {
+        "gc_web_standards_amp_guidance": "Standard e linee guida web GC"
+      },
+      "btn": {
+        "print": "Stampa",
+        "resend_invite": "Reinvia invito",
+        "send_invite_to_owner": "Invia invito al proprietario",
+        "validate_amp_approve": "Convalida e approva",
+        "return_for_revision": "Restituisci per revisione",
+        "save_notes": "Salva note"
+      },
+      "span": {
+        "invite_code": "Codice invito",
+        "status": "Stato",
+        "draft": "Bozza",
+        "sent_awaiting_response": "Inviato in attesa di risposta",
+        "submitted_awaiting_review": "Inviato in attesa di revisione",
+        "returned_for_revision": "Restituito per revisione",
+        "validated": "Convalidato",
+        "respondent": "Rispondente",
+        "submitted": "Inviato",
+        "no_invite_sent_yet": "Nessun invito inviato",
+        "no_pii": "Nessun PII",
+        "required": "Obbligatorio",
+        "required_2": "Obbligatorio",
+        "recommended": "Raccomandato",
+        "met": "Soddisfatto",
+        "in_progress": "In corso",
+        "na": "N/D",
+        "pending": "In sospeso"
+      },
+      "card": {
+        "review_amp_validate": "Revisiona e convalida",
+        "additional_considerations": "Considerazioni aggiuntive",
+        "assessor_notes": "Note del valutatore"
+      },
+      "small": {
+        "met": "Soddisfatto",
+        "in_progress": "In corso",
+        "na": "N/D",
+        "pending": "In sospeso"
+      },
+      "label": {
+        "reviewer_notes": "Note del revisore"
+      },
+      "ph": {
+        "notes_for_the_project_owner": "Note per il responsabile del progetto",
+        "add_any_assessor_notes_for": "Aggiungi eventuali note del valutatore per"
+      },
+      "strong": {
+        "validated": "Convalidato"
+      },
+      "th": {
+        "requirement": "Requisito",
+        "level": "Livello",
+        "status": "Stato",
+        "notes": "Note"
+      },
+      "li": {
+        "data_classification_increases_to_protected": "La classificazione dei dati aumenta a Protetto",
+        "personal_information_pii_is_collected": "Vengono raccolte informazioni personali (PII)",
+        "user_authentication_or_accounts_are": "Autenticazione utente o account sono",
+        "integration_with_other_gc_systems": "Integrazione con altri sistemi GC",
+        "payment_processing_or_financial_transactions": "Elaborazione pagamenti o transazioni finanziarie",
+        "the_application_scope_expands_beyond": "L'ambito dell'applicazione si espande oltre"
+      },
+      "link": {
+        "standard_on_web_accessibility": "Standard sull'accessibilità web",
+        "wcag_21_quick_reference": "Riferimento rapido WCAG 2.1",
+        "canadaca_design_system": "Sistema di design Canada.ca",
+        "gc_digital_standards": "Standard digitali GC",
+        "web_experience_toolkit_wet": "Web Experience Toolkit (WET)"
+      }
+    },
+    "intakes": {
+      "p": {
+        "review_project_intake_requests_from": "Revisiona le richieste di intake progetto da"
+      },
+      "link": {
+        "dashboard": "Dashboard"
+      },
+      "stat": {
+        "total_submissions": "Invii totali",
+        "pending_review": "In attesa di revisione",
+        "accepted": "Accettato",
+        "in_review": "In revisione"
+      },
+      "span": {
+        "all_submissions": "Tutti gli invii",
+        "protected_b": "Protected B",
+        "protected_a": "Protected A",
+        "yes": "Sì",
+        "pending": "In Attesa",
+        "in_review": "In Revisione",
+        "accepted": "Accettato",
+        "declined": "Rifiutato"
+      },
+      "th": {
+        "ref": "Rif",
+        "project_name": "Nome Progetto",
+        "department": "Dipartimento",
+        "classification": "Classificazione",
+        "pii": "Pii",
+        "hosting": "Hosting",
+        "submitted_by": "Inviato Da",
+        "status": "Stato",
+        "date": "Data"
+      },
+      "h5": {
+        "no_intake_submissions_yet": "Nessuna Richiesta Inviata Ancora"
+      }
+    },
+    "login": {
+      "p": {
+        "scan_the_qr_code_with": "Scansiona Il Codice Qr Con",
+        "confirm_your_identity_to_continue": "Conferma La Tua Identità Per Continuare",
+        "security_assessment_amp_authorization_portal": "Portale Di Valutazione E Autorizzazione Della Sicurezza",
+        "approve_with_your_passkey_face": "Approva Con Il Tuo Passkey Facciale"
+      },
+      "h2": {
+        "verify_identity": "Verifica Identità",
+        "assessor_login": "Accesso Valutatore"
+      },
+      "label": {
+        "manual_entry_key": "Chiave Di Inserimento Manuale",
+        "verification_code": "Codice Di Verifica",
+        "authentication_code": "Codice Di Autenticazione",
+        "email_address": "Indirizzo Email",
+        "password": "Password"
+      },
+      "btn": {
+        "verify_amp_enable_mfa": "Verifica E Abilita MFA",
+        "sign_in_with_passkey": "Accedi Con Passkey",
+        "verify_amp_sign_in": "Verifica E Accedi",
+        "sign_in": "Accedi"
+      },
+      "link": {
+        "use_totp_code_instead": "Usa Invece Il Codice TOTP",
+        "use_passkey_instead": "Usa Invece Il Passkey",
+        "sign_in_as_different_user": "Accedi Come Utente Diverso",
+        "register_with_invite_code": "Registrati Con Codice Invito",
+        "back_to_portal_home": "Torna Alla Home Del Portale"
+      },
+      "ph": {
+        "enter_password": "Inserisci Password"
+      }
+    },
+    "manage_controls": {
+      "h1": {
+        "manage_controls": "Gestisci Controlli"
+      },
+      "strong": {
+        "draft": "Bozza",
+        "add_controls": "Aggiungi Controlli"
+      },
+      "span": {
+        "inherited": "Ereditato",
+        "added": "Aggiunto"
+      },
+      "tattr": {
+        "remove_from_assessment": "Rimuovi Dalla Valutazione"
+      },
+      "label": {
+        "tailored_description": "Descrizione Personalizzata",
+        "evidence_guidance": "Guida Alle Evidenze",
+        "applicability": "Applicabilità",
+        "inherited": "Ereditato",
+        "inherited_from": "Ereditato Da"
+      },
+      "ph": {
+        "projectspecific_description": "Descrizione Specifica Del Progetto",
+        "what_evidence_should_be_provided": "Quali Evidenze Devono Essere Fornite",
+        "eg_azure_ssc": "Es. Azure Ssc",
+        "filter_by_id_or_keyword": "Filtra per ID o parola chiave"
+      },
+      "btn": {
+        "save_changes": "Salva modifiche",
+        "add_selected": "Aggiungi selezionati",
+        "add_selected_controls": "Aggiungi controlli selezionati"
+      }
+    },
+    "passkey_setup": {
+      "h2": {
+        "register_a_passkey": "Registra una passkey"
+      },
+      "p": {
+        "use_face_id_touch_id": "Usa Face ID Touch ID"
+      },
+      "strong": {
+        "passkey_registered": "Passkey registrata"
+      },
+      "btn": {
+        "register_passkey": "Registra passkey"
+      },
+      "link": {
+        "skip_use_totp_only": "Salta e usa solo TOTP"
+      }
+    },
+    "project_detail": {
+      "p": {
+        "project_details_assessments": "Dettagli progetto e valutazioni",
+        "no_assessments_yet_for_this": "Nessuna valutazione ancora per questo"
+      },
+      "btn": {
+        "delete_project": "Elimina progetto"
+      },
+      "card": {
+        "project_information": "Informazioni progetto",
+        "key_contacts": "Contatti principali"
+      },
+      "span": {
+        "yes": "Sì",
+        "assessments": "Valutazioni"
+      },
+      "h6": {
+        "description": "Descrizione",
+        "technology_stack": "Stack tecnologico"
+      },
+      "div": {
+        "project_owner_architect": "Proprietario progetto / Architetto",
+        "project_authority": "Autorità del progetto",
+        "cio_delegated_authority": "Autorità delegata CIO"
+      },
+      "th": {
+        "type": "Tipo",
+        "status": "Stato",
+        "score": "Punteggio",
+        "result": "Risultato",
+        "invite_code": "Codice invito",
+        "updated": "Aggiornato"
+      },
+      "tattr": {
+        "delete_draft": "Elimina bozza"
+      }
+    },
+    "projects": {
+      "h1": {
+        "projects": "Progetti"
+      },
+      "p": {
+        "manage_your_security_assessment_projects": "Gestisci i tuoi progetti di valutazione della sicurezza",
+        "create_your_first_project_to": "Crea il tuo primo progetto per"
+      },
+      "link": {
+        "new_project": "Nuovo progetto",
+        "create_project": "Crea progetto"
+      },
+      "th": {
+        "project_name": "Nome progetto",
+        "classification": "Classificazione",
+        "hosting": "Hosting",
+        "owner": "Proprietario",
+        "status": "Stato",
+        "created": "Creato"
+      },
+      "span": {
+        "pii": "PII"
+      },
+      "tattr": {
+        "delete_project": "Elimina progetto"
+      },
+      "h4": {
+        "no_projects_yet": "Nessun progetto ancora"
+      }
+    },
+    "register": {
+      "h3": {
+        "account_registration": "Registrazione account"
+      },
+      "p": {
+        "register_your_account_using_a": "Registra il tuo account utilizzando un"
+      },
+      "ph": {
+        "xxxxxxxx": "XXXXXXXX",
+        "eg_jane_doe": "Es. Mario Rossi",
+        "must_match_the_invited_email": "Deve corrispondere all'email di invito",
+        "your_organization": "La tua organizzazione",
+        "minimum_10_characters": "Minimo 10 caratteri"
+      },
+      "small": {
+        "enter_the_code_from_your": "Inserisci il codice dal tuo",
+        "you_must_use_the_email": "Devi Utilizzare L'Email",
+        "at_least_10_characters_with": "Almeno 10 Caratteri Con"
+      },
+      "label": {
+        "organization": "Organizzazione"
+      },
+      "btn": {
+        "continue_to_mfa_setup": "Continua Con La Configurazione MFA"
+      },
+      "span": {
+        "already_have_an_account": "Hai Già Un Account"
+      },
+      "link": {
+        "sign_in": "Accedi"
+      }
+    },
+    "self_assessment_review": {
+      "link": {
+        "back_to_selfassessments": "Torna Alle Autovalutazioni"
+      },
+      "span": {
+        "pending_review": "In Attesa Di Revisione",
+        "reviewed": "Revisionato",
+        "intake_created": "Intake Creato"
+      },
+      "card": {
+        "system_jurisdiction": "Giurisdizione Del Sistema",
+        "admin_notes": "Note Amministratore",
+        "linked_intake": "Intake Collegato",
+        "client_invitation": "Invito Cliente",
+        "create_intake": "Crea Intake"
+      },
+      "div": {
+        "system_type": "Tipo Di Sistema",
+        "country": "Paese",
+        "government_level": "Livello Governativo",
+        "data_sensitivity": "Sensibilità Dei Dati",
+        "security_score": "Punteggio Di Sicurezza",
+        "findings": "Risultati",
+        "system_description": "Descrizione Del Sistema",
+        "applicable_frameworks": "Framework Applicabili",
+        "prepopulate_with_ai": "Precompila Con AI",
+        "autofill_intake_fields_from_selfassessment": "Compila Automaticamente I Campi Intake Dall'Autovalutazione"
+      },
+      "ph": {
+        "internal_notes_about_this_submission": "Note Interne Su Questa Richiesta",
+        "eg_citizen_feedback_portal": "Es. Portale Feedback Cittadini",
+        "brief_description_of_the_system": "Breve Descrizione Del Sistema",
+        "eg_canada": "Es. Canada",
+        "key_findings_notes_for_the": "Note Sui Risultati Chiave Per Il"
+      },
+      "btn": {
+        "send_registration_invite": "Invia Invito Di Registrazione",
+        "generate": "Genera",
+        "create_draft_intake": "Crea Bozza Intake"
+      },
+      "p": {
+        "create_a_draft_intake_first": "Crea Prima Una Bozza Intake"
+      },
+      "label": {
+        "project_name": "Nome Progetto",
+        "description": "Descrizione",
+        "department": "Dipartimento",
+        "app_type": "Tipo Di Applicazione",
+        "data_classification": "Classificazione Dei Dati",
+        "confidentiality": "Riservatezza",
+        "integrity": "Integrità",
+        "availability": "Disponibilità",
+        "contains_pii": "Contiene PII",
+        "pia_completed": "PIA Completata",
+        "hosting": "Hosting",
+        "hosting_region": "Regione Di Hosting",
+        "security_profile": "Profilo Di Sicurezza",
+        "additional_notes": "Note Aggiuntive"
+      }
+    },
+    "settings": {
+      "h1": {
+        "settings": "Impostazioni"
+      },
+      "p": {
+        "application_configuration": "Configurazione Applicazione",
+        "register_a_passkey_to_enable": "Registra una Passkey per Abilitare",
+        "government_of_canada_security_assessment": "Valutazione di Sicurezza del Governo del Canada",
+        "built_with_nodejs_express_bootstrap": "Realizzato con Nodejs Express Bootstrap"
+      },
+      "span": {
+        "authenticator_app_configured": "App di Autenticazione Configurata",
+        "registered": "Registrato",
+        "passkey_enrolled_face_id_touch": "Passkey Registrata Face Id Touch"
+      },
+      "link": {
+        "reenroll": "Registra Nuovamente",
+        "set_up_mfa_now": "Configura MFA Ora",
+        "audit_log": "Registro di Controllo"
+      },
+      "div": {
+        "approve_with_face_id_touch": "Approva con Face Id Touch",
+        "enter_a_6digit_code_from": "Inserisci un Codice a 6 Cifre da",
+        "critical_actions_proceed_without_mfa": "Azioni Critiche Procedono Senza MFA"
+      },
+      "btn": {
+        "reregister": "Registra di Nuovo",
+        "register_passkey": "Registra Passkey"
+      }
+    }
+  },
+  "index": {
+    "span": {
+      "essential_eight": "Essential Eight"
+    }
+  },
+  "layout": {
+    "main": {
+      "h2": {
+        "about_this_site": "Informazioni su questo sito"
+      },
+      "h5": {
+        "verification_required": "Verifica richiesta"
+      },
+      "p": {
+        "this_action_requires_verification": "Questa azione richiede la verifica.",
+        "approve_the_prompt_on_your": "Approva la richiesta sul tuo dispositivo utilizzando Face ID, Touch ID o Windows Hello."
+      },
+      "link": {
+        "skip_to_main_content": "Vai al contenuto principale",
+        "skip_to_footer": "Vai al piè di pagina"
+      },
+      "btn": {
+        "cancel": "Annulla",
+        "verify_amp_sign": "Verifica &amp; Firma"
+      },
+      "span": {
+        "waiting_for_biometric": "In attesa del riconoscimento biometrico..."
+      }
+    },
+    "minimal": {
+      "link": {
+        "sign_in": "Accedi"
+      }
+    }
+  },
+  "client_dashboard": {
+    "th": {
+      "project": "Progetto",
+      "status": "Stato",
+      "invite_code": "Codice Invito",
+      "created": "Creato",
+      "reference": "Riferimento",
+      "department": "Dipartimento",
+      "submitted": "Inviato"
+    },
+    "h1": {
+      "my_dashboard": "La Mia Dashboard"
+    },
+    "link": {
+      "new_intake": "Nuova Richiesta",
+      "submit_your_first_intake": "Invia la Tua Prima Richiesta"
+    },
+    "span": {
+      "draft": "Bozza",
+      "evidence_gathering": "Raccolta Evidenze",
+      "submitted": "Inviato",
+      "under_audit": "In Fase di Audit",
+      "completed": "Completato",
+      "draft_needs_completion": "Bozza da Completare",
+      "pending_review": "In Attesa di Revisione",
+      "in_review": "In Revisione",
+      "accepted": "Accettato",
+      "declined": "Rifiutato"
+    },
+    "p": {
+      "received_an_invite_code_from": "Hai Ricevuto un Codice Invito da"
+    },
+    "ph": {
+      "eg_a1b2c3d4": "Es. A1b2c3d4"
+    },
+    "btn": {
+      "go": "Vai"
+    }
+  },
+  "guidance_portal": {
+    "span": {
+      "required": "Obbligatorio",
+      "recommended": "Consigliato"
+    },
+    "h2": {
+      "gc_web_standards_checklist": "Checklist Standard Web GC"
+    },
+    "strong": {
+      "this_checklist_has_been_validated": "Questa Checklist è Stata Validata",
+      "returned_for_revision": "Restituito per Revisione",
+      "assessor_notes": "Note del Valutatore",
+      "submitted_and_awaiting_review": "Inviato e in Attesa di Revisione"
+    },
+    "ph": {
+      "notes_or_evidence_reference_optional": "Note o Riferimento Evidenze Opzionale",
+      "eg_jane_doe": "Es. Mario Rossi",
+      "eg_janedoeagencygcca": "Es. maborossiaaborabordo.gc.ca",
+      "any_questions_clarifications_or_additional": "Domande Chiarimenti o Informazioni Aggiuntive"
+    },
+    "card": {
+      "submit_checklist_for_review": "Invia Checklist per Revisione"
+    },
+    "p": {
+      "once_youve_addressed_the_items": "Una Volta Affrontati gli Elementi"
+    },
+    "label": {
+      "additional_notes": "Note Aggiuntive"
+    },
+    "btn": {
+      "submit_for_review": "Invia per Revisione"
+    }
+  },
+  "flash": {
+    "admin": {
+      "project_not_found": "Progetto non trovato",
+      "assessment_not_found": "Valutazione non trovata",
+      "selfassessment_not_found": "Autovalutazione non trovata",
+      "intake_not_found": "Intake non trovato",
+      "email_address_is_required": "L'indirizzo email è obbligatorio.",
+      "failed_to_send_invitation": "Impossibile inviare l'invito.",
+      "passkey_verification_failed_please_try": "Verifica della Passkey Fallita, Riprova",
+      "invalid_authentication_code_please_try": "Codice di Autenticazione Non Valido, Riprova",
+      "failed_to_generate_qr_code": "Generazione del Codice QR Fallita",
+      "setup_failed_please_try_again": "Configurazione Fallita, Riprova",
+      "invalid_code_make_sure_your": "Codice Non Valido, Assicurati Che Il Tuo",
+      "mfa_enabled_you_can_optionally": "MFA Abilitato, Puoi Opzionalmente",
+      "please_log_in_to_access": "Effettua l'Accesso Per Accedere",
+      "project_created_successfully": "Progetto Creato con Successo",
+      "you_do_not_have_access": "Non Hai Accesso",
+      "audit_started": "Audit Avviato",
+      "poam_item_added": "Elemento POA&M Aggiunto",
+      "poam_item_updated": "Elemento POA&M Aggiornato",
+      "poam_item_removed": "Elemento POA&M Rimosso",
+      "submission_reactivated_for_updates": "Invio Riattivato Per Aggiornamenti",
+      "failed_to_generate_pdf": "Impossibile Generare Il Pdf",
+      "failed_to_generate_ato_document": "Impossibile Generare Il Documento ATO",
+      "draft_assessment_deleted_successfully": "Bozza Di Valutazione Eliminata Con Successo",
+      "selfassessment_marked_as_reviewed": "Autovalutazione Contrassegnata Come Revisionata",
+      "request_not_found": "Richiesta Non Trovata",
+      "access_request_denied": "Richiesta Di Accesso Negata",
+      "attachment_not_found": "Allegato Non Trovato",
+      "guidance_report_not_found": "Rapporto Di Orientamento Non Trovato",
+      "guidance_checklist_validated_and_approved": "Checklist Di Orientamento Validata E Approvata",
+      "checklist_returned_to_project_owner": "Checklist Restituita Al Responsabile Del Progetto",
+      "notes_saved": "Note Salvate",
+      "no_new_controls_to_add": "Nessun Nuovo Controllo Da Aggiungere",
+      "control_not_found": "Controllo Non Trovato",
+      "control_updated": "Controllo Aggiornato",
+      "invitation_not_found_or_you": "Invito Non Trovato Oppure Tu",
+      "invitation_not_found_or_not": "Invito Non Trovato Oppure Non",
+      "all_fields_are_required": "Tutti I Campi Sono Obbligatori",
+      "password_must_be_at_least": "La Password Deve Essere Di Almeno",
+      "passwords_do_not_match": "Le Password Non Corrispondono",
+      "invalid_or_expired_invite_code": "Codice Invito Non Valido O Scaduto",
+      "this_invitation_has_expired_please": "Questo Invito È Scaduto Per Favore",
+      "an_account_with_this_email": "Un Account Con Questa Email",
+      "account_created_you_can_now": "Account Creato Ora Puoi",
+      "registration_failed_please_try_again": "Registrazione Fallita Riprova",
+      "invalid_mfa_code_please_try": "Codice MFA Non Valido Riprova",
+      "registration_complete_mfa_enabled_please": "Registrazione Completata MFA Abilitato Per Favore",
+      "only_the_assessment_owner_can": "Solo Il Proprietario Della Valutazione Può",
+      "selected_assessor_not_found_or": "Valutatore Selezionato Non Trovato Oppure",
+      "you_can_only_assign_assessors": "Puoi Assegnare Solo Valutatori",
+      "assignment_not_found": "Assegnazione Non Trovata"
+    },
+    "public": {
+      "please_enter_an_access_code": "Inserisci un codice di accesso",
+      "session_expired": "Sessione scaduta.",
+      "you_do_not_have_access": "Non hai accesso a questa richiesta.",
+      "failed_to_submit_intake_please": "Invio della richiesta non riuscito. Riprova.",
+      "assessment_not_found": "Valutazione non trovata",
+      "all_fields_are_required": "Tutti i campi sono obbligatori.",
+      "password_must_be_at_least": "La password deve contenere almeno 10 caratteri.",
+      "passwords_do_not_match": "Le password non corrispondono.",
+      "this_access_code_has_expired": "Questo Codice Di Accesso È Scaduto",
+      "invalid_or_expired_access_code": "Codice Di Accesso Non Valido O Scaduto",
+      "email_is_required": "L'Email È Obbligatoria",
+      "a_request_from_this_email": "Una Richiesta Da Questa Email",
+      "you_already_have_an_active": "Hai Già Un Attivo",
+      "failed_to_submit_request_please": "Impossibile Inviare La Richiesta Per Favore",
+      "please_sign_in_to_access": "Accedi Per Accedere",
+      "invalid_or_expired_invite_code": "Codice Invito Non Valido O Scaduto",
+      "this_invitation_has_expired_please": "Questo Invito È Scaduto Per Favore",
+      "an_account_with_this_email": "Un Account Con Questa Email",
+      "registration_failed_please_try_again": "Registrazione Fallita Riprova",
+      "failed_to_generate_qr_code": "Impossibile Generare Il Codice Qr",
+      "user_not_found_please_register": "Utente Non Trovato Registrati",
+      "invalid_code_please_try_again": "Codice Non Valido Riprova",
+      "mfa_enabled_you_can_optionally": "MFA Abilitato Puoi Facoltativamente",
+      "invalid_email_or_password": "Email O Password Non Validi",
+      "please_complete_your_mfa_setup": "Completa la configurazione MFA",
+      "session_expired_please_sign_in": "Sessione scaduta, effettua l'accesso",
+      "invalid_authentication_code_please_try": "Codice di autenticazione non valido, riprova",
+      "passkey_not_available": "Passkey non disponibile",
+      "verification_failed": "Verifica fallita",
+      "you_have_been_signed_out": "Sei stato disconnesso",
+      "intake_not_found": "Intake non trovato",
+      "this_intake_has_already_been": "Questo intake è già stato",
+      "intake_not_found_or_already": "Intake non trovato o già",
+      "this_assessment_is_assigned_to": "Questa valutazione è assegnata a",
+      "not_authenticated": "Non autenticato",
+      "remediation_evidence_submitted_for_assessor": "Evidenza di remediation inviata per il valutatore",
+      "invalid_code": "Codice non valido",
+      "already_validated": "Già convalidato",
+      "provisioning_is_not_available_please": "Il provisioning non è disponibile, per favore",
+      "verification_failed_please_try_again": "Verifica fallita, riprova",
+      "verification_error_please_try_again": "Errore di verifica, riprova",
+      "an_instance_for_this_organization": "Un'istanza per questa organizzazione",
+      "an_error_occurred_please_try": "Si è verificato un errore, riprova",
+      "provisioning_job_not_found": "Job di provisioning non trovato"
+    }
+  },
+  "partial": {
+    "ai_panel": {
+      "tattr": {
+        "ai_assistant": "Assistente AI"
+      },
+      "h5": {
+        "ai_assistant": "Assistente AI"
+      },
+      "small": {
+        "powered_by_claude": "Powered By Claude"
+      },
+      "p": {
+        "select_an_ai_action_to": "Seleziona un'azione AI per"
+      }
+    }
+  },
+  "checklist": {
+    "h1": {
+      "iato_remediation_checklist": "Checklist di remediation IATO"
+    },
+    "strong": {
+      "interim_authority_to_operate_iato": "Interim Authority To Operate IATO"
+    },
+    "th": {
+      "description": "Descrizione",
+      "control": "Controllo",
+      "deadline": "Scadenza",
+      "assigned_to": "Assegnato a",
+      "status": "Stato"
+    },
+    "span": {
+      "progress": "Progresso"
+    },
+    "p": {
+      "no_checklist_items_have_been": "Nessun elemento della checklist è stato",
+      "contact_your_security_assessor_if": "Contatta il tuo valutatore di sicurezza se"
+    }
+  },
+  "client_login": {
+    "h3": {
+      "client_sign_in": "Accesso cliente"
+    },
+    "p": {
+      "sign_in_to_submit_or": "Accedi per inviare o",
+      "approve_with_your_passkey_face": "Approva con la tua passkey, riconoscimento facciale"
+    },
+    "label": {
+      "email_address": "Indirizzo email",
+      "password": "Password",
+      "authentication_code": "Codice di autenticazione"
+    },
+    "btn": {
+      "continue": "Continua",
+      "verify_sign_in": "Verifica accesso"
+    },
+    "link": {
+      "use_totp_code_instead": "Usa invece il codice TOTP",
+      "use_passkey_instead": "Usa invece la passkey",
+      "register_here": "Registrati qui"
+    },
+    "span": {
+      "dont_have_an_account": "Non hai un account"
+    }
+  },
+  "client_settings": {
+    "h1": {
+      "settings": "Impostazioni"
+    },
+    "p": {
+      "account_security_preferences": "Preferenze di Sicurezza Account",
+      "controls_how_critical_actions_submitting": "Controlla Come Vengono Inviate le Azioni Critiche",
+      "register_a_passkey_to_enable": "Registra una Passkey per Abilitare"
+    },
+    "span": {
+      "authenticator_app_configured": "App di Autenticazione Configurata",
+      "registered": "Registrato",
+      "passkey_enrolled_face_id_touch": "Passkey Registrata Face Id Touch"
+    },
+    "div": {
+      "approve_with_face_id_touch": "Approva con Face Id Touch",
+      "enter_a_6digit_code_from": "Inserisci un Codice a 6 Cifre da",
+      "critical_actions_proceed_without_mfa": "Le Azioni Critiche Procedono Senza MFA"
+    },
+    "btn": {
+      "reregister": "Registra di Nuovo",
+      "register_passkey": "Registra Passkey"
+    }
+  },
+  "guidance_submitted": {
+    "h2": {
+      "checklist_submitted": "Checklist Inviata"
+    },
+    "span": {
+      "access_code": "Codice di Accesso",
+      "status": "Stato",
+      "awaiting_review": "In Attesa di Revisione"
+    }
+  },
+  "mfa_setup": {
+    "h3": {
+      "set_up_multifactor_authentication": "Configura l'Autenticazione Multifattore"
+    },
+    "strong": {
+      "microsoft_authenticator": "Microsoft Authenticator",
+      "google_authenticator": "Google Authenticator",
+      "authy": "Authy"
+    },
+    "p": {
+      "step_1_scan_this_qr": "Passaggio 1 Scansiona Questo QR",
+      "cant_scan_enter_this_key": "Non Riesci a Scansionare Inserisci Questa Chiave"
+    },
+    "label": {
+      "step_2_enter_the_6digit": "Passaggio 2 Inserisci il Codice a 6 Cifre"
+    },
+    "btn": {
+      "verify_activate_mfa": "Verifica e Attiva MFA"
+    }
+  },
+  "passkey_setup": {
+    "h3": {
+      "register_a_passkey": "Registra una Passkey"
+    },
+    "p": {
+      "use_face_id_touch_id": "Usa Face Id Touch Id"
+    },
+    "strong": {
+      "passkey_already_registered": "Passkey Già Registrata"
+    },
+    "btn": {
+      "register_passkey_now": "Registra Passkey Ora"
+    },
+    "link": {
+      "skip_use_totp_only": "Salta Usa Solo TOTP"
+    }
+  },
+  "poam_remediation": {
+    "h1": {
+      "poam_remediation": "Remediation POA&M"
+    },
+    "div": {
+      "total_items": "Elementi Totali",
+      "open": "Aperti",
+      "your_submissions": "Le Tue Sottomissioni",
+      "verified": "Verificati"
+    },
+    "label": {
+      "original_finding": "Risultato Originale",
+      "required_remediation": "Remediation Richiesta",
+      "your_remediation_evidence": "La Tua Evidenza di Remediation"
+    },
+    "ph": {
+      "describe_what_was_done_to": "Descrivi Cosa È Stato Fatto Per"
+    },
+    "tattr": {
+      "ai_elaborate_on_your_text": "AI Elabora il Tuo Testo"
+    },
+    "span": {
+      "submitted_for_review": "Inviato per Revisione"
+    },
+    "btn": {
+      "submit_all_remediation_evidence": "Invia Tutte le Evidenze di Remediation"
+    }
+  },
+  "product_signup": {
+    "h1": {
+      "start_your_free_14day_trial": "Inizia la Tua Prova Gratuita di 14 Giorni"
+    },
+    "div": {
+      "active_assessments": "Valutazioni Attive",
+      "new_assessment_limit": "Limite Nuove Valutazioni",
+      "ai_tokens_month": "Token AI Mese",
+      "team_member": "Membro del Team"
+    },
+    "h4": {
+      "dedicated_tenant_isolation": "Isolamento Tenant Dedicato"
+    },
+    "p": {
+      "every_trial_gets_its_own": "Ogni Prova Ottiene il Proprio",
+      "this_becomes_your_security_assessor": "Questo Diventa il Tuo Valutatore di Sicurezza"
+    },
+    "h3": {
+      "create_your_account": "Crea il Tuo Account"
+    },
+    "ph": {
+      "jane": "Maria",
+      "smith": "Rossi",
+      "acme_security_corp": "Acme Security Corp",
+      "min_10_characters": "Minimo 10 caratteri",
+      "reenter_your_password": "Reinserisci la tua password"
+    },
+    "span": {
+      "your_instance": "La tua istanza"
+    },
+    "btn": {
+      "deploy_my_instance": "Distribuisci la mia istanza"
+    },
+    "link": {
+      "terms_of_service": "Termini di servizio",
+      "privacy_policy": "Informativa sulla privacy"
+    }
+  },
+  "provision_status": {
+    "span": {
+      "vanguard_cloud_services_inc": "Vanguard Cloud Services Inc",
+      "initializing": "Inizializzazione",
+      "validating_azure_credentials": "Convalida credenziali Azure",
+      "creating_resource_group": "Creazione gruppo di risorse",
+      "creating_app_service_plan": "Creazione piano App Service",
+      "creating_web_application": "Creazione applicazione web",
+      "configuring_environment_amp_credentials": "Configurazione ambiente e credenziali",
+      "deploying_application_code": "Distribuzione codice applicazione",
+      "health_check_amp_finalization": "Controllo integrità e finalizzazione",
+      "instance_url": "URL istanza",
+      "login_email": "Email di accesso",
+      "role": "Ruolo",
+      "security_assessor_admin": "Amministratore Security Assessor",
+      "plan": "Piano"
+    },
+    "h2": {
+      "deploying_your_instance": "Distribuzione della tua istanza"
+    },
+    "link": {
+      "launch_your_saa_platform": "Avvia la tua piattaforma SaaS",
+      "try_again": "Riprova"
+    },
+    "strong": {
+      "provisioning_failed": "Provisioning non riuscito"
+    }
+  },
+  "register": {
+    "h3": {
+      "account_registration": "Registrazione account"
+    },
+    "p": {
+      "register_your_account_using_a": "Registra il tuo account utilizzando un"
+    },
+    "ph": {
+      "xxxxxxxx": "Xxxxxxxx",
+      "eg_jane_doe": "Es. Mario Rossi",
+      "must_match_the_invited_email": "Deve corrispondere all'email di invito",
+      "your_organization": "La tua organizzazione",
+      "minimum_10_characters": "Minimo 10 caratteri"
+    },
+    "small": {
+      "enter_the_code_from_your": "Inserisci il codice dalla tua",
+      "at_least_10_characters_with": "Almeno 10 caratteri con"
+    },
+    "label": {
+      "organization": "Organizzazione"
+    },
+    "btn": {
+      "continue_to_mfa_setup": "Continua alla configurazione MFA"
+    },
+    "span": {
+      "already_have_an_account": "Hai già un account"
+    },
+    "link": {
+      "sign_in": "Accedi"
+    }
+  },
+  "respond": {
+    "span": {
+      "submitted": "Inviato",
+      "done": "Completato"
+    },
+    "strong": {
+      "interim_ato_issued": "ATO provvisorio emesso",
+      "poam_items": "Elementi POA&M"
+    },
+    "label": {
+      "your_evidence": "Le tue evidenze",
+      "attachments": "Allegati"
+    },
+    "ph": {
+      "enter_your_evidence_here": "Inserisci qui le tue evidenze",
+      "add_a_comment": "Aggiungi un commento"
+    },
+    "tattr": {
+      "bold": "Grassetto",
+      "italic": "Corsivo",
+      "bullet_list": "Elenco puntato",
+      "numbered_list": "Elenco Numerato",
+      "ai_elaborate_on_your_text": "L'IA Elabora il Tuo Testo"
+    },
+    "div": {
+      "loading": "Caricamento"
+    },
+    "btn": {
+      "submit_all_evidence": "Invia Tutte le Evidenze"
+    }
+  },
+  "self_assessment_gate": {
+    "ph": {
+      "a1b2c3d4": "A1b2c3d4",
+      "jane_doe": "Mario Rossi"
+    }
+  },
+  "self_assessment": {
+    "h2": {
+      "security_selfassessment": "Autovalutazione della Sicurezza"
+    },
+    "p": {
+      "evaluate_your_systems_security_posture": "Valuta la Postura di Sicurezza dei Tuoi Sistemi",
+      "select_the_type_jurisdiction_and": "Seleziona il Tipo, la Giurisdizione e"
+    },
+    "card": {
+      "tell_us_about_your_system": "Parlaci del Tuo Sistema"
+    },
+    "ph": {
+      "eg_we_have_a_publicfacing": "Es. Abbiamo un Sistema Pubblico",
+      "jane_doe": "Mario Rossi"
+    },
+    "btn": {
+      "generate_security_questions": "Genera Domande di Sicurezza",
+      "back": "Indietro",
+      "generate_report": "Genera Report"
+    }
+  }
+}

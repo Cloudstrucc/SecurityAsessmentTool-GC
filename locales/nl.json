@@ -1,0 +1,2174 @@
+{
+  "brand": {
+    "company": "Vanguard Cloud Services",
+    "product": "SA&A Platform",
+    "tagline": "Beveiligingsbeoordeling & Autorisatieplatform",
+    "by": "door"
+  },
+  "nav": {
+    "existingClient": "Bestaande klant",
+    "clientPortal": "Klantenportaal",
+    "assessorLogin": "Beoordelaar inloggen",
+    "signIn": "Inloggen om in te dienen",
+    "register": "Registreren",
+    "registerInvite": "Registreren met uitnodigingscode",
+    "dashboard": "Dashboard",
+    "settings": "Instellingen",
+    "signOut": "Uitloggen",
+    "startIntake": "Intake starten",
+    "backHome": "Terug naar home",
+    "appTitle": "Beveiligingsbeoordeling & Autorisatie",
+    "menu": "Menu",
+    "projects": "Projecten",
+    "assessments": "Beoordelingen",
+    "preAssessments": "Voorbeoordelingen",
+    "intakes": "Intakes",
+    "team": "Team",
+    "auditLog": "Auditlogboek",
+    "newIntake": "Nieuwe intake",
+    "newProject": "Nieuw project",
+    "controls": "Controles",
+    "help": "Help"
+  },
+  "home": {
+    "badge": "Multi-Framework Complianceplatform",
+    "headline": "Is uw systeem",
+    "headlineAccent": "veilig genoeg?",
+    "lead": "Kom er binnen enkele minuten achter. Onze zelfbeoordelingswizard stelt eenvoudige vragen over uw systeem, koppelt deze aan de juiste beveiligingsframeworks voor uw jurisdictie en geeft u direct een rapport.",
+    "noAccount": "Geen account nodig",
+    "fiveMin": "5 minuten vragenlijst",
+    "instantReport": "Direct beveiligingsrapport",
+    "frameworks": "Ondersteunde frameworks"
+  },
+  "saCard": {
+    "title": "Beveiligingszelfbeoordeling",
+    "subtitle": "Gratis voorlopige evaluatie",
+    "step1": "Beschrijf uw systeem",
+    "step1d": "— selecteer type, jurisdictie en gevoeligheidsniveau",
+    "step2": "Beantwoord vragen",
+    "step2d": "— afgestemd op uw frameworks (ITSG-33, NIST, GDPR, enz.)",
+    "step3": "Ontvang uw rapport",
+    "step3d": "— wat veilig is, wat kritiek is en vervolgstappen",
+    "startBtn": "Start gratis beoordeling",
+    "note": "Toegangscode vereist — vraag er direct een aan"
+  },
+  "cap": {
+    "title": "Platformmogelijkheden",
+    "subtitle": "End-to-end beveiligingsbeoordeling en autorisatielevenscyclus",
+    "multiJuris": "Multi-jurisdictie",
+    "multiJurisD": "17+ regio's met automatische frameworkselectie",
+    "lifecycle": "Volledige SA&A-levenscyclus",
+    "lifecycleD": "ATO, iATO, POA&M, risicocategorisatie, PDF-exports",
+    "collab": "Teamsamenwerking",
+    "collabD": "Klantenportaal, toewijzingen van peer-beoordelaars, uitnodigingen",
+    "mfa": "MFA + Passkeys",
+    "mfaD": "TOTP, WebAuthn biometrisch, ondertekende audittrail",
+    "guidance": "GC Web-richtlijnen",
+    "guidanceD": "Geautomatiseerde compliance-checklists voor systemen met laag risico",
+    "audit": "Audittrail",
+    "auditD": "MFA-ondertekende acties met manipulatiebestendige logging",
+    "tenant": "Multi-Tenant SaaS",
+    "tenantD": "Geïsoleerde instanties per organisatie op Azure",
+    "standards": "Industriestandaarden",
+    "standardsD": "SOC 2, PCI DSS, CMMC, FedRAMP, DORA, Essential Eight"
+  },
+  "portal": {
+    "title": "Klantenportaal",
+    "subtitle": "Dien intakes in, bekijk beoordelingen of log in om uw beveiligingspostuur te beheren.",
+    "submitIntake": "Intake indienen",
+    "submitIntakeD": "Start u een nieuw project? Dien een beveiligingsbeoordeling-intake in met uw projectdetails en dataclassificatie.",
+    "mfaReq": "Account met MFA vereist.",
+    "enterCode": "Toegangscode invoeren",
+    "enterCodeD": "Heeft u een uitnodiging ontvangen van een beveiligingsspecialist? Voer uw toegangscode in om bewijs te leveren voor uw beoordeling.",
+    "accessCode": "Toegangscode",
+    "accessBtn": "Beoordeling openen",
+    "practitioner": "Beveiligingsspecialist",
+    "practitionerD": "Beveiligingsbeoordelaars en -specialisten kunnen inloggen om projecten te beheren, intakes te beoordelen, beoordelingen te maken en audits uit te voeren.",
+    "ph": {
+      "a1b2c3d4": "A1b2c3d4"
+    }
+  },
+  "gate": {
+    "title": "Beveiligingszelfbeoordeling",
+    "subtitle": "Evalueer de beveiligingspostuur van uw systeem tegen toepasselijke frameworks.",
+    "haveCode": "Ik heb een toegangscode",
+    "codeLabel": "Toegangscode",
+    "startBtn": "Beoordeling starten",
+    "requestAccess": "Toegang aanvragen",
+    "requestD": "Heeft u geen code? Dien een aanvraag in en ons beveiligingsteam zal deze beoordelen. Na goedkeuring ontvangt u een toegangscode per e-mail.",
+    "name": "Uw naam",
+    "email": "E-mailadres",
+    "org": "Organisatie",
+    "systemQ": "Welk systeem wilt u beoordelen?",
+    "systemP": "Korte beschrijving — bijv. publiek toegankelijk webportaal voor burgerfeedback",
+    "submitBtn": "Toegang aanvragen",
+    "submitted": "Aanvraag ingediend!",
+    "submittedD": "Uw aanvraag is verzonden naar ons beveiligingsteam. U ontvangt een e-mail op <strong>{{email}}</strong> met een toegangscode zodra deze is goedgekeurd.",
+    "submittedNote": "Dit duurt doorgaans minder dan 24 uur.",
+    "backPortal": "Terug naar portaal"
+  },
+  "sa": {
+    "title": "Beveiligingszelfbeoordeling",
+    "subtitle": "Evalueer de beveiligingspostuur van uw systeem tegen toepasselijke frameworks",
+    "step1": "Systeem & Jurisdictie",
+    "step2": "Vragen beantwoorden",
+    "step3": "Rapport bekijken",
+    "tellUs": "Vertel ons over uw systeem",
+    "tellUsD": "Selecteer het type, de jurisdictie en beschrijf uw systeem. Wij bepalen welke beveiligingsframeworks van toepassing zijn en genereren op maat gemaakte vragen.",
+    "systemType": "Systeemtype",
+    "webApp": "Webapplicatie",
+    "webAppD": "Website, portaal, SaaS-app",
+    "internal": "Intern systeem",
+    "internalD": "Intranet, HR, ERP, CRM",
+    "cloud": "Cloudinfrastructuur",
+    "cloudD": "AWS, Azure, GCP configuratie",
+    "mobile": "Mobiele App",
+    "mobileD": "iOS, Android, hybride",
+    "data": "Data / Analytics",
+    "dataD": "Database, datawarehouse, BI",
+    "network": "Netwerk / Apparaten",
+    "networkD": "LAN, Wi-Fi, IoT, eindpunten",
+    "country": "Land",
+    "govLevel": "Overheidsniveau",
+    "sensitivity": "Gegevensgevoeligheid",
+    "federal": "Federaal",
+    "state": "Provinciaal / Regionaal",
+    "municipal": "Gemeentelijk / Lokaal",
+    "private": "Private Sector",
+    "healthcare": "Gezondheidszorg",
+    "finance": "Financiële Dienstverlening",
+    "public": "Openbaar / Niet-geclassificeerd",
+    "lowSens": "Lage gevoeligheid",
+    "medSens": "Gemiddeld (persoonlijke gegevens)",
+    "highSens": "Hoog (Protected B / PII)",
+    "classified": "Geclassificeerd / Geheim",
+    "fwApply": "Beveiligingsframeworks die mogelijk van toepassing zijn op uw systeem:",
+    "describe": "Beschrijf uw systeem in gewone taal",
+    "describeP": "bijv. We hebben een publiek toegankelijk webportaal gebouwd op WordPress dat feedbackformulieren van burgers verzamelt.",
+    "generateQ": "Beveiligingsvragen Genereren",
+    "analyzing": "Uw systeem & jurisdictie analyseren...",
+    "analyzingD": "Op maat gemaakte beveiligingsvragen genereren op basis van toepasselijke frameworks",
+    "questionsTitle": "Beveiligingsbeoordelingsvragen",
+    "questionsHint": "Antwoord eerlijk — dit helpt bij het identificeren van hiaten. Sla vragen over waar u niet zeker van bent.",
+    "back": "Terug",
+    "generateReport": "Beveiligingsrapport Genereren",
+    "genReport": "Uw beveiligingsrapport wordt gegenereerd...",
+    "genReportD": "Antwoorden analyseren en koppelen aan frameworkcontroles",
+    "doNotClose": "Sluit deze pagina niet — dit kan tot 30 seconden duren.",
+    "reportTitle": "Voorlopige Beveiligingsstatus",
+    "score": "Beveiligingsscore",
+    "secured": "Beveiligd",
+    "needAttn": "Aandacht Nodig",
+    "critical": "Kritieke Hiaten",
+    "criticalSection": "Kritieke Hiaten — Onmiddellijke Actie Vereist",
+    "warningSection": "Gebieden die Verbetering Nodig Hebben",
+    "securedSection": "Wat Al Beveiligd Is",
+    "securedNote": "aangenomen — onafhankelijk verifiëren",
+    "securedWarn": "Gebaseerd op uw zelfgerapporteerde antwoorden. Dient geverifieerd te worden tijdens een formele beoordeling.",
+    "nextSteps": "Aanbevolen Vervolgstappen",
+    "requestFull": "Volledige SA&A Beoordeling Aanvragen",
+    "print": "Rapport Afdrukken",
+    "startOver": "Opnieuw Beginnen",
+    "yourName": "Uw naam",
+    "yourEmail": "Uw e-mailadres",
+    "yourOrg": "Organisatie",
+    "generatingQuestions": "Vragen genereren...",
+    "likelyFramework": "Waarschijnlijk framework",
+    "relatedFrameworks": "Gerelateerd",
+    "selectRequired": "Selecteer eerst land/regio, sector en gegevensgevoeligheid.",
+    "unableQuestions": "Kan vragen niet genereren.",
+    "generatingPreliminaryReport": "Voorlopig rapport genereren...",
+    "unableReport": "Kan rapport niet genereren.",
+    "warnings": "Waarschuwingen",
+    "green": "Groen",
+    "submitting": "Indienen...",
+    "submitted": "Ingediend.",
+    "submittedD": "Referentie {refCode}. Een beoordelaar kan dit nu bekijken vanuit de admin-wachtrij voor zelfbeoordelingen.",
+    "submissionFailed": "Indienen mislukt."
+  },
+  "common": {
+    "select": "— Selecteer —",
+    "submit": "Verzenden",
+    "cancel": "Annuleren",
+    "save": "Opslaan",
+    "required": "verplicht",
+    "loading": "Laden...",
+    "error": "Er is een fout opgetreden. Probeer het opnieuw.",
+    "yes": "Ja",
+    "no": "Nee",
+    "unknown": "Onbekend",
+    "continue": "Doorgaan"
+  },
+  "bq": {
+    "iam": "Identiteits- en toegangsbeheer",
+    "dp": "Gegevensbescherming en privacy",
+    "sns": "Systeem- en netwerkbeveiliging",
+    "mir": "Monitoring en incidentrespons",
+    "gpa": "Governance, beleid en bewustwording",
+    "ssc": "Systeemspecifieke overwegingen"
+  },
+  "auth": {
+    "login": "Inloggen",
+    "loginTitle": "Beoordelaar login",
+    "clientLogin": "Klant inloggen",
+    "email": "E-mailadres",
+    "password": "Wachtwoord",
+    "signIn": "Inloggen",
+    "forgotPassword": "Wachtwoord vergeten?",
+    "noAccount": "Heeft u geen account?",
+    "registerHere": "Registreer hier",
+    "verifyMfa": "MFA verifiëren",
+    "enterCode": "Voer de 6-cijferige code van uw authenticator-app in",
+    "verify": "Verifiëren",
+    "usePasskey": "Gebruik in plaats daarvan Passkey",
+    "or": "of",
+    "mfaSetup": "MFA instellen",
+    "scanQr": "Scan deze QR-code met uw authenticator-app",
+    "manualEntry": "Handmatige invoer",
+    "enterToken": "Voer verificatiecode in",
+    "enableMfa": "MFA inschakelen",
+    "register": "Registreren",
+    "name": "Volledige naam",
+    "organization": "Organisatie",
+    "confirmPassword": "Wachtwoord bevestigen",
+    "inviteCode": "Uitnodigingscode",
+    "inviteHint": "Voer de code uit uw uitnodigingsmail in.",
+    "createAccount": "Account aanmaken",
+    "alreadyHave": "Heeft u al een account?",
+    "passkey": "Passkey / Biometrisch",
+    "passkeyDesc": "Registreer een passkey om biometrische verificatie in te schakelen voor inloggen en kritieke acties.",
+    "registerPasskey": "Passkey registreren",
+    "skipPasskey": "Later instellen",
+    "passkeyRegistered": "Passkey geregistreerd! U kunt nu biometrische aanmelding gebruiken.",
+    "tryAgain": "Opnieuw proberen",
+    "continueToApp": "Doorgaan naar Dashboard",
+    "confirmIdentity": "Bevestig uw identiteit om door te gaan.",
+    "saPortal": "Beveiligingsbeoordeling- en autorisatieportaal",
+    "approvePasskey": "Goedkeuren met uw passkey (Face ID, Touch ID of Windows Hello).",
+    "signInPasskey": "Inloggen met passkey",
+    "useTotpInstead": "Gebruik in plaats daarvan TOTP-code",
+    "enter6digit": "Voer de 6-cijferige code van uw authenticator-app in.",
+    "verifySignIn": "Verifiëren en inloggen",
+    "differentUser": "Inloggen als andere gebruiker",
+    "registerInvite": "Registreren met uitnodigingscode",
+    "backPortal": "Terug naar portaalhomepage",
+    "clientSignIn": "Klant inloggen",
+    "mfaSetupInstructions": "Scan de QR-code met een authenticator-app en voer daarna de 6-cijferige code in. TOTP blijft beschikbaar, ook als u later een passkey toevoegt.",
+    "authCode": "Authenticatiecode",
+    "verifyEnableMfa": "MFA verifiëren en inschakelen",
+    "passkeyOrTotp": "Gebruik uw geregistreerde passkey of schakel over naar uw authenticatorcode.",
+    "usePasskeyInstead": "Gebruik in plaats daarvan passkey",
+    "passwordPlaceholder": "Wachtwoord invoeren",
+    "clientSignInD": "Meld u aan om uw beveiligingsbeoordelingsintakes in te dienen of te bekijken.",
+    "waitingPasskey": "Wachten op passkey...",
+    "cancelledUseTotp": "Geannuleerd. Gebruik TOTP of probeer opnieuw.",
+    "tryPasskeyAgain": "Passkey opnieuw proberen"
+  },
+  "dash": {
+    "title": "Dashboard",
+    "welcome": "Welkom terug,",
+    "newProject": "Nieuw project",
+    "totalProjects": "Totaal aantal projecten",
+    "activeAssessments": "Actieve beoordelingen",
+    "pendingAudits": "Lopende audits",
+    "activeATOs": "Actieve ATOs",
+    "pendingIntakes": "Lopende intakes",
+    "preAssessments": "Voorbeoordelingen",
+    "recentProjects": "Recente projecten",
+    "recentAssessments": "Recente beoordelingen",
+    "viewAll": "Alles bekijken",
+    "noProjects": "Nog geen projecten.",
+    "noAssessments": "Nog geen beoordelingen."
+  },
+  "proj": {
+    "title": "Projecten",
+    "new": "Nieuw project",
+    "name": "Projectnaam",
+    "description": "Beschrijving",
+    "department": "Afdeling",
+    "branch": "Divisie",
+    "dataClass": "Dataclassificatie",
+    "hosting": "Hostingtype",
+    "appType": "Applicatietype",
+    "status": "Status",
+    "created": "Aangemaakt",
+    "actions": "Acties",
+    "view": "Bekijken",
+    "noProjects": "Geen projecten gevonden.",
+    "delete": "Project verwijderen",
+    "deleteConfirm": "Weet u het zeker?"
+  },
+  "assess": {
+    "title": "Beoordelingen",
+    "new": "Nieuwe beoordeling",
+    "project": "Project",
+    "type": "Type",
+    "status": "Status",
+    "score": "Score",
+    "controls": "Beheersmaatregelen",
+    "view": "Bekijken",
+    "sendInvite": "Uitnodiging versturen",
+    "startAudit": "Audit starten",
+    "completeAudit": "Audit afronden",
+    "noAssessments": "Geen beoordelingen gevonden.",
+    "evidenceGathering": "Bewijsverzameling",
+    "submitted": "Ingediend",
+    "audit": "Audit",
+    "completed": "Afgerond",
+    "met": "Voldaan",
+    "partiallyMet": "Gedeeltelijk Voldaan",
+    "notMet": "Niet Voldaan",
+    "pending": "In Afwachting",
+    "inherited": "Overgenomen",
+    "applicable": "Van Toepassing",
+    "priority": "Prioriteit"
+  },
+  "intake": {
+    "title": "Intake Inzendingen",
+    "ref": "Referentie",
+    "projectName": "Projectnaam",
+    "submitter": "Indiener",
+    "status": "Status",
+    "submitted": "Ingediend",
+    "review": "Beoordelen",
+    "accept": "Accepteren",
+    "decline": "Afwijzen",
+    "noIntakes": "Nog geen intake inzendingen.",
+    "form": "Beveiligingsbeoordeling Intake",
+    "systemInfo": "Systeeminformatie",
+    "dataInfo": "Gegevens & Classificatie",
+    "hosting": "Hosting & Technologie",
+    "contacts": "Contactpersonen",
+    "additional": "Aanvullende Informatie",
+    "submit": "Intake Indienen",
+    "draft": "Concept",
+    "inReview": "In Beoordeling",
+    "accepted": "Geaccepteerd",
+    "declined": "Afgewezen",
+    "strong": {
+      "privacy_impact_assessment_pia": "Privacy Impact Assessment (PIA)",
+      "intake_submitted_successfully": "Intake succesvol ingediend",
+      "complete_your_intake": "Voltooi uw intake",
+      "canada": "Canada",
+      "united_states": "Verenigde Staten",
+      "european_union": "Europese Unie",
+      "germany": "Duitsland",
+      "france": "Frankrijk",
+      "united_kingdom": "Verenigd Koninkrijk",
+      "spain": "Spanje",
+      "australia": "Australië",
+      "global_worldwide": "Wereldwijd",
+      "handles_payment_cards": "Verwerkt betaalkaarten",
+      "select_at_least_one_region": "Selecteer ten minste één regio",
+      "operating_regions": "Operationele regio's",
+      "tbs_directive_on_security_management": "TBS-richtlijn inzake beveiligingsbeheer",
+      "pbhva_overlay": "PBHVA-overlay",
+      "determined_security_profile": "Vastgesteld beveiligingsprofiel",
+      "tailoring_notes": "Aanpassingsnotities",
+      "name_address_or_contact_info": "Naam, adres of contactgegevens",
+      "social_insurance_number_sin": "Sociaal verzekeringsnummer (SIN)",
+      "financial_information": "Financiële informatie",
+      "health_medical_records": "Gezondheids-/medische dossiers",
+      "biometric_data": "Biometrische gegevens",
+      "employment_hr_records": "Arbeids-/HR-dossiers",
+      "immigration_citizenship_data": "Immigratie-/staatsburgerschapsgegevens",
+      "law_enforcement_criminal_records": "Justitiële/strafrechtelijke gegevens",
+      "indigenous_treaty_data": "Inheemse/verdragsgegevens",
+      "none_of_the_above": "Geen van bovenstaande",
+      "atip": "ATIP",
+      "gc_systems": "GC-systemen",
+      "mobile_byod": "Mobiel/BYOD",
+      "external_users": "Externe gebruikers",
+      "threat_risk_assessment_tra": "Dreigings- en risicobeoordeling (TRA)",
+      "system_security_plan_ssp": "Systeembeveiligingsplan (SSP)",
+      "vulnerability_assessment_pen_test": "Kwetsbaarheidsbeoordeling/penetratietest",
+      "network_architecture_diagram": "Netwerkarchitectuurdiagram",
+      "previous_saa_ato": "Eerdere SAA/ATO"
+    },
+    "ph": {
+      "full_name": "Volledige naam",
+      "email_address": "E-mailadres",
+      "title_role": "Titel / Rol",
+      "eg_were_building_a_portal": "Bijv. we bouwen een portaal",
+      "eg_hr_case_management_portal": "Bijv. HR-casemanagementportaal",
+      "describe_the_purpose_scope_and": "Beschrijf het doel, de reikwijdte en",
+      "eg_employment_and_social_development": "Bijv. Werkgelegenheid en Sociale Ontwikkeling",
+      "eg_innovation_information_and_technology": "Bijv. Innovatie, Informatie en Technologie",
+      "list_any_technologies_not_covered": "Vermeld technologieën die niet gedekt zijn",
+      "eg_gccase_via_api_sap": "Bijv. GCcase via API, SAP",
+      "eg_tight_deadline_need_iato": "Bijv. krappe deadline, IATO nodig"
+    },
+    "h2": {
+      "security_assessment_intake": "Intake beveiligingsbeoordeling"
+    },
+    "p": {
+      "submit_your_project_for_a": "Dien uw project in voor een",
+      "your_security_assessor_has_created": "Uw beveiligingsbeoordelaar heeft aangemaakt",
+      "select_all_regions_and_jurisdictions": "Selecteer alle regio's en rechtsgebieden",
+      "upload_a_project_document_or": "Upload een projectdocument of",
+      "upload_a_design_doc_sa": "Upload een ontwerpdocument SA",
+      "describe_what_your_system_does": "Beschrijf wat uw systeem doet",
+      "tell_us_about_your_project": "Vertel ons over uw project",
+      "what_is_the_highest_sensitivity": "Wat is de hoogste gevoeligheid",
+      "what_is_the_expected_impact": "Wat is de verwachte impact",
+      "what_is_the_expected_impact_2": "Wat is de verwachte impact",
+      "does_your_system_collect_process": "Verzamelt of verwerkt uw systeem",
+      "where_will_the_system_be": "Waar zal het systeem worden",
+      "check_all_technologies_that_are": "Vink alle technologieën aan die",
+      "help_us_understand_how_the": "Help ons begrijpen hoe de",
+      "let_us_know_what_security": "Laat ons weten welke beveiliging",
+      "check_all_that_have_been": "Vink alles aan dat is",
+      "provide_contact_details_for_the": "Geef contactgegevens op voor de",
+      "upload_any_existing_documentation_that": "Upload eventuele bestaande documentatie die",
+      "any_other_information_that_would": "Overige informatie die nuttig zou zijn"
+    },
+    "span": {
+      "required": "Verplicht",
+      "beta": "Beta"
+    },
+    "small": {
+      "itsg33_cccs_medium": "ITSG-33 CCCS Medium",
+      "osfi_b13": "OSFI B-13",
+      "nist_80053_fedramp": "NIST 800-53 FedRAMP",
+      "cmmc_20": "CMMC",
+      "stateramp": "StateRAMP",
+      "nydfs_500": "NYDFS",
+      "nis2_directive": "NIS2-richtlijn",
+      "dora": "DORA",
+      "bsi_itgrundschutz": "BSI IT-Grundschutz",
+      "anssi_rgs_ebios_rm": "ANSSI RGS EBIOS RM",
+      "ncsc_caf": "NCSC CAF",
+      "ens_ccnstic": "ENS CCN-STIC",
+      "asd_ism_essential_eight": "ASD ISM Essential Eight",
+      "apra_cps_234": "APRA CPS 234",
+      "iso_27001": "ISO 27001",
+      "service_organization_controls": "Service Organization Controls",
+      "pci_dss_40": "PCI DSS",
+      "v81_municipal_general": "V81 Gemeentelijk Algemeen",
+      "full_name_homework_address_phone": "Volledige naam, woonadres, telefoonnummer",
+      "sin_or_business_number": "BSN of KvK-nummer",
+      "bank_accounts_tax_records_pay": "Bankrekeningen, belastinggegevens, salarisgegevens",
+      "medical_history_disability_mental_health": "Medische voorgeschiedenis, handicap, geestelijke gezondheid",
+      "fingerprints_facial_recognition_voice_prints": "Vingerafdrukken, gezichtsherkenning, stemafdrukken",
+      "performance_reviews_staffing_actions_leave": "Beoordelingen, personeelsacties, verlofgegevens",
+      "visa_applications_travel_documents_citizenship": "Visumaanvragen, reisdocumenten, staatsburgerschap",
+      "case_files_criminal_history_investigations": "Dossiers, strafrechtelijke geschiedenis, onderzoeken",
+      "band_membership_treaty_info_land": "Stamlidmaatschap, verdragsinformatie, landgegevens",
+      "no_personal_information_is_collected": "Er worden geen persoonsgegevens verzameld",
+      "you_can_select_multiple_files": "U kunt meerdere bestanden selecteren"
+    },
+    "btn": {
+      "change_regions": "Regio's wijzigen",
+      "analyze_prefill": "Analyseren en voorinvullen",
+      "get_suggestions": "Suggesties ophalen",
+      "submit_intake": "Intake indienen"
+    },
+    "label": {
+      "branch_directorate": "Afdeling Directoraat",
+      "target_golive_date": "Beoogde Lanceringsdatum",
+      "estimated_user_count": "Geschat Aantal Gebruikers",
+      "personal_information_pii_checklist": "Checklist Persoonlijke Informatie (PII)",
+      "data_residency": "Datalocatie",
+      "technology_stack": "Technologiestack",
+      "microsoft_entra_id_azure_ad": "Microsoft Entra Id Azure Ad",
+      "active_directory_onprem": "Active Directory On-premises",
+      "multifactor_authentication": "Multifactorauthenticatie",
+      "privileged_identity_management": "Privileged Identity Management",
+      "microsoft_azure": "Microsoft Azure",
+      "amazon_web_services": "Amazon Web Services",
+      "google_cloud_platform": "Google Cloud Platform",
+      "ssc_data_centre": "SSC Datacentrum",
+      "gc_network_gcnet": "GC Netwerk GCnet",
+      "microsoft_sentinel_siem": "Microsoft Sentinel SIEM",
+      "splunk_siem": "Splunk SIEM",
+      "microsoft_defender": "Microsoft Defender",
+      "crowdstrike_falcon": "Crowdstrike Falcon",
+      "cse_cccs_services": "CSE CCCS Diensten",
+      "web_application_firewall": "Web Application Firewall",
+      "azure_devops": "Azure DevOps",
+      "github_enterprise": "GitHub Enterprise",
+      "microsoft_intune_mdm": "Microsoft Intune MDM",
+      "azure_key_vault": "Azure Key Vault",
+      "aws_kms": "AWS KMS",
+      "azure_backup": "Azure Backup",
+      "other_technologies_notes": "Overige Technologieën Opmerkingen",
+      "list_known_interconnections_integrations": "Lijst van Bekende Koppelingen en Integraties",
+      "completed_security_activities": "Voltooide Beveiligingsactiviteiten",
+      "attachments": "Bijlagen",
+      "selected_files": "Geselecteerde Bestanden",
+      "notes_questions_special_considerations": "Opmerkingen, Vragen en Bijzondere Overwegingen"
+    },
+    "h6": {
+      "identity_access": "Identiteit en Toegang",
+      "cloud_infrastructure": "Cloud Infrastructuur",
+      "security_monitoring": "Beveiligingsmonitoring",
+      "devops_encryption_management": "DevOps en Encryptiebeheer",
+      "technical_lead": "Technisch Verantwoordelijke",
+      "authorizing_official_dg_director": "Autoriserende Functionaris (DG/Directeur)"
+    },
+    "link": {
+      "back": "Terug"
+    }
+  },
+  "client": {
+    "dashboard": "Mijn Dashboard",
+    "myIntakes": "Mijn Intakes",
+    "myAssessments": "Mijn Beoordelingen",
+    "newIntake": "Nieuwe Intake",
+    "noIntakes": "U heeft nog geen intakes ingediend.",
+    "noAssessments": "Er zijn nog geen beoordelingen aan u toegewezen.",
+    "viewIntake": "Bekijken",
+    "editDraft": "Concept Bewerken",
+    "settings": "Instellingen",
+    "profile": "Profiel",
+    "changePassword": "Wachtwoord Wijzigen",
+    "mfaSettings": "MFA Instellingen",
+    "passkeySettings": "Passkey Instellingen"
+  },
+  "evidence": {
+    "title": "Bewijsmateriaal Indienen",
+    "control": "Maatregel",
+    "description": "Beschrijving",
+    "guidance": "Richtlijnen voor Bewijsmateriaal",
+    "provide": "Bewijsmateriaal Leveren",
+    "save": "Opslaan",
+    "submit": "Alle Bewijsmateriaal Indienen",
+    "progress": "Voortgang",
+    "provided": "Geleverd",
+    "remaining": "Resterend",
+    "addComment": "Opmerking toevoegen",
+    "attachFile": "Bestand bijvoegen"
+  },
+  "settings": {
+    "title": "Instellingen",
+    "mfa": "Multi-Factor Authentication",
+    "mfaEnabled": "MFA is ingeschakeld",
+    "mfaMode": "MFA-modus",
+    "totp": "Authenticator-app (TOTP)",
+    "push": "Passkey / Biometrisch",
+    "passkey": "Passkey-beheer",
+    "clearPasskeys": "Passkeys wissen",
+    "registerNew": "Nieuwe Passkey registreren"
+  },
+  "auditLog": {
+    "title": "Audit-handtekeningenlogboek",
+    "action": "Actie",
+    "user": "Gebruiker",
+    "entity": "Entiteit",
+    "timestamp": "Tijdstempel",
+    "details": "Details",
+    "today": "Vandaag",
+    "total": "Totaal",
+    "uniqueUsers": "Unieke gebruikers"
+  },
+  "invite": {
+    "title": "Uitnodigingenbeheer",
+    "clients": "Klantuitnodigingen",
+    "assessors": "Beoordelaarsuitnodigingen",
+    "peers": "Collega-beoordelaars",
+    "sendClient": "Klant uitnodigen",
+    "sendAssessor": "Beoordelaar uitnodigen",
+    "email": "E-mail",
+    "name": "Naam",
+    "message": "Bericht",
+    "send": "Uitnodiging versturen",
+    "resend": "Opnieuw versturen",
+    "revoke": "Intrekken",
+    "status": "Status",
+    "code": "Code",
+    "expires": "Verloopt",
+    "pending": "In afwachting",
+    "accepted": "Geaccepteerd",
+    "revoked": "Ingetrokken",
+    "expired": "Verlopen"
+  },
+  "poam": {
+    "title": "POA&M-herstel",
+    "item": "Item",
+    "risk": "Risiconiveau",
+    "deadline": "Deadline",
+    "status": "Status",
+    "evidence": "Bewijs",
+    "open": "Open",
+    "inProgress": "In uitvoering",
+    "completed": "Voltooid",
+    "verified": "Geverifieerd",
+    "overdue": "Achterstallig",
+    "submitEvidence": "Herstelbewijzen Indienen"
+  },
+  "error": {
+    "title": "Fout",
+    "notFound": "Pagina niet gevonden",
+    "goHome": "Ga naar Startpagina",
+    "tryAgain": "Probeer Opnieuw",
+    "p": {
+      "try_entering_your_access_code": "Probeer Uw Toegangscode In Te Voeren"
+    },
+    "ph": {
+      "access_code": "Toegangscode"
+    },
+    "link": {
+      "back_to_home": "Terug Naar Home"
+    }
+  },
+  "success": {
+    "title": "Bewijs Ingediend",
+    "message": "Uw bewijs is succesvol ingediend.",
+    "ref": "Referentie",
+    "date": "Ingediend op",
+    "h1": {
+      "evidence_submitted_successfully": "Bewijsstukken succesvol ingediend"
+    },
+    "span": {
+      "under_review": "In beoordeling"
+    },
+    "p": {
+      "your_security_assessor_has_been": "Uw beveiligingsbeoordelaar is"
+    },
+    "link": {
+      "return_home": "Terug naar startpagina"
+    }
+  },
+  "guidance": {
+    "title": "GC Web Richtlijnen Rapport",
+    "checklist": "Nalevingslijst",
+    "required": "Vereist",
+    "recommended": "Aanbevolen",
+    "met": "Voldaan",
+    "inProgress": "In Behandeling",
+    "na": "N.v.t.",
+    "submit": "Checklist Indienen",
+    "validate": "Valideren",
+    "return": "Terugsturen voor Revisie"
+  },
+  "saAdmin": {
+    "title": "Pre-Intake Zelfbeoordelingen",
+    "subtitle": "Door klanten ingediende beveiligingszelfbeoordelingen die wachten op beoordeling",
+    "total": "Totaal",
+    "pendingReview": "Wachtend op Beoordeling",
+    "reviewed": "Beoordeeld",
+    "intakeCreated": "Intake Aangemaakt",
+    "ref": "Ref",
+    "submitter": "Indiener",
+    "system": "Systeem",
+    "jurisdiction": "Jurisdictie",
+    "score": "Score",
+    "review": "Beoordelen",
+    "noAssessments": "Nog geen zelfbeoordelingen ingediend.",
+    "accessRequests": "Toegangsverzoeken",
+    "pending": "in behandeling",
+    "approve": "Goedkeuren",
+    "deny": "Afwijzen",
+    "noRequests": "Nog geen toegangsverzoeken.",
+    "reason": "Reden",
+    "requested": "Aangevraagd"
+  },
+  "saReview": {
+    "systemJuris": "Systeem & Jurisdictie",
+    "systemType": "Systeemtype",
+    "country": "Land",
+    "govLevel": "Overheidsniveau",
+    "sensitivity": "Gegevensgevoeligheid",
+    "score": "Beveiligingsscore",
+    "findings": "Bevindingen",
+    "critical": "kritiek",
+    "warnings": "waarschuwingen",
+    "secured": "beveiligd",
+    "systemDesc": "Systeembeschrijving",
+    "frameworks": "Toepasselijke kaders",
+    "criticalGaps": "Kritieke hiaten",
+    "warningSection": "Gebieden die verbetering behoeven",
+    "securedSection": "Beveiligd (aangenomen — onafhankelijk verifiëren)",
+    "securedWarn": "Zelf gerapporteerd door de klant. Dient geverifieerd te worden tijdens formele beoordeling.",
+    "adminNotes": "Beheerdersnotities",
+    "notesPlaceholder": "Interne notities over deze inzending...",
+    "markReviewed": "Markeren als beoordeeld",
+    "updateNotes": "Notities bijwerken",
+    "linkedIntake": "Gekoppelde intake",
+    "viewIntake": "Intake bekijken",
+    "clientInvitation": "Klantuitnodiging",
+    "hasAccount": "heeft al een account",
+    "sendEmail": "E-mail handmatig verzenden",
+    "inviteDesc": "Uitnodigen om te registreren, in te loggen en hun concept-intake te bekijken.",
+    "sendInvite": "Registratieuitnodiging verzenden",
+    "createIntakeFirst": "Maak eerst een concept-intake aan, daarna kunt u de klant uitnodigen.",
+    "createIntake": "Intake aanmaken",
+    "aiPopulate": "Vooraf invullen met AI",
+    "aiPopulateD": "Intake-velden automatisch invullen op basis van zelfbeoordeling",
+    "generate": "Genereren",
+    "createDraft": "Concept-intake aanmaken",
+    "projectName": "Projectnaam",
+    "description": "Beschrijving",
+    "department": "Afdeling",
+    "appType": "Applicatietype",
+    "dataClass": "Dataclassificatie",
+    "confidentiality": "Vertrouwelijkheid",
+    "integrity": "Integriteit",
+    "availability": "Beschikbaarheid",
+    "pii": "Bevat PII?",
+    "pia": "PIA voltooid?",
+    "hostingType": "Hosting",
+    "hostingRegion": "Hostregio",
+    "secProfile": "Beveiligingsprofiel",
+    "notes": "Aanvullende notities"
+  },
+  "footer": {
+    "contact": "Contact",
+    "terms": "Servicevoorwaarden",
+    "privacy": "Privacybeleid",
+    "accessibility": "Toegankelijkheid",
+    "copyright": "Beveiligingsbeoordeling & Autorisatieplatform · Multi-Framework Compliance",
+    "dateModified": "Datum gewijzigd"
+  },
+  "admin": {
+    "dashboard": {
+      "th": {
+        "status": "Status",
+        "updated": "Bijgewerkt",
+        "project": "Project",
+        "classification": "Classificatie",
+        "name": "Naam",
+        "result": "Resultaat",
+        "ref": "Ref",
+        "department": "Afdeling",
+        "submitted": "Ingediend"
+      },
+      "h1": {
+        "dashboard": "Dashboard"
+      },
+      "link": {
+        "new_project": "Nieuw Project",
+        "view_all": "Alles Bekijken",
+        "create_your_first_project": "Maak Je Eerste Project",
+        "view_all_2": "Alles Bekijken",
+        "view_all_3": "Alles Bekijken",
+        "intake_form": "Intakeformulier"
+      },
+      "stat": {
+        "total_projects": "Totaal Projecten",
+        "active_assessments": "Actieve Beoordelingen",
+        "pending_audits": "Openstaande Audits",
+        "active_atos": "Actieve ATO's",
+        "pending_intakes": "Openstaande Intakes",
+        "preassessments": "Voorbeoordelingen"
+      },
+      "span": {
+        "recent_projects": "Recente Projecten",
+        "recent_assessments": "Recente Beoordelingen",
+        "recent_intakes": "Recente Intakes",
+        "pending": "In Afwachting",
+        "in_review": "In Beoordeling",
+        "accepted": "Geaccepteerd",
+        "declined": "Afgewezen"
+      },
+      "p": {
+        "no_assessments_yet": "Nog Geen Beoordelingen"
+      }
+    },
+    "intake_review": {
+      "span": {
+        "high": "Hoog",
+        "medium": "Gemiddeld",
+        "low": "Laag",
+        "pending_review": "In Afwachting van Beoordeling",
+        "in_review": "In Beoordeling",
+        "accepted": "Geaccepteerd",
+        "internal_only": "Alleen Intern",
+        "external_public": "Extern Publiek",
+        "hybrid": "Hybride",
+        "top_secret": "Zeer Geheim",
+        "secret": "Geheim",
+        "confidential": "Vertrouwelijk",
+        "protected_c": "Protected C",
+        "protected_b": "Protected B",
+        "protected_a": "Protected A",
+        "hva": "HVA",
+        "yes": "Ja",
+        "estimated_controls": "Geschatte Maatregelen",
+        "p1_mandatory": "P1 Verplicht",
+        "p2_conditional": "P2 Voorwaardelijk",
+        "p3_situational": "P3 Situationeel",
+        "inherited_controls": "Overgenomen Maatregelen",
+        "already_selected": "Reeds Geselecteerd",
+        "mandatory": "Verplicht"
+      },
+      "tattr": {
+        "ai_elaborate": "AI: Uitwerken"
+      },
+      "link": {
+        "back_to_intakes": "Terug Naar Intakes"
+      },
+      "btn": {
+        "ai_review": "AI Beoordeling",
+        "mark_in_review": "Markeren als in beoordeling",
+        "create_project_assessment": "Projectbeoordeling aanmaken",
+        "decline_intake": "Intake afwijzen"
+      },
+      "label": {
+        "department_agency": "Departement/Agentschap",
+        "branch_directorate": "Afdeling/Directoraat",
+        "application_type": "Applicatietype",
+        "target_golive": "Beoogde livegang",
+        "estimated_users": "Geschat aantal gebruikers",
+        "project_description": "Projectbeschrijving",
+        "atip_subject": "ATIP-onderwerp",
+        "pia_status": "PIA-status",
+        "contains_pii": "Bevat PII",
+        "pii_types_identified": "Geïdentificeerde PII-types",
+        "hosting": "Hosting",
+        "data_residency": "Datalocatie",
+        "technologies": "Technologieën",
+        "other_technologies": "Overige technologieën",
+        "gc_interconnections": "GC-interconnecties",
+        "mobile_byod": "Mobiel/BYOD",
+        "listed_interconnections": "Vermelde interconnecties",
+        "external_users": "Externe gebruikers",
+        "project_owner": "Projecteigenaar",
+        "technical_lead": "Technisch verantwoordelijke",
+        "authorizing_official": "Autoriserende functionaris",
+        "override_confidentiality": "Vertrouwelijkheid overschrijven",
+        "override_integrity": "Integriteit overschrijven",
+        "override_availability": "Beschikbaarheid overschrijven",
+        "high_value_asset_hva": "Hoogwaardig bedrijfsmiddel (HVA)",
+        "override_app_type": "Applicatietype overschrijven",
+        "additional_technologies": "Aanvullende technologieën",
+        "additional_description_context": "Aanvullende beschrijvingscontext",
+        "assessor_notes_internal": "Interne beoordelaarsnotities",
+        "assessment_type": "Beoordelingstype"
+      },
+      "strong": {
+        "determined_profile": "Vastgesteld profiel",
+        "saampa_required": "SAAMPA vereist",
+        "no_saampa_required": "Geen SAAMPA vereist",
+        "accepted": "Geaccepteerd"
+      },
+      "div": {
+        "no_pii_identified": "Geen PII geïdentificeerd"
+      },
+      "card": {
+        "engine_preview": "Engine-voorbeeld",
+        "assessor_context": "Beoordelaarscontext"
+      },
+      "small": {
+        "gc_web_guidance_report_will": "GC-webrichtlijnenrapport zal",
+        "based_on_submitted_project_details": "Gebaseerd op ingediende projectdetails",
+        "appended_to_the_project_description": "Toegevoegd aan de projectbeschrijving",
+        "frameworks_below_have_been_preselected": "Onderstaande frameworks zijn voorgeselecteerd"
+      },
+      "p": {
+        "add_context_or_adjust_details": "Context toevoegen of details aanpassen",
+        "add_technologies_the_client_may": "Technologieën toevoegen die de klant mogelijk"
+      },
+      "ph": {
+        "add_keywords_for_the_engine": "Trefwoorden toevoegen voor de engine",
+        "internal_notes_about_this_intake": "Interne notities over deze intake",
+        "reason_for_declining_optional": "Reden voor afwijzing (optioneel)"
+      }
+    },
+    "invitations": {
+      "th": {
+        "email": "E-mail",
+        "name": "Naam",
+        "code": "Code",
+        "status": "Status",
+        "sent": "Verzonden",
+        "expires": "Verloopt",
+        "organization": "Organisatie",
+        "joined": "Toegetreden",
+        "last_login": "Laatste Login"
+      },
+      "label": {
+        "name": "Naam",
+        "organization": "Organisatie"
+      },
+      "small": {
+        "optional": "(optioneel)"
+      },
+      "span": {
+        "pending": "In afwachting",
+        "accepted": "Geaccepteerd",
+        "revoked": "Ingetrokken"
+      },
+      "tattr": {
+        "resend": "Opnieuw verzenden",
+        "revoke": "Intrekken"
+      },
+      "h1": {
+        "team_invitations": "Teamuitnodigingen"
+      },
+      "p": {
+        "invite_clients_and_peer_assessors": "Nodig Klanten En Peer Assessors Uit",
+        "the_client_must_register_using": "De Klant Moet Registreren Met",
+        "these_assessors_have_accepted_your": "Deze Assessors Hebben Uw",
+        "no_peer_assessors_yet_invite": "Nog Geen Peer Assessors Uitnodigen"
+      },
+      "ph": {
+        "jane_doe": "Jan Jansen",
+        "client_organization_name": "Naam Klantorganisatie",
+        "brief_note_to_include_in": "Korte Notitie Om Op Te Nemen In",
+        "john_smith": "Pieter de Vries",
+        "organization": "Organisatie",
+        "brief_note_about_the_collaboration": "Korte Notitie Over De Samenwerking"
+      },
+      "btn": {
+        "send_client_invite": "Klantuitnodiging Versturen",
+        "send_assessor_invite": "Assessor Uitnodiging Versturen"
+      },
+      "strong": {
+        "peer_assessors": "Peer Assessors"
+      }
+    },
+    "project_new": {
+      "ph": {
+        "full_name": "Volledige naam",
+        "eg_hr_case_management_system": "Bijv. HR Dossierbeheer Systeem",
+        "describe_the_systems_purpose_users": "Beschrijf Het Doel Van Het Systeem Gebruikers",
+        "employment_and_social_development_canada": "Ministerie Van Werkgelegenheid En Sociale Ontwikkeling Canada",
+        "innovation_information_and_technology_branch": "Afdeling Innovatie Informatie En Technologie",
+        "architecture_details_integration_points_apis": "Architectuurdetails Integratiepunten APIs",
+        "jane_smith": "Marie Jansen",
+        "acme_corp": "Acme BV",
+        "welcome_to_the_assessment_portal": "Welkom Bij Het Beoordelingsportaal"
+      },
+      "h1": {
+        "new_project": "Nieuw Project"
+      },
+      "p": {
+        "create_a_security_assessment_project": "Maak Een Beveiligingsbeoordelingsproject",
+        "select_all_regions_and_jurisdictions": "Selecteer Alle Regio's En Rechtsgebieden",
+        "basic_details_about_the_system": "Basisgegevens Over Het Systeem",
+        "classify_data_sensitivity_using_the": "Classificeer Gegevensgevoeligheid Met De",
+        "where_the_system_is_deployed": "Waar Het Systeem Is Geïmplementeerd",
+        "individuals_involved_in_the_assessment": "Betrokken Personen Bij De Beoordeling",
+        "assign_this_project_to_a": "Wijs Dit Project Toe Aan Een",
+        "no_registered_clients_yet_use": "Nog Geen Geregistreerde Klanten Gebruik"
+      },
+      "span": {
+        "optional": "Optioneel",
+        "required": "Verplicht",
+        "pending": "In Afwachting"
+      },
+      "btn": {
+        "skip_to_client_assignment": "Ga Naar Klanttoewijzing",
+        "back_to_region_selection": "Terug Naar Regioselectie",
+        "skip_to_client_assignment_2": "Ga Naar Klanttoewijzing",
+        "back_to_regions": "Terug Naar Regio's",
+        "back_to_previous_step": "Terug Naar Vorige Stap",
+        "create_project_send_intake": "Project Aanmaken Intake Versturen"
+      },
+      "strong": {
+        "canada_federal": "Canada Federaal",
+        "canada_financial": "Canada Financieel",
+        "united_states": "Verenigde Staten",
+        "us_defense": "VS Defensie",
+        "us_statelocal": "VS Staat/Lokaal",
+        "us_financial": "VS Financieel",
+        "european_union": "Europese Unie",
+        "eu_financial": "EU Financieel",
+        "germany": "Duitsland",
+        "france": "Frankrijk",
+        "united_kingdom": "Verenigd Koninkrijk",
+        "spain": "Spanje",
+        "australia": "Australië",
+        "australia_financial": "Australië Financieel",
+        "global": "Wereldwijd",
+        "how_it_works": "Hoe Het Werkt"
+      },
+      "small": {
+        "itsg33": "ITSG-33",
+        "osfi_b13": "OSFI B13",
+        "nist_80053": "NIST",
+        "cmmc": "CMMC",
+        "stateramp": "StateRAMP",
+        "nydfs_500": "NYDFS",
+        "nis2_gdpr": "NIS2 GDPR",
+        "dora": "DORA",
+        "bsi_itgrundschutz": "BSI IT-Grundschutz",
+        "anssi_rgs": "ANSSI RGS",
+        "ncsc_caf": "NCSC CAF",
+        "ens": "ENS",
+        "asd_ism_essential_eight": "ASD ISM Essential Eight",
+        "apra_cps_234": "APRA CPS",
+        "iso_27001": "ISO",
+        "trust_service_criteria": "Trust Service Criteria",
+        "payment_card_security": "Betaalkaartbeveiliging",
+        "v81_municipal_general": "V81 Gemeentelijk Algemeen",
+        "choose_a_registered_client": "Kies Een Geregistreerde Klant",
+        "send_a_registration_invite": "Stuur Een Registratieuitnodiging"
+      },
+      "label": {
+        "department_agency": "Departement Agentschap",
+        "branch_directorate": "Afdeling Directoraat",
+        "technical_specifications_optional": "Technische Specificaties Optioneel",
+        "authorizing_official_dg_director": "Autoriserende Functionaris DG Directeur",
+        "authority_email": "Autoriteit E-mail",
+        "cio_delegated_authority_name": "CIO Gedelegeerde Autoriteit Naam",
+        "cio_delegated_authority_email": "CIO Gedelegeerde Autoriteit E-mail",
+        "full_name": "Volledige Naam",
+        "organization": "Organisatie",
+        "message_optional": "Bericht Optioneel"
+      },
+      "h6": {
+        "existing_client": "Bestaande Klant",
+        "invite_new_client": "Nieuwe Klant Uitnodigen"
+      }
+    },
+    "self_assessments": {
+      "th": {
+        "status": "Status",
+        "ref": "Ref",
+        "submitter": "Indiener",
+        "system": "Systeem",
+        "jurisdiction": "Jurisdictie",
+        "score": "Score",
+        "submitted": "Ingediend",
+        "name": "Naam",
+        "email": "E-mail",
+        "organization": "Organisatie",
+        "reason": "Reden",
+        "requested": "Aangevraagd"
+      },
+      "h1": {
+        "preintake_selfassessments": "Voorintake Zelfbeoordelingen"
+      },
+      "p": {
+        "clientsubmitted_security_selfassessments_awaiting_review": "Door klant ingediende beveiligingszelfbeoordelingen wachtend op beoordeling",
+        "no_selfassessments_submitted_yet": "Nog geen zelfbeoordelingen ingediend",
+        "no_access_requests_yet": "Nog geen toegangsverzoeken"
+      },
+      "div": {
+        "total": "Totaal",
+        "pending_review": "In afwachting van beoordeling",
+        "reviewed": "Beoordeeld",
+        "intake_created": "Intake aangemaakt"
+      },
+      "span": {
+        "pending_review": "In afwachting van beoordeling",
+        "reviewed": "Beoordeeld",
+        "intake_created": "Intake aangemaakt",
+        "pending": "In behandeling",
+        "approved": "Goedgekeurd",
+        "denied": "Afgewezen"
+      },
+      "tattr": {
+        "approve_send_code": "Goedkeuren en code verzenden",
+        "deny": "Afwijzen"
+      }
+    },
+    "assessment_detail": {
+      "span": {
+        "invite_code": "Uitnodigingscode",
+        "owner": "Eigenaar",
+        "classification": "Classificatie",
+        "score": "Score",
+        "result": "Resultaat",
+        "owner_2": "Eigenaar",
+        "assigned": "Toegewezen",
+        "active": "Actief",
+        "audit_progress": "Auditvoortgang",
+        "required_for_iato_per_tbs": "Vereist voor IATO per TBS",
+        "high_risk": "Hoog risico",
+        "med_risk": "Gemiddeld risico",
+        "low_risk": "Laag risico",
+        "audit": "Audit"
+      },
+      "btn": {
+        "send_invite": "Uitnodiging verzenden",
+        "delete": "Verwijderen",
+        "resend_invite": "Uitnodiging opnieuw verzenden",
+        "start_audit": "Audit starten",
+        "reactivate": "Heractiveren",
+        "complete_audit": "Audit afronden",
+        "revoke": "Intrekken",
+        "assign": "Toewijzen",
+        "complete_audit_issue_decision": "Audit afronden en besluit uitvaardigen",
+        "autopopulate": "Automatisch invullen"
+      },
+      "tattr": {
+        "open_the_public_evidence_submission": "Open de openbare bewijsindiening",
+        "autogenerate_from_findings": "Automatisch genereren uit bevindingen",
+        "delete": "Verwijderen",
+        "partially_met": "Gedeeltelijk voldaan",
+        "not_met": "Niet voldaan",
+        "ai_elaborate": "AI uitwerken"
+      },
+      "stat": {
+        "total_controls": "Totaal aantal controls",
+        "inherited": "Overgenomen",
+        "evidence_provided": "Bewijs Geleverd",
+        "met": "Voldaan",
+        "partially_met": "Gedeeltelijk Voldaan",
+        "not_met": "Niet Voldaan",
+        "high_risk_tbs": "Hoog Risico Tbs"
+      },
+      "strong": {
+        "team": "Team",
+        "tbs_policy": "Tbs Beleid",
+        "plan_of_action_milestones_poam": "Plan Van Aanpak Mijlpalen POA&M",
+        "risk_acceptance": "Risicoacceptatie"
+      },
+      "label": {
+        "assign_peer_assessor": "Peer Beoordelaar Toewijzen",
+        "override_result": "Resultaat Overschrijven",
+        "iato_expiry_date": "IATO Vervaldatum",
+        "poam_notes": "POA&M Notities"
+      },
+      "ph": {
+        "notes_optional": "Notities Optioneel",
+        "poam_context_notes": "POA&M Context Notities",
+        "document_residual_risk_acceptance_rationale": "Documenteer Rationale Voor Acceptatie Restrisico",
+        "remediation_item_description": "Beschrijving Herstelitem",
+        "assigned_to": "Toegewezen Aan",
+        "remediation_plan_optional": "Herstelplan Optioneel",
+        "milestone_optional": "Mijlpaal Optioneel",
+        "auditor_comments": "Auditor Opmerkingen",
+        "add_a_comment": "Voeg Een Opmerking Toe",
+        "filter_families": "Filter Families"
+      },
+      "link": {
+        "invite_peer_assessors": "Peer Beoordelaars Uitnodigen"
+      },
+      "card": {
+        "complete_audit_tbs_authorization_decision": "Voltooi Audit Tbs Autorisatiebesluit"
+      },
+      "small": {
+        "highrisk_findings": "Hoog Risico Bevindingen",
+        "controls_met": "Beheersmaatregelen Voldaan",
+        "partially_met": "Gedeeltelijk Voldaan",
+        "not_met": "Niet Voldaan",
+        "default_90_days_if_iato": "Standaard 90 Dagen Bij IATO",
+        "tailored_description": "Aangepaste Beschrijving"
+      },
+      "th": {
+        "risk": "Risico",
+        "item": "Item",
+        "control": "Beheersmaatregel",
+        "deadline": "Deadline",
+        "assigned": "Toegewezen",
+        "status": "Status"
+      },
+      "p": {
+        "no_poam_items_yet_use": "Nog Geen POA&M Items Gebruik"
+      },
+      "div": {
+        "loading_comments": "Opmerkingen Laden"
+      }
+    },
+    "assessment_new": {
+      "h1": {
+        "new_assessment": "Nieuwe Beoordeling"
+      },
+      "btn": {
+        "select_all": "Alles Selecteren",
+        "deselect_all": "Alles Deselecteren",
+        "create_assessment": "Beoordeling Aanmaken",
+        "create_assessment_package": "Beoordelingspakket Aanmaken"
+      },
+      "span": {
+        "inherited": "Overgenomen",
+        "template": "Sjabloon"
+      },
+      "label": {
+        "tailored_description": "Aangepaste Beschrijving",
+        "evidence_guidance": "Bewijsrichtlijnen",
+        "applicability": "Toepasbaarheid"
+      },
+      "ph": {
+        "projectspecific_description_for_this_control": "Projectspecifieke Beschrijving Voor Deze Beheersmaatregel",
+        "what_evidence_the_project_owner": "Welk bewijs de projecteigenaar"
+      }
+    },
+    "assessments": {
+      "h1": {
+        "assessments": "Beoordelingen"
+      },
+      "p": {
+        "all_security_assessment_packages": "Alle beveiligingsbeoordelingspakketten",
+        "no_assessments_yet": "Nog geen beoordelingen",
+        "create_a_project_first_then": "Maak eerst een project aan, dan"
+      },
+      "th": {
+        "project": "Project",
+        "type": "Type",
+        "status": "Status",
+        "score": "Score",
+        "result": "Resultaat",
+        "invite_code": "Uitnodigingscode",
+        "created": "Aangemaakt",
+        "updated": "Bijgewerkt"
+      },
+      "tattr": {
+        "delete_draft": "Concept verwijderen"
+      },
+      "link": {
+        "view_projects": "Projecten bekijken"
+      }
+    },
+    "assessor_mfa_setup": {
+      "h3": {
+        "set_up_multifactor_authentication": "MFA instellen"
+      },
+      "strong": {
+        "microsoft_authenticator": "Microsoft Authenticator",
+        "google_authenticator": "Google Authenticator",
+        "authy": "Authy"
+      },
+      "p": {
+        "step_1_scan_this_qr": "Stap 1: Scan deze QR-code",
+        "cant_scan_enter_this_key": "Kunt u niet scannen? Voer deze sleutel in"
+      },
+      "label": {
+        "step_2_enter_the_6digit": "Stap 2: Voer de 6-cijferige code in"
+      },
+      "btn": {
+        "verify_complete_registration": "Verifiëren en registratie voltooien"
+      }
+    },
+    "audit_log": {
+      "link": {
+        "dashboard": "Dashboard",
+        "clear": "Wissen"
+      },
+      "div": {
+        "total_signatures": "Totaal aantal handtekeningen",
+        "today": "Vandaag",
+        "unique_signers": "Unieke ondertekenaars",
+        "signatures_are_logged_when_users": "Handtekeningen worden geregistreerd wanneer gebruikers"
+      },
+      "label": {
+        "entity_type": "Entiteitstype",
+        "action": "Actie"
+      },
+      "ph": {
+        "eg_auditcomplete": "Bijv. auditvoltooid"
+      },
+      "btn": {
+        "filter": "Filteren"
+      },
+      "th": {
+        "timestamp": "Tijdstempel",
+        "user": "Gebruiker",
+        "role": "Rol",
+        "action": "Actie",
+        "entity": "Entiteit"
+      },
+      "span": {
+        "assessor": "Beoordelaar",
+        "client": "Klant"
+      }
+    },
+    "guidance_report": {
+      "p": {
+        "gc_web_standards_amp_guidance": "GC-webstandaarden & richtlijnen"
+      },
+      "btn": {
+        "print": "Afdrukken",
+        "resend_invite": "Uitnodiging opnieuw verzenden",
+        "send_invite_to_owner": "Uitnodiging naar eigenaar verzenden",
+        "validate_amp_approve": "Valideren & goedkeuren",
+        "return_for_revision": "Terugsturen voor revisie",
+        "save_notes": "Notities opslaan"
+      },
+      "span": {
+        "invite_code": "Uitnodigingscode",
+        "status": "Status",
+        "draft": "Concept",
+        "sent_awaiting_response": "Verzonden, wacht op reactie",
+        "submitted_awaiting_review": "Ingediend, wacht op beoordeling",
+        "returned_for_revision": "Teruggestuurd voor revisie",
+        "validated": "Gevalideerd",
+        "respondent": "Respondent",
+        "submitted": "Ingediend",
+        "no_invite_sent_yet": "Nog geen uitnodiging verzonden",
+        "no_pii": "Geen PII",
+        "required": "Vereist",
+        "required_2": "Vereist",
+        "recommended": "Aanbevolen",
+        "met": "Voldaan",
+        "in_progress": "In behandeling",
+        "na": "N.v.t.",
+        "pending": "In afwachting"
+      },
+      "card": {
+        "review_amp_validate": "Beoordelen & valideren",
+        "additional_considerations": "Aanvullende overwegingen",
+        "assessor_notes": "Beoordelaarsnotities"
+      },
+      "small": {
+        "met": "Voldaan",
+        "in_progress": "In behandeling",
+        "na": "N.v.t.",
+        "pending": "In afwachting"
+      },
+      "label": {
+        "reviewer_notes": "Beoordelaarsnotities"
+      },
+      "ph": {
+        "notes_for_the_project_owner": "Notities voor de projecteigenaar",
+        "add_any_assessor_notes_for": "Voeg beoordelaarsnotities toe voor"
+      },
+      "strong": {
+        "validated": "Gevalideerd"
+      },
+      "th": {
+        "requirement": "Vereiste",
+        "level": "Niveau",
+        "status": "Status",
+        "notes": "Notities"
+      },
+      "li": {
+        "data_classification_increases_to_protected": "Dataclassificatie verhoogd naar beschermd",
+        "personal_information_pii_is_collected": "Persoonlijke informatie (PII) wordt verzameld",
+        "user_authentication_or_accounts_are": "Gebruikersauthenticatie of accounts zijn",
+        "integration_with_other_gc_systems": "Integratie met andere GC-systemen",
+        "payment_processing_or_financial_transactions": "Betalingsverwerking of financiële transacties",
+        "the_application_scope_expands_beyond": "De applicatiescope breidt uit voorbij"
+      },
+      "link": {
+        "standard_on_web_accessibility": "Standaard voor webtoegankelijkheid",
+        "wcag_21_quick_reference": "WCAG 2.1 snelgids",
+        "canadaca_design_system": "Canada.ca ontwerpsysteem",
+        "gc_digital_standards": "GC digitale standaarden",
+        "web_experience_toolkit_wet": "Web Experience Toolkit (WET)"
+      }
+    },
+    "intakes": {
+      "p": {
+        "review_project_intake_requests_from": "Bekijk projectaanvragen van"
+      },
+      "link": {
+        "dashboard": "Dashboard"
+      },
+      "stat": {
+        "total_submissions": "Totaal aantal inzendingen",
+        "pending_review": "Wacht op beoordeling",
+        "accepted": "Geaccepteerd",
+        "in_review": "In beoordeling"
+      },
+      "span": {
+        "all_submissions": "Alle inzendingen",
+        "protected_b": "Protected B",
+        "protected_a": "Protected A",
+        "yes": "Ja",
+        "pending": "In afwachting",
+        "in_review": "In beoordeling",
+        "accepted": "Geaccepteerd",
+        "declined": "Afgewezen"
+      },
+      "th": {
+        "ref": "Ref",
+        "project_name": "Projectnaam",
+        "department": "Afdeling",
+        "classification": "Classificatie",
+        "pii": "Pii",
+        "hosting": "Hosting",
+        "submitted_by": "Ingediend door",
+        "status": "Status",
+        "date": "Datum"
+      },
+      "h5": {
+        "no_intake_submissions_yet": "Nog geen intakeverzoeken"
+      }
+    },
+    "login": {
+      "p": {
+        "scan_the_qr_code_with": "Scan de QR-code met",
+        "confirm_your_identity_to_continue": "Bevestig uw identiteit om door te gaan",
+        "security_assessment_amp_authorization_portal": "Beveiligingsbeoordeling & Autorisatieportaal",
+        "approve_with_your_passkey_face": "Goedkeuren met uw passkey gezicht"
+      },
+      "h2": {
+        "verify_identity": "Identiteit verifiëren",
+        "assessor_login": "Beoordelaar inloggen"
+      },
+      "label": {
+        "manual_entry_key": "Handmatige invoersleutel",
+        "verification_code": "Verificatiecode",
+        "authentication_code": "Authenticatiecode",
+        "email_address": "E-mailadres",
+        "password": "Wachtwoord"
+      },
+      "btn": {
+        "verify_amp_enable_mfa": "Verifiëren & MFA inschakelen",
+        "sign_in_with_passkey": "Inloggen met passkey",
+        "verify_amp_sign_in": "Verifiëren & inloggen",
+        "sign_in": "Inloggen"
+      },
+      "link": {
+        "use_totp_code_instead": "Gebruik in plaats daarvan TOTP-code",
+        "use_passkey_instead": "Gebruik in plaats daarvan passkey",
+        "sign_in_as_different_user": "Inloggen als andere gebruiker",
+        "register_with_invite_code": "Registreren met uitnodigingscode",
+        "back_to_portal_home": "Terug naar portaal startpagina"
+      },
+      "ph": {
+        "enter_password": "Voer wachtwoord in"
+      }
+    },
+    "manage_controls": {
+      "h1": {
+        "manage_controls": "Beheersmaatregelen beheren"
+      },
+      "strong": {
+        "draft": "Concept",
+        "add_controls": "Beheersmaatregelen toevoegen"
+      },
+      "span": {
+        "inherited": "Overgenomen",
+        "added": "Toegevoegd"
+      },
+      "tattr": {
+        "remove_from_assessment": "Verwijderen uit beoordeling"
+      },
+      "label": {
+        "tailored_description": "Aangepaste beschrijving",
+        "evidence_guidance": "Bewijsrichtlijnen",
+        "applicability": "Toepasbaarheid",
+        "inherited": "Overgenomen",
+        "inherited_from": "Overgenomen van"
+      },
+      "ph": {
+        "projectspecific_description": "Projectspecifieke beschrijving",
+        "what_evidence_should_be_provided": "Welk bewijs moet worden geleverd",
+        "eg_azure_ssc": "Bijv. Azure SSC",
+        "filter_by_id_or_keyword": "Filteren op ID of trefwoord"
+      },
+      "btn": {
+        "save_changes": "Wijzigingen opslaan",
+        "add_selected": "Geselecteerde toevoegen",
+        "add_selected_controls": "Geselecteerde controles toevoegen"
+      }
+    },
+    "passkey_setup": {
+      "h2": {
+        "register_a_passkey": "Een passkey registreren"
+      },
+      "p": {
+        "use_face_id_touch_id": "Gebruik Face ID Touch ID"
+      },
+      "strong": {
+        "passkey_registered": "Passkey geregistreerd"
+      },
+      "btn": {
+        "register_passkey": "Passkey registreren"
+      },
+      "link": {
+        "skip_use_totp_only": "Overslaan, alleen TOTP gebruiken"
+      }
+    },
+    "project_detail": {
+      "p": {
+        "project_details_assessments": "Projectdetails beoordelingen",
+        "no_assessments_yet_for_this": "Nog geen beoordelingen voor dit"
+      },
+      "btn": {
+        "delete_project": "Project verwijderen"
+      },
+      "card": {
+        "project_information": "Projectinformatie",
+        "key_contacts": "Belangrijke contactpersonen"
+      },
+      "span": {
+        "yes": "Ja",
+        "assessments": "Beoordelingen"
+      },
+      "h6": {
+        "description": "Beschrijving",
+        "technology_stack": "Technologiestack"
+      },
+      "div": {
+        "project_owner_architect": "Projecteigenaar architect",
+        "project_authority": "Projectautoriteit",
+        "cio_delegated_authority": "CIO gedelegeerde autoriteit"
+      },
+      "th": {
+        "type": "Type",
+        "status": "Status",
+        "score": "Score",
+        "result": "Resultaat",
+        "invite_code": "Uitnodigingscode",
+        "updated": "Bijgewerkt"
+      },
+      "tattr": {
+        "delete_draft": "Concept verwijderen"
+      }
+    },
+    "projects": {
+      "h1": {
+        "projects": "Projecten"
+      },
+      "p": {
+        "manage_your_security_assessment_projects": "Beheer uw beveiligingsbeoordelingsprojecten",
+        "create_your_first_project_to": "Maak uw eerste project aan om"
+      },
+      "link": {
+        "new_project": "Nieuw project",
+        "create_project": "Project aanmaken"
+      },
+      "th": {
+        "project_name": "Projectnaam",
+        "classification": "Classificatie",
+        "hosting": "Hosting",
+        "owner": "Eigenaar",
+        "status": "Status",
+        "created": "Aangemaakt"
+      },
+      "span": {
+        "pii": "PII"
+      },
+      "tattr": {
+        "delete_project": "Project verwijderen"
+      },
+      "h4": {
+        "no_projects_yet": "Nog geen projecten"
+      }
+    },
+    "register": {
+      "h3": {
+        "account_registration": "Accountregistratie"
+      },
+      "p": {
+        "register_your_account_using_a": "Registreer uw account met een"
+      },
+      "ph": {
+        "xxxxxxxx": "XXXXXXXX",
+        "eg_jane_doe": "Bijv. Jan Jansen",
+        "must_match_the_invited_email": "Moet overeenkomen met het uitgenodigde e-mailadres",
+        "your_organization": "Uw organisatie",
+        "minimum_10_characters": "Minimaal 10 tekens"
+      },
+      "small": {
+        "enter_the_code_from_your": "Voer de code in van uw",
+        "you_must_use_the_email": "U moet het e-mailadres gebruiken",
+        "at_least_10_characters_with": "Minimaal 10 tekens met"
+      },
+      "label": {
+        "organization": "Organisatie"
+      },
+      "btn": {
+        "continue_to_mfa_setup": "Doorgaan naar MFA-configuratie"
+      },
+      "span": {
+        "already_have_an_account": "Heeft u al een account"
+      },
+      "link": {
+        "sign_in": "Inloggen"
+      }
+    },
+    "self_assessment_review": {
+      "link": {
+        "back_to_selfassessments": "Terug naar zelfbeoordelingen"
+      },
+      "span": {
+        "pending_review": "In afwachting van beoordeling",
+        "reviewed": "Beoordeeld",
+        "intake_created": "Intake aangemaakt"
+      },
+      "card": {
+        "system_jurisdiction": "Systeemjurisdictie",
+        "admin_notes": "Beheerdersnotities",
+        "linked_intake": "Gekoppelde intake",
+        "client_invitation": "Klantuitnodiging",
+        "create_intake": "Intake aanmaken"
+      },
+      "div": {
+        "system_type": "Systeemtype",
+        "country": "Land",
+        "government_level": "Overheidsniveau",
+        "data_sensitivity": "Gegevensgevoeligheid",
+        "security_score": "Beveiligingsscore",
+        "findings": "Bevindingen",
+        "system_description": "Systeembeschrijving",
+        "applicable_frameworks": "Toepasselijke frameworks",
+        "prepopulate_with_ai": "Vooraf invullen met AI",
+        "autofill_intake_fields_from_selfassessment": "Intakevelden automatisch invullen vanuit zelfbeoordeling"
+      },
+      "ph": {
+        "internal_notes_about_this_submission": "Interne notities over deze inzending",
+        "eg_citizen_feedback_portal": "Bijv. burgerfeedbackportaal",
+        "brief_description_of_the_system": "Korte beschrijving van het systeem",
+        "eg_canada": "Bijv. Canada",
+        "key_findings_notes_for_the": "Belangrijkste bevindingen notities voor de"
+      },
+      "btn": {
+        "send_registration_invite": "Registratieuitnodiging versturen",
+        "generate": "Genereren",
+        "create_draft_intake": "Conceptintake aanmaken"
+      },
+      "p": {
+        "create_a_draft_intake_first": "Maak eerst een conceptintake aan"
+      },
+      "label": {
+        "project_name": "Projectnaam",
+        "description": "Beschrijving",
+        "department": "Afdeling",
+        "app_type": "App-type",
+        "data_classification": "Gegevensclassificatie",
+        "confidentiality": "Vertrouwelijkheid",
+        "integrity": "Integriteit",
+        "availability": "Beschikbaarheid",
+        "contains_pii": "Bevat PII",
+        "pia_completed": "PIA voltooid",
+        "hosting": "Hosting",
+        "hosting_region": "Hostingregio",
+        "security_profile": "Beveiligingsprofiel",
+        "additional_notes": "Aanvullende notities"
+      }
+    },
+    "settings": {
+      "h1": {
+        "settings": "Instellingen"
+      },
+      "p": {
+        "application_configuration": "Applicatieconfiguratie",
+        "register_a_passkey_to_enable": "Registreer een passkey om in te schakelen",
+        "government_of_canada_security_assessment": "Veiligheidsbeoordeling van de Canadese overheid",
+        "built_with_nodejs_express_bootstrap": "Gebouwd met Nodejs Express Bootstrap"
+      },
+      "span": {
+        "authenticator_app_configured": "Authenticator-app geconfigureerd",
+        "registered": "Geregistreerd",
+        "passkey_enrolled_face_id_touch": "Passkey ingeschreven Face Id Touch"
+      },
+      "link": {
+        "reenroll": "Opnieuw inschrijven",
+        "set_up_mfa_now": "MFA nu instellen",
+        "audit_log": "Auditlogboek"
+      },
+      "div": {
+        "approve_with_face_id_touch": "Goedkeuren met Face Id Touch",
+        "enter_a_6digit_code_from": "Voer een 6-cijferige code in van",
+        "critical_actions_proceed_without_mfa": "Kritieke acties doorgaan zonder MFA"
+      },
+      "btn": {
+        "reregister": "Opnieuw registreren",
+        "register_passkey": "Passkey registreren"
+      }
+    }
+  },
+  "index": {
+    "span": {
+      "essential_eight": "Essential Eight"
+    }
+  },
+  "layout": {
+    "main": {
+      "h2": {
+        "about_this_site": "Over deze site"
+      },
+      "h5": {
+        "verification_required": "Verificatie vereist"
+      },
+      "p": {
+        "this_action_requires_verification": "Deze actie vereist verificatie.",
+        "approve_the_prompt_on_your": "Keur de prompt op uw apparaat goed met Face ID, Touch ID of Windows Hello."
+      },
+      "link": {
+        "skip_to_main_content": "Ga naar hoofdinhoud",
+        "skip_to_footer": "Ga naar voettekst"
+      },
+      "btn": {
+        "cancel": "Annuleren",
+        "verify_amp_sign": "Verifiëren &amp; Ondertekenen"
+      },
+      "span": {
+        "waiting_for_biometric": "Wachten op biometrie..."
+      }
+    },
+    "minimal": {
+      "link": {
+        "sign_in": "Inloggen"
+      }
+    }
+  },
+  "client_dashboard": {
+    "th": {
+      "project": "Project",
+      "status": "Status",
+      "invite_code": "Uitnodigingscode",
+      "created": "Aangemaakt",
+      "reference": "Referentie",
+      "department": "Afdeling",
+      "submitted": "Ingediend"
+    },
+    "h1": {
+      "my_dashboard": "Mijn dashboard"
+    },
+    "link": {
+      "new_intake": "Nieuwe intake",
+      "submit_your_first_intake": "Dien uw eerste intake in"
+    },
+    "span": {
+      "draft": "Concept",
+      "evidence_gathering": "Bewijsverzameling",
+      "submitted": "Ingediend",
+      "under_audit": "Onder audit",
+      "completed": "Voltooid",
+      "draft_needs_completion": "Concept moet worden voltooid",
+      "pending_review": "In afwachting van beoordeling",
+      "in_review": "In beoordeling",
+      "accepted": "Geaccepteerd",
+      "declined": "Afgewezen"
+    },
+    "p": {
+      "received_an_invite_code_from": "Uitnodigingscode ontvangen van"
+    },
+    "ph": {
+      "eg_a1b2c3d4": "Bijv. A1b2c3d4"
+    },
+    "btn": {
+      "go": "Ga"
+    }
+  },
+  "guidance_portal": {
+    "span": {
+      "required": "Vereist",
+      "recommended": "Aanbevolen"
+    },
+    "h2": {
+      "gc_web_standards_checklist": "GC-webstandaarden checklist"
+    },
+    "strong": {
+      "this_checklist_has_been_validated": "Deze checklist is gevalideerd",
+      "returned_for_revision": "Teruggestuurd voor revisie",
+      "assessor_notes": "Beoordelaarsnotities",
+      "submitted_and_awaiting_review": "Ingediend en in afwachting van beoordeling"
+    },
+    "ph": {
+      "notes_or_evidence_reference_optional": "Notities of bewijsreferentie optioneel",
+      "eg_jane_doe": "Bijv. Jan Jansen",
+      "eg_janedoeagencygcca": "Bijv. janjansenagentschapgcca",
+      "any_questions_clarifications_or_additional": "Eventuele vragen verduidelijkingen of aanvullende"
+    },
+    "card": {
+      "submit_checklist_for_review": "Checklist indienen voor beoordeling"
+    },
+    "p": {
+      "once_youve_addressed_the_items": "Zodra u de items hebt behandeld"
+    },
+    "label": {
+      "additional_notes": "Aanvullende notities"
+    },
+    "btn": {
+      "submit_for_review": "Indienen voor beoordeling"
+    }
+  },
+  "flash": {
+    "admin": {
+      "project_not_found": "Project niet gevonden",
+      "assessment_not_found": "Beoordeling niet gevonden",
+      "selfassessment_not_found": "Zelfbeoordeling niet gevonden",
+      "intake_not_found": "Intake niet gevonden",
+      "email_address_is_required": "E-mailadres is vereist.",
+      "failed_to_send_invitation": "Verzenden van uitnodiging mislukt.",
+      "passkey_verification_failed_please_try": "Passkey-verificatie mislukt, probeer het opnieuw",
+      "invalid_authentication_code_please_try": "Ongeldige authenticatiecode, probeer het opnieuw",
+      "failed_to_generate_qr_code": "Genereren van QR-code mislukt",
+      "setup_failed_please_try_again": "Installatie mislukt, probeer het opnieuw",
+      "invalid_code_make_sure_your": "Ongeldige code, controleer of uw",
+      "mfa_enabled_you_can_optionally": "MFA ingeschakeld, u kunt optioneel",
+      "please_log_in_to_access": "Log in om toegang te krijgen",
+      "project_created_successfully": "Project succesvol aangemaakt",
+      "you_do_not_have_access": "U heeft geen toegang",
+      "audit_started": "Audit gestart",
+      "poam_item_added": "POA&M-item toegevoegd",
+      "poam_item_updated": "POA&M-item bijgewerkt",
+      "poam_item_removed": "POA&M-item verwijderd",
+      "submission_reactivated_for_updates": "Inzending opnieuw geactiveerd voor updates",
+      "failed_to_generate_pdf": "Genereren van PDF mislukt",
+      "failed_to_generate_ato_document": "Genereren van ATO-document mislukt",
+      "draft_assessment_deleted_successfully": "Conceptbeoordeling succesvol verwijderd",
+      "selfassessment_marked_as_reviewed": "Zelfbeoordeling gemarkeerd als beoordeeld",
+      "request_not_found": "Verzoek niet gevonden",
+      "access_request_denied": "Toegangsverzoek geweigerd",
+      "attachment_not_found": "Bijlage niet gevonden",
+      "guidance_report_not_found": "Richtlijnrapport niet gevonden",
+      "guidance_checklist_validated_and_approved": "Richtlijnchecklist gevalideerd en goedgekeurd",
+      "checklist_returned_to_project_owner": "Checklist teruggestuurd naar projecteigenaar",
+      "notes_saved": "Notities opgeslagen",
+      "no_new_controls_to_add": "Geen nieuwe maatregelen om toe te voegen",
+      "control_not_found": "Maatregel niet gevonden",
+      "control_updated": "Maatregel bijgewerkt",
+      "invitation_not_found_or_you": "Uitnodiging niet gevonden of u",
+      "invitation_not_found_or_not": "Uitnodiging niet gevonden of niet",
+      "all_fields_are_required": "Alle velden zijn verplicht",
+      "password_must_be_at_least": "Wachtwoord moet minimaal zijn",
+      "passwords_do_not_match": "Wachtwoorden komen niet overeen",
+      "invalid_or_expired_invite_code": "Ongeldige of verlopen uitnodigingscode",
+      "this_invitation_has_expired_please": "Deze uitnodiging is verlopen, gelieve",
+      "an_account_with_this_email": "Een account met dit e-mailadres",
+      "account_created_you_can_now": "Account aangemaakt, u kunt nu",
+      "registration_failed_please_try_again": "Registratie mislukt, probeer het opnieuw",
+      "invalid_mfa_code_please_try": "Ongeldige MFA-code, probeer het",
+      "registration_complete_mfa_enabled_please": "Registratie voltooid, MFA ingeschakeld, gelieve",
+      "only_the_assessment_owner_can": "Alleen de beoordelingseigenaar kan",
+      "selected_assessor_not_found_or": "Geselecteerde beoordelaar niet gevonden of",
+      "you_can_only_assign_assessors": "U kunt alleen beoordelaars toewijzen",
+      "assignment_not_found": "Toewijzing niet gevonden"
+    },
+    "public": {
+      "please_enter_an_access_code": "Voer een toegangscode in",
+      "session_expired": "Sessie verlopen.",
+      "you_do_not_have_access": "U heeft geen toegang tot deze intake.",
+      "failed_to_submit_intake_please": "Intake verzenden mislukt. Probeer het opnieuw.",
+      "assessment_not_found": "Beoordeling niet gevonden",
+      "all_fields_are_required": "Alle velden zijn verplicht.",
+      "password_must_be_at_least": "Wachtwoord moet minimaal 10 tekens bevatten.",
+      "passwords_do_not_match": "Wachtwoorden komen niet overeen.",
+      "this_access_code_has_expired": "Deze toegangscode is verlopen",
+      "invalid_or_expired_access_code": "Ongeldige of verlopen toegangscode",
+      "email_is_required": "E-mailadres is verplicht",
+      "a_request_from_this_email": "Een verzoek van dit e-mailadres",
+      "you_already_have_an_active": "U heeft al een actieve",
+      "failed_to_submit_request_please": "Indienen van verzoek mislukt, gelieve",
+      "please_sign_in_to_access": "Meld u aan om toegang te krijgen",
+      "invalid_or_expired_invite_code": "Ongeldige of verlopen uitnodigingscode",
+      "this_invitation_has_expired_please": "Deze uitnodiging is verlopen, gelieve",
+      "an_account_with_this_email": "Een account met dit e-mailadres",
+      "registration_failed_please_try_again": "Registratie mislukt, probeer het opnieuw",
+      "failed_to_generate_qr_code": "Genereren van QR-code mislukt",
+      "user_not_found_please_register": "Gebruiker niet gevonden, registreer alstublieft",
+      "invalid_code_please_try_again": "Ongeldige code, probeer het opnieuw",
+      "mfa_enabled_you_can_optionally": "MFA ingeschakeld, u kunt optioneel",
+      "invalid_email_or_password": "Ongeldig e-mailadres of wachtwoord",
+      "please_complete_your_mfa_setup": "Voltooi Uw MFA-Configuratie",
+      "session_expired_please_sign_in": "Sessie Verlopen, Meld U Opnieuw Aan",
+      "invalid_authentication_code_please_try": "Ongeldige Authenticatiecode, Probeer Opnieuw",
+      "passkey_not_available": "Passkey Niet Beschikbaar",
+      "verification_failed": "Verificatie Mislukt",
+      "you_have_been_signed_out": "U Bent Afgemeld",
+      "intake_not_found": "Intake Niet Gevonden",
+      "this_intake_has_already_been": "Deze Intake Is Al Verwerkt",
+      "intake_not_found_or_already": "Intake Niet Gevonden Of Al Verwerkt",
+      "this_assessment_is_assigned_to": "Deze Beoordeling Is Toegewezen Aan",
+      "not_authenticated": "Niet Geauthenticeerd",
+      "remediation_evidence_submitted_for_assessor": "Herstelbewijsmateriaal Ingediend Voor Beoordelaar",
+      "invalid_code": "Ongeldige Code",
+      "already_validated": "Reeds Gevalideerd",
+      "provisioning_is_not_available_please": "Provisioning Is Niet Beschikbaar",
+      "verification_failed_please_try_again": "Verificatie Mislukt, Probeer Opnieuw",
+      "verification_error_please_try_again": "Verificatiefout, Probeer Opnieuw",
+      "an_instance_for_this_organization": "Een Instantie Voor Deze Organisatie",
+      "an_error_occurred_please_try": "Er Is Een Fout Opgetreden, Probeer Opnieuw",
+      "provisioning_job_not_found": "Provisioningtaak Niet Gevonden"
+    }
+  },
+  "partial": {
+    "ai_panel": {
+      "tattr": {
+        "ai_assistant": "AI-Assistent"
+      },
+      "h5": {
+        "ai_assistant": "AI-Assistent"
+      },
+      "small": {
+        "powered_by_claude": "Aangedreven Door Claude"
+      },
+      "p": {
+        "select_an_ai_action_to": "Selecteer Een AI-Actie Om"
+      }
+    }
+  },
+  "checklist": {
+    "h1": {
+      "iato_remediation_checklist": "IATO Herstelchecklist"
+    },
+    "strong": {
+      "interim_authority_to_operate_iato": "Interim Authority To Operate (IATO)"
+    },
+    "th": {
+      "description": "Beschrijving",
+      "control": "Controle",
+      "deadline": "Deadline",
+      "assigned_to": "Toegewezen Aan",
+      "status": "Status"
+    },
+    "span": {
+      "progress": "Voortgang"
+    },
+    "p": {
+      "no_checklist_items_have_been": "Er Zijn Geen Checklistitems Toegevoegd",
+      "contact_your_security_assessor_if": "Neem Contact Op Met Uw Beveiligingsbeoordelaar Als"
+    }
+  },
+  "client_login": {
+    "h3": {
+      "client_sign_in": "Klant Aanmelden"
+    },
+    "p": {
+      "sign_in_to_submit_or": "Meld U Aan Om In Te Dienen Of",
+      "approve_with_your_passkey_face": "Goedkeuren Met Uw Passkey Gezicht"
+    },
+    "label": {
+      "email_address": "E-mailadres",
+      "password": "Wachtwoord",
+      "authentication_code": "Authenticatiecode"
+    },
+    "btn": {
+      "continue": "Doorgaan",
+      "verify_sign_in": "Aanmelding Verifiëren"
+    },
+    "link": {
+      "use_totp_code_instead": "Gebruik TOTP-Code In Plaats Daarvan",
+      "use_passkey_instead": "Gebruik Passkey In Plaats Daarvan",
+      "register_here": "Registreer Hier"
+    },
+    "span": {
+      "dont_have_an_account": "Heeft U Geen Account"
+    }
+  },
+  "client_settings": {
+    "h1": {
+      "settings": "Instellingen"
+    },
+    "p": {
+      "account_security_preferences": "Accountbeveiligingsvoorkeuren",
+      "controls_how_critical_actions_submitting": "Bepaalt hoe kritieke acties worden ingediend",
+      "register_a_passkey_to_enable": "Registreer een passkey om in te schakelen"
+    },
+    "span": {
+      "authenticator_app_configured": "Authenticator-app geconfigureerd",
+      "registered": "Geregistreerd",
+      "passkey_enrolled_face_id_touch": "Passkey ingeschreven Face ID Touch"
+    },
+    "div": {
+      "approve_with_face_id_touch": "Goedkeuren met Face ID Touch",
+      "enter_a_6digit_code_from": "Voer een 6-cijferige code in van",
+      "critical_actions_proceed_without_mfa": "Kritieke acties doorgaan zonder MFA"
+    },
+    "btn": {
+      "reregister": "Opnieuw registreren",
+      "register_passkey": "Passkey registreren"
+    }
+  },
+  "guidance_submitted": {
+    "h2": {
+      "checklist_submitted": "Checklist ingediend"
+    },
+    "span": {
+      "access_code": "Toegangscode",
+      "status": "Status",
+      "awaiting_review": "In afwachting van beoordeling"
+    }
+  },
+  "mfa_setup": {
+    "h3": {
+      "set_up_multifactor_authentication": "Multifactorauthenticatie instellen"
+    },
+    "strong": {
+      "microsoft_authenticator": "Microsoft Authenticator",
+      "google_authenticator": "Google Authenticator",
+      "authy": "Authy"
+    },
+    "p": {
+      "step_1_scan_this_qr": "Stap 1 Scan deze QR",
+      "cant_scan_enter_this_key": "Kan niet scannen? Voer deze sleutel in"
+    },
+    "label": {
+      "step_2_enter_the_6digit": "Stap 2 Voer de 6-cijferige code in"
+    },
+    "btn": {
+      "verify_activate_mfa": "Verifiëren en MFA activeren"
+    }
+  },
+  "passkey_setup": {
+    "h3": {
+      "register_a_passkey": "Een passkey registreren"
+    },
+    "p": {
+      "use_face_id_touch_id": "Gebruik Face ID Touch ID"
+    },
+    "strong": {
+      "passkey_already_registered": "Passkey al geregistreerd"
+    },
+    "btn": {
+      "register_passkey_now": "Passkey nu registreren"
+    },
+    "link": {
+      "skip_use_totp_only": "Overslaan, alleen TOTP gebruiken"
+    }
+  },
+  "poam_remediation": {
+    "h1": {
+      "poam_remediation": "POA&M-herstel"
+    },
+    "div": {
+      "total_items": "Totaal aantal items",
+      "open": "Open",
+      "your_submissions": "Uw inzendingen",
+      "verified": "Geverifieerd"
+    },
+    "label": {
+      "original_finding": "Oorspronkelijke bevinding",
+      "required_remediation": "Vereist herstel",
+      "your_remediation_evidence": "Uw herstelbewijs"
+    },
+    "ph": {
+      "describe_what_was_done_to": "Beschrijf wat er is gedaan om"
+    },
+    "tattr": {
+      "ai_elaborate_on_your_text": "AI uw tekst laten uitwerken"
+    },
+    "span": {
+      "submitted_for_review": "Ingediend ter beoordeling"
+    },
+    "btn": {
+      "submit_all_remediation_evidence": "Alle herstelbewijzen indienen"
+    }
+  },
+  "product_signup": {
+    "h1": {
+      "start_your_free_14day_trial": "Start uw gratis proefperiode van 14 dagen"
+    },
+    "div": {
+      "active_assessments": "Actieve beoordelingen",
+      "new_assessment_limit": "Limiet nieuwe beoordelingen",
+      "ai_tokens_month": "AI-tokens per maand",
+      "team_member": "Teamlid"
+    },
+    "h4": {
+      "dedicated_tenant_isolation": "Toegewijde tenantisolatie"
+    },
+    "p": {
+      "every_trial_gets_its_own": "Elke proefperiode krijgt zijn eigen",
+      "this_becomes_your_security_assessor": "Dit wordt uw beveiligingsbeoordelaar"
+    },
+    "h3": {
+      "create_your_account": "Maak uw account aan"
+    },
+    "ph": {
+      "jane": "Jana",
+      "smith": "Smith",
+      "acme_security_corp": "Acme Security Corp",
+      "min_10_characters": "Min 10 tekens",
+      "reenter_your_password": "Voer uw wachtwoord opnieuw in"
+    },
+    "span": {
+      "your_instance": "Uw instantie"
+    },
+    "btn": {
+      "deploy_my_instance": "Mijn instantie implementeren"
+    },
+    "link": {
+      "terms_of_service": "Servicevoorwaarden",
+      "privacy_policy": "Privacybeleid"
+    }
+  },
+  "provision_status": {
+    "span": {
+      "vanguard_cloud_services_inc": "Vanguard Cloud Services Inc",
+      "initializing": "Initialiseren",
+      "validating_azure_credentials": "Azure-referenties valideren",
+      "creating_resource_group": "Resourcegroep aanmaken",
+      "creating_app_service_plan": "App Service Plan aanmaken",
+      "creating_web_application": "Webapplicatie aanmaken",
+      "configuring_environment_amp_credentials": "Omgeving & referenties configureren",
+      "deploying_application_code": "Applicatiecode implementeren",
+      "health_check_amp_finalization": "Gezondheidscontrole & afronding",
+      "instance_url": "Instantie-URL",
+      "login_email": "Inlog-e-mail",
+      "role": "Rol",
+      "security_assessor_admin": "Beveiligingsbeoordelaar Admin",
+      "plan": "Plan"
+    },
+    "h2": {
+      "deploying_your_instance": "Uw instantie wordt geïmplementeerd"
+    },
+    "link": {
+      "launch_your_saa_platform": "Start uw SaaS-platform",
+      "try_again": "Probeer opnieuw"
+    },
+    "strong": {
+      "provisioning_failed": "Provisioning mislukt"
+    }
+  },
+  "register": {
+    "h3": {
+      "account_registration": "Accountregistratie"
+    },
+    "p": {
+      "register_your_account_using_a": "Registreer uw account met een"
+    },
+    "ph": {
+      "xxxxxxxx": "Xxxxxxxx",
+      "eg_jane_doe": "Bijv. Jan Jansen",
+      "must_match_the_invited_email": "Moet overeenkomen met het uitgenodigde e-mailadres",
+      "your_organization": "Uw organisatie",
+      "minimum_10_characters": "Minimaal 10 tekens"
+    },
+    "small": {
+      "enter_the_code_from_your": "Voer de code in van uw",
+      "at_least_10_characters_with": "Minimaal 10 tekens met"
+    },
+    "label": {
+      "organization": "Organisatie"
+    },
+    "btn": {
+      "continue_to_mfa_setup": "Doorgaan naar MFA-configuratie"
+    },
+    "span": {
+      "already_have_an_account": "Heeft u al een account"
+    },
+    "link": {
+      "sign_in": "Inloggen"
+    }
+  },
+  "respond": {
+    "span": {
+      "submitted": "Ingediend",
+      "done": "Gereed"
+    },
+    "strong": {
+      "interim_ato_issued": "Interim ATO uitgegeven",
+      "poam_items": "POA&M-items"
+    },
+    "label": {
+      "your_evidence": "Uw bewijs",
+      "attachments": "Bijlagen"
+    },
+    "ph": {
+      "enter_your_evidence_here": "Voer hier uw bewijs in",
+      "add_a_comment": "Voeg een opmerking toe"
+    },
+    "tattr": {
+      "bold": "Vet",
+      "italic": "Cursief",
+      "bullet_list": "Opsommingslijst",
+      "numbered_list": "Genummerde lijst",
+      "ai_elaborate_on_your_text": "AI je tekst laten uitwerken"
+    },
+    "div": {
+      "loading": "Laden"
+    },
+    "btn": {
+      "submit_all_evidence": "Alle bewijsstukken indienen"
+    }
+  },
+  "self_assessment_gate": {
+    "ph": {
+      "a1b2c3d4": "A1b2c3d4",
+      "jane_doe": "Jan Jansen"
+    }
+  },
+  "self_assessment": {
+    "h2": {
+      "security_selfassessment": "Beveiligingszelfbeoordeling"
+    },
+    "p": {
+      "evaluate_your_systems_security_posture": "Evalueer de beveiligingsstatus van uw systeem",
+      "select_the_type_jurisdiction_and": "Selecteer het type, jurisdictie en"
+    },
+    "card": {
+      "tell_us_about_your_system": "Vertel ons over uw systeem"
+    },
+    "ph": {
+      "eg_we_have_a_publicfacing": "Bijv. wij hebben een publiek toegankelijke",
+      "jane_doe": "Jan Jansen"
+    },
+    "btn": {
+      "generate_security_questions": "Beveiligingsvragen genereren",
+      "back": "Terug",
+      "generate_report": "Rapport genereren"
+    }
+  }
+}

@@ -224,14 +224,26 @@
       <a href="/" class="brand-link" aria-label="Vanguard Cloud Services Security Assessment Platform">
         <span class="brand-icon"><img src="/images/logo-large@2xVCS.png" alt="VCS"></span>
         <span>
-          <span class="brand-name">Vanguard Cloud Services</span>
+          <span class="brand-name">{{t 'brand.company'}}</span>
           <span class="brand-sep">|</span>
-          <span class="brand-product">SA&amp;A Platform</span>
+          <span class="brand-product">{{t 'brand.product'}}</span>
         </span>
       </a>
-      <a href="/portal" class="btn-existing">
-        <i class="bi bi-box-arrow-in-right me-1"></i>Existing Client
-      </a>
+      <div class="d-flex align-items-center gap-2">
+        <div class="dropdown">
+          <a href="#" class="btn-existing dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-globe2 me-1"></i>{{#each supportedLangs}}{{#if this.active}}{{this.short}}{{/if}}{{/each}}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" style="min-width:150px;font-size:.86rem;">
+            {{#each supportedLangs}}
+              <li><a class="dropdown-item {{#if this.active}}active{{/if}}" href="{{this.url}}">{{this.short}} — {{this.name}}</a></li>
+            {{/each}}
+          </ul>
+        </div>
+        <a href="/portal" class="btn-existing">
+          <i class="bi bi-box-arrow-in-right me-1"></i>{{t 'nav.existingClient'}}
+        </a>
+      </div>
     </div>
   </div>
 
@@ -240,42 +252,42 @@
       <div class="col-lg-7">
         <div class="mb-2">
           <span class="badge" style="background:rgba(240,195,109,.15);color:#f0c36d;font-size:.72rem;font-weight:700;padding:.3rem .8rem;border-radius:20px;">
-            <i class="bi bi-shield-check me-1"></i>Multi-framework security readiness
+            <i class="bi bi-shield-check me-1"></i>{{t 'home.badge'}}
           </span>
         </div>
-        <h1 class="mb-3">Know your security posture before the audit starts.<br><span>Move from signal to action.</span></h1>
-        <p class="lead mb-4">Run a guided preliminary self-assessment, identify critical gaps, and request a full assessment when you are ready to move into intake, evidence, ATO/iATO, and POA&amp;M workflows.</p>
+        <h1 class="mb-3">{{t 'home.headline'}}<br><span>{{t 'home.headlineAccent'}}</span></h1>
+        <p class="lead mb-4">{{t 'home.lead'}}</p>
         <div class="d-flex flex-wrap gap-3 mb-3">
-          <div class="hero-point"><i class="bi bi-check-circle-fill"></i>No account required to request access</div>
-          <div class="hero-point"><i class="bi bi-check-circle-fill"></i>Plain-language questions</div>
-          <div class="hero-point"><i class="bi bi-check-circle-fill"></i>Instant red, amber, green feedback</div>
+          <div class="hero-point"><i class="bi bi-check-circle-fill"></i>{{t 'home.noAccount'}}</div>
+          <div class="hero-point"><i class="bi bi-check-circle-fill"></i>{{t 'home.fiveMin'}}</div>
+          <div class="hero-point"><i class="bi bi-check-circle-fill"></i>{{t 'home.instantReport'}}</div>
         </div>
         <div class="d-flex flex-wrap gap-3 mt-4 d-lg-none">
-          <a href="/self-assessment" class="btn-sa-start" style="max-width:320px;"><i class="bi bi-shield-check"></i>Start Self-Assessment</a>
+          <a href="/self-assessment" class="btn-sa-start" style="max-width:320px;"><i class="bi bi-shield-check"></i>{{t 'saCard.startBtn'}}</a>
         </div>
       </div>
       <div class="col-lg-5 d-none d-lg-block">
         <div class="sa-hero-card">
           <div class="sa-header">
             <i class="bi bi-clipboard2-pulse"></i>
-            <h3>Security Self-Assessment</h3>
-            <p>Fast preliminary review for project teams</p>
+            <h3>{{t 'saCard.title'}}</h3>
+            <p>{{t 'saCard.subtitle'}}</p>
           </div>
           <div class="sa-body">
             <div class="sa-step">
               <div class="sa-step-num">1</div>
-              <div class="sa-step-text"><strong>Request or enter an access code.</strong> Start the preliminary assessment without creating a full portal account.</div>
+              <div class="sa-step-text"><strong>{{t 'saCard.step1'}}</strong> {{t 'saCard.step1d'}}</div>
             </div>
             <div class="sa-step">
               <div class="sa-step-num">2</div>
-              <div class="sa-step-text"><strong>Answer guided questions.</strong> The questions adapt to system type, sensitivity, region, and likely framework obligations.</div>
+              <div class="sa-step-text"><strong>{{t 'saCard.step2'}}</strong> {{t 'saCard.step2d'}}</div>
             </div>
             <div class="sa-step">
               <div class="sa-step-num">3</div>
-              <div class="sa-step-text"><strong>Receive actionable feedback.</strong> Review critical, warning, and green findings, then request a formal assessment.</div>
+              <div class="sa-step-text"><strong>{{t 'saCard.step3'}}</strong> {{t 'saCard.step3d'}}</div>
             </div>
-            <a href="/self-assessment" class="btn-sa-start mt-3"><i class="bi bi-shield-check"></i>Start Self-Assessment</a>
-            <div class="sa-note"><i class="bi bi-lock me-1"></i>Access-code gated and reviewed by an assessor.</div>
+            <a href="/self-assessment" class="btn-sa-start mt-3"><i class="bi bi-shield-check"></i>{{t 'saCard.startBtn'}}</a>
+            <div class="sa-note"><i class="bi bi-lock me-1"></i>{{t 'saCard.note'}}</div>
           </div>
         </div>
       </div>
@@ -285,7 +297,7 @@
   <div class="fw-ticker">
     <div class="container">
       <div class="fw-ticker-inner">
-        <span class="fw-label">Frameworks</span>
+        <span class="fw-label">{{t 'home.frameworks'}}</span>
         {{#each frameworkHighlights}}<span class="fw-badge">{{this}}</span>{{/each}}
         <span class="fw-badge">SOC 2</span>
         <span class="fw-badge">PCI DSS</span>
@@ -297,43 +309,43 @@
 
 <div class="container platform-section">
   <div class="text-center mb-4">
-    <h2><i class="bi bi-grid-3x3-gap me-2"></i>Assessment platform capabilities</h2>
-    <p class="text-muted mb-0">A practical path from preliminary security posture review to formal authorization package.</p>
+    <h2><i class="bi bi-grid-3x3-gap me-2"></i>{{t 'cap.title'}}</h2>
+    <p class="text-muted mb-0">{{t 'cap.subtitle'}}</p>
   </div>
   <div class="row g-3">
     <div class="col-6 col-md-3">
-      <div class="cap-item"><i class="bi bi-globe2"></i><div class="cap-title">Multi-Jurisdiction</div><div class="cap-desc">Canada, US, EU, UK, Australia, and global frameworks.</div></div>
+      <div class="cap-item"><i class="bi bi-globe2"></i><div class="cap-title">{{t 'cap.multiJuris'}}</div><div class="cap-desc">{{t 'cap.multiJurisD'}}</div></div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="cap-item"><i class="bi bi-clipboard-check"></i><div class="cap-title">SA&amp;A Lifecycle</div><div class="cap-desc">Intake, assessment, tailoring, evidence, and approvals.</div></div>
+      <div class="cap-item"><i class="bi bi-clipboard-check"></i><div class="cap-title">{{t 'cap.lifecycle'}}</div><div class="cap-desc">{{t 'cap.lifecycleD'}}</div></div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="cap-item"><i class="bi bi-people-fill"></i><div class="cap-title">Collaboration</div><div class="cap-desc">Assign clients, assessors, intakes, and assessments.</div></div>
+      <div class="cap-item"><i class="bi bi-people-fill"></i><div class="cap-title">{{t 'cap.collab'}}</div><div class="cap-desc">{{t 'cap.collabD'}}</div></div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="cap-item"><i class="bi bi-shield-fill-check"></i><div class="cap-title">Strong Identity</div><div class="cap-desc">TOTP, passkeys, invitations, and audit-aware actions.</div></div>
+      <div class="cap-item"><i class="bi bi-shield-fill-check"></i><div class="cap-title">{{t 'cap.mfa'}}</div><div class="cap-desc">{{t 'cap.mfaD'}}</div></div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="cap-item"><i class="bi bi-file-earmark-ruled"></i><div class="cap-title">ATO/iATO</div><div class="cap-desc">Authorization records, POA&amp;M items, and report exports.</div></div>
+      <div class="cap-item"><i class="bi bi-file-earmark-ruled"></i><div class="cap-title">{{t 'cap.guidance'}}</div><div class="cap-desc">{{t 'cap.guidanceD'}}</div></div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="cap-item"><i class="bi bi-robot"></i><div class="cap-title">AI Guidance</div><div class="cap-desc">AI-assisted control selection and evidence guidance.</div></div>
+      <div class="cap-item"><i class="bi bi-robot"></i><div class="cap-title">{{t 'cap.audit'}}</div><div class="cap-desc">{{t 'cap.auditD'}}</div></div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="cap-item"><i class="bi bi-building"></i><div class="cap-title">Project Context</div><div class="cap-desc">Documents, branding, organization details, and reports.</div></div>
+      <div class="cap-item"><i class="bi bi-building"></i><div class="cap-title">{{t 'cap.tenant'}}</div><div class="cap-desc">{{t 'cap.tenantD'}}</div></div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="cap-item"><i class="bi bi-award"></i><div class="cap-title">Client Ready</div><div class="cap-desc">Reports designed for assessor and stakeholder review.</div></div>
+      <div class="cap-item"><i class="bi bi-award"></i><div class="cap-title">{{t 'cap.standards'}}</div><div class="cap-desc">{{t 'cap.standardsD'}}</div></div>
     </div>
   </div>
   <div class="text-center mt-4 mb-2">
-    <p class="text-muted small">Security assessment and authorization tooling by <strong>Vanguard Cloud Services Inc.</strong></p>
+    <p class="text-muted small">{{t 'brand.tagline'}} {{t 'brand.by'}} <strong>{{t 'brand.company'}}</strong></p>
   </div>
 </div>
 
 <div class="site-footer">
   <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
     <p><img src="/images/logo-large@2xVSCFull.png" alt="Vanguard Cloud Services" style="height:20px"></p>
-    <p><a href="/portal">Client portal</a></p>
+    <p><a href="/portal">{{t 'nav.clientPortal'}}</a></p>
   </div>
 </div>

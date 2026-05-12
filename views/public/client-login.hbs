@@ -3,8 +3,8 @@
     <div style="width:56px;height:56px;border-radius:14px;background:var(--gc-accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
       <i class="bi bi-box-arrow-in-right text-white" style="font-size:1.5rem;"></i>
     </div>
-    <h3>Client Sign In</h3>
-    <p class="text-muted">Sign in to submit or view your security assessment intakes.</p>
+    <h3>{{t 'auth.clientSignIn'}}</h3>
+    <p class="text-muted">{{t 'auth.clientSignInD'}}</p>
   </div>
 
   <div class="card">
@@ -14,15 +14,15 @@
       <!-- Step 1: Email + Password -->
       <form method="POST" action="/client/login">
         <div class="mb-3">
-          <label class="form-label" for="email">Email Address</label>
+          <label class="form-label" for="email">{{t 'auth.email'}}</label>
           <input type="email" class="form-control" id="email" name="email" required placeholder="your.name@agency.gc.ca" autofocus value="{{prefillEmail}}">
         </div>
         <div class="mb-4">
-          <label class="form-label" for="password">Password</label>
+          <label class="form-label" for="password">{{t 'auth.password'}}</label>
           <input type="password" class="form-control" id="password" name="password" required>
         </div>
         <button type="submit" class="btn btn-primary w-100 py-2">
-          <i class="bi bi-arrow-right me-2"></i>Continue
+          <i class="bi bi-arrow-right me-2"></i>{{t 'common.continue'}}
         </button>
       </form>
       {{else}}
@@ -32,13 +32,13 @@
         <div class="text-center mb-3">
           <i class="bi bi-person-bounding-box" style="font-size:3rem;color:var(--gc-nav,#26374a)"></i>
         </div>
-        <p class="text-center text-muted small mb-3">Sign in with your passkey, or use your TOTP authenticator code instead.</p>
+        <p class="text-center text-muted small mb-3">{{t 'auth.passkeyOrTotp'}}</p>
         <div id="passkeyError" class="alert alert-danger small py-2 d-none"></div>
         <button class="btn btn-primary w-100 py-2 mb-3" id="passkeyLoginBtn" data-user-id="{{userId}}">
-          <i class="bi bi-person-bounding-box me-1"></i>Sign In with Passkey
+          <i class="bi bi-person-bounding-box me-1"></i>{{t 'auth.signInPasskey'}}
         </button>
         <div class="text-center">
-          <a href="#" class="small text-muted" id="switchToTotpBtn"><i class="bi bi-key me-1"></i>Use TOTP code instead</a>
+          <a href="#" class="small text-muted" id="switchToTotpBtn"><i class="bi bi-key me-1"></i>{{t 'auth.useTotpInstead'}}</a>
         </div>
       </div>
       {{/if}}
@@ -46,24 +46,24 @@
       <div id="totpLoginSection" {{#if hasWebAuthn}}class="d-none"{{/if}}>
         <div class="alert alert-info small mb-3">
           <i class="bi bi-shield-lock me-1"></i>
-          Enter the 6-digit code from your authenticator app.
+          {{t 'auth.enter6digit'}}
         </div>
       <form method="POST" action="/client/login/mfa">
         <input type="hidden" name="userId" value="{{userId}}">
         <div class="mb-4">
-          <label class="form-label fw-bold">Authentication Code</label>
+          <label class="form-label fw-bold">{{t 'auth.authCode'}}</label>
           <input type="text" class="form-control form-control-lg text-center" name="token"
             required maxlength="6" pattern="[0-9]{6}" placeholder="000000"
             style="letter-spacing:6px;font-family:'Courier New',monospace;font-weight:700;font-size:1.5rem;"
             autocomplete="one-time-code" inputmode="numeric" autofocus>
         </div>
         <button type="submit" class="btn btn-primary w-100 py-2">
-          <i class="bi bi-check-circle me-2"></i>Verify & Sign In
+          <i class="bi bi-check-circle me-2"></i>{{t 'auth.verifySignIn'}}
         </button>
       </form>
         {{#if hasWebAuthn}}
         <div class="text-center mt-3">
-          <a href="#" class="small text-muted" id="switchToPasskeyBtn"><i class="bi bi-person-bounding-box me-1"></i>Use passkey instead</a>
+          <a href="#" class="small text-muted" id="switchToPasskeyBtn"><i class="bi bi-person-bounding-box me-1"></i>{{t 'auth.usePasskeyInstead'}}</a>
         </div>
         {{/if}}
       </div>
@@ -72,8 +72,8 @@
   </div>
 
   <div class="text-center mt-3">
-    <span class="text-muted">Don't have an account?</span>
-    <a href="/client/register">Register here</a>
+    <span class="text-muted">{{t 'auth.noAccount'}}</span>
+    <a href="/client/register">{{t 'auth.registerHere'}}</a>
   </div>
 </div>
 
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const errEl = document.getElementById('passkeyError');
     const userId = this.dataset.userId;
     this.disabled = true;
-    this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Waiting for passkey...';
+    this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>' + {{{tjs 'auth.waitingPasskey'}}};
     errEl.classList.add('d-none');
     try {
       const optResp = await fetch('/api/webauthn/auth-options', {
@@ -124,10 +124,10 @@ document.addEventListener('DOMContentLoaded', function() {
       document.body.appendChild(form);
       form.submit();
     } catch (err) {
-      errEl.textContent = err.name === 'NotAllowedError' ? 'Cancelled. Use TOTP or try again.' : err.message;
+      errEl.textContent = err.name === 'NotAllowedError' ? {{{tjs 'auth.cancelledUseTotp'}}} : err.message;
       errEl.classList.remove('d-none');
       this.disabled = false;
-      this.innerHTML = '<i class="bi bi-person-bounding-box me-1"></i>Try Passkey Again';
+      this.innerHTML = '<i class="bi bi-person-bounding-box me-1"></i>' + {{{tjs 'auth.tryPasskeyAgain'}}};
     }
   });
 });

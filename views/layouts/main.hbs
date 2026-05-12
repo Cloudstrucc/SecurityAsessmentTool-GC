@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="no-js" lang="en" dir="ltr">
+<html class="no-js" lang="{{lang}}" dir="ltr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -216,8 +216,8 @@
 <body vocab="http://schema.org/" typeof="WebPage">
 
   <!-- Skip links (WCAG 2.4.1) -->
-  <a class="gc-skip" href="#main-content">Skip to main content</a>
-  <a class="gc-skip" href="#gc-footer">Skip to footer</a>
+  <a class="gc-skip" href="#main-content">{{t 'layout.main.link.skip_to_main_content'}}</a>
+  <a class="gc-skip" href="#gc-footer">{{t 'layout.main.link.skip_to_footer'}}</a>
 
   <!-- ═══ Vanguard Header ═══ -->
   <header role="banner">
@@ -226,14 +226,26 @@
         <a class="gc-sig" href="/">
           <img src="/images/logo-large@2xVCS.png" alt="VCS">
           <span>
-            <span class="brand-name">Vanguard Cloud Services</span>
+            <span class="brand-name">{{t 'brand.company'}}</span>
             <span class="brand-sep mx-1">|</span>
-            <span class="brand-product">SA&amp;A Platform</span>
+            <span class="brand-product">{{t 'brand.product'}}</span>
           </span>
         </a>
-        <a class="brand-portal-link" href="/portal">
-          <i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i>Portal
-        </a>
+        <div class="d-flex align-items-center gap-2">
+          <div class="dropdown">
+            <a href="#" class="brand-portal-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-globe2 me-1" aria-hidden="true"></i>{{#each supportedLangs}}{{#if this.active}}{{this.short}}{{/if}}{{/each}}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" style="min-width:150px;font-size:.86rem;">
+              {{#each supportedLangs}}
+                <li><a class="dropdown-item {{#if this.active}}active{{/if}}" href="{{this.url}}">{{this.short}} — {{this.name}}</a></li>
+              {{/each}}
+            </ul>
+          </div>
+          <a class="brand-portal-link" href="/portal">
+            <i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i>{{t 'nav.clientPortal'}}
+          </a>
+        </div>
       </div>
     </div>
 
@@ -241,35 +253,35 @@
       <div class="container gc-app-inner">
         <a class="gc-app-title" href="{{#if isAdmin}}/admin/dashboard{{else}}/{{/if}}">
           <i class="bi bi-cloud-check-fill brand-icon" aria-hidden="true"></i>
-          Security Assessment &amp; Authorization
+          {{t 'nav.appTitle'}}
         </a>
         <button class="gc-menu-btn" onclick="document.getElementById('gcNav').classList.toggle('show')" aria-label="Toggle navigation">
-          <i class="bi bi-list" aria-hidden="true"></i> Menu
+          <i class="bi bi-list" aria-hidden="true"></i> {{t 'nav.menu'}}
         </button>
         <ul class="gc-app-nav" id="gcNav">
           {{#if isAdmin}}
-            <li><a class="{{#if isDashboard}}active{{/if}}" href="/admin/dashboard"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>Dashboard</a></li>
-            <li><a class="{{#if isProjects}}active{{/if}}" href="/admin/projects"><i class="bi bi-folder2-open me-1" aria-hidden="true"></i>Projects</a></li>
-            <li><a class="{{#if isAssessments}}active{{/if}}" href="/admin/assessments"><i class="bi bi-clipboard-check me-1" aria-hidden="true"></i>Assessments</a></li>
-            <li><a class="{{#if isIntakes}}active{{/if}}" href="/admin/intakes"><i class="bi bi-inbox me-1" aria-hidden="true"></i>Intakes</a></li>
-            <li><a class="{{#if isSelfAssessments}}active{{/if}}" href="/admin/self-assessments"><i class="bi bi-clipboard2-pulse me-1" aria-hidden="true"></i>Self-Assessments</a></li>
-            <li><a class="{{#if isTeams}}active{{/if}}" href="/admin/teams"><i class="bi bi-people me-1" aria-hidden="true"></i>Teams</a></li>
-            <li><a class="{{#if isControls}}active{{/if}}" href="/admin/security-controls"><i class="bi bi-shield-check me-1" aria-hidden="true"></i>Controls</a></li>
-            <li><a class="{{#if isHelp}}active{{/if}}" href="/admin/help"><i class="bi bi-question-circle me-1" aria-hidden="true"></i>Help</a></li>
-            <li><a class="{{#if isSettings}}active{{/if}}" href="/admin/settings"><i class="bi bi-gear me-1" aria-hidden="true"></i>Settings</a></li>
+            <li><a class="{{#if isDashboard}}active{{/if}}" href="/admin/dashboard"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{t 'nav.dashboard'}}</a></li>
+            <li><a class="{{#if isProjects}}active{{/if}}" href="/admin/projects"><i class="bi bi-folder2-open me-1" aria-hidden="true"></i>{{t 'nav.projects'}}</a></li>
+            <li><a class="{{#if isAssessments}}active{{/if}}" href="/admin/assessments"><i class="bi bi-clipboard-check me-1" aria-hidden="true"></i>{{t 'nav.assessments'}}</a></li>
+            <li><a class="{{#if isIntakes}}active{{/if}}" href="/admin/intakes"><i class="bi bi-inbox me-1" aria-hidden="true"></i>{{t 'nav.intakes'}}</a></li>
+            <li><a class="{{#if isSelfAssessments}}active{{/if}}" href="/admin/self-assessments"><i class="bi bi-clipboard2-pulse me-1" aria-hidden="true"></i>{{t 'nav.preAssessments'}}</a></li>
+            <li><a class="{{#if isTeams}}active{{/if}}" href="/admin/teams"><i class="bi bi-people me-1" aria-hidden="true"></i>{{t 'nav.team'}}</a></li>
+            <li><a class="{{#if isControls}}active{{/if}}" href="/admin/security-controls"><i class="bi bi-shield-check me-1" aria-hidden="true"></i>{{t 'nav.controls'}}</a></li>
+            <li><a class="{{#if isHelp}}active{{/if}}" href="/admin/help"><i class="bi bi-question-circle me-1" aria-hidden="true"></i>{{t 'nav.help'}}</a></li>
+            <li><a class="{{#if isSettings}}active{{/if}}" href="/admin/settings"><i class="bi bi-gear me-1" aria-hidden="true"></i>{{t 'nav.settings'}}</a></li>
             <li class="nav-item dropdown">
               <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{admin.name}}
               </a>
               <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="/admin/logout"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Sign out</a></li>
+                <li><a class="dropdown-item" href="/admin/logout"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>{{t 'nav.signOut'}}</a></li>
               </ul>
             </li>
           {{else}}
             {{#if user}}
               {{#if (eq user.role 'client')}}
-              <li><a href="/intake"><i class="bi bi-clipboard-plus me-1" aria-hidden="true"></i>Intake</a></li>
-              <li><a href="/help"><i class="bi bi-question-circle me-1" aria-hidden="true"></i>Help</a></li>
+              <li><a href="/intake"><i class="bi bi-clipboard-plus me-1" aria-hidden="true"></i>{{t 'nav.newIntake'}}</a></li>
+              <li><a href="/help"><i class="bi bi-question-circle me-1" aria-hidden="true"></i>{{t 'nav.help'}}</a></li>
               <li class="nav-item dropdown">
                 <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                   <i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{user.name}}
@@ -277,7 +289,7 @@
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li><span class="dropdown-item-text small text-muted">{{user.email}}</span></li>
                   <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" href="/client/logout"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Sign out</a></li>
+                  <li><a class="dropdown-item" href="/client/logout"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>{{t 'nav.signOut'}}</a></li>
                 </ul>
               </li>
               {{/if}}
@@ -303,23 +315,23 @@
     <div class="gc-footer-main">
       <div class="container">
         <nav aria-label="About this site">
-          <h2 class="visually-hidden">About this site</h2>
+          <h2 class="visually-hidden">{{t 'layout.main.h2.about_this_site'}}</h2>
           <ul class="gc-footer-links">
-            <li><a href="/help">Help guide</a></li>
-            <li><a href="/portal">Client portal</a></li>
-            <li><a href="/self-assessment">Self-assessment</a></li>
-            <li><a href="/admin/login">Assessor login</a></li>
+            <li><a href="/help">{{t 'nav.help'}}</a></li>
+            <li><a href="/portal">{{t 'nav.clientPortal'}}</a></li>
+            <li><a href="/self-assessment">{{t 'sa.title'}}</a></li>
+            <li><a href="/admin/login">{{t 'nav.assessorLogin'}}</a></li>
           </ul>
         </nav>
-        <p style="font-size:.8125rem;margin:0;opacity:.7;">&copy; {{currentYear}} Vanguard Cloud Services Inc. — Security Assessment &amp; Authorization Platform</p>
+        <p style="font-size:.8125rem;margin:0;opacity:.7;">&copy; {{currentYear}} {{t 'brand.company'}} — {{t 'brand.tagline'}}</p>
       </div>
     </div>
     <div class="gc-footer-sub">
       <div class="container gc-footer-sub-inner">
-        <div class="gc-modified">Date modified: <time>{{currentDate}}</time></div>
+        <div class="gc-modified">{{t 'footer.dateModified'}}: <time>{{currentDate}}</time></div>
         <span style="font-weight:600;color:var(--cs-nav);font-size:.875rem;display:flex;align-items:center;gap:.35rem;">
           <img src="/images/logo-large@2xVCS.png" alt="VCS" style="height:28px;">
-          Vanguard Cloud Services
+          {{t 'brand.company'}}
         </span>
       </div>
     </div>

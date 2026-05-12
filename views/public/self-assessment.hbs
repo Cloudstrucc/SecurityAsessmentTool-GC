@@ -21,26 +21,26 @@
 <div class="container sa-wizard py-4">
   <div class="text-center mb-4">
     <i class="bi bi-shield-check" style="font-size:2.6rem;color:var(--gc-accent)"></i>
-    <h1 class="h2 mt-2 mb-1">Security Self-Assessment</h1>
-    <p class="text-muted mb-0">Complete a preliminary review, receive critical / warning / green feedback, then request a full assessment when ready.</p>
+    <h1 class="h2 mt-2 mb-1">{{t 'sa.title'}}</h1>
+    <p class="text-muted mb-0">{{t 'sa.subtitle'}}</p>
   </div>
 
   <div class="sa-steps">
-    <div class="sa-step active" id="stepLabel1">1. System</div>
-    <div class="sa-step" id="stepLabel2">2. Questions</div>
-    <div class="sa-step" id="stepLabel3">3. Report</div>
+    <div class="sa-step active" id="stepLabel1">1. {{t 'sa.step1'}}</div>
+    <div class="sa-step" id="stepLabel2">2. {{t 'sa.step2'}}</div>
+    <div class="sa-step" id="stepLabel3">3. {{t 'sa.step3'}}</div>
   </div>
 
   <div id="step1">
     <div class="card">
-      <div class="card-header"><i class="bi bi-info-circle me-2"></i>System and Jurisdiction</div>
+      <div class="card-header"><i class="bi bi-info-circle me-2"></i>{{t 'sa.step1'}}</div>
       <div class="card-body">
         <div class="sa-type-grid mb-3" id="typeGrid"></div>
         <div class="row g-3">
           <div class="col-md-4">
-            <label class="form-label" for="saCountry">Country / Region</label>
+            <label class="form-label" for="saCountry">{{t 'sa.country'}}</label>
             <select class="form-select" id="saCountry" onchange="updateFrameworks()">
-              <option value="">Select...</option>
+              <option value="">{{t 'common.select'}}</option>
               <option value="CA">Canada</option>
               <option value="US">United States</option>
               <option value="UK">United Kingdom</option>
@@ -50,26 +50,26 @@
             </select>
           </div>
           <div class="col-md-4">
-            <label class="form-label" for="saGovLevel">Sector</label>
+            <label class="form-label" for="saGovLevel">{{t 'sa.govLevel'}}</label>
             <select class="form-select" id="saGovLevel" onchange="updateFrameworks()">
-              <option value="">Select...</option>
-              <option value="federal">Federal</option>
-              <option value="state">State / Provincial</option>
-              <option value="municipal">Municipal / Local</option>
-              <option value="private">Private Sector</option>
-              <option value="health">Healthcare</option>
-              <option value="finance">Financial Services</option>
+              <option value="">{{t 'common.select'}}</option>
+              <option value="federal">{{t 'sa.federal'}}</option>
+              <option value="state">{{t 'sa.state'}}</option>
+              <option value="municipal">{{t 'sa.municipal'}}</option>
+              <option value="private">{{t 'sa.private'}}</option>
+              <option value="health">{{t 'sa.healthcare'}}</option>
+              <option value="finance">{{t 'sa.finance'}}</option>
             </select>
           </div>
           <div class="col-md-4">
-            <label class="form-label" for="saSensitivity">Data Sensitivity</label>
+            <label class="form-label" for="saSensitivity">{{t 'sa.sensitivity'}}</label>
             <select class="form-select" id="saSensitivity" onchange="updateFrameworks()">
-              <option value="">Select...</option>
-              <option value="public">Public / unclassified</option>
-              <option value="low">Low sensitivity</option>
-              <option value="medium">Medium / personal information</option>
-              <option value="high">High / Protected B / regulated</option>
-              <option value="classified">Classified / secret</option>
+              <option value="">{{t 'common.select'}}</option>
+              <option value="public">{{t 'sa.public'}}</option>
+              <option value="low">{{t 'sa.lowSens'}}</option>
+              <option value="medium">{{t 'sa.medSens'}}</option>
+              <option value="high">{{t 'sa.highSens'}}</option>
+              <option value="classified">{{t 'sa.classified'}}</option>
             </select>
           </div>
         </div>
@@ -77,28 +77,28 @@
         <div class="alert alert-info mt-3 hidden" id="frameworkBanner"></div>
 
         <div class="mt-3">
-          <label class="form-label" for="saDescription">Describe Your System</label>
-          <textarea class="form-control" id="saDescription" rows="4" placeholder="Describe users, data, hosting, integrations, current security controls, and any known gaps."></textarea>
+          <label class="form-label" for="saDescription">{{t 'sa.describe'}}</label>
+          <textarea class="form-control" id="saDescription" rows="4" placeholder="{{t 'sa.describeP'}}"></textarea>
         </div>
 
         <div class="row g-3 mt-1">
           <div class="col-md-4">
-            <label class="form-label" for="saName">Name</label>
+            <label class="form-label" for="saName">{{t 'sa.yourName'}}</label>
             <input class="form-control" id="saName" value="{{accessName}}">
           </div>
           <div class="col-md-4">
-            <label class="form-label" for="saEmail">Email</label>
+            <label class="form-label" for="saEmail">{{t 'sa.yourEmail'}}</label>
             <input class="form-control" id="saEmail" type="email" value="{{accessEmail}}">
           </div>
           <div class="col-md-4">
-            <label class="form-label" for="saOrg">Organization</label>
+            <label class="form-label" for="saOrg">{{t 'sa.yourOrg'}}</label>
             <input class="form-control" id="saOrg" value="{{accessOrganization}}">
           </div>
         </div>
 
         <div class="text-end mt-4">
           <button class="btn btn-primary" type="button" onclick="goStep2()">
-            <i class="bi bi-stars me-1"></i>Generate Questions
+            <i class="bi bi-stars me-1"></i>{{t 'sa.generateQ'}}
           </button>
         </div>
       </div>
@@ -107,13 +107,13 @@
 
   <div id="step2" class="hidden">
     <div class="card">
-      <div class="card-header"><i class="bi bi-clipboard-check me-2"></i>Security Questions</div>
+      <div class="card-header"><i class="bi bi-clipboard-check me-2"></i>{{t 'sa.questionsTitle'}}</div>
       <div class="card-body">
-        <div id="questionStatus" class="alert alert-info">Generating questions...</div>
+        <div id="questionStatus" class="alert alert-info">{{t 'sa.generatingQuestions'}}</div>
         <div id="questionsBody"></div>
         <div class="d-flex justify-content-between mt-4">
-          <button class="btn btn-outline-secondary" type="button" onclick="setStep(1)"><i class="bi bi-arrow-left me-1"></i>Back</button>
-          <button class="btn btn-primary" type="button" onclick="goStep3()"><i class="bi bi-file-earmark-medical me-1"></i>Generate Report</button>
+          <button class="btn btn-outline-secondary" type="button" onclick="setStep(1)"><i class="bi bi-arrow-left me-1"></i>{{t 'sa.back'}}</button>
+          <button class="btn btn-primary" type="button" onclick="goStep3()"><i class="bi bi-file-earmark-medical me-1"></i>{{t 'sa.generateReport'}}</button>
         </div>
       </div>
     </div>
@@ -126,13 +126,36 @@
 
 <script>
 const frameworkMap = {{{frameworkMapJSON}}};
+const saText = {
+  select: {{{tjs 'common.select'}}},
+  likelyFramework: {{{tjs 'sa.likelyFramework'}}},
+  relatedFrameworks: {{{tjs 'sa.relatedFrameworks'}}},
+  selectRequired: {{{tjs 'sa.selectRequired'}}},
+  unableQuestions: {{{tjs 'sa.unableQuestions'}}},
+  generatingPreliminaryReport: {{{tjs 'sa.generatingPreliminaryReport'}}},
+  unableReport: {{{tjs 'sa.unableReport'}}},
+  reportTitle: {{{tjs 'sa.reportTitle'}}},
+  critical: {{{tjs 'sa.critical'}}},
+  warnings: {{{tjs 'sa.warnings'}}},
+  green: {{{tjs 'sa.green'}}},
+  criticalSection: {{{tjs 'sa.criticalSection'}}},
+  warningSection: {{{tjs 'sa.warningSection'}}},
+  securedSection: {{{tjs 'sa.securedSection'}}},
+  nextSteps: {{{tjs 'sa.nextSteps'}}},
+  back: {{{tjs 'sa.back'}}},
+  requestFull: {{{tjs 'sa.requestFull'}}},
+  submitting: {{{tjs 'sa.submitting'}}},
+  submitted: {{{tjs 'sa.submitted'}}},
+  submittedD: {{{tjs 'sa.submittedD'}}},
+  submissionFailed: {{{tjs 'sa.submissionFailed'}}}
+};
 const systemTypes = [
-  { id:'web-app', icon:'bi-globe', label:'Web App', desc:'Portal, website, SaaS' },
-  { id:'internal-app', icon:'bi-building', label:'Internal System', desc:'Business application' },
-  { id:'cloud-infra', icon:'bi-cloud', label:'Cloud Infrastructure', desc:'Azure, AWS, GCP' },
-  { id:'mobile-app', icon:'bi-phone', label:'Mobile App', desc:'iOS, Android' },
-  { id:'data-system', icon:'bi-database', label:'Data / Analytics', desc:'Warehouse, reports, BI' },
-  { id:'network', icon:'bi-diagram-3', label:'Network / Devices', desc:'Network, IoT, OT' }
+  { id:'web-app', icon:'bi-globe', label:{{{tjs 'sa.webApp'}}}, desc:{{{tjs 'sa.webAppD'}}} },
+  { id:'internal-app', icon:'bi-building', label:{{{tjs 'sa.internal'}}}, desc:{{{tjs 'sa.internalD'}}} },
+  { id:'cloud-infra', icon:'bi-cloud', label:{{{tjs 'sa.cloud'}}}, desc:{{{tjs 'sa.cloudD'}}} },
+  { id:'mobile-app', icon:'bi-phone', label:{{{tjs 'sa.mobile'}}}, desc:{{{tjs 'sa.mobileD'}}} },
+  { id:'data-system', icon:'bi-database', label:{{{tjs 'sa.data'}}}, desc:{{{tjs 'sa.dataD'}}} },
+  { id:'network', icon:'bi-diagram-3', label:{{{tjs 'sa.network'}}}, desc:{{{tjs 'sa.networkD'}}} }
 ];
 let selectedType = 'web-app';
 let currentQuestions = [];
@@ -169,7 +192,7 @@ function updateFrameworks() {
   const fw = frameworkMap[`${country}-${sector}`] || frameworkMap[`${country}-private`] || frameworkMap['OTHER-private'];
   currentFrameworks = { primary: fw.primary, others: fw.others || [], all: [fw.primary].concat(fw.others || []) };
   banner.classList.remove('hidden');
-  banner.innerHTML = `<strong>Likely framework:</strong> ${esc(fw.primary)}<div class="small mt-1">Related: ${esc((fw.others || []).join(', '))}</div>`;
+  banner.innerHTML = `<strong>${esc(saText.likelyFramework)}:</strong> ${esc(fw.primary)}<div class="small mt-1">${esc(saText.relatedFrameworks)}: ${esc((fw.others || []).join(', '))}</div>`;
 }
 
 function setStep(num) {
@@ -193,7 +216,7 @@ function payload() {
 async function goStep2() {
   updateFrameworks();
   if (!payload().country || !payload().govLevel || !payload().sensitivity) {
-    alert('Select country/region, sector, and data sensitivity first.');
+    alert(saText.selectRequired);
     return;
   }
   setStep(2);
@@ -207,7 +230,7 @@ async function goStep2() {
   const data = await response.json();
   if (!response.ok || data.error) {
     document.getElementById('questionStatus').className = 'alert alert-danger';
-    document.getElementById('questionStatus').textContent = data.error || 'Unable to generate questions.';
+    document.getElementById('questionStatus').textContent = data.error || saText.unableQuestions;
     return;
   }
   currentQuestions = data.questions || [];
@@ -236,7 +259,7 @@ function renderQuestion(q, gi, qi) {
     return `<div class="mb-3">
       <label class="form-label fw-semibold" for="${key}">${esc(q.text)}</label>
       <select class="form-select" id="${key}" data-qkey="${key}">
-        <option value="">Select...</option>
+        <option value="">${esc(saText.select)}</option>
         ${(q.options || []).map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}
       </select>
       ${q.hint ? `<div class="form-text">${esc(q.hint)}</div>` : ''}
@@ -259,7 +282,7 @@ function collectAnswers() {
 
 async function goStep3() {
   setStep(3);
-  document.getElementById('reportBody').innerHTML = '<div class="alert alert-info"><i class="bi bi-hourglass-split me-1"></i>Generating preliminary report...</div>';
+  document.getElementById('reportBody').innerHTML = `<div class="alert alert-info"><i class="bi bi-hourglass-split me-1"></i>${esc(saText.generatingPreliminaryReport)}</div>`;
   const response = await fetch('/api/self-assessment/report', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -267,7 +290,7 @@ async function goStep3() {
   });
   currentReport = await response.json();
   if (!response.ok || currentReport.error) {
-    document.getElementById('reportBody').innerHTML = `<div class="alert alert-danger">${esc(currentReport.error || 'Unable to generate report.')}</div>`;
+    document.getElementById('reportBody').innerHTML = `<div class="alert alert-danger">${esc(currentReport.error || saText.unableReport)}</div>`;
     return;
   }
   renderReport(currentReport);
@@ -290,29 +313,29 @@ function renderReport(report) {
   const color = report.score >= 70 ? 'success' : report.score >= 45 ? 'warning' : 'danger';
   document.getElementById('reportBody').innerHTML = `
     <div class="card mb-3">
-      <div class="card-header"><i class="bi bi-speedometer2 me-2"></i>Preliminary Security Posture</div>
+      <div class="card-header"><i class="bi bi-speedometer2 me-2"></i>${esc(saText.reportTitle)}</div>
       <div class="card-body text-center">
         <div class="display-5 fw-bold text-${color}">${report.score}%</div>
         <p class="text-muted mb-2">${esc(report.summary || '')}</p>
         <div class="d-flex flex-wrap justify-content-center gap-2">
-          <span class="badge bg-danger">${(report.critical || []).length} Critical</span>
-          <span class="badge bg-warning text-dark">${(report.warnings || []).length} Warnings</span>
-          <span class="badge bg-success">${(report.secure || []).length} Green</span>
+          <span class="badge bg-danger">${(report.critical || []).length} ${esc(saText.critical)}</span>
+          <span class="badge bg-warning text-dark">${(report.warnings || []).length} ${esc(saText.warnings)}</span>
+          <span class="badge bg-success">${(report.secure || []).length} ${esc(saText.green)}</span>
         </div>
       </div>
     </div>
-    ${section('Critical Gaps', report.critical, 'critical', 'danger')}
-    ${section('Warnings / Needs Attention', report.warnings, 'warning', 'warning')}
-    ${section('Green / Self-Reported Strengths', report.secure, 'secure', 'success')}
+    ${section(saText.criticalSection, report.critical, 'critical', 'danger')}
+    ${section(saText.warningSection, report.warnings, 'warning', 'warning')}
+    ${section(saText.securedSection, report.secure, 'secure', 'success')}
     <div class="card mb-3">
-      <div class="card-header"><i class="bi bi-signpost-split me-2"></i>Recommended Next Steps</div>
+      <div class="card-header"><i class="bi bi-signpost-split me-2"></i>${esc(saText.nextSteps)}</div>
       <div class="card-body">
         <ol class="mb-0">${(report.nextSteps || []).map(s => `<li>${esc(s)}</li>`).join('')}</ol>
       </div>
     </div>
     <div class="d-flex justify-content-between mb-5">
-      <button class="btn btn-outline-secondary" type="button" onclick="setStep(2)"><i class="bi bi-arrow-left me-1"></i>Back</button>
-      <button class="btn btn-primary" type="button" onclick="submitSelfAssessment(event)"><i class="bi bi-send me-1"></i>Submit and Request Full Assessment</button>
+      <button class="btn btn-outline-secondary" type="button" onclick="setStep(2)"><i class="bi bi-arrow-left me-1"></i>${esc(saText.back)}</button>
+      <button class="btn btn-primary" type="button" onclick="submitSelfAssessment(event)"><i class="bi bi-send me-1"></i>${esc(saText.requestFull)}</button>
     </div>
   `;
 }
@@ -328,7 +351,7 @@ function section(title, items, type, color) {
 async function submitSelfAssessment(event) {
   const button = event.target.closest('button');
   button.disabled = true;
-  button.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Submitting...';
+  button.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>${esc(saText.submitting)}`;
   const response = await fetch('/api/self-assessment/submit', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -346,11 +369,11 @@ async function submitSelfAssessment(event) {
   const data = await response.json();
   if (!response.ok || data.error) {
     button.disabled = false;
-    button.innerHTML = '<i class="bi bi-send me-1"></i>Submit and Request Full Assessment';
-    alert(data.error || 'Submission failed.');
+    button.innerHTML = `<i class="bi bi-send me-1"></i>${esc(saText.requestFull)}`;
+    alert(data.error || saText.submissionFailed);
     return;
   }
-  button.parentElement.insertAdjacentHTML('beforebegin', `<div class="alert alert-success"><i class="bi bi-check-circle-fill me-1"></i><strong>Submitted.</strong> Reference <code>${esc(data.refCode)}</code>. An assessor can now review it from the admin self-assessments queue.</div>`);
+  button.parentElement.insertAdjacentHTML('beforebegin', `<div class="alert alert-success"><i class="bi bi-check-circle-fill me-1"></i><strong>${esc(saText.submitted)}</strong> ${esc(saText.submittedD).replace('{refCode}', `<code>${esc(data.refCode)}</code>`)}</div>`);
 }
 
 initTypes();

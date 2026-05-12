@@ -16,6 +16,7 @@ const publicRoutes = require('./routes/public');
 const apiRoutes = require('./routes/api');
 const emailService = require('./utils/emailService');
 const { UPLOAD_DIR, ensureUploadDirs } = require('./config/storage');
+const { initI18n, i18nMiddleware, i18nLocals, DEFAULT_LANG } = require('./config/i18n');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,6 +33,8 @@ async function initialize() {
   try {
     await initDatabase();
     console.log('Database initialized');
+    await initI18n();
+    console.log('i18n initialized');
     emailService.initialize();
     console.log('Application initialized successfully');
   } catch (error) {
@@ -66,6 +69,23 @@ app.engine('hbs', engine({
       const args = Array.from(arguments);
       const options = args.pop();
       return args.every(Boolean) ? options.fn(this) : options.inverse(this);
+    },
+    t: function(key, options) {
+      const req = options.data?.root?.req;
+      const params = options.hash && Object.keys(options.hash).length ? options.hash : {};
+      return req?.t ? req.t(key, params) : key;
+    },
+    tjs: function(key, options) {
+      const req = options.data?.root?.req;
+      const params = options.hash && Object.keys(options.hash).length ? options.hash : {};
+      const translated = req?.t ? req.t(key, params) : key;
+      return JSON.stringify(translated);
+    },
+    currentLang: function(options) {
+      return options.data?.root?.lang || DEFAULT_LANG;
+    },
+    ifLang: function(lang, options) {
+      return (options.data?.root?.lang || DEFAULT_LANG) === lang ? options.fn(this) : options.inverse(this);
     },
     json: obj => JSON.stringify(obj),
     formatDate: function(date) {
@@ -143,6 +163,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb', parameterLimit: 1000
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(UPLOAD_DIR));
+app.use(i18nMiddleware());
+app.use(i18nLocals);
 
 app.set('trust proxy', 1);
 app.use(session({

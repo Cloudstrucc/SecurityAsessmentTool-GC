@@ -1,0 +1,2174 @@
+{
+  "brand": {
+    "company": "Vanguard Cloud Services",
+    "product": "SA&A Platform",
+    "tagline": "Plattform für Sicherheitsbewertung & Autorisierung",
+    "by": "von"
+  },
+  "nav": {
+    "existingClient": "Bestehender Kunde",
+    "clientPortal": "Kundenportal",
+    "assessorLogin": "Prüfer-Anmeldung",
+    "signIn": "Anmelden zum Einreichen",
+    "register": "Registrieren",
+    "registerInvite": "Mit Einladungscode registrieren",
+    "dashboard": "Dashboard",
+    "settings": "Einstellungen",
+    "signOut": "Abmelden",
+    "startIntake": "Aufnahme starten",
+    "backHome": "Zurück zur Startseite",
+    "appTitle": "Sicherheitsbewertung & Autorisierung",
+    "menu": "Menü",
+    "projects": "Projekte",
+    "assessments": "Bewertungen",
+    "preAssessments": "Vorbewertungen",
+    "intakes": "Aufnahmen",
+    "team": "Team",
+    "auditLog": "Audit-Protokoll",
+    "newIntake": "Neue Aufnahme",
+    "newProject": "Neues Projekt",
+    "controls": "Kontrollen",
+    "help": "Hilfe"
+  },
+  "home": {
+    "badge": "Multi-Framework-Compliance-Plattform",
+    "headline": "Ist Ihr System",
+    "headlineAccent": "sicher genug?",
+    "lead": "Finden Sie es in wenigen Minuten heraus. Unser Selbstbewertungs-Assistent stellt verständliche Fragen zu Ihrem System, ordnet diese den richtigen Sicherheitsframeworks für Ihre Jurisdiktion zu und liefert Ihnen einen sofortigen Bericht.",
+    "noAccount": "Kein Konto erforderlich",
+    "fiveMin": "5-Minuten-Fragebogen",
+    "instantReport": "Sofortiger Sicherheitsbericht",
+    "frameworks": "Unterstützte Frameworks"
+  },
+  "saCard": {
+    "title": "Sicherheits-Selbstbewertung",
+    "subtitle": "Kostenlose Vorbewertung",
+    "step1": "Beschreiben Sie Ihr System",
+    "step1d": "— wählen Sie Typ, Jurisdiktion und Sensibilitätsstufe",
+    "step2": "Beantworten Sie Fragen",
+    "step2d": "— zugeschnitten auf Ihre Frameworks (ITSG-33, NIST, GDPR usw.)",
+    "step3": "Erhalten Sie Ihren Bericht",
+    "step3d": "— was sicher ist, was kritisch ist und die nächsten Schritte",
+    "startBtn": "Kostenlose Bewertung starten",
+    "note": "Zugangscode erforderlich — sofort anfordern"
+  },
+  "cap": {
+    "title": "Plattform-Funktionen",
+    "subtitle": "Durchgängiger Lebenszyklus für Sicherheitsbewertung und Autorisierung",
+    "multiJuris": "Multi-Jurisdiktion",
+    "multiJurisD": "17+ Regionen mit automatischer Framework-Auswahl",
+    "lifecycle": "Vollständiger SA&A-Lebenszyklus",
+    "lifecycleD": "ATO, iATO, POA&M, Risikokategorisierung, PDF-Exporte",
+    "collab": "Team-Zusammenarbeit",
+    "collabD": "Kundenportal, Peer-Assessor-Zuweisungen, Einladungen",
+    "mfa": "MFA + Passkeys",
+    "mfaD": "TOTP, WebAuthn biometrisch, signierter Audit-Trail",
+    "guidance": "GC Web Guidance",
+    "guidanceD": "Automatisierte Compliance-Checklisten für risikoarme Systeme",
+    "audit": "Audit-Trail",
+    "auditD": "MFA-signierte Aktionen mit manipulationssicherer Protokollierung",
+    "tenant": "Mandantenfähiges SaaS",
+    "tenantD": "Isolierte Instanzen pro Organisation auf Azure",
+    "standards": "Branchenstandards",
+    "standardsD": "SOC 2, PCI DSS, CMMC, FedRAMP, DORA, Essential Eight"
+  },
+  "portal": {
+    "title": "Kundenportal",
+    "subtitle": "Reichen Sie Anfragen ein, greifen Sie auf Assessments zu oder melden Sie sich an, um Ihre Sicherheitslage zu verwalten.",
+    "submitIntake": "Anfrage einreichen",
+    "submitIntakeD": "Starten Sie ein neues Projekt? Reichen Sie eine Sicherheitsbewertungsanfrage mit Ihren Projektdetails und Datenklassifizierung ein.",
+    "mfaReq": "Konto mit MFA erforderlich.",
+    "enterCode": "Zugangscode eingeben",
+    "enterCodeD": "Haben Sie eine Einladung von einem Sicherheitsexperten erhalten? Geben Sie Ihren Zugangscode ein, um Nachweise für Ihr Assessment bereitzustellen.",
+    "accessCode": "Zugangscode",
+    "accessBtn": "Auf Assessment zugreifen",
+    "practitioner": "Sicherheitsexperte",
+    "practitionerD": "Sicherheitsprüfer und -experten können sich anmelden, um Projekte zu verwalten, Anfragen zu prüfen, Assessments zu erstellen und Audits durchzuführen.",
+    "ph": {
+      "a1b2c3d4": "A1b2c3d4"
+    }
+  },
+  "gate": {
+    "title": "Sicherheits-Selbstbewertung",
+    "subtitle": "Bewerten Sie die Sicherheitslage Ihres Systems anhand geltender Frameworks.",
+    "haveCode": "Ich habe einen Zugangscode",
+    "codeLabel": "Zugangscode",
+    "startBtn": "Assessment starten",
+    "requestAccess": "Zugang anfordern",
+    "requestD": "Sie haben keinen Code? Senden Sie eine Anfrage und unser Sicherheitsteam wird diese prüfen. Nach Genehmigung erhalten Sie einen Zugangscode per E-Mail.",
+    "name": "Ihr Name",
+    "email": "E-Mail-Adresse",
+    "org": "Organisation",
+    "systemQ": "Welches System möchten Sie bewerten?",
+    "systemP": "Kurze Beschreibung – z. B. öffentlich zugängliches Webportal für Bürgerfeedback",
+    "submitBtn": "Zugang anfordern",
+    "submitted": "Anfrage eingereicht!",
+    "submittedD": "Ihre Anfrage wurde an unser Sicherheitsteam gesendet. Sie erhalten eine E-Mail an <strong>{{email}}</strong> mit einem Zugangscode nach Genehmigung.",
+    "submittedNote": "Dies dauert in der Regel weniger als 24 Stunden.",
+    "backPortal": "Zurück zum Portal"
+  },
+  "sa": {
+    "title": "Sicherheits-Selbstbewertung",
+    "subtitle": "Bewerten Sie die Sicherheitslage Ihres Systems anhand geltender Frameworks",
+    "step1": "System & Zuständigkeitsbereich",
+    "step2": "Fragen beantworten",
+    "step3": "Bericht anzeigen",
+    "tellUs": "Erzählen Sie uns von Ihrem System",
+    "tellUsD": "Wählen Sie den Typ, den Zuständigkeitsbereich und beschreiben Sie Ihr System. Wir ermitteln, welche Sicherheits-Frameworks gelten, und generieren maßgeschneiderte Fragen.",
+    "systemType": "Systemtyp",
+    "webApp": "Webanwendung",
+    "webAppD": "Website, Portal, SaaS-App",
+    "internal": "Internes System",
+    "internalD": "Intranet, HR, ERP, CRM",
+    "cloud": "Cloud-Infrastruktur",
+    "cloudD": "AWS, Azure, GCP-Einrichtung",
+    "mobile": "Mobile App",
+    "mobileD": "iOS, Android, Hybrid",
+    "data": "Daten / Analytik",
+    "dataD": "Datenbank, Data Warehouse, BI",
+    "network": "Netzwerk / Geräte",
+    "networkD": "LAN, WLAN, IoT, Endgeräte",
+    "country": "Land",
+    "govLevel": "Regierungsebene",
+    "sensitivity": "Datensensibilität",
+    "federal": "Bund",
+    "state": "Land / Provinz",
+    "municipal": "Kommune / Lokal",
+    "private": "Privatwirtschaft",
+    "healthcare": "Gesundheitswesen",
+    "finance": "Finanzdienstleistungen",
+    "public": "Öffentlich / Nicht klassifiziert",
+    "lowSens": "Niedrige Sensibilität",
+    "medSens": "Mittel (personenbezogene Daten)",
+    "highSens": "Hoch (Protected B / PII)",
+    "classified": "Klassifiziert / Geheim",
+    "fwApply": "Sicherheitsframeworks, die für Ihr System gelten können:",
+    "describe": "Beschreiben Sie Ihr System in einfacher Sprache",
+    "describeP": "z.B. Wir haben ein öffentlich zugängliches Webportal auf WordPress-Basis, das Feedback-Formulare von Bürgern erfasst.",
+    "generateQ": "Sicherheitsfragen generieren",
+    "analyzing": "Analyse Ihres Systems und Ihrer Jurisdiktion...",
+    "analyzingD": "Erstellung maßgeschneiderter Sicherheitsfragen basierend auf anwendbaren Frameworks",
+    "questionsTitle": "Fragen zur Sicherheitsbewertung",
+    "questionsHint": "Antworten Sie ehrlich — das hilft, Lücken zu identifizieren. Überspringen Sie Fragen, bei denen Sie unsicher sind.",
+    "back": "Zurück",
+    "generateReport": "Sicherheitsbericht erstellen",
+    "genReport": "Ihr Sicherheitsbericht wird erstellt...",
+    "genReportD": "Antworten werden analysiert und Framework-Kontrollen zugeordnet",
+    "doNotClose": "Bitte schließen Sie diese Seite nicht — dies kann bis zu 30 Sekunden dauern.",
+    "reportTitle": "Vorläufige Sicherheitslage",
+    "score": "Sicherheitsbewertung",
+    "secured": "Gesichert",
+    "needAttn": "Erfordert Aufmerksamkeit",
+    "critical": "Kritische Lücken",
+    "criticalSection": "Kritische Lücken — Sofortiges Handeln erforderlich",
+    "warningSection": "Verbesserungsbedürftige Bereiche",
+    "securedSection": "Bereits gesichert",
+    "securedNote": "angenommen — unabhängig verifizieren",
+    "securedWarn": "Basierend auf Ihren selbst angegebenen Antworten. Sollte während einer formellen Bewertung verifiziert werden.",
+    "nextSteps": "Empfohlene nächste Schritte",
+    "requestFull": "Vollständige SA&A-Bewertung anfordern",
+    "print": "Bericht drucken",
+    "startOver": "Neu beginnen",
+    "yourName": "Ihr Name",
+    "yourEmail": "Ihre E-Mail",
+    "yourOrg": "Organisation",
+    "generatingQuestions": "Fragen werden generiert...",
+    "likelyFramework": "Wahrscheinliches Framework",
+    "relatedFrameworks": "Verwandt",
+    "selectRequired": "Wählen Sie zuerst Land/Region, Sektor und Datensensitivität aus.",
+    "unableQuestions": "Fragen konnten nicht generiert werden.",
+    "generatingPreliminaryReport": "Vorläufiger Bericht wird generiert...",
+    "unableReport": "Bericht konnte nicht generiert werden.",
+    "warnings": "Warnungen",
+    "green": "Grün",
+    "submitting": "Wird gesendet...",
+    "submitted": "Gesendet.",
+    "submittedD": "Referenz {refCode}. Ein Assessor kann dies nun in der Admin-Selbstbewertungswarteschlange prüfen.",
+    "submissionFailed": "Übermittlung fehlgeschlagen."
+  },
+  "common": {
+    "select": "— Auswählen —",
+    "submit": "Absenden",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "required": "erforderlich",
+    "loading": "Wird geladen...",
+    "error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "yes": "Ja",
+    "no": "Nein",
+    "unknown": "Unbekannt",
+    "continue": "Weiter"
+  },
+  "bq": {
+    "iam": "Identitäts- & Zugriffsmanagement",
+    "dp": "Datenschutz & Privatsphäre",
+    "sns": "System- & Netzwerksicherheit",
+    "mir": "Überwachung & Vorfallreaktion",
+    "gpa": "Governance, Richtlinien & Sensibilisierung",
+    "ssc": "Systemspezifische Überlegungen"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "loginTitle": "Assessor-Anmeldung",
+    "clientLogin": "Kundenanmeldung",
+    "email": "E-Mail-Adresse",
+    "password": "Passwort",
+    "signIn": "Anmelden",
+    "forgotPassword": "Passwort vergessen?",
+    "noAccount": "Noch kein Konto?",
+    "registerHere": "Hier registrieren",
+    "verifyMfa": "MFA verifizieren",
+    "enterCode": "Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein",
+    "verify": "Verifizieren",
+    "usePasskey": "Stattdessen Passkey verwenden",
+    "or": "oder",
+    "mfaSetup": "MFA-Einrichtung",
+    "scanQr": "Scannen Sie diesen QR-Code mit Ihrer Authenticator-App",
+    "manualEntry": "Manuelle Eingabe",
+    "enterToken": "Verifizierungscode eingeben",
+    "enableMfa": "MFA aktivieren",
+    "register": "Registrieren",
+    "name": "Vollständiger Name",
+    "organization": "Organisation",
+    "confirmPassword": "Passwort bestätigen",
+    "inviteCode": "Einladungscode",
+    "inviteHint": "Geben Sie den Code aus Ihrer Einladungs-E-Mail ein.",
+    "createAccount": "Konto erstellen",
+    "alreadyHave": "Bereits ein Konto?",
+    "passkey": "Passkey / Biometrie",
+    "passkeyDesc": "Registrieren Sie einen Passkey, um biometrische Verifizierung für Anmeldung und kritische Aktionen zu aktivieren.",
+    "registerPasskey": "Passkey registrieren",
+    "skipPasskey": "Vorerst überspringen",
+    "passkeyRegistered": "Passkey registriert! Sie können die biometrische Anmeldung verwenden.",
+    "tryAgain": "Erneut versuchen",
+    "continueToApp": "Weiter zum Dashboard",
+    "confirmIdentity": "Bestätigen Sie Ihre Identität, um fortzufahren.",
+    "saPortal": "Portal für Sicherheitsbewertung & Autorisierung",
+    "approvePasskey": "Mit Ihrem Passkey bestätigen (Face ID, Touch ID oder Windows Hello).",
+    "signInPasskey": "Mit Passkey anmelden",
+    "useTotpInstead": "Stattdessen TOTP-Code verwenden",
+    "enter6digit": "Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein.",
+    "verifySignIn": "Überprüfen & Anmelden",
+    "differentUser": "Als anderer Benutzer anmelden",
+    "registerInvite": "Mit Einladungscode registrieren",
+    "backPortal": "Zurück zur Portal-Startseite",
+    "clientSignIn": "Kundenanmeldung",
+    "mfaSetupInstructions": "Scannen Sie den QR-Code mit einer Authenticator-App und geben Sie dann den 6-stelligen Code ein. TOTP bleibt verfügbar, auch wenn Sie später einen Passkey hinzufügen.",
+    "authCode": "Authentifizierungscode",
+    "verifyEnableMfa": "MFA verifizieren und aktivieren",
+    "passkeyOrTotp": "Verwenden Sie Ihren registrierten Passkey oder wechseln Sie zum Authenticator-Code.",
+    "usePasskeyInstead": "Stattdessen Passkey verwenden",
+    "passwordPlaceholder": "Passwort eingeben",
+    "clientSignInD": "Melden Sie sich an, um Ihre Sicherheitsbewertungsanträge einzureichen oder anzusehen.",
+    "waitingPasskey": "Warten auf Passkey...",
+    "cancelledUseTotp": "Abgebrochen. Verwenden Sie TOTP oder versuchen Sie es erneut.",
+    "tryPasskeyAgain": "Passkey erneut versuchen"
+  },
+  "dash": {
+    "title": "Dashboard",
+    "welcome": "Willkommen zurück,",
+    "newProject": "Neues Projekt",
+    "totalProjects": "Projekte gesamt",
+    "activeAssessments": "Aktive Bewertungen",
+    "pendingAudits": "Ausstehende Audits",
+    "activeATOs": "Aktive ATOs",
+    "pendingIntakes": "Ausstehende Aufnahmen",
+    "preAssessments": "Vorbewertungen",
+    "recentProjects": "Aktuelle Projekte",
+    "recentAssessments": "Aktuelle Bewertungen",
+    "viewAll": "Alle anzeigen",
+    "noProjects": "Noch keine Projekte.",
+    "noAssessments": "Noch keine Bewertungen."
+  },
+  "proj": {
+    "title": "Projekte",
+    "new": "Neues Projekt",
+    "name": "Projektname",
+    "description": "Beschreibung",
+    "department": "Abteilung",
+    "branch": "Bereich",
+    "dataClass": "Datenklassifizierung",
+    "hosting": "Hosting-Typ",
+    "appType": "Anwendungstyp",
+    "status": "Status",
+    "created": "Erstellt",
+    "actions": "Aktionen",
+    "view": "Anzeigen",
+    "noProjects": "Keine Projekte gefunden.",
+    "delete": "Projekt löschen",
+    "deleteConfirm": "Sind Sie sicher?"
+  },
+  "assess": {
+    "title": "Bewertungen",
+    "new": "Neue Bewertung",
+    "project": "Projekt",
+    "type": "Typ",
+    "status": "Status",
+    "score": "Punktzahl",
+    "controls": "Kontrollen",
+    "view": "Anzeigen",
+    "sendInvite": "Einladung senden",
+    "startAudit": "Audit starten",
+    "completeAudit": "Audit abschließen",
+    "noAssessments": "Keine Bewertungen gefunden.",
+    "evidenceGathering": "Nachweiserhebung",
+    "submitted": "Eingereicht",
+    "audit": "Audit",
+    "completed": "Abgeschlossen",
+    "met": "Erfüllt",
+    "partiallyMet": "Teilweise erfüllt",
+    "notMet": "Nicht erfüllt",
+    "pending": "Ausstehend",
+    "inherited": "Vererbt",
+    "applicable": "Anwendbar",
+    "priority": "Priorität"
+  },
+  "intake": {
+    "title": "Einreichungen",
+    "ref": "Referenz",
+    "projectName": "Projektname",
+    "submitter": "Einreicher",
+    "status": "Status",
+    "submitted": "Eingereicht",
+    "review": "Überprüfen",
+    "accept": "Annehmen",
+    "decline": "Ablehnen",
+    "noIntakes": "Noch keine Einreichungen vorhanden.",
+    "form": "Sicherheitsbewertung Aufnahmeformular",
+    "systemInfo": "Systeminformationen",
+    "dataInfo": "Daten & Klassifizierung",
+    "hosting": "Hosting & Technologie",
+    "contacts": "Kontakte",
+    "additional": "Zusätzliche Informationen",
+    "submit": "Einreichung absenden",
+    "draft": "Entwurf",
+    "inReview": "In Prüfung",
+    "accepted": "Angenommen",
+    "declined": "Abgelehnt",
+    "strong": {
+      "privacy_impact_assessment_pia": "Datenschutz-Folgenabschätzung (PIA)",
+      "intake_submitted_successfully": "Aufnahme erfolgreich eingereicht",
+      "complete_your_intake": "Vervollständigen Sie Ihre Aufnahme",
+      "canada": "Kanada",
+      "united_states": "Vereinigte Staaten",
+      "european_union": "Europäische Union",
+      "germany": "Deutschland",
+      "france": "Frankreich",
+      "united_kingdom": "Vereinigtes Königreich",
+      "spain": "Spanien",
+      "australia": "Australien",
+      "global_worldwide": "Global weltweit",
+      "handles_payment_cards": "Verarbeitet Zahlungskarten",
+      "select_at_least_one_region": "Wählen Sie mindestens eine Region aus",
+      "operating_regions": "Betriebsregionen",
+      "tbs_directive_on_security_management": "TBS-Richtlinie zum Sicherheitsmanagement",
+      "pbhva_overlay": "PBHVA-Overlay",
+      "determined_security_profile": "Festgelegtes Sicherheitsprofil",
+      "tailoring_notes": "Anpassungshinweise",
+      "name_address_or_contact_info": "Name, Adresse oder Kontaktinformationen",
+      "social_insurance_number_sin": "Sozialversicherungsnummer (SIN)",
+      "financial_information": "Finanzinformationen",
+      "health_medical_records": "Gesundheits-/Krankenakten",
+      "biometric_data": "Biometrische Daten",
+      "employment_hr_records": "Beschäftigungs-/HR-Unterlagen",
+      "immigration_citizenship_data": "Einwanderungs-/Staatsbürgerschaftsdaten",
+      "law_enforcement_criminal_records": "Strafverfolgungs-/Strafregisterakten",
+      "indigenous_treaty_data": "Indigene Vertragsdaten",
+      "none_of_the_above": "Keines der oben genannten",
+      "atip": "ATIP",
+      "gc_systems": "GC-Systeme",
+      "mobile_byod": "Mobile/BYOD",
+      "external_users": "Externe Benutzer",
+      "threat_risk_assessment_tra": "Bedrohungs- und Risikobewertung (TRA)",
+      "system_security_plan_ssp": "Systemsicherheitsplan (SSP)",
+      "vulnerability_assessment_pen_test": "Schwachstellenbewertung/Penetrationstest",
+      "network_architecture_diagram": "Netzwerkarchitekturdiagramm",
+      "previous_saa_ato": "Frühere SAA/ATO"
+    },
+    "ph": {
+      "full_name": "Vollständiger Name",
+      "email_address": "E-Mail-Adresse",
+      "title_role": "Titel / Rolle",
+      "eg_were_building_a_portal": "Z.B. wir entwickeln ein Portal",
+      "eg_hr_case_management_portal": "Z.B. HR-Fallmanagement-Portal",
+      "describe_the_purpose_scope_and": "Beschreiben Sie Zweck, Umfang und",
+      "eg_employment_and_social_development": "Z.B. Beschäftigung und soziale Entwicklung",
+      "eg_innovation_information_and_technology": "Z.B. Innovation, Information und Technologie",
+      "list_any_technologies_not_covered": "Listen Sie alle nicht abgedeckten Technologien auf",
+      "eg_gccase_via_api_sap": "Z.B. GCcase via API, SAP",
+      "eg_tight_deadline_need_iato": "Z.B. enger Zeitrahmen, benötigen IATO"
+    },
+    "h2": {
+      "security_assessment_intake": "Sicherheitsbewertungs-Aufnahme"
+    },
+    "p": {
+      "submit_your_project_for_a": "Reichen Sie Ihr Projekt ein für eine",
+      "your_security_assessor_has_created": "Ihr Sicherheitsbewerter hat erstellt",
+      "select_all_regions_and_jurisdictions": "Wählen Sie alle Regionen und Zuständigkeitsbereiche aus",
+      "upload_a_project_document_or": "Laden Sie ein Projektdokument hoch oder",
+      "upload_a_design_doc_sa": "Ein Design-Dokument hochladen (SA)",
+      "describe_what_your_system_does": "Beschreiben Sie, was Ihr System tut",
+      "tell_us_about_your_project": "Erzählen Sie uns von Ihrem Projekt",
+      "what_is_the_highest_sensitivity": "Was ist die höchste Sensibilitätsstufe",
+      "what_is_the_expected_impact": "Welche Auswirkungen werden erwartet",
+      "what_is_the_expected_impact_2": "Welche Auswirkungen werden erwartet",
+      "does_your_system_collect_process": "Erfasst oder verarbeitet Ihr System",
+      "where_will_the_system_be": "Wo wird das System sein",
+      "check_all_technologies_that_are": "Wählen Sie alle Technologien aus, die",
+      "help_us_understand_how_the": "Helfen Sie uns zu verstehen, wie das",
+      "let_us_know_what_security": "Teilen Sie uns mit, welche Sicherheits-",
+      "check_all_that_have_been": "Wählen Sie alle aus, die",
+      "provide_contact_details_for_the": "Geben Sie die Kontaktdaten für",
+      "upload_any_existing_documentation_that": "Laden Sie alle vorhandenen Dokumentationen hoch, die",
+      "any_other_information_that_would": "Alle anderen Informationen, die"
+    },
+    "span": {
+      "required": "Erforderlich",
+      "beta": "Beta"
+    },
+    "small": {
+      "itsg33_cccs_medium": "ITSG-33 CCCS Medium",
+      "osfi_b13": "OSFI B-13",
+      "nist_80053_fedramp": "NIST 800-53 FedRAMP",
+      "cmmc_20": "CMMC",
+      "stateramp": "StateRAMP",
+      "nydfs_500": "NYDFS",
+      "nis2_directive": "NIS2-Richtlinie",
+      "dora": "DORA",
+      "bsi_itgrundschutz": "BSI IT-Grundschutz",
+      "anssi_rgs_ebios_rm": "ANSSI RGS EBIOS RM",
+      "ncsc_caf": "NCSC CAF",
+      "ens_ccnstic": "ENS CCN-STIC",
+      "asd_ism_essential_eight": "ASD ISM Essential Eight",
+      "apra_cps_234": "APRA CPS 234",
+      "iso_27001": "ISO 27001",
+      "service_organization_controls": "Service Organization Controls",
+      "pci_dss_40": "PCI DSS",
+      "v81_municipal_general": "V81 Kommunal Allgemein",
+      "full_name_homework_address_phone": "Vollständiger Name, Wohnadresse, Telefon",
+      "sin_or_business_number": "SIN oder Unternehmensnummer",
+      "bank_accounts_tax_records_pay": "Bankkonten, Steuerunterlagen, Gehaltsabrechnungen",
+      "medical_history_disability_mental_health": "Krankengeschichte, Behinderung, Psychische Gesundheit",
+      "fingerprints_facial_recognition_voice_prints": "Fingerabdrücke, Gesichtserkennung, Stimmabdrücke",
+      "performance_reviews_staffing_actions_leave": "Leistungsbeurteilungen, Personalmaßnahmen, Urlaub",
+      "visa_applications_travel_documents_citizenship": "Visumanträge, Reisedokumente, Staatsbürgerschaft",
+      "case_files_criminal_history_investigations": "Fallakten, Strafregister, Ermittlungen",
+      "band_membership_treaty_info_land": "Stammesmitgliedschaft, Vertragsinfo, Landrechte",
+      "no_personal_information_is_collected": "Es werden keine personenbezogenen Daten erfasst",
+      "you_can_select_multiple_files": "Sie können mehrere Dateien auswählen"
+    },
+    "btn": {
+      "change_regions": "Regionen ändern",
+      "analyze_prefill": "Analysieren und Vorausfüllen",
+      "get_suggestions": "Vorschläge erhalten",
+      "submit_intake": "Intake einreichen"
+    },
+    "label": {
+      "branch_directorate": "Abteilung/Direktion",
+      "target_golive_date": "Geplantes Go-Live-Datum",
+      "estimated_user_count": "Geschätzte Benutzeranzahl",
+      "personal_information_pii_checklist": "Checkliste für personenbezogene Daten (PII)",
+      "data_residency": "Datenspeicherort",
+      "technology_stack": "Technologie-Stack",
+      "microsoft_entra_id_azure_ad": "Microsoft Entra ID (Azure AD)",
+      "active_directory_onprem": "Active Directory (On-Premises)",
+      "multifactor_authentication": "Multifaktor-Authentifizierung",
+      "privileged_identity_management": "Privileged Identity Management",
+      "microsoft_azure": "Microsoft Azure",
+      "amazon_web_services": "Amazon Web Services",
+      "google_cloud_platform": "Google Cloud Platform",
+      "ssc_data_centre": "SSC-Rechenzentrum",
+      "gc_network_gcnet": "GC-Netzwerk (GCnet)",
+      "microsoft_sentinel_siem": "Microsoft Sentinel (SIEM)",
+      "splunk_siem": "Splunk (SIEM)",
+      "microsoft_defender": "Microsoft Defender",
+      "crowdstrike_falcon": "CrowdStrike Falcon",
+      "cse_cccs_services": "CSE/CCCS-Dienste",
+      "web_application_firewall": "Web Application Firewall",
+      "azure_devops": "Azure DevOps",
+      "github_enterprise": "GitHub Enterprise",
+      "microsoft_intune_mdm": "Microsoft Intune (MDM)",
+      "azure_key_vault": "Azure Key Vault",
+      "aws_kms": "AWS KMS",
+      "azure_backup": "Azure Backup",
+      "other_technologies_notes": "Weitere Technologien (Anmerkungen)",
+      "list_known_interconnections_integrations": "Liste bekannter Verbindungen und Integrationen",
+      "completed_security_activities": "Abgeschlossene Sicherheitsaktivitäten",
+      "attachments": "Anhänge",
+      "selected_files": "Ausgewählte Dateien",
+      "notes_questions_special_considerations": "Anmerkungen, Fragen und besondere Hinweise"
+    },
+    "h6": {
+      "identity_access": "Identität und Zugriff",
+      "cloud_infrastructure": "Cloud-Infrastruktur",
+      "security_monitoring": "Sicherheitsüberwachung",
+      "devops_encryption_management": "DevOps und Verschlüsselungsverwaltung",
+      "technical_lead": "Technische Leitung",
+      "authorizing_official_dg_director": "Autorisierender Beamter (DG/Direktor)"
+    },
+    "link": {
+      "back": "Zurück"
+    }
+  },
+  "client": {
+    "dashboard": "Mein Dashboard",
+    "myIntakes": "Meine Einreichungen",
+    "myAssessments": "Meine Bewertungen",
+    "newIntake": "Neue Einreichung",
+    "noIntakes": "Sie haben noch keine Einreichungen abgesendet.",
+    "noAssessments": "Ihnen wurden noch keine Bewertungen zugewiesen.",
+    "viewIntake": "Anzeigen",
+    "editDraft": "Entwurf bearbeiten",
+    "settings": "Einstellungen",
+    "profile": "Profil",
+    "changePassword": "Passwort ändern",
+    "mfaSettings": "MFA-Einstellungen",
+    "passkeySettings": "Passkey-Einstellungen"
+  },
+  "evidence": {
+    "title": "Nachweiseinreichung",
+    "control": "Kontrolle",
+    "description": "Beschreibung",
+    "guidance": "Nachweisanleitung",
+    "provide": "Nachweis erbringen",
+    "save": "Speichern",
+    "submit": "Alle Nachweise einreichen",
+    "progress": "Fortschritt",
+    "provided": "Erbracht",
+    "remaining": "Ausstehend",
+    "addComment": "Kommentar hinzufügen",
+    "attachFile": "Datei anhängen"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "mfa": "Multi-Faktor-Authentifizierung",
+    "mfaEnabled": "MFA ist aktiviert",
+    "mfaMode": "MFA-Modus",
+    "totp": "Authenticator-App (TOTP)",
+    "push": "Passkey / Biometrisch",
+    "passkey": "Passkey-Verwaltung",
+    "clearPasskeys": "Passkeys löschen",
+    "registerNew": "Neuen Passkey registrieren"
+  },
+  "auditLog": {
+    "title": "Audit-Signaturprotokoll",
+    "action": "Aktion",
+    "user": "Benutzer",
+    "entity": "Entität",
+    "timestamp": "Zeitstempel",
+    "details": "Details",
+    "today": "Heute",
+    "total": "Gesamt",
+    "uniqueUsers": "Eindeutige Benutzer"
+  },
+  "invite": {
+    "title": "Einladungsverwaltung",
+    "clients": "Kundeneinladungen",
+    "assessors": "Prüfer-Einladungen",
+    "peers": "Peer-Prüfer",
+    "sendClient": "Kunde einladen",
+    "sendAssessor": "Prüfer einladen",
+    "email": "E-Mail",
+    "name": "Name",
+    "message": "Nachricht",
+    "send": "Einladung senden",
+    "resend": "Erneut senden",
+    "revoke": "Widerrufen",
+    "status": "Status",
+    "code": "Code",
+    "expires": "Läuft ab",
+    "pending": "Ausstehend",
+    "accepted": "Angenommen",
+    "revoked": "Widerrufen",
+    "expired": "Abgelaufen"
+  },
+  "poam": {
+    "title": "POA&M-Behebung",
+    "item": "Element",
+    "risk": "Risikostufe",
+    "deadline": "Frist",
+    "status": "Status",
+    "evidence": "Nachweis",
+    "open": "Offen",
+    "inProgress": "In Bearbeitung",
+    "completed": "Abgeschlossen",
+    "verified": "Verifiziert",
+    "overdue": "Überfällig",
+    "submitEvidence": "Nachweise zur Behebung einreichen"
+  },
+  "error": {
+    "title": "Fehler",
+    "notFound": "Seite nicht gefunden",
+    "goHome": "Zur Startseite",
+    "tryAgain": "Erneut versuchen",
+    "p": {
+      "try_entering_your_access_code": "Versuchen Sie, Ihren Zugangscode einzugeben"
+    },
+    "ph": {
+      "access_code": "Zugangscode"
+    },
+    "link": {
+      "back_to_home": "Zurück zur Startseite"
+    }
+  },
+  "success": {
+    "title": "Nachweis eingereicht",
+    "message": "Ihr Nachweis wurde erfolgreich eingereicht.",
+    "ref": "Referenz",
+    "date": "Eingereicht am",
+    "h1": {
+      "evidence_submitted_successfully": "Nachweise erfolgreich eingereicht"
+    },
+    "span": {
+      "under_review": "In Prüfung"
+    },
+    "p": {
+      "your_security_assessor_has_been": "Ihr Sicherheitsprüfer wurde"
+    },
+    "link": {
+      "return_home": "Zur Startseite"
+    }
+  },
+  "guidance": {
+    "title": "GC Web-Leitfaden-Bericht",
+    "checklist": "Compliance-Checkliste",
+    "required": "Erforderlich",
+    "recommended": "Empfohlen",
+    "met": "Erfüllt",
+    "inProgress": "In Bearbeitung",
+    "na": "N/A",
+    "submit": "Checkliste einreichen",
+    "validate": "Validieren",
+    "return": "Zur Überarbeitung zurücksenden"
+  },
+  "saAdmin": {
+    "title": "Selbstbewertungen vor der Aufnahme",
+    "subtitle": "Vom Kunden eingereichte Sicherheits-Selbstbewertungen, die auf Überprüfung warten",
+    "total": "Gesamt",
+    "pendingReview": "Überprüfung ausstehend",
+    "reviewed": "Überprüft",
+    "intakeCreated": "Aufnahme erstellt",
+    "ref": "Ref",
+    "submitter": "Einreicher",
+    "system": "System",
+    "jurisdiction": "Zuständigkeitsbereich",
+    "score": "Punktzahl",
+    "review": "Überprüfen",
+    "noAssessments": "Noch keine Selbstbewertungen eingereicht.",
+    "accessRequests": "Zugriffsanfragen",
+    "pending": "ausstehend",
+    "approve": "Genehmigen",
+    "deny": "Ablehnen",
+    "noRequests": "Noch keine Zugriffsanfragen.",
+    "reason": "Grund",
+    "requested": "Angefordert"
+  },
+  "saReview": {
+    "systemJuris": "System & Zuständigkeitsbereich",
+    "systemType": "Systemtyp",
+    "country": "Land",
+    "govLevel": "Regierungsebene",
+    "sensitivity": "Datensensibilität",
+    "score": "Sicherheitsbewertung",
+    "findings": "Feststellungen",
+    "critical": "kritisch",
+    "warnings": "Warnungen",
+    "secured": "gesichert",
+    "systemDesc": "Systembeschreibung",
+    "frameworks": "Anwendbare Frameworks",
+    "criticalGaps": "Kritische Lücken",
+    "warningSection": "Verbesserungsbedürftige Bereiche",
+    "securedSection": "Gesichert (angenommen — unabhängig überprüfen)",
+    "securedWarn": "Vom Kunden selbst gemeldet. Sollte während der formellen Bewertung überprüft werden.",
+    "adminNotes": "Admin-Notizen",
+    "notesPlaceholder": "Interne Notizen zu dieser Einreichung...",
+    "markReviewed": "Als überprüft markieren",
+    "updateNotes": "Notizen aktualisieren",
+    "linkedIntake": "Verknüpfte Aufnahme",
+    "viewIntake": "Aufnahme anzeigen",
+    "clientInvitation": "Kundeneinladung",
+    "hasAccount": "hat bereits ein Konto",
+    "sendEmail": "E-Mail manuell senden",
+    "inviteDesc": "Zur Registrierung einladen, anmelden und den Aufnahmeentwurf überprüfen.",
+    "sendInvite": "Registrierungseinladung senden",
+    "createIntakeFirst": "Erstellen Sie zuerst einen Aufnahmeentwurf, dann können Sie den Kunden einladen.",
+    "createIntake": "Aufnahme erstellen",
+    "aiPopulate": "Mit KI vorausfüllen",
+    "aiPopulateD": "Aufnahmefelder automatisch aus der Selbstbewertung ausfüllen",
+    "generate": "Generieren",
+    "createDraft": "Aufnahmeentwurf erstellen",
+    "projectName": "Projektname",
+    "description": "Beschreibung",
+    "department": "Abteilung",
+    "appType": "App-Typ",
+    "dataClass": "Datenklassifizierung",
+    "confidentiality": "Vertraulichkeit",
+    "integrity": "Integrität",
+    "availability": "Verfügbarkeit",
+    "pii": "Enthält personenbezogene Daten?",
+    "pia": "PIA abgeschlossen?",
+    "hostingType": "Hosting",
+    "hostingRegion": "Hosting-Region",
+    "secProfile": "Sicherheitsprofil",
+    "notes": "Zusätzliche Notizen"
+  },
+  "footer": {
+    "contact": "Kontakt",
+    "terms": "Nutzungsbedingungen",
+    "privacy": "Datenschutzrichtlinie",
+    "accessibility": "Barrierefreiheit",
+    "copyright": "Plattform für Sicherheitsbewertung und Autorisierung · Multi-Framework-Konformität",
+    "dateModified": "Änderungsdatum"
+  },
+  "admin": {
+    "dashboard": {
+      "th": {
+        "status": "Status",
+        "updated": "Aktualisiert",
+        "project": "Projekt",
+        "classification": "Klassifizierung",
+        "name": "Name",
+        "result": "Ergebnis",
+        "ref": "Ref",
+        "department": "Abteilung",
+        "submitted": "Eingereicht"
+      },
+      "h1": {
+        "dashboard": "Dashboard"
+      },
+      "link": {
+        "new_project": "Neues Projekt",
+        "view_all": "Alle anzeigen",
+        "create_your_first_project": "Erstellen Sie Ihr erstes Projekt",
+        "view_all_2": "Alle anzeigen",
+        "view_all_3": "Alle anzeigen",
+        "intake_form": "Aufnahmeformular"
+      },
+      "stat": {
+        "total_projects": "Projekte gesamt",
+        "active_assessments": "Aktive Bewertungen",
+        "pending_audits": "Ausstehende Audits",
+        "active_atos": "Aktive ATOs",
+        "pending_intakes": "Ausstehende Aufnahmen",
+        "preassessments": "Vorbewertungen"
+      },
+      "span": {
+        "recent_projects": "Aktuelle Projekte",
+        "recent_assessments": "Aktuelle Bewertungen",
+        "recent_intakes": "Aktuelle Aufnahmen",
+        "pending": "Ausstehend",
+        "in_review": "In Prüfung",
+        "accepted": "Akzeptiert",
+        "declined": "Abgelehnt"
+      },
+      "p": {
+        "no_assessments_yet": "Noch keine Bewertungen"
+      }
+    },
+    "intake_review": {
+      "span": {
+        "high": "Hoch",
+        "medium": "Mittel",
+        "low": "Niedrig",
+        "pending_review": "Prüfung ausstehend",
+        "in_review": "In Prüfung",
+        "accepted": "Akzeptiert",
+        "internal_only": "Nur intern",
+        "external_public": "Extern öffentlich",
+        "hybrid": "Hybrid",
+        "top_secret": "Streng geheim",
+        "secret": "Geheim",
+        "confidential": "Vertraulich",
+        "protected_c": "Protected C",
+        "protected_b": "Protected B",
+        "protected_a": "Protected A",
+        "hva": "HVA",
+        "yes": "Ja",
+        "estimated_controls": "Geschätzte Kontrollen",
+        "p1_mandatory": "P1 Obligatorisch",
+        "p2_conditional": "P2 Bedingt",
+        "p3_situational": "P3 Situationsabhängig",
+        "inherited_controls": "Vererbte Kontrollen",
+        "already_selected": "Bereits ausgewählt",
+        "mandatory": "Obligatorisch"
+      },
+      "tattr": {
+        "ai_elaborate": "AI: Ausführen"
+      },
+      "link": {
+        "back_to_intakes": "Zurück zu Aufnahmen"
+      },
+      "btn": {
+        "ai_review": "KI-Prüfung",
+        "mark_in_review": "Als in Prüfung markieren",
+        "create_project_assessment": "Projektbewertung erstellen",
+        "decline_intake": "Aufnahme ablehnen"
+      },
+      "label": {
+        "department_agency": "Abteilung/Behörde",
+        "branch_directorate": "Zweigstelle/Direktion",
+        "application_type": "Anwendungstyp",
+        "target_golive": "Geplanter Go-Live",
+        "estimated_users": "Geschätzte Benutzeranzahl",
+        "project_description": "Projektbeschreibung",
+        "atip_subject": "ATIP-Gegenstand",
+        "pia_status": "PIA-Status",
+        "contains_pii": "Enthält PII",
+        "pii_types_identified": "Identifizierte PII-Typen",
+        "hosting": "Hosting",
+        "data_residency": "Datenspeicherort",
+        "technologies": "Technologien",
+        "other_technologies": "Andere Technologien",
+        "gc_interconnections": "GC-Verbindungen",
+        "mobile_byod": "Mobile/BYOD",
+        "listed_interconnections": "Aufgelistete Verbindungen",
+        "external_users": "Externe Benutzer",
+        "project_owner": "Projektinhaber",
+        "technical_lead": "Technische Leitung",
+        "authorizing_official": "Autorisierungsbeauftragter",
+        "override_confidentiality": "Vertraulichkeit überschreiben",
+        "override_integrity": "Integrität überschreiben",
+        "override_availability": "Verfügbarkeit überschreiben",
+        "high_value_asset_hva": "Hochwertige Anlage (HVA)",
+        "override_app_type": "Anwendungstyp überschreiben",
+        "additional_technologies": "Zusätzliche Technologien",
+        "additional_description_context": "Zusätzlicher Beschreibungskontext",
+        "assessor_notes_internal": "Interne Prüfernotizen",
+        "assessment_type": "Bewertungstyp"
+      },
+      "strong": {
+        "determined_profile": "Ermitteltes Profil",
+        "saampa_required": "SA&A/MPA erforderlich",
+        "no_saampa_required": "Kein SA&A/MPA erforderlich",
+        "accepted": "Akzeptiert"
+      },
+      "div": {
+        "no_pii_identified": "Keine PII identifiziert"
+      },
+      "card": {
+        "engine_preview": "Engine-Vorschau",
+        "assessor_context": "Prüferkontext"
+      },
+      "small": {
+        "gc_web_guidance_report_will": "GC-Web-Leitfadenbericht wird",
+        "based_on_submitted_project_details": "Basierend auf den eingereichten Projektdetails",
+        "appended_to_the_project_description": "An die Projektbeschreibung angehängt",
+        "frameworks_below_have_been_preselected": "Die folgenden Frameworks wurden vorausgewählt"
+      },
+      "p": {
+        "add_context_or_adjust_details": "Kontext hinzufügen oder Details anpassen",
+        "add_technologies_the_client_may": "Technologien hinzufügen, die der Kunde möglicherweise"
+      },
+      "ph": {
+        "add_keywords_for_the_engine": "Schlüsselwörter für die Engine hinzufügen",
+        "internal_notes_about_this_intake": "Interne Notizen zu dieser Aufnahme",
+        "reason_for_declining_optional": "Ablehnungsgrund (optional)"
+      }
+    },
+    "invitations": {
+      "th": {
+        "email": "E-Mail",
+        "name": "Name",
+        "code": "Code",
+        "status": "Status",
+        "sent": "Gesendet",
+        "expires": "Läuft ab",
+        "organization": "Organisation",
+        "joined": "Beigetreten",
+        "last_login": "Letzte Anmeldung"
+      },
+      "label": {
+        "name": "Name",
+        "organization": "Organisation"
+      },
+      "small": {
+        "optional": "(optional)"
+      },
+      "span": {
+        "pending": "Ausstehend",
+        "accepted": "Angenommen",
+        "revoked": "Widerrufen"
+      },
+      "tattr": {
+        "resend": "Erneut senden",
+        "revoke": "Widerrufen"
+      },
+      "h1": {
+        "team_invitations": "Team-Einladungen"
+      },
+      "p": {
+        "invite_clients_and_peer_assessors": "Kunden und Peer-Prüfer einladen",
+        "the_client_must_register_using": "Der Kunde muss sich registrieren mit",
+        "these_assessors_have_accepted_your": "Diese Prüfer haben Ihre Einladung angenommen",
+        "no_peer_assessors_yet_invite": "Noch keine Peer-Prüfer, einladen"
+      },
+      "ph": {
+        "jane_doe": "Erika Mustermann",
+        "client_organization_name": "Name der Kundenorganisation",
+        "brief_note_to_include_in": "Kurze Notiz zum Einfügen in",
+        "john_smith": "Max Mustermann",
+        "organization": "Organisation",
+        "brief_note_about_the_collaboration": "Kurze Notiz zur Zusammenarbeit"
+      },
+      "btn": {
+        "send_client_invite": "Kundeneinladung senden",
+        "send_assessor_invite": "Prüfereinladung senden"
+      },
+      "strong": {
+        "peer_assessors": "Peer-Prüfer"
+      }
+    },
+    "project_new": {
+      "ph": {
+        "full_name": "Vollständiger Name",
+        "eg_hr_case_management_system": "Z.B. HR-Fallmanagementsystem",
+        "describe_the_systems_purpose_users": "Beschreiben Sie den Zweck und die Benutzer des Systems",
+        "employment_and_social_development_canada": "Beschäftigung und soziale Entwicklung Kanada",
+        "innovation_information_and_technology_branch": "Abteilung für Innovation, Information und Technologie",
+        "architecture_details_integration_points_apis": "Architekturdetails, Integrationspunkte, APIs",
+        "jane_smith": "Erika Musterfrau",
+        "acme_corp": "Acme GmbH",
+        "welcome_to_the_assessment_portal": "Willkommen im Bewertungsportal"
+      },
+      "h1": {
+        "new_project": "Neues Projekt"
+      },
+      "p": {
+        "create_a_security_assessment_project": "Ein Sicherheitsbewertungsprojekt erstellen",
+        "select_all_regions_and_jurisdictions": "Alle Regionen und Zuständigkeitsbereiche auswählen",
+        "basic_details_about_the_system": "Grundlegende Details zum System",
+        "classify_data_sensitivity_using_the": "Datensensibilität klassifizieren mit",
+        "where_the_system_is_deployed": "Wo das System bereitgestellt wird",
+        "individuals_involved_in_the_assessment": "An der Bewertung beteiligte Personen",
+        "assign_this_project_to_a": "Dieses Projekt zuweisen an",
+        "no_registered_clients_yet_use": "Noch keine registrierten Kunden, verwenden Sie"
+      },
+      "span": {
+        "optional": "Optional",
+        "required": "Erforderlich",
+        "pending": "Ausstehend"
+      },
+      "btn": {
+        "skip_to_client_assignment": "Zur Kundenzuweisung springen",
+        "back_to_region_selection": "Zurück zur Regionsauswahl",
+        "skip_to_client_assignment_2": "Zur Kundenzuweisung springen",
+        "back_to_regions": "Zurück zu Regionen",
+        "back_to_previous_step": "Zurück zum vorherigen Schritt",
+        "create_project_send_intake": "Projekt erstellen & Aufnahme senden"
+      },
+      "strong": {
+        "canada_federal": "Kanada Bundesebene",
+        "canada_financial": "Kanada Finanzwesen",
+        "united_states": "Vereinigte Staaten",
+        "us_defense": "US-Verteidigung",
+        "us_statelocal": "US-Bundesstaaten/Kommunal",
+        "us_financial": "US-Finanzwesen",
+        "european_union": "Europäische Union",
+        "eu_financial": "EU Finanzwesen",
+        "germany": "Deutschland",
+        "france": "Frankreich",
+        "united_kingdom": "Vereinigtes Königreich",
+        "spain": "Spanien",
+        "australia": "Australien",
+        "australia_financial": "Australien Finanzwesen",
+        "global": "Global",
+        "how_it_works": "So funktioniert es"
+      },
+      "small": {
+        "itsg33": "ITSG-33",
+        "osfi_b13": "OSFI B-13",
+        "nist_80053": "NIST",
+        "cmmc": "CMMC",
+        "stateramp": "StateRAMP",
+        "nydfs_500": "NYDFS",
+        "nis2_gdpr": "NIS2 DSGVO",
+        "dora": "DORA",
+        "bsi_itgrundschutz": "BSI IT-Grundschutz",
+        "anssi_rgs": "ANSSI RGS",
+        "ncsc_caf": "NCSC CAF",
+        "ens": "ENS",
+        "asd_ism_essential_eight": "ASD ISM Essential Eight",
+        "apra_cps_234": "APRA CPS",
+        "iso_27001": "ISO",
+        "trust_service_criteria": "Trust Service Criteria",
+        "payment_card_security": "Zahlungskartensicherheit",
+        "v81_municipal_general": "V81 Kommunal Allgemein",
+        "choose_a_registered_client": "Registrierten Kunden auswählen",
+        "send_a_registration_invite": "Registrierungseinladung senden"
+      },
+      "label": {
+        "department_agency": "Abteilung/Behörde",
+        "branch_directorate": "Zweigstelle/Direktion",
+        "technical_specifications_optional": "Technische Spezifikationen (optional)",
+        "authorizing_official_dg_director": "Autorisierungsbeauftragter/GD-Direktor",
+        "authority_email": "E-Mail der Behörde",
+        "cio_delegated_authority_name": "Name des CIO-Delegierten",
+        "cio_delegated_authority_email": "E-Mail des CIO-Delegierten",
+        "full_name": "Vollständiger Name",
+        "organization": "Organisation",
+        "message_optional": "Nachricht (optional)"
+      },
+      "h6": {
+        "existing_client": "Bestehender Kunde",
+        "invite_new_client": "Neuen Kunden einladen"
+      }
+    },
+    "self_assessments": {
+      "th": {
+        "status": "Status",
+        "ref": "Ref.",
+        "submitter": "Einreicher",
+        "system": "System",
+        "jurisdiction": "Zuständigkeitsbereich",
+        "score": "Punktzahl",
+        "submitted": "Eingereicht",
+        "name": "Name",
+        "email": "E-Mail",
+        "organization": "Organisation",
+        "reason": "Grund",
+        "requested": "Angefragt"
+      },
+      "h1": {
+        "preintake_selfassessments": "Selbstbewertungen vor der Aufnahme"
+      },
+      "p": {
+        "clientsubmitted_security_selfassessments_awaiting_review": "Vom Kunden eingereichte Sicherheits-Selbstbewertungen warten auf Überprüfung",
+        "no_selfassessments_submitted_yet": "Noch keine Selbstbewertungen eingereicht",
+        "no_access_requests_yet": "Noch keine Zugriffsanfragen"
+      },
+      "div": {
+        "total": "Gesamt",
+        "pending_review": "Überprüfung ausstehend",
+        "reviewed": "Überprüft",
+        "intake_created": "Aufnahme erstellt"
+      },
+      "span": {
+        "pending_review": "Überprüfung ausstehend",
+        "reviewed": "Überprüft",
+        "intake_created": "Aufnahme erstellt",
+        "pending": "Ausstehend",
+        "approved": "Genehmigt",
+        "denied": "Abgelehnt"
+      },
+      "tattr": {
+        "approve_send_code": "Genehmigen und Code senden",
+        "deny": "Ablehnen"
+      }
+    },
+    "assessment_detail": {
+      "span": {
+        "invite_code": "Einladungscode",
+        "owner": "Eigentümer",
+        "classification": "Klassifizierung",
+        "score": "Punktzahl",
+        "result": "Ergebnis",
+        "owner_2": "Eigentümer",
+        "assigned": "Zugewiesen",
+        "active": "Aktiv",
+        "audit_progress": "Prüfungsfortschritt",
+        "required_for_iato_per_tbs": "Erforderlich für IATO gemäß TBS",
+        "high_risk": "Hohes Risiko",
+        "med_risk": "Mittleres Risiko",
+        "low_risk": "Niedriges Risiko",
+        "audit": "Prüfung"
+      },
+      "btn": {
+        "send_invite": "Einladung senden",
+        "delete": "Löschen",
+        "resend_invite": "Einladung erneut senden",
+        "start_audit": "Prüfung starten",
+        "reactivate": "Reaktivieren",
+        "complete_audit": "Prüfung abschließen",
+        "revoke": "Widerrufen",
+        "assign": "Zuweisen",
+        "complete_audit_issue_decision": "Prüfung abschließen und Entscheidung ausstellen",
+        "autopopulate": "Automatisch ausfüllen"
+      },
+      "tattr": {
+        "open_the_public_evidence_submission": "Öffentliche Nachweiseinreichung öffnen",
+        "autogenerate_from_findings": "Aus Feststellungen automatisch generieren",
+        "delete": "Löschen",
+        "partially_met": "Teilweise erfüllt",
+        "not_met": "Nicht erfüllt",
+        "ai_elaborate": "KI-Ausarbeitung"
+      },
+      "stat": {
+        "total_controls": "Kontrollen gesamt",
+        "inherited": "Vererbt",
+        "evidence_provided": "Nachweise erbracht",
+        "met": "Erfüllt",
+        "partially_met": "Teilweise erfüllt",
+        "not_met": "Nicht erfüllt",
+        "high_risk_tbs": "Hohes Risiko TBS"
+      },
+      "strong": {
+        "team": "Team",
+        "tbs_policy": "TBS-Richtlinie",
+        "plan_of_action_milestones_poam": "Maßnahmenplan mit Meilensteinen POA&M",
+        "risk_acceptance": "Risikoakzeptanz"
+      },
+      "label": {
+        "assign_peer_assessor": "Peer-Prüfer zuweisen",
+        "override_result": "Ergebnis überschreiben",
+        "iato_expiry_date": "IATO-Ablaufdatum",
+        "poam_notes": "POA&M-Notizen"
+      },
+      "ph": {
+        "notes_optional": "Notizen (optional)",
+        "poam_context_notes": "POA&M-Kontextnotizen",
+        "document_residual_risk_acceptance_rationale": "Begründung für die Akzeptanz des Restrisikos dokumentieren",
+        "remediation_item_description": "Beschreibung der Behebungsmaßnahme",
+        "assigned_to": "Zugewiesen an",
+        "remediation_plan_optional": "Behebungsplan (optional)",
+        "milestone_optional": "Meilenstein (optional)",
+        "auditor_comments": "Prüfer-Kommentare",
+        "add_a_comment": "Kommentar hinzufügen",
+        "filter_families": "Familien filtern"
+      },
+      "link": {
+        "invite_peer_assessors": "Peer-Prüfer einladen"
+      },
+      "card": {
+        "complete_audit_tbs_authorization_decision": "Prüfung abschließen – TBS-Autorisierungsentscheidung"
+      },
+      "small": {
+        "highrisk_findings": "Hochrisiko-Befunde",
+        "controls_met": "Kontrollen erfüllt",
+        "partially_met": "Teilweise erfüllt",
+        "not_met": "Nicht erfüllt",
+        "default_90_days_if_iato": "Standard 90 Tage bei IATO",
+        "tailored_description": "Angepasste Beschreibung"
+      },
+      "th": {
+        "risk": "Risiko",
+        "item": "Element",
+        "control": "Kontrolle",
+        "deadline": "Frist",
+        "assigned": "Zugewiesen",
+        "status": "Status"
+      },
+      "p": {
+        "no_poam_items_yet_use": "Noch keine POA&M-Elemente vorhanden"
+      },
+      "div": {
+        "loading_comments": "Kommentare werden geladen"
+      }
+    },
+    "assessment_new": {
+      "h1": {
+        "new_assessment": "Neue Bewertung"
+      },
+      "btn": {
+        "select_all": "Alle auswählen",
+        "deselect_all": "Alle abwählen",
+        "create_assessment": "Bewertung erstellen",
+        "create_assessment_package": "Bewertungspaket erstellen"
+      },
+      "span": {
+        "inherited": "Vererbt",
+        "template": "Vorlage"
+      },
+      "label": {
+        "tailored_description": "Angepasste Beschreibung",
+        "evidence_guidance": "Nachweisanleitung",
+        "applicability": "Anwendbarkeit"
+      },
+      "ph": {
+        "projectspecific_description_for_this_control": "Projektspezifische Beschreibung für diese Kontrolle",
+        "what_evidence_the_project_owner": "Welche Nachweise der Projektinhaber"
+      }
+    },
+    "assessments": {
+      "h1": {
+        "assessments": "Bewertungen"
+      },
+      "p": {
+        "all_security_assessment_packages": "Alle Sicherheitsbewertungspakete",
+        "no_assessments_yet": "Noch keine Bewertungen",
+        "create_a_project_first_then": "Erstellen Sie zuerst ein Projekt, dann"
+      },
+      "th": {
+        "project": "Projekt",
+        "type": "Typ",
+        "status": "Status",
+        "score": "Punktzahl",
+        "result": "Ergebnis",
+        "invite_code": "Einladungscode",
+        "created": "Erstellt",
+        "updated": "Aktualisiert"
+      },
+      "tattr": {
+        "delete_draft": "Entwurf löschen"
+      },
+      "link": {
+        "view_projects": "Projekte anzeigen"
+      }
+    },
+    "assessor_mfa_setup": {
+      "h3": {
+        "set_up_multifactor_authentication": "MFA einrichten"
+      },
+      "strong": {
+        "microsoft_authenticator": "Microsoft Authenticator",
+        "google_authenticator": "Google Authenticator",
+        "authy": "Authy"
+      },
+      "p": {
+        "step_1_scan_this_qr": "Schritt 1: Scannen Sie diesen QR-Code",
+        "cant_scan_enter_this_key": "Scannen nicht möglich? Geben Sie diesen Schlüssel ein"
+      },
+      "label": {
+        "step_2_enter_the_6digit": "Schritt 2: Geben Sie den 6-stelligen Code ein"
+      },
+      "btn": {
+        "verify_complete_registration": "Verifizieren und Registrierung abschließen"
+      }
+    },
+    "audit_log": {
+      "link": {
+        "dashboard": "Dashboard",
+        "clear": "Zurücksetzen"
+      },
+      "div": {
+        "total_signatures": "Gesamtzahl der Signaturen",
+        "today": "Heute",
+        "unique_signers": "Eindeutige Unterzeichner",
+        "signatures_are_logged_when_users": "Signaturen werden protokolliert, wenn Benutzer"
+      },
+      "label": {
+        "entity_type": "Entitätstyp",
+        "action": "Aktion"
+      },
+      "ph": {
+        "eg_auditcomplete": "Z.B. AuditAbgeschlossen"
+      },
+      "btn": {
+        "filter": "Filtern"
+      },
+      "th": {
+        "timestamp": "Zeitstempel",
+        "user": "Benutzer",
+        "role": "Rolle",
+        "action": "Aktion",
+        "entity": "Entität"
+      },
+      "span": {
+        "assessor": "Prüfer",
+        "client": "Kunde"
+      }
+    },
+    "guidance_report": {
+      "p": {
+        "gc_web_standards_amp_guidance": "GC-Webstandards & Leitlinien"
+      },
+      "btn": {
+        "print": "Drucken",
+        "resend_invite": "Einladung erneut senden",
+        "send_invite_to_owner": "Einladung an Inhaber senden",
+        "validate_amp_approve": "Validieren & Genehmigen",
+        "return_for_revision": "Zur Überarbeitung zurücksenden",
+        "save_notes": "Notizen speichern"
+      },
+      "span": {
+        "invite_code": "Einladungscode",
+        "status": "Status",
+        "draft": "Entwurf",
+        "sent_awaiting_response": "Gesendet, Antwort ausstehend",
+        "submitted_awaiting_review": "Eingereicht, Überprüfung ausstehend",
+        "returned_for_revision": "Zur Überarbeitung zurückgesendet",
+        "validated": "Validiert",
+        "respondent": "Befragter",
+        "submitted": "Eingereicht",
+        "no_invite_sent_yet": "Noch keine Einladung gesendet",
+        "no_pii": "Keine personenbezogenen Daten",
+        "required": "Erforderlich",
+        "required_2": "Erforderlich",
+        "recommended": "Empfohlen",
+        "met": "Erfüllt",
+        "in_progress": "In Bearbeitung",
+        "na": "N/A",
+        "pending": "Ausstehend"
+      },
+      "card": {
+        "review_amp_validate": "Überprüfen & Validieren",
+        "additional_considerations": "Zusätzliche Überlegungen",
+        "assessor_notes": "Prüfernotizen"
+      },
+      "small": {
+        "met": "Erfüllt",
+        "in_progress": "In Bearbeitung",
+        "na": "N/A",
+        "pending": "Ausstehend"
+      },
+      "label": {
+        "reviewer_notes": "Prüfernotizen"
+      },
+      "ph": {
+        "notes_for_the_project_owner": "Notizen für den Projektinhaber",
+        "add_any_assessor_notes_for": "Prüfernotizen hinzufügen für"
+      },
+      "strong": {
+        "validated": "Validiert"
+      },
+      "th": {
+        "requirement": "Anforderung",
+        "level": "Stufe",
+        "status": "Status",
+        "notes": "Notizen"
+      },
+      "li": {
+        "data_classification_increases_to_protected": "Datenklassifizierung erhöht sich auf Protected",
+        "personal_information_pii_is_collected": "Personenbezogene Daten (PII) werden erhoben",
+        "user_authentication_or_accounts_are": "Benutzerauthentifizierung oder Konten sind",
+        "integration_with_other_gc_systems": "Integration mit anderen GC-Systemen",
+        "payment_processing_or_financial_transactions": "Zahlungsabwicklung oder Finanztransaktionen",
+        "the_application_scope_expands_beyond": "Der Anwendungsbereich erweitert sich über"
+      },
+      "link": {
+        "standard_on_web_accessibility": "Standard zur Web-Barrierefreiheit",
+        "wcag_21_quick_reference": "WCAG 2.1 Kurzreferenz",
+        "canadaca_design_system": "Canada.ca Designsystem",
+        "gc_digital_standards": "GC Digitale Standards",
+        "web_experience_toolkit_wet": "Web Experience Toolkit (WET)"
+      }
+    },
+    "intakes": {
+      "p": {
+        "review_project_intake_requests_from": "Projektanfragen überprüfen von"
+      },
+      "link": {
+        "dashboard": "Dashboard"
+      },
+      "stat": {
+        "total_submissions": "Einreichungen gesamt",
+        "pending_review": "Überprüfung ausstehend",
+        "accepted": "Akzeptiert",
+        "in_review": "In Überprüfung"
+      },
+      "span": {
+        "all_submissions": "Alle Einreichungen",
+        "protected_b": "Protected B",
+        "protected_a": "Protected A",
+        "yes": "Ja",
+        "pending": "Ausstehend",
+        "in_review": "In Prüfung",
+        "accepted": "Akzeptiert",
+        "declined": "Abgelehnt"
+      },
+      "th": {
+        "ref": "Ref",
+        "project_name": "Projektname",
+        "department": "Abteilung",
+        "classification": "Klassifizierung",
+        "pii": "Pii",
+        "hosting": "Hosting",
+        "submitted_by": "Eingereicht von",
+        "status": "Status",
+        "date": "Datum"
+      },
+      "h5": {
+        "no_intake_submissions_yet": "Noch keine Einreichungen vorhanden"
+      }
+    },
+    "login": {
+      "p": {
+        "scan_the_qr_code_with": "Scannen Sie den QR-Code mit",
+        "confirm_your_identity_to_continue": "Bestätigen Sie Ihre Identität, um fortzufahren",
+        "security_assessment_amp_authorization_portal": "Sicherheitsbewertungs- & Autorisierungsportal",
+        "approve_with_your_passkey_face": "Mit Ihrem Passkey-Gesicht bestätigen"
+      },
+      "h2": {
+        "verify_identity": "Identität verifizieren",
+        "assessor_login": "Prüfer-Anmeldung"
+      },
+      "label": {
+        "manual_entry_key": "Manueller Eingabeschlüssel",
+        "verification_code": "Verifizierungscode",
+        "authentication_code": "Authentifizierungscode",
+        "email_address": "E-Mail-Adresse",
+        "password": "Passwort"
+      },
+      "btn": {
+        "verify_amp_enable_mfa": "Verifizieren & MFA aktivieren",
+        "sign_in_with_passkey": "Mit Passkey anmelden",
+        "verify_amp_sign_in": "Verifizieren & Anmelden",
+        "sign_in": "Anmelden"
+      },
+      "link": {
+        "use_totp_code_instead": "Stattdessen TOTP-Code verwenden",
+        "use_passkey_instead": "Stattdessen Passkey verwenden",
+        "sign_in_as_different_user": "Als anderer Benutzer anmelden",
+        "register_with_invite_code": "Mit Einladungscode registrieren",
+        "back_to_portal_home": "Zurück zur Portal-Startseite"
+      },
+      "ph": {
+        "enter_password": "Passwort eingeben"
+      }
+    },
+    "manage_controls": {
+      "h1": {
+        "manage_controls": "Kontrollen verwalten"
+      },
+      "strong": {
+        "draft": "Entwurf",
+        "add_controls": "Kontrollen hinzufügen"
+      },
+      "span": {
+        "inherited": "Vererbt",
+        "added": "Hinzugefügt"
+      },
+      "tattr": {
+        "remove_from_assessment": "Aus Bewertung entfernen"
+      },
+      "label": {
+        "tailored_description": "Angepasste Beschreibung",
+        "evidence_guidance": "Nachweisanleitung",
+        "applicability": "Anwendbarkeit",
+        "inherited": "Vererbt",
+        "inherited_from": "Vererbt von"
+      },
+      "ph": {
+        "projectspecific_description": "Projektspezifische Beschreibung",
+        "what_evidence_should_be_provided": "Welche Nachweise sollen erbracht werden",
+        "eg_azure_ssc": "Z.B. Azure Ssc",
+        "filter_by_id_or_keyword": "Nach ID oder Stichwort filtern"
+      },
+      "btn": {
+        "save_changes": "Änderungen speichern",
+        "add_selected": "Ausgewählte hinzufügen",
+        "add_selected_controls": "Ausgewählte Kontrollen hinzufügen"
+      }
+    },
+    "passkey_setup": {
+      "h2": {
+        "register_a_passkey": "Passkey registrieren"
+      },
+      "p": {
+        "use_face_id_touch_id": "Face ID Touch ID verwenden"
+      },
+      "strong": {
+        "passkey_registered": "Passkey registriert"
+      },
+      "btn": {
+        "register_passkey": "Passkey registrieren"
+      },
+      "link": {
+        "skip_use_totp_only": "Überspringen, nur TOTP verwenden"
+      }
+    },
+    "project_detail": {
+      "p": {
+        "project_details_assessments": "Projektdetails Bewertungen",
+        "no_assessments_yet_for_this": "Noch keine Bewertungen für dieses"
+      },
+      "btn": {
+        "delete_project": "Projekt löschen"
+      },
+      "card": {
+        "project_information": "Projektinformationen",
+        "key_contacts": "Hauptansprechpartner"
+      },
+      "span": {
+        "yes": "Ja",
+        "assessments": "Bewertungen"
+      },
+      "h6": {
+        "description": "Beschreibung",
+        "technology_stack": "Technologie-Stack"
+      },
+      "div": {
+        "project_owner_architect": "Projektinhaber Architekt",
+        "project_authority": "Projektverantwortlicher",
+        "cio_delegated_authority": "CIO-delegierte Befugnis"
+      },
+      "th": {
+        "type": "Typ",
+        "status": "Status",
+        "score": "Punktzahl",
+        "result": "Ergebnis",
+        "invite_code": "Einladungscode",
+        "updated": "Aktualisiert"
+      },
+      "tattr": {
+        "delete_draft": "Entwurf löschen"
+      }
+    },
+    "projects": {
+      "h1": {
+        "projects": "Projekte"
+      },
+      "p": {
+        "manage_your_security_assessment_projects": "Verwalten Sie Ihre Sicherheitsbewertungsprojekte",
+        "create_your_first_project_to": "Erstellen Sie Ihr erstes Projekt, um"
+      },
+      "link": {
+        "new_project": "Neues Projekt",
+        "create_project": "Projekt erstellen"
+      },
+      "th": {
+        "project_name": "Projektname",
+        "classification": "Klassifizierung",
+        "hosting": "Hosting",
+        "owner": "Inhaber",
+        "status": "Status",
+        "created": "Erstellt"
+      },
+      "span": {
+        "pii": "PII"
+      },
+      "tattr": {
+        "delete_project": "Projekt löschen"
+      },
+      "h4": {
+        "no_projects_yet": "Noch keine Projekte"
+      }
+    },
+    "register": {
+      "h3": {
+        "account_registration": "Kontoregistrierung"
+      },
+      "p": {
+        "register_your_account_using_a": "Registrieren Sie Ihr Konto mit einem"
+      },
+      "ph": {
+        "xxxxxxxx": "XXXXXXXX",
+        "eg_jane_doe": "Z.B. Max Mustermann",
+        "must_match_the_invited_email": "Muss mit der eingeladenen E-Mail übereinstimmen",
+        "your_organization": "Ihre Organisation",
+        "minimum_10_characters": "Mindestens 10 Zeichen"
+      },
+      "small": {
+        "enter_the_code_from_your": "Geben Sie den Code aus Ihrem ein",
+        "you_must_use_the_email": "Sie müssen die E-Mail-Adresse verwenden",
+        "at_least_10_characters_with": "Mindestens 10 Zeichen mit"
+      },
+      "label": {
+        "organization": "Organisation"
+      },
+      "btn": {
+        "continue_to_mfa_setup": "Weiter zur MFA-Einrichtung"
+      },
+      "span": {
+        "already_have_an_account": "Haben Sie bereits ein Konto"
+      },
+      "link": {
+        "sign_in": "Anmelden"
+      }
+    },
+    "self_assessment_review": {
+      "link": {
+        "back_to_selfassessments": "Zurück zu Selbstbewertungen"
+      },
+      "span": {
+        "pending_review": "Überprüfung ausstehend",
+        "reviewed": "Überprüft",
+        "intake_created": "Aufnahme erstellt"
+      },
+      "card": {
+        "system_jurisdiction": "Systemzuständigkeit",
+        "admin_notes": "Admin-Notizen",
+        "linked_intake": "Verknüpfte Aufnahme",
+        "client_invitation": "Kundeneinladung",
+        "create_intake": "Aufnahme erstellen"
+      },
+      "div": {
+        "system_type": "Systemtyp",
+        "country": "Land",
+        "government_level": "Regierungsebene",
+        "data_sensitivity": "Datensensibilität",
+        "security_score": "Sicherheitsbewertung",
+        "findings": "Erkenntnisse",
+        "system_description": "Systembeschreibung",
+        "applicable_frameworks": "Anwendbare Rahmenwerke",
+        "prepopulate_with_ai": "Mit KI vorausfüllen",
+        "autofill_intake_fields_from_selfassessment": "Aufnahmefelder aus Selbstbewertung automatisch ausfüllen"
+      },
+      "ph": {
+        "internal_notes_about_this_submission": "Interne Notizen zu dieser Einreichung",
+        "eg_citizen_feedback_portal": "Z.B. Bürger-Feedback-Portal",
+        "brief_description_of_the_system": "Kurze Beschreibung des Systems",
+        "eg_canada": "Z.B. Kanada",
+        "key_findings_notes_for_the": "Wichtige Erkenntnisse/Notizen für"
+      },
+      "btn": {
+        "send_registration_invite": "Registrierungseinladung senden",
+        "generate": "Generieren",
+        "create_draft_intake": "Entwurfsaufnahme erstellen"
+      },
+      "p": {
+        "create_a_draft_intake_first": "Erstellen Sie zuerst eine Entwurfsaufnahme"
+      },
+      "label": {
+        "project_name": "Projektname",
+        "description": "Beschreibung",
+        "department": "Abteilung",
+        "app_type": "App-Typ",
+        "data_classification": "Datenklassifizierung",
+        "confidentiality": "Vertraulichkeit",
+        "integrity": "Integrität",
+        "availability": "Verfügbarkeit",
+        "contains_pii": "Enthält PII",
+        "pia_completed": "PIA abgeschlossen",
+        "hosting": "Hosting",
+        "hosting_region": "Hosting-Region",
+        "security_profile": "Sicherheitsprofil",
+        "additional_notes": "Zusätzliche Notizen"
+      }
+    },
+    "settings": {
+      "h1": {
+        "settings": "Einstellungen"
+      },
+      "p": {
+        "application_configuration": "Anwendungskonfiguration",
+        "register_a_passkey_to_enable": "Passkey registrieren zum Aktivieren",
+        "government_of_canada_security_assessment": "Sicherheitsbewertung der kanadischen Regierung",
+        "built_with_nodejs_express_bootstrap": "Erstellt mit Nodejs Express Bootstrap"
+      },
+      "span": {
+        "authenticator_app_configured": "Authentifizierungs-App konfiguriert",
+        "registered": "Registriert",
+        "passkey_enrolled_face_id_touch": "Passkey registriert Face Id Touch"
+      },
+      "link": {
+        "reenroll": "Erneut registrieren",
+        "set_up_mfa_now": "MFA jetzt einrichten",
+        "audit_log": "Prüfprotokoll"
+      },
+      "div": {
+        "approve_with_face_id_touch": "Mit Face Id Touch bestätigen",
+        "enter_a_6digit_code_from": "6-stelligen Code eingeben von",
+        "critical_actions_proceed_without_mfa": "Kritische Aktionen ohne MFA fortsetzen"
+      },
+      "btn": {
+        "reregister": "Neu registrieren",
+        "register_passkey": "Passkey registrieren"
+      }
+    }
+  },
+  "index": {
+    "span": {
+      "essential_eight": "Essential Eight"
+    }
+  },
+  "layout": {
+    "main": {
+      "h2": {
+        "about_this_site": "Über diese Seite"
+      },
+      "h5": {
+        "verification_required": "Verifizierung erforderlich"
+      },
+      "p": {
+        "this_action_requires_verification": "Diese Aktion erfordert eine Verifizierung.",
+        "approve_the_prompt_on_your": "Bestätigen Sie die Aufforderung auf Ihrem Gerät mit Face ID, Touch ID oder Windows Hello."
+      },
+      "link": {
+        "skip_to_main_content": "Zum Hauptinhalt springen",
+        "skip_to_footer": "Zur Fußzeile springen"
+      },
+      "btn": {
+        "cancel": "Abbrechen",
+        "verify_amp_sign": "Verifizieren &amp; Signieren"
+      },
+      "span": {
+        "waiting_for_biometric": "Warten auf Biometrie..."
+      }
+    },
+    "minimal": {
+      "link": {
+        "sign_in": "Anmelden"
+      }
+    }
+  },
+  "client_dashboard": {
+    "th": {
+      "project": "Projekt",
+      "status": "Status",
+      "invite_code": "Einladungscode",
+      "created": "Erstellt",
+      "reference": "Referenz",
+      "department": "Abteilung",
+      "submitted": "Eingereicht"
+    },
+    "h1": {
+      "my_dashboard": "Mein Dashboard"
+    },
+    "link": {
+      "new_intake": "Neue Aufnahme",
+      "submit_your_first_intake": "Erste Aufnahme einreichen"
+    },
+    "span": {
+      "draft": "Entwurf",
+      "evidence_gathering": "Beweissammlung",
+      "submitted": "Eingereicht",
+      "under_audit": "In Prüfung",
+      "completed": "Abgeschlossen",
+      "draft_needs_completion": "Entwurf muss vervollständigt werden",
+      "pending_review": "Überprüfung ausstehend",
+      "in_review": "In Überprüfung",
+      "accepted": "Akzeptiert",
+      "declined": "Abgelehnt"
+    },
+    "p": {
+      "received_an_invite_code_from": "Einladungscode erhalten von"
+    },
+    "ph": {
+      "eg_a1b2c3d4": "Z.B. A1b2c3d4"
+    },
+    "btn": {
+      "go": "Los"
+    }
+  },
+  "guidance_portal": {
+    "span": {
+      "required": "Erforderlich",
+      "recommended": "Empfohlen"
+    },
+    "h2": {
+      "gc_web_standards_checklist": "GC-Webstandards-Checkliste"
+    },
+    "strong": {
+      "this_checklist_has_been_validated": "Diese Checkliste wurde validiert",
+      "returned_for_revision": "Zur Überarbeitung zurückgegeben",
+      "assessor_notes": "Prüfernotizen",
+      "submitted_and_awaiting_review": "Eingereicht und wartet auf Überprüfung"
+    },
+    "ph": {
+      "notes_or_evidence_reference_optional": "Notizen oder Nachweisreferenz optional",
+      "eg_jane_doe": "Z.B. Max Mustermann",
+      "eg_janedoeagencygcca": "Z.B. maxmustermannbehoerdegcca",
+      "any_questions_clarifications_or_additional": "Fragen Erläuterungen oder zusätzliche"
+    },
+    "card": {
+      "submit_checklist_for_review": "Checkliste zur Überprüfung einreichen"
+    },
+    "p": {
+      "once_youve_addressed_the_items": "Sobald Sie die Punkte bearbeitet haben"
+    },
+    "label": {
+      "additional_notes": "Zusätzliche Notizen"
+    },
+    "btn": {
+      "submit_for_review": "Zur Überprüfung einreichen"
+    }
+  },
+  "flash": {
+    "admin": {
+      "project_not_found": "Projekt nicht gefunden",
+      "assessment_not_found": "Bewertung nicht gefunden",
+      "selfassessment_not_found": "Selbstbewertung nicht gefunden",
+      "intake_not_found": "Intake nicht gefunden",
+      "email_address_is_required": "E-Mail-Adresse ist erforderlich.",
+      "failed_to_send_invitation": "Einladung konnte nicht gesendet werden.",
+      "passkey_verification_failed_please_try": "Passkey-Überprüfung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "invalid_authentication_code_please_try": "Ungültiger Authentifizierungscode. Bitte versuchen Sie es erneut.",
+      "failed_to_generate_qr_code": "QR-Code konnte nicht generiert werden.",
+      "setup_failed_please_try_again": "Einrichtung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "invalid_code_make_sure_your": "Ungültiger Code. Stellen Sie sicher, dass Ihr",
+      "mfa_enabled_you_can_optionally": "MFA aktiviert. Sie können optional",
+      "please_log_in_to_access": "Bitte melden Sie sich an, um Zugriff zu erhalten.",
+      "project_created_successfully": "Projekt erfolgreich erstellt.",
+      "you_do_not_have_access": "Sie haben keinen Zugriff.",
+      "audit_started": "Audit gestartet",
+      "poam_item_added": "POA&M-Eintrag hinzugefügt",
+      "poam_item_updated": "POA&M-Eintrag aktualisiert",
+      "poam_item_removed": "POA&M-Eintrag entfernt",
+      "submission_reactivated_for_updates": "Einreichung zur Aktualisierung reaktiviert",
+      "failed_to_generate_pdf": "PDF-Generierung fehlgeschlagen",
+      "failed_to_generate_ato_document": "ATO-Dokument-Generierung fehlgeschlagen",
+      "draft_assessment_deleted_successfully": "Entwurfsbewertung erfolgreich gelöscht",
+      "selfassessment_marked_as_reviewed": "Selbstbewertung als überprüft markiert",
+      "request_not_found": "Anfrage nicht gefunden",
+      "access_request_denied": "Zugriffsanfrage abgelehnt",
+      "attachment_not_found": "Anhang nicht gefunden",
+      "guidance_report_not_found": "Leitfadenbericht nicht gefunden",
+      "guidance_checklist_validated_and_approved": "Leitfaden-Checkliste validiert und genehmigt",
+      "checklist_returned_to_project_owner": "Checkliste an Projektinhaber zurückgegeben",
+      "notes_saved": "Notizen gespeichert",
+      "no_new_controls_to_add": "Keine neuen Kontrollen hinzuzufügen",
+      "control_not_found": "Kontrolle nicht gefunden",
+      "control_updated": "Kontrolle aktualisiert",
+      "invitation_not_found_or_you": "Einladung nicht gefunden oder Sie",
+      "invitation_not_found_or_not": "Einladung nicht gefunden oder nicht",
+      "all_fields_are_required": "Alle Felder sind erforderlich",
+      "password_must_be_at_least": "Passwort muss mindestens",
+      "passwords_do_not_match": "Passwörter stimmen nicht überein",
+      "invalid_or_expired_invite_code": "Ungültiger oder abgelaufener Einladungscode",
+      "this_invitation_has_expired_please": "Diese Einladung ist abgelaufen, bitte",
+      "an_account_with_this_email": "Ein Konto mit dieser E-Mail",
+      "account_created_you_can_now": "Konto erstellt, Sie können jetzt",
+      "registration_failed_please_try_again": "Registrierung fehlgeschlagen, bitte erneut versuchen",
+      "invalid_mfa_code_please_try": "Ungültiger MFA-Code, bitte erneut versuchen",
+      "registration_complete_mfa_enabled_please": "Registrierung abgeschlossen, MFA aktiviert, bitte",
+      "only_the_assessment_owner_can": "Nur der Bewertungsinhaber kann",
+      "selected_assessor_not_found_or": "Ausgewählter Prüfer nicht gefunden oder",
+      "you_can_only_assign_assessors": "Sie können nur Prüfer zuweisen",
+      "assignment_not_found": "Zuweisung nicht gefunden"
+    },
+    "public": {
+      "please_enter_an_access_code": "Bitte geben Sie einen Zugangscode ein",
+      "session_expired": "Sitzung abgelaufen.",
+      "you_do_not_have_access": "Sie haben keinen Zugriff auf diesen Intake.",
+      "failed_to_submit_intake_please": "Intake konnte nicht übermittelt werden. Bitte versuchen Sie es erneut.",
+      "assessment_not_found": "Bewertung nicht gefunden",
+      "all_fields_are_required": "Alle Felder sind erforderlich.",
+      "password_must_be_at_least": "Das Passwort muss mindestens 10 Zeichen lang sein.",
+      "passwords_do_not_match": "Passwörter stimmen nicht überein.",
+      "this_access_code_has_expired": "Dieser Zugangscode ist abgelaufen",
+      "invalid_or_expired_access_code": "Ungültiger oder abgelaufener Zugangscode",
+      "email_is_required": "E-Mail ist erforderlich",
+      "a_request_from_this_email": "Eine Anfrage von dieser E-Mail",
+      "you_already_have_an_active": "Sie haben bereits eine aktive",
+      "failed_to_submit_request_please": "Anfrage konnte nicht gesendet werden, bitte",
+      "please_sign_in_to_access": "Bitte melden Sie sich an, um zuzugreifen",
+      "invalid_or_expired_invite_code": "Ungültiger oder abgelaufener Einladungscode",
+      "this_invitation_has_expired_please": "Diese Einladung ist abgelaufen, bitte",
+      "an_account_with_this_email": "Ein Konto mit dieser E-Mail",
+      "registration_failed_please_try_again": "Registrierung fehlgeschlagen, bitte erneut versuchen",
+      "failed_to_generate_qr_code": "QR-Code-Generierung fehlgeschlagen",
+      "user_not_found_please_register": "Benutzer nicht gefunden, bitte registrieren",
+      "invalid_code_please_try_again": "Ungültiger Code, bitte erneut versuchen",
+      "mfa_enabled_you_can_optionally": "MFA aktiviert, Sie können optional",
+      "invalid_email_or_password": "Ungültige E-Mail oder Passwort",
+      "please_complete_your_mfa_setup": "Bitte vervollständigen Sie Ihre MFA-Einrichtung",
+      "session_expired_please_sign_in": "Sitzung abgelaufen, bitte melden Sie sich an",
+      "invalid_authentication_code_please_try": "Ungültiger Authentifizierungscode, bitte versuchen Sie es erneut",
+      "passkey_not_available": "Passkey nicht verfügbar",
+      "verification_failed": "Verifizierung fehlgeschlagen",
+      "you_have_been_signed_out": "Sie wurden abgemeldet",
+      "intake_not_found": "Aufnahme nicht gefunden",
+      "this_intake_has_already_been": "Diese Aufnahme wurde bereits",
+      "intake_not_found_or_already": "Aufnahme nicht gefunden oder bereits",
+      "this_assessment_is_assigned_to": "Diese Bewertung ist zugewiesen an",
+      "not_authenticated": "Nicht authentifiziert",
+      "remediation_evidence_submitted_for_assessor": "Behebungsnachweis für Prüfer eingereicht",
+      "invalid_code": "Ungültiger Code",
+      "already_validated": "Bereits validiert",
+      "provisioning_is_not_available_please": "Bereitstellung ist nicht verfügbar, bitte",
+      "verification_failed_please_try_again": "Verifizierung fehlgeschlagen, bitte versuchen Sie es erneut",
+      "verification_error_please_try_again": "Verifizierungsfehler, bitte versuchen Sie es erneut",
+      "an_instance_for_this_organization": "Eine Instanz für diese Organisation",
+      "an_error_occurred_please_try": "Ein Fehler ist aufgetreten, bitte versuchen Sie es",
+      "provisioning_job_not_found": "Bereitstellungsauftrag nicht gefunden"
+    }
+  },
+  "partial": {
+    "ai_panel": {
+      "tattr": {
+        "ai_assistant": "KI-Assistent"
+      },
+      "h5": {
+        "ai_assistant": "KI-Assistent"
+      },
+      "small": {
+        "powered_by_claude": "Powered By Claude"
+      },
+      "p": {
+        "select_an_ai_action_to": "Wählen Sie eine KI-Aktion aus, um"
+      }
+    }
+  },
+  "checklist": {
+    "h1": {
+      "iato_remediation_checklist": "IATO-Behebungscheckliste"
+    },
+    "strong": {
+      "interim_authority_to_operate_iato": "Interim Authority To Operate IATO"
+    },
+    "th": {
+      "description": "Beschreibung",
+      "control": "Kontrolle",
+      "deadline": "Frist",
+      "assigned_to": "Zugewiesen an",
+      "status": "Status"
+    },
+    "span": {
+      "progress": "Fortschritt"
+    },
+    "p": {
+      "no_checklist_items_have_been": "Keine Checklisteneinträge wurden",
+      "contact_your_security_assessor_if": "Kontaktieren Sie Ihren Sicherheitsprüfer, wenn"
+    }
+  },
+  "client_login": {
+    "h3": {
+      "client_sign_in": "Kundenanmeldung"
+    },
+    "p": {
+      "sign_in_to_submit_or": "Melden Sie sich an, um einzureichen oder",
+      "approve_with_your_passkey_face": "Bestätigen Sie mit Ihrem Passkey Gesicht"
+    },
+    "label": {
+      "email_address": "E-Mail-Adresse",
+      "password": "Passwort",
+      "authentication_code": "Authentifizierungscode"
+    },
+    "btn": {
+      "continue": "Weiter",
+      "verify_sign_in": "Anmeldung verifizieren"
+    },
+    "link": {
+      "use_totp_code_instead": "Stattdessen TOTP-Code verwenden",
+      "use_passkey_instead": "Stattdessen Passkey verwenden",
+      "register_here": "Hier registrieren"
+    },
+    "span": {
+      "dont_have_an_account": "Sie haben noch kein Konto"
+    }
+  },
+  "client_settings": {
+    "h1": {
+      "settings": "Einstellungen"
+    },
+    "p": {
+      "account_security_preferences": "Kontosicherheitseinstellungen",
+      "controls_how_critical_actions_submitting": "Steuert wie kritische Aktionen übermittelt werden",
+      "register_a_passkey_to_enable": "Passkey registrieren zum Aktivieren"
+    },
+    "span": {
+      "authenticator_app_configured": "Authenticator-App konfiguriert",
+      "registered": "Registriert",
+      "passkey_enrolled_face_id_touch": "Passkey registriert Face ID Touch"
+    },
+    "div": {
+      "approve_with_face_id_touch": "Mit Face ID Touch bestätigen",
+      "enter_a_6digit_code_from": "6-stelligen Code eingeben von",
+      "critical_actions_proceed_without_mfa": "Kritische Aktionen ohne MFA fortsetzen"
+    },
+    "btn": {
+      "reregister": "Erneut registrieren",
+      "register_passkey": "Passkey registrieren"
+    }
+  },
+  "guidance_submitted": {
+    "h2": {
+      "checklist_submitted": "Checkliste eingereicht"
+    },
+    "span": {
+      "access_code": "Zugangscode",
+      "status": "Status",
+      "awaiting_review": "Wartet auf Überprüfung"
+    }
+  },
+  "mfa_setup": {
+    "h3": {
+      "set_up_multifactor_authentication": "MFA einrichten"
+    },
+    "strong": {
+      "microsoft_authenticator": "Microsoft Authenticator",
+      "google_authenticator": "Google Authenticator",
+      "authy": "Authy"
+    },
+    "p": {
+      "step_1_scan_this_qr": "Schritt 1: Diesen QR-Code scannen",
+      "cant_scan_enter_this_key": "Scannen nicht möglich? Diesen Schlüssel eingeben"
+    },
+    "label": {
+      "step_2_enter_the_6digit": "Schritt 2: Den 6-stelligen Code eingeben"
+    },
+    "btn": {
+      "verify_activate_mfa": "MFA verifizieren und aktivieren"
+    }
+  },
+  "passkey_setup": {
+    "h3": {
+      "register_a_passkey": "Passkey registrieren"
+    },
+    "p": {
+      "use_face_id_touch_id": "Face ID Touch ID verwenden"
+    },
+    "strong": {
+      "passkey_already_registered": "Passkey bereits registriert"
+    },
+    "btn": {
+      "register_passkey_now": "Passkey jetzt registrieren"
+    },
+    "link": {
+      "skip_use_totp_only": "Überspringen, nur TOTP verwenden"
+    }
+  },
+  "poam_remediation": {
+    "h1": {
+      "poam_remediation": "POA&M-Behebung"
+    },
+    "div": {
+      "total_items": "Gesamtanzahl",
+      "open": "Offen",
+      "your_submissions": "Ihre Einreichungen",
+      "verified": "Verifiziert"
+    },
+    "label": {
+      "original_finding": "Ursprünglicher Befund",
+      "required_remediation": "Erforderliche Behebung",
+      "your_remediation_evidence": "Ihre Behebungsnachweise"
+    },
+    "ph": {
+      "describe_what_was_done_to": "Beschreiben Sie, was getan wurde, um"
+    },
+    "tattr": {
+      "ai_elaborate_on_your_text": "KI: Text ausarbeiten"
+    },
+    "span": {
+      "submitted_for_review": "Zur Überprüfung eingereicht"
+    },
+    "btn": {
+      "submit_all_remediation_evidence": "Alle Behebungsnachweise einreichen"
+    }
+  },
+  "product_signup": {
+    "h1": {
+      "start_your_free_14day_trial": "Starten Sie Ihre kostenlose 14-tägige Testversion"
+    },
+    "div": {
+      "active_assessments": "Aktive Bewertungen",
+      "new_assessment_limit": "Limit für neue Bewertungen",
+      "ai_tokens_month": "KI-Tokens pro Monat",
+      "team_member": "Teammitglied"
+    },
+    "h4": {
+      "dedicated_tenant_isolation": "Dedizierte Mandantenisolierung"
+    },
+    "p": {
+      "every_trial_gets_its_own": "Jede Testversion erhält ihre eigene",
+      "this_becomes_your_security_assessor": "Dies wird Ihr Sicherheitsgutachter"
+    },
+    "h3": {
+      "create_your_account": "Erstellen Sie Ihr Konto"
+    },
+    "ph": {
+      "jane": "Anna",
+      "smith": "Schmidt",
+      "acme_security_corp": "Acme Security GmbH",
+      "min_10_characters": "Min. 10 Zeichen",
+      "reenter_your_password": "Passwort erneut eingeben"
+    },
+    "span": {
+      "your_instance": "Ihre Instanz"
+    },
+    "btn": {
+      "deploy_my_instance": "Meine Instanz bereitstellen"
+    },
+    "link": {
+      "terms_of_service": "Nutzungsbedingungen",
+      "privacy_policy": "Datenschutzrichtlinie"
+    }
+  },
+  "provision_status": {
+    "span": {
+      "vanguard_cloud_services_inc": "Vanguard Cloud Services Inc",
+      "initializing": "Initialisierung",
+      "validating_azure_credentials": "Azure-Anmeldedaten werden überprüft",
+      "creating_resource_group": "Ressourcengruppe wird erstellt",
+      "creating_app_service_plan": "App Service Plan wird erstellt",
+      "creating_web_application": "Webanwendung wird erstellt",
+      "configuring_environment_amp_credentials": "Umgebung & Anmeldedaten werden konfiguriert",
+      "deploying_application_code": "Anwendungscode wird bereitgestellt",
+      "health_check_amp_finalization": "Integritätsprüfung & Finalisierung",
+      "instance_url": "Instanz-URL",
+      "login_email": "Anmelde-E-Mail",
+      "role": "Rolle",
+      "security_assessor_admin": "Sicherheitsprüfer-Administrator",
+      "plan": "Tarif"
+    },
+    "h2": {
+      "deploying_your_instance": "Ihre Instanz wird bereitgestellt"
+    },
+    "link": {
+      "launch_your_saa_platform": "Ihre SaaS-Plattform starten",
+      "try_again": "Erneut versuchen"
+    },
+    "strong": {
+      "provisioning_failed": "Bereitstellung fehlgeschlagen"
+    }
+  },
+  "register": {
+    "h3": {
+      "account_registration": "Kontoregistrierung"
+    },
+    "p": {
+      "register_your_account_using_a": "Registrieren Sie Ihr Konto mit einem"
+    },
+    "ph": {
+      "xxxxxxxx": "Xxxxxxxx",
+      "eg_jane_doe": "Z.B. Max Mustermann",
+      "must_match_the_invited_email": "Muss mit der eingeladenen E-Mail übereinstimmen",
+      "your_organization": "Ihre Organisation",
+      "minimum_10_characters": "Mindestens 10 Zeichen"
+    },
+    "small": {
+      "enter_the_code_from_your": "Geben Sie den Code von Ihrem",
+      "at_least_10_characters_with": "Mindestens 10 Zeichen mit"
+    },
+    "label": {
+      "organization": "Organisation"
+    },
+    "btn": {
+      "continue_to_mfa_setup": "Weiter zur MFA-Einrichtung"
+    },
+    "span": {
+      "already_have_an_account": "Haben Sie bereits ein Konto"
+    },
+    "link": {
+      "sign_in": "Anmelden"
+    }
+  },
+  "respond": {
+    "span": {
+      "submitted": "Eingereicht",
+      "done": "Erledigt"
+    },
+    "strong": {
+      "interim_ato_issued": "Vorläufige ATO erteilt",
+      "poam_items": "POA&M-Einträge"
+    },
+    "label": {
+      "your_evidence": "Ihr Nachweis",
+      "attachments": "Anhänge"
+    },
+    "ph": {
+      "enter_your_evidence_here": "Geben Sie hier Ihren Nachweis ein",
+      "add_a_comment": "Kommentar hinzufügen"
+    },
+    "tattr": {
+      "bold": "Fett",
+      "italic": "Kursiv",
+      "bullet_list": "Aufzählungsliste",
+      "numbered_list": "Nummerierte Liste",
+      "ai_elaborate_on_your_text": "KI erweitert Ihren Text"
+    },
+    "div": {
+      "loading": "Wird geladen"
+    },
+    "btn": {
+      "submit_all_evidence": "Alle Nachweise einreichen"
+    }
+  },
+  "self_assessment_gate": {
+    "ph": {
+      "a1b2c3d4": "A1b2c3d4",
+      "jane_doe": "Max Mustermann"
+    }
+  },
+  "self_assessment": {
+    "h2": {
+      "security_selfassessment": "Sicherheits-Selbstbewertung"
+    },
+    "p": {
+      "evaluate_your_systems_security_posture": "Bewerten Sie die Sicherheitslage Ihres Systems",
+      "select_the_type_jurisdiction_and": "Wählen Sie den Typ, die Zuständigkeit und"
+    },
+    "card": {
+      "tell_us_about_your_system": "Erzählen Sie uns von Ihrem System"
+    },
+    "ph": {
+      "eg_we_have_a_publicfacing": "Z.B. wir haben eine öffentlich zugängliche",
+      "jane_doe": "Max Mustermann"
+    },
+    "btn": {
+      "generate_security_questions": "Sicherheitsfragen generieren",
+      "back": "Zurück",
+      "generate_report": "Bericht generieren"
+    }
+  }
+}
