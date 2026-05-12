@@ -1,17 +1,107 @@
 <style>
-  .sa-gate-hero { margin:-1.5rem -15px 0; padding:3rem 0 4rem; background:linear-gradient(135deg,#26374a,#1c578a); border-bottom:4px solid var(--gc-red); color:#fff; }
-  .sa-gate-card { margin-top:-2.75rem; border-radius:8px; box-shadow:0 10px 28px rgba(0,0,0,.16); }
+  .sa-gate-hero {
+    margin:-1.5rem calc(50% - 50vw) 0;
+    padding:clamp(2rem,4vw,3rem) 0 3.5rem;
+    background:
+      radial-gradient(circle at 20% 20%,rgba(14,165,233,.22),transparent 32%),
+      linear-gradient(135deg,#1a2332 0%,#284162 48%,#1d5b89 100%);
+    border-bottom:4px solid var(--cs-brand);
+    color:#fff;
+  }
+  .sa-gate-icon {
+    width:56px;
+    height:56px;
+    border:1px solid rgba(255,255,255,.34);
+    border-radius:16px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    margin-bottom:1rem;
+    background:rgba(255,255,255,.08);
+  }
+  .sa-gate-hero p { max-width:720px; margin:0 auto; color:rgba(255,255,255,.82); }
+  .sa-gate-shell {
+    max-width:1060px;
+    margin:-3.75rem auto 0;
+    position:relative;
+    z-index:2;
+  }
+  .sa-gate-note {
+    display:flex;
+    gap:1rem;
+    align-items:flex-start;
+    background:#fff;
+    border:1px solid var(--cs-border);
+    border-left:4px solid var(--cs-brand);
+    border-radius:8px;
+    padding:.85rem 1.15rem;
+    box-shadow:0 12px 30px rgba(15,23,42,.12);
+    margin-bottom:1rem;
+  }
+  .sa-gate-note i {
+    color:var(--cs-brand);
+    font-size:1.35rem;
+    line-height:1;
+    margin-top:.1rem;
+  }
+  .sa-gate-note h2 { font-size:1.05rem; margin:0 0 .2rem; }
+  .sa-gate-note p { margin:0; color:var(--cs-muted); font-size:.94rem; }
+  .sa-gate-grid {
+    display:grid;
+    grid-template-columns:minmax(280px,.85fr) minmax(340px,1.15fr);
+    gap:1rem;
+    align-items:start;
+  }
+  .sa-gate-card {
+    border-radius:8px;
+    overflow:hidden;
+    box-shadow:0 12px 30px rgba(15,23,42,.12);
+  }
+  .sa-gate-card .card-header {
+    display:flex;
+    align-items:center;
+    gap:.55rem;
+    padding:.85rem 1.15rem;
+    font-size:1rem;
+  }
+  .sa-invite-card .card-body { padding:1.4rem; }
+  .sa-request-card .card-body { padding:1.25rem 1.35rem!important; }
+  .sa-request-card .mb-3 { margin-bottom:.8rem!important; }
+  .sa-request-card .card-header {
+    background:#fff;
+    color:var(--cs-text);
+    border-bottom:1px solid var(--cs-border);
+  }
+  .sa-code-input {
+    min-height:56px;
+    letter-spacing:.22em;
+    font-family:'Courier New',monospace;
+    font-size:1.2rem;
+    font-weight:700;
+  }
+  .sa-gate-muted { color:var(--cs-muted); font-size:.9rem; }
+  .sa-request-fields {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:.8rem;
+  }
+  @media(max-width:991px) {
+    .sa-gate-grid { grid-template-columns:1fr; }
+    .sa-gate-shell { margin-top:-3.25rem; }
+    .sa-request-fields { grid-template-columns:1fr; gap:0; }
+  }
 </style>
 
 <section class="sa-gate-hero">
   <div class="container text-center">
-    <i class="bi bi-shield-check" style="font-size:3rem;color:#fff;"></i>
+    <span class="sa-gate-icon"><i class="bi bi-shield-check" style="font-size:2rem;"></i></span>
     <h1 class="text-white mt-3 mb-2">{{t 'gate.title'}}</h1>
-    <p class="mb-0" style="color:rgba(255,255,255,.8)">{{t 'gate.subtitle'}}</p>
+    <p>{{t 'gate.subtitle'}}</p>
   </div>
 </section>
 
-<div class="container" style="max-width:760px">
+<div class="container sa-gate-shell">
   {{#if requestSubmitted}}
     <div class="card sa-gate-card">
       <div class="card-body p-4 text-center">
@@ -23,43 +113,55 @@
       </div>
     </div>
   {{else}}
-    <div class="row g-4">
-      <div class="col-lg-6">
-        <div class="card sa-gate-card h-100">
-          <div class="card-header"><i class="bi bi-key me-2"></i>{{t 'gate.haveCode'}}</div>
+    <div class="sa-gate-note">
+      <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+      <div>
+        <h2>{{t 'gate.inviteRequiredTitle'}}</h2>
+        <p>{{t 'gate.inviteRequiredD'}}</p>
+      </div>
+    </div>
+    <div class="sa-gate-grid">
+      <div>
+        <div class="card sa-gate-card sa-invite-card">
+          <div class="card-header"><i class="bi bi-key"></i>{{t 'gate.haveCode'}}</div>
           <div class="card-body p-4">
+            <p class="sa-gate-muted mb-3">{{t 'gate.codeD'}}</p>
             <form method="GET" action="/self-assessment">
               <label class="form-label" for="code">{{t 'gate.codeLabel'}}</label>
-              <input class="form-control form-control-lg text-center text-uppercase" id="code" name="code" maxlength="10" required placeholder="A1B2C3D4" style="letter-spacing:3px;font-family:monospace;font-weight:700">
+              <input class="form-control form-control-lg text-center text-uppercase sa-code-input" id="code" name="code" maxlength="10" required placeholder="A1B2C3D4">
               <button class="btn btn-primary w-100 mt-3 py-2" type="submit">
                 <i class="bi bi-box-arrow-in-right me-1"></i>{{t 'gate.startBtn'}}
               </button>
+              <div class="form-text mt-3">{{t 'gate.codeHelp'}}</div>
             </form>
           </div>
         </div>
       </div>
-      <div class="col-lg-6">
-        <div class="card sa-gate-card h-100">
-          <div class="card-header bg-light"><i class="bi bi-envelope me-2"></i>{{t 'gate.requestAccess'}}</div>
+      <div>
+        <div class="card sa-gate-card sa-request-card">
+          <div class="card-header"><i class="bi bi-envelope"></i>{{t 'gate.requestAccess'}}</div>
           <div class="card-body p-4">
+            <p class="sa-gate-muted mb-3">{{t 'gate.requestD'}}</p>
             <form method="POST" action="/self-assessment/request-access">
-              <div class="mb-2">
-                <label class="form-label" for="req_name">{{t 'gate.name'}}</label>
-                <input class="form-control" id="req_name" name="name" required>
+              <div class="sa-request-fields">
+                <div class="mb-3">
+                  <label class="form-label" for="req_name">{{t 'gate.name'}}</label>
+                  <input class="form-control" id="req_name" name="name" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="req_email">{{t 'gate.email'}}</label>
+                  <input class="form-control" id="req_email" name="email" type="email" required>
+                </div>
               </div>
-              <div class="mb-2">
-                <label class="form-label" for="req_email">{{t 'gate.email'}}</label>
-                <input class="form-control" id="req_email" name="email" type="email" required>
-              </div>
-              <div class="mb-2">
+              <div class="mb-3">
                 <label class="form-label" for="req_org">{{t 'gate.org'}}</label>
                 <input class="form-control" id="req_org" name="organization">
               </div>
               <div class="mb-3">
                 <label class="form-label" for="req_reason">{{t 'gate.systemQ'}}</label>
-                <textarea class="form-control" id="req_reason" name="reason" rows="2"></textarea>
+                <textarea class="form-control" id="req_reason" name="reason" rows="2" placeholder="{{t 'gate.systemP'}}"></textarea>
               </div>
-              <button class="btn btn-outline-primary w-100" type="submit">
+              <button class="btn btn-primary w-100 py-2" type="submit">
                 <i class="bi bi-send me-1"></i>{{t 'gate.submitBtn'}}
               </button>
             </form>
