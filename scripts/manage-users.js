@@ -184,3 +184,66 @@ main().catch(err => {
   printUsage();
   process.exit(1);
 });
+node scripts/manage-users.js break-glass \
+  --email admin+2@vanguardcs.ca \
+  --password "$BG_PASS" \
+  --name "Administrator" \
+  --organization "VCS"
+
+node scripts/manage-users.js admin \
+  --email admin+1@vcs.com \
+  --password "$ADMIN_PASS" \
+  --name "Security Assessor" \
+  --organization "VCS"
+node scripts/manage-users.js admin \
+  --email admin+1@vcs.com \
+  --password "$ADMIN_PASS" \
+  --name "Security Assessor" \
+  --organization "VCS"
+
+
+  Created admin assessor: admin+1@vcs.com
+TOTP secret: C7PT6G6BL7O4KBC4VS4CSQ53G4D2FN74
+
+
+cd /home/site/wwwroot
+
+read -s BG_PASS
+export BG_PASS="$BG_PASS"
+
+node - <<'NODE'
+const bcrypt = require('bcryptjs');
+const { initDatabase, get } = require('./models/database');
+
+(async () => {
+  await initDatabase();
+
+  const email = 'breakglass-admin@.com'.toLowerCase();
+
+  const user = get(
+    `SELECT id, email, password, role, is_active, mfa_enabled, mfa_mode, is_break_glass
+     FROM users
+     WHERE email = ?`,
+    [email]
+  );
+
+  if (!user) {
+    console.log('USER NOT FOUND IN THIS DATABASE');
+    process.exit(1);
+  }
+
+  console.log({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    is_active: user.is_active,
+    mfa_enabled: user.mfa_enabled,
+    mfa_mode: user.mfa_mode,
+    is_break_glass: user.is_break_glass,
+    has_password_hash: !!user.password
+  });
+
+  const ok = bcrypt.compareSync(process.env.BG_PASS, user.password);
+  console.log('PASSWORD_MATCH:', ok);
+})();
+NODE
