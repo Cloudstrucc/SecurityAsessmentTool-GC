@@ -12,14 +12,31 @@
       <a href="/admin/projects/{{project.id}}/assessments/new" class="btn btn-primary">
         <i class="bi bi-plus-lg me-1"></i>New Assessment
       </a>
-      <form action="/admin/projects/{{project.id}}/delete" method="POST" class="d-inline"
-        onsubmit="return confirm('Delete this project and all its draft assessments? This cannot be undone.')">
-        <button type="submit" class="btn btn-outline-danger">
-          <i class="bi bi-trash me-1"></i>Delete Project
-        </button>
-      </form>
+      {{#if isArchived}}
+        <form action="/admin/projects/{{project.id}}/unarchive" method="POST" class="d-inline">
+          <button type="submit" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Restore
+          </button>
+        </form>
+      {{else}}
+        <form action="/admin/projects/{{project.id}}/archive" method="POST" class="d-inline">
+          <button type="submit" class="btn btn-outline-secondary" title="Hide from the dashboard without deleting">
+            <i class="bi bi-archive me-1"></i>Archive
+          </button>
+        </form>
+      {{/if}}
+      <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteProjectModal">
+        <i class="bi bi-trash me-1"></i>Delete Project
+      </button>
     </div>
   </div>
+
+  {{#if isArchived}}
+    <div class="alert alert-dark d-flex align-items-center" role="alert">
+      <i class="bi bi-archive-fill me-2"></i>
+      <div>This project is <strong>archived</strong>. It is hidden from the dashboard and list views. Use <strong>Restore</strong> to bring it back, or delete it permanently below.</div>
+    </div>
+  {{/if}}
 
   <div class="row g-4">
     <!-- Project Info -->
@@ -459,6 +476,75 @@
     </div>
   </div>
 </div>
+
+<!-- Delete Project — GitHub-style danger confirmation -->
+<div class="modal fade" id="deleteProjectModal" tabindex="-1" aria-labelledby="deleteProjectModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-danger">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteProjectModalLabel"><i class="bi bi-exclamation-triangle-fill me-2"></i>Delete project</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {{#if hasNonDraftAssessments}}
+          <div class="alert alert-warning">
+            <div class="fw-semibold mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i>This project has {{nonDraftAssessments.length}} active (non-draft) assessment(s).</div>
+            <p class="mb-2 small">Deleting the project will <strong>permanently destroy</strong> the following assessment(s) and their evidence, comments, attachments and POA&amp;M items. This cannot be undone.</p>
+            <ul class="small mb-0">
+              {{#each nonDraftAssessments}}
+                <li><code>{{this.invite_code}}</code> — {{{statusBadge this.status}}}</li>
+              {{/each}}
+            </ul>
+          </div>
+          <div class="border rounded p-3 mb-3 bg-light">
+            <div class="fw-semibold mb-1"><i class="bi bi-archive me-1"></i>Archive instead? <span class="badge bg-success ms-1">Recommended</span></div>
+            <p class="small text-muted mb-2">Archiving keeps the project and its assessments and intakes intact but hides them from the dashboard. You can restore them at any time.</p>
+            <form action="/admin/projects/{{project.id}}/archive" method="POST">
+              <button type="submit" class="btn btn-success"><i class="bi bi-archive me-1"></i>Archive this project</button>
+            </form>
+          </div>
+          <hr>
+          <p class="fw-semibold text-danger mb-2"><i class="bi bi-fire me-1"></i>Or permanently delete everything</p>
+        {{else}}
+          <p class="mb-2">This will permanently delete the project along with all of its assessments, intakes, documents and related records. <strong>This cannot be undone.</strong></p>
+          <p class="text-muted small mb-3">Prefer to keep the data? Close this dialog and use <strong>Archive</strong> instead — it hides the project from the dashboard without deleting anything.</p>
+        {{/if}}
+
+        <form action="/admin/projects/{{project.id}}/delete" method="POST" id="deleteProjectForm">
+          <label class="form-label small">To confirm, type the project name <code id="deleteProjectExpected">{{project.name}}</code> below:</label>
+          <input type="text" name="confirm_name" id="deleteProjectConfirmInput" class="form-control"
+                 autocomplete="off" data-expected="{{project.name}}" placeholder="Type the project name to confirm">
+          <button type="submit" id="deleteProjectSubmit" class="btn btn-danger w-100 mt-3" disabled>
+            <i class="bi bi-trash me-1"></i>I understand the consequences, delete this project
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('deleteProjectConfirmInput');
+  var submit = document.getElementById('deleteProjectSubmit');
+  if (input && submit) {
+    var expected = input.getAttribute('data-expected') || '';
+    var evaluate = function () {
+      submit.disabled = input.value.trim() !== expected.trim();
+    };
+    input.addEventListener('input', evaluate);
+    var modal = document.getElementById('deleteProjectModal');
+    if (modal) {
+      modal.addEventListener('shown.bs.modal', function () { input.value = ''; evaluate(); input.focus(); });
+      // Allow deep-linking to the danger zone (e.g. from the projects list).
+      if (window.location.hash === '#delete' && window.bootstrap) {
+        bootstrap.Modal.getOrCreateInstance(modal).show();
+      }
+    }
+    evaluate();
+  }
+})();
+</script>
 
 <script>
 document.querySelectorAll('.assignment-mode').forEach(select => {
