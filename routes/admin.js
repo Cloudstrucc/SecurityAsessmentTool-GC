@@ -941,21 +941,22 @@ router.post('/register', (req, res) => {
 
 // ── DASHBOARD ──
 router.get('/dashboard', ensureAuthenticated, (req, res) => {
-  const projects = all('SELECT * FROM projects ORDER BY updated_at DESC LIMIT 10');
+  const projects = all('SELECT * FROM projects WHERE archived_at IS NULL ORDER BY updated_at DESC LIMIT 10');
   const assessments = all(`
-    SELECT a.*, p.name as project_name 
-    FROM assessments a JOIN projects p ON a.project_id = p.id 
+    SELECT a.*, p.name as project_name
+    FROM assessments a JOIN projects p ON a.project_id = p.id
+    WHERE a.archived_at IS NULL AND p.archived_at IS NULL
     ORDER BY a.updated_at DESC LIMIT 10
   `);
-  const recentIntakes = all(`SELECT * FROM intake_submissions ORDER BY created_at DESC LIMIT 5`);
-  
+  const recentIntakes = all(`SELECT * FROM intake_submissions WHERE archived_at IS NULL ORDER BY created_at DESC LIMIT 5`);
+
   const stats = {
-    totalProjects: get('SELECT COUNT(*) as c FROM projects')?.c || 0,
-    activeAssessments: get("SELECT COUNT(*) as c FROM assessments WHERE status NOT IN ('completed','closed')")?.c || 0,
-    pendingAudits: get("SELECT COUNT(*) as c FROM assessments WHERE status = 'submitted'")?.c || 0,
-    activeATOs: get("SELECT COUNT(*) as c FROM assessments WHERE ato_type = 'ato' AND result = 'ato'")?.c || 0,
-    activeIATOs: get("SELECT COUNT(*) as c FROM assessments WHERE ato_type = 'iato' AND result = 'iato'")?.c || 0,
-    pendingIntakes: get("SELECT COUNT(*) as c FROM intake_submissions WHERE status IN ('pending','in-review')")?.c || 0,
+    totalProjects: get('SELECT COUNT(*) as c FROM projects WHERE archived_at IS NULL')?.c || 0,
+    activeAssessments: get("SELECT COUNT(*) as c FROM assessments WHERE archived_at IS NULL AND status NOT IN ('completed','closed')")?.c || 0,
+    pendingAudits: get("SELECT COUNT(*) as c FROM assessments WHERE archived_at IS NULL AND status = 'submitted'")?.c || 0,
+    activeATOs: get("SELECT COUNT(*) as c FROM assessments WHERE archived_at IS NULL AND ato_type = 'ato' AND result = 'ato'")?.c || 0,
+    activeIATOs: get("SELECT COUNT(*) as c FROM assessments WHERE archived_at IS NULL AND ato_type = 'iato' AND result = 'iato'")?.c || 0,
+    pendingIntakes: get("SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status IN ('pending','in-review')")?.c || 0,
     pendingSelfAssessments: (get("SELECT COUNT(*) as c FROM self_assessments WHERE status = 'submitted'")?.c || 0) +
       (get("SELECT COUNT(*) as c FROM sa_access_requests WHERE status = 'pending'")?.c || 0)
   };
@@ -970,10 +971,14 @@ router.get('/dashboard', ensureAuthenticated, (req, res) => {
 
 // ── PROJECTS ──
 router.get('/projects', ensureAuthenticated, (req, res) => {
-  const projects = all('SELECT * FROM projects ORDER BY updated_at DESC');
+  const showArchived = req.query.archived === '1';
+  const projects = showArchived
+    ? all('SELECT * FROM projects WHERE archived_at IS NOT NULL ORDER BY archived_at DESC')
+    : all('SELECT * FROM projects WHERE archived_at IS NULL ORDER BY updated_at DESC');
+  const archivedCount = get('SELECT COUNT(*) as c FROM projects WHERE archived_at IS NOT NULL')?.c || 0;
   res.render('admin/projects', {
     title: 'Projects', isAdmin: true, isProjects: true,
-    admin: req.user, projects
+    admin: req.user, projects, showArchived, archivedCount
   });
 });
 
@@ -1140,10 +1145,16 @@ router.get('/projects/:id', ensureAuthenticated, (req, res) => {
   let techs = [];
   try { techs = JSON.parse(project.technologies || '[]'); } catch(e) {}
 
+  // Assessments that would be permanently lost on delete (anything not in draft).
+  const nonDraftAssessments = assessments.filter(a => a.status !== 'draft');
+
   res.render('admin/project-detail', {
     title: project.name, isAdmin: true, isProjects: true,
     admin: req.user, project, assessments, intakes,
     intakeAssignments, assessmentAssignments, documents, branding, atoRecords, projectPoamItems,
+    nonDraftAssessments,
+    hasNonDraftAssessments: nonDraftAssessments.length > 0,
+    isArchived: !!project.archived_at,
     users: getAssignableUsers(),
     techNames: techs.map(t => COMMON_TECHNOLOGIES[t]?.name || t)
   });
@@ -1722,8 +1733,9 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
 router.get('/assessments', ensureAuthenticated, (req, res) => {
   const assessments = all(`
     SELECT a.*, p.name as project_name, i.ref_code as intake_ref_code
-    FROM assessments a JOIN projects p ON a.project_id = p.id 
+    FROM assessments a JOIN projects p ON a.project_id = p.id
     LEFT JOIN intake_submissions i ON i.id = a.intake_id
+    WHERE a.archived_at IS NULL AND p.archived_at IS NULL
     ORDER BY a.updated_at DESC
   `);
   res.render('admin/assessments', {
@@ -2337,26 +2349,76 @@ router.post('/assessments/:id/delete', ensureAuthenticated, (req, res) => {
   res.redirect(req.body.return_to || '/admin/assessments');
 });
 
-// ── DELETE PROJECT ──
+// ── ARCHIVE PROJECT (reversible soft-archive) ──
+// Sets the project and all its assessments + intakes to 'archived' status while
+// preserving their prior status, so they can be restored later. Archived records
+// are hidden from the dashboard and the main list views but not deleted.
+router.post('/projects/:id/archive', ensureAuthenticated, (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+
+  if (project.archived_at) {
+    req.flash('error', 'Project is already archived.');
+    return res.redirect(`/admin/projects/${project.id}`);
+  }
+
+  // Only stash the prior status the first time a record is archived.
+  run(`UPDATE assessments SET status_before_archive = status, status = 'archived',
+       archived_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+       WHERE project_id = ? AND archived_at IS NULL`, [project.id]);
+  run(`UPDATE intake_submissions SET status_before_archive = status, status = 'archived',
+       archived_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+       WHERE project_id = ? AND archived_at IS NULL`, [project.id]);
+  run(`UPDATE projects SET status_before_archive = status, status = 'archived',
+       archived_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`, [project.id]);
+
+  req.flash('success', `Project "${project.name}" and its assessments and intakes were archived. They are hidden from the dashboard but not deleted.`);
+  res.redirect('/admin/projects');
+});
+
+// ── UNARCHIVE PROJECT (restore) ──
+router.post('/projects/:id/unarchive', ensureAuthenticated, (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+
+  if (!project.archived_at) {
+    req.flash('error', 'Project is not archived.');
+    return res.redirect(`/admin/projects/${project.id}`);
+  }
+
+  // Restore only the records archived as part of this project's archive action.
+  run(`UPDATE assessments SET status = COALESCE(status_before_archive, 'draft'),
+       status_before_archive = NULL, archived_at = NULL, updated_at = CURRENT_TIMESTAMP
+       WHERE project_id = ? AND archived_at IS NOT NULL`, [project.id]);
+  run(`UPDATE intake_submissions SET status = COALESCE(status_before_archive, 'pending'),
+       status_before_archive = NULL, archived_at = NULL, updated_at = CURRENT_TIMESTAMP
+       WHERE project_id = ? AND archived_at IS NOT NULL`, [project.id]);
+  run(`UPDATE projects SET status = COALESCE(status_before_archive, 'draft'),
+       status_before_archive = NULL, archived_at = NULL, updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`, [project.id]);
+
+  req.flash('success', `Project "${project.name}" was restored from the archive.`);
+  res.redirect(`/admin/projects/${project.id}`);
+});
+
+// ── DELETE PROJECT (permanent purge) ──
+// GitHub-style danger action: requires the exact project name to be typed. Purges
+// the project and ALL its related assessments (any status) and intakes.
 router.post('/projects/:id/delete', ensureAuthenticated, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
   if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
-  // Check for non-draft assessments
-  const nonDraftAssessments = all(
-    "SELECT id, status, invite_code FROM assessments WHERE project_id = ? AND status != 'draft'",
-    [project.id]
-  );
-
-  if (nonDraftAssessments.length > 0) {
-    const statuses = nonDraftAssessments.map(a => `${a.invite_code} (${a.status})`).join(', ');
-    req.flash('error', `Cannot delete project — it contains ${nonDraftAssessments.length} non-draft assessment(s): ${statuses}. Only projects with all assessments in draft status can be deleted.`);
+  // Require the typed confirmation name to exactly match the project name.
+  const typed = (req.body.confirm_name || '').trim();
+  if (typed !== project.name) {
+    req.flash('error', 'Deletion cancelled — the project name you typed did not match. The project was not deleted.');
     return res.redirect(`/admin/projects/${project.id}`);
   }
 
-  // Delete all draft assessments and their related data
-  const draftAssessments = all("SELECT id FROM assessments WHERE project_id = ?", [project.id]);
-  draftAssessments.forEach(a => {
+  // Delete ALL assessments (any status) and their related data.
+  const assessments = all('SELECT id FROM assessments WHERE project_id = ?', [project.id]);
+  assessments.forEach(a => {
     run('DELETE FROM comments WHERE assessment_control_id IN (SELECT id FROM assessment_controls WHERE assessment_id = ?)', [a.id]);
     run('DELETE FROM attachments WHERE assessment_control_id IN (SELECT id FROM assessment_controls WHERE assessment_id = ?)', [a.id]);
     run('DELETE FROM iato_checklist WHERE assessment_id = ?', [a.id]);
@@ -2376,7 +2438,7 @@ router.post('/projects/:id/delete', ensureAuthenticated, (req, res) => {
   // Delete the project itself
   run('DELETE FROM projects WHERE id = ?', [project.id]);
 
-  req.flash('success', `Project "${project.name}" and ${draftAssessments.length} draft assessment(s) deleted`);
+  req.flash('success', `Project "${project.name}" and ${assessments.length} assessment(s) were permanently deleted.`);
   res.redirect('/admin/projects');
 });
 
@@ -2700,10 +2762,10 @@ const ACTIVITY_LABELS = {
 
 // List all intakes
 router.get('/intakes', ensureAuthenticated, (req, res) => {
-  const intakes = all('SELECT * FROM intake_submissions ORDER BY created_at DESC');
-  const pending = all("SELECT COUNT(*) as c FROM intake_submissions WHERE status = 'pending'")[0]?.c || 0;
-  const accepted = all("SELECT COUNT(*) as c FROM intake_submissions WHERE status = 'accepted'")[0]?.c || 0;
-  const inReview = all("SELECT COUNT(*) as c FROM intake_submissions WHERE status = 'in-review'")[0]?.c || 0;
+  const intakes = all('SELECT * FROM intake_submissions WHERE archived_at IS NULL ORDER BY created_at DESC');
+  const pending = all("SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status = 'pending'")[0]?.c || 0;
+  const accepted = all("SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status = 'accepted'")[0]?.c || 0;
+  const inReview = all("SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status = 'in-review'")[0]?.c || 0;
 
   res.render('admin/intakes', {
     title: 'Intake Submissions', isAdmin: true, isIntakes: true,

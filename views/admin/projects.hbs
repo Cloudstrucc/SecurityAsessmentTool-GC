@@ -1,12 +1,25 @@
 <div class="container">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h1 class="mb-1">Projects</h1>
-      <p class="text-muted mb-0">Manage your security assessment projects</p>
+      <h1 class="mb-1">{{#if showArchived}}Archived Projects{{else}}Projects{{/if}}</h1>
+      <p class="text-muted mb-0">{{#if showArchived}}Projects hidden from the dashboard. Restore or permanently delete them.{{else}}Manage your security assessment projects{{/if}}</p>
     </div>
-    <a href="/admin/projects/new" class="btn btn-primary">
-      <i class="bi bi-plus-lg me-1"></i>New Project
-    </a>
+    <div class="d-flex gap-2">
+      {{#if showArchived}}
+        <a href="/admin/projects" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i>Active Projects
+        </a>
+      {{else}}
+        {{#if archivedCount}}
+          <a href="/admin/projects?archived=1" class="btn btn-outline-secondary">
+            <i class="bi bi-archive me-1"></i>Archived <span class="badge bg-secondary ms-1">{{archivedCount}}</span>
+          </a>
+        {{/if}}
+        <a href="/admin/projects/new" class="btn btn-primary">
+          <i class="bi bi-plus-lg me-1"></i>New Project
+        </a>
+      {{/if}}
+    </div>
   </div>
 
   <div class="card">
@@ -38,15 +51,25 @@
                   <td>{{{statusBadge this.status}}}</td>
                   <td class="text-muted small">{{formatDate this.created_at}}</td>
                   <td class="text-end text-nowrap">
-                    <a href="/admin/projects/{{this.id}}" class="btn btn-sm btn-outline-primary">
+                    <a href="/admin/projects/{{this.id}}" class="btn btn-sm btn-outline-primary" title="View project">
                       <i class="bi bi-eye"></i>
                     </a>
-                    <form action="/admin/projects/{{this.id}}/delete" method="POST" class="d-inline ms-1"
-                      onsubmit="return confirm('Delete this project? Only works if all assessments are in draft status.')">
-                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete project">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </form>
+                    {{#if ../showArchived}}
+                      <form action="/admin/projects/{{this.id}}/unarchive" method="POST" class="d-inline ms-1">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary" title="Restore project">
+                          <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                      </form>
+                    {{else}}
+                      <form action="/admin/projects/{{this.id}}/archive" method="POST" class="d-inline ms-1">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary" title="Archive project">
+                          <i class="bi bi-archive"></i>
+                        </button>
+                      </form>
+                    {{/if}}
+                    <a href="/admin/projects/{{this.id}}#delete" class="btn btn-sm btn-outline-danger ms-1" title="Delete project">
+                      <i class="bi bi-trash"></i>
+                    </a>
                   </td>
                 </tr>
               {{/each}}

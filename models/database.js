@@ -594,6 +594,13 @@ async function initDatabase() {
     ['projects', 'department', 'ALTER TABLE projects ADD COLUMN department TEXT'],
     ['projects', 'branch', 'ALTER TABLE projects ADD COLUMN branch TEXT'],
     ['projects', 'client_user_id', 'ALTER TABLE projects ADD COLUMN client_user_id INTEGER'],
+    // Archive support (reversible soft-archive; preserves prior status)
+    ['projects', 'archived_at', 'ALTER TABLE projects ADD COLUMN archived_at DATETIME'],
+    ['projects', 'status_before_archive', 'ALTER TABLE projects ADD COLUMN status_before_archive TEXT'],
+    ['assessments', 'archived_at', 'ALTER TABLE assessments ADD COLUMN archived_at DATETIME'],
+    ['assessments', 'status_before_archive', 'ALTER TABLE assessments ADD COLUMN status_before_archive TEXT'],
+    ['intake_submissions', 'archived_at', 'ALTER TABLE intake_submissions ADD COLUMN archived_at DATETIME'],
+    ['intake_submissions', 'status_before_archive', 'ALTER TABLE intake_submissions ADD COLUMN status_before_archive TEXT'],
     ['intake_submissions', 'confidentiality_level', "ALTER TABLE intake_submissions ADD COLUMN confidentiality_level TEXT DEFAULT 'protected-b'"],
     ['intake_submissions', 'integrity_level', "ALTER TABLE intake_submissions ADD COLUMN integrity_level TEXT DEFAULT 'medium'"],
     ['intake_submissions', 'availability_level', "ALTER TABLE intake_submissions ADD COLUMN availability_level TEXT DEFAULT 'medium'"],

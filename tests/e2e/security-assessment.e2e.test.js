@@ -907,3 +907,89 @@ test('project and assessment creation can use non-ITSG framework controls', asyn
   assert.match(assessmentDetail.text, /CIS Controls v8/);
   assert.match(assessmentDetail.text, /CIS-01/);
 });
+
+test('admin can archive a project and restore it, hiding it from the dashboard lists', async () => {
+  const jar = await loginAdminWithTotp();
+  const name = 'E2E Archive Lifecycle Project';
+  const { projectId } = await createAdminProject(jar, name);
+
+  // Assert against the table row link (a flash banner may echo the name, but never this href).
+  const rowLink = new RegExp(`href="/admin/projects/${projectId}"`);
+
+  // Archive hides the project from the active projects list...
+  const archive = await request(jar, 'POST', `/admin/projects/${projectId}/archive`);
+  assert.equal(archive.status, 302);
+
+  const activeList = await getText(jar, '/admin/projects');
+  assert.doesNotMatch(activeList.text, rowLink);
+
+  // ...but it remains reachable in the archived view.
+  const archivedList = await getText(jar, '/admin/projects?archived=1');
+  assert.match(archivedList.text, rowLink);
+
+  // The detail page shows it is archived and offers Restore.
+  const detail = await getText(jar, `/admin/projects/${projectId}`);
+  assert.match(detail.text, /archived/i);
+  assert.match(detail.text, /unarchive/);
+
+  // Restore brings it back to the active list.
+  const restore = await request(jar, 'POST', `/admin/projects/${projectId}/unarchive`);
+  assert.equal(restore.status, 302);
+  const restoredList = await getText(jar, '/admin/projects');
+  assert.match(restoredList.text, rowLink);
+});
+
+test('archiving a project archives its non-draft assessments and restore returns their status', async () => {
+  const jar = await loginAdminWithTotp();
+  const name = 'E2E Archive With Assessment Project';
+  const { projectId } = await createAdminProject(jar, name);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+
+  // Move the assessment out of draft so archive (not delete) is the safe path.
+  const invite = await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  assert.equal(invite.status, 302);
+
+  // Archive the project; its assessment should disappear from the assessments list.
+  const archive = await request(jar, 'POST', `/admin/projects/${projectId}/archive`);
+  assert.equal(archive.status, 302);
+  const assessmentsList = await getText(jar, '/admin/assessments');
+  // Assert on the assessment row link (a flash banner may echo the project name, not this href).
+  assert.doesNotMatch(assessmentsList.text, new RegExp(`href="/admin/assessments/${assessmentId}"`));
+
+  // Restore returns the assessment to its pre-archive (evidence-gathering) status.
+  const restore = await request(jar, 'POST', `/admin/projects/${projectId}/unarchive`);
+  assert.equal(restore.status, 302);
+  const assessmentDetail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(assessmentDetail.text, /Evidence Gathering|evidence-gathering/i);
+});
+
+test('deleting a project requires the exact name and then purges it with its assessments', async () => {
+  const jar = await loginAdminWithTotp();
+  const name = 'E2E Danger Zone Delete Project';
+  const { projectId } = await createAdminProject(jar, name);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+
+  // Make the assessment non-draft to prove delete purges it too (unlike the old block).
+  const invite = await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  assert.equal(invite.status, 302);
+
+  // A wrong confirmation name must NOT delete the project.
+  const wrong = await request(jar, 'POST', `/admin/projects/${projectId}/delete`, {
+    form: { confirm_name: 'not the right name' }
+  });
+  assert.equal(wrong.status, 302);
+  const stillThere = await request(jar, 'GET', `/admin/projects/${projectId}`, { redirect: 'manual' });
+  assert.equal(stillThere.status, 200, 'project should survive a mismatched confirmation');
+
+  // The exact name permanently deletes the project and its assessment.
+  const del = await request(jar, 'POST', `/admin/projects/${projectId}/delete`, {
+    form: { confirm_name: name }
+  });
+  assert.equal(del.status, 302);
+  assert.equal(del.headers.get('location'), '/admin/projects');
+
+  const gone = await request(jar, 'GET', `/admin/projects/${projectId}`, { redirect: 'manual' });
+  assert.equal(gone.status, 302, 'deleted project detail should redirect away');
+  const assessmentGone = await request(jar, 'GET', `/admin/assessments/${assessmentId}`, { redirect: 'manual' });
+  assert.equal(assessmentGone.status, 302, 'purged assessment should no longer be viewable');
+});

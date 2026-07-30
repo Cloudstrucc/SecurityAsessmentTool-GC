@@ -10,9 +10,11 @@ uploads/*
 
 # PDF exports
 data/exports/
-git rm --cached .env
-# Environment
+
+# Environment — never commit real secrets (.env.example is allowed)
 .env
+.env.*
+!.env.example
 
 # OS files
 .DS_Store

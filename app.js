@@ -115,7 +115,8 @@ app.engine('hbs', engine({
         'ato': '<span class="badge bg-success">ATO Granted</span>',
         'iato': '<span class="badge bg-warning text-dark">iATO Granted</span>',
         'open': '<span class="badge bg-danger">Open</span>',
-        'closed': '<span class="badge bg-success">Closed</span>'
+        'closed': '<span class="badge bg-success">Closed</span>',
+        'archived': '<span class="badge bg-dark"><i class="bi bi-archive me-1"></i>Archived</span>'
       };
       return badges[status] || `<span class="badge bg-secondary">${status || 'Unknown'}</span>`;
     },
