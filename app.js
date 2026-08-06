@@ -1,4 +1,10 @@
-require('dotenv').config();
+// Load environment config. APP_ENV selects a per-environment file:
+//   APP_ENV=local -> .env.local, dev -> .env.dev, qa -> .env.qa
+//   (unset)       -> .env  (production / default)
+// On Azure, App Service settings are already in process.env and take precedence
+// (dotenv never overrides existing vars), so a missing file is harmless.
+const APP_ENV = process.env.APP_ENV;
+require('dotenv').config({ path: APP_ENV ? `${__dirname}/.env.${APP_ENV}` : `${__dirname}/.env` });
 const express = require('express');
 const { engine } = require('express-handlebars');
 const session = require('express-session');

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create your account · Vanguard SA&amp;A</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/4.0.2/inter.min.css">
+<link rel="stylesheet" href="../css/vanguard-design.css">
+<style>.mock-note{background:#fdf4ee;border-bottom:1px solid #f0dcc4;color:#8a5a12;font-size:12.5px;text-align:center;padding:7px 16px;font-weight:600;}</style>
+</head>
+<body class="vg-page">
+
+<div class="mock-note">MOCKUP · Registration flow preview. No account is created.</div>
+
+<nav class="vg-nav">
+  <div class="vg-container vg-nav-inner">
+    <a href="pricing.html" class="vg-brand">
+      <span class="vg-brand-name">Vanguard Cloud Services</span>
+      <span class="vg-brand-sep">|</span>
+      <span class="vg-brand-product">SA&amp;A</span>
+    </a>
+    <div class="vg-nav-links">
+      <a href="../sa-tool-overview.html" class="vg-nav-link hide-sm">Product brief</a>
+      <a href="pricing.html" class="vg-nav-link">Pricing</a>
+    </div>
+  </div>
+</nav>
+
+<div class="vg-auth-wrap">
+  <div class="vg-auth-card">
+    <div class="vg-steps-mini">
+      <span class="dot active">1</span><span class="bar"></span>
+      <span class="dot">2</span><span class="bar"></span>
+      <span class="dot">3</span>
+      <span style="margin-left:10px">Account → Plan → Payment</span>
+    </div>
+
+    <div class="vg-auth-head">
+      <h1>Create your account</h1>
+      <p>You'll need an account to access any plan — including the free trial.</p>
+    </div>
+
+    <div id="plan-pill" class="vg-callout info" style="display:flex;align-items:center;justify-content:space-between;margin-top:0">
+      <span>Selected plan: <b id="plan-name">Free trial</b></span>
+      <a href="pricing.html" class="vg-nav-link" style="color:var(--vg-sky-600);padding:2px 6px">Change</a>
+    </div>
+
+    <form onsubmit="event.preventDefault(); go();">
+      <div class="vg-field-row">
+        <div class="vg-field"><label class="vg-label">First name</label><input class="vg-input" placeholder="Alex" required></div>
+        <div class="vg-field"><label class="vg-label">Last name</label><input class="vg-input" placeholder="Rivera" required></div>
+      </div>
+      <div class="vg-field"><label class="vg-label">Organization</label><input class="vg-input" placeholder="Department or company" required></div>
+      <div class="vg-field"><label class="vg-label">Work email</label><input class="vg-input" type="email" placeholder="you@agency.gc.ca" required></div>
+      <div class="vg-field"><label class="vg-label">Password</label><input class="vg-input" type="password" placeholder="At least 12 characters" required>
+        <div class="vg-hint">Multi-factor authentication (TOTP or passkey) is set up right after registration.</div>
+      </div>
+
+      <label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--vg-muted);margin:6px 0 18px">
+        <input type="checkbox" required style="margin-top:3px">
+        <span>I agree to the Terms of Service and Privacy Policy.</span>
+      </label>
+
+      <button class="vg-btn vg-btn-primary vg-btn-block vg-btn-lg" type="submit">Create account &amp; continue</button>
+    </form>
+
+    <div class="vg-or">or</div>
+    <p style="text-align:center;font-size:14px;color:var(--vg-muted);margin:0">
+      Already registered? <a href="#" style="color:var(--vg-sky-600);font-weight:600;text-decoration:none">Sign in</a>
+    </p>
+  </div>
+</div>
+
+<footer class="vg-footer">
+  <div class="vg-container"><div>Vanguard SA&amp;A · Vanguard Cloud Services · vanguardcs.ca</div></div>
+</footer>
+
+<script>
+  var PLAN_LABELS={trial:'Free trial',team:'Team',business:'Business',enterprise:'Enterprise',payg:'Pay as you go'};
+  var plan=(new URLSearchParams(location.search)).get('plan')||'trial';
+  document.getElementById('plan-name').textContent=PLAN_LABELS[plan]||'Free trial';
+  function go(){
+    // Trial & enterprise skip card entry; others go to checkout.
+    if(plan==='trial'){ location.href='success.html?plan='+plan; }
+    else if(plan==='enterprise'){ location.href='success.html?plan='+plan+'&contact=1'; }
+    else { location.href='checkout.html?plan='+plan; }
+  }
+</script>
+</body>
+</html>

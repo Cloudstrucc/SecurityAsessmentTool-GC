@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout · Vanguard SA&amp;A</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/4.0.2/inter.min.css">
+<link rel="stylesheet" href="../css/vanguard-design.css">
+<style>
+  .mock-note{background:#fdf4ee;border-bottom:1px solid #f0dcc4;color:#8a5a12;font-size:12.5px;text-align:center;padding:7px 16px;font-weight:600;}
+  .checkout-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:28px;align-items:start;}
+  @media(max-width:800px){.checkout-grid{grid-template-columns:1fr}}
+  .stripe-badge{display:flex;align-items:center;gap:6px;justify-content:center;color:var(--vg-muted);font-size:12px;margin-top:16px}
+</style>
+</head>
+<body class="vg-page">
+
+<div class="mock-note">MOCKUP · Payment preview only. Card, Apple Pay &amp; Google Pay are non-functional; no charge is made.</div>
+
+<nav class="vg-nav">
+  <div class="vg-container vg-nav-inner">
+    <a href="pricing.html" class="vg-brand">
+      <span class="vg-brand-name">Vanguard Cloud Services</span>
+      <span class="vg-brand-sep">|</span>
+      <span class="vg-brand-product">SA&amp;A</span>
+    </a>
+    <div class="vg-nav-links"><a href="pricing.html" class="vg-nav-link">Pricing</a></div>
+  </div>
+</nav>
+
+<div class="vg-auth-wrap" style="align-items:flex-start">
+  <div style="width:100%;max-width:900px">
+    <div class="vg-steps-mini" style="justify-content:flex-start;margin-bottom:20px">
+      <span class="dot">1</span><span class="bar"></span>
+      <span class="dot active">2</span><span class="bar"></span>
+      <span class="dot">3</span>
+      <span style="margin-left:10px">Account → <b style="color:var(--vg-navy-800)">Plan &amp; payment</b> → Confirm</span>
+    </div>
+
+    <div class="checkout-grid">
+
+      <!-- Payment panel -->
+      <div class="vg-auth-card wide" style="max-width:none;margin:0">
+        <div class="vg-auth-head" style="text-align:left;margin-bottom:18px">
+          <h1 style="font-size:22px">Payment</h1>
+          <p style="margin-top:4px">Pay securely with a card or a mobile wallet.</p>
+        </div>
+
+        <!-- Wallets -->
+        <div class="vg-wallet-row">
+          <button class="vg-wallet-btn vg-applepay" type="button" onclick="pay('Apple Pay')"><span class="logo"></span>&nbsp;Pay</button>
+          <button class="vg-wallet-btn vg-gpay" type="button" onclick="pay('Google Pay')"><span class="logo">G</span>&nbsp;Pay</button>
+        </div>
+        <div class="vg-hint" style="text-align:center;margin-top:0">Apple Pay and Google Pay appear automatically on supported devices/browsers.</div>
+
+        <div class="vg-or">or pay by card</div>
+
+        <!-- Card fields (visual mock of Stripe Elements) -->
+        <div class="vg-field">
+          <label class="vg-label">Card information</label>
+          <div class="vg-card-field"><i style="color:var(--vg-sky-600)">▤</i> Card number <span class="brand-dots">•••• •••• •••• 4242</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:-1px">
+            <div class="vg-card-field" style="border-top-left-radius:0;border-top-right-radius:0;border-right:none;border-bottom-left-radius:var(--vg-radius-sm)">MM / YY</div>
+            <div class="vg-card-field" style="border-top-left-radius:0;border-top-right-radius:0;border-bottom-right-radius:var(--vg-radius-sm)">CVC</div>
+          </div>
+        </div>
+        <div class="vg-field"><label class="vg-label">Name on card</label><input class="vg-input" placeholder="Alex Rivera"></div>
+        <div class="vg-field"><label class="vg-label">Billing country</label>
+          <select class="vg-select"><option>Canada</option><option>United States</option><option>United Kingdom</option></select>
+        </div>
+
+        <button class="vg-btn vg-btn-primary vg-btn-block vg-btn-lg" onclick="pay('card')" style="margin-top:6px">
+          Pay <span id="pay-amt">$449</span> &amp; activate
+        </button>
+        <div class="stripe-badge"><i>🔒</i> Payments processed securely by Stripe</div>
+      </div>
+
+      <!-- Order summary -->
+      <div class="vg-summary">
+        <h3>Order summary</h3>
+        <div class="line"><span id="sum-plan">Business plan</span><span id="sum-plan-price">$449/mo</span></div>
+        <div class="line"><span id="sum-inc">Up to 20 users · 25 projects</span><span class="vg-muted">included</span></div>
+        <div class="line" id="line-discount" style="display:none"><span class="save-note">Comp code applied</span><span class="save-note" id="disc-amt">−$449</span></div>
+        <div class="line total"><span>Due today</span><span id="sum-total">$449</span></div>
+
+        <!-- Comp / promo code -->
+        <div style="margin-top:16px">
+          <label class="vg-label">Comp or promo code</label>
+          <div class="vg-promo">
+            <input class="vg-input" id="promo" placeholder="e.g. VCS-PILOT-2026">
+            <button class="vg-btn vg-btn-ghost" onclick="applyPromo()">Apply</button>
+          </div>
+          <div class="vg-promo-applied" id="promo-ok" style="display:none">✓ <span id="promo-msg">Comp code applied — no charge today.</span></div>
+        </div>
+
+        <div class="vg-callout" style="margin:18px 0 0;font-size:13px">
+          Change or cancel anytime from your workspace billing settings. Taxes calculated at payment where applicable.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer class="vg-footer">
+  <div class="vg-container"><div>Vanguard SA&amp;A · Vanguard Cloud Services · vanguardcs.ca</div></div>
+</footer>
+
+<script>
+  var PLANS={
+    team:{name:'Team plan',price:149,inc:'Up to 5 users · 5 projects'},
+    business:{name:'Business plan',price:449,inc:'Up to 20 users · 25 projects'},
+    payg:{name:'Pay as you go',price:0,inc:'$19/user/mo + $99/project'}
+  };
+  var plan=(new URLSearchParams(location.search)).get('plan')||'business';
+  var P=PLANS[plan]||PLANS.business;
+  var comped=false;
+  document.getElementById('sum-plan').textContent=P.name;
+  document.getElementById('sum-inc').textContent=P.inc;
+  document.getElementById('sum-plan-price').textContent= plan==='payg' ? 'metered' : '$'+P.price+'/mo';
+  render();
+  function render(){
+    var total = comped ? 0 : (plan==='payg' ? 0 : P.price);
+    document.getElementById('sum-total').textContent='$'+total;
+    document.getElementById('pay-amt').textContent='$'+total;
+  }
+  function applyPromo(){
+    var v=document.getElementById('promo').value.trim();
+    if(!v) return;
+    comped=true;
+    document.getElementById('line-discount').style.display='flex';
+    document.getElementById('disc-amt').textContent='−$'+(plan==='payg'?0:P.price);
+    document.getElementById('promo-ok').style.display='flex';
+    document.getElementById('promo-msg').textContent='Comp code "'+v+'" applied — no charge today.';
+    document.querySelector('#pay-amt').closest('.vg-btn').innerHTML='Activate workspace (comped)';
+    render();
+  }
+  function pay(method){ location.href='success.html?plan='+plan+(comped?'&comped=1':'')+'&via='+encodeURIComponent(method); }
+</script>
+</body>
+</html>

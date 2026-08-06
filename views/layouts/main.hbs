@@ -18,16 +18,21 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
+  <!-- Vanguard design system (shared visual language — layered on top of Bootstrap) -->
+  <link href="/css/vanguard-design.css" rel="stylesheet">
+
   <style>
     /* ═══ Vanguard Cloud Services Design System — SA&A Platform ════════════ */
     :root {
-      --cs-nav:#1a2332; --cs-nav-hover:#111827;
-      --cs-link:#2563eb; --cs-link-hover:#1d4ed8; --cs-visited:#7c3aed;
-      --cs-blue:#1a2332; --cs-brand:#0ea5e9;
-      --cs-white:#fff; --cs-light:#f8fafc; --cs-border:#e2e8f0;
-      --cs-text:#1e293b; --cs-muted:#64748b;
-      --cs-success:#16a34a; --cs-warning:#ea580c; --cs-danger:#dc2626; --cs-info:#0ea5e9;
-      --cs-accent:#2563eb; --cs-accent-dk:#1e40af;
+      /* Aligned to the Vanguard product-brief palette (navy-950 + sky gradient) */
+      --cs-nav:#0a1626; --cs-nav-hover:#0d2136;
+      --cs-link:#2f80cf; --cs-link-hover:#1d4ed8; --cs-visited:#6d7fca;
+      --cs-blue:#143453; --cs-brand:#4d9fe0;
+      --cs-white:#fff; --cs-light:#f4f9fd; --cs-border:#dce7f2;
+      --cs-text:#17273a; --cs-muted:#5f7185;
+      --cs-success:#2fa06d; --cs-warning:#e0a53d; --cs-danger:#d64550; --cs-info:#4d9fe0;
+      --cs-accent:#4d9fe0; --cs-accent-dk:#2f80cf;
+      --cs-grad:linear-gradient(90deg,#6d7fca 0%,#4d9fe0 50%,#7cc9ee 100%);
 
       /* Backward-compatible aliases for existing templates */
       --gc-nav:var(--cs-nav); --gc-nav-hover:var(--cs-nav-hover);
@@ -80,7 +85,7 @@
     .brand-portal-link:hover { color:#fff; background:rgba(255,255,255,.08); }
 
     /* ── App bar ── */
-    .gc-app-bar { background:#fff; border-bottom:3px solid var(--cs-brand); }
+    .gc-app-bar { background:#fff; border-bottom:3px solid transparent; border-image:var(--cs-grad) 1; }
     .gc-app-inner { display:flex; align-items:center; justify-content:space-between; padding:.5rem 0; flex-wrap:wrap; gap:.5rem; }
     .gc-app-title {
       font-family:'Lato',sans-serif; font-weight:700; font-size:1.2rem;
