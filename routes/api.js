@@ -228,9 +228,21 @@ router.get('/assessments/:id/stats', (req, res) => {
 // AI-ASSISTED FEATURES
 // ═══════════════════════════════════════════════════════════════════════════════
 const ai = require('../config/ai-service');
+const access = require('../config/access');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+
+/**
+ * AI license/allowance gate for authenticated AI routes. Returns true when the
+ * request may proceed; otherwise sends a 403 and returns false. Records nothing
+ * here — call access.recordAiUse(req.user, workType) after a successful call.
+ */
+function aiAllowed(req, res, workType) {
+  const g = access.canUseAI(req.user, workType);
+  if (!g.ok) { res.status(403).json({ error: g.reason, needsLicense: !!g.needsLicense, limited: !!g.limited }); return false; }
+  return true;
+}
 const { AI_TEMP_UPLOAD_DIR: aiTempUploadDir, ensureUploadDirs } = require('../config/storage');
 const { mergeQuestions, getFrameworks, countryNames, govLevelNames, sensitivityNames } = require('../config/framework-map');
 const { buildFrameworkSummary } = require('../config/security-frameworks');
@@ -307,11 +319,13 @@ router.post('/ai/suggest-from-description', express.json(), async (req, res) => 
 router.post('/ai/review-intake/:id', ensureAuthenticated, express.json(), async (req, res) => {
   try {
     if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
+    if (!aiAllowed(req, res, 'intake-review')) return;
     const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
     if (!intake) return res.status(404).json({ error: 'Intake not found' });
 
     const profileInfo = buildFrameworkSummary(intake);
     const result = await ai.reviewIntake(intake, profileInfo);
+    access.recordAiUse(req.user, 'intake-review');
     res.json({ success: true, review: result });
   } catch (err) {
     console.error('AI review error:', err);
@@ -323,6 +337,7 @@ router.post('/ai/review-intake/:id', ensureAuthenticated, express.json(), async 
 router.post('/ai/suggest-controls/:id', ensureAuthenticated, express.json(), async (req, res) => {
   try {
     if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
+    if (!aiAllowed(req, res, 'controls')) return;
     const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
     if (!intake) return res.status(404).json({ error: 'Intake not found' });
 
@@ -346,6 +361,7 @@ router.post('/ai/suggest-controls/:id', ensureAuthenticated, express.json(), asy
     const currentIds = currentControls.map(c => c.id);
 
     const result = await ai.suggestAdditionalControls(intake, currentIds, CONTROLS);
+    access.recordAiUse(req.user, 'controls');
     res.json({ success: true, suggestions: result });
   } catch (err) {
     console.error('AI suggest-controls error:', err);
@@ -357,6 +373,7 @@ router.post('/ai/suggest-controls/:id', ensureAuthenticated, express.json(), asy
 router.post('/ai/evidence-narrative', ensureAuthenticated, express.json(), async (req, res) => {
   try {
     if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
+    if (!aiAllowed(req, res, 'narrative')) return;
     const { controlId, controlTitle, controlDescription, evidenceGuidance, projectContext } = req.body;
     if (!controlId) return res.status(400).json({ error: 'Control ID required' });
 
@@ -364,6 +381,7 @@ router.post('/ai/evidence-narrative', ensureAuthenticated, express.json(), async
       { control_id: controlId, title: controlTitle, description: controlDescription, evidence_guidance: evidenceGuidance },
       projectContext || {}
     );
+    access.recordAiUse(req.user, 'narrative');
     res.json({ success: true, narrative: result });
   } catch (err) {
     console.error('AI evidence error:', err);
@@ -375,6 +393,7 @@ router.post('/ai/evidence-narrative', ensureAuthenticated, express.json(), async
 router.post('/ai/evidence-guidance', ensureAuthenticated, express.json(), async (req, res) => {
   try {
     if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
+    if (!aiAllowed(req, res, 'evidence-guidance')) return;
     const { controlId, controlTitle, controlDescription, projectContext } = req.body;
     if (!controlId) return res.status(400).json({ error: 'Control ID required' });
 
@@ -382,6 +401,7 @@ router.post('/ai/evidence-guidance', ensureAuthenticated, express.json(), async 
       { control_id: controlId, title: controlTitle, description: controlDescription },
       projectContext || {}
     );
+    access.recordAiUse(req.user, 'evidence-guidance');
     res.json({ success: true, guidance: result });
   } catch (err) {
     console.error('AI guidance error:', err);
@@ -408,10 +428,12 @@ router.post('/ai/save-guidance/:controlDbId', ensureAuthenticated, express.json(
 router.post('/ai/generate-bulk-evidence', ensureAuthenticated, express.json(), async (req, res) => {
   try {
     if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
+    if (!aiAllowed(req, res, 'bulk-evidence')) return;
     const { controls, projectContext } = req.body;
     if (!controls || !controls.length) return res.status(400).json({ error: 'Controls list required' });
 
     const result = await ai.generateBulkEvidence(controls, projectContext || {});
+    access.recordAiUse(req.user, 'bulk-evidence');
     res.json({ success: true, narratives: result });
   } catch (err) {
     console.error('AI bulk evidence error:', err);

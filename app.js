@@ -201,6 +201,11 @@ app.use((req, res, next) => {
   };
   // Passport user (admin/assessor)
   res.locals.user = req.user;
+  // AI availability (for the licensing banner). Computed for signed-in users only.
+  if (req.user) {
+    try { res.locals.aiStatus = require('./config/access').aiStatus(req.user); }
+    catch (e) { res.locals.aiStatus = null; }
+  }
   // Client session user (for intake portal)
   if (!req.user && req.session && req.session.clientId) {
     try {

@@ -1017,7 +1017,13 @@ test('public registration on the trial plan creates a workspace and signs in', a
     }
   });
   assert.equal(res.status, 302);
-  assert.equal(res.headers.get('location'), '/admin/dashboard', 'trial signup lands in the workspace');
+  assert.equal(res.headers.get('location'), '/billing/welcome', 'trial signup goes to the recovery-key screen first');
+
+  // The welcome screen reveals the auto-created break-glass recovery key once.
+  const welcome = await getText(jar, '/billing/welcome');
+  assert.equal(welcome.response.status, 200);
+  assert.match(welcome.text, /break-glass|recovery key/i);
+  assert.match(welcome.text, /breakglass\+org/i, 'shows the generated break-glass account');
 });
 
 test('registration with an unknown comp code is rejected', async () => {

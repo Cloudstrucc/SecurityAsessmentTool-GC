@@ -49,9 +49,25 @@
 - Update the existing e2e **"anonymous users can request and complete an invite-code self-assessment"** to the new **registration-gated** flow (this test will otherwise fail by design).
 - New e2e: collaborator must register to redeem; AI is gated for collaborators; license assignment enables AI; pre-assessment requires sign-in and sends a reviewer invite.
 
-## Decisions to confirm before I build
-1. **Collaborators are members of the assessor's org** (not their own trial), unlicensed by default. ✅ recommended — matches "assessor provides a licensed account." OK?
-2. **AI = the licensing boundary.** Licensed users (paid seat / paid-or-comped owner) get AI; collaborators and raw-trial users get the banner. Is AI the *only* gated feature, or also exports/reports?
-3. **Pre-assessment minimum = trial** (free account) to fill; reviewer gets an account-creation invite. OK?
-4. **Reworking `/intake` and `/self-assessment` to require login is a breaking UX change** (and rewrites one e2e test). Confirm you want the anonymous entry points removed entirely (vs. kept behind a feature flag during rollout).
-5. **Seat/license accounting**: "add a license" consumes a seat within `seats_limit`; exceeding it triggers a Stripe upgrade/add-seat. OK, or should licenses be a separate purchasable add-on?
+## Confirmed decisions (locked)
+1. **Collaborators are members of the assessor's org**, unlicensed by default. ✅
+2. **AI is the ONLY gated feature.** ✅ Exception: **subscription owners/admins on a trial may test AI at a strict cap** — e.g. **1–2 uses per work type** (generate controls, evidence guidance, narratives, intake parsing, intake review). Collaborators get the banner (no AI). Licensed users / paid-or-comped orgs = unlimited.
+3. **Pre-assessments fully behind login.** ✅ Minimum = a free trial account to fill; reviewer receives an account-creation invite.
+4. **Anonymous `/intake` and `/self-assessment` removed** — fully gated behind login. ✅ (rewrites one e2e test.)
+5. **Licensing = purchasable seats.** Buy N licenses (monthly, or annual for the unlimited tier). Licenses cost the **same for admins and regular users**. After purchase the root admin **designates who is admin vs user**. **Admin caps per tier:** Team = **2 admins**, Business = **5 admins**, Enterprise/unlimited = unlimited. Non-admin licensed users fill the remaining seats.
+
+## New requirements (this phase)
+6. **RBAC — root admin vs admin.** The **root admin** = the subscriber / primary administrator. Only root admins see **global admin** features (SMTP/SMS config, custom domain, licensing, break-glass, tenant restore). Other admins do everything else (all system tasks minus global admin).
+7. **Break-glass on registration.** On sign-up, auto-create a **break-glass account** for the tenant with an **auto-generated password**, shown **once** with instructions to store it offline (paper / external key vault). Used for **tenant restore**. Bypasses MFA; excluded from password/MFA reset.
+8. **Admin dashboard + routes (root-admin only):**
+   - **Own SMTP** configuration (use their own domain/mail server instead of the SaaS default).
+   - **Own SMS** provider configuration.
+   - **Custom domain** setup (serve the tenant on their own domain vs the default SaaS domain).
+9. **Password & MFA reset.** Admins can **reset a user's password** (never the break-glass account) and **reset MFA methods (TOTP + passkeys)**, forcing **re-enrollment on next login**. Resetting a password **auto-triggers** MFA re-enrollment.
+
+## Build order (incremental, each committed + tested)
+- **Increment 1 — Foundation (this turn):** data model (account types, licensing, root admin, AI usage, org settings), `config/access.js` (RBAC + AI gating with trial caps + license/seat helpers + break-glass creation), break-glass auto-creation on registration + one-time reveal screen, AI gating wired into the AI routes + banner.
+- **Increment 2 — Admin dashboard (root-admin):** SMTP / SMS / custom-domain config screens + storage + wiring into the mail/SMS senders.
+- **Increment 3 — Licensing UI:** purchase seats (Stripe), assign admin/user roles within caps, invite/re-invite.
+- **Increment 4 — Password / MFA reset:** admin reset flows + forced re-enrollment on next login.
+- **Increment 5 — Access gating:** remove anonymous `/intake` + `/self-assessment`; collaborator redeem→register; pre-assessment sign-in + reviewer invite; update the affected e2e test.

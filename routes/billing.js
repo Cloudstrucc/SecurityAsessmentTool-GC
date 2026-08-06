@@ -11,6 +11,7 @@ const bcrypt = require('bcryptjs');
 const { generateSecret: otpGenerateSecret } = require('otplib');
 const { get, all, run } = require('../models/database');
 const billing = require('../config/billing');
+const access = require('../config/access');
 const { ensureAuthenticated } = require('../config/passport');
 
 const router = express.Router();
@@ -65,10 +66,10 @@ router.post('/register', async (req, res) => {
     comp = v.code;
   }
 
-  // Create the owner user (assessor role = full platform access).
+  // Create the owner user — the tenant's ROOT admin, licensed by default.
   const userId = run(
-    `INSERT INTO users (email, password, name, role, organization, totp_secret, mfa_enabled, is_active)
-     VALUES (?, ?, ?, 'assessor', ?, ?, 0, 1)`,
+    `INSERT INTO users (email, password, name, role, organization, account_type, is_root_admin, is_licensed, totp_secret, mfa_enabled, is_active)
+     VALUES (?, ?, ?, 'assessor', ?, 'owner', 1, 1, ?, 0, 1)`,
     [normalizeEmail(email), bcrypt.hashSync(password, 12), fullName, organization, otpGenerateSecret()]
   );
 
@@ -78,24 +79,42 @@ router.post('/register', async (req, res) => {
   run('UPDATE organizations SET owner_user_id = ? WHERE id = ?', [userId, org.id]);
   if (comp) billing.redeemCompCode(comp.code, org.id);
 
+  // Auto-create a break-glass recovery account; show its password ONCE.
+  let breakGlass = null;
+  try { breakGlass = access.createBreakGlassForOrg(billing.getOrg(org.id), normalizeEmail(email)); }
+  catch (e) { console.error('[billing] break-glass creation failed:', e.message); }
+
   const user = get('SELECT * FROM users WHERE id = ?', [userId]);
   req.logIn(user, (err) => {
     if (err) { req.flash('error', 'Account created — please sign in.'); return res.redirect('/admin/login'); }
     const p = billing.getPlan(effectivePlan);
-    // Trial / comped / enterprise → straight into the app (MFA setup gate handles the rest).
-    if (comp || p.mode === 'trial' || p.mode === 'contact') {
-      req.flash('success', comp ? 'Comp code applied — your workspace is active.' :
-        p.mode === 'trial' ? 'Your 14-day trial has started.' : 'Workspace created — our team will reach out about Enterprise.');
-      return res.redirect('/admin/dashboard');
-    }
-    // Paid plan → hosted Checkout.
-    return res.redirect(`/billing/checkout?plan=${effectivePlan}`);
+    // Where to go after the break-glass reveal:
+    const target = (comp || p.mode === 'trial' || p.mode === 'contact')
+      ? '/admin/dashboard'
+      : `/billing/checkout?plan=${effectivePlan}`;
+    req.session.postRegister = { breakGlass, target, plan: effectivePlan, comped: !!comp };
+    return res.redirect('/billing/welcome');
   });
  } catch (err) {
   console.error('[billing] register error:', err);
   req.flash('error', 'Something went wrong creating your account. Please try again.');
   return res.redirect('/pricing');
  }
+});
+
+// ── Welcome / break-glass reveal (shown once, right after registration) ───────
+// Uses a light auth check (not ensureAuthenticated) so the recovery key is shown
+// BEFORE the MFA-setup gate kicks in on the way to the dashboard.
+router.get('/billing/welcome', (req, res) => {
+  if (!req.isAuthenticated || !req.isAuthenticated()) return res.redirect('/admin/login');
+  const pr = req.session.postRegister || {};
+  const breakGlass = pr.breakGlass || null;
+  // Strip the secret from the session so a refresh can't reveal it again.
+  if (req.session.postRegister) req.session.postRegister = { target: pr.target, plan: pr.plan, comped: pr.comped };
+  res.render('billing/welcome', billingView('welcome', {
+    title: 'Save your recovery key',
+    breakGlass, target: pr.target || '/admin/dashboard', comped: pr.comped, plan: billing.getPlan(pr.plan)
+  }));
 });
 
 // ── Checkout (create hosted Stripe session) ───────────────────────────────────

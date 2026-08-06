@@ -22,6 +22,7 @@ const fs = require('fs');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const billing = require('../config/billing');
+const access = require('../config/access');
 const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
 const QRCode = require('qrcode');
 const {
@@ -1931,6 +1932,8 @@ router.post('/assessments/:id/ai/document-guidance', ensureAuthenticated, expres
     if (!ai.isConfigured() && process.env.NODE_ENV !== 'test') {
       return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
     }
+    const aiGate = access.canUseAI(req.user, 'evidence-guidance');
+    if (!aiGate.ok) return res.status(403).json({ error: aiGate.reason, needsLicense: !!aiGate.needsLicense });
 
     const projectContext = {
       name: assessment.project_name,
@@ -1970,6 +1973,7 @@ router.post('/assessments/:id/ai/document-guidance', ensureAuthenticated, expres
       });
     }
 
+    access.recordAiUse(req.user, 'evidence-guidance');
     res.json({ success: true, guidance });
   } catch (err) {
     console.error('Document guidance AI error:', err);
