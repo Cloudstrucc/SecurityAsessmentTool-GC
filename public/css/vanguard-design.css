@@ -226,6 +226,19 @@
 .vg-footer .vg-footer-top { display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; align-items:center; border-bottom:1px solid rgba(124,196,238,.12); padding-bottom:20px; margin-bottom:20px; }
 .vg-footer .vg-footer-brand { color:#cddbea; font-weight:700; letter-spacing:.02em; }
 
+/* ---------- Mobile safeguards (site-wide) ---------- */
+@media (max-width: 575.98px) {
+  /* Give Bootstrap containers comfortable side padding on phones so headings,
+     text and cards never hug the screen edge. */
+  .container, .container-sm, .container-md, .container-lg, .container-xl, .container-fluid {
+    padding-left: 1.1rem !important;
+    padding-right: 1.1rem !important;
+  }
+  /* Prevent accidental horizontal scroll from wide inline content. */
+  html, body { overflow-x: hidden; }
+  .vg-hero h1 { font-size: clamp(28px, 8vw, 40px); }
+}
+
 /* ---------- Accessibility ---------- */
 .vg a:focus-visible, .vg button:focus-visible, .vg input:focus-visible,
 .vg-page a:focus-visible, .vg-page button:focus-visible, .vg-page input:focus-visible {

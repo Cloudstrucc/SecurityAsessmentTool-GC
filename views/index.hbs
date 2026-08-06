@@ -215,6 +215,14 @@
   .brand-product,.brand-sep { display:none; }
   .hero-brand .container { gap:.75rem; }
   .hero h1 { font-size:2.05rem; }
+  /* Comfortable side padding on phones so hero text/badges don't hug the edge */
+  .hero-brand .container,
+  .hero-main { padding-left:1.25rem; padding-right:1.25rem; }
+  .hero .lead { font-size:1rem; }
+  /* Let header actions wrap instead of clipping off-screen */
+  .hero-brand .container { flex-wrap:wrap; row-gap:.5rem; }
+  .hero-brand .d-flex { flex-wrap:wrap; }
+  .btn-existing { font-size:.74rem; padding:.3rem .6rem; }
 }
 </style>
 
