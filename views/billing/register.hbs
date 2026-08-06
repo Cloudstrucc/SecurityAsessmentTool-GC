@@ -1,0 +1,66 @@
+<div class="vg vg-page">
+<nav class="vg-nav">
+  <div class="vg-container vg-nav-inner">
+    <a href="/" class="vg-brand">
+      <span class="vg-brand-name">Vanguard Cloud Services</span>
+      <span class="vg-brand-sep">|</span>
+      <span class="vg-brand-product">SA&amp;A</span>
+    </a>
+    <div class="vg-nav-links">
+      <a href="/sa-tool-overview.html" class="vg-nav-link hide-sm">Product brief</a>
+      <a href="/pricing" class="vg-nav-link">Pricing</a>
+    </div>
+  </div>
+</nav>
+
+<div class="vg-auth-wrap">
+  <div class="vg-auth-card">
+    <div class="vg-steps-mini">
+      <span class="dot active">1</span><span class="bar"></span>
+      <span class="dot">2</span><span class="bar"></span>
+      <span class="dot">3</span>
+      <span style="margin-left:10px">Account → Plan → Payment</span>
+    </div>
+
+    <div class="vg-auth-head">
+      <h1>Create your account</h1>
+      <p>You'll need an account to access any plan — including the free trial.</p>
+    </div>
+
+    <div class="vg-callout info" style="display:flex;align-items:center;justify-content:space-between;margin-top:0">
+      <span>Selected plan: <b>{{plan.label}}</b></span>
+      <a href="/pricing" class="vg-nav-link" style="color:var(--vg-sky-600);padding:2px 6px">Change</a>
+    </div>
+
+    <form method="POST" action="/register">
+      <input type="hidden" name="plan" value="{{selectedPlan}}">
+      <div class="vg-field-row">
+        <div class="vg-field"><label class="vg-label">First name</label><input class="vg-input" name="first_name" value="{{formData.first_name}}" placeholder="Alex" required></div>
+        <div class="vg-field"><label class="vg-label">Last name</label><input class="vg-input" name="last_name" value="{{formData.last_name}}" placeholder="Rivera" required></div>
+      </div>
+      <div class="vg-field"><label class="vg-label">Organization</label><input class="vg-input" name="organization" value="{{formData.organization}}" placeholder="Department or company" required></div>
+      <div class="vg-field"><label class="vg-label">Work email</label><input class="vg-input" type="email" name="email" value="{{formData.email}}" placeholder="you@agency.gc.ca" required></div>
+      <div class="vg-field"><label class="vg-label">Password</label><input class="vg-input" type="password" name="password" placeholder="At least 10 characters" required>
+        <div class="vg-hint">Multi-factor authentication (TOTP or passkey) is set up right after registration.</div>
+      </div>
+      <div class="vg-field"><label class="vg-label">Comp code <span class="vg-muted" style="font-weight:400">(optional)</span></label><input class="vg-input" name="comp_code" value="{{formData.comp_code}}" placeholder="Unlocks a plan at no charge"></div>
+
+      <label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--vg-muted);margin:6px 0 18px">
+        <input type="checkbox" name="agree" value="1" required style="margin-top:3px">
+        <span>I agree to the Terms of Service and Privacy Policy.</span>
+      </label>
+
+      <button class="vg-btn vg-btn-primary vg-btn-block vg-btn-lg" type="submit">Create account &amp; continue</button>
+    </form>
+
+    <div class="vg-or">or</div>
+    <p style="text-align:center;font-size:14px;color:var(--vg-muted);margin:0">
+      Already registered? <a href="/admin/login" style="color:var(--vg-sky-600);font-weight:600;text-decoration:none">Sign in</a>
+    </p>
+  </div>
+</div>
+
+<footer class="vg-footer">
+  <div class="vg-container"><div>Vanguard SA&amp;A · Vanguard Cloud Services · vanguardcs.ca</div></div>
+</footer>
+</div>

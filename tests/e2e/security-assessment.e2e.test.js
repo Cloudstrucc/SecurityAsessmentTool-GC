@@ -993,3 +993,44 @@ test('deleting a project requires the exact name and then purges it with its ass
   const assessmentGone = await request(jar, 'GET', `/admin/assessments/${assessmentId}`, { redirect: 'manual' });
   assert.equal(assessmentGone.status, 302, 'purged assessment should no longer be viewable');
 });
+
+test('public can view the pricing and registration pages', async () => {
+  const jar = new CookieJar();
+  const pricing = await getText(jar, '/pricing');
+  assert.equal(pricing.response.status, 200);
+  assert.match(pricing.text, /Pick a plan/);
+  assert.match(pricing.text, /Pay as you go/);
+
+  const register = await getText(jar, '/register?plan=business');
+  assert.equal(register.response.status, 200);
+  assert.match(register.text, /Create your account/);
+  assert.match(register.text, /Business/);
+});
+
+test('public registration on the trial plan creates a workspace and signs in', async () => {
+  const jar = new CookieJar();
+  const email = `trial.owner.${Date.now()}@example.test`;
+  const res = await request(jar, 'POST', '/register', {
+    form: {
+      plan: 'trial', first_name: 'Trial', last_name: 'Owner',
+      organization: 'E2E Trial Org', email, password: 'TrialPassword123!', agree: '1'
+    }
+  });
+  assert.equal(res.status, 302);
+  assert.equal(res.headers.get('location'), '/admin/dashboard', 'trial signup lands in the workspace');
+});
+
+test('registration with an unknown comp code is rejected', async () => {
+  const jar = new CookieJar();
+  const email = `comp.reject.${Date.now()}@example.test`;
+  const res = await request(jar, 'POST', '/register', {
+    form: {
+      plan: 'trial', first_name: 'Comp', last_name: 'Reject',
+      organization: 'E2E Comp Org', email, password: 'TrialPassword123!',
+      agree: '1', comp_code: 'DOES-NOT-EXIST'
+    }
+  });
+  // Invalid comp code re-renders the form (200) rather than creating an account.
+  assert.equal(res.status, 200);
+  assert.match(await res.text(), /not valid/i);
+});

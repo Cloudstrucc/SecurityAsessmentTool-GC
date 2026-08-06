@@ -601,6 +601,58 @@ async function initDatabase() {
     ['assessments', 'status_before_archive', 'ALTER TABLE assessments ADD COLUMN status_before_archive TEXT'],
     ['intake_submissions', 'archived_at', 'ALTER TABLE intake_submissions ADD COLUMN archived_at DATETIME'],
     ['intake_submissions', 'status_before_archive', 'ALTER TABLE intake_submissions ADD COLUMN status_before_archive TEXT'],
+
+    // ── Billing / multi-tenant (Stripe) ──
+    ['users', 'organization_id', 'ALTER TABLE users ADD COLUMN organization_id INTEGER'],
+    ['projects', 'organization_id', 'ALTER TABLE projects ADD COLUMN organization_id INTEGER'],
+    ['organizations', null, `CREATE TABLE IF NOT EXISTS organizations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      owner_user_id INTEGER,
+      plan TEXT NOT NULL DEFAULT 'trial',
+      status TEXT NOT NULL DEFAULT 'trialing',
+      seats_limit INTEGER,
+      projects_limit INTEGER,
+      trial_ends_at DATETIME,
+      stripe_customer_id TEXT,
+      stripe_subscription_id TEXT,
+      comp_code_id INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (owner_user_id) REFERENCES users(id)
+    )`],
+    ['comp_codes', null, `CREATE TABLE IF NOT EXISTS comp_codes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      code TEXT UNIQUE NOT NULL,
+      plan TEXT NOT NULL DEFAULT 'business',
+      seats_limit INTEGER,
+      projects_limit INTEGER,
+      max_redemptions INTEGER DEFAULT 1,
+      redemptions INTEGER DEFAULT 0,
+      expires_at DATETIME,
+      active INTEGER DEFAULT 1,
+      note TEXT,
+      created_by INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`],
+    ['billing_events', null, `CREATE TABLE IF NOT EXISTS billing_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      stripe_event_id TEXT UNIQUE,
+      type TEXT,
+      organization_id INTEGER,
+      payload TEXT,
+      received_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`],
+    ['payg_usage', null, `CREATE TABLE IF NOT EXISTS payg_usage (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      organization_id INTEGER NOT NULL,
+      period TEXT NOT NULL,
+      active_users INTEGER DEFAULT 0,
+      projects_created INTEGER DEFAULT 0,
+      reported_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(organization_id, period)
+    )`],
     ['intake_submissions', 'confidentiality_level', "ALTER TABLE intake_submissions ADD COLUMN confidentiality_level TEXT DEFAULT 'protected-b'"],
     ['intake_submissions', 'integrity_level', "ALTER TABLE intake_submissions ADD COLUMN integrity_level TEXT DEFAULT 'medium'"],
     ['intake_submissions', 'availability_level', "ALTER TABLE intake_submissions ADD COLUMN availability_level TEXT DEFAULT 'medium'"],

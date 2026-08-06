@@ -1,0 +1,36 @@
+<div class="vg vg-page">
+<nav class="vg-nav">
+  <div class="vg-container vg-nav-inner">
+    <a href="/" class="vg-brand">
+      <span class="vg-brand-name">Vanguard Cloud Services</span>
+      <span class="vg-brand-sep">|</span>
+      <span class="vg-brand-product">SA&amp;A</span>
+    </a>
+    <div class="vg-nav-links"><a href="/pricing" class="vg-nav-link">Pricing</a></div>
+  </div>
+</nav>
+
+<div class="vg-auth-wrap">
+  <div class="vg-auth-card">
+    <div class="vg-auth-head">
+      <h1>Checkout</h1>
+      <p>{{plan.label}} plan</p>
+    </div>
+
+    {{#if notConfigured}}
+      <div class="vg-callout warn">
+        <b>Card checkout isn't available yet.</b> Payments are turned on once Stripe keys are configured for this environment. In the meantime, you can start a free trial or use a comp code.
+      </div>
+      <a href="/admin/dashboard" class="vg-btn vg-btn-primary vg-btn-block vg-btn-lg" style="margin-top:8px">Continue to workspace</a>
+      <p style="text-align:center;margin-top:14px"><a href="/pricing" class="vg-nav-link" style="color:var(--vg-sky-600)">Back to pricing</a></p>
+    {{else}}
+      <div class="vg-callout info">Redirecting you to our secure Stripe checkout…</div>
+      <a href="/billing/checkout?plan={{plan.key}}" class="vg-btn vg-btn-primary vg-btn-block vg-btn-lg">Continue to secure checkout</a>
+    {{/if}}
+  </div>
+</div>
+
+<footer class="vg-footer">
+  <div class="vg-container"><div>Vanguard SA&amp;A · Vanguard Cloud Services · vanguardcs.ca</div></div>
+</footer>
+</div>

@@ -20,6 +20,7 @@ const { passport, initializePassport } = require('./config/passport');
 const adminRoutes = require('./routes/admin');
 const publicRoutes = require('./routes/public');
 const apiRoutes = require('./routes/api');
+const billingRoutes = require('./routes/billing');
 const emailService = require('./utils/emailService');
 const { UPLOAD_DIR, ensureUploadDirs } = require('./config/storage');
 const { initI18n, i18nMiddleware, i18nLocals, DEFAULT_LANG } = require('./config/i18n');
@@ -165,6 +166,9 @@ app.set('views', path.join(__dirname, 'views'));
 // Middleware
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 if (process.env.NODE_ENV !== 'test') app.use(morgan('dev'));
+// Stripe webhook needs the RAW body for signature verification — must be
+// registered before the JSON body parser consumes it.
+app.post('/billing/webhook', express.raw({ type: 'application/json' }), billingRoutes.webhookHandler);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb', parameterLimit: 10000 }));
 app.use(cookieParser());
@@ -212,6 +216,7 @@ app.use((req, res, next) => {
 });
 
 // Routes
+app.use('/', billingRoutes.router);
 app.use('/', publicRoutes);
 app.use('/admin', adminRoutes);
 app.use('/api', apiRoutes);

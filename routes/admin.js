@@ -21,6 +21,7 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
+const billing = require('../config/billing');
 const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
 const QRCode = require('qrcode');
 const {
@@ -1057,6 +1058,16 @@ router.post('/projects/new', ensureAuthenticated, intakeUpload.array('attachment
     const existingProject = findProjectForIntake(req.body);
     let projectId;
 
+    // Enforce per-plan project limits for orgs that have one (legacy/no-org users are unlimited).
+    const userOrg = billing.orgForUser(req.user);
+    if (!existingProject && userOrg) {
+      const gate = billing.canAddProject(userOrg);
+      if (!gate.ok) {
+        req.flash('error', gate.reason + ' Manage your plan under billing.');
+        return res.redirect('/admin/projects/new');
+      }
+    }
+
     if (existingProject) {
       projectId = existingProject.id;
       run(`UPDATE projects SET
@@ -1087,6 +1098,7 @@ router.post('/projects/new', ensureAuthenticated, intakeUpload.array('attachment
           hosting_type || '', app_type || '', hasPII, JSON.stringify(techArray), specifications || '',
           project_owner_name || '', normalizeEmail(project_owner_email), project_authority_name || '', normalizeEmail(project_authority_email),
           cio_name || '', normalizeEmail(cio_email), department || '', branch || '', req.user.id]);
+      if (userOrg) run('UPDATE projects SET organization_id = ? WHERE id = ?', [userOrg.id, projectId]);
     }
 
     const intakeId = createProjectIntake({
