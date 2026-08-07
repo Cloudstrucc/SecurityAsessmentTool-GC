@@ -55,6 +55,12 @@
                         <form method="POST" action="/admin/licensing/user/{{this.id}}/license" class="d-inline ms-1">
                           <button class="btn btn-sm btn-outline-secondary" title="Toggle license">{{#if this.is_licensed}}Revoke{{else}}Grant{{/if}} license</button>
                         </form>
+                        <form method="POST" action="/admin/users/{{this.id}}/reset-password" class="d-inline ms-1" onsubmit="return confirm('Reset {{this.name}}\'s password? A one-time password is shown and MFA re-enrollment is forced.')">
+                          <button class="btn btn-sm btn-outline-warning" title="Reset password"><i class="bi bi-key"></i></button>
+                        </form>
+                        <form method="POST" action="/admin/users/{{this.id}}/reset-mfa" class="d-inline ms-1" onsubmit="return confirm('Reset MFA (TOTP + passkeys) for {{this.name}}? They re-enroll on next sign-in.')">
+                          <button class="btn btn-sm btn-outline-warning" title="Reset MFA"><i class="bi bi-shield-lock"></i></button>
+                        </form>
                         <form method="POST" action="/admin/licensing/user/{{this.id}}/remove" class="d-inline ms-1" onsubmit="return confirm('Deactivate {{this.name}} and free their seat?')">
                           <button class="btn btn-sm btn-outline-danger" title="Deactivate"><i class="bi bi-person-dash"></i></button>
                         </form>

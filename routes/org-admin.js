@@ -225,4 +225,45 @@ router.post('/licensing/seats', access.ensureRootAdmin, async (req, res) => {
   res.redirect('/pricing');
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Password & MFA reset (admins; never the break-glass account)
+// ═══════════════════════════════════════════════════════════════════════════
+const bcrypt = require('bcryptjs');
+
+function targetInOrg(req) {
+  const org = currentOrg(req);
+  const u = org ? get('SELECT * FROM users WHERE id = ? AND organization_id = ?', [req.params.id, org.id]) : null;
+  return { org, u };
+}
+
+/** Clear all MFA methods (TOTP + passkeys) and force re-enrollment next login. */
+function clearMfa(userId) {
+  run(`UPDATE users SET mfa_enabled = 0, totp_secret = NULL,
+       webauthn_credential_id = NULL, webauthn_public_key = NULL, webauthn_counter = 0,
+       must_reenroll_mfa = 1 WHERE id = ?`, [userId]);
+}
+
+// Reset password → new temp password (shown once) + forced MFA re-enrollment.
+router.post('/users/:id/reset-password', access.ensureAdmin, (req, res) => {
+  const { u } = targetInOrg(req);
+  if (!u) { req.flash('error', 'User not found in your organization.'); return res.redirect('/admin/licensing'); }
+  if (u.is_break_glass) { req.flash('error', 'The break-glass account cannot be reset here — use tenant recovery.'); return res.redirect('/admin/licensing'); }
+
+  const temp = access.generatePassword(14);
+  run('UPDATE users SET password = ? WHERE id = ?', [bcrypt.hashSync(temp, 12), u.id]);
+  clearMfa(u.id); // resetting a password auto-triggers MFA re-enrollment
+  req.flash('success', `Password reset for ${u.name}. One-time password: ${temp} — share it securely. They'll re-enroll MFA on next sign-in.`);
+  res.redirect(req.body.return_to || '/admin/licensing');
+});
+
+// Reset MFA only (TOTP + passkeys) → forced re-enrollment next login.
+router.post('/users/:id/reset-mfa', access.ensureAdmin, (req, res) => {
+  const { u } = targetInOrg(req);
+  if (!u) { req.flash('error', 'User not found in your organization.'); return res.redirect('/admin/licensing'); }
+  if (u.is_break_glass) { req.flash('error', 'The break-glass account cannot be reset here.'); return res.redirect('/admin/licensing'); }
+  clearMfa(u.id);
+  req.flash('success', `MFA reset for ${u.name}. They'll set up a new authenticator or passkey on next sign-in.`);
+  res.redirect(req.body.return_to || '/admin/licensing');
+});
+
 module.exports = router;

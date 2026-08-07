@@ -24,6 +24,13 @@ function ensureRootAdmin(req, res, next) {
   return res.redirect('/admin/dashboard');
 }
 
+/** Middleware: any admin (root, designated admin, owner, or legacy assessor). */
+function ensureAdmin(req, res, next) {
+  if (req.isAuthenticated && req.isAuthenticated() && isAdmin(req.user)) return next();
+  req.flash('error', 'Administrator access is required for that action.');
+  return res.redirect('/admin/dashboard');
+}
+
 // ── AI gating ───────────────────────────────────────────────────────────────
 const AI_BANNER = 'AI assistance is a licensed feature. Register for a licensed account, or ask your administrator to assign you a license.';
 const DEFAULT_TRIAL_LIMIT = 2;
@@ -126,7 +133,7 @@ function createBreakGlassForOrg(org, ownerEmail) {
 }
 
 module.exports = {
-  isRootAdmin, isAdmin, isCollaborator, ensureRootAdmin,
+  isRootAdmin, isAdmin, isCollaborator, ensureRootAdmin, ensureAdmin,
   AI_BANNER, canUseAI, recordAiUse, aiStatus, getAiUse,
   adminSeatsForPlan, countAdmins, countLicensed, canAddAdmin, canAddLicense,
   generatePassword, createBreakGlassForOrg

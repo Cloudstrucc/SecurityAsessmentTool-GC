@@ -858,7 +858,7 @@ router.post('/mfa-setup', (req, res) => {
     return res.redirect('/admin/mfa-setup');
   }
 
-  run('UPDATE users SET mfa_enabled = 1 WHERE id = ?', [user.id]);
+  run('UPDATE users SET mfa_enabled = 1, must_reenroll_mfa = 0 WHERE id = ?', [user.id]);
   req.session.adminMfaVerified = true;
   req.flash('success', 'MFA enabled. You can optionally register a passkey; TOTP will remain available.');
   res.redirect('/admin/passkey-setup');
