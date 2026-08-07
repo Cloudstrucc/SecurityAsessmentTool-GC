@@ -1012,6 +1012,29 @@ test('root-admin console is restricted to root administrators', async () => {
   }
 });
 
+test('passwordless registration creates a workspace without a password', async () => {
+  const jar = new CookieJar();
+  const email = `passkey.owner.${Date.now()}@example.test`;
+  const res = await request(jar, 'POST', '/register', {
+    form: {
+      plan: 'trial', first_name: 'Passkey', last_name: 'Owner',
+      organization: 'E2E Passkey Org', email, agree: '1', passwordless: '1'
+    }
+  });
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.ok, true);
+  assert.match(data.next, /\/billing\/welcome/);
+});
+
+test('passkey sign-in exposes usernameless WebAuthn options', async () => {
+  const jar = new CookieJar();
+  const res = await request(jar, 'POST', '/api/webauthn/login-options', { json: {} });
+  assert.equal(res.status, 200);
+  const opts = await res.json();
+  assert.ok(opts.challenge, 'authentication options include a challenge');
+});
+
 test('redeeming an invalid invitation shows a not-found page', async () => {
   const jar = new CookieJar();
   const res = await getText(jar, '/redeem/NOPE12345');

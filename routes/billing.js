@@ -44,25 +44,30 @@ router.post('/register', async (req, res) => {
   const { first_name, last_name, name, email, organization, password, plan, comp_code, agree } = req.body;
   const planKey = billing.isValidPlan(plan) ? plan : 'trial';
   const fullName = (name || `${first_name || ''} ${last_name || ''}`).trim();
-  const rerender = (msg) => {
-    // Set the error directly into locals — flash set mid-request isn't read until
-    // the next request (the messages middleware runs before this handler).
+  // Passwordless (passkey) sign-up: the client submits via fetch and expects JSON,
+  // then runs the passkey registration ceremony before navigating.
+  const passwordless = !!req.body.passwordless;
+  const fail = (msg) => {
+    if (passwordless) return res.status(400).json({ error: msg });
     res.locals.messages = Object.assign({}, res.locals.messages, { error: msg });
     return res.render('billing/register', billingView('register', {
       title: 'Create your account', selectedPlan: planKey, plan: billing.getPlan(planKey), formData: req.body, error: msg
     }));
   };
 
-  if (!fullName || !email || !password || !organization) return rerender('Name, organization, email and password are required.');
-  if (password.length < 10) return rerender('Password must be at least 10 characters.');
-  if (!agree) return rerender('Please accept the Terms of Service to continue.');
-  if (get('SELECT id FROM users WHERE email = ?', [normalizeEmail(email)])) return rerender('An account with this email already exists. Please sign in.');
+  if (!fullName || !email || !organization) return fail('Name, organization and email are required.');
+  if (!passwordless && (!password || password.length < 10)) return fail('Password must be at least 10 characters.');
+  if (!agree) return fail('Please accept the Terms of Service to continue.');
+  if (get('SELECT id FROM users WHERE email = ?', [normalizeEmail(email)])) return fail('An account with this email already exists. Please sign in.');
+  // For passwordless accounts, store a random unusable password; the user
+  // authenticates with their passkey (and can set a password later if they wish).
+  const effectivePassword = passwordless ? access.generatePassword(24) : password;
 
   // Optional comp code — validated before we create anything.
   let comp = null;
   if (comp_code && comp_code.trim()) {
     const v = billing.validateCompCode(comp_code);
-    if (!v.ok) return rerender(v.error);
+    if (!v.ok) return fail(v.error);
     comp = v.code;
   }
 
@@ -70,7 +75,7 @@ router.post('/register', async (req, res) => {
   const userId = run(
     `INSERT INTO users (email, password, name, role, organization, account_type, is_root_admin, is_licensed, totp_secret, mfa_enabled, is_active)
      VALUES (?, ?, ?, 'assessor', ?, 'owner', 1, 1, ?, 0, 1)`,
-    [normalizeEmail(email), bcrypt.hashSync(password, 12), fullName, organization, otpGenerateSecret()]
+    [normalizeEmail(email), bcrypt.hashSync(effectivePassword, 12), fullName, organization, otpGenerateSecret()]
   );
 
   // Create the organization. Comp code wins over the chosen plan.
@@ -93,6 +98,9 @@ router.post('/register', async (req, res) => {
       ? '/admin/dashboard'
       : `/billing/checkout?plan=${effectivePlan}`;
     req.session.postRegister = { breakGlass, target, plan: effectivePlan, comped: !!comp };
+    // Passwordless: return JSON so the client can run the passkey ceremony, then
+    // it navigates to the welcome/recovery-key screen.
+    if (passwordless) return res.json({ ok: true, next: '/billing/welcome' });
     return res.redirect('/billing/welcome');
   });
  } catch (err) {

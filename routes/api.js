@@ -175,6 +175,65 @@ router.post('/webauthn/auth-verify', express.json(), async (req, res) => {
   }
 });
 
+// ── Passwordless sign-in (usernameless WebAuthn / FIDO2) ─────────────────────
+router.post('/webauthn/login-options', express.json(), async (req, res) => {
+  if (!requireWebAuthn(res)) return;
+  try {
+    const options = await simpleWebAuthn.generateAuthenticationOptions({
+      rpID: RP_ID,
+      userVerification: 'preferred',
+      allowCredentials: []   // usernameless: the browser offers any discoverable passkey
+    });
+    req.session.webauthnLoginChallenge = options.challenge;
+    res.json(options);
+  } catch (err) {
+    console.error('[WebAuthn] login-options:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/webauthn/login-verify', express.json(), async (req, res) => {
+  if (!requireWebAuthn(res)) return;
+  const expectedChallenge = req.session.webauthnLoginChallenge;
+  if (!expectedChallenge) return res.status(400).json({ error: 'Sign-in challenge expired. Please try again.' });
+  const credId = req.body.id || req.body.rawId;
+  if (!credId) return res.status(400).json({ error: 'No passkey credential in the response.' });
+
+  const user = get('SELECT * FROM users WHERE webauthn_credential_id = ? AND is_active = 1', [credId]);
+  if (!user) return res.status(404).json({ error: 'No account is registered to that passkey.' });
+
+  try {
+    const verification = await simpleWebAuthn.verifyAuthenticationResponse({
+      response: req.body,
+      expectedChallenge,
+      expectedOrigin: ORIGIN,
+      expectedRPID: RP_ID,
+      requireUserVerification: false,
+      credential: {
+        id: user.webauthn_credential_id,
+        publicKey: isoBase64URL.toBuffer(user.webauthn_public_key),
+        counter: user.webauthn_counter || 0
+      }
+    });
+    if (!verification.verified) return res.status(403).json({ error: 'Passkey verification failed.' });
+
+    run('UPDATE users SET webauthn_counter = ?, last_login = CURRENT_TIMESTAMP WHERE id = ?',
+      [verification.authenticationInfo.newCounter, user.id]);
+    delete req.session.webauthnLoginChallenge;
+
+    // A verified passkey is a strong, phishing-resistant factor — establish the
+    // session and mark MFA satisfied.
+    req.login(user, (err) => {
+      if (err) { console.error('[WebAuthn] login req.login:', err); return res.status(500).json({ error: 'Sign-in failed.' }); }
+      req.session.adminMfaVerified = true;
+      res.json({ success: true, redirect: user.role === 'client' ? '/client/dashboard' : '/admin/dashboard' });
+    });
+  } catch (err) {
+    console.error('[WebAuthn] login-verify:', err);
+    res.status(400).json({ error: err.message || 'Passkey verification failed.' });
+  }
+});
+
 // Get comments for a control
 router.get('/comments/:controlId', (req, res) => {
   const comments = all('SELECT * FROM comments WHERE assessment_control_id = ? ORDER BY created_at ASC', [req.params.controlId]);
