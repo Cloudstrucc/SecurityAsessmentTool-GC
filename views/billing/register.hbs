@@ -14,12 +14,58 @@
 </nav>
 
 <div class="vg-auth-wrap">
-  <div class="vg-auth-card">
-    <div class="vg-steps-mini">
+ {{#if choosePlan}}
+  <div style="width:100%;max-width:1040px">
+    <div class="vg-steps-mini" style="justify-content:center">
       <span class="dot active">1</span><span class="bar"></span>
       <span class="dot">2</span><span class="bar"></span>
       <span class="dot">3</span>
-      <span style="margin-left:10px">Account → Plan → Payment</span>
+      <span style="margin-left:10px"><b style="color:var(--vg-navy-800)">Choose a plan</b> → Account → Payment</span>
+    </div>
+    <div class="vg-center" style="max-width:620px;margin:0 auto 6px">
+      <h1 style="font-size:26px;font-weight:750">Choose a plan to get started</h1>
+      <p class="vg-muted">Start free — no card needed — and upgrade any time. You'll enter your details next.</p>
+    </div>
+    <div class="vg-price-grid" style="margin-top:24px">
+      <div class="vg-plan featured">
+        <div class="vg-plan-flag"><span class="vg-badge vg-badge-grad">Start here</span></div>
+        <div class="vg-plan-name">Trial</div>
+        <div class="vg-plan-price">Free</div>
+        <div class="vg-plan-tag">14 days, no card. Explore the full workflow.</div>
+        <div class="vg-plan-cta"><a href="/register?plan=trial" class="vg-btn vg-btn-primary vg-btn-block">Start free trial</a></div>
+        <ul class="vg-plan-features"><li>1 admin + 2 users</li><li>1 project</li><li>All frameworks</li><li>AI evidence guidance</li></ul>
+      </div>
+      <div class="vg-plan">
+        <div class="vg-plan-name">Team</div>
+        <div class="vg-plan-price">$149<span class="per">/mo</span></div>
+        <div class="vg-plan-tag">For a single team assessing regularly.</div>
+        <div class="vg-plan-cta"><a href="/register?plan=team" class="vg-btn vg-btn-ghost vg-btn-block">Choose Team</a></div>
+        <ul class="vg-plan-features"><li>Up to 5 users</li><li>5 projects</li><li>Control inheritance</li></ul>
+      </div>
+      <div class="vg-plan">
+        <div class="vg-plan-name">Business</div>
+        <div class="vg-plan-price">$449<span class="per">/mo</span></div>
+        <div class="vg-plan-tag">For departments authorizing many systems.</div>
+        <div class="vg-plan-cta"><a href="/register?plan=business" class="vg-btn vg-btn-ghost vg-btn-block">Choose Business</a></div>
+        <ul class="vg-plan-features"><li>Up to 20 users</li><li>25 projects</li><li>AI + audit</li></ul>
+      </div>
+      <div class="vg-plan">
+        <div class="vg-plan-name">Enterprise</div>
+        <div class="vg-plan-price">Custom</div>
+        <div class="vg-plan-tag">Unlimited scale, SSO, dedicated support.</div>
+        <div class="vg-plan-cta"><a href="/register?plan=enterprise" class="vg-btn vg-btn-dark vg-btn-block">Get started</a></div>
+        <ul class="vg-plan-features"><li>Unlimited users</li><li>Unlimited projects</li><li>SSO / SAML</li></ul>
+      </div>
+    </div>
+    <div class="vg-center" style="margin-top:18px"><a href="/pricing" class="vg-nav-link" style="color:var(--vg-sky-600);font-weight:600">See full pricing &amp; pay-as-you-go →</a></div>
+  </div>
+ {{else}}
+  <div class="vg-auth-card">
+    <div class="vg-steps-mini">
+      <span class="dot">1</span><span class="bar"></span>
+      <span class="dot active">2</span><span class="bar"></span>
+      <span class="dot">3</span>
+      <span style="margin-left:10px">Plan → <b style="color:var(--vg-navy-800)">Account</b> → Payment</span>
     </div>
 
     <div class="vg-auth-head">
@@ -62,6 +108,7 @@
       Already registered? <a href="/admin/login" style="color:var(--vg-sky-600);font-weight:600;text-decoration:none">Sign in</a>
     </p>
   </div>
+ {{/if}}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@11/dist/bundle/index.umd.min.js"></script>

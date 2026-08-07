@@ -1747,16 +1747,28 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
 });
 
 router.get('/assessments', ensureAuthenticated, (req, res) => {
+  const filter = req.query.filter;
+  let where = 'a.archived_at IS NULL AND p.archived_at IS NULL';
+  let heading = null, blurb = null;
+  if (filter === 'audit') {
+    where += " AND a.status IN ('submitted','audit')";
+    heading = 'Pending Audits';
+    blurb = 'Assessments that have been submitted and are awaiting (or undergoing) assessor audit.';
+  } else if (filter === 'ato') {
+    where += " AND a.result IN ('ato','iato')";
+    heading = 'Active ATOs / iATOs';
+    blurb = 'Assessments that have been granted an Authority to Operate (ATO) or interim ATO (iATO).';
+  }
   const assessments = all(`
     SELECT a.*, p.name as project_name, i.ref_code as intake_ref_code
     FROM assessments a JOIN projects p ON a.project_id = p.id
     LEFT JOIN intake_submissions i ON i.id = a.intake_id
-    WHERE a.archived_at IS NULL AND p.archived_at IS NULL
+    WHERE ${where}
     ORDER BY a.updated_at DESC
   `);
   res.render('admin/assessments', {
-    title: 'Assessments', isAdmin: true, isAssessments: true,
-    admin: req.user, assessments
+    title: heading || 'Assessments', isAdmin: true, isAssessments: true,
+    admin: req.user, assessments, heading, blurb, filter
   });
 });
 

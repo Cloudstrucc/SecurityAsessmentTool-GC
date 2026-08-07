@@ -32,10 +32,16 @@ router.get('/pricing', (req, res) => {
 });
 
 // ── Register (public sign-up → creates an org) ────────────────────────────────
+// Step 1 (no plan): choose a tier. Step 2 (?plan=…): fill in details.
 router.get('/register', (req, res) => {
-  const plan = billing.isValidPlan(req.query.plan) ? req.query.plan : 'trial';
+  const chosen = billing.isValidPlan(req.query.plan) ? req.query.plan : null;
+  if (!chosen) {
+    return res.render('billing/register', billingView('register', {
+      title: 'Choose a plan', choosePlan: true
+    }));
+  }
   res.render('billing/register', billingView('register', {
-    title: 'Create your account', selectedPlan: plan, plan: billing.getPlan(plan), formData: {}
+    title: 'Create your account', selectedPlan: chosen, plan: billing.getPlan(chosen), formData: {}
   }));
 });
 

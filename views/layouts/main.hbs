@@ -67,6 +67,10 @@
 
     /* ── Vanguard brand bar ── */
     .gc-fip { background:var(--cs-nav); }
+    /* Full-width bar container: pulls brand/actions to the page edges,
+       consistently for header and footer (overrides .container centering). */
+    .gc-edge { max-width:none !important; width:100%; padding-left:2rem !important; padding-right:2rem !important; margin-left:0; margin-right:0; }
+    @media(max-width:575px){ .gc-edge { padding-left:1.1rem !important; padding-right:1.1rem !important; } }
     .gc-fip-inner { display:flex; align-items:center; justify-content:space-between; padding:.65rem 0; }
     .gc-sig { display:flex; align-items:center; gap:.65rem; text-decoration:none; color:#fff; }
     .gc-sig:hover { color:#fff; text-decoration:none; }
@@ -238,7 +242,7 @@
   <!-- ═══ Vanguard Header ═══ -->
   <header role="banner">
     <div class="gc-fip">
-      <div class="container gc-fip-inner">
+      <div class="container gc-edge gc-fip-inner">
         <a class="gc-sig" href="/">
           <img src="/images/logo-large@2xVCS.png" alt="VCS">
           <span>
@@ -266,7 +270,7 @@
     </div>
 
     <nav class="gc-app-bar" aria-label="Application navigation">
-      <div class="container gc-app-inner">
+      <div class="container gc-edge gc-app-inner">
         <a class="gc-app-title" href="{{#if isAdmin}}/admin/dashboard{{else}}/{{/if}}">
           <i class="bi bi-cloud-check-fill brand-icon" aria-hidden="true"></i>
           {{t 'nav.appTitle'}}
@@ -351,7 +355,7 @@
 
   <footer id="gc-footer" role="contentinfo">
     <div class="gc-footer-main">
-      <div class="container">
+      <div class="container gc-edge">
         <nav aria-label="About this site">
           <h2 class="visually-hidden">{{t 'layout.main.h2.about_this_site'}}</h2>
           <ul class="gc-footer-links">
@@ -365,7 +369,7 @@
       </div>
     </div>
     <div class="gc-footer-sub">
-      <div class="container gc-footer-sub-inner">
+      <div class="container gc-edge gc-footer-sub-inner">
         <div class="gc-modified">{{t 'footer.dateModified'}}: <time>{{currentDate}}</time></div>
         <span style="font-weight:600;color:var(--cs-nav);font-size:.875rem;display:flex;align-items:center;gap:.35rem;">
           <img src="/images/logo-large@2xVCS.png" alt="VCS" style="height:28px;">
