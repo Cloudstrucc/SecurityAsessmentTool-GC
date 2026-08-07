@@ -794,8 +794,10 @@ router.post('/login', (req, res, next) => {
         return res.redirect('/admin/dashboard');
       }
       if (!dbUser?.mfa_enabled || !dbUser?.totp_secret) {
-        req.session.adminMfaVerified = false;
-        return res.redirect('/admin/mfa-setup');
+        // MFA is optional — do not force setup. The user can enable TOTP/passkey
+        // from settings if they choose.
+        req.session.adminMfaVerified = true;
+        return res.redirect('/admin/dashboard');
       }
 
       req.session.adminMfaVerified = false;

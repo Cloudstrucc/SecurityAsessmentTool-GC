@@ -36,12 +36,16 @@ function initializePassport() {
 
 function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
-    if (req.user?.role !== 'client' && !req.user?.is_break_glass && !req.session?.adminMfaVerified) {
-      const user = get('SELECT mfa_enabled, totp_secret FROM users WHERE id = ?', [req.user.id]);
-      if (!user?.mfa_enabled || !user?.totp_secret) return res.redirect('/admin/mfa-setup');
+    if (req.user?.role === 'client' || req.user?.is_break_glass || req.session?.adminMfaVerified) return next();
+    const user = get('SELECT mfa_enabled, totp_secret, webauthn_credential_id FROM users WHERE id = ?', [req.user.id]);
+    // Passkey users are already strongly authenticated — no second factor needed.
+    if (user?.webauthn_credential_id) { req.session.adminMfaVerified = true; return next(); }
+    // MFA is OPTIONAL. Only enforce it for users who have chosen to enable TOTP.
+    if (user?.mfa_enabled && user?.totp_secret) {
       req.flash('error', 'Please complete MFA verification.');
       return res.redirect('/admin/login');
     }
+    req.session.adminMfaVerified = true; // no MFA configured → nothing to verify
     return next();
   }
   req.flash('error', 'Please log in to access the admin area');

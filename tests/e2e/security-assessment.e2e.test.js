@@ -229,13 +229,17 @@ test.after(() => {
   fs.rmSync(TMP, { recursive: true, force: true });
 });
 
-test('admin without MFA is challenged to set up TOTP', async () => {
+test('admin without MFA signs in directly (MFA is optional)', async () => {
   const jar = new CookieJar();
   const response = await request(jar, 'POST', '/admin/login', {
     form: { email: USERS.needsMfa.email, password: USERS.needsMfa.password }
   });
   assert.equal(response.status, 302);
-  assert.equal(response.headers.get('location'), '/admin/mfa-setup');
+  // MFA is no longer forced — a user without MFA lands on the dashboard.
+  assert.equal(response.headers.get('location'), '/admin/dashboard');
+  const dashboard = await getText(jar, '/admin/dashboard');
+  assert.equal(dashboard.response.status, 200);
+  assert.match(dashboard.text, /Dashboard/);
 });
 
 test('break-glass admin can sign in with password only', async () => {
