@@ -71,9 +71,53 @@ async function safeSend(mailOptions) {
   }
 }
 
-async function sendInvite({ to, recipientName, projectName, inviteCode, expiresAt, assessorName, baseUrl }) {
+/** Build a one-off nodemailer transport from a tenant SMTP config. */
+function buildTransportFromConfig(cfg) {
+  return nodemailer.createTransport({
+    host: cfg.host,
+    port: cfg.port || 587,
+    secure: !!cfg.secure,
+    auth: cfg.user ? { user: cfg.user, pass: cfg.password } : undefined
+  });
+}
+
+/** Send using an explicit tenant SMTP config (bypasses the default transport). */
+async function sendVia(cfg, mailOptions) {
+  try {
+    const t = buildTransportFromConfig(cfg);
+    const opts = Object.assign({}, mailOptions, { from: cfg.from || mailOptions.from || cfg.user });
+    const info = await t.sendMail(opts);
+    return { sent: true, messageId: info.messageId };
+  } catch (err) {
+    return { sent: false, error: err.message };
+  }
+}
+
+/** Validate a tenant SMTP config by sending a test message. */
+async function sendTestEmail(cfg, to) {
+  return sendVia(cfg, {
+    to,
+    subject: 'Vanguard SA&A — SMTP test',
+    html: `<div style="font-family:Inter,Arial,sans-serif">
+      <p>✅ Your custom SMTP configuration works.</p>
+      <p>This test message was sent from Vanguard SA&amp;A using your organization's mail server.</p>
+    </div>`
+  });
+}
+
+/**
+ * Route through the tenant's SMTP when one is provided, otherwise the default.
+ * `smtpConfig` comes from config/org-settings.orgSmtp(orgId).
+ */
+async function sendRouted(smtpConfig, mailOptions) {
+  if (smtpConfig) return sendVia(smtpConfig, mailOptions);
+  return safeSend(mailOptions);
+}
+
+async function sendInvite({ to, recipientName, projectName, inviteCode, expiresAt, assessorName, baseUrl, smtpConfig }) {
   const url = `${baseUrl}/respond/${inviteCode}`;
-  return safeSend({
+  const send = smtpConfig ? (opts) => sendVia(smtpConfig, opts) : safeSend;
+  return send({
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to,
     subject: `Security Assessment Evidence Request – ${projectName}`,
@@ -174,5 +218,8 @@ module.exports = {
   sendAssignmentNotification,
   sendSubmissionNotification,
   sendATONotification,
-  sendMail
+  sendMail,
+  sendVia,
+  sendRouted,
+  sendTestEmail
 };

@@ -24,7 +24,9 @@ function initializePassport() {
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser((id, done) => {
     try {
-      const user = get('SELECT id, email, name, role, title, organization, is_break_glass FROM users WHERE id = ?', [id]);
+      const user = get(`SELECT id, email, name, role, title, organization, is_break_glass,
+        organization_id, account_type, is_licensed, is_root_admin, must_reenroll_mfa
+        FROM users WHERE id = ?`, [id]);
       done(null, user);
     } catch (err) {
       done(err);

@@ -23,6 +23,7 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const billing = require('../config/billing');
 const access = require('../config/access');
+const orgSettings = require('../config/org-settings');
 const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
 const QRCode = require('qrcode');
 const {
@@ -2038,7 +2039,9 @@ router.post('/assessments/:id/send-invite', ensureAuthenticated, async (req, res
       inviteCode: assessment.invite_code,
       expiresAt: expiresAt.toISOString(),
       assessorName: req.user.name,
-      baseUrl
+      baseUrl,
+      // Use the tenant's own SMTP when configured, otherwise the platform default.
+      smtpConfig: orgSettings.orgSmtp(req.user.organization_id)
     });
 
     if (emailResult.sent) {

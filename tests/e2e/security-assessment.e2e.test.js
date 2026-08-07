@@ -1026,6 +1026,14 @@ test('public registration on the trial plan creates a workspace and signs in', a
   assert.match(welcome.text, /breakglass\+org/i, 'shows the generated break-glass account');
 });
 
+test('root-admin console is restricted to root administrators', async () => {
+  // The seeded assessor is not a tenant root admin, so the org console is blocked.
+  const jar = await loginAdminWithTotp();
+  const res = await request(jar, 'GET', '/admin/organization', { redirect: 'manual' });
+  assert.equal(res.status, 302);
+  assert.equal(res.headers.get('location'), '/admin/dashboard', 'non-root admins are redirected away from the console');
+});
+
 test('registration with an unknown comp code is rejected', async () => {
   const jar = new CookieJar();
   const email = `comp.reject.${Date.now()}@example.test`;
