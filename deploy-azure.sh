@@ -57,7 +57,7 @@ RESOURCE_GROUP="${AZURE_RESOURCE_GROUP:-gc-sa-tool-rg}"
 APP_NAME="${AZURE_APP_NAME:-}"
 LOCATION="${AZURE_LOCATION:-canadacentral}"
 SKU="${AZURE_SKU:-B1}"
-NODE_VERSION="20-lts"
+NODE_VERSION="22-lts"
 
 # Colors
 RED='\033[0;31m'
@@ -222,7 +222,7 @@ if ! $UPDATE_ONLY; then
       --name "$APP_NAME" \
       --resource-group "$RESOURCE_GROUP" \
       --plan "$APP_SERVICE_PLAN" \
-      --runtime "NODE|$NODE_VERSION" \
+      --runtime "NODE:$NODE_VERSION" \
       --output none
     log "Web app created"
 
@@ -259,7 +259,7 @@ if ! $UPDATE_ONLY; then
         DATA_DIR="/home/site/data" \
         DB_PATH="/home/site/data/sa-tool.db" \
         UPLOAD_DIR="/home/site/uploads" \
-        WEBSITE_NODE_DEFAULT_VERSION="~20" \
+        WEBSITE_NODE_DEFAULT_VERSION="~22" \
         WEBSITES_ENABLE_APP_SERVICE_STORAGE="true" \
       --output none
     log "App settings configured"
@@ -326,7 +326,7 @@ if $EXISTING_APP; then
     --name "$APP_NAME" \
     --resource-group "$RESOURCE_GROUP" \
     --settings \
-      WEBSITE_NODE_DEFAULT_VERSION="~20" \
+      WEBSITE_NODE_DEFAULT_VERSION="~22" \
       WEBSITES_ENABLE_APP_SERVICE_STORAGE="true" \
     --output none
   log "Runtime storage settings confirmed"
