@@ -145,13 +145,14 @@ async function sendInvite({ to, recipientName, projectName, inviteCode, expiresA
   });
 }
 
-async function sendUserInvitation({ to, recipientName, inviteCode, invitedByName, role, organization, baseUrl, message }) {
+async function sendUserInvitation({ to, recipientName, inviteCode, invitedByName, role, organization, baseUrl, message, smtpConfig }) {
   const isAssessor = role === 'assessor';
-  const path = isAssessor ? '/admin/register' : '/client/register';
-  const url = `${baseUrl}${path}?invite=${inviteCode}`;
-  const roleLabel = isAssessor ? 'assessor' : 'client';
+  const path = isAssessor ? '/admin/register' : (role === 'member' ? '/redeem' : '/client/register');
+  const url = role === 'member' ? `${baseUrl}/redeem/${inviteCode}` : `${baseUrl}${path}?invite=${inviteCode}`;
+  const roleLabel = role === 'member' ? 'team member' : (isAssessor ? 'assessor' : 'client');
+  const send = smtpConfig ? (opts) => sendVia(smtpConfig, opts) : safeSend;
 
-  return safeSend({
+  return send({
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to,
     subject: `Invitation to join the Security Assessment Portal`,

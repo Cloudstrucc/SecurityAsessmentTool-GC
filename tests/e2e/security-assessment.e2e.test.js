@@ -1029,9 +1029,11 @@ test('public registration on the trial plan creates a workspace and signs in', a
 test('root-admin console is restricted to root administrators', async () => {
   // The seeded assessor is not a tenant root admin, so the org console is blocked.
   const jar = await loginAdminWithTotp();
-  const res = await request(jar, 'GET', '/admin/organization', { redirect: 'manual' });
-  assert.equal(res.status, 302);
-  assert.equal(res.headers.get('location'), '/admin/dashboard', 'non-root admins are redirected away from the console');
+  for (const path of ['/admin/organization', '/admin/licensing']) {
+    const res = await request(jar, 'GET', path, { redirect: 'manual' });
+    assert.equal(res.status, 302, `${path} should redirect`);
+    assert.equal(res.headers.get('location'), '/admin/dashboard', `${path} is root-admin only`);
+  }
 });
 
 test('registration with an unknown comp code is rejected', async () => {

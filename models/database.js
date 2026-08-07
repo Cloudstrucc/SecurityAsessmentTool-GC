@@ -671,6 +671,10 @@ async function initDatabase() {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(user_id, work_type)
     )`],
+    // Org-tied member invitations (licensing): consumed by the redeem flow.
+    ['invitations', 'organization_id', 'ALTER TABLE invitations ADD COLUMN organization_id INTEGER'],
+    ['invitations', 'grant_admin', 'ALTER TABLE invitations ADD COLUMN grant_admin INTEGER DEFAULT 0'],
+    ['invitations', 'grant_license', 'ALTER TABLE invitations ADD COLUMN grant_license INTEGER DEFAULT 1'],
     // Per-tenant settings: own SMTP / SMS / custom domain (root-admin configured)
     ['org_settings', null, `CREATE TABLE IF NOT EXISTS org_settings (
       organization_id INTEGER PRIMARY KEY,
