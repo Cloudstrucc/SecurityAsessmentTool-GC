@@ -47,6 +47,8 @@ for arg in "$@"; do
       echo "  AZURE_APP_NAME       App Service name (required for --update-only)"
       echo "  AZURE_LOCATION       Azure region (default: canadacentral)"
       echo "  AZURE_SKU            App Service SKU (default: B1)"
+      echo "  AZURE_ENV_FILE       .env file whose secrets are pushed as App Settings"
+      echo "                       (e.g. .env.dev). Skips a placeholder SESSION_SECRET."
       exit 0
       ;;
   esac
@@ -70,6 +72,33 @@ log()  { echo -e "${GREEN}[✓]${NC} $1"; }
 warn() { echo -e "${YELLOW}[!]${NC} $1"; }
 err()  { echo -e "${RED}[✗]${NC} $1"; exit 1; }
 info() { echo -e "${CYAN}[→]${NC} $1"; }
+
+# ── Per-environment app settings sync ──────────────────────────────────────────
+# When AZURE_ENV_FILE is set (e.g. .env.dev), push that file's secrets to the app
+# as Azure App Settings so deploys carry configuration too. Robust to unquoted
+# spaces in values; never rotates a placeholder SESSION_SECRET.
+ENV_FILE="${AZURE_ENV_FILE:-}"
+apply_env_settings() {
+  [ -z "$ENV_FILE" ] && return 0
+  if [ ! -f "$ENV_FILE" ]; then warn "AZURE_ENV_FILE '$ENV_FILE' not found — skipping settings sync."; return 0; fi
+  info "Syncing app settings from $ENV_FILE ..."
+  getval() { grep -E "^$1=" "$ENV_FILE" 2>/dev/null | head -1 | cut -d= -f2- | sed -e 's/^"//' -e 's/"$//' || true; }
+  local node_major="${NODE_VERSION%%-*}"
+  local args=( NODE_ENV=production WEBSITES_ENABLE_APP_SERVICE_STORAGE=true "WEBSITE_NODE_DEFAULT_VERSION=~${node_major}" )
+  local key v
+  for key in SESSION_SECRET ANTHROPIC_API_KEY ANTHROPIC_MODEL \
+             STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET \
+             STRIPE_PRICE_TEAM STRIPE_PRICE_BUSINESS STRIPE_PRICE_PAYG_USER STRIPE_PRICE_PAYG_PROJECT \
+             SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASSWORD EMAIL_FROM; do
+    v="$(getval "$key")"
+    [ -z "$v" ] && continue
+    case "$key=$v" in SESSION_SECRET=replace-with-*) continue;; esac  # never push the placeholder
+    args+=( "$key=$v" )
+  done
+  az webapp config appsettings set --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" \
+    --settings "${args[@]}" --output none
+  log "App settings synced from $ENV_FILE (${#args[@]} keys)"
+}
 
 echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
@@ -312,8 +341,11 @@ if $SETTINGS_ONLY; then
       --output none
     log "Settings updated (${#SETTINGS_ARGS[@]} values changed)"
   else
-    warn "No settings changed."
+    warn "No admin settings changed."
   fi
+
+  # Sync per-environment app settings (no-op unless AZURE_ENV_FILE is set).
+  apply_env_settings
 
   echo ""
   log "Done. No code deployed."
@@ -367,6 +399,9 @@ az webapp deploy \
   --clean false \
   --output none
 log "Deployment complete"
+
+# Sync per-environment app settings (no-op unless AZURE_ENV_FILE is set).
+apply_env_settings
 
 rm -f "$DEPLOY_ZIP"
 
