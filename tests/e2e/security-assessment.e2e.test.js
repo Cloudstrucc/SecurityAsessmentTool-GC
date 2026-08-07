@@ -716,45 +716,20 @@ test('security control catalog includes major non-ITSG frameworks', async () => 
   assert.match(await csv.text(), /A\.5\.1/);
 });
 
-test('anonymous users can request and complete an invite-code self-assessment', async () => {
-  const publicJar = new CookieJar();
-  const landing = await getText(publicJar, '/');
-  assert.equal(landing.response.status, 200);
-  assert.match(landing.text, /Security Self-Assessment/);
-
-  const gate = await getText(publicJar, '/self-assessment');
-  assert.equal(gate.response.status, 200);
-  assert.match(gate.text, /Request Access/);
-
-  const requestAccess = await request(publicJar, 'POST', '/self-assessment/request-access', {
-    form: {
-      name: 'Self Assessment User',
-      email: 'self.assessment@example.test',
-      organization: 'Self Assessment Org',
-      reason: 'Need a preliminary review before requesting a full assessment.'
-    },
-    redirect: 'follow'
-  });
-  assert.equal(requestAccess.status, 200);
-  assert.match(await requestAccess.text(), /Request Submitted/);
-
+test('pre-assessments require sign-in and a signed-in user can complete one', async () => {
   const adminJar = await loginAdminWithTotp();
-  const queue = await getText(adminJar, '/admin/self-assessments');
-  assert.match(queue.text, /self\.assessment@example\.test/);
-  const requestId = queue.text.match(/\/admin\/self-assessment-requests\/(\d+)\/approve/)?.[1];
-  assert.ok(requestId, 'access request id should be visible');
 
-  const approve = await request(adminJar, 'POST', `/admin/self-assessment-requests/${requestId}/approve`);
-  assert.equal(approve.status, 302);
-  const approvedQueue = await getText(adminJar, '/admin/self-assessments');
-  const code = approvedQueue.text.match(/Code:\s*<code>([A-Z0-9]+)<\/code>/)?.[1];
-  assert.ok(code, 'approved access code should be visible');
+  // Anonymous access to the pre-assessment is now gated → redirect to register.
+  const anon = await request(new CookieJar(), 'GET', '/self-assessment', { redirect: 'manual' });
+  assert.equal(anon.status, 302);
+  assert.match(anon.headers.get('location'), /\/register/);
 
-  const wizard = await getText(publicJar, `/self-assessment?code=${code}`);
+  // A signed-in user loads the wizard directly (no access code).
+  const wizard = await getText(adminJar, '/self-assessment');
   assert.equal(wizard.response.status, 200);
   assert.match(wizard.text, /Generate Questions/);
 
-  const questions = await request(publicJar, 'POST', '/api/self-assessment/questions', {
+  const questions = await request(adminJar, 'POST', '/api/self-assessment/questions', {
     json: {
       systemType: 'web-app',
       country: 'CA',
@@ -775,7 +750,7 @@ test('anonymous users can request and complete an invite-code self-assessment', 
     });
   });
 
-  const report = await request(publicJar, 'POST', '/api/self-assessment/report', {
+  const report = await request(adminJar, 'POST', '/api/self-assessment/report', {
     json: {
       systemType: 'web-app',
       country: 'CA',
@@ -794,7 +769,7 @@ test('anonymous users can request and complete an invite-code self-assessment', 
   assert.ok(Array.isArray(reportData.warnings));
   assert.ok(Array.isArray(reportData.secure));
 
-  const submit = await request(publicJar, 'POST', '/api/self-assessment/submit', {
+  const submit = await request(adminJar, 'POST', '/api/self-assessment/submit', {
     json: {
       name: 'Self Assessment User',
       email: 'self.assessment@example.test',
@@ -807,7 +782,8 @@ test('anonymous users can request and complete an invite-code self-assessment', 
       frameworks: questionData.frameworks,
       questions: questionData.questions,
       answers,
-      report: reportData
+      report: reportData,
+      reviewerEmail: 'reviewer@example.test'
     }
   });
   assert.equal(submit.status, 200);
@@ -1034,6 +1010,13 @@ test('root-admin console is restricted to root administrators', async () => {
     assert.equal(res.status, 302, `${path} should redirect`);
     assert.equal(res.headers.get('location'), '/admin/dashboard', `${path} is root-admin only`);
   }
+});
+
+test('redeeming an invalid invitation shows a not-found page', async () => {
+  const jar = new CookieJar();
+  const res = await getText(jar, '/redeem/NOPE12345');
+  assert.equal(res.response.status, 200);
+  assert.match(res.text, /Invitation not found/i);
 });
 
 test('registration with an unknown comp code is rejected', async () => {

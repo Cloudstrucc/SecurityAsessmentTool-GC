@@ -102,6 +102,67 @@ router.post('/register', async (req, res) => {
  }
 });
 
+// ── Redeem an org invitation (member/collaborator must register) ──────────────
+function findInvite(code) {
+  const inv = get("SELECT * FROM invitations WHERE invite_code = ? AND status = 'pending'", [String(code || '').toUpperCase().trim()]);
+  if (!inv) return null;
+  if (inv.expires_at && new Date(inv.expires_at) < new Date()) return null;
+  return inv;
+}
+
+router.get('/redeem/:code', (req, res) => {
+  const inv = findInvite(req.params.code);
+  if (!inv) return res.render('billing/redeem', billingView('redeem', { title: 'Redeem invitation', invalid: true }));
+  const org = inv.organization_id ? billing.getOrg(inv.organization_id) : null;
+  res.render('billing/redeem', billingView('redeem', { title: 'Redeem invitation', inv, org, code: req.params.code, formData: {} }));
+});
+
+router.post('/redeem/:code', (req, res) => {
+ try {
+  const inv = findInvite(req.params.code);
+  if (!inv) return res.render('billing/redeem', billingView('redeem', { title: 'Redeem invitation', invalid: true }));
+  const org = inv.organization_id ? billing.getOrg(inv.organization_id) : null;
+  const { first_name, last_name, password, agree } = req.body;
+  const fullName = `${first_name || ''} ${last_name || ''}`.trim();
+  const rerender = (msg) => {
+    res.locals.messages = Object.assign({}, res.locals.messages, { error: msg });
+    return res.render('billing/redeem', billingView('redeem', { title: 'Redeem invitation', inv, org, code: req.params.code, formData: req.body }));
+  };
+  if (!fullName || !password) return rerender('Your name and a password are required.');
+  if (password.length < 10) return rerender('Password must be at least 10 characters.');
+  if (!agree) return rerender('Please accept the Terms of Service to continue.');
+
+  const email = normalizeEmail(inv.email);
+  if (get('SELECT id FROM users WHERE email = ?', [email])) return rerender('An account already exists for this email. Please sign in instead.');
+
+  // Seat / admin capacity checks at redemption time.
+  if (org && inv.grant_license) { const l = access.canAddLicense(org); if (!l.ok) return rerender(l.reason); }
+  if (org && inv.grant_admin)  { const a = access.canAddAdmin(org);  if (!a.ok) return rerender(a.reason); }
+
+  const accountType = inv.grant_admin ? 'admin' : (inv.grant_license ? 'member' : 'collaborator');
+  const licensed = inv.grant_admin || inv.grant_license ? 1 : 0;
+  const userId = run(
+    `INSERT INTO users (email, password, name, role, organization, organization_id, account_type, is_licensed, is_root_admin, totp_secret, mfa_enabled, is_active)
+     VALUES (?, ?, ?, 'assessor', ?, ?, ?, ?, 0, ?, 0, 1)`,
+    [email, bcrypt.hashSync(password, 12), fullName, org ? org.name : (inv.organization || ''), inv.organization_id || null, accountType, licensed, otpGenerateSecret()]
+  );
+  run("UPDATE invitations SET status = 'accepted', accepted_at = CURRENT_TIMESTAMP, accepted_by_user_id = ? WHERE id = ?", [userId, inv.id]);
+  // Attach any pending assignments that were invited to this email/code.
+  run("UPDATE assessment_assignments SET assigned_to = ?, status = 'active', accepted_at = CURRENT_TIMESTAMP WHERE invitation_id = ?", [userId, inv.id]);
+
+  const user = get('SELECT * FROM users WHERE id = ?', [userId]);
+  req.logIn(user, (err) => {
+    if (err) { req.flash('error', 'Account created — please sign in.'); return res.redirect('/admin/login'); }
+    req.flash('success', `Welcome to ${org ? org.name : 'the workspace'}! Set up MFA to continue.`);
+    res.redirect('/admin/dashboard');
+  });
+ } catch (err) {
+  console.error('[billing] redeem error:', err);
+  req.flash('error', 'Something went wrong redeeming your invitation. Please try again.');
+  res.redirect(`/redeem/${req.params.code}`);
+ }
+});
+
 // ── Welcome / break-glass reveal (shown once, right after registration) ───────
 // Uses a light auth check (not ensureAuthenticated) so the recovery key is shown
 // BEFORE the MFA-setup gate kicks in on the way to the dashboard.

@@ -671,6 +671,10 @@ async function initDatabase() {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(user_id, work_type)
     )`],
+    // Pre-assessment reviewer routing (Increment 5).
+    ['self_assessments', 'reviewer_email', 'ALTER TABLE self_assessments ADD COLUMN reviewer_email TEXT'],
+    ['self_assessments', 'reviewer_notified_at', 'ALTER TABLE self_assessments ADD COLUMN reviewer_notified_at DATETIME'],
+    ['self_assessments', 'submitted_by_user_id', 'ALTER TABLE self_assessments ADD COLUMN submitted_by_user_id INTEGER'],
     // Org-tied member invitations (licensing): consumed by the redeem flow.
     ['invitations', 'organization_id', 'ALTER TABLE invitations ADD COLUMN organization_id INTEGER'],
     ['invitations', 'grant_admin', 'ALTER TABLE invitations ADD COLUMN grant_admin INTEGER DEFAULT 0'],

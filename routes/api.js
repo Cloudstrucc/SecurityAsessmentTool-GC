@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { run, all, get } = require('../models/database');
 const { ensureAuthenticated } = require('../config/passport');
+const emailService = require('../utils/emailService');
 const { verifyMfaAndIssueToken, issueToken, getUserMfaMode, storeChallenge, getChallenge } = require('../config/mfa-signature');
 
 let simpleWebAuthn = null;
@@ -541,11 +542,15 @@ router.post('/self-assessment/report', express.json({ limit: '2mb' }), (req, res
 
 router.post('/self-assessment/submit', express.json({ limit: '4mb' }), (req, res) => {
   try {
+    // Pre-assessments require an account (no anonymous submissions).
+    const submitter = req.user || (req.session && req.session.clientId ? { id: req.session.clientId } : null);
+    if (!submitter) return res.status(401).json({ error: 'Please sign in or start a free trial to submit a pre-assessment.' });
+
     const {
       name, email, organization, systemType, country, govLevel, sensitivity,
-      description, frameworks, questions, answers, report
+      description, frameworks, questions, answers, report, reviewerEmail
     } = req.body;
-    const normalizedEmail = (email || '').toLowerCase().trim();
+    const normalizedEmail = (email || req.user?.email || '').toLowerCase().trim();
     if (!normalizedEmail) return res.status(400).json({ error: 'Email is required.' });
     const finalReport = report || buildSelfAssessmentReport(req.body);
     const refCode = `SA-${require('crypto').randomBytes(4).toString('hex').toUpperCase()}`;
@@ -573,7 +578,32 @@ router.post('/self-assessment/submit', express.json({ limit: '4mb' }), (req, res
         finalReport.warnings?.length || 0,
         finalReport.critical?.length || 0
       ]);
-    res.json({ success: true, refCode });
+
+    // Route to a reviewer if one was chosen: notify (existing account) or invite.
+    const reviewer = (reviewerEmail || '').toLowerCase().trim();
+    if (reviewer) {
+      run('UPDATE self_assessments SET reviewer_email = ?, reviewer_notified_at = CURRENT_TIMESTAMP, submitted_by_user_id = ? WHERE ref_code = ?',
+        [reviewer, submitter.id || null, refCode]);
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const hasAccount = get('SELECT id FROM users WHERE email = ? AND is_active = 1', [reviewer]);
+      const who = name || req.user?.name || 'A colleague';
+      emailService.sendMail(hasAccount ? {
+        from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+        to: reviewer,
+        subject: `Pre-assessment ready for review — ${refCode}`,
+        html: `<p>${who} shared a security pre-assessment (<strong>${refCode}</strong>) for your review.</p>
+               <p><a href="${baseUrl}/admin/self-assessments">Open it in the portal</a> to review and, if appropriate, convert it to a project.</p>`
+      } : {
+        from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+        to: reviewer,
+        subject: `You're invited to review a pre-assessment — ${refCode}`,
+        html: `<p>${who} shared a security pre-assessment (<strong>${refCode}</strong>) and would like you to review it.</p>
+               <p>Create an account to review and proceed:</p>
+               <p><a href="${baseUrl}/register?plan=trial">Start a free trial</a> &nbsp;·&nbsp; <a href="${baseUrl}/pricing">see plans</a></p>`
+      }).catch(() => {});
+    }
+
+    res.json({ success: true, refCode, reviewerNotified: !!reviewer });
   } catch (err) {
     console.error('Self-assessment submit error:', err);
     res.status(500).json({ error: err.message });
