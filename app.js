@@ -204,8 +204,13 @@ app.use((req, res, next) => {
   res.locals.user = req.user;
   // AI availability (for the licensing banner). Computed for signed-in users only.
   if (req.user) {
-    try { res.locals.aiStatus = require('./config/access').aiStatus(req.user); }
-    catch (e) { res.locals.aiStatus = null; }
+    try {
+      const access = require('./config/access');
+      res.locals.aiStatus = access.aiStatus(req.user);
+      // Practitioners (invited members/collaborators) get a slimmed, scoped UI.
+      res.locals.isPractitioner = !access.isAdmin(req.user);
+      res.locals.isRootAdmin = access.isRootAdmin(req.user);
+    } catch (e) { res.locals.aiStatus = null; }
   }
   // Client session user (for intake portal)
   if (!req.user && req.session && req.session.clientId) {

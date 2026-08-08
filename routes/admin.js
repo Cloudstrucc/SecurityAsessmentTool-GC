@@ -967,6 +967,32 @@ router.get('/dashboard', ensureAuthenticated, (req, res) => {
   };
   const pendingInviteCount = get("SELECT COUNT(*) as c FROM invitations WHERE invited_by = ? AND status = 'pending'", [req.user.id])?.c || 0;
 
+  // Practitioners (invited members/collaborators) get a slimmed, scoped dashboard.
+  if (!access.isAdmin(req.user)) {
+    const myAssessments = all(`
+      SELECT a.*, p.name AS project_name, p.project_owner_name, p.project_authority_name
+      FROM assessments a JOIN projects p ON p.id = a.project_id
+      WHERE a.assigned_to_user_id = ? AND a.archived_at IS NULL
+      ORDER BY a.updated_at DESC`, [req.user.id]);
+    const myIntakes = all(`
+      SELECT * FROM intake_submissions
+      WHERE assigned_to_user_id = ? AND archived_at IS NULL
+      ORDER BY created_at DESC`, [req.user.id]);
+    // Project hierarchy for the systems they're involved in.
+    const projectIds = [...new Set([...myAssessments.map(a => a.project_id), ...myIntakes.map(i => i.project_id)].filter(Boolean))];
+    const myProjects = projectIds.length
+      ? all(`SELECT id, name, project_owner_name, project_owner_email, project_authority_name, security_framework
+             FROM projects WHERE id IN (${projectIds.map(() => '?').join(',')})`, projectIds)
+      : [];
+    const atoRecords = projectIds.length
+      ? all(`SELECT * FROM ato_records WHERE project_id IN (${projectIds.map(() => '?').join(',')}) ORDER BY updated_at DESC`, projectIds)
+      : [];
+    return res.render('admin/dashboard-practitioner', {
+      title: 'My Dashboard', isDashboard: true,
+      admin: req.user, myAssessments, myIntakes, myProjects, atoRecords
+    });
+  }
+
   res.render('admin/dashboard', {
     title: 'Dashboard',
     isAdmin: true, isDashboard: true,
