@@ -210,6 +210,8 @@ app.use((req, res, next) => {
       // Practitioners (invited members/collaborators) get a slimmed, scoped UI.
       res.locals.isPractitioner = !access.isAdmin(req.user);
       res.locals.isRootAdmin = access.isRootAdmin(req.user);
+      const { get: dbGet } = require('./models/database');
+      res.locals.unreadNotifications = dbGet('SELECT COUNT(*) c FROM notifications WHERE user_id = ? AND read_at IS NULL', [req.user.id])?.c || 0;
     } catch (e) { res.locals.aiStatus = null; }
   }
   // Client session user (for intake portal)

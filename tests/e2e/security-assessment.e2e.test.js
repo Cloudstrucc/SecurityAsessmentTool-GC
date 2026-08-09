@@ -1039,6 +1039,19 @@ test('passkey sign-in exposes usernameless WebAuthn options', async () => {
   assert.ok(opts.challenge, 'authentication options include a challenge');
 });
 
+test('signed-in user can view notifications and self-change password', async () => {
+  const jar = await loginAdminWithTotp();
+  const notif = await getText(jar, '/admin/notifications');
+  assert.equal(notif.response.status, 200);
+  assert.match(notif.text, /Notifications/);
+  // A wrong current password is rejected (redirects back to settings).
+  const bad = await request(jar, 'POST', '/admin/settings/password', {
+    form: { current_password: 'definitely-wrong', new_password: 'NewPassword123!', confirm_password: 'NewPassword123!' }
+  });
+  assert.equal(bad.status, 302);
+  assert.equal(bad.headers.get('location'), '/admin/settings');
+});
+
 test('redeeming an invalid invitation shows a not-found page', async () => {
   const jar = new CookieJar();
   const res = await getText(jar, '/redeem/NOPE12345');

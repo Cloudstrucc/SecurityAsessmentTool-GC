@@ -671,6 +671,17 @@ async function initDatabase() {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(user_id, work_type)
     )`],
+    // In-app notifications (assignments, invites, messages).
+    ['notifications', null, `CREATE TABLE IF NOT EXISTS notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      type TEXT,
+      title TEXT NOT NULL,
+      body TEXT,
+      link TEXT,
+      read_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`],
     // Pre-assessment reviewer routing (Increment 5).
     ['self_assessments', 'reviewer_email', 'ALTER TABLE self_assessments ADD COLUMN reviewer_email TEXT'],
     ['self_assessments', 'reviewer_notified_at', 'ALTER TABLE self_assessments ADD COLUMN reviewer_notified_at DATETIME'],

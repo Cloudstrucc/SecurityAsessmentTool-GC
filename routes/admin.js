@@ -34,6 +34,45 @@ const {
 } = require('../config/storage');
 
 ensureUploadDirs();
+
+// ── Practitioner access control (RBAC) ──────────────────────────────────────
+// Invited members/collaborators get a scoped experience. Admins/assessors pass
+// through untouched; unauthenticated requests fall through to per-route guards.
+const PRACTITIONER_BLOCKED_PREFIXES = [
+  '/projects', '/teams', '/security-controls', '/self-assessments',
+  '/organization', '/licensing', '/comp-codes', '/users'
+];
+router.use((req, res, next) => {
+  if (!req.isAuthenticated || !req.isAuthenticated() || access.isAdmin(req.user)) return next();
+  const p = req.path;
+  const deny = (msg) => {
+    if (req.method === 'GET') { req.flash('error', msg); return res.redirect('/admin/dashboard'); }
+    return res.status(403).json ? res.status(403).json({ error: msg }) : res.status(403).send(msg);
+  };
+  // Admin-only sections
+  if (PRACTITIONER_BLOCKED_PREFIXES.some(b => p === b || p.startsWith(b + '/'))) {
+    return deny("You don't have access to that area.");
+  }
+  // Full lists are admin-only; practitioners see their own on the dashboard.
+  if (p === '/assessments' || p === '/intakes') return res.redirect('/admin/dashboard');
+  // Dangerous assessment actions are assessor-only.
+  if (/^\/assessments\/\d+\/(delete|send-invite|generate-ato|generate-report|assign|reopen|close)/.test(p)) {
+    return deny('Only an assessor can perform that action.');
+  }
+  // Scope assessment/intake detail to the practitioner's own assignments.
+  let m = p.match(/^\/assessments\/(\d+)(\/|$)/);
+  if (m) {
+    const a = get('SELECT assigned_to_user_id FROM assessments WHERE id = ?', [m[1]]);
+    if (!a || a.assigned_to_user_id !== req.user.id) return deny('That assessment is not assigned to you.');
+  }
+  m = p.match(/^\/intakes\/(\d+)(\/|$)/);
+  if (m) {
+    const i = get('SELECT assigned_to_user_id FROM intake_submissions WHERE id = ?', [m[1]]);
+    if (!i || i.assigned_to_user_id !== req.user.id) return deny('That intake is not assigned to you.');
+  }
+  next();
+});
+
 const intakeUpload = multer({
   dest: intakeUploadDir,
   limits: { fileSize: 25 * 1024 * 1024 }
@@ -618,6 +657,20 @@ function updateAssignmentColumns(entityType, entityId, user, email, role) {
   }
 }
 
+function entityLink(entityType, entityId) {
+  if (entityType === 'assessment') return `/admin/assessments/${entityId}`;
+  if (entityType === 'intake') return `/admin/intakes/${entityId}`;
+  if (entityType === 'project') return `/admin/projects/${entityId}`;
+  return '/admin/dashboard';
+}
+function createNotification(userId, { type, title, body, link }) {
+  if (!userId) return;
+  try {
+    run('INSERT INTO notifications (user_id, type, title, body, link) VALUES (?, ?, ?, ?, ?)',
+      [userId, type || null, title, body || null, link || null]);
+  } catch (e) { console.error('[notify]', e.message); }
+}
+
 function assignEntityFromRequest({ req, entityType, entityId, entityName }) {
   const mode = req.body.assignment_mode || 'existing';
   const assigneeRole = req.body.assignee_role || 'client';
@@ -634,14 +687,21 @@ function assignEntityFromRequest({ req, entityType, entityId, entityName }) {
     updateAssignmentColumns(entityType, entityId, user, user.email, user.role);
 
     const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const link = entityLink(entityType, entityId);
+    createNotification(user.id, {
+      type: 'assignment',
+      title: `You were assigned to a ${entityType}`,
+      body: entityName, link
+    });
     emailService.sendAssignmentNotification({
       to: user.email,
       recipientName: user.name,
       entityType,
       entityName,
       assignedByName: req.user.name,
-      baseUrl,
-      message: notes
+      baseUrl, link,
+      message: notes,
+      smtpConfig: orgSettings.orgSmtp(req.user.organization_id)
     }).catch(err => console.error('[Email] Assignment notification failed:', err.message));
 
     return { email: user.email, name: user.name, pending: false };
@@ -2793,6 +2853,36 @@ router.post(['/teams/:id/resend', '/invitations/:id/resend'], ensureAuthenticate
 router.get('/settings', ensureAuthenticated, (req, res) => {
   res.render('admin/settings', {
     title: 'Settings', isAdmin: true, isSettings: true, admin: req.user
+  });
+});
+
+// Self-service password change (any signed-in user).
+router.post('/settings/password', ensureAuthenticated, (req, res) => {
+  const { current_password, new_password, confirm_password } = req.body;
+  const user = get('SELECT id, password FROM users WHERE id = ?', [req.user.id]);
+  if (!user || !bcrypt.compareSync(current_password || '', user.password)) {
+    req.flash('error', 'Your current password is incorrect.');
+    return res.redirect('/admin/settings');
+  }
+  if (!new_password || new_password.length < 10) {
+    req.flash('error', 'New password must be at least 10 characters.');
+    return res.redirect('/admin/settings');
+  }
+  if (new_password !== confirm_password) {
+    req.flash('error', 'The new passwords do not match.');
+    return res.redirect('/admin/settings');
+  }
+  run('UPDATE users SET password = ? WHERE id = ?', [bcrypt.hashSync(new_password, 12), user.id]);
+  req.flash('success', 'Your password has been updated.');
+  res.redirect('/admin/settings');
+});
+
+// ── NOTIFICATIONS ──
+router.get('/notifications', ensureAuthenticated, (req, res) => {
+  const notifications = all('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 100', [req.user.id]);
+  run('UPDATE notifications SET read_at = CURRENT_TIMESTAMP WHERE user_id = ? AND read_at IS NULL', [req.user.id]);
+  res.render('admin/notifications', {
+    title: 'Notifications', isAdmin: true, admin: req.user, notifications
   });
 });
 

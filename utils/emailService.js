@@ -176,17 +176,24 @@ async function sendUserInvitation({ to, recipientName, inviteCode, invitedByName
   });
 }
 
-async function sendAssignmentNotification({ to, recipientName, entityType, entityName, assignedByName, baseUrl, message }) {
-  return safeSend({
+async function sendAssignmentNotification({ to, recipientName, entityType, entityName, assignedByName, baseUrl, message, link, smtpConfig }) {
+  const url = link ? `${baseUrl}${link}` : `${baseUrl}/admin/dashboard`;
+  const send = smtpConfig ? (opts) => sendVia(smtpConfig, opts) : safeSend;
+  return send({
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to,
     subject: `Assigned to ${entityType}: ${entityName}`,
     html: `
-      <p>Dear ${recipientName || 'colleague'},</p>
-      <p>${assignedByName || 'An assessor'} assigned you to the ${entityType} <strong>${entityName}</strong>.</p>
-      ${message ? `<p>${message}</p>` : ''}
-      <p><a href="${baseUrl}/admin/dashboard">Open the portal</a></p>
-    `
+      <div style="font-family:'Noto Sans',Arial,sans-serif;max-width:600px;margin:0 auto">
+        <div style="background:#0a1626;color:#fff;padding:20px;border-radius:8px 8px 0 0"><h2 style="margin:0">Vanguard SA&amp;A</h2></div>
+        <div style="padding:22px;background:#f8f9fa;border:1px solid #e0e0e0">
+          <p>Dear ${recipientName || 'colleague'},</p>
+          <p>${assignedByName || 'An assessor'} assigned you to the ${entityType} <strong>${entityName}</strong>.</p>
+          ${message ? `<p>${message}</p>` : ''}
+          <p><a href="${url}" style="display:inline-block;background:#2f80cf;color:#fff;padding:12px 22px;border-radius:6px;text-decoration:none;font-weight:600">Open the ${entityType}</a></p>
+          <p style="color:#6c757d;font-size:13px">Or paste this link: ${url}</p>
+        </div>
+      </div>`
   });
 }
 
