@@ -24,6 +24,7 @@ const bcrypt = require('bcryptjs');
 const billing = require('../config/billing');
 const access = require('../config/access');
 const orgSettings = require('../config/org-settings');
+const { createNotification } = require('../config/notify');
 const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
 const QRCode = require('qrcode');
 const {
@@ -55,8 +56,9 @@ router.use((req, res, next) => {
   }
   // Full lists are admin-only; practitioners see their own on the dashboard.
   if (p === '/assessments' || p === '/intakes') return res.redirect('/admin/dashboard');
-  // Dangerous assessment actions are assessor-only.
-  if (/^\/assessments\/\d+\/(delete|send-invite|generate-ato|generate-report|assign|reopen|close)/.test(p)) {
+  // Per-action RBAC on an assessment: assessor-only actions are blocked even for
+  // the assigned practitioner. They keep view, report downloads and comments.
+  if (/^\/assessments\/\d+\/(tailoring|send-invite|assign|start-audit|audit-control|complete-audit|checklist|poam|reactivate|generate-ato|delete|manage-controls|add-controls|remove-control|update-control|ai\/)/.test(p)) {
     return deny('Only an assessor can perform that action.');
   }
   // Scope assessment/intake detail to the practitioner's own assignments.
@@ -663,14 +665,6 @@ function entityLink(entityType, entityId) {
   if (entityType === 'project') return `/admin/projects/${entityId}`;
   return '/admin/dashboard';
 }
-function createNotification(userId, { type, title, body, link }) {
-  if (!userId) return;
-  try {
-    run('INSERT INTO notifications (user_id, type, title, body, link) VALUES (?, ?, ?, ?, ?)',
-      [userId, type || null, title, body || null, link || null]);
-  } catch (e) { console.error('[notify]', e.message); }
-}
-
 function assignEntityFromRequest({ req, entityType, entityId, entityName }) {
   const mode = req.body.assignment_mode || 'existing';
   const assigneeRole = req.body.assignee_role || 'client';

@@ -12,6 +12,7 @@ const { generateSecret: otpGenerateSecret } = require('otplib');
 const { get, all, run } = require('../models/database');
 const billing = require('../config/billing');
 const access = require('../config/access');
+const { createNotification } = require('../config/notify');
 const { ensureAuthenticated } = require('../config/passport');
 
 const router = express.Router();
@@ -163,6 +164,22 @@ router.post('/redeem/:code', (req, res) => {
   run("UPDATE invitations SET status = 'accepted', accepted_at = CURRENT_TIMESTAMP, accepted_by_user_id = ? WHERE id = ?", [userId, inv.id]);
   // Attach any pending assignments that were invited to this email/code.
   run("UPDATE assessment_assignments SET assigned_to = ?, status = 'active', accepted_at = CURRENT_TIMESTAMP WHERE invitation_id = ?", [userId, inv.id]);
+
+  // Notifications: welcome the new member, and tell the inviter it was accepted.
+  createNotification(userId, {
+    type: 'welcome',
+    title: `Welcome to ${org ? org.name : 'the workspace'}`,
+    body: 'Your account is ready. Assigned files appear on your dashboard.',
+    link: '/admin/dashboard'
+  });
+  if (inv.invited_by) {
+    createNotification(inv.invited_by, {
+      type: 'invite-accepted',
+      title: `${fullName} accepted your invitation`,
+      body: `${email} joined ${org ? org.name : 'your organization'}.`,
+      link: '/admin/licensing'
+    });
+  }
 
   const user = get('SELECT * FROM users WHERE id = ?', [userId]);
   req.logIn(user, (err) => {

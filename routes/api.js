@@ -246,6 +246,25 @@ router.post('/comments/:controlId', ensureAuthenticated, express.json(), (req, r
   run(`INSERT INTO comments (assessment_control_id, user_id, user_name, user_role, content, is_internal)
     VALUES (?, ?, ?, ?, ?, ?)`,
     [req.params.controlId, req.user.id, req.user.name, req.user.role, content, is_internal ? 1 : 0]);
+
+  // Notify the counterparty (assessor <-> assigned practitioner) of the message.
+  try {
+    const ctrl = get('SELECT assessment_id FROM assessment_controls WHERE id = ?', [req.params.controlId]);
+    const a = ctrl ? get('SELECT id, assigned_to_user_id, created_by, project_id FROM assessments WHERE id = ?', [ctrl.assessment_id]) : null;
+    if (a) {
+      const proj = get('SELECT name FROM projects WHERE id = ?', [a.project_id]);
+      const recipients = new Set();
+      if (a.created_by && a.created_by !== req.user.id) recipients.add(a.created_by);               // the assessor
+      if (!is_internal && a.assigned_to_user_id && a.assigned_to_user_id !== req.user.id) recipients.add(a.assigned_to_user_id); // practitioner (unless internal)
+      recipients.forEach(uid => createNotification(uid, {
+        type: 'message',
+        title: `New comment from ${req.user.name}`,
+        body: `${proj?.name ? proj.name + ' — ' : ''}${(content || '').slice(0, 120)}`,
+        link: `/admin/assessments/${ctrl.assessment_id}`
+      }));
+    }
+  } catch (e) { console.error('[notify comment]', e.message); }
+
   res.json({ success: true });
 });
 
@@ -289,6 +308,7 @@ router.get('/assessments/:id/stats', (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 const ai = require('../config/ai-service');
 const access = require('../config/access');
+const { createNotification } = require('../config/notify');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
