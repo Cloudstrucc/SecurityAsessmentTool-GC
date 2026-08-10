@@ -71,9 +71,53 @@ async function safeSend(mailOptions) {
   }
 }
 
-async function sendInvite({ to, recipientName, projectName, inviteCode, expiresAt, assessorName, baseUrl }) {
+/** Build a one-off nodemailer transport from a tenant SMTP config. */
+function buildTransportFromConfig(cfg) {
+  return nodemailer.createTransport({
+    host: cfg.host,
+    port: cfg.port || 587,
+    secure: !!cfg.secure,
+    auth: cfg.user ? { user: cfg.user, pass: cfg.password } : undefined
+  });
+}
+
+/** Send using an explicit tenant SMTP config (bypasses the default transport). */
+async function sendVia(cfg, mailOptions) {
+  try {
+    const t = buildTransportFromConfig(cfg);
+    const opts = Object.assign({}, mailOptions, { from: cfg.from || mailOptions.from || cfg.user });
+    const info = await t.sendMail(opts);
+    return { sent: true, messageId: info.messageId };
+  } catch (err) {
+    return { sent: false, error: err.message };
+  }
+}
+
+/** Validate a tenant SMTP config by sending a test message. */
+async function sendTestEmail(cfg, to) {
+  return sendVia(cfg, {
+    to,
+    subject: 'Vanguard SA&A — SMTP test',
+    html: `<div style="font-family:Inter,Arial,sans-serif">
+      <p>✅ Your custom SMTP configuration works.</p>
+      <p>This test message was sent from Vanguard SA&amp;A using your organization's mail server.</p>
+    </div>`
+  });
+}
+
+/**
+ * Route through the tenant's SMTP when one is provided, otherwise the default.
+ * `smtpConfig` comes from config/org-settings.orgSmtp(orgId).
+ */
+async function sendRouted(smtpConfig, mailOptions) {
+  if (smtpConfig) return sendVia(smtpConfig, mailOptions);
+  return safeSend(mailOptions);
+}
+
+async function sendInvite({ to, recipientName, projectName, inviteCode, expiresAt, assessorName, baseUrl, smtpConfig }) {
   const url = `${baseUrl}/respond/${inviteCode}`;
-  return safeSend({
+  const send = smtpConfig ? (opts) => sendVia(smtpConfig, opts) : safeSend;
+  return send({
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to,
     subject: `Security Assessment Evidence Request – ${projectName}`,
@@ -101,13 +145,14 @@ async function sendInvite({ to, recipientName, projectName, inviteCode, expiresA
   });
 }
 
-async function sendUserInvitation({ to, recipientName, inviteCode, invitedByName, role, organization, baseUrl, message }) {
+async function sendUserInvitation({ to, recipientName, inviteCode, invitedByName, role, organization, baseUrl, message, smtpConfig }) {
   const isAssessor = role === 'assessor';
-  const path = isAssessor ? '/admin/register' : '/client/register';
-  const url = `${baseUrl}${path}?invite=${inviteCode}`;
-  const roleLabel = isAssessor ? 'assessor' : 'client';
+  const path = isAssessor ? '/admin/register' : (role === 'member' ? '/redeem' : '/client/register');
+  const url = role === 'member' ? `${baseUrl}/redeem/${inviteCode}` : `${baseUrl}${path}?invite=${inviteCode}`;
+  const roleLabel = role === 'member' ? 'team member' : (isAssessor ? 'assessor' : 'client');
+  const send = smtpConfig ? (opts) => sendVia(smtpConfig, opts) : safeSend;
 
-  return safeSend({
+  return send({
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to,
     subject: `Invitation to join the Security Assessment Portal`,
@@ -131,17 +176,24 @@ async function sendUserInvitation({ to, recipientName, inviteCode, invitedByName
   });
 }
 
-async function sendAssignmentNotification({ to, recipientName, entityType, entityName, assignedByName, baseUrl, message }) {
-  return safeSend({
+async function sendAssignmentNotification({ to, recipientName, entityType, entityName, assignedByName, baseUrl, message, link, smtpConfig }) {
+  const url = link ? `${baseUrl}${link}` : `${baseUrl}/admin/dashboard`;
+  const send = smtpConfig ? (opts) => sendVia(smtpConfig, opts) : safeSend;
+  return send({
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to,
     subject: `Assigned to ${entityType}: ${entityName}`,
     html: `
-      <p>Dear ${recipientName || 'colleague'},</p>
-      <p>${assignedByName || 'An assessor'} assigned you to the ${entityType} <strong>${entityName}</strong>.</p>
-      ${message ? `<p>${message}</p>` : ''}
-      <p><a href="${baseUrl}/admin/dashboard">Open the portal</a></p>
-    `
+      <div style="font-family:'Noto Sans',Arial,sans-serif;max-width:600px;margin:0 auto">
+        <div style="background:#0a1626;color:#fff;padding:20px;border-radius:8px 8px 0 0"><h2 style="margin:0">Vanguard SA&amp;A</h2></div>
+        <div style="padding:22px;background:#f8f9fa;border:1px solid #e0e0e0">
+          <p>Dear ${recipientName || 'colleague'},</p>
+          <p>${assignedByName || 'An assessor'} assigned you to the ${entityType} <strong>${entityName}</strong>.</p>
+          ${message ? `<p>${message}</p>` : ''}
+          <p><a href="${url}" style="display:inline-block;background:#2f80cf;color:#fff;padding:12px 22px;border-radius:6px;text-decoration:none;font-weight:600">Open the ${entityType}</a></p>
+          <p style="color:#6c757d;font-size:13px">Or paste this link: ${url}</p>
+        </div>
+      </div>`
   });
 }
 
@@ -174,5 +226,8 @@ module.exports = {
   sendAssignmentNotification,
   sendSubmissionNotification,
   sendATONotification,
-  sendMail
+  sendMail,
+  sendVia,
+  sendRouted,
+  sendTestEmail
 };

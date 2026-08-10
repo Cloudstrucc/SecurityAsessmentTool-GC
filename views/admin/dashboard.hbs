@@ -1,58 +1,57 @@
 <div class="container">
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="page-head d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
     <div>
       <h1 class="mb-1">Dashboard</h1>
       <p class="text-muted mb-0">Welcome back, {{admin.name}}</p>
+      <div class="rule"></div>
     </div>
     <a href="/admin/projects/new" class="btn btn-primary">
       <i class="bi bi-plus-lg me-1"></i>New Project
     </a>
   </div>
 
-  <!-- Stats Cards -->
+  <!-- Stats Cards (each navigates to its list) -->
   <div class="row g-3 mb-4">
     <div class="col-6 col-lg">
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#e7f1fb;color:var(--gc-accent)">
-          <i class="bi bi-folder2-open"></i>
+      <a href="/admin/projects" class="text-decoration-none">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e7f1fb;color:var(--gc-accent)"><i class="bi bi-folder2-open"></i></div>
+          <div class="stat-number">{{stats.totalProjects}}</div>
+          <div class="stat-label">Total Projects</div>
         </div>
-        <div class="stat-number">{{stats.totalProjects}}</div>
-        <div class="stat-label">Total Projects</div>
-      </div>
+      </a>
     </div>
     <div class="col-6 col-lg">
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#fff3cd;color:var(--gc-warning)">
-          <i class="bi bi-clipboard-check"></i>
+      <a href="/admin/assessments" class="text-decoration-none">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fff3cd;color:var(--gc-warning)"><i class="bi bi-clipboard-check"></i></div>
+          <div class="stat-number">{{stats.activeAssessments}}</div>
+          <div class="stat-label">Active Assessments</div>
         </div>
-        <div class="stat-number">{{stats.activeAssessments}}</div>
-        <div class="stat-label">Active Assessments</div>
-      </div>
+      </a>
     </div>
     <div class="col-6 col-lg">
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#f8d7da;color:var(--gc-danger)">
-          <i class="bi bi-search"></i>
+      <a href="/admin/assessments?filter=audit" class="text-decoration-none">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f8d7da;color:var(--gc-danger)"><i class="bi bi-search"></i></div>
+          <div class="stat-number">{{stats.pendingAudits}}</div>
+          <div class="stat-label">Pending Audits</div>
         </div>
-        <div class="stat-number">{{stats.pendingAudits}}</div>
-        <div class="stat-label">Pending Audits</div>
-      </div>
+      </a>
     </div>
     <div class="col-6 col-lg">
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#d8eeca;color:var(--gc-success)">
-          <i class="bi bi-patch-check"></i>
+      <a href="/admin/assessments?filter=ato" class="text-decoration-none">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#d8eeca;color:var(--gc-success)"><i class="bi bi-patch-check"></i></div>
+          <div class="stat-number">{{stats.activeATOs}}</div>
+          <div class="stat-label">Active ATOs</div>
         </div>
-        <div class="stat-number">{{stats.activeATOs}}</div>
-        <div class="stat-label">Active ATOs</div>
-      </div>
+      </a>
     </div>
     <div class="col-6 col-lg">
       <a href="/admin/intakes" class="text-decoration-none">
         <div class="stat-card {{#if stats.pendingIntakes}}border-warning{{/if}}">
-          <div class="stat-icon" style="background:#e2d9f3;color:#6f42c1">
-            <i class="bi bi-inbox"></i>
-          </div>
+          <div class="stat-icon" style="background:#e2d9f3;color:#6f42c1"><i class="bi bi-inbox"></i></div>
           <div class="stat-number">{{stats.pendingIntakes}}</div>
           <div class="stat-label">Pending Intakes</div>
         </div>
@@ -61,9 +60,7 @@
     <div class="col-6 col-lg">
       <a href="/admin/self-assessments" class="text-decoration-none">
         <div class="stat-card {{#if stats.pendingSelfAssessments}}border-warning{{/if}}">
-          <div class="stat-icon" style="background:#f0f4ff;color:var(--gc-accent)">
-            <i class="bi bi-clipboard2-pulse"></i>
-          </div>
+          <div class="stat-icon" style="background:#f0f4ff;color:var(--gc-accent)"><i class="bi bi-clipboard2-pulse"></i></div>
           <div class="stat-number">{{stats.pendingSelfAssessments}}</div>
           <div class="stat-label">Self-Assessments</div>
         </div>

@@ -1,0 +1,87 @@
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">Comp Codes</h1>
+      <p class="text-muted mb-0">Grant free access to a plan — no payment required at registration.</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card">
+        <div class="card-header"><i class="bi bi-ticket-perforated me-2"></i>Create a comp code</div>
+        <div class="card-body">
+          <form method="POST" action="/admin/comp-codes">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Code</label>
+              <input class="form-control" name="code" placeholder="VCS-PILOT-2026" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Plan granted</label>
+              <select class="form-select" name="plan">
+                {{#each plans}}
+                  {{#unless (eq this.key 'trial')}}<option value="{{this.key}}"{{#if (eq this.key 'business')}} selected{{/if}}>{{this.label}}</option>{{/unless}}
+                {{/each}}
+              </select>
+            </div>
+            <div class="row">
+              <div class="col-6 mb-3">
+                <label class="form-label small fw-semibold">Max redemptions</label>
+                <input class="form-control" type="number" name="max_redemptions" value="1" min="1">
+              </div>
+              <div class="col-6 mb-3">
+                <label class="form-label small fw-semibold">Expires <span class="text-muted">(optional)</span></label>
+                <input class="form-control" type="date" name="expires_at">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Note <span class="text-muted">(optional)</span></label>
+              <input class="form-control" name="note" placeholder="e.g. Partner pilot">
+            </div>
+            <button class="btn btn-primary w-100" type="submit"><i class="bi bi-plus-lg me-1"></i>Create comp code</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="card">
+        <div class="card-body p-0">
+          {{#if codes.length}}
+            <div class="table-responsive">
+              <table class="table table-hover mb-0 align-middle">
+                <thead>
+                  <tr><th>Code</th><th>Plan</th><th>Uses</th><th>Expires</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                  {{#each codes}}
+                    <tr>
+                      <td><code>{{this.code}}</code>{{#if this.note}}<div class="small text-muted">{{this.note}}</div>{{/if}}</td>
+                      <td><span class="badge bg-info text-dark">{{this.plan}}</span></td>
+                      <td class="text-muted">{{this.redemptions}} / {{this.max_redemptions}}</td>
+                      <td class="text-muted small">{{#if this.expires_at}}{{formatDate this.expires_at}}{{else}}—{{/if}}</td>
+                      <td>{{#if this.active}}<span class="badge bg-success">Active</span>{{else}}<span class="badge bg-secondary">Disabled</span>{{/if}}</td>
+                      <td class="text-end">
+                        <form method="POST" action="/admin/comp-codes/{{this.id}}/toggle" class="d-inline">
+                          <button class="btn btn-sm btn-outline-secondary" title="Toggle active">
+                            <i class="bi bi-{{#if this.active}}pause{{else}}play{{/if}}"></i>
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          {{else}}
+            <div class="p-5 text-center text-muted">
+              <i class="bi bi-ticket-perforated" style="font-size:3rem"></i>
+              <h4 class="mt-3">No comp codes yet</h4>
+              <p>Create one to grant free access for pilots or partners.</p>
+            </div>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

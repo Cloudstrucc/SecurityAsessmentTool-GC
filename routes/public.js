@@ -47,24 +47,28 @@ router.get('/portal', (req, res) => {
 });
 
 // ── SECURITY SELF-ASSESSMENT (access-code gated) ──
+function signedInUser(req) {
+  if (req.isAuthenticated && req.isAuthenticated()) return req.user;
+  if (req.session && req.session.clientId) return req.clientUser || { id: req.session.clientId };
+  return null;
+}
+
+// Pre-assessments now require an account (a free trial is enough) — no anonymous
+// submissions. Signed-out visitors are routed to register or sign in.
 router.get('/self-assessment', (req, res) => {
-  const code = (req.query.code || req.session.saAccessCode || '').toUpperCase().trim();
-  if (code) {
-    const access = get("SELECT * FROM sa_access_requests WHERE access_code = ? AND status = 'approved'", [code]);
-    if (access && (!access.expires_at || new Date(access.expires_at) >= new Date())) {
-      req.session.saAccessCode = code;
-      return res.render('public/self-assessment', {
-        title: 'Security Self-Assessment',
-        frameworkMapJSON: JSON.stringify(frameworkMap),
-        accessCode: code,
-        accessName: access.name || '',
-        accessEmail: access.email || '',
-        accessOrganization: access.organization || ''
-      });
-    }
-    req.flash('error', access ? 'This access code has expired. Request a new one to continue.' : 'Invalid or expired access code.');
+  const user = signedInUser(req);
+  if (!user) {
+    req.flash('info', 'Sign in or start a free trial to complete a pre-assessment.');
+    return res.redirect('/register?plan=trial');
   }
-  res.render('public/self-assessment-gate', { title: 'Security Self-Assessment' });
+  return res.render('public/self-assessment', {
+    title: 'Security Self-Assessment',
+    frameworkMapJSON: JSON.stringify(frameworkMap),
+    accessName: user.name || '',
+    accessEmail: user.email || '',
+    accessOrganization: user.organization || '',
+    signedIn: true
+  });
 });
 
 router.post('/self-assessment/request-access', (req, res) => {

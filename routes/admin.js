@@ -21,6 +21,10 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
+const billing = require('../config/billing');
+const access = require('../config/access');
+const orgSettings = require('../config/org-settings');
+const { createNotification } = require('../config/notify');
 const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
 const QRCode = require('qrcode');
 const {
@@ -31,6 +35,46 @@ const {
 } = require('../config/storage');
 
 ensureUploadDirs();
+
+// ── Practitioner access control (RBAC) ──────────────────────────────────────
+// Invited members/collaborators get a scoped experience. Admins/assessors pass
+// through untouched; unauthenticated requests fall through to per-route guards.
+const PRACTITIONER_BLOCKED_PREFIXES = [
+  '/projects', '/teams', '/security-controls', '/self-assessments',
+  '/organization', '/licensing', '/comp-codes', '/users'
+];
+router.use((req, res, next) => {
+  if (!req.isAuthenticated || !req.isAuthenticated() || access.isAdmin(req.user)) return next();
+  const p = req.path;
+  const deny = (msg) => {
+    if (req.method === 'GET') { req.flash('error', msg); return res.redirect('/admin/dashboard'); }
+    return res.status(403).json ? res.status(403).json({ error: msg }) : res.status(403).send(msg);
+  };
+  // Admin-only sections
+  if (PRACTITIONER_BLOCKED_PREFIXES.some(b => p === b || p.startsWith(b + '/'))) {
+    return deny("You don't have access to that area.");
+  }
+  // Full lists are admin-only; practitioners see their own on the dashboard.
+  if (p === '/assessments' || p === '/intakes') return res.redirect('/admin/dashboard');
+  // Per-action RBAC on an assessment: assessor-only actions are blocked even for
+  // the assigned practitioner. They keep view, report downloads and comments.
+  if (/^\/assessments\/\d+\/(tailoring|send-invite|assign|start-audit|audit-control|complete-audit|checklist|poam|reactivate|generate-ato|delete|manage-controls|add-controls|remove-control|update-control|ai\/)/.test(p)) {
+    return deny('Only an assessor can perform that action.');
+  }
+  // Scope assessment/intake detail to the practitioner's own assignments.
+  let m = p.match(/^\/assessments\/(\d+)(\/|$)/);
+  if (m) {
+    const a = get('SELECT assigned_to_user_id FROM assessments WHERE id = ?', [m[1]]);
+    if (!a || a.assigned_to_user_id !== req.user.id) return deny('That assessment is not assigned to you.');
+  }
+  m = p.match(/^\/intakes\/(\d+)(\/|$)/);
+  if (m) {
+    const i = get('SELECT assigned_to_user_id FROM intake_submissions WHERE id = ?', [m[1]]);
+    if (!i || i.assigned_to_user_id !== req.user.id) return deny('That intake is not assigned to you.');
+  }
+  next();
+});
+
 const intakeUpload = multer({
   dest: intakeUploadDir,
   limits: { fileSize: 25 * 1024 * 1024 }
@@ -615,6 +659,12 @@ function updateAssignmentColumns(entityType, entityId, user, email, role) {
   }
 }
 
+function entityLink(entityType, entityId) {
+  if (entityType === 'assessment') return `/admin/assessments/${entityId}`;
+  if (entityType === 'intake') return `/admin/intakes/${entityId}`;
+  if (entityType === 'project') return `/admin/projects/${entityId}`;
+  return '/admin/dashboard';
+}
 function assignEntityFromRequest({ req, entityType, entityId, entityName }) {
   const mode = req.body.assignment_mode || 'existing';
   const assigneeRole = req.body.assignee_role || 'client';
@@ -631,14 +681,21 @@ function assignEntityFromRequest({ req, entityType, entityId, entityName }) {
     updateAssignmentColumns(entityType, entityId, user, user.email, user.role);
 
     const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const link = entityLink(entityType, entityId);
+    createNotification(user.id, {
+      type: 'assignment',
+      title: `You were assigned to a ${entityType}`,
+      body: entityName, link
+    });
     emailService.sendAssignmentNotification({
       to: user.email,
       recipientName: user.name,
       entityType,
       entityName,
       assignedByName: req.user.name,
-      baseUrl,
-      message: notes
+      baseUrl, link,
+      message: notes,
+      smtpConfig: orgSettings.orgSmtp(req.user.organization_id)
     }).catch(err => console.error('[Email] Assignment notification failed:', err.message));
 
     return { email: user.email, name: user.name, pending: false };
@@ -791,8 +848,10 @@ router.post('/login', (req, res, next) => {
         return res.redirect('/admin/dashboard');
       }
       if (!dbUser?.mfa_enabled || !dbUser?.totp_secret) {
-        req.session.adminMfaVerified = false;
-        return res.redirect('/admin/mfa-setup');
+        // MFA is optional — do not force setup. The user can enable TOTP/passkey
+        // from settings if they choose.
+        req.session.adminMfaVerified = true;
+        return res.redirect('/admin/dashboard');
       }
 
       req.session.adminMfaVerified = false;
@@ -855,7 +914,7 @@ router.post('/mfa-setup', (req, res) => {
     return res.redirect('/admin/mfa-setup');
   }
 
-  run('UPDATE users SET mfa_enabled = 1 WHERE id = ?', [user.id]);
+  run('UPDATE users SET mfa_enabled = 1, must_reenroll_mfa = 0 WHERE id = ?', [user.id]);
   req.session.adminMfaVerified = true;
   req.flash('success', 'MFA enabled. You can optionally register a passkey; TOTP will remain available.');
   res.redirect('/admin/passkey-setup');
@@ -962,6 +1021,32 @@ router.get('/dashboard', ensureAuthenticated, (req, res) => {
   };
   const pendingInviteCount = get("SELECT COUNT(*) as c FROM invitations WHERE invited_by = ? AND status = 'pending'", [req.user.id])?.c || 0;
 
+  // Practitioners (invited members/collaborators) get a slimmed, scoped dashboard.
+  if (!access.isAdmin(req.user)) {
+    const myAssessments = all(`
+      SELECT a.*, p.name AS project_name, p.project_owner_name, p.project_authority_name
+      FROM assessments a JOIN projects p ON p.id = a.project_id
+      WHERE a.assigned_to_user_id = ? AND a.archived_at IS NULL
+      ORDER BY a.updated_at DESC`, [req.user.id]);
+    const myIntakes = all(`
+      SELECT * FROM intake_submissions
+      WHERE assigned_to_user_id = ? AND archived_at IS NULL
+      ORDER BY created_at DESC`, [req.user.id]);
+    // Project hierarchy for the systems they're involved in.
+    const projectIds = [...new Set([...myAssessments.map(a => a.project_id), ...myIntakes.map(i => i.project_id)].filter(Boolean))];
+    const myProjects = projectIds.length
+      ? all(`SELECT id, name, project_owner_name, project_owner_email, project_authority_name, security_framework
+             FROM projects WHERE id IN (${projectIds.map(() => '?').join(',')})`, projectIds)
+      : [];
+    const atoRecords = projectIds.length
+      ? all(`SELECT * FROM ato_records WHERE project_id IN (${projectIds.map(() => '?').join(',')}) ORDER BY updated_at DESC`, projectIds)
+      : [];
+    return res.render('admin/dashboard-practitioner', {
+      title: 'My Dashboard', isDashboard: true,
+      admin: req.user, myAssessments, myIntakes, myProjects, atoRecords
+    });
+  }
+
   res.render('admin/dashboard', {
     title: 'Dashboard',
     isAdmin: true, isDashboard: true,
@@ -1057,6 +1142,16 @@ router.post('/projects/new', ensureAuthenticated, intakeUpload.array('attachment
     const existingProject = findProjectForIntake(req.body);
     let projectId;
 
+    // Enforce per-plan project limits for orgs that have one (legacy/no-org users are unlimited).
+    const userOrg = billing.orgForUser(req.user);
+    if (!existingProject && userOrg) {
+      const gate = billing.canAddProject(userOrg);
+      if (!gate.ok) {
+        req.flash('error', gate.reason + ' Manage your plan under billing.');
+        return res.redirect('/admin/projects/new');
+      }
+    }
+
     if (existingProject) {
       projectId = existingProject.id;
       run(`UPDATE projects SET
@@ -1087,6 +1182,7 @@ router.post('/projects/new', ensureAuthenticated, intakeUpload.array('attachment
           hosting_type || '', app_type || '', hasPII, JSON.stringify(techArray), specifications || '',
           project_owner_name || '', normalizeEmail(project_owner_email), project_authority_name || '', normalizeEmail(project_authority_email),
           cio_name || '', normalizeEmail(cio_email), department || '', branch || '', req.user.id]);
+      if (userOrg) run('UPDATE projects SET organization_id = ? WHERE id = ?', [userOrg.id, projectId]);
     }
 
     const intakeId = createProjectIntake({
@@ -1731,16 +1827,28 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
 });
 
 router.get('/assessments', ensureAuthenticated, (req, res) => {
+  const filter = req.query.filter;
+  let where = 'a.archived_at IS NULL AND p.archived_at IS NULL';
+  let heading = null, blurb = null;
+  if (filter === 'audit') {
+    where += " AND a.status IN ('submitted','audit')";
+    heading = 'Pending Audits';
+    blurb = 'Assessments that have been submitted and are awaiting (or undergoing) assessor audit.';
+  } else if (filter === 'ato') {
+    where += " AND a.result IN ('ato','iato')";
+    heading = 'Active ATOs / iATOs';
+    blurb = 'Assessments that have been granted an Authority to Operate (ATO) or interim ATO (iATO).';
+  }
   const assessments = all(`
     SELECT a.*, p.name as project_name, i.ref_code as intake_ref_code
     FROM assessments a JOIN projects p ON a.project_id = p.id
     LEFT JOIN intake_submissions i ON i.id = a.intake_id
-    WHERE a.archived_at IS NULL AND p.archived_at IS NULL
+    WHERE ${where}
     ORDER BY a.updated_at DESC
   `);
   res.render('admin/assessments', {
-    title: 'Assessments', isAdmin: true, isAssessments: true,
-    admin: req.user, assessments
+    title: heading || 'Assessments', isAdmin: true, isAssessments: true,
+    admin: req.user, assessments, heading, blurb, filter
   });
 });
 
@@ -1919,6 +2027,8 @@ router.post('/assessments/:id/ai/document-guidance', ensureAuthenticated, expres
     if (!ai.isConfigured() && process.env.NODE_ENV !== 'test') {
       return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
     }
+    const aiGate = access.canUseAI(req.user, 'evidence-guidance');
+    if (!aiGate.ok) return res.status(403).json({ error: aiGate.reason, needsLicense: !!aiGate.needsLicense });
 
     const projectContext = {
       name: assessment.project_name,
@@ -1958,6 +2068,7 @@ router.post('/assessments/:id/ai/document-guidance', ensureAuthenticated, expres
       });
     }
 
+    access.recordAiUse(req.user, 'evidence-guidance');
     res.json({ success: true, guidance });
   } catch (err) {
     console.error('Document guidance AI error:', err);
@@ -2022,7 +2133,9 @@ router.post('/assessments/:id/send-invite', ensureAuthenticated, async (req, res
       inviteCode: assessment.invite_code,
       expiresAt: expiresAt.toISOString(),
       assessorName: req.user.name,
-      baseUrl
+      baseUrl,
+      // Use the tenant's own SMTP when configured, otherwise the platform default.
+      smtpConfig: orgSettings.orgSmtp(req.user.organization_id)
     });
 
     if (emailResult.sent) {
@@ -2734,6 +2847,36 @@ router.post(['/teams/:id/resend', '/invitations/:id/resend'], ensureAuthenticate
 router.get('/settings', ensureAuthenticated, (req, res) => {
   res.render('admin/settings', {
     title: 'Settings', isAdmin: true, isSettings: true, admin: req.user
+  });
+});
+
+// Self-service password change (any signed-in user).
+router.post('/settings/password', ensureAuthenticated, (req, res) => {
+  const { current_password, new_password, confirm_password } = req.body;
+  const user = get('SELECT id, password FROM users WHERE id = ?', [req.user.id]);
+  if (!user || !bcrypt.compareSync(current_password || '', user.password)) {
+    req.flash('error', 'Your current password is incorrect.');
+    return res.redirect('/admin/settings');
+  }
+  if (!new_password || new_password.length < 10) {
+    req.flash('error', 'New password must be at least 10 characters.');
+    return res.redirect('/admin/settings');
+  }
+  if (new_password !== confirm_password) {
+    req.flash('error', 'The new passwords do not match.');
+    return res.redirect('/admin/settings');
+  }
+  run('UPDATE users SET password = ? WHERE id = ?', [bcrypt.hashSync(new_password, 12), user.id]);
+  req.flash('success', 'Your password has been updated.');
+  res.redirect('/admin/settings');
+});
+
+// ── NOTIFICATIONS ──
+router.get('/notifications', ensureAuthenticated, (req, res) => {
+  const notifications = all('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 100', [req.user.id]);
+  run('UPDATE notifications SET read_at = CURRENT_TIMESTAMP WHERE user_id = ? AND read_at IS NULL', [req.user.id]);
+  res.render('admin/notifications', {
+    title: 'Notifications', isAdmin: true, admin: req.user, notifications
   });
 });
 

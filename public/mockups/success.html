@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome aboard · Vanguard SA&amp;A</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/4.0.2/inter.min.css">
+<link rel="stylesheet" href="../css/vanguard-design.css">
+<style>
+  .mock-note{background:#fdf4ee;border-bottom:1px solid #f0dcc4;color:#8a5a12;font-size:12.5px;text-align:center;padding:7px 16px;font-weight:600;}
+  .check{width:74px;height:74px;border-radius:50%;background:var(--vg-grad);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:38px;color:#08131f;font-weight:800;box-shadow:0 12px 30px rgba(77,159,224,.4)}
+  .next-list{list-style:none;padding:0;margin:22px 0 0;text-align:left}
+  .next-list li{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid #eef4fa}
+  .next-list li .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--vg-navy-900);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body class="vg-page">
+
+<div class="mock-note">MOCKUP · Confirmation preview.</div>
+
+<nav class="vg-nav">
+  <div class="vg-container vg-nav-inner">
+    <a href="pricing.html" class="vg-brand">
+      <span class="vg-brand-name">Vanguard Cloud Services</span>
+      <span class="vg-brand-sep">|</span>
+      <span class="vg-brand-product">SA&amp;A</span>
+    </a>
+    <div class="vg-nav-links"><a href="pricing.html" class="vg-nav-link">Pricing</a></div>
+  </div>
+</nav>
+
+<div class="vg-auth-wrap">
+  <div class="vg-auth-card" style="text-align:center">
+    <div class="vg-steps-mini" style="justify-content:center;margin-bottom:22px">
+      <span class="dot active">1</span><span class="bar"></span>
+      <span class="dot active">2</span><span class="bar"></span>
+      <span class="dot active">3</span>
+    </div>
+
+    <div class="check">✓</div>
+    <h1 style="font-size:24px" id="headline">You're all set</h1>
+    <p class="vg-muted" id="subline" style="margin-top:6px">Your <b>Business</b> workspace is active. A receipt is on its way to your email.</p>
+
+    <ul class="next-list">
+      <li><span class="n">1</span><div><b>Set up multi-factor auth</b><div class="vg-muted" style="font-size:13.5px">Add a TOTP authenticator or passkey to secure your account.</div></div></li>
+      <li><span class="n">2</span><div><b>Invite your team</b><div class="vg-muted" style="font-size:13.5px">Add assessors and project users to your workspace.</div></div></li>
+      <li><span class="n">3</span><div><b>Create your first project</b><div class="vg-muted" style="font-size:13.5px">Start an intake and let the guided checklist walk you through it.</div></div></li>
+    </ul>
+
+    <a href="#" class="vg-btn vg-btn-primary vg-btn-block vg-btn-lg" style="margin-top:24px">Go to my dashboard</a>
+    <p style="margin-top:14px"><a href="pricing.html" class="vg-nav-link" style="color:var(--vg-sky-600)">Back to pricing</a></p>
+  </div>
+</div>
+
+<footer class="vg-footer">
+  <div class="vg-container"><div>Vanguard SA&amp;A · Vanguard Cloud Services · vanguardcs.ca</div></div>
+</footer>
+
+<script>
+  var q=new URLSearchParams(location.search);
+  var plan=q.get('plan')||'business', comped=q.get('comped'), contact=q.get('contact');
+  var LABEL={trial:'free trial',team:'Team',business:'Business',enterprise:'Enterprise',payg:'pay-as-you-go'};
+  var head=document.getElementById('headline'), sub=document.getElementById('subline');
+  if(contact){ head.textContent='Thanks — we\'ll be in touch'; sub.innerHTML='Your <b>Enterprise</b> request is in. Our team will reach out to finalize onboarding and SSO. Your workspace is provisioned in the meantime.'; }
+  else if(plan==='trial'){ head.textContent='Your free trial is live'; sub.innerHTML='You have <b>14 days</b> on the full platform — no card charged. Upgrade anytime from billing settings.'; }
+  else if(comped){ head.textContent='Workspace activated'; sub.innerHTML='Your <b>'+(LABEL[plan]||plan)+'</b> workspace is active via a comp code — <b>no charge</b> was made.'; }
+  else { sub.innerHTML='Your <b>'+(LABEL[plan]||plan)+'</b> workspace is active. A receipt is on its way to your email.'; }
+</script>
+</body>
+</html>

@@ -81,6 +81,13 @@
                 <i class="bi bi-box-arrow-in-right me-2"></i>{{t 'auth.signIn'}}
               </button>
             </form>
+            <div class="d-flex align-items-center my-3 text-muted small">
+              <span class="flex-grow-1 border-top"></span><span class="px-2">or</span><span class="flex-grow-1 border-top"></span>
+            </div>
+            <button type="button" id="passkeyLoginBtn" class="btn btn-outline-primary w-100 py-2">
+              <i class="bi bi-fingerprint me-2"></i>Sign in with a passkey
+            </button>
+            <div id="passkeyLoginError" class="text-danger small mt-2 d-none"></div>
           {{/if}}
         </div>
       </div>
@@ -90,6 +97,36 @@
     </div>
   </div>
 </div>
+
+{{#unless mfaStep}}
+<script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@11/dist/bundle/index.umd.min.js"></script>
+<script>
+(function(){
+  var btn = document.getElementById('passkeyLoginBtn');
+  if (!btn || !window.SimpleWebAuthnBrowser) return;
+  var errEl = document.getElementById('passkeyLoginError');
+  btn.addEventListener('click', async function(){
+    errEl.classList.add('d-none');
+    var original = btn.innerHTML; btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Waiting for passkey…';
+    try {
+      var optResp = await fetch('/api/webauthn/login-options', { method:'POST', headers:{'Content-Type':'application/json'} });
+      var opts = await optResp.json();
+      if (!optResp.ok) throw new Error(opts.error || 'Could not start passkey sign-in.');
+      var assertion = await SimpleWebAuthnBrowser.startAuthentication({ optionsJSON: opts });
+      var vResp = await fetch('/api/webauthn/login-verify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(assertion) });
+      var data = await vResp.json();
+      if (!vResp.ok || !data.success) throw new Error(data.error || 'Passkey sign-in failed.');
+      window.location = data.redirect || '/admin/dashboard';
+    } catch (e) {
+      errEl.textContent = (e && e.message) ? e.message : 'Passkey sign-in failed. Try your password.';
+      errEl.classList.remove('d-none');
+      btn.disabled = false; btn.innerHTML = original;
+    }
+  });
+})();
+</script>
+{{/unless}}
 
 {{#if mfaStep}}
 <script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@11/dist/bundle/index.umd.min.js"></script>

@@ -1,4 +1,10 @@
-require('dotenv').config();
+// Load environment config. APP_ENV selects a per-environment file:
+//   APP_ENV=local -> .env.local, dev -> .env.dev, qa -> .env.qa
+//   (unset)       -> .env  (production / default)
+// On Azure, App Service settings are already in process.env and take precedence
+// (dotenv never overrides existing vars), so a missing file is harmless.
+const APP_ENV = process.env.APP_ENV;
+require('dotenv').config({ path: APP_ENV ? `${__dirname}/.env.${APP_ENV}` : `${__dirname}/.env` });
 const express = require('express');
 const { engine } = require('express-handlebars');
 const session = require('express-session');
@@ -14,6 +20,8 @@ const { passport, initializePassport } = require('./config/passport');
 const adminRoutes = require('./routes/admin');
 const publicRoutes = require('./routes/public');
 const apiRoutes = require('./routes/api');
+const billingRoutes = require('./routes/billing');
+const orgAdminRoutes = require('./routes/org-admin');
 const emailService = require('./utils/emailService');
 const { UPLOAD_DIR, ensureUploadDirs } = require('./config/storage');
 const { initI18n, i18nMiddleware, i18nLocals, DEFAULT_LANG } = require('./config/i18n');
@@ -159,6 +167,9 @@ app.set('views', path.join(__dirname, 'views'));
 // Middleware
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 if (process.env.NODE_ENV !== 'test') app.use(morgan('dev'));
+// Stripe webhook needs the RAW body for signature verification — must be
+// registered before the JSON body parser consumes it.
+app.post('/billing/webhook', express.raw({ type: 'application/json' }), billingRoutes.webhookHandler);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb', parameterLimit: 10000 }));
 app.use(cookieParser());
@@ -191,6 +202,18 @@ app.use((req, res, next) => {
   };
   // Passport user (admin/assessor)
   res.locals.user = req.user;
+  // AI availability (for the licensing banner). Computed for signed-in users only.
+  if (req.user) {
+    try {
+      const access = require('./config/access');
+      res.locals.aiStatus = access.aiStatus(req.user);
+      // Practitioners (invited members/collaborators) get a slimmed, scoped UI.
+      res.locals.isPractitioner = !access.isAdmin(req.user);
+      res.locals.isRootAdmin = access.isRootAdmin(req.user);
+      const { get: dbGet } = require('./models/database');
+      res.locals.unreadNotifications = dbGet('SELECT COUNT(*) c FROM notifications WHERE user_id = ? AND read_at IS NULL', [req.user.id])?.c || 0;
+    } catch (e) { res.locals.aiStatus = null; }
+  }
   // Client session user (for intake portal)
   if (!req.user && req.session && req.session.clientId) {
     try {
@@ -206,7 +229,9 @@ app.use((req, res, next) => {
 });
 
 // Routes
+app.use('/', billingRoutes.router);
 app.use('/', publicRoutes);
+app.use('/admin', orgAdminRoutes);
 app.use('/admin', adminRoutes);
 app.use('/api', apiRoutes);
 

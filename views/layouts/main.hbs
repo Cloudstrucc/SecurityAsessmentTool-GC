@@ -18,16 +18,21 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
+  <!-- Vanguard design system (shared visual language — layered on top of Bootstrap) -->
+  <link href="/css/vanguard-design.css" rel="stylesheet">
+
   <style>
     /* ═══ Vanguard Cloud Services Design System — SA&A Platform ════════════ */
     :root {
-      --cs-nav:#1a2332; --cs-nav-hover:#111827;
-      --cs-link:#2563eb; --cs-link-hover:#1d4ed8; --cs-visited:#7c3aed;
-      --cs-blue:#1a2332; --cs-brand:#0ea5e9;
-      --cs-white:#fff; --cs-light:#f8fafc; --cs-border:#e2e8f0;
-      --cs-text:#1e293b; --cs-muted:#64748b;
-      --cs-success:#16a34a; --cs-warning:#ea580c; --cs-danger:#dc2626; --cs-info:#0ea5e9;
-      --cs-accent:#2563eb; --cs-accent-dk:#1e40af;
+      /* Aligned to the Vanguard product-brief palette (navy-950 + sky gradient) */
+      --cs-nav:#0a1626; --cs-nav-hover:#0d2136;
+      --cs-link:#2f80cf; --cs-link-hover:#1d4ed8; --cs-visited:#6d7fca;
+      --cs-blue:#143453; --cs-brand:#4d9fe0;
+      --cs-white:#fff; --cs-light:#f4f9fd; --cs-border:#dce7f2;
+      --cs-text:#17273a; --cs-muted:#5f7185;
+      --cs-success:#2fa06d; --cs-warning:#e0a53d; --cs-danger:#d64550; --cs-info:#4d9fe0;
+      --cs-accent:#4d9fe0; --cs-accent-dk:#2f80cf;
+      --cs-grad:linear-gradient(90deg,#6d7fca 0%,#4d9fe0 50%,#7cc9ee 100%);
 
       /* Backward-compatible aliases for existing templates */
       --gc-nav:var(--cs-nav); --gc-nav-hover:var(--cs-nav-hover);
@@ -62,6 +67,10 @@
 
     /* ── Vanguard brand bar ── */
     .gc-fip { background:var(--cs-nav); }
+    /* Full-width bar container: pulls brand/actions to the page edges,
+       consistently for header and footer (overrides .container centering). */
+    .gc-edge { max-width:none !important; width:100%; padding-left:2rem !important; padding-right:2rem !important; margin-left:0; margin-right:0; }
+    @media(max-width:575px){ .gc-edge { padding-left:1.1rem !important; padding-right:1.1rem !important; } }
     .gc-fip-inner { display:flex; align-items:center; justify-content:space-between; padding:.65rem 0; }
     .gc-sig { display:flex; align-items:center; gap:.65rem; text-decoration:none; color:#fff; }
     .gc-sig:hover { color:#fff; text-decoration:none; }
@@ -80,7 +89,7 @@
     .brand-portal-link:hover { color:#fff; background:rgba(255,255,255,.08); }
 
     /* ── App bar ── */
-    .gc-app-bar { background:#fff; border-bottom:3px solid var(--cs-brand); }
+    .gc-app-bar { background:#fff; border-bottom:3px solid transparent; border-image:var(--cs-grad) 1; }
     .gc-app-inner { display:flex; align-items:center; justify-content:space-between; padding:.5rem 0; flex-wrap:wrap; gap:.5rem; }
     .gc-app-title {
       font-family:'Lato',sans-serif; font-weight:700; font-size:1.2rem;
@@ -124,12 +133,18 @@
     .gc-modified { font-size:.8125rem; color:var(--cs-muted); }
 
     /* ═══ App components ════════════════════════════════════════════════════ */
-    .card { border:1px solid var(--cs-border); border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,.04); }
-    .card-header { background:var(--cs-nav); color:#fff; font-weight:600; padding:.875rem 1.25rem; border-bottom:none; border-radius:0; }
+    .card { border:1px solid var(--cs-border); border-radius:14px; box-shadow:0 2px 10px rgba(15,32,54,.06); overflow:hidden; }
+    .card-header { background:var(--cs-nav); color:#fff; font-weight:600; padding:.9rem 1.25rem; border-bottom:none; border-radius:0; }
     .card-header.bg-light { background:var(--cs-light)!important; color:var(--cs-text); }
 
-    .btn-primary { background:var(--cs-accent); border-color:var(--cs-accent); font-weight:500; }
+    /* Page header treatment (title + actions) used across admin views */
+    .page-head h1 { letter-spacing:-.015em; }
+    .page-head .rule { height:3px; width:56px; background:var(--cs-grad); border-radius:2px; margin-top:.5rem; }
+
+    .btn { border-radius:9px; }
+    .btn-primary { background:var(--cs-accent); border-color:var(--cs-accent); font-weight:600; }
     .btn-primary:hover,.btn-primary:focus { background:var(--cs-accent-dk); border-color:var(--cs-accent-dk); }
+    .btn-lg { border-radius:11px; }
     .btn-outline-primary { color:var(--cs-accent); border-color:var(--cs-accent); }
     .btn-outline-primary:hover { background:var(--cs-accent); border-color:var(--cs-accent); }
     .btn-dark { background:var(--cs-nav); border-color:var(--cs-nav); }
@@ -151,13 +166,18 @@
     .progress-bar { background:linear-gradient(90deg,var(--cs-accent),var(--cs-info)); border-radius:6px; }
 
     .stat-card {
-      background:#fff; border-radius:6px; padding:1.25rem; text-align:center;
-      border:1px solid var(--cs-border); transition:box-shadow .2s;
+      position:relative; background:#fff; border-radius:14px; padding:1.35rem 1.25rem; text-align:center;
+      border:1px solid var(--cs-border); box-shadow:0 2px 10px rgba(15,32,54,.05);
+      transition:box-shadow .2s, transform .2s; overflow:hidden;
     }
-    .stat-card:hover { box-shadow:0 2px 8px rgba(0,0,0,.1); }
-    .stat-card .stat-icon { width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin:0 auto .75rem; }
-    .stat-card .stat-number { font-size:2rem; font-weight:700; color:var(--cs-nav); line-height:1; margin-bottom:.25rem; }
-    .stat-card .stat-label { font-size:.875rem; color:var(--cs-muted); }
+    .stat-card::before { content:""; position:absolute; top:0; left:0; right:0; height:3px; background:var(--cs-grad); opacity:.9; }
+    .stat-card:hover { box-shadow:0 12px 30px rgba(15,32,54,.12); transform:translateY(-2px); }
+    .stat-card .stat-icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin:0 auto .75rem; }
+    .stat-card .stat-number {
+      font-size:2.1rem; font-weight:750; line-height:1; margin-bottom:.25rem;
+      background:var(--cs-grad); -webkit-background-clip:text; background-clip:text; color:transparent;
+    }
+    .stat-card .stat-label { font-size:.85rem; color:var(--cs-muted); }
 
     .alert { border:none; border-radius:6px; }
     .alert-success { background:#dcfce7; color:#14532d; border-left:4px solid var(--cs-success); }
@@ -222,7 +242,7 @@
   <!-- ═══ Vanguard Header ═══ -->
   <header role="banner">
     <div class="gc-fip">
-      <div class="container gc-fip-inner">
+      <div class="container gc-edge gc-fip-inner">
         <a class="gc-sig" href="/">
           <img src="/images/logo-large@2xVCS.png" alt="VCS">
           <span>
@@ -242,15 +262,17 @@
               {{/each}}
             </ul>
           </div>
-          <a class="brand-portal-link" href="/portal">
-            <i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i>{{t 'nav.clientPortal'}}
+          {{#unless user}}
+          <a class="brand-portal-link" href="/admin/login">
+            <i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i>{{t 'auth.signIn'}}
           </a>
+          {{/unless}}
         </div>
       </div>
     </div>
 
     <nav class="gc-app-bar" aria-label="Application navigation">
-      <div class="container gc-app-inner">
+      <div class="container gc-edge gc-app-inner">
         <a class="gc-app-title" href="{{#if isAdmin}}/admin/dashboard{{else}}/{{/if}}">
           <i class="bi bi-cloud-check-fill brand-icon" aria-hidden="true"></i>
           {{t 'nav.appTitle'}}
@@ -259,7 +281,28 @@
           <i class="bi bi-list" aria-hidden="true"></i> {{t 'nav.menu'}}
         </button>
         <ul class="gc-app-nav" id="gcNav">
-          {{#if isAdmin}}
+          {{#if user}}
+            <li><a href="/admin/notifications" title="Notifications" style="position:relative">
+              <i class="bi bi-bell" aria-hidden="true"></i>
+              {{#if unreadNotifications}}<span class="badge bg-danger" style="position:absolute;top:1px;right:1px;font-size:.58rem;padding:.18em .42em;border-radius:999px">{{unreadNotifications}}</span>{{/if}}
+            </a></li>
+          {{/if}}
+          {{#if isPractitioner}}
+            <li><a class="{{#if isDashboard}}active{{/if}}" href="/admin/dashboard"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>My Dashboard</a></li>
+            <li><a href="/intake"><i class="bi bi-inbox me-1" aria-hidden="true"></i>New Intake</a></li>
+            <li><a href="/self-assessment"><i class="bi bi-clipboard2-pulse me-1" aria-hidden="true"></i>Pre-Assessment</a></li>
+            <li><a class="{{#if isHelp}}active{{/if}}" href="/admin/help"><i class="bi bi-question-circle me-1" aria-hidden="true"></i>Help</a></li>
+            <li class="nav-item dropdown">
+              <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{user.name}}</a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><span class="dropdown-item-text small text-muted">{{user.email}}</span></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/admin/passkey-setup"><i class="bi bi-fingerprint me-2"></i>Add a passkey</a></li>
+                <li><a class="dropdown-item" href="/admin/settings"><i class="bi bi-key me-2"></i>Password &amp; settings</a></li>
+                <li><a class="dropdown-item" href="/admin/logout"><i class="bi bi-box-arrow-right me-2"></i>Sign out</a></li>
+              </ul>
+            </li>
+          {{else if isAdmin}}
             <li><a class="{{#if isDashboard}}active{{/if}}" href="/admin/dashboard"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{t 'nav.dashboard'}}</a></li>
             <li><a class="{{#if isProjects}}active{{/if}}" href="/admin/projects"><i class="bi bi-folder2-open me-1" aria-hidden="true"></i>{{t 'nav.projects'}}</a></li>
             <li><a class="{{#if isAssessments}}active{{/if}}" href="/admin/assessments"><i class="bi bi-clipboard-check me-1" aria-hidden="true"></i>{{t 'nav.assessments'}}</a></li>
@@ -269,6 +312,18 @@
             <li><a class="{{#if isControls}}active{{/if}}" href="/admin/security-controls"><i class="bi bi-shield-check me-1" aria-hidden="true"></i>{{t 'nav.controls'}}</a></li>
             <li><a class="{{#if isHelp}}active{{/if}}" href="/admin/help"><i class="bi bi-question-circle me-1" aria-hidden="true"></i>{{t 'nav.help'}}</a></li>
             <li><a class="{{#if isSettings}}active{{/if}}" href="/admin/settings"><i class="bi bi-gear me-1" aria-hidden="true"></i>{{t 'nav.settings'}}</a></li>
+            {{#if user.is_root_admin}}
+            <li class="nav-item dropdown">
+              <a class="dropdown-toggle {{#if isRootAdmin}}active{{/if}}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-shield-lock me-1" aria-hidden="true"></i>Admin
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/admin/licensing"><i class="bi bi-person-badge me-2"></i>Licensing &amp; seats</a></li>
+                <li><a class="dropdown-item" href="/admin/organization"><i class="bi bi-sliders me-2"></i>Organization settings</a></li>
+                <li><a class="dropdown-item" href="/admin/comp-codes"><i class="bi bi-ticket-perforated me-2"></i>Comp codes</a></li>
+              </ul>
+            </li>
+            {{/if}}
             <li class="nav-item dropdown">
               <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{admin.name}}
@@ -307,27 +362,37 @@
   {{#if messages.error}}<div class="container mt-3" role="alert"><div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-circle me-2" aria-hidden="true"></i>{{messages.error}}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div></div>{{/if}}
   {{#if messages.warning}}<div class="container mt-3" role="alert"><div class="alert alert-warning alert-dismissible fade show"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>{{messages.warning}}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div></div>{{/if}}
 
+  {{#if aiStatus.needsLicense}}
+    <div class="container mt-3">
+      <div class="alert alert-info d-flex align-items-center flex-wrap gap-2" style="border-left:4px solid var(--cs-accent)">
+        <i class="bi bi-stars me-1" aria-hidden="true"></i>
+        <span class="flex-grow-1">{{aiStatus.banner}}</span>
+        <a href="/pricing" class="btn btn-sm btn-primary">Get a license</a>
+      </div>
+    </div>
+  {{/if}}
+
   <main class="gc-main" id="main-content" role="main" property="mainContentOfPage">
     {{{body}}}
   </main>
 
   <footer id="gc-footer" role="contentinfo">
     <div class="gc-footer-main">
-      <div class="container">
+      <div class="container gc-edge">
         <nav aria-label="About this site">
           <h2 class="visually-hidden">{{t 'layout.main.h2.about_this_site'}}</h2>
           <ul class="gc-footer-links">
             <li><a href="/help">{{t 'nav.help'}}</a></li>
-            <li><a href="/portal">{{t 'nav.clientPortal'}}</a></li>
+            <li><a href="/pricing">Pricing</a></li>
             <li><a href="/self-assessment">{{t 'sa.title'}}</a></li>
-            <li><a href="/admin/login">{{t 'nav.assessorLogin'}}</a></li>
+            <li><a href="/admin/login">{{t 'auth.signIn'}}</a></li>
           </ul>
         </nav>
         <p style="font-size:.8125rem;margin:0;opacity:.7;">&copy; {{currentYear}} {{t 'brand.company'}} — {{t 'brand.tagline'}}</p>
       </div>
     </div>
     <div class="gc-footer-sub">
-      <div class="container gc-footer-sub-inner">
+      <div class="container gc-edge gc-footer-sub-inner">
         <div class="gc-modified">{{t 'footer.dateModified'}}: <time>{{currentDate}}</time></div>
         <span style="font-weight:600;color:var(--cs-nav);font-size:.875rem;display:flex;align-items:center;gap:.35rem;">
           <img src="/images/logo-large@2xVCS.png" alt="VCS" style="height:28px;">

@@ -601,6 +601,104 @@ async function initDatabase() {
     ['assessments', 'status_before_archive', 'ALTER TABLE assessments ADD COLUMN status_before_archive TEXT'],
     ['intake_submissions', 'archived_at', 'ALTER TABLE intake_submissions ADD COLUMN archived_at DATETIME'],
     ['intake_submissions', 'status_before_archive', 'ALTER TABLE intake_submissions ADD COLUMN status_before_archive TEXT'],
+
+    // ── Billing / multi-tenant (Stripe) ──
+    ['users', 'organization_id', 'ALTER TABLE users ADD COLUMN organization_id INTEGER'],
+    ['projects', 'organization_id', 'ALTER TABLE projects ADD COLUMN organization_id INTEGER'],
+    ['organizations', null, `CREATE TABLE IF NOT EXISTS organizations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      owner_user_id INTEGER,
+      plan TEXT NOT NULL DEFAULT 'trial',
+      status TEXT NOT NULL DEFAULT 'trialing',
+      seats_limit INTEGER,
+      projects_limit INTEGER,
+      trial_ends_at DATETIME,
+      stripe_customer_id TEXT,
+      stripe_subscription_id TEXT,
+      comp_code_id INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (owner_user_id) REFERENCES users(id)
+    )`],
+    ['comp_codes', null, `CREATE TABLE IF NOT EXISTS comp_codes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      code TEXT UNIQUE NOT NULL,
+      plan TEXT NOT NULL DEFAULT 'business',
+      seats_limit INTEGER,
+      projects_limit INTEGER,
+      max_redemptions INTEGER DEFAULT 1,
+      redemptions INTEGER DEFAULT 0,
+      expires_at DATETIME,
+      active INTEGER DEFAULT 1,
+      note TEXT,
+      created_by INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`],
+    ['billing_events', null, `CREATE TABLE IF NOT EXISTS billing_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      stripe_event_id TEXT UNIQUE,
+      type TEXT,
+      organization_id INTEGER,
+      payload TEXT,
+      received_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`],
+    ['payg_usage', null, `CREATE TABLE IF NOT EXISTS payg_usage (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      organization_id INTEGER NOT NULL,
+      period TEXT NOT NULL,
+      active_users INTEGER DEFAULT 0,
+      projects_created INTEGER DEFAULT 0,
+      reported_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(organization_id, period)
+    )`],
+
+    // ── RBAC, licensing & access control ──
+    ['users', 'account_type', "ALTER TABLE users ADD COLUMN account_type TEXT DEFAULT 'owner'"], // owner | admin | member | collaborator
+    ['users', 'is_licensed', 'ALTER TABLE users ADD COLUMN is_licensed INTEGER DEFAULT 0'],
+    ['users', 'is_root_admin', 'ALTER TABLE users ADD COLUMN is_root_admin INTEGER DEFAULT 0'],
+    ['users', 'must_reenroll_mfa', 'ALTER TABLE users ADD COLUMN must_reenroll_mfa INTEGER DEFAULT 0'],
+    ['organizations', 'admin_seats_limit', 'ALTER TABLE organizations ADD COLUMN admin_seats_limit INTEGER'],
+    // AI usage counters (for trial-tier per-work-type caps)
+    ['ai_usage', null, `CREATE TABLE IF NOT EXISTS ai_usage (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      organization_id INTEGER,
+      work_type TEXT NOT NULL,
+      count INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, work_type)
+    )`],
+    // In-app notifications (assignments, invites, messages).
+    ['notifications', null, `CREATE TABLE IF NOT EXISTS notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      type TEXT,
+      title TEXT NOT NULL,
+      body TEXT,
+      link TEXT,
+      read_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`],
+    // Pre-assessment reviewer routing (Increment 5).
+    ['self_assessments', 'reviewer_email', 'ALTER TABLE self_assessments ADD COLUMN reviewer_email TEXT'],
+    ['self_assessments', 'reviewer_notified_at', 'ALTER TABLE self_assessments ADD COLUMN reviewer_notified_at DATETIME'],
+    ['self_assessments', 'submitted_by_user_id', 'ALTER TABLE self_assessments ADD COLUMN submitted_by_user_id INTEGER'],
+    // Org-tied member invitations (licensing): consumed by the redeem flow.
+    ['invitations', 'organization_id', 'ALTER TABLE invitations ADD COLUMN organization_id INTEGER'],
+    ['invitations', 'grant_admin', 'ALTER TABLE invitations ADD COLUMN grant_admin INTEGER DEFAULT 0'],
+    ['invitations', 'grant_license', 'ALTER TABLE invitations ADD COLUMN grant_license INTEGER DEFAULT 1'],
+    // Per-tenant settings: own SMTP / SMS / custom domain (root-admin configured)
+    ['org_settings', null, `CREATE TABLE IF NOT EXISTS org_settings (
+      organization_id INTEGER PRIMARY KEY,
+      smtp_host TEXT, smtp_port INTEGER, smtp_user TEXT, smtp_password TEXT,
+      smtp_from TEXT, smtp_secure INTEGER DEFAULT 0, smtp_enabled INTEGER DEFAULT 0,
+      sms_provider TEXT, sms_account_sid TEXT, sms_auth_token TEXT, sms_from TEXT, sms_enabled INTEGER DEFAULT 0,
+      custom_domain TEXT, custom_domain_verified INTEGER DEFAULT 0,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`],
     ['intake_submissions', 'confidentiality_level', "ALTER TABLE intake_submissions ADD COLUMN confidentiality_level TEXT DEFAULT 'protected-b'"],
     ['intake_submissions', 'integrity_level', "ALTER TABLE intake_submissions ADD COLUMN integrity_level TEXT DEFAULT 'medium'"],
     ['intake_submissions', 'availability_level', "ALTER TABLE intake_submissions ADD COLUMN availability_level TEXT DEFAULT 'medium'"],

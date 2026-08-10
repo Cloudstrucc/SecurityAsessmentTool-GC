@@ -95,6 +95,13 @@
             <input class="form-control" id="saOrg" value="{{accessOrganization}}">
           </div>
         </div>
+        <div class="row g-3 mt-1">
+          <div class="col-md-8">
+            <label class="form-label" for="saReviewer">Send to a reviewer <span class="text-muted">(optional)</span></label>
+            <input class="form-control" id="saReviewer" type="email" placeholder="reviewer@agency.gc.ca">
+            <div class="form-text">On submit, we'll notify this person to review your pre-assessment — inviting them to create an account if they don't have one.</div>
+          </div>
+        </div>
 
         <div class="text-end mt-4">
           <button class="btn btn-primary" type="button" onclick="goStep2()">
@@ -360,6 +367,7 @@ async function submitSelfAssessment(event) {
       name: document.getElementById('saName').value,
       email: document.getElementById('saEmail').value,
       organization: document.getElementById('saOrg').value,
+      reviewerEmail: (document.getElementById('saReviewer') || {}).value || '',
       frameworks: currentFrameworks,
       questions: currentQuestions,
       answers: collectAnswers(),

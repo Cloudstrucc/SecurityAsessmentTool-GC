@@ -1,0 +1,60 @@
+<div class="vg vg-page">
+<nav class="vg-nav">
+  <div class="vg-container vg-nav-inner">
+    <a href="/" class="vg-brand">
+      <span class="vg-brand-name">Vanguard Cloud Services</span>
+      <span class="vg-brand-sep">|</span>
+      <span class="vg-brand-product">SA&amp;A</span>
+    </a>
+  </div>
+</nav>
+
+<div class="vg-auth-wrap">
+  <div class="vg-auth-card wide">
+    <div class="vg-auth-head">
+      <h1>Your workspace is ready</h1>
+      <p>{{#if comped}}Activated with a comp code.{{else}}{{plan.label}} plan.{{/if}}</p>
+    </div>
+
+    {{#if breakGlass}}
+      <div class="vg-callout warn">
+        <b><i class="bi bi-key-fill me-1"></i>Save your break-glass recovery key now — it is shown only once.</b>
+        <p style="margin:8px 0 0">This emergency account restores access to your tenant if administrators are locked out or lose MFA. Store it <strong>offline</strong> — on paper in a safe, or in an external key vault (1Password, Azure Key Vault, etc.). We do not keep a copy of this password and cannot show it again.</p>
+      </div>
+
+      <div class="vg-card-plain" style="margin:8px 0 4px">
+        <div class="vg-field" style="margin-bottom:12px">
+          <label class="vg-label">Break-glass account</label>
+          <div class="vg-card-field"><code id="bg-email">{{breakGlass.email}}</code>
+            <button type="button" class="vg-btn vg-btn-ghost vg-btn-sm" style="margin-left:auto" onclick="copy('bg-email')">Copy</button>
+          </div>
+        </div>
+        <div class="vg-field" style="margin-bottom:0">
+          <label class="vg-label">One-time password</label>
+          <div class="vg-card-field"><code id="bg-pass" style="font-size:15px;letter-spacing:.5px">{{breakGlass.password}}</code>
+            <button type="button" class="vg-btn vg-btn-ghost vg-btn-sm" style="margin-left:auto" onclick="copy('bg-pass')">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <label style="display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--vg-muted);margin:16px 0 6px">
+        <input type="checkbox" id="ack" style="margin-top:3px" onchange="document.getElementById('go').classList.toggle('disabled', !this.checked)">
+        <span>I have securely saved the break-glass account and password somewhere outside this platform.</span>
+      </label>
+      <a href="{{target}}" id="go" class="vg-btn vg-btn-primary vg-btn-block vg-btn-lg disabled" onclick="return !this.classList.contains('disabled')">Continue to my workspace</a>
+    {{else}}
+      <div class="vg-callout good"><b>You're all set.</b> Your break-glass recovery key was shown once during sign-up. If you didn't save it, a root admin can generate a new one from Admin → Recovery.</div>
+      <a href="{{target}}" class="vg-btn vg-btn-primary vg-btn-block vg-btn-lg">Continue to my workspace</a>
+    {{/if}}
+  </div>
+</div>
+
+<footer class="vg-footer">
+  <div class="vg-container"><div>Vanguard SA&amp;A · Vanguard Cloud Services · vanguardcs.ca</div></div>
+</footer>
+
+<style>.vg-btn.disabled{opacity:.5;pointer-events:none}</style>
+<script>
+  function copy(id){ var t=document.getElementById(id); navigator.clipboard && navigator.clipboard.writeText(t.textContent.trim()); }
+</script>
+</div>

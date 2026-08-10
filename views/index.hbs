@@ -1,6 +1,9 @@
 <style>
 .hero {
-  background:linear-gradient(135deg,#1a2e42 0%,#2d4a6a 52%,#3a5a7c 100%);
+  background:
+    radial-gradient(820px 440px at 50% -10%, rgba(124,196,238,.20), transparent 62%),
+    radial-gradient(680px 400px at 92% 112%, rgba(109,127,202,.16), transparent 60%),
+    #0a1626;
   position:relative;
   overflow:hidden;
   border-bottom:3px solid #0ea5e9;
@@ -11,6 +14,8 @@
   position:relative;
   z-index:2;
 }
+/* Pull brand (left) and actions (right) to the page edges. */
+.hero-brand > .container { max-width:none; padding-left:2rem; padding-right:2rem; }
 .brand-link {
   color:#fff;
   text-decoration:none;
@@ -41,6 +46,12 @@
   transition:all .2s;
 }
 .btn-existing:hover { background:rgba(255,255,255,.14); color:#fff; }
+.btn-signup {
+  font-size:.78rem; font-weight:700; padding:.4rem 1rem; border-radius:6px;
+  color:#08131f; text-decoration:none; border:1px solid transparent;
+  background:linear-gradient(90deg,#8593d6,#7cc4ee); transition:filter .2s;
+}
+.btn-signup:hover { filter:brightness(1.06); color:#08131f; }
 .hero-main {
   padding:3.2rem 0 2.7rem;
   position:relative;
@@ -53,7 +64,7 @@
   line-height:1.08;
   letter-spacing:0;
 }
-.hero h1 span { color:#f0c36d; }
+.hero h1 span { background:linear-gradient(90deg,#a9d8f2 0%,#7cc4ee 50%,#8593d6 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
 .hero .lead {
   color:rgba(255,255,255,.76);
   font-size:1.08rem;
@@ -76,7 +87,7 @@
   margin-left:auto;
 }
 .sa-hero-card .sa-header {
-  background:linear-gradient(135deg,#284162,#1a8a4a);
+  background:linear-gradient(135deg,#143453,#4d9fe0);
   padding:1.5rem;
   text-align:center;
 }
@@ -123,8 +134,8 @@
 .sa-step-text { font-size:.86rem; color:#334155; line-height:1.45; }
 .sa-step-text strong { color:#26374a; }
 .btn-sa-start {
-  background:linear-gradient(135deg,#1a8a4a,#15713d);
-  color:#fff;
+  background:linear-gradient(90deg,#6d7fca 0%,#4d9fe0 50%,#7cc9ee 100%);
+  color:#08131f;
   border:none;
   width:100%;
   padding:.88rem;
@@ -215,6 +226,14 @@
   .brand-product,.brand-sep { display:none; }
   .hero-brand .container { gap:.75rem; }
   .hero h1 { font-size:2.05rem; }
+  /* Comfortable side padding on phones so hero text/badges don't hug the edge */
+  .hero-brand .container,
+  .hero-main { padding-left:1.25rem; padding-right:1.25rem; }
+  .hero .lead { font-size:1rem; }
+  /* Let header actions wrap instead of clipping off-screen */
+  .hero-brand .container { flex-wrap:wrap; row-gap:.5rem; }
+  .hero-brand .d-flex { flex-wrap:wrap; }
+  .btn-existing { font-size:.74rem; padding:.3rem .6rem; }
 }
 </style>
 
@@ -240,8 +259,17 @@
             {{/each}}
           </ul>
         </div>
-        <a href="/portal" class="btn-existing">
-          <i class="bi bi-box-arrow-in-right me-1"></i>{{t 'nav.existingClient'}}
+        <a href="/sa-tool-overview.html" class="btn-existing">
+          <i class="bi bi-journal-richtext me-1"></i>Product brief
+        </a>
+        <a href="/pricing" class="btn-existing">
+          <i class="bi bi-tag me-1"></i>Pricing
+        </a>
+        <a href="/admin/login" class="btn-existing">
+          <i class="bi bi-box-arrow-in-right me-1"></i>Sign in
+        </a>
+        <a href="/register" class="btn-signup">
+          <i class="bi bi-person-plus me-1"></i>Register
         </a>
       </div>
     </div>
@@ -251,7 +279,7 @@
     <div class="row align-items-center g-5">
       <div class="col-lg-7">
         <div class="mb-2">
-          <span class="badge" style="background:rgba(240,195,109,.15);color:#f0c36d;font-size:.72rem;font-weight:700;padding:.3rem .8rem;border-radius:20px;">
+          <span class="badge" style="background:rgba(124,196,238,.16);color:#a9d8f2;font-size:.72rem;font-weight:700;padding:.3rem .8rem;border-radius:20px;">
             <i class="bi bi-shield-check me-1"></i>{{t 'home.badge'}}
           </span>
         </div>
@@ -307,6 +335,51 @@
   </div>
 </div>
 
+<!-- Plans -->
+<div class="vg" id="plans" style="background:var(--vg-mist);border-top:1px solid var(--vg-line);border-bottom:1px solid var(--vg-line)">
+  <div class="vg-container" style="padding:52px 24px">
+    <div class="vg-center" style="max-width:640px;margin:0 auto 8px">
+      <div class="vg-eyebrow" style="justify-content:center">Plans for teams of every size</div>
+      <h2 style="font-size:30px;font-weight:750">Start free. Upgrade when you're ready.</h2>
+      <p class="vg-muted" style="font-size:15.5px">Every plan includes the full multi-framework platform and AI-assisted evidence. Registration is required — start on a free trial, no card needed.</p>
+    </div>
+    <div class="vg-price-grid" style="margin-top:26px">
+      <div class="vg-plan">
+        <div class="vg-plan-name">Trial</div>
+        <div class="vg-plan-price">Free</div>
+        <div class="vg-plan-tag">14 days, no card. Explore the full workflow.</div>
+        <div class="vg-plan-cta"><a href="/register?plan=trial" class="vg-btn vg-btn-ghost vg-btn-block">Start free trial</a></div>
+        <ul class="vg-plan-features"><li>1 admin + 2 users</li><li>1 project</li><li>All frameworks</li><li>AI evidence guidance</li></ul>
+      </div>
+      <div class="vg-plan">
+        <div class="vg-plan-name">Team</div>
+        <div class="vg-plan-price">$149<span class="per">/mo</span></div>
+        <div class="vg-plan-tag">For a single team assessing regularly.</div>
+        <div class="vg-plan-cta"><a href="/register?plan=team" class="vg-btn vg-btn-ghost vg-btn-block">Choose Team</a></div>
+        <ul class="vg-plan-features"><li>Up to 5 users</li><li>5 projects</li><li>Control inheritance</li></ul>
+      </div>
+      <div class="vg-plan featured">
+        <div class="vg-plan-flag"><span class="vg-badge vg-badge-grad">Most popular</span></div>
+        <div class="vg-plan-name">Business</div>
+        <div class="vg-plan-price">$449<span class="per">/mo</span></div>
+        <div class="vg-plan-tag">For departments authorizing many systems.</div>
+        <div class="vg-plan-cta"><a href="/register?plan=business" class="vg-btn vg-btn-primary vg-btn-block">Choose Business</a></div>
+        <ul class="vg-plan-features"><li>Up to 20 users</li><li>25 projects</li><li>AI + audit</li><li>Priority support</li></ul>
+      </div>
+      <div class="vg-plan">
+        <div class="vg-plan-name">Enterprise</div>
+        <div class="vg-plan-price">Custom</div>
+        <div class="vg-plan-tag">Unlimited scale, SSO, dedicated support.</div>
+        <div class="vg-plan-cta"><a href="/register?plan=enterprise" class="vg-btn vg-btn-dark vg-btn-block">Get started</a></div>
+        <ul class="vg-plan-features"><li>Unlimited users</li><li>Unlimited projects</li><li>SSO / SAML</li></ul>
+      </div>
+    </div>
+    <div class="vg-center" style="margin-top:22px">
+      <a href="/pricing" class="vg-nav-link" style="color:var(--vg-sky-600);font-weight:600">See full pricing &amp; pay-as-you-go →</a>
+    </div>
+  </div>
+</div>
+
 <div class="container platform-section">
   <div class="text-center mb-4">
     <h2><i class="bi bi-grid-3x3-gap me-2"></i>{{t 'cap.title'}}</h2>
@@ -344,8 +417,8 @@
 </div>
 
 <div class="site-footer">
-  <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <p><img src="/images/logo-large@2xVSCFull.png" alt="Vanguard Cloud Services" style="height:20px"></p>
-    <p><a href="/portal">{{t 'nav.clientPortal'}}</a></p>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2" style="width:100%;padding:0 2rem">
+    <p style="margin:0"><img src="/images/logo-large@2xVSCFull.png" alt="Vanguard Cloud Services" style="height:20px"></p>
+    <p style="margin:0"><a href="/pricing">Pricing</a> &nbsp;·&nbsp; <a href="/admin/login">Sign in</a> &nbsp;·&nbsp; <a href="/register">Register</a></p>
   </div>
 </div>

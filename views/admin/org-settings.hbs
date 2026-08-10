@@ -1,0 +1,101 @@
+<div class="container">
+  <div class="page-head d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
+    <div>
+      <h1 class="mb-1">Organization Settings</h1>
+      <p class="text-muted mb-0">Root-admin only · {{org.name}} · <span class="badge bg-info text-dark">{{org.plan}}</span></p>
+      <div class="rule"></div>
+    </div>
+  </div>
+
+  <div class="alert alert-info d-flex align-items-center" style="border-left:4px solid var(--cs-accent)">
+    <i class="bi bi-shield-lock me-2"></i>
+    <div>These settings apply to your whole tenant and are restricted to the <strong>primary (root) administrator</strong>. Bring your own mail server, SMS provider, and domain instead of the platform defaults.</div>
+  </div>
+
+  <!-- ── SMTP ── -->
+  <div class="card mb-4" id="smtp">
+    <div class="card-header"><i class="bi bi-envelope-at me-2"></i>Email (SMTP)
+      {{#if settings.smtp_enabled}}<span class="badge bg-success ms-2">Enabled</span>{{else}}<span class="badge bg-secondary ms-2">Using platform default</span>{{/if}}
+    </div>
+    <div class="card-body">
+      <form method="POST" action="/admin/organization/smtp">
+        <div class="row g-3">
+          <div class="col-md-8"><label class="form-label">SMTP host</label><input class="form-control" name="smtp_host" value="{{settings.smtp_host}}" placeholder="smtp.yourdomain.com"></div>
+          <div class="col-md-4"><label class="form-label">Port</label><input class="form-control" name="smtp_port" value="{{settings.smtp_port}}" placeholder="587"></div>
+          <div class="col-md-6"><label class="form-label">Username</label><input class="form-control" name="smtp_user" value="{{settings.smtp_user}}" placeholder="mailer@yourdomain.com"></div>
+          <div class="col-md-6"><label class="form-label">Password</label><input class="form-control" type="password" name="smtp_password" placeholder="{{#if settings.smtp_password}}•••••••• (saved — leave blank to keep){{else}}App password / SMTP password{{/if}}"></div>
+          <div class="col-md-8"><label class="form-label">From address</label><input class="form-control" name="smtp_from" value="{{settings.smtp_from}}" placeholder="Vanguard SA&amp;A &lt;noreply@yourdomain.com&gt;"></div>
+          <div class="col-md-4 d-flex align-items-end gap-3">
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="smtp_secure" value="1" id="smtp_secure" {{#if settings.smtp_secure}}checked{{/if}}><label class="form-check-label" for="smtp_secure">TLS (465)</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="smtp_enabled" value="1" id="smtp_enabled" {{#if settings.smtp_enabled}}checked{{/if}}><label class="form-check-label" for="smtp_enabled">Enable</label></div>
+          </div>
+        </div>
+        <button class="btn btn-primary mt-3"><i class="bi bi-save me-1"></i>Save SMTP</button>
+      </form>
+      <hr>
+      <form method="POST" action="/admin/organization/smtp/test" class="row g-2 align-items-end">
+        <div class="col-md-8"><label class="form-label small">Send a test email to</label><input class="form-control" name="test_to" value="{{admin.email}}"></div>
+        <div class="col-md-4"><button class="btn btn-outline-primary w-100"><i class="bi bi-send me-1"></i>Send test</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── SMS ── -->
+  <div class="card mb-4" id="sms">
+    <div class="card-header"><i class="bi bi-chat-dots me-2"></i>SMS (Twilio)
+      {{#if settings.sms_enabled}}<span class="badge bg-success ms-2">Enabled</span>{{else}}<span class="badge bg-secondary ms-2">Disabled</span>{{/if}}
+    </div>
+    <div class="card-body">
+      <form method="POST" action="/admin/organization/sms">
+        <input type="hidden" name="sms_provider" value="twilio">
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label">Account SID</label><input class="form-control" name="sms_account_sid" value="{{settings.sms_account_sid}}" placeholder="AC…"></div>
+          <div class="col-md-6"><label class="form-label">Auth token</label><input class="form-control" type="password" name="sms_auth_token" placeholder="{{#if settings.sms_auth_token}}•••••••• (saved — leave blank to keep){{else}}Twilio auth token{{/if}}"></div>
+          <div class="col-md-6"><label class="form-label">From number</label><input class="form-control" name="sms_from" value="{{settings.sms_from}}" placeholder="+15551234567"></div>
+          <div class="col-md-6 d-flex align-items-end">
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="sms_enabled" value="1" id="sms_enabled" {{#if settings.sms_enabled}}checked{{/if}}><label class="form-check-label" for="sms_enabled">Enable</label></div>
+          </div>
+        </div>
+        <button class="btn btn-primary mt-3"><i class="bi bi-save me-1"></i>Save SMS</button>
+      </form>
+      <hr>
+      <form method="POST" action="/admin/organization/sms/test" class="row g-2 align-items-end">
+        <div class="col-md-8"><label class="form-label small">Send a test SMS to</label><input class="form-control" name="test_to" placeholder="+15551234567"></div>
+        <div class="col-md-4"><button class="btn btn-outline-primary w-100"><i class="bi bi-send me-1"></i>Send test</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Custom domain ── -->
+  <div class="card mb-4" id="domain">
+    <div class="card-header"><i class="bi bi-globe2 me-2"></i>Custom domain
+      {{#if settings.custom_domain_verified}}<span class="badge bg-success ms-2">Verified</span>{{else}}{{#if settings.custom_domain}}<span class="badge bg-warning text-dark ms-2">Pending</span>{{/if}}{{/if}}
+    </div>
+    <div class="card-body">
+      <form method="POST" action="/admin/organization/domain" class="row g-2 align-items-end">
+        <div class="col-md-8"><label class="form-label">Your domain</label><input class="form-control" name="custom_domain" value="{{settings.custom_domain}}" placeholder="assess.yourdomain.gc.ca"></div>
+        <div class="col-md-4"><button class="btn btn-primary w-100"><i class="bi bi-save me-1"></i>Save domain</button></div>
+      </form>
+
+      {{#if settings.custom_domain}}
+        <hr>
+        <p class="fw-semibold mb-2">DNS records to add at your registrar</p>
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead><tr><th>Type</th><th>Name</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td>CNAME</td><td><code>{{settings.custom_domain}}</code></td><td><code>{{host}}</code></td></tr>
+              <tr><td>TXT</td><td><code>_vanguard-verify.{{settings.custom_domain}}</code></td><td><code>vanguard-domain-verification=org{{org.id}}</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-muted small">After the records propagate, the TLS certificate is issued at the hosting layer (e.g. Azure custom domain binding). Then confirm below.</p>
+        {{#unless settings.custom_domain_verified}}
+          <form method="POST" action="/admin/organization/domain/verify">
+            <button class="btn btn-outline-success"><i class="bi bi-check2-circle me-1"></i>I've added the records — mark verified</button>
+          </form>
+        {{/unless}}
+      {{/if}}
+    </div>
+  </div>
+</div>

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { run, all, get } = require('../models/database');
 const { ensureAuthenticated } = require('../config/passport');
+const emailService = require('../utils/emailService');
 const { verifyMfaAndIssueToken, issueToken, getUserMfaMode, storeChallenge, getChallenge } = require('../config/mfa-signature');
 
 let simpleWebAuthn = null;
@@ -174,6 +175,65 @@ router.post('/webauthn/auth-verify', express.json(), async (req, res) => {
   }
 });
 
+// ── Passwordless sign-in (usernameless WebAuthn / FIDO2) ─────────────────────
+router.post('/webauthn/login-options', express.json(), async (req, res) => {
+  if (!requireWebAuthn(res)) return;
+  try {
+    const options = await simpleWebAuthn.generateAuthenticationOptions({
+      rpID: RP_ID,
+      userVerification: 'preferred',
+      allowCredentials: []   // usernameless: the browser offers any discoverable passkey
+    });
+    req.session.webauthnLoginChallenge = options.challenge;
+    res.json(options);
+  } catch (err) {
+    console.error('[WebAuthn] login-options:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/webauthn/login-verify', express.json(), async (req, res) => {
+  if (!requireWebAuthn(res)) return;
+  const expectedChallenge = req.session.webauthnLoginChallenge;
+  if (!expectedChallenge) return res.status(400).json({ error: 'Sign-in challenge expired. Please try again.' });
+  const credId = req.body.id || req.body.rawId;
+  if (!credId) return res.status(400).json({ error: 'No passkey credential in the response.' });
+
+  const user = get('SELECT * FROM users WHERE webauthn_credential_id = ? AND is_active = 1', [credId]);
+  if (!user) return res.status(404).json({ error: 'No account is registered to that passkey.' });
+
+  try {
+    const verification = await simpleWebAuthn.verifyAuthenticationResponse({
+      response: req.body,
+      expectedChallenge,
+      expectedOrigin: ORIGIN,
+      expectedRPID: RP_ID,
+      requireUserVerification: false,
+      credential: {
+        id: user.webauthn_credential_id,
+        publicKey: isoBase64URL.toBuffer(user.webauthn_public_key),
+        counter: user.webauthn_counter || 0
+      }
+    });
+    if (!verification.verified) return res.status(403).json({ error: 'Passkey verification failed.' });
+
+    run('UPDATE users SET webauthn_counter = ?, last_login = CURRENT_TIMESTAMP WHERE id = ?',
+      [verification.authenticationInfo.newCounter, user.id]);
+    delete req.session.webauthnLoginChallenge;
+
+    // A verified passkey is a strong, phishing-resistant factor — establish the
+    // session and mark MFA satisfied.
+    req.login(user, (err) => {
+      if (err) { console.error('[WebAuthn] login req.login:', err); return res.status(500).json({ error: 'Sign-in failed.' }); }
+      req.session.adminMfaVerified = true;
+      res.json({ success: true, redirect: user.role === 'client' ? '/client/dashboard' : '/admin/dashboard' });
+    });
+  } catch (err) {
+    console.error('[WebAuthn] login-verify:', err);
+    res.status(400).json({ error: err.message || 'Passkey verification failed.' });
+  }
+});
+
 // Get comments for a control
 router.get('/comments/:controlId', (req, res) => {
   const comments = all('SELECT * FROM comments WHERE assessment_control_id = ? ORDER BY created_at ASC', [req.params.controlId]);
@@ -186,6 +246,25 @@ router.post('/comments/:controlId', ensureAuthenticated, express.json(), (req, r
   run(`INSERT INTO comments (assessment_control_id, user_id, user_name, user_role, content, is_internal)
     VALUES (?, ?, ?, ?, ?, ?)`,
     [req.params.controlId, req.user.id, req.user.name, req.user.role, content, is_internal ? 1 : 0]);
+
+  // Notify the counterparty (assessor <-> assigned practitioner) of the message.
+  try {
+    const ctrl = get('SELECT assessment_id FROM assessment_controls WHERE id = ?', [req.params.controlId]);
+    const a = ctrl ? get('SELECT id, assigned_to_user_id, created_by, project_id FROM assessments WHERE id = ?', [ctrl.assessment_id]) : null;
+    if (a) {
+      const proj = get('SELECT name FROM projects WHERE id = ?', [a.project_id]);
+      const recipients = new Set();
+      if (a.created_by && a.created_by !== req.user.id) recipients.add(a.created_by);               // the assessor
+      if (!is_internal && a.assigned_to_user_id && a.assigned_to_user_id !== req.user.id) recipients.add(a.assigned_to_user_id); // practitioner (unless internal)
+      recipients.forEach(uid => createNotification(uid, {
+        type: 'message',
+        title: `New comment from ${req.user.name}`,
+        body: `${proj?.name ? proj.name + ' — ' : ''}${(content || '').slice(0, 120)}`,
+        link: `/admin/assessments/${ctrl.assessment_id}`
+      }));
+    }
+  } catch (e) { console.error('[notify comment]', e.message); }
+
   res.json({ success: true });
 });
 
@@ -228,9 +307,22 @@ router.get('/assessments/:id/stats', (req, res) => {
 // AI-ASSISTED FEATURES
 // ═══════════════════════════════════════════════════════════════════════════════
 const ai = require('../config/ai-service');
+const access = require('../config/access');
+const { createNotification } = require('../config/notify');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+
+/**
+ * AI license/allowance gate for authenticated AI routes. Returns true when the
+ * request may proceed; otherwise sends a 403 and returns false. Records nothing
+ * here — call access.recordAiUse(req.user, workType) after a successful call.
+ */
+function aiAllowed(req, res, workType) {
+  const g = access.canUseAI(req.user, workType);
+  if (!g.ok) { res.status(403).json({ error: g.reason, needsLicense: !!g.needsLicense, limited: !!g.limited }); return false; }
+  return true;
+}
 const { AI_TEMP_UPLOAD_DIR: aiTempUploadDir, ensureUploadDirs } = require('../config/storage');
 const { mergeQuestions, getFrameworks, countryNames, govLevelNames, sensitivityNames } = require('../config/framework-map');
 const { buildFrameworkSummary } = require('../config/security-frameworks');
@@ -307,11 +399,13 @@ router.post('/ai/suggest-from-description', express.json(), async (req, res) => 
 router.post('/ai/review-intake/:id', ensureAuthenticated, express.json(), async (req, res) => {
   try {
     if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
+    if (!aiAllowed(req, res, 'intake-review')) return;
     const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
     if (!intake) return res.status(404).json({ error: 'Intake not found' });
 
     const profileInfo = buildFrameworkSummary(intake);
     const result = await ai.reviewIntake(intake, profileInfo);
+    access.recordAiUse(req.user, 'intake-review');
     res.json({ success: true, review: result });
   } catch (err) {
     console.error('AI review error:', err);
@@ -323,6 +417,7 @@ router.post('/ai/review-intake/:id', ensureAuthenticated, express.json(), async 
 router.post('/ai/suggest-controls/:id', ensureAuthenticated, express.json(), async (req, res) => {
   try {
     if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
+    if (!aiAllowed(req, res, 'controls')) return;
     const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
     if (!intake) return res.status(404).json({ error: 'Intake not found' });
 
@@ -346,6 +441,7 @@ router.post('/ai/suggest-controls/:id', ensureAuthenticated, express.json(), asy
     const currentIds = currentControls.map(c => c.id);
 
     const result = await ai.suggestAdditionalControls(intake, currentIds, CONTROLS);
+    access.recordAiUse(req.user, 'controls');
     res.json({ success: true, suggestions: result });
   } catch (err) {
     console.error('AI suggest-controls error:', err);
@@ -357,6 +453,7 @@ router.post('/ai/suggest-controls/:id', ensureAuthenticated, express.json(), asy
 router.post('/ai/evidence-narrative', ensureAuthenticated, express.json(), async (req, res) => {
   try {
     if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
+    if (!aiAllowed(req, res, 'narrative')) return;
     const { controlId, controlTitle, controlDescription, evidenceGuidance, projectContext } = req.body;
     if (!controlId) return res.status(400).json({ error: 'Control ID required' });
 
@@ -364,6 +461,7 @@ router.post('/ai/evidence-narrative', ensureAuthenticated, express.json(), async
       { control_id: controlId, title: controlTitle, description: controlDescription, evidence_guidance: evidenceGuidance },
       projectContext || {}
     );
+    access.recordAiUse(req.user, 'narrative');
     res.json({ success: true, narrative: result });
   } catch (err) {
     console.error('AI evidence error:', err);
@@ -375,6 +473,7 @@ router.post('/ai/evidence-narrative', ensureAuthenticated, express.json(), async
 router.post('/ai/evidence-guidance', ensureAuthenticated, express.json(), async (req, res) => {
   try {
     if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
+    if (!aiAllowed(req, res, 'evidence-guidance')) return;
     const { controlId, controlTitle, controlDescription, projectContext } = req.body;
     if (!controlId) return res.status(400).json({ error: 'Control ID required' });
 
@@ -382,6 +481,7 @@ router.post('/ai/evidence-guidance', ensureAuthenticated, express.json(), async 
       { control_id: controlId, title: controlTitle, description: controlDescription },
       projectContext || {}
     );
+    access.recordAiUse(req.user, 'evidence-guidance');
     res.json({ success: true, guidance: result });
   } catch (err) {
     console.error('AI guidance error:', err);
@@ -408,10 +508,12 @@ router.post('/ai/save-guidance/:controlDbId', ensureAuthenticated, express.json(
 router.post('/ai/generate-bulk-evidence', ensureAuthenticated, express.json(), async (req, res) => {
   try {
     if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
+    if (!aiAllowed(req, res, 'bulk-evidence')) return;
     const { controls, projectContext } = req.body;
     if (!controls || !controls.length) return res.status(400).json({ error: 'Controls list required' });
 
     const result = await ai.generateBulkEvidence(controls, projectContext || {});
+    access.recordAiUse(req.user, 'bulk-evidence');
     res.json({ success: true, narratives: result });
   } catch (err) {
     console.error('AI bulk evidence error:', err);
@@ -519,11 +621,15 @@ router.post('/self-assessment/report', express.json({ limit: '2mb' }), (req, res
 
 router.post('/self-assessment/submit', express.json({ limit: '4mb' }), (req, res) => {
   try {
+    // Pre-assessments require an account (no anonymous submissions).
+    const submitter = req.user || (req.session && req.session.clientId ? { id: req.session.clientId } : null);
+    if (!submitter) return res.status(401).json({ error: 'Please sign in or start a free trial to submit a pre-assessment.' });
+
     const {
       name, email, organization, systemType, country, govLevel, sensitivity,
-      description, frameworks, questions, answers, report
+      description, frameworks, questions, answers, report, reviewerEmail
     } = req.body;
-    const normalizedEmail = (email || '').toLowerCase().trim();
+    const normalizedEmail = (email || req.user?.email || '').toLowerCase().trim();
     if (!normalizedEmail) return res.status(400).json({ error: 'Email is required.' });
     const finalReport = report || buildSelfAssessmentReport(req.body);
     const refCode = `SA-${require('crypto').randomBytes(4).toString('hex').toUpperCase()}`;
@@ -551,7 +657,32 @@ router.post('/self-assessment/submit', express.json({ limit: '4mb' }), (req, res
         finalReport.warnings?.length || 0,
         finalReport.critical?.length || 0
       ]);
-    res.json({ success: true, refCode });
+
+    // Route to a reviewer if one was chosen: notify (existing account) or invite.
+    const reviewer = (reviewerEmail || '').toLowerCase().trim();
+    if (reviewer) {
+      run('UPDATE self_assessments SET reviewer_email = ?, reviewer_notified_at = CURRENT_TIMESTAMP, submitted_by_user_id = ? WHERE ref_code = ?',
+        [reviewer, submitter.id || null, refCode]);
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const hasAccount = get('SELECT id FROM users WHERE email = ? AND is_active = 1', [reviewer]);
+      const who = name || req.user?.name || 'A colleague';
+      emailService.sendMail(hasAccount ? {
+        from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+        to: reviewer,
+        subject: `Pre-assessment ready for review — ${refCode}`,
+        html: `<p>${who} shared a security pre-assessment (<strong>${refCode}</strong>) for your review.</p>
+               <p><a href="${baseUrl}/admin/self-assessments">Open it in the portal</a> to review and, if appropriate, convert it to a project.</p>`
+      } : {
+        from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+        to: reviewer,
+        subject: `You're invited to review a pre-assessment — ${refCode}`,
+        html: `<p>${who} shared a security pre-assessment (<strong>${refCode}</strong>) and would like you to review it.</p>
+               <p>Create an account to review and proceed:</p>
+               <p><a href="${baseUrl}/register?plan=trial">Start a free trial</a> &nbsp;·&nbsp; <a href="${baseUrl}/pricing">see plans</a></p>`
+      }).catch(() => {});
+    }
+
+    res.json({ success: true, refCode, reviewerNotified: !!reviewer });
   } catch (err) {
     console.error('Self-assessment submit error:', err);
     res.status(500).json({ error: err.message });

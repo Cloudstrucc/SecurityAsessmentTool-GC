@@ -28,6 +28,26 @@
   <div class="form-section">
     <div class="section-header">
       <h3 class="section-title">
+        <span class="section-number"><i class="bi bi-shield-lock"></i></span>
+        Security
+      </h3>
+    </div>
+    <form method="POST" action="/admin/settings/password" class="row g-3" style="max-width:520px">
+      <div class="col-12"><label class="form-label">Current password</label><input class="form-control" type="password" name="current_password" required></div>
+      <div class="col-md-6"><label class="form-label">New password</label><input class="form-control" type="password" name="new_password" placeholder="At least 10 characters" required></div>
+      <div class="col-md-6"><label class="form-label">Confirm new password</label><input class="form-control" type="password" name="confirm_password" required></div>
+      <div class="col-12"><button class="btn btn-primary"><i class="bi bi-key me-1"></i>Change password</button></div>
+    </form>
+    <hr>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="/admin/passkey-setup" class="btn btn-outline-secondary"><i class="bi bi-fingerprint me-1"></i>Add / manage passkeys</a>
+      <a href="/admin/mfa-setup" class="btn btn-outline-secondary"><i class="bi bi-phone me-1"></i>Set up authenticator (TOTP)</a>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="section-header">
+      <h3 class="section-title">
         <span class="section-number"><i class="bi bi-info-circle"></i></span>
         About
       </h3>

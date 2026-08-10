@@ -1,0 +1,158 @@
+<div class="vg vg-page">
+<nav class="vg-nav">
+  <div class="vg-container vg-nav-inner">
+    <a href="/" class="vg-brand">
+      <span class="vg-brand-name">Vanguard Cloud Services</span>
+      <span class="vg-brand-sep">|</span>
+      <span class="vg-brand-product">SA&amp;A</span>
+    </a>
+    <div class="vg-nav-links">
+      <a href="/sa-tool-overview.html" class="vg-nav-link hide-sm">Product brief</a>
+      <a href="/pricing" class="vg-nav-link">Pricing</a>
+    </div>
+  </div>
+</nav>
+
+<div class="vg-auth-wrap">
+ {{#if choosePlan}}
+  <div style="width:100%;max-width:1040px">
+    <div class="vg-steps-mini" style="justify-content:center">
+      <span class="dot active">1</span><span class="bar"></span>
+      <span class="dot">2</span><span class="bar"></span>
+      <span class="dot">3</span>
+      <span style="margin-left:10px"><b style="color:var(--vg-navy-800)">Choose a plan</b> → Account → Payment</span>
+    </div>
+    <div class="vg-center" style="max-width:620px;margin:0 auto 6px">
+      <h1 style="font-size:26px;font-weight:750">Choose a plan to get started</h1>
+      <p class="vg-muted">Start free — no card needed — and upgrade any time. You'll enter your details next.</p>
+    </div>
+    <div class="vg-price-grid" style="margin-top:24px">
+      <div class="vg-plan featured">
+        <div class="vg-plan-flag"><span class="vg-badge vg-badge-grad">Start here</span></div>
+        <div class="vg-plan-name">Trial</div>
+        <div class="vg-plan-price">Free</div>
+        <div class="vg-plan-tag">14 days, no card. Explore the full workflow.</div>
+        <div class="vg-plan-cta"><a href="/register?plan=trial" class="vg-btn vg-btn-primary vg-btn-block">Start free trial</a></div>
+        <ul class="vg-plan-features"><li>1 admin + 2 users</li><li>1 project</li><li>All frameworks</li><li>AI evidence guidance</li></ul>
+      </div>
+      <div class="vg-plan">
+        <div class="vg-plan-name">Team</div>
+        <div class="vg-plan-price">$149<span class="per">/mo</span></div>
+        <div class="vg-plan-tag">For a single team assessing regularly.</div>
+        <div class="vg-plan-cta"><a href="/register?plan=team" class="vg-btn vg-btn-ghost vg-btn-block">Choose Team</a></div>
+        <ul class="vg-plan-features"><li>Up to 5 users</li><li>5 projects</li><li>Control inheritance</li></ul>
+      </div>
+      <div class="vg-plan">
+        <div class="vg-plan-name">Business</div>
+        <div class="vg-plan-price">$449<span class="per">/mo</span></div>
+        <div class="vg-plan-tag">For departments authorizing many systems.</div>
+        <div class="vg-plan-cta"><a href="/register?plan=business" class="vg-btn vg-btn-ghost vg-btn-block">Choose Business</a></div>
+        <ul class="vg-plan-features"><li>Up to 20 users</li><li>25 projects</li><li>AI + audit</li></ul>
+      </div>
+      <div class="vg-plan">
+        <div class="vg-plan-name">Enterprise</div>
+        <div class="vg-plan-price">Custom</div>
+        <div class="vg-plan-tag">Unlimited scale, SSO, dedicated support.</div>
+        <div class="vg-plan-cta"><a href="/register?plan=enterprise" class="vg-btn vg-btn-dark vg-btn-block">Get started</a></div>
+        <ul class="vg-plan-features"><li>Unlimited users</li><li>Unlimited projects</li><li>SSO / SAML</li></ul>
+      </div>
+    </div>
+    <div class="vg-center" style="margin-top:18px"><a href="/pricing" class="vg-nav-link" style="color:var(--vg-sky-600);font-weight:600">See full pricing &amp; pay-as-you-go →</a></div>
+  </div>
+ {{else}}
+  <div class="vg-auth-card">
+    <div class="vg-steps-mini">
+      <span class="dot">1</span><span class="bar"></span>
+      <span class="dot active">2</span><span class="bar"></span>
+      <span class="dot">3</span>
+      <span style="margin-left:10px">Plan → <b style="color:var(--vg-navy-800)">Account</b> → Payment</span>
+    </div>
+
+    <div class="vg-auth-head">
+      <h1>Create your account</h1>
+      <p>You'll need an account to access any plan — including the free trial.</p>
+    </div>
+
+    <div class="vg-callout info" style="display:flex;align-items:center;justify-content:space-between;margin-top:0">
+      <span>Selected plan: <b>{{plan.label}}</b></span>
+      <a href="/pricing" class="vg-nav-link" style="color:var(--vg-sky-600);padding:2px 6px">Change</a>
+    </div>
+
+    <form method="POST" action="/register">
+      <input type="hidden" name="plan" value="{{selectedPlan}}">
+      <div class="vg-field-row">
+        <div class="vg-field"><label class="vg-label">First name</label><input class="vg-input" name="first_name" value="{{formData.first_name}}" placeholder="Alex" required></div>
+        <div class="vg-field"><label class="vg-label">Last name</label><input class="vg-input" name="last_name" value="{{formData.last_name}}" placeholder="Rivera" required></div>
+      </div>
+      <div class="vg-field"><label class="vg-label">Organization</label><input class="vg-input" name="organization" value="{{formData.organization}}" placeholder="Department or company" required></div>
+      <div class="vg-field"><label class="vg-label">Work email</label><input class="vg-input" type="email" name="email" value="{{formData.email}}" placeholder="you@agency.gc.ca" required></div>
+      <div class="vg-field"><label class="vg-label">Password <span class="vg-muted" style="font-weight:400">(or use a passkey below)</span></label><input class="vg-input" id="reg-password" type="password" name="password" placeholder="At least 10 characters">
+        <div class="vg-hint">Multi-factor authentication (TOTP or passkey) is set up right after registration.</div>
+      </div>
+      <div class="vg-field"><label class="vg-label">Comp code <span class="vg-muted" style="font-weight:400">(optional)</span></label><input class="vg-input" name="comp_code" value="{{formData.comp_code}}" placeholder="Unlocks a plan at no charge"></div>
+
+      <label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--vg-muted);margin:6px 0 18px">
+        <input type="checkbox" name="agree" value="1" required style="margin-top:3px">
+        <span>I agree to the Terms of Service and Privacy Policy.</span>
+      </label>
+
+      <button class="vg-btn vg-btn-primary vg-btn-block vg-btn-lg" type="submit">Create account &amp; continue</button>
+      <button type="button" id="passkeyRegBtn" class="vg-btn vg-btn-ghost vg-btn-block" style="margin-top:10px">
+        <i class="bi bi-fingerprint"></i>&nbsp;Sign up with a passkey (no password)
+      </button>
+      <div id="passkeyRegError" class="vg-hint" style="color:var(--vg-red);display:none"></div>
+    </form>
+
+    <div class="vg-or">or</div>
+    <p style="text-align:center;font-size:14px;color:var(--vg-muted);margin:0">
+      Already registered? <a href="/admin/login" style="color:var(--vg-sky-600);font-weight:600;text-decoration:none">Sign in</a>
+    </p>
+  </div>
+ {{/if}}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@11/dist/bundle/index.umd.min.js"></script>
+<script>
+(function(){
+  var btn = document.getElementById('passkeyRegBtn');
+  var form = document.querySelector('form[action="/register"]');
+  var errEl = document.getElementById('passkeyRegError');
+  if (!btn || !form) return;
+  function err(m){ errEl.textContent = m; errEl.style.display = 'block'; }
+  btn.addEventListener('click', async function(){
+    errEl.style.display = 'none';
+    if (!window.SimpleWebAuthnBrowser) { err('Passkeys are not supported in this browser.'); return; }
+    // Basic client validation (name/email/org/agree).
+    var fd = new FormData(form);
+    if (!fd.get('first_name') || !fd.get('last_name') || !fd.get('email') || !fd.get('organization')) { err('Please fill in your name, organization and email first.'); return; }
+    if (!form.querySelector('input[name="agree"]').checked) { err('Please accept the Terms of Service.'); return; }
+    var original = btn.innerHTML; btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>&nbsp;Creating account…';
+    try {
+      fd.append('passwordless', '1');
+      var body = new URLSearchParams(fd).toString();
+      var r = await fetch('/register', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body });
+      var data = await r.json();
+      if (!r.ok || !data.ok) throw new Error(data.error || 'Could not create the account.');
+      // Now register the passkey (the session is authenticated).
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>&nbsp;Waiting for passkey…';
+      var optR = await fetch('/api/webauthn/register-options', { method:'POST', headers:{'Content-Type':'application/json'} });
+      var opts = await optR.json();
+      if (!optR.ok) throw new Error(opts.error || 'Could not start passkey setup.');
+      var reg = await SimpleWebAuthnBrowser.startRegistration({ optionsJSON: opts });
+      var vR = await fetch('/api/webauthn/register-verify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(reg) });
+      var vData = await vR.json();
+      if (!vR.ok || !vData.verified) throw new Error(vData.error || 'Passkey registration failed.');
+      window.location = data.next || '/billing/welcome';
+    } catch (e) {
+      err((e && e.message) ? e.message : 'Passkey sign-up failed.');
+      btn.disabled = false; btn.innerHTML = original;
+    }
+  });
+})();
+</script>
+
+<footer class="vg-footer">
+  <div class="vg-container"><div>Vanguard SA&amp;A · Vanguard Cloud Services · vanguardcs.ca</div></div>
+</footer>
+</div>

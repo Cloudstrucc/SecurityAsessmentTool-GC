@@ -1,0 +1,122 @@
+<div class="container">
+  <div class="page-head d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
+    <div>
+      <h1 class="mb-1">My Dashboard</h1>
+      <p class="text-muted mb-0">Welcome, {{admin.name}} — here's what you're working on.</p>
+      <div class="rule"></div>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="/intake" class="btn btn-outline-primary"><i class="bi bi-inbox me-1"></i>New Intake</a>
+      <a href="/self-assessment" class="btn btn-primary"><i class="bi bi-clipboard2-pulse me-1"></i>Pre-Assessment</a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Assessments I'm working on -->
+    <div class="col-lg-7">
+      <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-clipboard-check me-2"></i>Assessments I'm working on</div>
+        <div class="card-body p-0">
+          {{#if myAssessments.length}}
+            <div class="table-responsive">
+              <table class="table table-hover mb-0 align-middle">
+                <thead><tr><th>Project</th><th>Status</th><th>Result</th><th>Updated</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                  {{#each myAssessments}}
+                    <tr>
+                      <td class="fw-semibold">{{this.project_name}}</td>
+                      <td>{{{statusBadge this.status}}}</td>
+                      <td>{{#if this.result}}{{{statusBadge this.result}}}{{else}}<span class="text-muted">—</span>{{/if}}</td>
+                      <td class="small text-muted">{{formatDate this.updated_at}}</td>
+                      <td class="text-end text-nowrap">
+                        <a href="/admin/assessments/{{this.id}}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-square me-1"></i>Open</a>
+                        <a href="/admin/assessments/{{this.id}}/report.pdf" class="btn btn-sm btn-outline-secondary" title="Download report"><i class="bi bi-file-earmark-pdf"></i></a>
+                      </td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          {{else}}
+            <div class="p-4 text-center text-muted">
+              <i class="bi bi-clipboard-plus" style="font-size:2rem"></i>
+              <p class="mt-2 mb-0">You have no assigned assessments yet. When an assessor assigns you a file, it appears here and you'll get an email with a direct link.</p>
+            </div>
+          {{/if}}
+        </div>
+      </div>
+
+      <!-- My intakes -->
+      <div class="card">
+        <div class="card-header"><i class="bi bi-inbox me-2"></i>My intakes</div>
+        <div class="card-body p-0">
+          {{#if myIntakes.length}}
+            <div class="table-responsive">
+              <table class="table table-hover mb-0 align-middle">
+                <thead><tr><th>Ref</th><th>Project</th><th>Status</th><th>Submitted</th></tr></thead>
+                <tbody>
+                  {{#each myIntakes}}
+                    <tr style="cursor:pointer" onclick="window.location='/admin/intakes/{{this.id}}'">
+                      <td><code class="small">{{this.ref_code}}</code></td>
+                      <td class="fw-semibold">{{this.project_name}}</td>
+                      <td>{{{statusBadge this.status}}}</td>
+                      <td class="small text-muted">{{formatDate this.created_at}}</td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          {{else}}
+            <div class="p-4 text-center text-muted"><i class="bi bi-inbox" style="font-size:2rem"></i><p class="mt-2 mb-0">No intakes yet. Start one with <strong>New Intake</strong> above.</p></div>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column: hierarchy + account -->
+    <div class="col-lg-5">
+      <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-diagram-3 me-2"></i>Project hierarchy</div>
+        <div class="card-body">
+          {{#if myProjects.length}}
+            {{#each myProjects}}
+              <div class="mb-3 pb-3 {{#unless @last}}border-bottom{{/unless}}">
+                <div class="fw-semibold">{{this.name}}</div>
+                <div class="small text-muted">Framework: {{this.security_framework}}</div>
+                <table class="table table-sm table-borderless mb-0 mt-2 small">
+                  <tr><td class="text-muted" style="width:42%">Project owner</td><td>{{#if this.project_owner_name}}{{this.project_owner_name}}{{else}}—{{/if}}</td></tr>
+                  <tr><td class="text-muted">Authority</td><td>{{#if this.project_authority_name}}{{this.project_authority_name}}{{else}}—{{/if}}</td></tr>
+                </table>
+              </div>
+            {{/each}}
+          {{else}}
+            <p class="text-muted small mb-0">You'll see the owner, assessor, authority, and ATO/iATO status for your projects here.</p>
+          {{/if}}
+
+          {{#if atoRecords.length}}
+            <hr>
+            <div class="fw-semibold small mb-2"><i class="bi bi-patch-check me-1"></i>Authorizations &amp; due dates</div>
+            {{#each atoRecords}}
+              <div class="d-flex justify-content-between small py-1">
+                <span>{{#if this.ato_type}}{{this.ato_type}}{{else}}ATO{{/if}} <span class="text-muted">— {{{statusBadge this.status}}}</span></span>
+                <span class="text-muted">{{#if this.expiry_date}}Due {{formatDate this.expiry_date}}{{/if}}</span>
+              </div>
+            {{/each}}
+          {{/if}}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><i class="bi bi-person-gear me-2"></i>My account</div>
+        <div class="card-body">
+          <a href="/admin/mfa-setup" class="btn btn-outline-secondary w-100 mb-2"><i class="bi bi-shield-lock me-1"></i>Set up an authenticator (optional)</a>
+          <a href="/admin/passkey-setup" class="btn btn-outline-secondary w-100 mb-2"><i class="bi bi-fingerprint me-1"></i>Add a passkey</a>
+          <a href="/admin/settings" class="btn btn-outline-secondary w-100"><i class="bi bi-key me-1"></i>Change password &amp; settings</a>
+          <div class="alert alert-info small mt-3 mb-0" style="border-left:4px solid var(--cs-accent)">
+            <i class="bi bi-bell me-1"></i>A notification centre for assignment and message alerts is coming here.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
