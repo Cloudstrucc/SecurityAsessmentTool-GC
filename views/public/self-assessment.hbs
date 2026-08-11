@@ -357,31 +357,59 @@ function section(title, items, type, color) {
 
 async function submitSelfAssessment(event) {
   const button = event.target.closest('button');
+  const idleHtml = `<i class="bi bi-send me-1"></i>${esc(saText.requestFull)}`;
   button.disabled = true;
   button.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>${esc(saText.submitting)}`;
-  const response = await fetch('/api/self-assessment/submit', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      ...payload(),
-      name: document.getElementById('saName').value,
-      email: document.getElementById('saEmail').value,
-      organization: document.getElementById('saOrg').value,
-      reviewerEmail: (document.getElementById('saReviewer') || {}).value || '',
-      frameworks: currentFrameworks,
-      questions: currentQuestions,
-      answers: collectAnswers(),
-      report: currentReport
-    })
-  });
-  const data = await response.json();
-  if (!response.ok || data.error) {
+  try {
+    const response = await fetch('/api/self-assessment/submit', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        ...payload(),
+        name: document.getElementById('saName').value,
+        email: document.getElementById('saEmail').value,
+        organization: document.getElementById('saOrg').value,
+        reviewerEmail: (document.getElementById('saReviewer') || {}).value || '',
+        frameworks: currentFrameworks,
+        questions: currentQuestions,
+        answers: collectAnswers(),
+        report: currentReport
+      })
+    });
+    let data;
+    try { data = await response.json(); }
+    catch (e) { throw new Error(`Server returned a non-JSON response (HTTP ${response.status}).`); }
+
+    if (!response.ok || data.error) {
+      // Handled error: re-enable and tell the user.
+      button.disabled = false;
+      button.innerHTML = idleHtml;
+      alert(data.error || saText.submissionFailed);
+      return;
+    }
+
+    // Success: stop the spinner and mark the button done (this was the bug — the
+    // success path never reset the button, so it spun forever).
+    button.disabled = true;
+    button.classList.remove('btn-primary');
+    button.classList.add('btn-success');
+    button.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i>${esc(saText.submitted)}`;
+    button.parentElement.insertAdjacentHTML('beforebegin', `<div class="alert alert-success"><i class="bi bi-check-circle-fill me-1"></i><strong>${esc(saText.submitted)}</strong> ${esc(saText.submittedD).replace('{refCode}', `<code>${esc(data.refCode)}</code>`)}</div>`);
+  } catch (err) {
+    // Network / parse / unexpected error: never leave the button spinning.
+    console.error('[self-assessment] Submit failed:', err);
     button.disabled = false;
-    button.innerHTML = `<i class="bi bi-send me-1"></i>${esc(saText.requestFull)}`;
-    alert(data.error || saText.submissionFailed);
-    return;
+    button.innerHTML = idleHtml;
+    alert((err && err.message) ? err.message : saText.submissionFailed);
+  } finally {
+    // Fallback safety net: if the spinner is somehow still on the button after
+    // all branches, force it off and log why so it never spins indefinitely.
+    if (button.querySelector('.spinner-border')) {
+      console.warn('[self-assessment] Spinner was still active after submit handling — forcing it off as a fallback. This means an unexpected code path or a thrown error slipped past the success/error branches; check the logs above and the network response.');
+      button.disabled = false;
+      button.innerHTML = idleHtml;
+    }
   }
-  button.parentElement.insertAdjacentHTML('beforebegin', `<div class="alert alert-success"><i class="bi bi-check-circle-fill me-1"></i><strong>${esc(saText.submitted)}</strong> ${esc(saText.submittedD).replace('{refCode}', `<code>${esc(data.refCode)}</code>`)}</div>`);
 }
 
 initTypes();
