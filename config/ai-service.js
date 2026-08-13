@@ -9,7 +9,7 @@
  */
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
-const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514';
+const MODEL = process.env.ANTHROPIC_MODEL || 'claude-opus-4-8"';
 const API_KEY = () => process.env.ANTHROPIC_API_KEY || '';
 
 function isConfigured() {
@@ -20,7 +20,7 @@ function isConfigured() {
  * Core API call to Anthropic Messages API
  * userContent can be a string or an array of content blocks
  */
-async function callClaude(system, userContent, { maxTokens = 4096, temperature = 0.3 } = {}) {
+async function callClaude(system, userContent, { maxTokens = 4096 } = {}) {
   if (!isConfigured()) {
     throw new Error('ANTHROPIC_API_KEY not configured. Set it in your environment variables or .env file.');
   }
@@ -43,8 +43,7 @@ async function callClaude(system, userContent, { maxTokens = 4096, temperature =
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: maxTokens,
-        temperature,
+        max_tokens: maxTokens,        
         system,
         messages
       })
@@ -357,7 +356,7 @@ PROJECT CONTEXT:
 
 Write the evidence narrative for this control:`;
 
-  return await callClaude(system, userContent, { maxTokens: 1024, temperature: 0.4 });
+  return await callClaude(system, userContent, { maxTokens: 1024});
 }
 
 /**
@@ -383,7 +382,7 @@ Classification: ${projectContext.confidentiality_level}/${projectContext.integri
 CONTROLS (generate evidence for each):
 ${controlList}`;
 
-  const result = await callClaude(system, userContent, { maxTokens: 4096, temperature: 0.4 });
+  const result = await callClaude(system, userContent, { maxTokens: 4096 });
   return parseJSON(result);
 }
 
@@ -419,7 +418,7 @@ ${projectContext.documents ? `\nSELECTED PROJECT DOCUMENT EXCERPTS:\n${projectCo
 
 Write evidence guidance for this control:`;
 
-  return await callClaude(system, userContent, { maxTokens: 800, temperature: 0.3 });
+  return await callClaude(system, userContent, { maxTokens: 800 });
 }
 
 module.exports = {
