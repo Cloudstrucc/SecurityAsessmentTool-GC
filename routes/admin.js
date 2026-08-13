@@ -1047,10 +1047,14 @@ router.get('/dashboard', ensureAuthenticated, (req, res) => {
     });
   }
 
+  const dashOrg = billing.orgForUser(req.user);
+  const tokenStatus = billing.tokenStatus(dashOrg);
+  const aiProvider = dashOrg ? (orgSettings.getSettings(dashOrg.id)?.ai_provider || 'oob') : 'oob';
   res.render('admin/dashboard', {
     title: 'Dashboard',
     isAdmin: true, isDashboard: true,
-    admin: req.user, projects, assessments, recentIntakes, stats, pendingInviteCount
+    admin: req.user, projects, assessments, recentIntakes, stats, pendingInviteCount,
+    tokenStatus, aiProvider, isRootAdmin: access.isRootAdmin(req.user)
   });
 });
 
