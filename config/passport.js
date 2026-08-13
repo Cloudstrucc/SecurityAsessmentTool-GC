@@ -36,6 +36,8 @@ function initializePassport() {
 
 function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
+    // Global MFA kill-switch (off by default). When off, never prompt/enforce MFA.
+    if (!mfaEnabled()) return next();
     if (req.user?.role === 'client' || req.user?.is_break_glass || req.session?.adminMfaVerified) return next();
     const user = get('SELECT mfa_enabled, totp_secret, webauthn_credential_id FROM users WHERE id = ?', [req.user.id]);
     // Passkey users are already strongly authenticated — no second factor needed.
@@ -60,4 +62,7 @@ function ensureRole(...roles) {
   };
 }
 
-module.exports = { passport, initializePassport, ensureAuthenticated, ensureRole };
+// MFA is OFF unless MFA_ENABLED=true. Turning it on restores the TOTP/passkey flow.
+function mfaEnabled() { return process.env.MFA_ENABLED === 'true'; }
+
+module.exports = { passport, initializePassport, ensureAuthenticated, ensureRole, mfaEnabled };

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { run, runBatch, all, get } = require('../models/database');
-const { passport, ensureAuthenticated } = require('../config/passport');
+const { passport, ensureAuthenticated, mfaEnabled } = require('../config/passport');
 const { determineProfile, detectComplexity, categorizationLabel, categorizationFullLabel, SECURITY_PROFILES, CONFIDENTIALITY_LEVELS, INTEGRITY_LEVELS, AVAILABILITY_LEVELS } = require('../config/security-profiles');
 const { getRecommendedControls, assessSAARequirement, groupByFamily, COMMON_TECHNOLOGIES, CONTROL_FAMILIES, CONTROLS, GC_WEB_GUIDANCE, computeRiskLevel } = require('../config/itsg33-controls');
 const {
@@ -775,6 +775,11 @@ function copyIntakeAssignmentsToAssessment(intakeId, assessmentId, assignedBy) {
 // ── AUTH ──
 router.get('/login', (req, res) => {
   if (req.isAuthenticated() && req.session.adminMfaVerified) return res.redirect('/admin/dashboard');
+  // MFA globally off → already-authenticated users go straight to the dashboard (no QR).
+  if (req.isAuthenticated() && !mfaEnabled()) {
+    req.session.adminMfaVerified = true;
+    return res.redirect('/admin/dashboard');
+  }
   if (req.isAuthenticated()) {
     const user = get('SELECT mfa_enabled, totp_secret, webauthn_credential_id, is_break_glass FROM users WHERE id = ?', [req.user.id]);
     if (user?.is_break_glass) {
@@ -843,7 +848,8 @@ router.post('/login', (req, res, next) => {
     req.logIn(user, (err) => {
       if (err) return next(err);
       const dbUser = get('SELECT mfa_enabled, totp_secret, webauthn_credential_id, is_break_glass FROM users WHERE id = ?', [user.id]);
-      if (dbUser?.is_break_glass) {
+      // MFA globally off, or break-glass → straight to the dashboard.
+      if (!mfaEnabled() || dbUser?.is_break_glass) {
         req.session.adminMfaVerified = true;
         return res.redirect('/admin/dashboard');
       }
