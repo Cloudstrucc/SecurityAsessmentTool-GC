@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SADD — ESign Elections Canada</title>
+</head>
+<body>
+<h1>SADD — Security Assessment &amp; Design Documentation</h1>
+<h2>System: ESign Elections Canada</h2>
+<p>This is a portable end-to-end test fixture standing in for an uploaded
+Security Assessment &amp; Design Documentation (SADD) artefact. It exists so the
+document-upload, download, and AI evidence-guidance tests run on any machine
+without depending on a developer's local filesystem.</p>
+
+<h3>Overview</h3>
+<p>ESign Elections Canada is a Protected B web application for secure electronic
+signature workflows. It is hosted in Azure (Canada Central) and authenticates
+users through Entra ID with conditional-access MFA.</p>
+
+<h3>Security controls referenced</h3>
+<ul>
+  <li>AC-2 Account Management — Entra ID lifecycle and access reviews.</li>
+  <li>SC-8 Transmission Confidentiality — TLS 1.2+ enforced end to end.</li>
+  <li>AU-2 Audit Events — centralized logging to Microsoft Sentinel.</li>
+</ul>
+
+<h3>Evidence</h3>
+<p>Conditional-access policy exports, WAF rule screenshots, and Key Vault access
+policies are attached to the assessment as supporting evidence.</p>
+</body>
+</html>

@@ -68,6 +68,34 @@
     </div>
   </div>
 
+  <!-- AI token usage (built-in Anthropic allowance) -->
+  {{#if (eq aiProvider 'oob')}}
+    {{#unless tokenStatus.unlimited}}
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <div><i class="bi bi-robot me-2" style="color:var(--cs-accent)"></i><strong>Built-in AI usage</strong> <span class="text-muted small">this month</span></div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="small text-muted">{{tokenStatus.used}} / {{tokenStatus.limit}} tokens ({{tokenStatus.pct}}%)</span>
+              {{#if isRootAdmin}}<a href="/billing/tokens" class="btn btn-sm btn-primary"><i class="bi bi-plus-circle me-1"></i>Add tokens</a>{{/if}}
+            </div>
+          </div>
+          <div class="progress" style="height:10px">
+            <div class="progress-bar{{#ifCond tokenStatus.pct '>=' 90}} bg-danger{{else}}{{#ifCond tokenStatus.pct '>=' 75}} bg-warning{{/ifCond}}{{/ifCond}}" role="progressbar" style="width:{{tokenStatus.pct}}%"></div>
+          </div>
+          <div class="small text-muted mt-1">
+            {{tokenStatus.remaining}} tokens remaining.
+            {{#ifCond tokenStatus.pct '>=' 90}}You're nearly out — <a href="/billing/tokens">top up</a> or <a href="/admin/organization#ai">use your own AI provider</a>.{{else}}Prefer uncapped AI? <a href="/admin/organization#ai">Bring your own provider</a>.{{/ifCond}}
+          </div>
+        </div>
+      </div>
+    {{/unless}}
+  {{else}}
+    <div class="alert alert-info d-flex align-items-center mb-4" style="border-left:4px solid var(--cs-accent)">
+      <i class="bi bi-robot me-2"></i><div>AI is running on your <strong>own {{aiProvider}}</strong> provider — no platform token limit applies. Manage it under <a href="/admin/organization#ai">Organization settings</a>.</div>
+    </div>
+  {{/if}}
+
   <div class="row g-4">
     <!-- Recent Projects -->
     <div class="col-lg-6">

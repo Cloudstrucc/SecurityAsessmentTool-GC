@@ -671,6 +671,31 @@ async function initDatabase() {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(user_id, work_type)
     )`],
+    // Bring-your-own AI provider / MCP (root-admin configured, per tenant).
+    ['org_settings', 'ai_provider', "ALTER TABLE org_settings ADD COLUMN ai_provider TEXT DEFAULT 'oob'"], // oob | anthropic | openai | grok | gemini | custom
+    ['org_settings', 'ai_api_key', 'ALTER TABLE org_settings ADD COLUMN ai_api_key TEXT'],
+    ['org_settings', 'ai_model', 'ALTER TABLE org_settings ADD COLUMN ai_model TEXT'],
+    ['org_settings', 'ai_base_url', 'ALTER TABLE org_settings ADD COLUMN ai_base_url TEXT'],   // for custom / on-prem OpenAI-compatible endpoints
+    ['org_settings', 'ai_mcp_url', 'ALTER TABLE org_settings ADD COLUMN ai_mcp_url TEXT'],
+    ['org_settings', 'ai_mcp_token', 'ALTER TABLE org_settings ADD COLUMN ai_mcp_token TEXT'],
+    // Per-tenant OOB token allowance + usage.
+    ['organizations', 'token_limit', 'ALTER TABLE organizations ADD COLUMN token_limit INTEGER'],       // null = plan default
+    ['organizations', 'tokens_extra', 'ALTER TABLE organizations ADD COLUMN tokens_extra INTEGER DEFAULT 0'], // topped-up tokens
+    ['organizations', 'token_period', 'ALTER TABLE organizations ADD COLUMN token_period TEXT'],         // YYYY-MM the current window
+    ['organizations', 'tokens_used', 'ALTER TABLE organizations ADD COLUMN tokens_used INTEGER DEFAULT 0'],
+    // Detailed AI token usage log.
+    ['ai_token_usage', null, `CREATE TABLE IF NOT EXISTS ai_token_usage (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      organization_id INTEGER,
+      user_id INTEGER,
+      provider TEXT,
+      work_type TEXT,
+      input_tokens INTEGER DEFAULT 0,
+      output_tokens INTEGER DEFAULT 0,
+      total_tokens INTEGER DEFAULT 0,
+      billed_oob INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`],
     // In-app notifications (assignments, invites, messages).
     ['notifications', null, `CREATE TABLE IF NOT EXISTS notifications (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

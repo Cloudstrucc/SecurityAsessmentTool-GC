@@ -1,0 +1,50 @@
+<div class="vg vg-page">
+<nav class="vg-nav">
+  <div class="vg-container vg-nav-inner">
+    <a href="/admin/dashboard" class="vg-brand">
+      <span class="vg-brand-name">Vanguard Cloud Services</span><span class="vg-brand-sep">|</span><span class="vg-brand-product">SA&amp;A</span>
+    </a>
+    <div class="vg-nav-links"><a href="/admin/dashboard" class="vg-nav-link">Back to dashboard</a></div>
+  </div>
+</nav>
+
+<div class="vg-container" style="max-width:900px;padding:48px 24px">
+  <div class="vg-center" style="max-width:640px;margin:0 auto 10px">
+    <div class="vg-eyebrow" style="justify-content:center">AI tokens</div>
+    <h1 style="font-size:28px;font-weight:750">Top up your AI tokens</h1>
+    <p class="vg-muted">Your plan includes a monthly built-in (Anthropic) AI allowance. Buy a one-time top-up to keep going before your renewal — or switch to your own provider for uncapped usage.</p>
+  </div>
+
+  {{#if status.unlimited}}
+    <div class="vg-callout good">Your plan has an <b>unlimited</b> built-in AI allowance — no top-up needed.</div>
+  {{else}}
+    <div class="vg-card-plain" style="margin:18px auto;max-width:560px">
+      <div class="d-flex justify-content-between" style="font-size:14px"><span class="vg-muted">Used this month</span><span><b>{{status.used}}</b> / {{status.limit}} tokens</span></div>
+      <div style="height:10px;border-radius:999px;background:var(--vg-line);overflow:hidden;margin:10px 0 4px"><div style="height:100%;width:{{status.pct}}%;background:var(--vg-grad)"></div></div>
+      <div class="vg-muted" style="font-size:12.5px">{{status.remaining}} tokens remaining{{#if status.extra}} · includes {{status.extra}} topped-up{{/if}}</div>
+    </div>
+  {{/if}}
+
+  {{#unless stripeReady}}<div class="vg-callout warn">Card checkout isn't configured yet, so token packs can't be purchased in this environment.</div>{{/unless}}
+
+  <div class="vg-price-grid" style="grid-template-columns:repeat(3,1fr);margin-top:22px">
+    {{#each packs}}
+      <div class="vg-plan">
+        <div class="vg-plan-name">Top-up</div>
+        <div class="vg-plan-price" style="font-size:28px">{{this.label}}</div>
+        <div class="vg-plan-tag">Added to your tenant immediately after payment.</div>
+        <div class="vg-plan-cta">
+          <form method="POST" action="/billing/tokens/checkout"><input type="hidden" name="pack" value="{{this.id}}">
+            <button class="vg-btn vg-btn-primary vg-btn-block" {{#unless ../stripeReady}}disabled{{/unless}}>Buy {{this.label}}</button>
+          </form>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+
+  <div class="vg-callout" style="margin-top:24px">
+    <b>Note on value:</b> top-up token amounts reflect roughly <b>70%</b> of the raw value of the price — the balance covers platform and administrative overhead of the managed AI. If you'd rather get full value, you can <a href="/admin/organization#ai">connect your own Anthropic, OpenAI, xAI (Grok), or Gemini API — or an on-prem model</a>, and your usage is billed directly by that provider with no platform token limit.
+  </div>
+  <p class="vg-center vg-muted" style="font-size:12.5px;margin-top:10px">Only the primary (root) administrator can purchase tokens. Payments processed securely by Stripe.</p>
+</div>
+</div>

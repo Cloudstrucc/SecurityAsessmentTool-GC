@@ -31,14 +31,43 @@ function webhookConfigured() {
  * Price IDs in the environment (so the same code runs in test and live).
  * Placeholder limits — adjust freely; they do not depend on Stripe.
  */
+// `tokens` = monthly built-in (OOB) AI token allowance. null = unlimited.
+// Bringing your own AI provider bypasses this entirely.
 const PLANS = {
-  trial:      { key: 'trial',      label: 'Trial',          seats: 3,    projects: 1,    mode: 'trial',        trialDays: 14 },
-  team:       { key: 'team',       label: 'Team',           seats: 5,    projects: 5,    mode: 'subscription', priceEnv: 'STRIPE_PRICE_TEAM' },
-  business:   { key: 'business',   label: 'Business',       seats: 20,   projects: 25,   mode: 'subscription', priceEnv: 'STRIPE_PRICE_BUSINESS' },
-  enterprise: { key: 'enterprise', label: 'Enterprise',     seats: null, projects: null, mode: 'contact' },
-  payg:       { key: 'payg',       label: 'Pay as you go',  seats: null, projects: null, mode: 'metered',
+  trial:      { key: 'trial',      label: 'Trial',          seats: 3,    projects: 1,    tokens: 250000,    mode: 'trial',        trialDays: 14 },
+  team:       { key: 'team',       label: 'Team',           seats: 5,    projects: 5,    tokens: 3000000,   mode: 'subscription', priceEnv: 'STRIPE_PRICE_TEAM' },
+  business:   { key: 'business',   label: 'Business',       seats: 20,   projects: 25,   tokens: 15000000,  mode: 'subscription', priceEnv: 'STRIPE_PRICE_BUSINESS' },
+  enterprise: { key: 'enterprise', label: 'Enterprise',     seats: null, projects: null, tokens: null,      mode: 'contact' },
+  payg:       { key: 'payg',       label: 'Pay as you go',  seats: null, projects: null, tokens: 500000,    mode: 'metered',
                 priceEnvUser: 'STRIPE_PRICE_PAYG_USER', priceEnvProject: 'STRIPE_PRICE_PAYG_PROJECT' }
 };
+
+// One-time token top-up packs. The token amount already reflects ~70% of the
+// raw value of the price (the balance covers platform/admin overhead); tenants
+// who want full value can bring their own provider instead. Price IDs come from
+// Stripe (create one-time prices and set the env vars).
+const TOKEN_PACKS = [
+  { id: '1m',  label: '1M tokens',  tokens: 1000000,  priceEnv: 'STRIPE_PRICE_TOKENS_1M' },
+  { id: '5m',  label: '5M tokens',  tokens: 5000000,  priceEnv: 'STRIPE_PRICE_TOKENS_5M' },
+  { id: '20m', label: '20M tokens', tokens: 20000000, priceEnv: 'STRIPE_PRICE_TOKENS_20M' }
+];
+function getTokenPack(id) { return TOKEN_PACKS.find(p => p.id === id) || null; }
+
+// Monthly OOB token allowance + usage for an org.
+function tokenStatus(org) {
+  if (!org) return { unlimited: true, limit: null, used: 0, extra: 0, remaining: null, pct: 0 };
+  const plan = getPlan(org.plan) || {};
+  const base = org.token_limit != null ? org.token_limit : plan.tokens; // null = unlimited
+  const extra = org.tokens_extra || 0;
+  // Reset the counter's view if the stored period is an earlier month.
+  const period = new Date().toISOString().slice(0, 7);
+  const used = (org.token_period === period) ? (org.tokens_used || 0) : 0;
+  if (base == null) return { unlimited: true, limit: null, used, extra, remaining: null, pct: 0 };
+  const limit = base + extra;
+  const remaining = Math.max(0, limit - used);
+  const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 100;
+  return { unlimited: false, limit, used, extra, remaining, pct };
+}
 
 function getPlan(key) {
   return PLANS[key] || null;
@@ -211,6 +240,28 @@ async function createCheckoutSession({ org, plan, customerEmail, baseUrl }) {
   }
 }
 
+/** One-time Stripe Checkout for an AI token top-up pack. */
+async function createTokenCheckout({ org, pack, customerEmail, baseUrl }) {
+  const stripe = getStripe();
+  if (!stripe) return { ok: false, error: 'Billing is not configured (no Stripe key set).' };
+  const price = process.env[pack.priceEnv];
+  if (!price) return { ok: false, error: `Price ID for the ${pack.label} pack is not configured (${pack.priceEnv}).` };
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: [{ price, quantity: 1 }],
+      customer_email: customerEmail || undefined,
+      client_reference_id: String(org.id),
+      metadata: { type: 'token_pack', organization_id: String(org.id), tokens: String(pack.tokens), pack: pack.id },
+      success_url: `${baseUrl}/admin/dashboard?tokens=added`,
+      cancel_url: `${baseUrl}/admin/dashboard`
+    });
+    return { ok: true, url: session.url };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+}
+
 async function createPortalSession(customerId, returnUrl) {
   const stripe = getStripe();
   if (!stripe || !customerId) return { ok: false, error: 'Billing portal unavailable.' };
@@ -245,6 +296,13 @@ function applyWebhookEvent(event) {
 
   switch (event.type) {
     case 'checkout.session.completed': {
+      // One-time AI token top-up → add tokens to the tenant's balance.
+      if (obj.metadata && obj.metadata.type === 'token_pack') {
+        orgId = orgFromMeta(obj);
+        const tokens = parseInt(obj.metadata.tokens, 10) || 0;
+        if (orgId && tokens) run('UPDATE organizations SET tokens_extra = COALESCE(tokens_extra,0) + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [tokens, orgId]);
+        break;
+      }
       orgId = orgFromMeta(obj);
       if (orgId) {
         setOrgPlan(orgId, (obj.metadata && obj.metadata.plan) || getOrg(orgId)?.plan, 'active', {
@@ -296,5 +354,6 @@ module.exports = {
   seatCount, projectCount, canAddProject, canAddSeat, isOrgActive,
   findCompCode, validateCompCode, redeemCompCode,
   priceIdForPlan, createCheckoutSession, createPortalSession,
-  constructWebhookEvent, applyWebhookEvent
+  constructWebhookEvent, applyWebhookEvent,
+  TOKEN_PACKS, getTokenPack, tokenStatus, createTokenCheckout
 };

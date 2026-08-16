@@ -69,6 +69,29 @@ router.post('/organization/sms/test', access.ensureRootAdmin, async (req, res) =
   res.redirect('/admin/organization#sms');
 });
 
+// ── AI provider (bring-your-own LLM / MCP) ──
+router.post('/organization/ai', access.ensureRootAdmin, (req, res) => {
+  const org = currentOrg(req);
+  if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
+  orgSettings.updateAi(org.id, req.body);
+  req.flash('success', 'AI provider settings saved.');
+  res.redirect('/admin/organization#ai');
+});
+
+router.post('/organization/ai/test', access.ensureRootAdmin, async (req, res) => {
+  const org = currentOrg(req);
+  const cfg = orgSettings.aiConfig(org && org.id);
+  const { runWithAiContext } = require('../config/ai-context');
+  const ai = require('../config/ai-service');
+  try {
+    const reply = await runWithAiContext(Object.assign({ userId: req.user.id }, cfg), () => ai.testConnection());
+    req.flash('success', `AI provider "${cfg.provider}" responded: "${reply}".`);
+  } catch (err) {
+    req.flash('error', `AI test failed (${cfg.provider}): ${err.message}`);
+  }
+  res.redirect('/admin/organization#ai');
+});
+
 // ── Custom domain ──
 router.post('/organization/domain', access.ensureRootAdmin, (req, res) => {
   const org = currentOrg(req);

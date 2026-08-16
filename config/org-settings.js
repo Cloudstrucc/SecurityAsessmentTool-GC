@@ -78,6 +78,48 @@ function orgSmtp(orgId) {
   return smtpConfig(getSettings(orgId));
 }
 
+// ── AI provider (bring-your-own LLM / MCP) ──────────────────────────────────
+const AI_PROVIDERS = ['oob', 'anthropic', 'openai', 'grok', 'gemini', 'custom'];
+
+function updateAi(orgId, s) {
+  ensureRow(orgId);
+  const cur = getSettings(orgId) || {};
+  const key = (s.ai_api_key && s.ai_api_key.length) ? s.ai_api_key : cur.ai_api_key;       // keep if blank
+  const mcpTok = (s.ai_mcp_token && s.ai_mcp_token.length) ? s.ai_mcp_token : cur.ai_mcp_token;
+  const provider = AI_PROVIDERS.includes(s.ai_provider) ? s.ai_provider : 'oob';
+  run(`UPDATE org_settings SET ai_provider=?, ai_api_key=?, ai_model=?, ai_base_url=?,
+       ai_mcp_url=?, ai_mcp_token=?, updated_at=CURRENT_TIMESTAMP WHERE organization_id=?`,
+    [provider, key || null, s.ai_model || null, s.ai_base_url || null,
+     s.ai_mcp_url || null, mcpTok || null, orgId]);
+  return getSettings(orgId);
+}
+
+/**
+ * Resolve the AI provider config for a tenant. When the tenant hasn't brought
+ * their own provider (or left the key blank), returns the OOB default so the
+ * platform's built-in Anthropic key is used and usage is metered.
+ */
+function aiConfig(orgId) {
+  const s = getSettings(orgId) || {};
+  const provider = s.ai_provider || 'oob';
+  // A custom / on-prem OpenAI-compatible endpoint may authenticate at the network
+  // layer (mTLS, private link, IP allow-list) and need no API key — a base URL is
+  // enough to treat it as bring-your-own. Hosted providers always require a key.
+  // Without this, a keyless custom endpoint would silently fall back to the
+  // platform's Anthropic key and be metered against the tenant's OOB allowance.
+  const hasCreds = provider === 'custom' ? (!!s.ai_api_key || !!s.ai_base_url) : !!s.ai_api_key;
+  const isByo = provider !== 'oob' && hasCreds;
+  if (!isByo) {
+    return { provider: 'oob', isByo: false, orgId: orgId || null, mcpUrl: s.ai_mcp_url || null, mcpToken: s.ai_mcp_token || null };
+  }
+  return {
+    provider, isByo: true, orgId: orgId || null,
+    apiKey: s.ai_api_key || null, model: s.ai_model || null, baseUrl: s.ai_base_url || null,
+    mcpUrl: s.ai_mcp_url || null, mcpToken: s.ai_mcp_token || null
+  };
+}
+
 module.exports = {
-  getSettings, updateSmtp, updateSms, updateDomain, setDomainVerified, smtpConfig, orgSmtp
+  getSettings, updateSmtp, updateSms, updateDomain, setDomainVerified, smtpConfig, orgSmtp,
+  AI_PROVIDERS, updateAi, aiConfig
 };

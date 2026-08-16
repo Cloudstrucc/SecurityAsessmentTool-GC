@@ -40,6 +40,42 @@
     </div>
   </div>
 
+  <!-- ── AI provider ── -->
+  <div class="card mb-4" id="ai">
+    <div class="card-header"><i class="bi bi-robot me-2"></i>AI provider (bring your own LLM / MCP)
+      {{#if (eq settings.ai_provider 'oob')}}<span class="badge bg-secondary ms-2">Using platform default (Anthropic)</span>
+      {{else}}{{#if settings.ai_provider}}<span class="badge bg-success ms-2">Own: {{settings.ai_provider}}</span>{{/if}}{{/if}}
+    </div>
+    <div class="card-body">
+      <p class="text-muted small">Use the platform's built-in AI (metered against your plan's token allowance), or bring your own frontier-model API — Anthropic, OpenAI, xAI (Grok), Google Gemini — or a custom / on-prem OpenAI-compatible endpoint. With your own provider, you pay that provider directly and no platform tokens are consumed.</p>
+      <form method="POST" action="/admin/organization/ai">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Provider</label>
+            <select class="form-select" name="ai_provider">
+              <option value="oob" {{#if (eq settings.ai_provider 'oob')}}selected{{/if}}>Platform default (Anthropic, metered)</option>
+              <option value="anthropic" {{#if (eq settings.ai_provider 'anthropic')}}selected{{/if}}>Anthropic (your key)</option>
+              <option value="openai" {{#if (eq settings.ai_provider 'openai')}}selected{{/if}}>OpenAI (your key)</option>
+              <option value="grok" {{#if (eq settings.ai_provider 'grok')}}selected{{/if}}>xAI — Grok (your key)</option>
+              <option value="gemini" {{#if (eq settings.ai_provider 'gemini')}}selected{{/if}}>Google Gemini (your key)</option>
+              <option value="custom" {{#if (eq settings.ai_provider 'custom')}}selected{{/if}}>Custom / on-prem (OpenAI-compatible)</option>
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label">Model <span class="text-muted">(optional)</span></label><input class="form-control" name="ai_model" value="{{settings.ai_model}}" placeholder="e.g. gpt-4o, claude-sonnet-4, gemini-1.5-pro"></div>
+          <div class="col-md-6"><label class="form-label">API key</label><input class="form-control" type="password" name="ai_api_key" placeholder="{{#if settings.ai_api_key}}•••••••• (saved — leave blank to keep){{else}}Your provider API key{{/if}}"></div>
+          <div class="col-md-6"><label class="form-label">Base URL <span class="text-muted">(custom / on-prem only)</span></label><input class="form-control" name="ai_base_url" value="{{settings.ai_base_url}}" placeholder="https://llm.yourdomain/v1"></div>
+          <div class="col-12"><hr class="my-1"><div class="small fw-semibold text-muted">MCP server <span class="fw-normal">(optional — connect your own Model Context Protocol server)</span></div></div>
+          <div class="col-md-6"><label class="form-label">MCP server URL</label><input class="form-control" name="ai_mcp_url" value="{{settings.ai_mcp_url}}" placeholder="https://mcp.yourdomain/sse"></div>
+          <div class="col-md-6"><label class="form-label">MCP auth token</label><input class="form-control" type="password" name="ai_mcp_token" placeholder="{{#if settings.ai_mcp_token}}•••••••• (saved){{else}}Bearer token (if required){{/if}}"></div>
+        </div>
+        <button class="btn btn-primary mt-3"><i class="bi bi-save me-1"></i>Save AI settings</button>
+      </form>
+      <hr>
+      <form method="POST" action="/admin/organization/ai/test"><button class="btn btn-outline-primary"><i class="bi bi-plug me-1"></i>Test AI connection</button></form>
+      <p class="text-muted small mt-2 mb-0">Prefer the platform default? Leave the provider on "Platform default". Your token usage and remaining allowance are shown on the dashboard.</p>
+    </div>
+  </div>
+
   <!-- ── SMS ── -->
   <div class="card mb-4" id="sms">
     <div class="card-header"><i class="bi bi-chat-dots me-2"></i>SMS (Twilio)

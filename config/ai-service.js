@@ -9,64 +9,170 @@
  */
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
-const MODEL = process.env.ANTHROPIC_MODEL || 'claude-opus-4-8"';
-const API_KEY = () => process.env.ANTHROPIC_API_KEY || '';
+const OOB_MODEL = () => process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514';
+const OOB_KEY = () => process.env.ANTHROPIC_API_KEY || '';
 
+const { getAiContext } = require('./ai-context');
+
+// Sensible default models per provider when the tenant didn't specify one.
+const DEFAULT_MODELS = {
+  anthropic: 'claude-sonnet-4-20250514',
+  openai: 'gpt-4o',
+  grok: 'grok-2-latest',
+  gemini: 'gemini-1.5-pro',
+  custom: 'gpt-4o'
+};
+
+/** True when *some* AI is available — either the OOB key or the tenant's own. */
 function isConfigured() {
-  return !!API_KEY();
+  const ctx = getAiContext();
+  // A BYO custom/on-prem endpoint may be keyless (auth at the network layer), so a
+  // base URL alone counts as configured; hosted BYO providers need a key.
+  if (ctx && ctx.isByo) return !!(ctx.apiKey || ctx.baseUrl);
+  return !!OOB_KEY();
+}
+
+// ── Content converters (Anthropic block format is our canonical input) ────────
+function toBlocks(userContent) {
+  return typeof userContent === 'string' ? [{ type: 'text', text: userContent }] : userContent;
+}
+function toOpenAIContent(userContent) {
+  const blocks = toBlocks(userContent);
+  return blocks.map(b => {
+    if (b.type === 'text') return { type: 'text', text: b.text };
+    if (b.type === 'image' && b.source) return { type: 'image_url', image_url: { url: `data:${b.source.media_type};base64,${b.source.data}` } };
+    return { type: 'text', text: '' };
+  });
+}
+function toGeminiParts(userContent) {
+  const blocks = toBlocks(userContent);
+  return blocks.map(b => {
+    if (b.type === 'text') return { text: b.text };
+    if (b.type === 'image' && b.source) return { inline_data: { mime_type: b.source.media_type, data: b.source.data } };
+    return { text: '' };
+  });
+}
+
+async function fetchJson(url, options, providerLabel) {
+  const MAX_RETRIES = 3;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const response = await fetch(url, options);
+    if (response.status === 429 && attempt < MAX_RETRIES) {
+      const retryAfter = response.headers.get('retry-after');
+      const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : Math.min(2000 * Math.pow(2, attempt), 30000);
+      console.log(`[AI] ${providerLabel} rate limited (429), retry ${attempt + 1}/${MAX_RETRIES} in ${waitMs}ms...`);
+      await new Promise(r => setTimeout(r, waitMs));
+      continue;
+    }
+    if (!response.ok) {
+      const errBody = await response.text();
+      throw new Error(`${providerLabel} API error (${response.status}): ${errBody.slice(0, 500)}`);
+    }
+    return response.json();
+  }
+  throw new Error(`${providerLabel} rate limit exceeded after retries.`);
+}
+
+async function callAnthropic({ apiKey, model, system, userContent, maxTokens }) {
+  const data = await fetchJson(ANTHROPIC_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: 'user', content: toBlocks(userContent) }] })
+  }, 'Anthropic');
+  const u = data.usage || {};
+  return { text: (data.content && data.content[0] && data.content[0].text) || '', usage: { input: u.input_tokens || 0, output: u.output_tokens || 0, total: (u.input_tokens || 0) + (u.output_tokens || 0) } };
+}
+
+async function callOpenAICompatible({ apiKey, model, baseUrl, system, userContent, maxTokens, label }) {
+  const url = `${(baseUrl || 'https://api.openai.com/v1').replace(/\/$/, '')}/chat/completions`;
+  // Only send Authorization when a key is set — keyless on-prem endpoints reject a
+  // bogus "Bearer null".
+  const headers = { 'Content-Type': 'application/json' };
+  if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+  const data = await fetchJson(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ model, max_tokens: maxTokens, messages: [{ role: 'system', content: system }, { role: 'user', content: toOpenAIContent(userContent) }] })
+  }, label || 'OpenAI');
+  const u = data.usage || {};
+  return { text: (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '', usage: { input: u.prompt_tokens || 0, output: u.completion_tokens || 0, total: u.total_tokens || ((u.prompt_tokens || 0) + (u.completion_tokens || 0)) } };
+}
+
+async function callGemini({ apiKey, model, system, userContent, maxTokens }) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const data = await fetchJson(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      systemInstruction: system ? { parts: [{ text: system }] } : undefined,
+      contents: [{ role: 'user', parts: toGeminiParts(userContent) }],
+      generationConfig: { maxOutputTokens: maxTokens }
+    })
+  }, 'Gemini');
+  const cand = data.candidates && data.candidates[0];
+  const text = (cand && cand.content && cand.content.parts || []).map(p => p.text || '').join('');
+  const m = data.usageMetadata || {};
+  return { text, usage: { input: m.promptTokenCount || 0, output: m.candidatesTokenCount || 0, total: m.totalTokenCount || 0 } };
+}
+
+function recordTokenUsage(ctx, usage) {
+  try {
+    const { run, get } = require('../models/database');
+    const orgId = ctx && ctx.orgId ? ctx.orgId : null;
+    const billedOob = ctx && ctx.isByo ? 0 : 1;
+    run('INSERT INTO ai_token_usage (organization_id, user_id, provider, work_type, input_tokens, output_tokens, total_tokens, billed_oob) VALUES (?,?,?,?,?,?,?,?)',
+      [orgId, ctx && ctx.userId || null, ctx && ctx.provider || 'oob', ctx && ctx.workType || null, usage.input || 0, usage.output || 0, usage.total || 0, billedOob]);
+    // Only OOB usage counts against the tenant's monthly allowance.
+    if (orgId && billedOob) {
+      const billing = require('./billing');
+      const period = new Date().toISOString().slice(0, 7); // YYYY-MM
+      const org = get('SELECT plan, token_limit, token_period, tokens_used, tokens_extra FROM organizations WHERE id = ?', [orgId]);
+      if (org) {
+        const plan = billing.getPlan(org.plan) || {};
+        const base = org.token_limit != null ? org.token_limit : plan.tokens; // null = unlimited
+        // Monthly counter resets when the stored period is an earlier month.
+        const rolledUsed = (org.token_period === period) ? (org.tokens_used || 0) : 0;
+        const t = usage.total || 0;
+        if (base == null) {
+          // Unlimited plan — meter for reporting only; never touch the top-up balance.
+          run('UPDATE organizations SET token_period = ?, tokens_used = ? WHERE id = ?', [period, rolledUsed + t, orgId]);
+        } else {
+          // Consume the monthly base first; any overflow draws down the one-time
+          // top-up balance (tokens_extra) so a purchased pack is spent once, not
+          // re-granted every month. tokens_used is capped at base.
+          const baseRemaining = Math.max(0, base - rolledUsed);
+          const fromBase = Math.min(t, baseRemaining);
+          const fromExtra = t - fromBase;
+          const newUsed = rolledUsed + fromBase;
+          const newExtra = Math.max(0, (org.tokens_extra || 0) - fromExtra);
+          run('UPDATE organizations SET token_period = ?, tokens_used = ?, tokens_extra = ? WHERE id = ?',
+            [period, newUsed, newExtra, orgId]);
+        }
+      }
+    }
+  } catch (e) { console.error('[ai usage]', e.message); }
 }
 
 /**
- * Core API call to Anthropic Messages API
- * userContent can be a string or an array of content blocks
+ * Core AI call. Routes to the tenant's configured provider (or the OOB default)
+ * based on the per-request AI context. Returns the response text (all callers
+ * expect a string) and records token usage.
  */
 async function callClaude(system, userContent, { maxTokens = 4096 } = {}) {
-  if (!isConfigured()) {
-    throw new Error('ANTHROPIC_API_KEY not configured. Set it in your environment variables or .env file.');
+  const ctx = getAiContext() || {};
+  let result;
+  if (ctx.isByo) {
+    const model = ctx.model || DEFAULT_MODELS[ctx.provider] || 'gpt-4o';
+    if (ctx.provider === 'anthropic')      result = await callAnthropic({ apiKey: ctx.apiKey, model, system, userContent, maxTokens });
+    else if (ctx.provider === 'gemini')    result = await callGemini({ apiKey: ctx.apiKey, model, system, userContent, maxTokens });
+    else if (ctx.provider === 'grok')      result = await callOpenAICompatible({ apiKey: ctx.apiKey, model, baseUrl: ctx.baseUrl || 'https://api.x.ai/v1', system, userContent, maxTokens, label: 'Grok (xAI)' });
+    else                                    result = await callOpenAICompatible({ apiKey: ctx.apiKey, model, baseUrl: ctx.baseUrl, system, userContent, maxTokens, label: ctx.provider === 'custom' ? 'Custom LLM' : 'OpenAI' });
+  } else {
+    if (!OOB_KEY()) throw new Error('AI not configured. Set ANTHROPIC_API_KEY or configure your own AI provider under Admin → Organization settings.');
+    result = await callAnthropic({ apiKey: OOB_KEY(), model: OOB_MODEL(), system, userContent, maxTokens });
   }
-
-  // Support both simple string and array of content blocks
-  const content = typeof userContent === 'string'
-    ? [{ type: 'text', text: userContent }]
-    : userContent;
-
-  const messages = [{ role: 'user', content }];
-
-  const MAX_RETRIES = 3;
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const response = await fetch(ANTHROPIC_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': API_KEY(),
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: maxTokens,        
-        system,
-        messages
-      })
-    });
-
-    if (response.status === 429 && attempt < MAX_RETRIES) {
-      // Rate limited — wait with exponential backoff
-      const retryAfter = response.headers.get('retry-after');
-      const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : Math.min(2000 * Math.pow(2, attempt), 30000);
-      console.log(`[AI] Rate limited (429), retry ${attempt + 1}/${MAX_RETRIES} in ${waitMs}ms...`);
-      await new Promise(resolve => setTimeout(resolve, waitMs));
-      continue;
-    }
-
-    if (!response.ok) {
-      const errBody = await response.text();
-      throw new Error(`Anthropic API error (${response.status}): ${errBody}`);
-    }
-
-    const data = await response.json();
-    return data.content[0].text;
-  }
-  throw new Error('Anthropic API rate limit exceeded after retries. Please wait a moment and try again.');
+  recordTokenUsage(ctx, result.usage || {});
+  return result.text;
 }
 
 /**
@@ -421,9 +527,16 @@ Write evidence guidance for this control:`;
   return await callClaude(system, userContent, { maxTokens: 800 });
 }
 
+/** Round-trip test of the currently-bound provider (used by the admin console). */
+async function testConnection() {
+  const text = await callClaude('You are a connectivity test.', 'Reply with the single word: OK', { maxTokens: 16 });
+  return (text || '').trim();
+}
+
 module.exports = {
   isConfigured,
   callClaude,
+  testConnection,
   parseDocumentForIntake,
   suggestFromDescription,
   reviewIntake,

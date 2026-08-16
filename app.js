@@ -228,6 +228,19 @@ app.use((req, res, next) => {
   next();
 });
 
+// Bind the tenant's AI provider config (own LLM/MCP, or the OOB default) to this
+// request so the AI service routes calls correctly and meters OOB token usage.
+app.use((req, res, next) => {
+  let ctx = {};
+  try {
+    const uid = req.user ? req.user.id : (req.session && req.session.clientId);
+    const orgId = req.user ? req.user.organization_id : null;
+    if (orgId) ctx = Object.assign({ userId: uid }, require('./config/org-settings').aiConfig(orgId));
+    else if (uid) ctx = { userId: uid, provider: 'oob', isByo: false };
+  } catch (e) { /* db not ready */ }
+  require('./config/ai-context').runWithAiContext(ctx, next);
+});
+
 // Routes
 app.use('/', billingRoutes.router);
 app.use('/', publicRoutes);

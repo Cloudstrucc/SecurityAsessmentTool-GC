@@ -250,6 +250,25 @@ router.post('/billing/redeem', ensureAuthenticated, (req, res) => {
   res.redirect(req.body.return_to || '/admin/dashboard');
 });
 
+// ── AI token top-up ───────────────────────────────────────────────────────────
+router.get('/billing/tokens', ensureAuthenticated, (req, res) => {
+  const org = billing.orgForUser(req.user);
+  res.render('billing/tokens', billingView('tokens', {
+    title: 'Add AI tokens', layout: 'home', org,
+    status: billing.tokenStatus(org), packs: billing.TOKEN_PACKS, stripeReady: billing.isConfigured()
+  }));
+});
+
+router.post('/billing/tokens/checkout', ensureAuthenticated, async (req, res) => {
+  if (!access.isRootAdmin(req.user)) { req.flash('error', 'Only the primary (root) administrator can purchase tokens.'); return res.redirect('/admin/dashboard'); }
+  const org = billing.orgForUser(req.user);
+  const pack = billing.getTokenPack(req.body.pack);
+  if (!org || !pack) { req.flash('error', 'Invalid token pack.'); return res.redirect('/billing/tokens'); }
+  const result = await billing.createTokenCheckout({ org, pack, customerEmail: req.user.email, baseUrl: baseUrl(req) });
+  if (!result.ok) { req.flash('error', result.error); return res.redirect('/billing/tokens'); }
+  res.redirect(303, result.url);
+});
+
 // ── Stripe billing portal (self-service card/plan/cancel) ─────────────────────
 router.get('/billing/portal', ensureAuthenticated, async (req, res) => {
   const org = billing.orgForUser(req.user);
