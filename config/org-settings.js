@@ -102,13 +102,19 @@ function updateAi(orgId, s) {
 function aiConfig(orgId) {
   const s = getSettings(orgId) || {};
   const provider = s.ai_provider || 'oob';
-  const isByo = provider !== 'oob' && !!s.ai_api_key;
+  // A custom / on-prem OpenAI-compatible endpoint may authenticate at the network
+  // layer (mTLS, private link, IP allow-list) and need no API key — a base URL is
+  // enough to treat it as bring-your-own. Hosted providers always require a key.
+  // Without this, a keyless custom endpoint would silently fall back to the
+  // platform's Anthropic key and be metered against the tenant's OOB allowance.
+  const hasCreds = provider === 'custom' ? (!!s.ai_api_key || !!s.ai_base_url) : !!s.ai_api_key;
+  const isByo = provider !== 'oob' && hasCreds;
   if (!isByo) {
     return { provider: 'oob', isByo: false, orgId: orgId || null, mcpUrl: s.ai_mcp_url || null, mcpToken: s.ai_mcp_token || null };
   }
   return {
     provider, isByo: true, orgId: orgId || null,
-    apiKey: s.ai_api_key, model: s.ai_model || null, baseUrl: s.ai_base_url || null,
+    apiKey: s.ai_api_key || null, model: s.ai_model || null, baseUrl: s.ai_base_url || null,
     mcpUrl: s.ai_mcp_url || null, mcpToken: s.ai_mcp_token || null
   };
 }

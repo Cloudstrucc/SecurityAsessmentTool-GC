@@ -12,7 +12,8 @@ const PORT = String(43000 + Math.floor(Math.random() * 1000));
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const DB_PATH = path.join(TMP, 'data', 'sa-tool.db');
 const TEST_SECRET = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
-const SADD_PATH = '/Users/frederickpearson/repos/nintex-dataverse/SADD.html';
+// Portable, repo-bundled fixture (was a hardcoded developer-local path).
+const SADD_PATH = path.join(__dirname, 'fixtures', 'SADD.html');
 
 const USERS = {
   assessor: { email: 'e2e.assessor@example.test', password: 'TestPassword123!' },
@@ -53,6 +54,9 @@ function env() {
     DB_PATH,
     DATA_DIR: path.dirname(DB_PATH),
     SESSION_SECRET: 'e2e-session-secret',
+    // The suite exercises the full TOTP/passkey sign-in flow, so turn MFA on for
+    // the test server. (App default is MFA_ENABLED off — the global kill-switch.)
+    MFA_ENABLED: 'true',
     ADMIN_EMAIL: 'seed.admin@example.test',
     ADMIN_PASSWORD: 'SeedAdminPassword123!',
     SMTP_HOST: '',

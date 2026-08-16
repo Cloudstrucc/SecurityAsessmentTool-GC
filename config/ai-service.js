@@ -26,7 +26,9 @@ const DEFAULT_MODELS = {
 /** True when *some* AI is available — either the OOB key or the tenant's own. */
 function isConfigured() {
   const ctx = getAiContext();
-  if (ctx && ctx.isByo) return !!ctx.apiKey;
+  // A BYO custom/on-prem endpoint may be keyless (auth at the network layer), so a
+  // base URL alone counts as configured; hosted BYO providers need a key.
+  if (ctx && ctx.isByo) return !!(ctx.apiKey || ctx.baseUrl);
   return !!OOB_KEY();
 }
 
@@ -83,9 +85,13 @@ async function callAnthropic({ apiKey, model, system, userContent, maxTokens }) 
 
 async function callOpenAICompatible({ apiKey, model, baseUrl, system, userContent, maxTokens, label }) {
   const url = `${(baseUrl || 'https://api.openai.com/v1').replace(/\/$/, '')}/chat/completions`;
+  // Only send Authorization when a key is set — keyless on-prem endpoints reject a
+  // bogus "Bearer null".
+  const headers = { 'Content-Type': 'application/json' };
+  if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
   const data = await fetchJson(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    headers,
     body: JSON.stringify({ model, max_tokens: maxTokens, messages: [{ role: 'system', content: system }, { role: 'user', content: toOpenAIContent(userContent) }] })
   }, label || 'OpenAI');
   const u = data.usage || {};
@@ -118,12 +124,30 @@ function recordTokenUsage(ctx, usage) {
       [orgId, ctx && ctx.userId || null, ctx && ctx.provider || 'oob', ctx && ctx.workType || null, usage.input || 0, usage.output || 0, usage.total || 0, billedOob]);
     // Only OOB usage counts against the tenant's monthly allowance.
     if (orgId && billedOob) {
+      const billing = require('./billing');
       const period = new Date().toISOString().slice(0, 7); // YYYY-MM
-      const org = get('SELECT token_period FROM organizations WHERE id = ?', [orgId]);
-      if (org && org.token_period !== period) {
-        run('UPDATE organizations SET token_period = ?, tokens_used = ? WHERE id = ?', [period, usage.total || 0, orgId]);
-      } else {
-        run('UPDATE organizations SET tokens_used = COALESCE(tokens_used,0) + ? WHERE id = ?', [usage.total || 0, orgId]);
+      const org = get('SELECT plan, token_limit, token_period, tokens_used, tokens_extra FROM organizations WHERE id = ?', [orgId]);
+      if (org) {
+        const plan = billing.getPlan(org.plan) || {};
+        const base = org.token_limit != null ? org.token_limit : plan.tokens; // null = unlimited
+        // Monthly counter resets when the stored period is an earlier month.
+        const rolledUsed = (org.token_period === period) ? (org.tokens_used || 0) : 0;
+        const t = usage.total || 0;
+        if (base == null) {
+          // Unlimited plan — meter for reporting only; never touch the top-up balance.
+          run('UPDATE organizations SET token_period = ?, tokens_used = ? WHERE id = ?', [period, rolledUsed + t, orgId]);
+        } else {
+          // Consume the monthly base first; any overflow draws down the one-time
+          // top-up balance (tokens_extra) so a purchased pack is spent once, not
+          // re-granted every month. tokens_used is capped at base.
+          const baseRemaining = Math.max(0, base - rolledUsed);
+          const fromBase = Math.min(t, baseRemaining);
+          const fromExtra = t - fromBase;
+          const newUsed = rolledUsed + fromBase;
+          const newExtra = Math.max(0, (org.tokens_extra || 0) - fromExtra);
+          run('UPDATE organizations SET token_period = ?, tokens_used = ?, tokens_extra = ? WHERE id = ?',
+            [period, newUsed, newExtra, orgId]);
+        }
       }
     }
   } catch (e) { console.error('[ai usage]', e.message); }
