@@ -1,0 +1,677 @@
+<title>New Project Journey</title>
+<style>
+  :root {
+    --ground: #f6f7fb;
+    --panel: #ffffff;
+    --panel-2: #f0f3f9;
+    --border: #dde3ee;
+    --border-strong: #c6cfe0;
+    --ink: #0f172a;
+    --ink-2: #475569;
+    --ink-3: #7684a0;
+    --accent: #4f46e5;
+    --accent-weak: #eef0fe;
+    --accent-ink: #3730a3;
+    --ai: #7c3aed;
+    --ai-weak: #f4edff;
+    --good: #16a34a;
+    --good-weak: #e7f6ec;
+    --warn: #d97706;
+    --warn-weak: #fdf1e0;
+    --shadow: 0 1px 2px rgba(15,23,42,.06), 0 8px 24px -12px rgba(15,23,42,.18);
+    --shadow-lift: 0 2px 6px rgba(15,23,42,.08), 0 20px 40px -20px rgba(15,23,42,.30);
+    --radius: 14px;
+    --radius-sm: 9px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --ground: #0f141f;
+      --panel: #161d2b;
+      --panel-2: #1d2637;
+      --border: #2a3446;
+      --border-strong: #3a465c;
+      --ink: #eef2f9;
+      --ink-2: #a9b5cb;
+      --ink-3: #77839c;
+      --accent: #7c83ff;
+      --accent-weak: #21243c;
+      --accent-ink: #b9bdff;
+      --ai: #a879ff;
+      --ai-weak: #271a3d;
+      --good: #4ade80;
+      --good-weak: #17301f;
+      --warn: #f0a94a;
+      --warn-weak: #33240f;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+      --shadow-lift: 0 2px 6px rgba(0,0,0,.5), 0 20px 40px -20px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0f141f;
+    --panel: #161d2b;
+    --panel-2: #1d2637;
+    --border: #2a3446;
+    --border-strong: #3a465c;
+    --ink: #eef2f9;
+    --ink-2: #a9b5cb;
+    --ink-3: #77839c;
+    --accent: #7c83ff;
+    --accent-weak: #21243c;
+    --accent-ink: #b9bdff;
+    --ai: #a879ff;
+    --ai-weak: #271a3d;
+    --good: #4ade80;
+    --good-weak: #17301f;
+    --warn: #f0a94a;
+    --warn-weak: #33240f;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    --shadow-lift: 0 2px 6px rgba(0,0,0,.5), 0 20px 40px -20px rgba(0,0,0,.7);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    color: var(--ink);
+    background: var(--ground);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 { margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+  p { margin: 0; }
+  button { font-family: inherit; }
+
+  .prototype-note {
+    max-width: 1080px;
+    margin: 22px auto 0;
+    padding: 0 22px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12.5px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-weight: 600;
+  }
+  .prototype-note .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ai); }
+
+  .app {
+    max-width: 1080px;
+    margin: 14px auto 60px;
+    padding: 0 22px;
+  }
+
+  /* ---- top bar ---- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 2px 18px;
+  }
+  .brand { display: flex; align-items: center; gap: 11px; }
+  .brand .mark {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), var(--ai));
+    display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 15px;
+    box-shadow: var(--shadow);
+  }
+  .brand b { font-size: 15px; letter-spacing: -.01em; }
+  .brand span { display: block; font-size: 11.5px; color: var(--ink-3); font-weight: 500; letter-spacing: .02em; }
+  .crumbs { font-size: 12.5px; color: var(--ink-3); }
+  .crumbs b { color: var(--ink-2); font-weight: 600; }
+
+  /* ---- shell ---- */
+  .shell {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .shell-grid { display: grid; grid-template-columns: 268px 1fr; min-height: 560px; }
+
+  /* ---- rail ---- */
+  .rail {
+    background: var(--panel-2);
+    border-right: 1px solid var(--border);
+    padding: 26px 22px;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+  .rail-head .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .rail-head h2 { font-size: 19px; margin-top: 5px; }
+  .progress-meta { display: flex; align-items: baseline; justify-content: space-between; margin-top: 16px; margin-bottom: 8px; }
+  .progress-meta .count { font-size: 12.5px; color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .progress-meta .pct { font-size: 12.5px; color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .track { height: 6px; border-radius: 99px; background: var(--border); overflow: hidden; }
+  .track > i { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--ai)); transition: width .45s cubic-bezier(.4,0,.1,1); }
+
+  .steps { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .steps li {
+    display: flex; align-items: center; gap: 11px;
+    padding: 9px 10px; border-radius: var(--radius-sm);
+    font-size: 13.5px; color: var(--ink-2); cursor: pointer;
+    border: 1px solid transparent; transition: background .15s, color .15s;
+  }
+  .steps li:hover { background: var(--panel); }
+  .steps li .num {
+    width: 23px; height: 23px; flex: none; border-radius: 50%;
+    display: grid; place-items: center; font-size: 12px; font-weight: 700;
+    background: var(--border); color: var(--ink-2); font-variant-numeric: tabular-nums;
+    transition: background .2s, color .2s;
+  }
+  .steps li.active { background: var(--panel); color: var(--ink); border-color: var(--border); font-weight: 600; box-shadow: var(--shadow); }
+  .steps li.active .num { background: var(--accent); color: #fff; }
+  .steps li.done .num { background: var(--good); color: #fff; }
+  .steps li.done .num::after { content: "✓"; }
+  .steps li.done .num i { display: none; }
+  .rail-foot { margin-top: auto; font-size: 12px; color: var(--ink-3); display: flex; align-items: center; gap: 8px; }
+  .save-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11.5px; font-weight: 600; color: var(--good);
+    background: var(--good-weak); padding: 4px 9px; border-radius: 99px;
+  }
+  .save-chip .d { width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
+
+  /* ---- content ---- */
+  .content { display: flex; flex-direction: column; }
+  .pane { padding: 34px 40px; flex: 1; }
+  .pane-head { margin-bottom: 26px; }
+  .pane-head .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; color: var(--accent); }
+  .pane-head h1 { font-size: 26px; margin-top: 7px; }
+  .pane-head p { color: var(--ink-2); font-size: 14.5px; margin-top: 8px; max-width: 62ch; }
+
+  /* ---- path chooser ---- */
+  .paths { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .path {
+    text-align: left; width: 100%;
+    background: var(--panel); border: 1.5px solid var(--border); border-radius: var(--radius);
+    padding: 20px; cursor: pointer; display: flex; gap: 16px; align-items: flex-start;
+    transition: border-color .18s, transform .18s, box-shadow .18s;
+  }
+  .path:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); border-color: var(--border-strong); }
+  .path .picon {
+    width: 44px; height: 44px; flex: none; border-radius: 11px; display: grid; place-items: center;
+    font-size: 20px;
+  }
+  .path.ai { border-color: color-mix(in srgb, var(--ai) 40%, var(--border)); background: linear-gradient(180deg, var(--ai-weak), var(--panel) 70%); }
+  .path.ai:hover { border-color: var(--ai); }
+  .path.ai .picon { background: var(--ai); color: #fff; }
+  .path .picon.indigo { background: var(--accent-weak); color: var(--accent-ink); }
+  .path .picon.slate { background: var(--panel-2); color: var(--ink-2); }
+  .path h3 { font-size: 16px; display: flex; align-items: center; gap: 9px; }
+  .path p { color: var(--ink-2); font-size: 13.5px; margin-top: 4px; }
+  .tag {
+    font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 99px; background: var(--ai); color: #fff;
+  }
+  .tag.soft { background: var(--accent-weak); color: var(--accent-ink); }
+  .path .go { margin-left: auto; align-self: center; color: var(--ink-3); font-size: 20px; }
+
+  /* ---- form ---- */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .field label { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+  .field label .req { color: var(--ai); }
+  .field .hint { font-size: 12px; color: var(--ink-3); }
+  .field input, .field select, .field textarea {
+    font-family: inherit; font-size: 14px; color: var(--ink);
+    background: var(--panel); border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    padding: 10px 12px; width: 100%;
+  }
+  .field textarea { resize: vertical; min-height: 78px; }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-weak);
+  }
+  .cia { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-size: 12.5px; padding: 7px 12px; border-radius: 99px; cursor: pointer;
+    border: 1.5px solid var(--border); background: var(--panel); color: var(--ink-2); user-select: none;
+    transition: all .15s;
+  }
+  .chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-weak); color: var(--accent-ink); font-weight: 600; }
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 13px 15px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--panel-2);
+    margin-bottom: 12px;
+  }
+  .toggle-row .t-label { font-size: 13.5px; font-weight: 600; }
+  .toggle-row .t-sub { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .sw { width: 42px; height: 24px; border-radius: 99px; background: var(--border-strong); position: relative; cursor: pointer; flex: none; transition: background .18s; }
+  .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left .18s; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+  .sw[aria-pressed="true"] { background: var(--accent); }
+  .sw[aria-pressed="true"]::after { left: 21px; }
+
+  .disclosure {
+    margin-top: 6px; border-top: 1px dashed var(--border); padding-top: 16px;
+  }
+  .disclosure > summary {
+    cursor: pointer; list-style: none; font-size: 13px; font-weight: 600; color: var(--accent);
+    display: flex; align-items: center; gap: 7px;
+  }
+  .disclosure > summary::-webkit-details-marker { display: none; }
+  .disclosure > summary::before { content: "＋"; font-weight: 700; }
+  .disclosure[open] > summary::before { content: "－"; }
+  .disclosure .inner { padding-top: 16px; }
+
+  .ai-callout {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: var(--ai-weak); border: 1px solid color-mix(in srgb, var(--ai) 30%, var(--border));
+    border-radius: var(--radius-sm); padding: 13px 15px; margin-bottom: 22px;
+    font-size: 13px; color: var(--ink);
+  }
+  .ai-callout .k { color: var(--ai); font-weight: 700; }
+
+  /* ---- review ---- */
+  .review-group { border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 14px; overflow: hidden; }
+  .review-group > header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; background: var(--panel-2); font-size: 13px; font-weight: 700;
+  }
+  .review-group > header a { font-size: 12px; color: var(--accent); font-weight: 600; text-decoration: none; cursor: pointer; }
+  .review-group dl { margin: 0; padding: 6px 16px 14px; display: grid; grid-template-columns: 190px 1fr; gap: 4px 14px; }
+  .review-group dt { font-size: 12.5px; color: var(--ink-3); padding-top: 7px; }
+  .review-group dd { margin: 0; font-size: 13.5px; padding-top: 7px; }
+  .ai-flag {
+    font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ai);
+    background: var(--ai-weak); padding: 1px 6px; border-radius: 5px; margin-left: 8px; vertical-align: middle;
+  }
+
+  /* ---- success ---- */
+  .success { text-align: center; padding: 20px 0 6px; }
+  .success .seal {
+    width: 66px; height: 66px; border-radius: 50%; margin: 0 auto 18px;
+    background: var(--good-weak); color: var(--good); display: grid; place-items: center; font-size: 30px;
+    border: 1px solid color-mix(in srgb, var(--good) 30%, var(--border));
+  }
+  .success h1 { font-size: 24px; }
+  .success > p { color: var(--ink-2); margin: 8px auto 0; max-width: 48ch; font-size: 14.5px; }
+  .next { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 26px; text-align: left; }
+  .next .card {
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 16px; cursor: pointer;
+    display: flex; gap: 12px; align-items: flex-start; background: var(--panel); transition: border-color .15s, transform .15s;
+  }
+  .next .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .next .card .ni { font-size: 20px; }
+  .next .card b { font-size: 14px; }
+  .next .card p { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; }
+
+  /* ---- footer bar ---- */
+  .footbar {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 16px 40px; border-top: 1px solid var(--border); background: var(--panel);
+    position: sticky; bottom: 0;
+  }
+  .footbar .left { display: flex; gap: 10px; align-items: center; }
+  .btn {
+    font-size: 14px; font-weight: 600; border-radius: var(--radius-sm); padding: 10px 18px;
+    border: 1.5px solid var(--border); background: var(--panel); color: var(--ink); cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px; transition: transform .12s, box-shadow .15s, background .15s;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn.ghost { color: var(--ink-2); }
+  .btn.ghost:hover { background: var(--panel-2); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: var(--shadow); }
+  .btn.primary:hover { box-shadow: var(--shadow-lift); }
+  .btn.create { background: var(--good); border-color: var(--good); color: #fff; }
+  .btn.link { border: none; background: none; color: var(--ink-3); padding: 10px 6px; }
+  .btn.link:hover { color: var(--ink); }
+  .btn[disabled] { opacity: .45; cursor: not-allowed; transform: none; }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 760px) {
+    .shell-grid { grid-template-columns: 1fr; }
+    .rail { flex-direction: column; border-right: none; border-bottom: 1px solid var(--border); }
+    .steps { flex-direction: row; overflow-x: auto; }
+    .steps li .lbl { display: none; }
+    .pane { padding: 26px 20px; }
+    .footbar { padding: 14px 20px; }
+    .grid2, .cia, .next { grid-template-columns: 1fr; }
+    .review-group dl { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="prototype-note"><span class="dot"></span> Interactive prototype · Vanguard SA&amp;A · click through the flow</div>
+
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark">V</div>
+      <div><b>Vanguard SA&amp;A</b><span>Security Assessment &amp; Authorization</span></div>
+    </div>
+    <div class="crumbs">Projects <span style="opacity:.5">›</span> <b>New project</b></div>
+  </div>
+
+  <div class="shell">
+    <div class="shell-grid">
+      <!-- RAIL -->
+      <aside class="rail">
+        <div>
+          <div class="rail-head">
+            <div class="eyebrow">New project</div>
+            <h2 id="railTitle">Getting started</h2>
+          </div>
+          <div class="progress-meta">
+            <span class="count" id="stepCount">Choose a path</span>
+            <span class="pct" id="pct">0%</span>
+          </div>
+          <div class="track"><i id="trackFill"></i></div>
+        </div>
+        <ul class="steps" id="stepNav"></ul>
+        <div class="rail-foot">
+          <span class="save-chip" id="saveChip"><span class="d"></span> Draft saved</span>
+        </div>
+      </aside>
+
+      <!-- CONTENT -->
+      <div class="content">
+        <div class="pane" id="pane"></div>
+        <div class="footbar" id="footbar"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STEPS = ["Basics", "Framework", "Hosting", "Technology", "Contacts", "Review"];
+  var state = { step: -1, path: null, aiApplied: false };
+
+  var pane = document.getElementById("pane");
+  var footbar = document.getElementById("footbar");
+  var stepNav = document.getElementById("stepNav");
+
+  /* ---------- shared field renderers ---------- */
+  function reqStar() { return '<span class="req">*</span>'; }
+
+  function chooserView() {
+    return '' +
+      '<div class="pane-head">' +
+        '<div class="eyebrow">Step 0 · How would you like to start?</div>' +
+        '<h1>Create a new project</h1>' +
+        '<p>Every project drives a security assessment. Pick the path that fits how much you already know — you can change any field before it is saved.</p>' +
+      '</div>' +
+      '<div class="paths">' +
+        pathCard("ai", "✦", "Start with AI", '<span class="tag">Fastest</span>',
+          "Upload a design doc, PIA, TRA or charter — or just describe the system. The assistant proposes every field, then drops you on a review to confirm.") +
+        pathCard("quick", "⚡", "Quick create", '<span class="tag soft">Draft</span>',
+          "Just a name, framework and classification. We create the project now; you finish the intake whenever you are ready.", "indigo") +
+        pathCard("full", "☰", "Full intake", "",
+          "Walk the complete 5-step intake yourself — every classification, hosting, technology and contact field.", "slate") +
+      '</div>';
+  }
+  function pathCard(id, icon, title, tag, desc, iconClass) {
+    return '<button class="path ' + (id === "ai" ? "ai" : "") + '" data-path="' + id + '">' +
+      '<div class="picon ' + (iconClass || "") + '">' + icon + '</div>' +
+      '<div><h3>' + title + ' ' + tag + '</h3><p>' + desc + '</p></div>' +
+      '<div class="go">→</div>' +
+    '</button>';
+  }
+
+  function basicsView() {
+    var aiNote = state.aiApplied ? '<div class="ai-callout"><span class="k">✦ AI pre-filled 18 fields.</span> Values the assistant suggested are flagged on the Review step — confirm or edit anything before creating.</div>' : '';
+    return head("Step 1 · Basics", "What are we assessing?", "Name the system and describe what it does. A good description lets the platform recommend the right ITSG-33 controls.") +
+      aiNote +
+      field("Project name " + reqStar(), '<input value="' + (state.aiApplied ? "GCcase Client Portal" : "") + '" placeholder="e.g. HR Case Management System">') +
+      field("Description " + reqStar(), '<textarea placeholder="Purpose, users, data flows, key functionality…">' + (state.aiApplied ? "Protected B Azure portal used by case workers to manage applications, exchange documents with clients, and connect to GCcase and Entra ID." : "") + '</textarea>', "Enough detail for control recommendations.") +
+      '<div class="grid2">' +
+        field("Department / agency", '<input value="' + (state.aiApplied ? "Treasury Board Secretariat" : "") + '" placeholder="e.g. Treasury Board Secretariat">') +
+        field("Branch / directorate", '<input value="' + (state.aiApplied ? "Digital Services" : "") + '" placeholder="e.g. Digital Services">') +
+      '</div>' +
+      disclosure("Add estimated user count &amp; intake documents",
+        field("Estimated users", select(["1–50","51–500","501–5,000","5,000+"])) +
+        field("Project documents", '<input type="file">', "Architecture notes, diagrams, requirements."));
+  }
+
+  function frameworkView() {
+    return head("Step 2 · Framework &amp; categorization", "Choose the standard, then categorize", "The framework decides the rest — ITSG-33 asks for Confidentiality / Integrity / Availability; other frameworks ask for a baseline and category.") +
+      field("Security framework " + reqStar(), select(["ITSG-33 (GC)","NIST SP 800-53","ISO/IEC 27001","SOC 2","CIS Controls v8"])) +
+      field("Data classification " + reqStar(), select(["Unclassified","Protected A","Protected B","Protected C","Confidential","Secret"], state.aiApplied ? "Protected B" : "Protected B")) +
+      '<label style="font-size:12.5px;font-weight:600;display:block;margin-bottom:8px;">Categorization (C / I / A)</label>' +
+      '<div class="cia" style="margin-bottom:18px;">' +
+        miniSelect("Confidentiality", ["Low","Medium","High"], state.aiApplied ? "High" : "Medium") +
+        miniSelect("Integrity", ["Low","Medium","High"], "Medium") +
+        miniSelect("Availability", ["Low","Medium","High"], "Medium") +
+      '</div>' +
+      toggle("Processes personal information (PII)", "Adds privacy controls (AP, UL, DM families).", state.aiApplied) +
+      toggle("High Value Asset (HVA)", "Flags the system for enhanced oversight.", false) +
+      disclosure("Add PII types, ATIP &amp; PIA status",
+        '<label style="font-size:12.5px;font-weight:600;display:block;margin-bottom:8px;">PII types</label>' +
+        '<div class="chips" style="margin-bottom:16px;">' + chips(["Name / contact","SIN","Financial","Health","Employment","Biometric"], state.aiApplied ? ["Name / contact","Employment"] : []) + '</div>' +
+        '<div class="grid2">' + field("ATIP subject", select(["Select…","Yes","No","Unsure"])) + field("PIA status", select(["Select…","Completed","In progress","Not started","Not required"])) + '</div>');
+  }
+
+  function hostingView() {
+    return head("Step 3 · Hosting &amp; architecture", "Where it runs and what it talks to", "Hosting and interconnection details help identify inherited controls and interconnection risk.") +
+      '<div class="grid2">' +
+        field("Primary hosting " + reqStar(), select(["Microsoft Azure (GC Cloud)","AWS (GC Cloud)","Google Cloud","SSC Data Centre","On-premises","Hybrid","SaaS / third-party"], state.aiApplied ? "Microsoft Azure (GC Cloud)" : "")) +
+        field("Data residency", select(["Canada only","Canada primary + failover","North America","Global","Unsure"], "Canada only")) +
+      '</div>' +
+      disclosure("Add APIs, interconnections &amp; access patterns",
+        '<div class="grid2">' +
+          field("APIs", select(["Select…","Exposes APIs","Consumes APIs","Both","None"], state.aiApplied ? "Both" : "")) +
+          field("GC interconnections", select(["Select…","Yes","No","Planned"], state.aiApplied ? "Yes" : "")) +
+        '</div>' +
+        field("Known interconnections", '<textarea placeholder="APIs, file transfers, GC systems, identity providers…">' + (state.aiApplied ? "GCcase, Entra ID (SSO), GC Notify" : "") + '</textarea>') +
+        '<div class="grid2">' + field("Mobile / BYOD access", select(["Select…","Yes","No","Planned"])) + field("External users", select(["Select…","Public / partner","GC employees only","Contractors only"], state.aiApplied ? "Public / partner" : "")) + '</div>');
+  }
+
+  function technologyView() {
+    return head("Step 4 · Technology &amp; posture", "Stack in use, and what's already done", "Technologies identify inherited controls; completed activities let us skip work you've already finished.") +
+      '<label style="font-size:12.5px;font-weight:600;display:block;margin-bottom:8px;">Technology stack</label>' +
+      '<div class="chips" style="margin-bottom:20px;">' + chips(["Azure App Service","PostgreSQL","Entra ID","React","Node.js","Key Vault","Front Door","Kubernetes"], state.aiApplied ? ["Azure App Service","Entra ID","React","Node.js"] : []) + '</div>' +
+      '<label style="font-size:12.5px;font-weight:600;display:block;margin-bottom:8px;">Existing security activities</label>' +
+      '<div class="chips">' + chips(["TRA","PIA","System Security Plan","Pen test / VA","Network diagram","Previous ATO"], state.aiApplied ? ["PIA","Network diagram"] : []) + '</div>';
+  }
+
+  function contactsView() {
+    return head("Step 5 · Contacts &amp; assignment", "Who owns it, who works it", "The project owner is required. Assignment is optional — you can invite a client or assessor now or later.") +
+      '<div class="grid2">' +
+        field("Project owner / architect " + reqStar(), '<input value="' + (state.aiApplied ? "Dana Okoye" : "") + '" placeholder="Full name">') +
+        field("Owner email " + reqStar(), '<input value="' + (state.aiApplied ? "dana.okoye@tbs-sct.gc.ca" : "") + '" placeholder="name@agency.gc.ca">') +
+      '</div>' +
+      disclosure("Add project authority &amp; CIO contacts",
+        '<div class="grid2">' + field("Project authority", '<input placeholder="Full name">') + field("Authority email", '<input placeholder="name@agency.gc.ca">') + '</div>' +
+        '<div class="grid2">' + field("CIO / delegate", '<input placeholder="Full name">') + field("CIO email", '<input placeholder="name@agency.gc.ca">') + '</div>') +
+      '<div class="field"><label>Assign this intake</label>' + select(["Do not assign yet","Select existing user","Invite new user"]) + '</div>';
+  }
+
+  function reviewView() {
+    var f = state.aiApplied;
+    function flag() { return f ? '<span class="ai-flag">AI</span>' : ''; }
+    return head("Step 6 · Review", "Confirm before creating", "Everything below will be saved as an active project with an intake reference. Edit any section, or create now.") +
+      (f ? '<div class="ai-callout"><span class="k">✦ 18 fields from AI.</span> Each AI value is flagged below. Nothing is saved until you press Create project.</div>' : '') +
+      reviewGroup("Basics", 0, [["Name", "GCcase Client Portal", f],["Description","Protected B Azure portal for case workers…", f],["Department","Treasury Board Secretariat", f]]) +
+      reviewGroup("Framework &amp; categorization", 1, [["Framework","ITSG-33 (GC)", false],["Classification","Protected B", f],["C / I / A","High / Medium / Medium", f],["PII","Yes — Name, Employment", f]]) +
+      reviewGroup("Hosting &amp; architecture", 2, [["Hosting","Microsoft Azure (GC Cloud)", f],["Residency","Canada only", false],["Interconnections","GCcase, Entra ID, GC Notify", f]]) +
+      reviewGroup("Technology &amp; posture", 3, [["Stack","App Service, Entra ID, React, Node.js", f],["Completed","PIA, Network diagram", f]]) +
+      reviewGroup("Contacts", 4, [["Owner","Dana Okoye", f],["Owner email","dana.okoye@tbs-sct.gc.ca", f]]);
+  }
+
+  function reviewGroup(title, stepIdx, rows) {
+    var body = rows.map(function (r) {
+      return '<dt>' + r[0] + '</dt><dd>' + r[1] + (r[2] ? '<span class="ai-flag">AI</span>' : '') + '</dd>';
+    }).join("");
+    return '<div class="review-group"><header>' + title + '<a data-goto="' + stepIdx + '">Edit</a></header><dl>' + body + '</dl></div>';
+  }
+
+  function successView() {
+    return '<div class="success">' +
+      '<div class="seal">✓</div>' +
+      '<h1>Project created</h1>' +
+      '<p><b>GCcase Client Portal</b> is active with intake reference <b>INT-2048</b>. What next?</p>' +
+      '<div class="next">' +
+        nextCard("👤", "Invite the client", "Send a secure link so the system owner can complete their portion.") +
+        nextCard("📋", "Start self-assessment", "Open the ITSG-33 Protected B control set and begin scoring.") +
+        nextCard("✦", "Generate control set", "Let AI draft applicable controls and evidence prompts.") +
+        nextCard("📂", "Open project", "Go to the project workspace and documentation.") +
+      '</div>' +
+      '<div style="margin-top:24px;"><button class="btn ghost" data-restart>← Back to start of prototype</button></div>' +
+    '</div>';
+  }
+  function nextCard(icon, title, desc) {
+    return '<div class="card"><div class="ni">' + icon + '</div><div><b>' + title + '</b><p>' + desc + '</p></div></div>';
+  }
+
+  /* ---------- html helpers ---------- */
+  function head(eyebrow, title, sub) {
+    return '<div class="pane-head"><div class="eyebrow">' + eyebrow + '</div><h1>' + title + '</h1><p>' + sub + '</p></div>';
+  }
+  function field(label, control, hint) {
+    return '<div class="field"><label>' + label + '</label>' + control + (hint ? '<span class="hint">' + hint + '</span>' : '') + '</div>';
+  }
+  function select(opts, sel) {
+    return '<select>' + opts.map(function (o) { return '<option' + (o === sel ? ' selected' : '') + '>' + o + '</option>'; }).join("") + '</select>';
+  }
+  function miniSelect(label, opts, sel) {
+    return '<div class="field" style="margin:0;"><label style="font-size:11.5px;color:var(--ink-3);">' + label + '</label>' + select(opts, sel) + '</div>';
+  }
+  function chips(items, pressed) {
+    return items.map(function (i) {
+      var on = pressed && pressed.indexOf(i) > -1;
+      return '<span class="chip" role="button" tabindex="0" aria-pressed="' + (on ? "true" : "false") + '" data-chip>' + i + '</span>';
+    }).join("");
+  }
+  function toggle(label, sub, on) {
+    return '<div class="toggle-row"><div><div class="t-label">' + label + '</div><div class="t-sub">' + sub + '</div></div>' +
+      '<div class="sw" role="button" tabindex="0" aria-pressed="' + (on ? "true" : "false") + '" data-sw></div></div>';
+  }
+  function disclosure(summary, inner) {
+    return '<details class="disclosure"><summary>' + summary + '</summary><div class="inner">' + inner + '</div></details>';
+  }
+
+  var VIEWS = [basicsView, frameworkView, hostingView, technologyView, contactsView, reviewView];
+
+  /* ---------- render ---------- */
+  function render() {
+    if (state.step === -1) { pane.innerHTML = chooserView(); }
+    else if (state.step === 99) { pane.innerHTML = successView(); }
+    else { pane.innerHTML = VIEWS[state.step](); }
+    renderRail();
+    renderFooter();
+    bind();
+    pane.parentElement.scrollTop = 0;
+    window.scrollTo({ top: window.scrollY, behavior: "auto" });
+  }
+
+  function renderRail() {
+    var railTitle = document.getElementById("railTitle");
+    var stepCount = document.getElementById("stepCount");
+    var pct = document.getElementById("pct");
+    var fill = document.getElementById("trackFill");
+    var saveChip = document.getElementById("saveChip");
+
+    var inFlow = state.step >= 0 && state.step <= 5;
+    var progress = inFlow ? Math.round(((state.step + 1) / 6) * 100) : (state.step === 99 ? 100 : 0);
+    pct.textContent = progress + "%";
+    fill.style.width = progress + "%";
+
+    if (state.step === -1) { railTitle.textContent = "Getting started"; stepCount.textContent = "Choose a path"; }
+    else if (state.step === 99) { railTitle.textContent = "Done"; stepCount.textContent = "Complete"; }
+    else { railTitle.textContent = STEPS[state.step]; stepCount.textContent = "Step " + (state.step + 1) + " of 6"; }
+
+    saveChip.style.visibility = (state.path === "ai" || state.aiApplied || inFlow) ? "visible" : "hidden";
+
+    stepNav.innerHTML = STEPS.map(function (s, i) {
+      var cls = "";
+      if (i === state.step) cls = "active";
+      else if (state.step === 99 || i < state.step) cls = "done";
+      var num = (state.step === 99 || i < state.step) ? '<span class="num"></span>' : '<span class="num">' + (i + 1) + '</span>';
+      return '<li class="' + cls + '" data-step="' + i + '">' + num + '<span class="lbl">' + s + '</span></li>';
+    }).join("");
+  }
+
+  function renderFooter() {
+    if (state.step === -1) {
+      footbar.innerHTML = '<button class="btn ghost">Cancel</button>' +
+        '<span style="font-size:12.5px;color:var(--ink-3);">Pick a path above to begin</span>';
+      return;
+    }
+    if (state.step === 99) {
+      footbar.innerHTML = '<span style="font-size:12.5px;color:var(--ink-3);">Project INT-2048 created</span>' +
+        '<button class="btn primary" data-restart>Run prototype again</button>';
+      return;
+    }
+    var backLabel = state.step === 0 ? "← Paths" : "← Back";
+    var isReview = state.step === 5;
+    footbar.innerHTML =
+      '<div class="left">' +
+        '<button class="btn ghost" data-back>' + backLabel + '</button>' +
+        '<button class="btn link" data-savedraft>Save as draft &amp; exit</button>' +
+      '</div>' +
+      (isReview
+        ? '<button class="btn create" data-create>✓ Create project</button>'
+        : '<button class="btn primary" data-next>Save &amp; continue →</button>');
+  }
+
+  /* ---------- events ---------- */
+  function bind() {
+    var el;
+    // path chooser
+    Array.prototype.forEach.call(pane.querySelectorAll("[data-path]"), function (b) {
+      b.onclick = function () {
+        state.path = b.getAttribute("data-path");
+        state.aiApplied = state.path === "ai";
+        if (state.path === "ai") { flashDraft(); state.step = 5; }          // AI → jump to Review
+        else if (state.path === "quick") { state.step = 0; }                 // Quick → start, drafts on
+        else { state.step = 0; }                                             // Full → start
+        render();
+      };
+    });
+    // step nav (only allow going to already-seen steps or any in full flow for demo)
+    Array.prototype.forEach.call(stepNav.querySelectorAll("[data-step]"), function (li) {
+      li.onclick = function () {
+        if (state.step === -1) return;
+        state.step = parseInt(li.getAttribute("data-step"), 10);
+        render();
+      };
+    });
+    if ((el = footbar.querySelector("[data-next]"))) el.onclick = function () { flashDraft(); state.step = Math.min(5, state.step + 1); render(); };
+    if ((el = footbar.querySelector("[data-back]"))) el.onclick = function () { state.step = state.step === 0 ? -1 : state.step - 1; render(); };
+    if ((el = footbar.querySelector("[data-create]"))) el.onclick = function () { state.step = 99; render(); };
+    Array.prototype.forEach.call(pane.querySelectorAll("[data-goto]"), function (a) {
+      a.onclick = function () { state.step = parseInt(a.getAttribute("data-goto"), 10); render(); };
+    });
+    Array.prototype.forEach.call(footbar.querySelectorAll("[data-restart]"), function (b) { b.onclick = restart; });
+    Array.prototype.forEach.call(pane.querySelectorAll("[data-restart]"), function (b) { b.onclick = restart; });
+    if ((el = footbar.querySelector("[data-savedraft]"))) el.onclick = function () { flashDraft("Draft saved — you can resume later"); };
+
+    // interactive chips & switches
+    Array.prototype.forEach.call(pane.querySelectorAll("[data-chip], [data-sw]"), function (c) {
+      var toggleFn = function () { c.setAttribute("aria-pressed", c.getAttribute("aria-pressed") === "true" ? "false" : "true"); flashDraft(); };
+      c.onclick = toggleFn;
+      c.onkeydown = function (e) { if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggleFn(); } };
+    });
+    Array.prototype.forEach.call(pane.querySelectorAll("input, select, textarea"), function (inp) {
+      inp.addEventListener("change", function () { flashDraft(); });
+    });
+  }
+
+  function restart() { state = { step: -1, path: null, aiApplied: false }; render(); }
+
+  var saveTimer;
+  function flashDraft(msg) {
+    var chip = document.getElementById("saveChip");
+    chip.style.visibility = "visible";
+    chip.innerHTML = '<span class="d" style="background:var(--warn)"></span> Saving…';
+    chip.style.color = "var(--warn)";
+    chip.style.background = "var(--warn-weak)";
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      chip.innerHTML = '<span class="d"></span> ' + (msg || "Draft saved");
+      chip.style.color = "var(--good)";
+      chip.style.background = "var(--good-weak)";
+    }, 550);
+  }
+
+  render();
+})();
+</script>
