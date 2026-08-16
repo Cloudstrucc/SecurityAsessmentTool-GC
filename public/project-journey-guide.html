@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Journey — How to create a project · Vanguard SA&amp;A</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/4.0.2/inter.min.css">
+<style>
+  :root{
+    /* Vanguard Cloud Services brand tokens (from logo + vanguardcs.ca palette) */
+    --navy-950:#0a1626; --navy-900:#0d2136; --navy-800:#143453;
+    --sky-300:#a9d8f2; --sky-400:#7cc4ee; --sky-500:#4d9fe0; --sky-600:#2f80cf;
+    --peri-500:#6d7fca; --peri-400:#8593d6; --cyan-500:#4fc8dd;
+    --ink:#17273a; --muted:#5f7185; --line:#dce7f2;
+    --paper:#ffffff; --mist:#f4f9fd; --soft:#eaf5fd;
+    --amber:#e0a53d; --rose:#d98089; --green:#57b894;
+    --grad:linear-gradient(90deg,#6d7fca 0%,#4d9fe0 50%,#7cc9ee 100%);
+    --grad-soft:linear-gradient(90deg,#8593d6 0%,#7cc4ee 100%);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Inter var',Inter,'Segoe UI',Roboto,Arial,sans-serif;
+    color:var(--ink); background:var(--paper);
+    font-size:16.5px; line-height:1.7; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--sky-600);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* ---------- Banner ---------- */
+  .banner{
+    background:
+      radial-gradient(720px 380px at 18% -10%, rgba(124,196,238,.24), transparent 60%),
+      radial-gradient(620px 360px at 92% 116%, rgba(109,127,202,.20), transparent 60%),
+      var(--navy-950);
+    color:#fff; padding:52px 8vw 46px; position:relative; overflow:hidden;
+  }
+  .wordmark{position:absolute;top:26px;left:8vw;font-size:12px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:#a9c0d8}
+  .banner-inner{max-width:900px;margin:0 auto}
+  .eyebrow-lt{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--sky-400);margin:34px 0 14px}
+  .banner h1{font-size:clamp(34px,5.4vw,58px);font-weight:800;letter-spacing:-.03em;line-height:1.08;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:.06em}
+  .banner p{margin-top:16px;font-size:18px;color:#c2d2e3;max-width:640px;font-weight:400}
+  .banner-rule{height:3px;width:120px;background:var(--grad);border-radius:2px;margin-top:28px}
+
+  /* ---------- Layout ---------- */
+  main{max-width:900px;margin:0 auto;padding:60px 24px 30px}
+  section{margin-bottom:60px}
+  .eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--sky-600);margin-bottom:10px}
+  h2{font-size:28px;font-weight:700;letter-spacing:-.015em;margin-bottom:14px;line-height:1.2}
+  h3{font-size:18px;font-weight:650;margin:26px 0 8px;color:var(--navy-800)}
+  p{margin-bottom:14px;color:#2b3c52}
+  p.lede{font-size:19px;line-height:1.72;color:var(--ink)}
+  .rule{height:3px;width:60px;background:var(--grad);border-radius:2px;margin:0 0 22px}
+  strong{font-weight:650;color:var(--ink)}
+  ul.clean{list-style:none;margin:14px 0}
+  ul.clean li{position:relative;padding-left:26px;margin-bottom:9px;color:#2b3c52}
+  ul.clean li::before{content:"";position:absolute;left:0;top:9px;width:9px;height:9px;border-radius:50%;background:var(--grad)}
+
+  .callout{background:var(--soft);border-left:3px solid var(--sky-500);border-radius:0 10px 10px 0;
+    padding:16px 20px;margin:20px 0;color:#22354e;font-size:15px;line-height:1.62}
+  .callout b{color:var(--navy-800)}
+  .callout.warn{background:#fdf4ee;border-left-color:var(--amber)}
+  .callout.warn b{color:#8a5a12}
+  .callout.tip{background:#eef8f2;border-left-color:var(--green)}
+  .callout.tip b{color:#1f6b4d}
+
+  /* path chooser */
+  .paths{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}
+  .path{position:relative;background:var(--mist);border:1px solid var(--line);border-radius:16px;padding:24px 22px;transition:transform .15s,box-shadow .15s}
+  .path:hover{transform:translateY(-2px);box-shadow:0 10px 30px -12px rgba(20,52,83,.28)}
+  .path .tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:4px 11px;border-radius:999px;margin-bottom:14px}
+  .path.ai .tag{background:var(--grad)}
+  .path.manual .tag{background:var(--navy-800)}
+  .path h3{margin:0 0 8px;font-size:19px}
+  .path p{font-size:14.5px;color:var(--muted);margin-bottom:12px}
+  .path ul.clean li{font-size:14px;margin-bottom:7px}
+  @media(max-width:640px){.paths{grid-template-columns:1fr}}
+
+  /* diagram */
+  .canvas{
+    background:radial-gradient(760px 360px at 12% -6%,rgba(124,196,238,.18),transparent 60%),
+               radial-gradient(700px 360px at 92% 106%,rgba(109,127,202,.16),transparent 60%),
+               var(--navy-900);
+    border:1px solid #163654;border-radius:20px;overflow:hidden;margin:24px 0;
+  }
+  .canvas svg{display:block;width:100%;height:auto}
+  text{font-family:Inter,'Segoe UI',Arial,sans-serif}
+  .flow{stroke-dasharray:6 7;animation:flow 1.7s linear infinite}
+  @keyframes flow{to{stroke-dashoffset:-13}}
+  @media(prefers-reduced-motion:reduce),print{.flow{animation:none}}
+
+  /* journey */
+  .journey{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:24px 0}
+  .journey-head{background:var(--soft);padding:14px 22px;font-weight:650;color:var(--navy-800);font-size:15.5px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .journey-head .pill{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--grad);padding:4px 10px;border-radius:999px}
+  .steps{list-style:none;counter-reset:s;padding:6px 0}
+  .steps li{counter-increment:s;position:relative;padding:16px 24px 16px 66px;border-bottom:1px solid #eef4fa}
+  .steps li:last-child{border-bottom:none}
+  .steps li::before{content:counter(s);position:absolute;left:22px;top:16px;width:30px;height:30px;border-radius:50%;
+    background:var(--navy-900);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .steps li b{color:var(--navy-800);display:block;margin-bottom:3px;font-size:16px}
+  .steps li .desc{color:var(--muted);font-size:14.5px}
+  .fields{margin-top:9px;display:flex;flex-wrap:wrap;gap:7px}
+  .chip{font-size:12px;font-weight:500;color:var(--navy-800);background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 11px}
+  .chip.req::after{content:"•";color:var(--rose);margin-left:6px;font-weight:700}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+  .card{background:var(--mist);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+  .card b{display:block;font-size:15.5px;margin-bottom:6px;color:var(--navy-800)}
+  .card span{font-size:14px;color:var(--muted);line-height:1.55}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+
+  /* faq */
+  details{border:1px solid var(--line);border-radius:12px;padding:2px 18px;margin-bottom:10px;background:var(--paper)}
+  details[open]{background:var(--mist)}
+  summary{cursor:pointer;font-weight:600;color:var(--navy-800);padding:14px 0;list-style:none;font-size:15.5px;display:flex;justify-content:space-between;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";color:var(--sky-600);font-weight:700;font-size:20px;line-height:1}
+  details[open] summary::after{content:"–"}
+  details p{font-size:14.5px;color:#2b3c52;padding-bottom:14px;margin:0}
+
+  footer{border-top:1px solid var(--line);padding:28px 24px 50px;text-align:center;color:var(--muted);font-size:13px;max-width:900px;margin:0 auto}
+  footer b{color:var(--navy-800)}
+
+  .print-btn{position:fixed;bottom:22px;right:22px;background:var(--navy-900);color:#fff;border:none;border-radius:999px;
+    padding:12px 20px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 8px 24px -8px rgba(10,22,38,.5);font-family:inherit;z-index:20}
+  .print-btn:hover{background:var(--navy-800)}
+  @media print{.print-btn{display:none}.banner{padding:34px 24px}}
+</style>
+</head>
+<body>
+
+  <header class="banner">
+    <div class="wordmark">Vanguard&nbsp;Cloud&nbsp;Services</div>
+    <div class="banner-inner">
+      <span class="eyebrow-lt">Vanguard SA&amp;A · Help Guide</span>
+      <h1>Project Journey</h1>
+      <p>Everything a new project needs, gathered once — guided step by step, with AI doing the heavy lifting whenever you have a document or a description to start from.</p>
+      <div class="banner-rule"></div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Overview -->
+    <section>
+      <div class="eyebrow">The short version</div>
+      <div class="rule"></div>
+      <p class="lede">Creating a project sets up the foundation every assessment builds on — its classification, framework, privacy profile and technology stack. The wizard collects it in <strong>five focused steps</strong> instead of one long form, and lets you save a <strong>draft</strong> at any point and finish later.</p>
+      <p>You can start two ways: let <strong>AI pre-fill</strong> the form from a document or a plain-language description, or fill it in <strong>manually</strong>. Either way you land on the same <strong>Review</strong> screen before anything is created.</p>
+      <div class="callout"><b>All fields are required to submit.</b> A complete project profile is what makes the downstream control tailoring and evidence guidance accurate. If you don't have everything yet, <b>Save as draft</b> — the wizard keeps what you've entered and you can resume from the Projects list.</div>
+    </section>
+
+    <!-- Two ways to start -->
+    <section>
+      <div class="eyebrow">Step 0 — Choose your path</div>
+      <div class="rule"></div>
+      <h2>Two ways to start</h2>
+      <div class="paths">
+        <div class="path ai">
+          <span class="tag">AI-assisted · fastest</span>
+          <h3>Start from a document or description</h3>
+          <p>Upload an existing artefact, or describe the system in your own words. AI reads it and pre-populates every step for you to review.</p>
+          <ul class="clean">
+            <li><b>Upload a document</b> — PDF, Word, image or text. AI extracts the project details.</li>
+            <li><b>Describe it</b> — a paragraph is enough; AI infers classification, PII, tech and more.</li>
+            <li>You review and correct — <b>AI never submits for you</b>.</li>
+          </ul>
+        </div>
+        <div class="path manual">
+          <span class="tag">Manual</span>
+          <h3>Fill it in yourself</h3>
+          <p>Prefer to type it out, or working from information only you hold? Go straight into the five steps.</p>
+          <ul class="clean">
+            <li>Every field has inline guidance and sensible options.</li>
+            <li>Framework-specific fields adapt as you choose a framework.</li>
+            <li>Switch to AI assist at any time from Step&nbsp;1.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout tip"><b>Best of both:</b> most people upload a document to get 80% pre-filled, then fine-tune the last details by hand before Review.</div>
+    </section>
+
+    <!-- Flow diagram -->
+    <section>
+      <div class="eyebrow">The path end to end</div>
+      <div class="rule"></div>
+      <div class="canvas" role="img" aria-label="Flow: Start, then either AI pre-fill or manual entry, through five steps to Review and Submit, with Save-as-draft available throughout.">
+        <svg viewBox="0 0 1040 260" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#6d7fca"/><stop offset="0.5" stop-color="#4d9fe0"/><stop offset="1" stop-color="#7cc9ee"/>
+            </linearGradient>
+          </defs>
+          <!-- nodes -->
+          <g font-size="14" font-weight="600" text-anchor="middle">
+            <!-- Start -->
+            <rect x="30" y="104" width="120" height="52" rx="12" fill="#122c46" stroke="#1d4266"/>
+            <text x="90" y="135" fill="#cfe2f4">Start</text>
+
+            <!-- AI branch -->
+            <rect x="210" y="40" width="150" height="52" rx="12" fill="url(#g)"/>
+            <text x="285" y="66" fill="#0a1626">AI pre-fill</text>
+            <text x="285" y="83" fill="#0a1626" font-size="11" font-weight="500">document · describe</text>
+
+            <!-- Manual branch -->
+            <rect x="210" y="168" width="150" height="52" rx="12" fill="#122c46" stroke="#1d4266"/>
+            <text x="285" y="194" fill="#cfe2f4">Manual entry</text>
+            <text x="285" y="211" fill="#8fb4d6" font-size="11" font-weight="500">the 5 steps</text>
+
+            <!-- 5 steps -->
+            <rect x="430" y="104" width="180" height="52" rx="12" fill="#122c46" stroke="#1d4266"/>
+            <text x="520" y="128" fill="#cfe2f4">5 guided steps</text>
+            <text x="520" y="146" fill="#8fb4d6" font-size="11" font-weight="500">basics → tech</text>
+
+            <!-- Review -->
+            <rect x="678" y="104" width="140" height="52" rx="12" fill="#122c46" stroke="#1d4266"/>
+            <text x="748" y="135" fill="#cfe2f4">Review</text>
+
+            <!-- Submit -->
+            <rect x="884" y="104" width="128" height="52" rx="12" fill="#1f6b4d"/>
+            <text x="948" y="135" fill="#eafff5">Submit ✓</text>
+          </g>
+          <!-- connectors -->
+          <g fill="none" stroke="url(#g)" stroke-width="2.5">
+            <path class="flow" d="M150 122 C180 122 182 66 210 66"/>
+            <path class="flow" d="M150 138 C180 138 182 194 210 194"/>
+            <path class="flow" d="M360 66 C400 66 400 122 430 122"/>
+            <path class="flow" d="M360 194 C400 194 400 138 430 138"/>
+            <path class="flow" d="M610 130 L678 130"/>
+            <path class="flow" d="M818 130 L884 130"/>
+          </g>
+          <!-- draft note -->
+          <g>
+            <path class="flow" d="M520 156 L520 232" fill="none" stroke="#8593d6" stroke-width="2"/>
+            <rect x="430" y="228" width="180" height="24" rx="12" fill="#1a2b44" stroke="#3a4d74"/>
+            <text x="520" y="244" fill="#b9c6ec" font-size="12" font-weight="600" text-anchor="middle">Save as draft, resume later</text>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <!-- The five steps -->
+    <section>
+      <div class="eyebrow">The wizard, step by step</div>
+      <div class="rule"></div>
+      <h2>What each step collects</h2>
+      <p>Dotted chips (<span class="chip req">field</span>) mark required inputs. When you start with AI, these arrive pre-filled — your job is to confirm them.</p>
+
+      <div class="journey">
+        <div class="journey-head"><span class="pill">Step 1</span> Project basics</div>
+        <ul class="steps">
+          <li>
+            <b>Tell us about the system</b>
+            <span class="desc">Name, a short description, and who owns it. Attach any documents here to trigger AI pre-fill for the rest of the wizard.</span>
+            <div class="fields">
+              <span class="chip req">Project name</span>
+              <span class="chip req">Description</span>
+              <span class="chip">Technical specifications</span>
+              <span class="chip req">Department / Agency</span>
+              <span class="chip req">Branch / Directorate</span>
+              <span class="chip req">Estimated user count</span>
+              <span class="chip">Project documents</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="journey">
+        <div class="journey-head"><span class="pill">Step 2</span> Security framework</div>
+        <ul class="steps">
+          <li>
+            <b>Pick the framework you're assessing against</b>
+            <span class="desc">The fields below <b>adapt to your choice</b> — ITSG-33 shows GC baseline language; CIS, ISO 27001, NIST 800-53, FedRAMP and others show their own baseline / group / category terms.</span>
+            <div class="fields">
+              <span class="chip req">Security framework</span>
+              <span class="chip req">Baseline / Implementation group</span>
+              <span class="chip req">Category / Applicability</span>
+              <span class="chip">Framework tailoring notes</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="journey">
+        <div class="journey-head"><span class="pill">Step 3</span> Classification &amp; profile</div>
+        <ul class="steps">
+          <li>
+            <b>Set the security profile</b>
+            <span class="desc">Data classification and the C/I/A ratings that drive the control baseline. Flag High-Value Assets so they're profiled accordingly.</span>
+            <div class="fields">
+              <span class="chip req">Data classification</span>
+              <span class="chip req">Application type</span>
+              <span class="chip req">Confidentiality</span>
+              <span class="chip req">Integrity</span>
+              <span class="chip req">Availability</span>
+              <span class="chip">High-Value Asset</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="journey">
+        <div class="journey-head"><span class="pill">Step 4</span> Privacy &amp; technology</div>
+        <ul class="steps">
+          <li>
+            <b>Personal information &amp; the tech stack</b>
+            <span class="desc">Whether the system handles PII (and which types), ATIP exposure, and the technologies in play — these sharpen the evidence guidance for each control.</span>
+            <div class="fields">
+              <span class="chip req">Handles PII?</span>
+              <span class="chip">PII types</span>
+              <span class="chip req">ATIP subject</span>
+              <span class="chip req">Technology stack</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="journey">
+        <div class="journey-head"><span class="pill">Step 5</span> Review &amp; submit</div>
+        <ul class="steps">
+          <li>
+            <b>Confirm everything in one place</b>
+            <span class="desc">A read-back of all five steps. Jump back to any step to edit, then submit to create the project — or keep it as a draft.</span>
+            <div class="fields">
+              <span class="chip">Edit any step</span>
+              <span class="chip">Save as draft</span>
+              <span class="chip req">Submit</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Drafts -->
+    <section>
+      <div class="eyebrow">Never lose your place</div>
+      <div class="rule"></div>
+      <h2>Drafts: save now, finish later</h2>
+      <div class="grid2">
+        <div class="card">
+          <b>Save at any step</b>
+          <span>Choose <strong>Save as draft</strong> and the project is stored with everything entered so far. Nothing is validated as complete yet, so partial is fine.</span>
+        </div>
+        <div class="card">
+          <b>Resume from Projects</b>
+          <span>Drafts appear in your <strong>Projects</strong> list with a <em>Draft</em> badge. Open one to drop straight back into the wizard where you left off.</span>
+        </div>
+        <div class="card">
+          <b>Nothing downstream until submit</b>
+          <span>A draft doesn't start assessments or notify anyone. It becomes a live project only when you complete Review and submit.</span>
+        </div>
+        <div class="card">
+          <b>One project, one source of truth</b>
+          <span>The wizard posts once, to a single endpoint — so a submitted project carries exactly what you saw on the Review screen.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section>
+      <div class="eyebrow">Good to know</div>
+      <div class="rule"></div>
+      <h2>Frequently asked</h2>
+
+      <details>
+        <summary>Does the AI submit the project for me?</summary>
+        <p>No. AI only <strong>pre-fills</strong> the fields from your document or description. You always land on the Review screen and submit yourself — so nothing is created without your confirmation.</p>
+      </details>
+      <details>
+        <summary>What file types can I upload for AI pre-fill?</summary>
+        <p>PDF, Word, plain text and Markdown, and images (PNG/JPG) — for example an architecture doc, a prior assessment, or a screenshot of a system diagram. AI extracts what it can and leaves the rest for you.</p>
+      </details>
+      <details>
+        <summary>The framework fields changed after I picked a framework — why?</summary>
+        <p>That's by design. Baseline, category and applicability terms differ between frameworks (ITSG-33 vs. CIS Controls vs. ISO 27001, etc.), so the wizard shows the right terminology for the one you selected.</p>
+      </details>
+      <details>
+        <summary>Do I have to fill in everything before I can save?</summary>
+        <p>To <strong>submit</strong>, yes — all fields are required for an accurate profile. To <strong>save a draft</strong>, no — save whatever you have and complete it later from the Projects list.</p>
+      </details>
+      <details>
+        <summary>Can I change these details after the project is created?</summary>
+        <p>Yes. The project profile stays editable — but it's worth getting it right up front, since classification and framework choices shape the control baseline your assessments inherit.</p>
+      </details>
+    </section>
+
+  </main>
+
+  <footer>
+    <p><b>Vanguard SA&amp;A</b> — Project Journey help guide.<br>
+    Need a hand? Reach your workspace administrator or the Vanguard Cloud Services support desk.</p>
+  </footer>
+
+  <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
+
+</body>
+</html>
