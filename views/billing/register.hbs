@@ -87,44 +87,44 @@
       <span class="dot active">1</span><span class="bar"></span>
       <span class="dot">2</span><span class="bar"></span>
       <span class="dot">3</span>
-      <span style="margin-left:10px"><b style="color:var(--vg-navy-800)">Choose a plan</b> → Account → Payment</span>
+      <span style="margin-left:10px"><b style="color:var(--vg-navy-800)">{{t 'rf.stepsChoose'}}</b> → {{t 'rf.stepAccount'}} → {{t 'rf.stepPayment'}}</span>
     </div>
     <div class="vg-center" style="max-width:620px;margin:0 auto 6px">
-      <h1 style="font-size:26px;font-weight:750">Choose a plan to get started</h1>
-      <p class="vg-muted">Start free — no card needed — and upgrade any time. You'll enter your details next.</p>
+      <h1 style="font-size:26px;font-weight:750">{{t 'rf.choosePlanH1'}}</h1>
+      <p class="vg-muted">{{t 'rf.choosePlanSub'}}</p>
     </div>
     <div class="vg-price-grid" style="margin-top:24px">
       <div class="vg-plan featured">
-        <div class="vg-plan-flag"><span class="vg-badge vg-badge-grad">Start here</span></div>
-        <div class="vg-plan-name">Trial</div>
-        <div class="vg-plan-price">Free</div>
-        <div class="vg-plan-tag">14 days, no card. Explore the full workflow.</div>
-        <div class="vg-plan-cta"><a href="/register?plan=trial" class="vg-btn vg-btn-primary vg-btn-block">Start free trial</a></div>
-        <ul class="vg-plan-features"><li>1 admin + 2 users</li><li>1 project</li><li>All frameworks</li><li>AI evidence guidance</li></ul>
+        <div class="vg-plan-flag"><span class="vg-badge vg-badge-grad">{{t 'rf.startHere'}}</span></div>
+        <div class="vg-plan-name">{{t 'pl.trial'}}</div>
+        <div class="vg-plan-price">{{t 'pl.free'}}</div>
+        <div class="vg-plan-tag">{{t 'rf.trialTag2'}}</div>
+        <div class="vg-plan-cta"><a href="/register?plan=trial" class="vg-btn vg-btn-primary vg-btn-block">{{t 'pl.trialCta'}}</a></div>
+        <ul class="vg-plan-features"><li>{{t 'pl.trialF1'}}</li><li>{{t 'pl.trialF2'}}</li><li>{{t 'pl.allFrameworks'}}</li><li>{{t 'pl.trialF4'}}</li></ul>
       </div>
       <div class="vg-plan">
-        <div class="vg-plan-name">Team</div>
-        <div class="vg-plan-price">$149<span class="per">/mo</span></div>
-        <div class="vg-plan-tag">For a single team assessing regularly.</div>
-        <div class="vg-plan-cta"><a href="/register?plan=team" class="vg-btn vg-btn-ghost vg-btn-block">Choose Team</a></div>
-        <ul class="vg-plan-features"><li>Up to 5 users</li><li>5 projects</li><li>Control inheritance</li></ul>
+        <div class="vg-plan-name">{{t 'pl.team'}}</div>
+        <div class="vg-plan-price">$149<span class="per">{{t 'pl.perMo'}}</span></div>
+        <div class="vg-plan-tag">{{t 'rf.teamTag2'}}</div>
+        <div class="vg-plan-cta"><a href="/register?plan=team" class="vg-btn vg-btn-ghost vg-btn-block">{{t 'pl.teamCta'}}</a></div>
+        <ul class="vg-plan-features"><li>{{t 'pl.teamF1'}}</li><li>{{t 'pl.teamF2'}}</li><li>{{t 'pl.controlInheritance'}}</li></ul>
       </div>
       <div class="vg-plan">
-        <div class="vg-plan-name">Business</div>
-        <div class="vg-plan-price">$449<span class="per">/mo</span></div>
-        <div class="vg-plan-tag">For departments authorizing many systems.</div>
-        <div class="vg-plan-cta"><a href="/register?plan=business" class="vg-btn vg-btn-ghost vg-btn-block">Choose Business</a></div>
-        <ul class="vg-plan-features"><li>Up to 20 users</li><li>25 projects</li><li>AI + audit</li></ul>
+        <div class="vg-plan-name">{{t 'pl.business'}}</div>
+        <div class="vg-plan-price">$449<span class="per">{{t 'pl.perMo'}}</span></div>
+        <div class="vg-plan-tag">{{t 'rf.businessTag2'}}</div>
+        <div class="vg-plan-cta"><a href="/register?plan=business" class="vg-btn vg-btn-ghost vg-btn-block">{{t 'pl.businessCta'}}</a></div>
+        <ul class="vg-plan-features"><li>{{t 'pl.bizF1'}}</li><li>{{t 'pl.bizF2'}}</li><li>{{t 'rf.bizF3'}}</li></ul>
       </div>
       <div class="vg-plan">
-        <div class="vg-plan-name">Enterprise</div>
-        <div class="vg-plan-price">Custom</div>
-        <div class="vg-plan-tag">Unlimited scale, SSO, dedicated support.</div>
-        <div class="vg-plan-cta"><a href="/register?plan=enterprise" class="vg-btn vg-btn-dark vg-btn-block">Get started</a></div>
-        <ul class="vg-plan-features"><li>Unlimited users</li><li>Unlimited projects</li><li>SSO / SAML</li></ul>
+        <div class="vg-plan-name">{{t 'pl.enterprise'}}</div>
+        <div class="vg-plan-price">{{t 'pl.custom'}}</div>
+        <div class="vg-plan-tag">{{t 'rf.enterpriseTag2'}}</div>
+        <div class="vg-plan-cta"><a href="/register?plan=enterprise" class="vg-btn vg-btn-dark vg-btn-block">{{t 'pl.entCta'}}</a></div>
+        <ul class="vg-plan-features"><li>{{t 'pl.entF1'}}</li><li>{{t 'pl.entF2'}}</li><li>{{t 'rf.entF3'}}</li></ul>
       </div>
     </div>
-    <div class="vg-center" style="margin-top:18px"><a href="/pricing" class="vg-nav-link" style="color:var(--vg-sky-600);font-weight:600">See full pricing &amp; pay-as-you-go →</a></div>
+    <div class="vg-center" style="margin-top:18px"><a href="/pricing" class="vg-nav-link" style="color:var(--vg-sky-600);font-weight:600">{{t 'rf.seeFullPricing'}}</a></div>
   </div>
  {{else}}
   <div class="vg-reg-2col">
@@ -132,47 +132,47 @@
     <div class="vg-reg-hero">
       <div class="vg-reg-ring" id="regRing"><span id="regPct">0%</span></div>
       <div class="vg-reg-meta">
-        <div class="vg-reg-eyebrow">Step 2 of 3 · Account</div>
-        <h1>Create your account</h1>
-        <p id="regSub">Fill in your details to unlock the <b>{{plan.label}}</b> plan.</p>
+        <div class="vg-reg-eyebrow">{{t 'rf.stepEyebrow'}}</div>
+        <h1>{{t 'rf.createAccount'}}</h1>
+        <p id="regSub" data-complete="{{t 'rf.allSet'}}">{{t 'rf.subFill' plan=plan.label}}</p>
         <div class="vg-reg-bar"><i id="regBar"></i></div>
       </div>
     </div>
 
     <div class="vg-callout info" style="display:flex;align-items:center;justify-content:space-between;margin-top:0">
-      <span>Selected plan: <b>{{plan.label}}</b></span>
-      <a href="/pricing" class="vg-nav-link" style="color:var(--vg-sky-600);padding:2px 6px">Change</a>
+      <span>{{t 'rf.selectedPlan'}} <b>{{plan.label}}</b></span>
+      <a href="/pricing" class="vg-nav-link" style="color:var(--vg-sky-600);padding:2px 6px">{{t 'rf.change'}}</a>
     </div>
 
     <form method="POST" action="/register">
       <input type="hidden" name="plan" value="{{selectedPlan}}">
       <input type="hidden" name="pbmm_attested" id="pbmmAttested" value="">
       <div class="vg-field-row">
-        <div class="vg-field"><label class="vg-label">First name</label><input class="vg-input" name="first_name" value="{{formData.first_name}}" placeholder="Alex" required></div>
-        <div class="vg-field"><label class="vg-label">Last name</label><input class="vg-input" name="last_name" value="{{formData.last_name}}" placeholder="Rivera" required></div>
+        <div class="vg-field"><label class="vg-label">{{t 'rf.firstName'}}</label><input class="vg-input" name="first_name" value="{{formData.first_name}}" placeholder="Alex" required></div>
+        <div class="vg-field"><label class="vg-label">{{t 'rf.lastName'}}</label><input class="vg-input" name="last_name" value="{{formData.last_name}}" placeholder="Rivera" required></div>
       </div>
-      <div class="vg-field"><label class="vg-label">Organization</label><input class="vg-input" name="organization" value="{{formData.organization}}" placeholder="Department or company" required></div>
-      <div class="vg-field"><label class="vg-label">Work email</label><input class="vg-input" type="email" name="email" value="{{formData.email}}" placeholder="you@agency.gc.ca" required></div>
-      <div class="vg-field"><label class="vg-label">Password <span class="vg-muted" style="font-weight:400">(or use a passkey below)</span></label><input class="vg-input" id="reg-password" type="password" name="password" placeholder="At least 10 characters">
-        <div class="vg-hint">Multi-factor authentication (TOTP or passkey) is set up right after registration.</div>
+      <div class="vg-field"><label class="vg-label">{{t 'rf.organization'}}</label><input class="vg-input" name="organization" value="{{formData.organization}}" placeholder="{{t 'rf.orgPlaceholder'}}" required></div>
+      <div class="vg-field"><label class="vg-label">{{t 'rf.workEmail'}}</label><input class="vg-input" type="email" name="email" value="{{formData.email}}" placeholder="you@agency.gc.ca" required></div>
+      <div class="vg-field"><label class="vg-label">{{t 'rf.password'}} <span class="vg-muted" style="font-weight:400">{{t 'rf.orPasskeyBelow'}}</span></label><input class="vg-input" id="reg-password" type="password" name="password" placeholder="{{t 'rf.passwordPlaceholder'}}">
+        <div class="vg-hint">{{t 'rf.mfaHint'}}</div>
       </div>
-      <div class="vg-field"><label class="vg-label">Comp code <span class="vg-muted" style="font-weight:400">(optional)</span></label><input class="vg-input" name="comp_code" value="{{formData.comp_code}}" placeholder="Unlocks a plan at no charge"></div>
+      <div class="vg-field"><label class="vg-label">{{t 'rf.compCode'}} <span class="vg-muted" style="font-weight:400">{{t 'rf.optional'}}</span></label><input class="vg-input" name="comp_code" value="{{formData.comp_code}}" placeholder="{{t 'rf.compPlaceholder'}}"></div>
 
       <label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--vg-muted);margin:6px 0 18px">
         <input type="checkbox" name="agree" value="1" required style="margin-top:3px">
-        <span>I agree to the Terms of Service and Privacy Policy.</span>
+        <span>{{t 'rf.agree'}}</span>
       </label>
 
-      <button class="vg-btn vg-btn-primary vg-btn-block vg-btn-lg" type="submit">Create account &amp; continue</button>
+      <button class="vg-btn vg-btn-primary vg-btn-block vg-btn-lg" type="submit">{{t 'rf.createContinue'}}</button>
       <button type="button" id="passkeyRegBtn" class="vg-btn vg-btn-ghost vg-btn-block" style="margin-top:10px">
-        <i class="bi bi-fingerprint"></i>&nbsp;Sign up with a passkey (no password)
+        <i class="bi bi-fingerprint"></i>&nbsp;{{t 'rf.passkeySignup'}}
       </button>
       <div id="passkeyRegError" class="vg-hint" style="color:var(--vg-red);display:none"></div>
     </form>
 
-    <div class="vg-or">or</div>
+    <div class="vg-or">{{t 'rf.or'}}</div>
     <p style="text-align:center;font-size:14px;color:var(--vg-muted);margin:0">
-      Already registered? <a href="/admin/login" style="color:var(--vg-sky-600);font-weight:600;text-decoration:none">Sign in</a>
+      {{t 'rf.alreadyRegistered'}} <a href="/admin/login" style="color:var(--vg-sky-600);font-weight:600;text-decoration:none">{{t 'rf.signIn'}}</a>
     </p>
   </div>
 
@@ -351,7 +351,7 @@ window.PBMMAttest = (function(){
     var complete = pct === 100;
     pctEl.classList.toggle('vg-reg-done', complete);
     if (sub) sub.innerHTML = complete
-      ? '<b>All set</b> — create your account to continue.'
+      ? (sub.dataset.complete || subDefault)
       : subDefault;
   }
   form.addEventListener('input', update);

@@ -18,108 +18,108 @@
 
 <section class="vg-hero">
   <div class="vg-container-narrow">
-    <span class="vg-badge vg-badge-dark" style="margin-bottom:18px">Plans for teams of every size</span>
-    <h1>Pick a plan. <span class="vg-gradient-text">Start in minutes.</span></h1>
-    <p>Every plan includes the full multi-framework platform, AI-assisted evidence, and your own centralized knowledge base. An account is required to begin — start on a free trial and upgrade any time.</p>
+    <span class="vg-badge vg-badge-dark" style="margin-bottom:18px">{{t 'pl.heroBadge'}}</span>
+    <h1>{{t 'pl.heroH1a'}} <span class="vg-gradient-text">{{t 'pl.heroH1b'}}</span></h1>
+    <p>{{t 'pl.heroSub'}}</p>
   </div>
 </section>
 
 <section class="vg-section" style="padding-top:44px">
   <div class="vg-container">
     {{#unless stripeReady}}
-      <div class="vg-callout warn" style="margin-bottom:24px"><b>Test mode:</b> card checkout is not configured yet, so paid plans will show a setup notice. Free trial and comp codes work now.</div>
+      <div class="vg-callout warn" style="margin-bottom:24px"><b>{{t 'pl.testModeB'}}</b> {{t 'pl.testModeT'}}</div>
     {{/unless}}
 
     <div class="vg-price-grid">
       <div class="vg-plan">
-        <div class="vg-plan-name">Trial</div>
-        <div class="vg-plan-price">Free</div>
-        <div class="vg-plan-tag">14 days, no card required. Explore the full workflow end to end.</div>
-        <div class="vg-plan-cta"><a href="/register?plan=trial" class="vg-btn vg-btn-ghost vg-btn-block">Start free trial</a></div>
+        <div class="vg-plan-name">{{t 'pl.trial'}}</div>
+        <div class="vg-plan-price">{{t 'pl.free'}}</div>
+        <div class="vg-plan-tag">{{t 'pl.trialTag'}}</div>
+        <div class="vg-plan-cta"><a href="/register?plan=trial" class="vg-btn vg-btn-ghost vg-btn-block">{{t 'pl.trialCta'}}</a></div>
         <ul class="vg-plan-features">
-          <li><span class="vg-plan-highlight">1 admin + 2 users</span></li>
-          <li><span class="vg-plan-highlight">1 project</span></li>
-          <li>All frameworks</li>
-            <li><span class="vg-plan-highlight">250K AI tokens / mo</span></li>
-          <li>AI evidence guidance</li>
-          <li class="muted">Priority support</li>
+          <li><span class="vg-plan-highlight">{{t 'pl.trialF1'}}</span></li>
+          <li><span class="vg-plan-highlight">{{t 'pl.trialF2'}}</span></li>
+          <li>{{t 'pl.allFrameworks'}}</li>
+            <li><span class="vg-plan-highlight">{{t 'pl.trialTokens'}}</span></li>
+          <li>{{t 'pl.trialF4'}}</li>
+          <li class="muted">{{t 'pl.prioritySupport'}}</li>
         </ul>
       </div>
 
       <div class="vg-plan">
-        <div class="vg-plan-name">Team</div>
-        <div class="vg-plan-price">$149<span class="per">/mo</span></div>
-        <div class="vg-plan-tag">For a single security team running assessments regularly.</div>
-        <div class="vg-plan-cta"><a href="/register?plan=team" class="vg-btn vg-btn-ghost vg-btn-block">Choose Team</a></div>
+        <div class="vg-plan-name">{{t 'pl.team'}}</div>
+        <div class="vg-plan-price">$149<span class="per">{{t 'pl.perMo'}}</span></div>
+        <div class="vg-plan-tag">{{t 'pl.teamTag'}}</div>
+        <div class="vg-plan-cta"><a href="/register?plan=team" class="vg-btn vg-btn-ghost vg-btn-block">{{t 'pl.teamCta'}}</a></div>
         <ul class="vg-plan-features">
-          <li><span class="vg-plan-highlight">Up to 5 users</span></li>
-          <li><span class="vg-plan-highlight">5 projects</span></li>
-          <li>All frameworks</li>
-            <li><span class="vg-plan-highlight">3M AI tokens / mo</span></li>
-          <li>AI evidence + narratives</li>
-          <li>Control inheritance</li>
+          <li><span class="vg-plan-highlight">{{t 'pl.teamF1'}}</span></li>
+          <li><span class="vg-plan-highlight">{{t 'pl.teamF2'}}</span></li>
+          <li>{{t 'pl.allFrameworks'}}</li>
+            <li><span class="vg-plan-highlight">{{t 'pl.teamTokens'}}</span></li>
+          <li>{{t 'pl.teamF4'}}</li>
+          <li>{{t 'pl.controlInheritance'}}</li>
         </ul>
       </div>
 
       <div class="vg-plan featured">
-        <div class="vg-plan-flag"><span class="vg-badge vg-badge-grad">Most popular</span></div>
-        <div class="vg-plan-name">Business</div>
-        <div class="vg-plan-price">$449<span class="per">/mo</span></div>
-        <div class="vg-plan-tag">For departments authorizing many systems in parallel.</div>
-        <div class="vg-plan-cta"><a href="/register?plan=business" class="vg-btn vg-btn-primary vg-btn-block">Choose Business</a></div>
+        <div class="vg-plan-flag"><span class="vg-badge vg-badge-grad">{{t 'pl.mostPopular'}}</span></div>
+        <div class="vg-plan-name">{{t 'pl.business'}}</div>
+        <div class="vg-plan-price">$449<span class="per">{{t 'pl.perMo'}}</span></div>
+        <div class="vg-plan-tag">{{t 'pl.businessTag'}}</div>
+        <div class="vg-plan-cta"><a href="/register?plan=business" class="vg-btn vg-btn-primary vg-btn-block">{{t 'pl.businessCta'}}</a></div>
         <ul class="vg-plan-features">
-          <li><span class="vg-plan-highlight">Up to 20 users</span></li>
-          <li><span class="vg-plan-highlight">25 projects</span></li>
-          <li>All frameworks</li>
-            <li><span class="vg-plan-highlight">15M AI tokens / mo</span></li>
-          <li>AI evidence, narratives &amp; audit</li>
-          <li>Priority support</li>
+          <li><span class="vg-plan-highlight">{{t 'pl.bizF1'}}</span></li>
+          <li><span class="vg-plan-highlight">{{t 'pl.bizF2'}}</span></li>
+          <li>{{t 'pl.allFrameworks'}}</li>
+            <li><span class="vg-plan-highlight">{{t 'pl.bizTokens'}}</span></li>
+          <li>{{t 'pl.bizF4'}}</li>
+          <li>{{t 'pl.prioritySupport'}}</li>
         </ul>
       </div>
 
       <div class="vg-plan">
-        <div class="vg-plan-name">Enterprise</div>
-        <div class="vg-plan-price">Custom</div>
-        <div class="vg-plan-tag">Unlimited scale, SSO, and dedicated onboarding &amp; support.</div>
-        <div class="vg-plan-cta"><a href="/register?plan=enterprise" class="vg-btn vg-btn-dark vg-btn-block">Get started</a></div>
+        <div class="vg-plan-name">{{t 'pl.enterprise'}}</div>
+        <div class="vg-plan-price">{{t 'pl.custom'}}</div>
+        <div class="vg-plan-tag">{{t 'pl.entTag'}}</div>
+        <div class="vg-plan-cta"><a href="/register?plan=enterprise" class="vg-btn vg-btn-dark vg-btn-block">{{t 'pl.entCta'}}</a></div>
         <ul class="vg-plan-features">
-          <li><span class="vg-plan-highlight">Unlimited users</span></li>
-          <li><span class="vg-plan-highlight">Unlimited projects</span></li>
-          <li><span class="vg-plan-highlight">Unlimited AI tokens</span></li>
-            <li>Full AI suite + audit</li>
-          <li>SSO / SAML, audit logs</li>
-          <li>Dedicated support &amp; SLA</li>
+          <li><span class="vg-plan-highlight">{{t 'pl.entF1'}}</span></li>
+          <li><span class="vg-plan-highlight">{{t 'pl.entF2'}}</span></li>
+          <li><span class="vg-plan-highlight">{{t 'pl.entTokens'}}</span></li>
+            <li>{{t 'pl.entF4'}}</li>
+          <li>{{t 'pl.entF5'}}</li>
+          <li>{{t 'pl.entF6'}}</li>
         </ul>
       </div>
     </div>
 
     <div class="vg-payg" style="margin-top:10px">
       <div>
-        <span class="vg-badge vg-badge-grad" style="margin-bottom:12px">Pay as you go</span>
-        <h3>Only pay for what you assess</h3>
-        <p>No fixed tier. A small monthly fee per active user — admins and project users alike — plus a flat charge for each project you create. Ideal for occasional or seasonal work.</p>
-        <div style="margin-top:16px"><a href="/register?plan=payg" class="vg-btn vg-btn-primary">Start pay-as-you-go</a></div>
+        <span class="vg-badge vg-badge-grad" style="margin-bottom:12px">{{t 'pl.paygBadge'}}</span>
+        <h3>{{t 'pl.paygH3'}}</h3>
+        <p>{{t 'pl.paygP'}}</p>
+        <div style="margin-top:16px"><a href="/register?plan=payg" class="vg-btn vg-btn-primary">{{t 'pl.paygCta'}}</a></div>
       </div>
       <div class="meter">
-        <div class="row"><span>Per user / month<div class="u">admins + project users</div></span><b>$19</b></div>
-        <div class="row"><span>Per project<div class="u">charged when created</div></span><b>$99</b></div>
+        <div class="row"><span>{{t 'pl.perUserMo'}}<div class="u">{{t 'pl.adminsProjectUsers'}}</div></span><b>$19</b></div>
+        <div class="row"><span>{{t 'pl.perProject'}}<div class="u">{{t 'pl.chargedCreated'}}</div></span><b>$99</b></div>
       </div>
     </div>
 
     <div class="vg-callout good" style="margin-top:30px">
-      <b>Have a comp access code?</b> Enter it on the registration page to unlock a plan at no charge — no payment details required.
+      <b>{{t 'pl.compB'}}</b> {{t 'pl.compT'}}
     </div>
-    <p class="vg-muted" style="font-size:13px;text-align:center;margin-top:20px">Placeholder pricing for testing. Amounts, user counts, and project limits are examples.</p>
+    <p class="vg-muted" style="font-size:13px;text-align:center;margin-top:20px">{{t 'pl.placeholderNote'}}</p>
   </div>
 </section>
 
 <footer class="vg-footer">
   <div class="vg-container">
     <div class="vg-footer-top">
-      <span class="vg-footer-brand">Vanguard SA&amp;A · Vanguard Cloud Services</span>
-      <span><a href="/sa-tool-overview.html">Product brief</a> &nbsp;·&nbsp; <a href="/pricing">Pricing</a> &nbsp;·&nbsp; <a href="/admin/login">Sign in</a></span>
+      <span class="vg-footer-brand">{{t 'pl.footerBrand'}}</span>
+      <span><a href="/sa-tool-overview">{{t 'navbar.productBrief'}}</a> &nbsp;·&nbsp; <a href="/pricing">{{t 'navbar.pricing'}}</a> &nbsp;·&nbsp; <a href="/admin/login">{{t 'navbar.signIn'}}</a></span>
     </div>
-    <div>Security Assessment &amp; Authorization Platform · vanguardcs.ca</div>
+    <div>{{t 'pl.footerLine'}}</div>
   </div>
 </footer>
 </div>
