@@ -2285,5 +2285,18 @@
   "pl.compT": "Inseriscilo nella pagina di registrazione per sbloccare un piano senza costi: nessun dato di pagamento richiesto.",
   "pl.placeholderNote": "Prezzi di esempio a scopo di test. Importi, numero di utenti e limiti dei progetti sono esempi.",
   "pl.footerBrand": "Vanguard SA&A · Vanguard Cloud Services",
-  "pl.footerLine": "Piattaforma di valutazione e autorizzazione della sicurezza · vanguardcs.ca"
+  "pl.footerLine": "Piattaforma di valutazione e autorizzazione della sicurezza · vanguardcs.ca",
+  "pbmm.title": "Informativa sulla privacy Protected B",
+  "pbmm.lead": "Esamina e attesta questa informativa prima di creare l’account.",
+  "pbmm.p1": "Vanguard SA&A raccoglie il tuo nome, la tua email di lavoro e la tua organizzazione per creare e proteggere il tuo account, verificare la tua identità, tenere registri di audit e gestire le attività di valutazione e autorizzazione della sicurezza (SA&A). I tuoi dati personali sono raccolti e utilizzati ai sensi del Privacy Act.",
+  "pbmm.p2": "Questa piattaforma è usata per creare, archiviare e scambiare informazioni classificate fino a Protected B, inclusi dati personali come nomi, recapiti e documenti finanziari, fiscali o sanitari. Sei responsabile del trattamento di tutte le informazioni nel sistema in conformità alle politiche di sicurezza e privacy del Governo del Canada.",
+  "pbmm.p3": "Le informazioni sono ospitate in Canada e protette con controlli di accesso, crittografia e autenticazione a più fattori. I tuoi accessi e le tue azioni vengono registrati a fini di audit.",
+  "pbmm.consent": "Selezionando «Attesto e accetto», confermi di aver letto questa informativa, acconsenti alla raccolta e all’uso dei tuoi dati personali come descritto e accetti di trattare le informazioni Protected B in modo appropriato.",
+  "pbmm.check": "Ho letto e compreso questa informativa.",
+  "pbmm.cancel": "Annulla",
+  "pbmm.confirm": "Attesto e accetto",
+  "pbmm.linkProtectedB": "Che cos’è Protected B?",
+  "pbmm.linkPrivacyAct": "Privacy Act",
+  "pbmm.urlProtectedB": "https://cloud.google.com/security/compliance/protected-b",
+  "pbmm.urlPrivacyAct": "https://laws-lois.justice.gc.ca/eng/acts/P-21/"
 }

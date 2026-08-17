@@ -2285,5 +2285,18 @@
   "pl.compT": "Geben Sie ihn auf der Registrierungsseite ein, um einen Tarif kostenlos freizuschalten – keine Zahlungsdaten erforderlich.",
   "pl.placeholderNote": "Beispielpreise zu Testzwecken. Beträge, Benutzerzahlen und Projektlimits sind Beispiele.",
   "pl.footerBrand": "Vanguard SA&A · Vanguard Cloud Services",
-  "pl.footerLine": "Plattform für Sicherheitsbewertung und -autorisierung · vanguardcs.ca"
+  "pl.footerLine": "Plattform für Sicherheitsbewertung und -autorisierung · vanguardcs.ca",
+  "pbmm.title": "Protected-B-Datenschutzhinweis",
+  "pbmm.lead": "Bitte prüfen und bestätigen Sie diesen Hinweis, bevor Ihr Konto erstellt wird.",
+  "pbmm.p1": "Vanguard SA&A erfasst Ihren Namen, Ihre geschäftliche E-Mail und Ihre Organisation, um Ihr Konto zu erstellen und zu schützen, Ihre Identität zu prüfen, Prüfprotokolle zu führen und die Sicherheitsbewertungs- und -autorisierungsaktivitäten (SA&A) zu verwalten. Ihre personenbezogenen Daten werden gemäß dem Privacy Act erfasst und verwendet.",
+  "pbmm.p2": "Diese Plattform dient zum Erstellen, Speichern und Austauschen von Informationen bis zur Stufe Protected B – einschließlich personenbezogener Daten wie Namen, Kontaktdaten sowie Finanz-, Steuer- oder Gesundheitsunterlagen. Sie sind dafür verantwortlich, alle Informationen im System gemäß den Sicherheits- und Datenschutzrichtlinien der kanadischen Regierung zu behandeln.",
+  "pbmm.p3": "Die Informationen werden in Kanada gehostet und mit Zugriffskontrollen, Verschlüsselung und Mehrfaktor-Authentifizierung geschützt. Ihre Zugriffe und Aktionen werden zu Prüfzwecken aufgezeichnet.",
+  "pbmm.consent": "Mit der Auswahl von „Ich bestätige und stimme zu“ bestätigen Sie, dass Sie diesen Hinweis gelesen haben, der Erfassung und Verwendung Ihrer personenbezogenen Daten wie beschrieben zustimmen und sich verpflichten, Protected-B-Informationen angemessen zu behandeln.",
+  "pbmm.check": "Ich habe diesen Hinweis gelesen und verstanden.",
+  "pbmm.cancel": "Abbrechen",
+  "pbmm.confirm": "Ich bestätige und stimme zu",
+  "pbmm.linkProtectedB": "Was ist Protected B?",
+  "pbmm.linkPrivacyAct": "Privacy Act",
+  "pbmm.urlProtectedB": "https://cloud.google.com/security/compliance/protected-b",
+  "pbmm.urlPrivacyAct": "https://laws-lois.justice.gc.ca/eng/acts/P-21/"
 }

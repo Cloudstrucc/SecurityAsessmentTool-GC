@@ -2307,5 +2307,18 @@
   "pl.compT": "Ingréselo en la página de registro para desbloquear un plan sin costo: no se requieren datos de pago.",
   "pl.placeholderNote": "Precios de ejemplo para pruebas. Los importes, el número de usuarios y los límites de proyectos son ejemplos.",
   "pl.footerBrand": "Vanguard SA&A · Vanguard Cloud Services",
-  "pl.footerLine": "Plataforma de evaluación y autorización de seguridad · vanguardcs.ca"
+  "pl.footerLine": "Plataforma de evaluación y autorización de seguridad · vanguardcs.ca",
+  "pbmm.title": "Aviso de privacidad de Protegido B",
+  "pbmm.lead": "Revise este aviso y atestígüelo antes de crear su cuenta.",
+  "pbmm.p1": "Vanguard SA&A recopila su nombre, correo del trabajo y organización para crear y proteger su cuenta, verificar su identidad, mantener registros de auditoría y administrar las actividades de evaluación y autorización de seguridad (SA&A). Su información personal se recopila y utiliza conforme a la Ley de Privacidad.",
+  "pbmm.p2": "Esta plataforma se utiliza para crear, almacenar e intercambiar información clasificada hasta Protegido B, incluida información personal como nombres, datos de contacto y registros financieros, fiscales o de salud. Usted es responsable de tratar toda la información del sistema conforme a la política de seguridad y privacidad del Gobierno de Canadá.",
+  "pbmm.p3": "La información se aloja en Canadá y se protege con controles de acceso, cifrado y autenticación multifactor. Sus accesos y acciones se registran con fines de auditoría.",
+  "pbmm.consent": "Al seleccionar «Atestiguo y acepto», confirma que ha leído este aviso, consiente la recopilación y el uso de su información personal como se describe, y acepta tratar la información Protegido B de forma adecuada.",
+  "pbmm.check": "He leído y comprendido este aviso.",
+  "pbmm.cancel": "Cancelar",
+  "pbmm.confirm": "Atestiguo y acepto",
+  "pbmm.linkProtectedB": "¿Qué es Protegido B?",
+  "pbmm.linkPrivacyAct": "Ley de Privacidad",
+  "pbmm.urlProtectedB": "https://cloud.google.com/security/compliance/protected-b",
+  "pbmm.urlPrivacyAct": "https://laws-lois.justice.gc.ca/eng/acts/P-21/"
 }

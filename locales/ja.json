@@ -2285,5 +2285,18 @@
   "pl.compT": "登録ページで入力すると、プランを無料で利用できます。支払い情報は不要です。",
   "pl.placeholderNote": "テスト用の仮の料金です。金額、ユーザー数、プロジェクト上限は一例です。",
   "pl.footerBrand": "Vanguard SA&A · Vanguard Cloud Services",
-  "pl.footerLine": "セキュリティ評価・認可プラットフォーム · vanguardcs.ca"
+  "pl.footerLine": "セキュリティ評価・認可プラットフォーム · vanguardcs.ca",
+  "pbmm.title": "Protected B プライバシー通知",
+  "pbmm.lead": "アカウント作成前に、この通知を確認し、同意してください。",
+  "pbmm.p1": "Vanguard SA&A は、アカウントの作成と保護、本人確認、監査ログの保持、セキュリティ評価・認可（SA&A）活動の管理のために、お名前、業務用メール、所属組織を収集します。個人情報はプライバシー法（Privacy Act）に従って収集・利用されます。",
+  "pbmm.p2": "本プラットフォームは、Protected B までに分類される情報（氏名、連絡先、財務・税務・医療の記録などの個人情報を含む）の作成、保存、交換に使用されます。システム内のすべての情報を、カナダ政府のセキュリティおよびプライバシー方針に従って取り扱う責任は、利用者にあります。",
+  "pbmm.p3": "情報はカナダ国内でホストされ、アクセス制御、暗号化、多要素認証によって保護されます。アクセスと操作は監査目的で記録されます。",
+  "pbmm.consent": "「証明して同意する」を選択すると、本通知を読んだこと、記載のとおり個人情報の収集・利用に同意すること、および Protected B 情報を適切に取り扱うことに同意したものとみなされます。",
+  "pbmm.check": "本通知を読み、理解しました。",
+  "pbmm.cancel": "キャンセル",
+  "pbmm.confirm": "証明して同意する",
+  "pbmm.linkProtectedB": "Protected B とは？",
+  "pbmm.linkPrivacyAct": "プライバシー法",
+  "pbmm.urlProtectedB": "https://cloud.google.com/security/compliance/protected-b",
+  "pbmm.urlPrivacyAct": "https://laws-lois.justice.gc.ca/eng/acts/P-21/"
 }

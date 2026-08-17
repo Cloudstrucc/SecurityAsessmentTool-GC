@@ -2285,5 +2285,18 @@
   "pl.compT": "Voer deze in op de registratiepagina om een abonnement kosteloos te ontgrendelen — geen betaalgegevens nodig.",
   "pl.placeholderNote": "Voorbeeldprijzen voor tests. Bedragen, aantallen gebruikers en projectlimieten zijn voorbeelden.",
   "pl.footerBrand": "Vanguard SA&A · Vanguard Cloud Services",
-  "pl.footerLine": "Platform voor beveiligingsbeoordeling en -autorisatie · vanguardcs.ca"
+  "pl.footerLine": "Platform voor beveiligingsbeoordeling en -autorisatie · vanguardcs.ca",
+  "pbmm.title": "Protected B-privacyverklaring",
+  "pbmm.lead": "Bekijk en bevestig deze verklaring voordat uw account wordt aangemaakt.",
+  "pbmm.p1": "Vanguard SA&A verzamelt uw naam, zakelijke e-mail en organisatie om uw account aan te maken en te beveiligen, uw identiteit te verifiëren, auditlogboeken bij te houden en de activiteiten voor beveiligingsbeoordeling en -autorisatie (SA&A) te beheren. Uw persoonsgegevens worden verzameld en gebruikt conform de Privacy Act.",
+  "pbmm.p2": "Dit platform wordt gebruikt om informatie tot en met Protected B aan te maken, op te slaan en uit te wisselen, waaronder persoonsgegevens zoals namen, contactgegevens en financiële, fiscale of medische dossiers. U bent verantwoordelijk voor het behandelen van alle informatie in het systeem conform het beveiligings- en privacybeleid van de Canadese overheid.",
+  "pbmm.p3": "De informatie wordt in Canada gehost en beschermd met toegangscontroles, versleuteling en multifactorauthenticatie. Uw toegang en handelingen worden vastgelegd voor auditdoeleinden.",
+  "pbmm.consent": "Door «Ik bevestig en ga akkoord» te kiezen, bevestigt u dat u deze verklaring hebt gelezen, stemt u in met de verzameling en het gebruik van uw persoonsgegevens zoals beschreven, en gaat u ermee akkoord Protected B-informatie op passende wijze te behandelen.",
+  "pbmm.check": "Ik heb deze verklaring gelezen en begrepen.",
+  "pbmm.cancel": "Annuleren",
+  "pbmm.confirm": "Ik bevestig en ga akkoord",
+  "pbmm.linkProtectedB": "Wat is Protected B?",
+  "pbmm.linkPrivacyAct": "Privacy Act",
+  "pbmm.urlProtectedB": "https://cloud.google.com/security/compliance/protected-b",
+  "pbmm.urlPrivacyAct": "https://laws-lois.justice.gc.ca/eng/acts/P-21/"
 }
