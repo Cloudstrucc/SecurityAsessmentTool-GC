@@ -46,6 +46,18 @@ router.get('/portal', (req, res) => {
   });
 });
 
+// Product brief — served through the app so it gets the site header, the
+// language switcher, and full i18n. (Both paths kept: the old static URL
+// ...sa-tool-overview.html is linked from several pages.)
+function renderProductBrief(req, res) {
+  res.render('product-brief', {
+    title: req.t ? req.t('pb.metaTitle') : 'Vanguard SA&A — Product brief',
+    layout: 'home'
+  });
+}
+router.get('/sa-tool-overview', renderProductBrief);
+router.get('/sa-tool-overview.html', renderProductBrief);
+
 // ── SECURITY SELF-ASSESSMENT (access-code gated) ──
 function signedInUser(req) {
   if (req.isAuthenticated && req.isAuthenticated()) return req.user;

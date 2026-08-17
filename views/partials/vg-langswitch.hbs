@@ -1,0 +1,10 @@
+<div class="dropdown vg-lang">
+  <button class="vg-lang-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{{t 'navbar.language'}}">
+    <i class="bi bi-globe2" aria-hidden="true"></i><span>{{#each supportedLangs}}{{#if this.active}}{{this.short}}{{/if}}{{/each}}</span>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    {{#each supportedLangs}}
+      <li><a class="dropdown-item{{#if this.active}} active{{/if}}" href="{{this.url}}" lang="{{this.code}}" hreflang="{{this.code}}">{{this.short}} — {{this.name}}</a></li>
+    {{/each}}
+  </ul>
+</div>
