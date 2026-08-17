@@ -1,4 +1,70 @@
 <div class="vg vg-page">
+<style>
+  /* Registration: completion hero + live % ring (applies to every plan). */
+  .vg-reg-hero{display:flex;align-items:center;gap:18px;background:linear-gradient(120deg,var(--vg-navy-900),var(--vg-navy-800));
+    border-radius:var(--vg-radius);padding:18px 20px;margin-bottom:20px;position:relative;overflow:hidden}
+  .vg-reg-hero::after{content:"";position:absolute;right:-40px;top:50%;transform:translateY(-50%);width:150px;height:150px;
+    border-radius:50%;background:radial-gradient(circle,rgba(124,201,238,.22),transparent 70%);pointer-events:none}
+  .vg-reg-ring{--p:0;flex:0 0 auto;width:66px;height:66px;border-radius:50%;display:grid;place-items:center;position:relative;
+    background:conic-gradient(var(--vg-sky-400) calc(var(--p)*1%),rgba(255,255,255,.16) 0);transition:background .45s ease}
+  .vg-reg-ring::before{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--vg-navy-900)}
+  .vg-reg-ring span{position:relative;font-size:15px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
+  .vg-reg-meta{flex:1;min-width:0}
+  .vg-reg-eyebrow{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--vg-sky-300);font-weight:700}
+  .vg-reg-meta h1{font-size:21px;font-weight:750;color:#fff;margin:3px 0 4px;line-height:1.15}
+  .vg-reg-meta p{font-size:13.5px;color:#cdddf0;margin:0}
+  .vg-reg-meta p b{color:#fff}
+  .vg-reg-bar{height:6px;border-radius:99px;background:rgba(255,255,255,.16);margin-top:11px;overflow:hidden}
+  .vg-reg-bar>i{display:block;height:100%;width:0;border-radius:99px;background:var(--vg-grad);transition:width .45s ease}
+  /* firm up the account inputs so they read as intentional, matching the app's fields */
+  .vg-auth-card .vg-input{border:1.5px solid #cdd8e6;background:var(--vg-paper)}
+  .vg-auth-card .vg-input:focus{border-color:var(--vg-sky-500)}
+  .vg-reg-done{color:var(--vg-green)!important}
+  @media (prefers-reduced-motion:reduce){.vg-reg-ring,.vg-reg-bar>i{transition:none}}
+  @media (max-width:560px){.vg-reg-hero{gap:14px;padding:16px}.vg-reg-meta h1{font-size:19px}}
+
+  /* Two-column registration: form (left) + Protected B guidance (right) */
+  .vg-reg-2col{width:100%;max-width:960px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,360px);gap:30px;align-items:start}
+  .vg-reg-2col > .vg-auth-card{max-width:none;width:100%}
+  .vg-reg-aside{position:sticky;top:24px;background:var(--vg-mist);border:1px solid var(--vg-line);border-radius:var(--vg-radius-lg);padding:24px 24px;min-width:0}
+  .vg-reg-aside .rs-eyebrow{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--vg-sky-600)}
+  .vg-reg-aside h2{font-size:19px;font-weight:750;color:var(--vg-navy-800);margin:6px 0 10px;line-height:1.2}
+  .vg-reg-aside > p{font-size:13.5px;line-height:1.6;color:var(--vg-ink);margin:0 0 6px}
+  .vg-reg-aside h3{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--vg-navy-800);margin:18px 0 9px}
+  .vg-reg-aside ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+  .vg-reg-aside li{position:relative;padding-left:22px;font-size:12.75px;line-height:1.5;color:var(--vg-ink);overflow-wrap:anywhere}
+  .vg-reg-aside li::before{content:"";position:absolute;left:2px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--vg-grad-soft)}
+  .vg-reg-aside .rs-note{margin-top:16px;font-size:12.25px;color:var(--vg-ink);background:#fff;border-left:3px solid var(--vg-sky-500);border-radius:8px;padding:11px 13px;line-height:1.55}
+  .vg-reg-aside .rs-links{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:14px}
+  .vg-reg-aside .rs-links a,.vg-modal-links a{font-size:12.5px;font-weight:600;color:var(--vg-sky-600);text-decoration:none;overflow-wrap:anywhere}
+  .vg-reg-aside .rs-links a:hover,.vg-modal-links a:hover{text-decoration:underline}
+  @media (max-width:900px){
+    .vg-reg-2col{grid-template-columns:1fr;max-width:460px}
+    .vg-reg-aside{position:static;order:2}
+  }
+
+  /* Protected B (PBMM) attestation modal */
+  .vg-modal-back{position:fixed;inset:0;background:rgba(10,22,38,.55);display:none;align-items:center;justify-content:center;z-index:5000;padding:18px}
+  .vg-modal-back.open{display:flex}
+  .vg-modal{background:#fff;border-radius:var(--vg-radius-lg);max-width:560px;width:100%;box-shadow:var(--vg-shadow-lg);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;border-top:5px solid var(--vg-navy-800)}
+  .vg-modal:focus{outline:none}
+  .vg-modal-head{display:flex;align-items:flex-start;gap:12px;padding:20px 22px 10px}
+  .vg-modal-head .ico{flex:0 0 auto;width:38px;height:38px;border-radius:10px;background:var(--vg-soft);color:var(--vg-navy-800);display:grid;place-items:center;font-size:18px}
+  .vg-modal-head h2{font-size:18px;font-weight:750;color:var(--vg-navy-800);margin:0;line-height:1.2}
+  .vg-modal-head p{font-size:12.5px;color:var(--vg-muted);margin:3px 0 0}
+  .vg-modal-body{padding:8px 22px 4px;overflow:auto}
+  .vg-modal-body p{font-size:13px;line-height:1.6;color:var(--vg-ink);margin:0 0 12px}
+  .vg-modal-body .consent{background:var(--vg-mist);border-radius:10px;padding:12px 14px;font-size:12.5px;color:var(--vg-ink);margin-bottom:4px}
+  .vg-modal-links{display:flex;flex-wrap:wrap;gap:8px 16px;margin:2px 0 14px}
+  .vg-modal-foot{padding:14px 22px 20px;border-top:1px solid var(--vg-line);display:flex;flex-direction:column;gap:14px;flex:0 0 auto}
+  .vg-modal-foot .chk{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--vg-ink)}
+  .vg-modal-foot .chk input{margin-top:3px;flex:0 0 auto}
+  .vg-modal-foot .btns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+  .vg-modal-foot .btns .vg-btn{width:auto}
+  .vg-modal-foot .btns .vg-btn[disabled]{opacity:.5;cursor:not-allowed}
+  @media (prefers-reduced-motion:no-preference){.vg-modal-back.open .vg-modal{animation:vgPop .22s ease}}
+  @keyframes vgPop{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+</style>
 <nav class="vg-nav">
   <div class="vg-container vg-nav-inner">
     <a href="/" class="vg-brand">
@@ -60,17 +126,16 @@
     <div class="vg-center" style="margin-top:18px"><a href="/pricing" class="vg-nav-link" style="color:var(--vg-sky-600);font-weight:600">See full pricing &amp; pay-as-you-go →</a></div>
   </div>
  {{else}}
+  <div class="vg-reg-2col">
   <div class="vg-auth-card">
-    <div class="vg-steps-mini">
-      <span class="dot">1</span><span class="bar"></span>
-      <span class="dot active">2</span><span class="bar"></span>
-      <span class="dot">3</span>
-      <span style="margin-left:10px">Plan → <b style="color:var(--vg-navy-800)">Account</b> → Payment</span>
-    </div>
-
-    <div class="vg-auth-head">
-      <h1>Create your account</h1>
-      <p>You'll need an account to access any plan — including the free trial.</p>
+    <div class="vg-reg-hero">
+      <div class="vg-reg-ring" id="regRing"><span id="regPct">0%</span></div>
+      <div class="vg-reg-meta">
+        <div class="vg-reg-eyebrow">Step 2 of 3 · Account</div>
+        <h1>Create your account</h1>
+        <p id="regSub">Fill in your details to unlock the <b>{{plan.label}}</b> plan.</p>
+        <div class="vg-reg-bar"><i id="regBar"></i></div>
+      </div>
     </div>
 
     <div class="vg-callout info" style="display:flex;align-items:center;justify-content:space-between;margin-top:0">
@@ -80,6 +145,7 @@
 
     <form method="POST" action="/register">
       <input type="hidden" name="plan" value="{{selectedPlan}}">
+      <input type="hidden" name="pbmm_attested" id="pbmmAttested" value="">
       <div class="vg-field-row">
         <div class="vg-field"><label class="vg-label">First name</label><input class="vg-input" name="first_name" value="{{formData.first_name}}" placeholder="Alex" required></div>
         <div class="vg-field"><label class="vg-label">Last name</label><input class="vg-input" name="last_name" value="{{formData.last_name}}" placeholder="Rivera" required></div>
@@ -108,9 +174,111 @@
       Already registered? <a href="/admin/login" style="color:var(--vg-sky-600);font-weight:600;text-decoration:none">Sign in</a>
     </p>
   </div>
+
+  <aside class="vg-reg-aside" aria-label="About registration and Protected B">
+    <div class="rs-eyebrow">{{t 'regside.eyebrow'}}</div>
+    <h2>{{t 'regside.title'}}</h2>
+    <p>{{t 'regside.intro'}}</p>
+    <h3>{{t 'regside.collectTitle'}}</h3>
+    <ul>
+      <li>{{t 'regside.collect1'}}</li>
+      <li>{{t 'regside.collect2'}}</li>
+      <li>{{t 'regside.collect3'}}</li>
+    </ul>
+    <h3>{{t 'regside.protectTitle'}}</h3>
+    <ul>
+      <li>{{t 'regside.protect1'}}</li>
+      <li>{{t 'regside.protect2'}}</li>
+      <li>{{t 'regside.protect3'}}</li>
+    </ul>
+    <div class="rs-note">{{t 'regside.note'}}</div>
+    <div class="rs-links">
+      <a href="{{t 'pbmm.urlProtectedB'}}" target="_blank" rel="noopener noreferrer">↗ {{t 'pbmm.linkProtectedB'}}</a>
+      <a href="{{t 'pbmm.urlPrivacyAct'}}" target="_blank" rel="noopener noreferrer">↗ {{t 'pbmm.linkPrivacyAct'}}</a>
+    </div>
+  </aside>
+  </div>
+
+  <div class="vg-modal-back" id="pbmmBack" role="dialog" aria-modal="true" aria-labelledby="pbmmTitle" aria-describedby="pbmmLead">
+    <div class="vg-modal" tabindex="-1">
+      <div class="vg-modal-head">
+        <div class="ico" aria-hidden="true"><i class="bi bi-shield-lock"></i></div>
+        <div>
+          <h2 id="pbmmTitle">{{t 'pbmm.title'}}</h2>
+          <p id="pbmmLead">{{t 'pbmm.lead'}}</p>
+        </div>
+      </div>
+      <div class="vg-modal-body">
+        <p>{{t 'pbmm.p1'}}</p>
+        <p>{{t 'pbmm.p2'}}</p>
+        <p>{{t 'pbmm.p3'}}</p>
+        <div class="vg-modal-links">
+          <a href="{{t 'pbmm.urlProtectedB'}}" target="_blank" rel="noopener noreferrer">↗ {{t 'pbmm.linkProtectedB'}}</a>
+          <a href="{{t 'pbmm.urlPrivacyAct'}}" target="_blank" rel="noopener noreferrer">↗ {{t 'pbmm.linkPrivacyAct'}}</a>
+        </div>
+        <p class="consent">{{t 'pbmm.consent'}}</p>
+      </div>
+      <div class="vg-modal-foot">
+        <label class="chk"><input type="checkbox" id="pbmmChk"><span>{{t 'pbmm.check'}}</span></label>
+        <div class="btns">
+          <button type="button" class="vg-btn vg-btn-ghost" id="pbmmCancel">{{t 'pbmm.cancel'}}</button>
+          <button type="button" class="vg-btn vg-btn-primary" id="pbmmConfirm" disabled>{{t 'pbmm.confirm'}}</button>
+        </div>
+      </div>
+    </div>
+  </div>
  {{/if}}
 </div>
 
+<script>
+// Protected B (PBMM) attestation gate — shown before an account is created,
+// for BOTH the password submit and the passkey sign-up.
+window.PBMMAttest = (function(){
+  var ok = false, pending = null, lastFocus = null;
+  var back = document.getElementById('pbmmBack');
+  var modal = back ? back.querySelector('.vg-modal') : null;
+  var chk = document.getElementById('pbmmChk');
+  var confirmBtn = document.getElementById('pbmmConfirm');
+  var cancelBtn = document.getElementById('pbmmCancel');
+  var hidden = document.getElementById('pbmmAttested');
+  var form = document.querySelector('form[action="/register"]');
+  function open(){
+    if (!back) return;
+    lastFocus = document.activeElement;
+    if (chk) chk.checked = false;
+    if (confirmBtn) confirmBtn.disabled = true;
+    back.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (modal) modal.focus();
+  }
+  function close(){
+    if (!back) return;
+    back.classList.remove('open');
+    document.body.style.overflow = '';
+    pending = null;
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  function require(cb){ if (ok){ cb && cb(); return; } pending = cb; open(); }
+  if (chk && confirmBtn) chk.addEventListener('change', function(){ confirmBtn.disabled = !chk.checked; });
+  if (confirmBtn) confirmBtn.addEventListener('click', function(){
+    if (chk && !chk.checked) return;
+    ok = true;
+    if (hidden) hidden.value = '1';
+    var cb = pending; pending = null;
+    back.classList.remove('open'); document.body.style.overflow = '';
+    if (cb) cb();
+  });
+  if (cancelBtn) cancelBtn.addEventListener('click', close);
+  if (back) back.addEventListener('click', function(e){ if (e.target === back) close(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && back && back.classList.contains('open')) close(); });
+  if (form) form.addEventListener('submit', function(e){
+    if (ok) return;                 // already attested → let it submit
+    e.preventDefault();             // (native required-field validation has already passed)
+    require(function(){ if (hidden) hidden.value = '1'; form.submit(); });
+  });
+  return { ok: function(){ return ok; }, require: require };
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@11/dist/bundle/index.umd.min.js"></script>
 <script>
 (function(){
@@ -126,10 +294,13 @@
     var fd = new FormData(form);
     if (!fd.get('first_name') || !fd.get('last_name') || !fd.get('email') || !fd.get('organization')) { err('Please fill in your name, organization and email first.'); return; }
     if (!form.querySelector('input[name="agree"]').checked) { err('Please accept the Terms of Service.'); return; }
+    // Require the Protected B attestation before creating the account.
+    if (window.PBMMAttest && !window.PBMMAttest.ok()) { window.PBMMAttest.require(function(){ btn.click(); }); return; }
     var original = btn.innerHTML; btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>&nbsp;Creating account…';
     try {
       fd.append('passwordless', '1');
+      fd.append('pbmm_attested', '1');
       var body = new URLSearchParams(fd).toString();
       var r = await fetch('/register', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body });
       var data = await r.json();
@@ -149,6 +320,42 @@
       btn.disabled = false; btn.innerHTML = original;
     }
   });
+})();
+
+// Live profile-completion meter in the hero (updates as the form is filled).
+(function(){
+  var form = document.querySelector('form[action="/register"]');
+  var ring = document.getElementById('regRing');
+  var pctEl = document.getElementById('regPct');
+  var bar = document.getElementById('regBar');
+  var pctText = document.getElementById('regPct');
+  var sub = document.getElementById('regSub');
+  if (!form || !ring) return;
+  var subDefault = sub ? sub.innerHTML : '';
+  function val(n){ var el = form.elements[n]; return el ? String(el.value || '').trim() : ''; }
+  function update(){
+    var checks = [
+      !!val('first_name'),
+      !!val('last_name'),
+      !!val('organization'),
+      /.+@.+\..+/.test(val('email')),
+      val('password').length >= 10,
+      form.elements['agree'] && form.elements['agree'].checked
+    ];
+    var done = checks.filter(Boolean).length;
+    var pct = Math.round(done / checks.length * 100);
+    ring.style.setProperty('--p', pct);
+    pctText.textContent = pct + '%';
+    bar.style.width = pct + '%';
+    var complete = pct === 100;
+    pctEl.classList.toggle('vg-reg-done', complete);
+    if (sub) sub.innerHTML = complete
+      ? '<b>All set</b> — create your account to continue.'
+      : subDefault;
+  }
+  form.addEventListener('input', update);
+  form.addEventListener('change', update);
+  update();
 })();
 </script>
 
