@@ -72,6 +72,15 @@
 .vg-nav-link:hover { color:#fff; background:rgba(124,196,238,.12); }
 @media(max-width:720px){ .vg-nav-link.hide-sm{ display:none; } .vg-brand-name{ display:none; } }
 
+/* Language switcher (sits in the dark vg-nav) */
+.vg-lang { position:relative; }
+.vg-lang-btn { display:inline-flex; align-items:center; gap:6px; background:rgba(124,196,238,.10); border:1px solid rgba(124,196,238,.22); color:#fff; font-family:var(--vg-font); font-weight:600; font-size:13px; line-height:1; padding:7px 12px; border-radius:var(--vg-radius-pill); cursor:pointer; }
+.vg-lang-btn:hover { background:rgba(124,196,238,.18); }
+.vg-lang-btn .bi { font-size:14px; }
+.vg-lang .dropdown-menu { min-width:172px; font-size:13.5px; border:1px solid var(--vg-line); border-radius:var(--vg-radius-sm); box-shadow:var(--vg-shadow); }
+.vg-lang .dropdown-item { padding:7px 14px; }
+.vg-lang .dropdown-item.active { background:var(--vg-soft); color:var(--vg-navy-800); font-weight:600; }
+
 /* ---------- Buttons ---------- */
 .vg-btn {
   display:inline-flex; align-items:center; justify-content:center; gap:8px;

@@ -1,0 +1,303 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/4.0.2/inter.min.css">
+<style>
+  .pb-scope{
+    --navy-950:#0a1626; --navy-900:#0d2136; --navy-800:#143453;
+    --sky-300:#a9d8f2; --sky-400:#7cc4ee; --sky-500:#4d9fe0; --sky-600:#2f80cf;
+    --peri-500:#6d7fca; --peri-400:#8593d6; --cyan-500:#4fc8dd;
+    --ink:#17273a; --muted:#5f7185; --line:#dce7f2;
+    --paper:#ffffff; --mist:#f4f9fd; --soft:#eaf5fd;
+    --amber:#e0a53d; --rose:#d98089; --green:#57b894;
+    --grad:linear-gradient(90deg,#6d7fca 0%,#4d9fe0 50%,#7cc9ee 100%);
+    --grad-soft:linear-gradient(90deg,#8593d6 0%,#7cc4ee 100%);
+    font-family:'Inter var',Inter,'Segoe UI',Roboto,Arial,sans-serif;
+    color:var(--ink); background:var(--paper); font-size:17px; line-height:1.72; -webkit-font-smoothing:antialiased;
+  }
+  .pb-scope *{box-sizing:border-box}
+  .pb-scope .cover{
+    background:
+      radial-gradient(820px 440px at 50% -6%, rgba(124,196,238,.24), transparent 62%),
+      radial-gradient(680px 400px at 88% 108%, rgba(109,127,202,.18), transparent 60%),
+      var(--navy-950);
+    color:#fff; display:flex; flex-direction:column; justify-content:space-between;
+    padding:60px 8vw 46px; text-align:center; position:relative; min-height:88vh;
+  }
+  .pb-scope .cover-inner{max-width:820px;margin:auto;display:flex;flex-direction:column;align-items:center}
+  .pb-scope .cover-wordmark{position:absolute;top:20px;right:8vw;font-size:13px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:#a9c0d8}
+  .pb-scope .cover-product{
+    margin-top:0;font-size:clamp(46px,8vw,96px);font-weight:800;letter-spacing:-.03em;line-height:1.12;padding-bottom:.06em;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .pb-scope .cover-product-tag{margin-top:14px;font-size:13px;font-weight:600;letter-spacing:.30em;text-transform:uppercase;color:#cddbea}
+  .pb-scope .cover-eyebrow{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--sky-400);margin:30px 0 22px}
+  .pb-scope .cover h1{font-size:clamp(34px,5vw,58px);font-weight:700;line-height:1.08;letter-spacing:-.02em;color:#fff}
+  .pb-scope .cover h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .pb-scope .cover-sub{margin-top:26px;font-size:18.5px;color:#c2d2e3;max-width:660px;line-height:1.7;font-weight:400}
+  .pb-scope .cover-rule{height:3px;width:130px;background:var(--grad);border-radius:2px;margin:34px auto 0}
+  .pb-scope .cover-foot{display:flex;justify-content:space-between;align-items:flex-end;color:#8299b2;font-size:13.5px;gap:16px;flex-wrap:wrap;margin-top:40px}
+  .pb-scope .cover-foot b{color:#cddbea;font-weight:600}
+  .pb-scope main{max-width:780px;margin:0 auto;padding:74px 24px 40px}
+  .pb-scope section{margin-bottom:70px}
+  .pb-scope .eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--sky-600);margin-bottom:10px}
+  .pb-scope h2{font-size:30px;font-weight:700;letter-spacing:-.015em;margin-bottom:16px;line-height:1.18;color:var(--ink)}
+  .pb-scope h3{font-size:19px;font-weight:600;margin:28px 0 8px;color:var(--ink)}
+  .pb-scope p{margin-bottom:15px;color:#2b3c52}
+  .pb-scope p.lede{font-size:19.5px;line-height:1.75;color:var(--ink)}
+  .pb-scope .rule{height:3px;width:64px;background:var(--grad);border-radius:2px;margin:0 0 24px}
+  .pb-scope strong{font-weight:650;color:var(--ink)}
+  .pb-scope ul.clean{list-style:none;margin:16px 0}
+  .pb-scope ul.clean li{position:relative;padding-left:26px;margin-bottom:10px;color:#2b3c52}
+  .pb-scope ul.clean li::before{content:"";position:absolute;left:0;top:10px;width:9px;height:9px;border-radius:50%;background:var(--grad)}
+  .pb-scope .callout{background:var(--soft);border-left:3px solid var(--sky-500);border-radius:0 10px 10px 0;padding:18px 22px;margin:22px 0;color:#22354e;font-size:15.5px;line-height:1.66}
+  .pb-scope .callout b{color:var(--navy-800)}
+  .pb-scope .callout.warn{background:#fdf4ee;border-left-color:var(--amber)}
+  .pb-scope .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0}
+  .pb-scope .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0}
+  .pb-scope .card{background:var(--mist);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+  .pb-scope .card b{display:block;font-size:15.5px;margin-bottom:6px;color:var(--navy-800)}
+  .pb-scope .card span{font-size:14px;color:var(--muted);line-height:1.55}
+  .pb-scope .card .num{font-size:13px;font-weight:700;letter-spacing:.12em;color:var(--sky-600);display:block;margin-bottom:8px}
+  @media(max-width:640px){.pb-scope .grid2,.pb-scope .grid3{grid-template-columns:1fr}}
+  .pb-scope .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:26px 0}
+  .pb-scope .stat{background:var(--navy-900);border-radius:14px;padding:22px 20px;color:#fff;text-align:center}
+  .pb-scope .stat .big{font-size:34px;font-weight:750;line-height:1;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .pb-scope .stat .lbl{font-size:12.5px;color:#a9c0d8;margin-top:10px;line-height:1.5}
+  @media(max-width:640px){.pb-scope .stats{grid-template-columns:1fr}}
+  .pb-scope .diagram{margin:26px 0}
+  .pb-scope .canvas{background:radial-gradient(760px 360px at 12% -6%,rgba(124,196,238,.18),transparent 60%),radial-gradient(700px 360px at 92% 106%,rgba(109,127,202,.16),transparent 60%),var(--navy-900);border:1px solid #163654;border-radius:20px;overflow:hidden;width:min(96vw,1060px);margin-left:50%;transform:translateX(-50%)}
+  .pb-scope .canvas svg{display:block;width:100%;height:auto}
+  .pb-scope text{font-family:Inter,'Segoe UI',Arial,sans-serif}
+  .pb-scope .flow{stroke-dasharray:6 7;animation:pbflow 1.7s linear infinite}
+  @keyframes pbflow{to{stroke-dashoffset:-13}}
+  @media(prefers-reduced-motion:reduce),print{.pb-scope .flow{animation:none}}
+  .pb-scope .diagram-caption{font-size:13px;color:var(--muted);text-align:center;padding:13px 16px 6px;line-height:1.55}
+  .pb-scope .journey{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:22px 0}
+  .pb-scope .journey-head{background:var(--soft);padding:14px 22px;font-weight:650;color:var(--navy-800);font-size:15.5px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .pb-scope .journey-head .pill{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--grad);padding:4px 10px;border-radius:999px}
+  .pb-scope .steps{list-style:none;counter-reset:s;padding:8px 0}
+  .pb-scope .steps li{counter-increment:s;position:relative;padding:12px 24px 12px 62px;border-bottom:1px solid #eef4fa}
+  .pb-scope .steps li:last-child{border-bottom:none}
+  .pb-scope .steps li::before{content:counter(s);position:absolute;left:22px;top:12px;width:26px;height:26px;border-radius:50%;background:var(--navy-900);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .pb-scope .steps li b{color:var(--navy-800)}
+  .pb-scope .steps li span{color:var(--muted);font-size:14.5px}
+  .pb-scope table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14.5px}
+  .pb-scope th{text-align:left;font-weight:600;color:var(--navy-800);border-bottom:2px solid var(--navy-800);padding:9px 12px}
+  .pb-scope td{border-bottom:1px solid var(--line);padding:9px 12px;color:#2b3c52;vertical-align:top}
+  .pb-scope td.was{color:#9a5a34}
+  .pb-scope td.now{color:#2b6b52}
+  .pb-scope .pb-footer{border-top:1px solid var(--line);padding:30px 24px 54px;text-align:center;color:var(--muted);font-size:13px;max-width:780px;margin:0 auto}
+  .pb-scope .print-btn{position:fixed;right:22px;bottom:22px;z-index:50;background:var(--navy-900);color:#fff;border:none;border-radius:999px;padding:13px 22px;font:600 14px Inter,'Segoe UI',sans-serif;cursor:pointer;box-shadow:0 12px 32px rgba(10,22,38,.30);display:flex;align-items:center;gap:8px}
+  .pb-scope .print-btn:hover{background:var(--sky-600)}
+  @media print{.vg-nav{display:none!important}.pb-scope .print-btn{display:none}.pb-scope .canvas{break-inside:avoid}.pb-scope section{break-inside:avoid}}
+</style>
+
+<nav class="vg-nav">
+  <div class="vg-container vg-nav-inner">
+    <a href="/" class="vg-brand">
+      <span class="vg-brand-name">Vanguard Cloud Services</span>
+      <span class="vg-brand-sep">|</span>
+      <span class="vg-brand-product">SA&amp;A</span>
+    </a>
+    <div class="vg-nav-links">
+      <a href="/" class="vg-nav-link hide-sm">{{t 'navbar.home'}}</a>
+      <a href="/pricing" class="vg-nav-link">{{t 'navbar.pricing'}}</a>
+      {{#unless user}}<a href="/admin/login" class="vg-nav-link">{{t 'navbar.signIn'}}</a>{{/unless}}
+      <a href="/register?plan=trial" class="vg-btn vg-btn-primary vg-btn-sm">{{t 'navbar.startTrial'}}</a>
+      {{> vg-langswitch}}
+    </div>
+  </div>
+</nav>
+
+<div class="pb-scope">
+<header class="cover">
+  <div class="cover-wordmark">Vanguard Cloud Services</div>
+  <div class="cover-inner">
+    <div class="cover-product">Vanguard SA&amp;A</div>
+    <div class="cover-product-tag">{{t 'pb.coverTag'}}</div>
+    <span class="cover-eyebrow">{{t 'pb.coverEyebrow'}}</span>
+    <h1>{{t 'pb.coverH1a'}} <span class="g">{{t 'pb.coverH1hl'}}</span><br>{{t 'pb.coverH1b'}}</h1>
+    <p class="cover-sub">{{t 'pb.coverSub'}}</p>
+    <div class="cover-rule"></div>
+  </div>
+  <div class="cover-foot">
+    <span>Vanguard Cloud Services · <b>Vanguard SA&amp;A</b></span>
+    <span>{{t 'pb.coverFootRight'}} · <b>{{t 'pb.coverFootRightB'}}</b></span>
+  </div>
+</header>
+
+<main>
+  <section id="what">
+    <div class="eyebrow">{{t 'pb.s1Eyebrow'}}</div>
+    <h2>{{t 'pb.s1H2'}}</h2>
+    <div class="rule"></div>
+    <p class="lede">{{t 'pb.s1Lede'}}</p>
+    <p>{{t 'pb.s1P1'}}</p>
+    <p>{{t 'pb.s1P2'}}</p>
+    <div class="callout"><b>{{t 'pb.s1CalloutB'}}</b> {{t 'pb.s1CalloutT'}}</div>
+  </section>
+
+  <section id="problem">
+    <div class="eyebrow">{{t 'pb.s2Eyebrow'}}</div>
+    <h2>{{t 'pb.s2H2'}}</h2>
+    <div class="rule"></div>
+    <p>{{t 'pb.s2P1'}}</p>
+    <ul class="clean">
+      <li><strong>{{t 'pb.s2Li1B'}}</strong> {{t 'pb.s2Li1T'}}</li>
+      <li><strong>{{t 'pb.s2Li2B'}}</strong> {{t 'pb.s2Li2T'}}</li>
+      <li><strong>{{t 'pb.s2Li3B'}}</strong> {{t 'pb.s2Li3T'}}</li>
+      <li><strong>{{t 'pb.s2Li4B'}}</strong> {{t 'pb.s2Li4T'}}</li>
+      <li><strong>{{t 'pb.s2Li5B'}}</strong> {{t 'pb.s2Li5T'}}</li>
+    </ul>
+    <p>{{t 'pb.s2P2'}}</p>
+    <div class="diagram">
+      <div class="canvas">
+        <svg viewBox="0 0 1040 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="{{t 'pb.s2Caption'}}">
+          <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6d7fca"/><stop offset="0.5" stop-color="#4d9fe0"/><stop offset="1" stop-color="#7cc9ee"/></linearGradient></defs>
+          <text x="60" y="44" fill="#c88f7a" font-size="13" font-weight="700" letter-spacing="2">TODAY — SCATTERED &amp; MANUAL</text>
+          <circle cx="120" cy="200" r="34" fill="#3a2632" stroke="#7a5060" stroke-width="1.5"/>
+          <text x="120" y="197" fill="#f0d8de" font-size="12" text-anchor="middle" font-weight="600">Assessor</text>
+          <text x="120" y="212" fill="#c9a7b0" font-size="10.5" text-anchor="middle">+ team</text>
+          <g stroke="#7a5060" stroke-width="1.5" fill="none">
+            <path d="M154 182 C 240 130, 300 120, 380 108"/><path d="M156 190 C 250 160, 300 156, 380 152"/><path d="M156 205 C 250 205, 300 205, 380 205"/><path d="M156 216 C 250 240, 300 252, 380 258"/><path d="M154 226 C 240 280, 300 296, 380 306"/>
+          </g>
+          <g font-size="12" fill="#e0c3cb">
+            <g><rect x="380" y="92" width="150" height="32" rx="8" fill="#2c1a24" stroke="#5c3a48"/><text x="455" y="112" text-anchor="middle">control_v3_final.xlsx</text></g>
+            <g><rect x="380" y="137" width="150" height="32" rx="8" fill="#2c1a24" stroke="#5c3a48"/><text x="455" y="157" text-anchor="middle">RE: RE: evidence?</text></g>
+            <g><rect x="380" y="189" width="150" height="32" rx="8" fill="#2c1a24" stroke="#5c3a48"/><text x="455" y="209" text-anchor="middle">screenshots.zip</text></g>
+            <g><rect x="380" y="242" width="150" height="32" rx="8" fill="#2c1a24" stroke="#5c3a48"/><text x="455" y="262" text-anchor="middle">\\fileshare\ATO</text></g>
+            <g><rect x="380" y="290" width="150" height="32" rx="8" fill="#2c1a24" stroke="#5c3a48"/><text x="455" y="310" text-anchor="middle">report_draft.pdf</text></g>
+          </g>
+          <line x1="565" y1="66" x2="565" y2="320" stroke="#1c3f5f" stroke-width="1.5" stroke-dasharray="4 6"/>
+          <text x="625" y="44" fill="#8fd0ee" font-size="13" font-weight="700" letter-spacing="2">WITH VANGUARD SA&amp;A — ONE RECORD</text>
+          <g><path class="flow" d="M690 150 H 640" stroke="url(#g1)" stroke-width="2.2" fill="none"/><path class="flow" d="M690 200 H 640" stroke="url(#g1)" stroke-width="2.2" fill="none"/><path class="flow" d="M690 250 H 640" stroke="url(#g1)" stroke-width="2.2" fill="none"/></g>
+          <g font-size="11.5" fill="#cfe0f2"><text x="600" y="154" text-anchor="end">Assessor</text><text x="600" y="204" text-anchor="end">Project team</text><text x="600" y="254" text-anchor="end">AI assistant</text></g>
+          <rect x="690" y="120" width="150" height="160" rx="16" fill="url(#g1)"/>
+          <text x="765" y="182" text-anchor="middle" fill="#0a1626" font-size="14" font-weight="800">Central</text><text x="765" y="202" text-anchor="middle" fill="#0a1626" font-size="14" font-weight="800">assessment</text><text x="765" y="222" text-anchor="middle" fill="#0a1626" font-size="14" font-weight="800">record</text>
+          <g stroke="url(#g1)" stroke-width="2" fill="none"><path class="flow" d="M840 168 C 900 150, 930 132, 966 120"/><path class="flow" d="M840 200 H 966"/><path class="flow" d="M840 232 C 900 250, 930 268, 966 280"/></g>
+          <g font-size="11.5" fill="#d6e6f6">
+            <g><rect x="930" y="106" width="80" height="28" rx="8" fill="#12324c" stroke="#3f6f9c"/><text x="970" y="124" text-anchor="middle">Evidence</text></g>
+            <g><rect x="930" y="186" width="80" height="28" rx="8" fill="#12324c" stroke="#3f6f9c"/><text x="970" y="204" text-anchor="middle">ATO / iATO</text></g>
+            <g><rect x="930" y="266" width="80" height="28" rx="8" fill="#12324c" stroke="#3f6f9c"/><text x="970" y="284" text-anchor="middle">Knowledge</text></g>
+          </g>
+        </svg>
+      </div>
+      <div class="diagram-caption">{{t 'pb.s2Caption'}}</div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="eyebrow">{{t 'pb.s3Eyebrow'}}</div>
+    <h2>{{t 'pb.s3H2'}}</h2>
+    <div class="rule"></div>
+    <p>{{t 'pb.s3P1'}}</p>
+    <div class="journey">
+      <div class="journey-head"><span class="pill">{{t 'pb.s3Pill'}}</span> {{t 'pb.s3JourneyTitle'}}</div>
+      <ol class="steps">
+        <li><b>{{t 'pb.s3St1B'}}</b> <span>{{t 'pb.s3St1T'}}</span></li>
+        <li><b>{{t 'pb.s3St2B'}}</b> <span>{{t 'pb.s3St2T'}}</span></li>
+        <li><b>{{t 'pb.s3St3B'}}</b> <span>{{t 'pb.s3St3T'}}</span></li>
+        <li><b>{{t 'pb.s3St4B'}}</b> <span>{{t 'pb.s3St4T'}}</span></li>
+        <li><b>{{t 'pb.s3St5B'}}</b> <span>{{t 'pb.s3St5T'}}</span></li>
+        <li><b>{{t 'pb.s3St6B'}}</b> <span>{{t 'pb.s3St6T'}}</span></li>
+        <li><b>{{t 'pb.s3St7B'}}</b> <span>{{t 'pb.s3St7T'}}</span></li>
+      </ol>
+    </div>
+    <div class="callout"><b>{{t 'pb.s3CalloutB'}}</b> {{t 'pb.s3CalloutT'}}</div>
+  </section>
+
+  <section id="ai">
+    <div class="eyebrow">{{t 'pb.s4Eyebrow'}}</div>
+    <h2>{{t 'pb.s4H2'}}</h2>
+    <div class="rule"></div>
+    <p>{{t 'pb.s4P1'}}</p>
+    <div class="grid3">
+      <div class="card"><span class="num">01</span><b>{{t 'pb.s4C1B'}}</b><span>{{t 'pb.s4C1T'}}</span></div>
+      <div class="card"><span class="num">02</span><b>{{t 'pb.s4C2B'}}</b><span>{{t 'pb.s4C2T'}}</span></div>
+      <div class="card"><span class="num">03</span><b>{{t 'pb.s4C3B'}}</b><span>{{t 'pb.s4C3T'}}</span></div>
+      <div class="card"><span class="num">04</span><b>{{t 'pb.s4C4B'}}</b><span>{{t 'pb.s4C4T'}}</span></div>
+      <div class="card"><span class="num">05</span><b>{{t 'pb.s4C5B'}}</b><span>{{t 'pb.s4C5T'}} <em>{{t 'pb.planned'}}</em></span></div>
+      <div class="card"><span class="num">06</span><b>{{t 'pb.s4C6B'}}</b><span>{{t 'pb.s4C6T'}} <em>{{t 'pb.planned'}}</em></span></div>
+    </div>
+    <div class="callout"><b>{{t 'pb.s4CalloutB'}}</b> {{t 'pb.s4CalloutT'}}</div>
+  </section>
+
+  <section id="collab">
+    <div class="eyebrow">{{t 'pb.s5Eyebrow'}}</div>
+    <h2>{{t 'pb.s5H2'}}</h2>
+    <div class="rule"></div>
+    <p>{{t 'pb.s5P1'}}</p>
+    <div class="grid2">
+      <div class="card"><b>{{t 'pb.s5C1B'}}</b><span>{{t 'pb.s5C1T'}}</span></div>
+      <div class="card"><b>{{t 'pb.s5C2B'}}</b><span>{{t 'pb.s5C2T'}}</span></div>
+    </div>
+    <p>{{t 'pb.s5P2'}}</p>
+    <div class="callout"><b>{{t 'pb.s5CalloutB'}}</b> {{t 'pb.s5CalloutT'}}</div>
+  </section>
+
+  <section id="knowledge">
+    <div class="eyebrow">{{t 'pb.s6Eyebrow'}}</div>
+    <h2>{{t 'pb.s6H2'}}</h2>
+    <div class="rule"></div>
+    <p>{{t 'pb.s6P1'}}</p>
+    <p>{{t 'pb.s6P2'}}</p>
+    <ul class="clean">
+      <li><strong>{{t 'pb.s6Li1B'}}</strong> {{t 'pb.s6Li1T'}}</li>
+      <li><strong>{{t 'pb.s6Li2B'}}</strong> {{t 'pb.s6Li2T'}}</li>
+      <li><strong>{{t 'pb.s6Li3B'}}</strong> {{t 'pb.s6Li3T'}}</li>
+      <li><strong>{{t 'pb.s6Li4B'}}</strong> {{t 'pb.s6Li4T'}}</li>
+    </ul>
+    <div class="callout"><b>{{t 'pb.s6CalloutB'}}</b> {{t 'pb.s6CalloutT'}}</div>
+  </section>
+
+  <section id="value">
+    <div class="eyebrow">{{t 'pb.s7Eyebrow'}}</div>
+    <h2>{{t 'pb.s7H2'}}</h2>
+    <div class="rule"></div>
+    <p>{{t 'pb.s7P1'}}</p>
+    <div class="stats">
+      <div class="stat"><div class="big">{{t 'pb.s7Stat1Big'}}</div><div class="lbl">{{t 'pb.s7Stat1Lbl'}}</div></div>
+      <div class="stat"><div class="big">{{t 'pb.s7Stat2Big'}}</div><div class="lbl">{{t 'pb.s7Stat2Lbl'}}</div></div>
+      <div class="stat"><div class="big">{{t 'pb.s7Stat3Big'}}</div><div class="lbl">{{t 'pb.s7Stat3Lbl'}}</div></div>
+    </div>
+    <p style="font-size:13.5px;color:var(--muted)">{{t 'pb.s7Note'}}</p>
+    <h3>{{t 'pb.s7H3a'}}</h3>
+    <table>
+      <thead><tr><th>{{t 'pb.s7ThDim'}}</th><th>{{t 'pb.s7ThWas'}}</th><th>{{t 'pb.s7ThNow'}}</th></tr></thead>
+      <tbody>
+        <tr><td>{{t 'pb.s7R1D'}}</td><td class="was">{{t 'pb.s7R1W'}}</td><td class="now">{{t 'pb.s7R1N'}}</td></tr>
+        <tr><td>{{t 'pb.s7R2D'}}</td><td class="was">{{t 'pb.s7R2W'}}</td><td class="now">{{t 'pb.s7R2N'}}</td></tr>
+        <tr><td>{{t 'pb.s7R3D'}}</td><td class="was">{{t 'pb.s7R3W'}}</td><td class="now">{{t 'pb.s7R3N'}}</td></tr>
+        <tr><td>{{t 'pb.s7R4D'}}</td><td class="was">{{t 'pb.s7R4W'}}</td><td class="now">{{t 'pb.s7R4N'}}</td></tr>
+        <tr><td>{{t 'pb.s7R5D'}}</td><td class="was">{{t 'pb.s7R5W'}}</td><td class="now">{{t 'pb.s7R5N'}}</td></tr>
+        <tr><td>{{t 'pb.s7R6D'}}</td><td class="was">{{t 'pb.s7R6W'}}</td><td class="now">{{t 'pb.s7R6N'}}</td></tr>
+        <tr><td>{{t 'pb.s7R7D'}}</td><td class="was">{{t 'pb.s7R7W'}}</td><td class="now">{{t 'pb.s7R7N'}}</td></tr>
+      </tbody>
+    </table>
+    <h3>{{t 'pb.s7H3b'}}</h3>
+    <div class="grid3">
+      <div class="card"><b>{{t 'pb.s7W1B'}}</b><span>{{t 'pb.s7W1T'}}</span></div>
+      <div class="card"><b>{{t 'pb.s7W2B'}}</b><span>{{t 'pb.s7W2T'}}</span></div>
+      <div class="card"><b>{{t 'pb.s7W3B'}}</b><span>{{t 'pb.s7W3T'}}</span></div>
+    </div>
+  </section>
+
+  <section id="bottom">
+    <div class="eyebrow">{{t 'pb.s8Eyebrow'}}</div>
+    <h2>{{t 'pb.s8H2'}}</h2>
+    <div class="rule"></div>
+    <div class="grid2">
+      <div class="card"><b>{{t 'pb.s8C1B'}}</b><span>{{t 'pb.s8C1T'}}</span></div>
+      <div class="card"><b>{{t 'pb.s8C2B'}}</b><span>{{t 'pb.s8C2T'}}</span></div>
+      <div class="card"><b>{{t 'pb.s8C3B'}}</b><span>{{t 'pb.s8C3T'}}</span></div>
+      <div class="card"><b>{{t 'pb.s8C4B'}}</b><span>{{t 'pb.s8C4T'}}</span></div>
+    </div>
+    <p class="lede" style="margin-top:22px">{{t 'pb.s8Lede'}}</p>
+  </section>
+</main>
+
+<footer class="pb-footer">
+  <div>{{t 'pb.footer1'}}</div>
+  <div style="margin-top:6px">{{t 'pb.footer2a'}} <em>{{t 'pb.footer2b'}}</em> {{t 'pb.footer2c'}}</div>
+</footer>
+
+<button class="print-btn" onclick="window.print()">⤓ {{t 'pb.printBtn'}}</button>
+</div>
