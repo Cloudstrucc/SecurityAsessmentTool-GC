@@ -563,18 +563,41 @@ Rules:
 
 Respond with ONLY a JSON object (no prose outside it):
 {
-  "reply": "your conversational answer (brief; markdown ok)",
+  "reply": "your conversational answer — keep it to at most ~4 short sentences; put detailed per-control instructions in each action's 'tailoring' field, NOT here (markdown ok: **bold**, - bullets)",
   "actions": [ { "op": "remove" | "add" | "tailor", "controlIds": ["AC-2"], "reason": "short reason", "tailoring": "for op=tailor only: suggested tailoring note" } ]
 }
 If no scope change is warranted, return "actions": [].`;
   const convo = (history || []).slice(-8).map(h => `${h.role === 'assistant' ? 'Assistant' : 'User'}: ${h.content}`).join('\n');
   const userContent = `${projectContext ? 'Project context: ' + projectContext + '\n\n' : ''}${convo ? 'Conversation so far:\n' + convo + '\n\n' : ''}User: ${message}`;
-  const text = await callClaude(system, userContent, { maxTokens: 1500 });
-  let parsed;
-  try { parsed = parseJSON(text); } catch (e) { parsed = { reply: text, actions: [] }; }
-  if (!parsed || typeof parsed !== 'object') parsed = { reply: String(text), actions: [] };
-  if (!Array.isArray(parsed.actions)) parsed.actions = [];
-  return { reply: parsed.reply || '', actions: parsed.actions };
+  const text = await callClaude(system, userContent, { maxTokens: 3800 });
+  return parseChatResponse(text);
+}
+
+/**
+ * Robustly turn a model response into { reply, actions } so the chat never shows
+ * raw JSON — even when the response has leading prose or was truncated mid-JSON.
+ */
+function parseChatResponse(text) {
+  const raw = String(text || '');
+  // 1) Clean JSON (optionally fenced).
+  let parsed = null;
+  try { parsed = parseJSON(raw); } catch (e) { /* fall through */ }
+  // 2) Extract the outermost {...} object if there is surrounding prose.
+  if (!parsed || typeof parsed !== 'object') {
+    const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
+    if (s >= 0 && e > s) { try { parsed = JSON.parse(raw.slice(s, e + 1)); } catch (e2) { /* truncated */ } }
+  }
+  if (parsed && typeof parsed === 'object') {
+    return { reply: String(parsed.reply || '').trim(), actions: Array.isArray(parsed.actions) ? parsed.actions : [] };
+  }
+  // 3) Salvage: pull the "reply" field even from truncated/invalid JSON; drop the rest.
+  const m = raw.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+  if (m) {
+    const reply = m[1].replace(/\\n/g, '\n').replace(/\\t/g, ' ').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+    return { reply: reply.trim(), actions: [] };
+  }
+  // 4) Last resort: it wasn't JSON at all — show the text as-is (strip any stray braces line).
+  return { reply: raw.replace(/^\s*[{}\[\]]\s*$/gm, '').trim(), actions: [] };
 }
 
 /**
