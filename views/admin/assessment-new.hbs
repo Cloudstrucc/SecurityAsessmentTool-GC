@@ -159,9 +159,13 @@
             <div class="collapse {{#if this.hasTemplate}}show{{/if}}" id="tailor-{{this.id}}">
               <div class="row g-2 mt-1">
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">Tailored Description</label>
-                  <textarea class="form-control form-control-sm" name="tailored[{{this.id}}]" rows="3"
-                    placeholder="Project-specific description for this control...">{{this.tailoredDescription}}</textarea>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <label class="form-label small fw-semibold mb-1">Tailored Description</label>
+                    <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" style="font-size:12px;color:#6d28d9"
+                      onclick="aiRefineControl('{{this.id}}', {{{json this.title}}}, this)"><i class="bi bi-stars me-1"></i>Refine with AI</button>
+                  </div>
+                  <textarea class="form-control form-control-sm" name="tailored[{{this.id}}]" id="tailored-{{this.id}}" rows="3"
+                    placeholder="Type a quick note, then 'Refine with AI' for a fuller draft…">{{this.tailoredDescription}}</textarea>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label small fw-semibold">Evidence Guidance</label>
@@ -214,5 +218,88 @@ function updateCount() {
 function toggleAll(state) {
   document.querySelectorAll('.control-toggle').forEach(cb => { cb.checked = state; });
   updateCount();
+}
+</script>
+
+{{> ai-assess-helper }}
+<script>
+// ── Wire the SA&A Assessment Assistant into control tailoring (create mode) ──
+(function(){
+  function escAttr(s){ return String(s).replace(/"/g,'&quot;'); }
+  var form = document.getElementById('assessmentForm');
+  var addBox = document.getElementById('aiAddedControls');
+  if (form && !addBox) { addBox = document.createElement('div'); addBox.id = 'aiAddedControls'; form.insertBefore(addBox, form.firstChild); }
+  function ctrlTitle(id){ var lbl=document.querySelector('#card-'+CSS.escape(id)+' .control-title'); return lbl?lbl.textContent.trim():''; }
+  function injectControl(id, a){
+    if (document.getElementById('ctrl-'+id)) { document.getElementById('ctrl-'+id).checked = true; return; }
+    var fam = (id.split(/[.\-(]/)[0]) || id;
+    var div = document.createElement('div'); div.className='control-card'; div.id='card-'+id;
+    div.style.cssText='border:1px dashed #a78bfa;border-radius:8px;padding:8px 10px;margin:6px 0;background:#faf7ff';
+    div.innerHTML =
+      '<div class="d-flex align-items-center gap-2">'+
+      '<input type="checkbox" class="form-check-input control-toggle" name="control_ids" value="'+id+'" id="ctrl-'+id+'" checked onchange="updateCount()">'+
+      '<strong>'+id+'</strong> <span class="badge bg-info text-dark">added by AI</span>'+
+      (a && a.reason ? '<span class="text-muted small ms-1">'+escAttr(a.reason)+'</span>' : '')+'</div>'+
+      '<input type="hidden" name="title_'+id+'" value="'+id+'">'+
+      '<input type="hidden" name="family_'+id+'" value="'+fam+'">'+
+      '<input type="hidden" name="priority_'+id+'" value="P1">'+
+      (a && a.tailoring ? '<input type="hidden" name="tailored['+id+']" value="'+escAttr(a.tailoring)+'">' : '');
+    (document.getElementById('aiAddedControls')||form).appendChild(div);
+  }
+  window.AIAssistConfig = {
+    mode: 'create',
+    projectId: {{project.id}},
+    frameworkLabel: {{{json framework.label}}},
+    profileSummary: {{{json frameworkSummary}}},
+    baselineCount: {{baselineCount}},
+    projectContext: {{{json project.name}}} + ' — ' + ({{{json project.description}}} || '').slice(0, 400),
+    subtitle: 'Tailoring · approve any change',
+    getSelected: function(){
+      return Array.prototype.map.call(document.querySelectorAll('.control-toggle:checked'), function(cb){
+        return { id: cb.value, title: ctrlTitle(cb.value) };
+      });
+    },
+    applyActions: function(actions){
+      (actions||[]).forEach(function(a){
+        var op=(a.op||'').toLowerCase();
+        (a.controlIds||[]).forEach(function(id){
+          var cb=document.getElementById('ctrl-'+id);
+          if(op==='remove'){ if(cb){ cb.checked=false; var c=document.getElementById('card-'+id); if(c) c.style.opacity='.5'; } }
+          else if(op==='add'){ if(cb){ cb.checked=true; var c2=document.getElementById('card-'+id); if(c2) c2.style.opacity=''; } else { injectControl(id, a); } }
+          else if(op==='tailor'){ var ta=document.querySelector('[name="tailored['+id+']"]'); if(ta && a.tailoring){ ta.value=a.tailoring; ta.style.boxShadow='0 0 0 2px #c4b5fd'; } }
+        });
+      });
+      updateCount();
+    }
+  };
+})();
+
+// Per-control "Refine with AI": expand a brief note into a fuller draft (approval-gated).
+async function aiRefineControl(id, title, btn){
+  var ta=document.getElementById('tailored-'+id); if(!ta) return;
+  var summary=(ta.value||'').trim();
+  if(summary.length<3){ ta.focus(); ta.setAttribute('placeholder','Type a short note first, then Refine with AI…'); return; }
+  var orig=btn.innerHTML; btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm"></span> Refining…';
+  try{
+    var g=document.querySelector('[name="control_guidance_'+id+'"]');
+    var r=await fetch('/api/ai/refine-answer',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({controlId:id,controlTitle:title||'',controlGuidance:g?g.value:'',userSummary:summary,frameworkLabel:(window.AIAssistConfig&&AIAssistConfig.frameworkLabel)||'ITSG-33'})});
+    var data=await r.json();
+    if(!r.ok||!data.success) throw new Error(data.error||'Could not refine.');
+    aiShowRefinePreview(ta, data.refined);
+  }catch(e){ alert(e.message); }
+  btn.disabled=false; btn.innerHTML=orig;
+}
+function aiShowRefinePreview(ta, refined){
+  var esc=function(s){return String(s).replace(/[&<>]/g,function(m){return({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]);});};
+  var old=ta.parentNode.querySelector('.ai-refine-preview'); if(old) old.remove();
+  var box=document.createElement('div'); box.className='ai-refine-preview';
+  box.style.cssText='border:1px solid #ddd6fe;background:#faf7ff;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:12.5px';
+  box.innerHTML='<div class="fw-semibold mb-1" style="color:#6d28d9"><i class="bi bi-stars me-1"></i>AI-refined draft — approve to replace</div>'+
+    '<div style="white-space:pre-wrap;color:#22303a">'+esc(refined)+'</div>'+
+    '<div class="d-flex gap-2 mt-2"><button type="button" class="btn btn-sm btn-primary py-0 aiap">Approve</button><button type="button" class="btn btn-sm btn-outline-secondary py-0 aidz">Discard</button></div>';
+  box.querySelector('.aiap').onclick=function(){ ta.value=refined; ta.style.boxShadow='0 0 0 2px #c4b5fd'; box.remove(); };
+  box.querySelector('.aidz').onclick=function(){ box.remove(); };
+  ta.parentNode.appendChild(box);
 }
 </script>

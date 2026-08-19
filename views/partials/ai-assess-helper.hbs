@@ -1,0 +1,139 @@
+<style>
+  .aia-launch{position:fixed;right:22px;bottom:22px;z-index:1200;display:inline-flex;align-items:center;gap:9px;
+    background:linear-gradient(120deg,#6d28d9,#4f46e5);color:#fff;border:none;border-radius:999px;padding:12px 18px;
+    font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 12px 30px rgba(79,70,229,.35)}
+  .aia-launch:hover{filter:brightness(1.05)}
+  .aia-launch .bi{font-size:16px}
+  .aia-panel{position:fixed;top:0;right:0;height:100vh;width:min(420px,96vw);z-index:1300;background:#fff;
+    border-left:1px solid #e5e7eb;box-shadow:-14px 0 40px rgba(15,23,42,.18);display:flex;flex-direction:column;
+    transform:translateX(100%);transition:transform .25s ease}
+  .aia-panel.open{transform:none}
+  .aia-head{background:linear-gradient(120deg,#4f46e5,#6d28d9);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px}
+  .aia-head .ico{width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:17px;flex:0 0 auto}
+  .aia-head h3{margin:0;font-size:15px;font-weight:750;line-height:1.15}
+  .aia-head p{margin:1px 0 0;font-size:11.5px;color:#dcd7ff}
+  .aia-head .x{margin-left:auto;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1}
+  .aia-msgs{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:#f7f7fb}
+  .aia-msg{max-width:88%;padding:10px 13px;border-radius:13px;font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
+  .aia-msg.user{align-self:flex-end;background:#4f46e5;color:#fff;border-bottom-right-radius:4px}
+  .aia-msg.bot{align-self:flex-start;background:#fff;border:1px solid #e5e7eb;color:#22303a;border-bottom-left-radius:4px}
+  .aia-msg.sys{align-self:center;background:#eef0fe;color:#4338ca;font-size:12px;text-align:center;border-radius:8px}
+  .aia-actions{align-self:flex-start;max-width:96%;background:#fff;border:1px solid #ddd6fe;border-radius:12px;padding:10px 12px;width:100%}
+  .aia-actions h4{margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#6d28d9}
+  .aia-act{border:1px solid #eee;border-radius:9px;padding:8px 10px;margin-bottom:7px;font-size:12.75px}
+  .aia-act .op{font-weight:800;text-transform:uppercase;font-size:10.5px;letter-spacing:.04em;padding:1px 7px;border-radius:6px;margin-right:6px}
+  .aia-act .op.remove{background:#fdecec;color:#b91c1c}
+  .aia-act .op.add{background:#e7f6ec;color:#15803d}
+  .aia-act .op.tailor{background:#eef2ff;color:#4338ca}
+  .aia-act .ids{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#111}
+  .aia-act .reason{color:#6b7280;margin-top:3px}
+  .aia-act .btns{display:flex;gap:8px;margin-top:8px}
+  .aia-act .btns button{font-size:12px;font-weight:700;border-radius:7px;padding:5px 12px;cursor:pointer;border:1px solid transparent}
+  .aia-act .ap{background:#4f46e5;color:#fff}
+  .aia-act .dz{background:#fff;border-color:#d1d5db;color:#374151}
+  .aia-act.done{opacity:.6}
+  .aia-act.done .btns{display:none}
+  .aia-foot{border-top:1px solid #eee;padding:10px;display:flex;gap:8px;align-items:flex-end;background:#fff}
+  .aia-foot textarea{flex:1;resize:none;border:1.5px solid #e5e7eb;border-radius:10px;padding:9px 11px;font-size:13.5px;font-family:inherit;max-height:120px}
+  .aia-foot textarea:focus{outline:none;border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+  .aia-foot .send{background:#4f46e5;color:#fff;border:none;border-radius:10px;width:42px;height:42px;font-size:18px;cursor:pointer;flex:0 0 auto}
+  .aia-foot .send[disabled]{opacity:.5;cursor:not-allowed}
+  .aia-typing{align-self:flex-start;color:#8b8b9a;font-size:12.5px;font-style:italic}
+  @media (prefers-reduced-motion:reduce){.aia-panel{transition:none}}
+</style>
+
+<button type="button" class="aia-launch" id="aiaLaunch" aria-label="Open the SA&A Assessment Assistant">
+  <i class="bi bi-robot" aria-hidden="true"></i><span>SA&amp;A Assistant</span>
+</button>
+
+<aside class="aia-panel" id="aiaPanel" role="dialog" aria-modal="false" aria-labelledby="aiaTitle" aria-hidden="true">
+  <div class="aia-head">
+    <div class="ico" aria-hidden="true"><i class="bi bi-robot"></i></div>
+    <div>
+      <h3 id="aiaTitle">SA&amp;A Assessment Assistant (AI)</h3>
+      <p id="aiaSub">Ask to refine, add or remove controls</p>
+    </div>
+    <button type="button" class="x" id="aiaClose" aria-label="Close assistant">&times;</button>
+  </div>
+  <div class="aia-msgs" id="aiaMsgs"></div>
+  <div class="aia-foot">
+    <textarea id="aiaInput" rows="1" placeholder="e.g. Remove controls specific to on-premises hosting…"></textarea>
+    <button type="button" class="send" id="aiaSend" aria-label="Send" disabled><i class="bi bi-send"></i></button>
+  </div>
+</aside>
+
+<script>
+window.AIAssist = (function(){
+  var panel, msgs, input, sendBtn, launch, closeBtn, history = [], booted = false;
+  function cfg(){ return window.AIAssistConfig || {}; }
+  function el(){ panel=document.getElementById('aiaPanel');msgs=document.getElementById('aiaMsgs');input=document.getElementById('aiaInput');
+    sendBtn=document.getElementById('aiaSend');launch=document.getElementById('aiaLaunch');closeBtn=document.getElementById('aiaClose'); }
+  function open(){ panel.classList.add('open');panel.setAttribute('aria-hidden','false');input.focus();
+    if(!history.length) greet(); }
+  function close(){ panel.classList.remove('open');panel.setAttribute('aria-hidden','true'); }
+  function greet(){
+    var c=cfg();
+    var g = c.greeting || 'Hi — I’m your SA&A Assessment Assistant. Ask me to remove, add or tailor controls, or ask whether the current set covers a particular scope.';
+    add('bot', g);
+  }
+  function add(kind, text){
+    var d=document.createElement('div'); d.className='aia-msg '+kind; d.textContent=text; msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight; return d;
+  }
+  function typing(on){
+    var t=document.getElementById('aiaTyping');
+    if(on){ if(!t){ t=document.createElement('div'); t.id='aiaTyping'; t.className='aia-typing'; t.textContent='Assistant is thinking…'; msgs.appendChild(t);} }
+    else if(t){ t.remove(); }
+    msgs.scrollTop=msgs.scrollHeight;
+  }
+  function renderActions(actions){
+    if(!actions || !actions.length) return;
+    var wrap=document.createElement('div'); wrap.className='aia-actions';
+    wrap.innerHTML='<h4>Proposed changes — approve to apply</h4>';
+    actions.forEach(function(a){
+      var op=(a.op||'').toLowerCase(); if(['remove','add','tailor'].indexOf(op)<0) return;
+      var ids=(a.controlIds||[]).join(', ');
+      var row=document.createElement('div'); row.className='aia-act';
+      row.innerHTML='<div><span class="op '+op+'">'+op+'</span><span class="ids">'+(ids||'')+'</span></div>'+
+        (a.reason?'<div class="reason">'+escapeHtml(a.reason)+'</div>':'')+
+        (op==='tailor'&&a.tailoring?'<div class="reason"><em>'+escapeHtml(a.tailoring)+'</em></div>':'')+
+        '<div class="btns"><button type="button" class="ap">Approve</button><button type="button" class="dz">Dismiss</button></div>';
+      row.querySelector('.ap').onclick=function(){
+        try{ (cfg().applyActions||function(){})([a]); }catch(e){ console.error(e); }
+        row.classList.add('done'); add('sys','Applied: '+op+' '+ids);
+      };
+      row.querySelector('.dz').onclick=function(){ row.classList.add('done'); };
+      wrap.appendChild(row);
+    });
+    msgs.appendChild(wrap); msgs.scrollTop=msgs.scrollHeight;
+  }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g,function(m){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]);}); }
+  async function send(){
+    var text=(input.value||'').trim(); if(!text) return;
+    add('user', text); history.push({role:'user',content:text}); input.value=''; input.style.height='auto'; sendBtn.disabled=true; typing(true);
+    var c=cfg();
+    var body={ mode:c.mode||'create', projectId:c.projectId||null, assessmentId:c.assessmentId||null,
+      frameworkLabel:c.frameworkLabel||'ITSG-33', profileSummary:c.profileSummary||'', projectContext:c.projectContext||'',
+      baselineCount:c.baselineCount||0, message:text, history:history.slice(-8),
+      selected:(c.getSelected?c.getSelected():[]).slice(0,400) };
+    try{
+      var r=await fetch('/api/ai/assessment-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      var data=await r.json(); typing(false);
+      if(!r.ok||!data.success) throw new Error(data.error||'The assistant could not respond.');
+      add('bot', data.reply||'(no reply)'); history.push({role:'assistant',content:data.reply||''});
+      renderActions(data.actions);
+    }catch(e){ typing(false); add('sys', e.message||'Something went wrong.'); }
+    sendBtn.disabled=false; input.focus();
+  }
+  function boot(){
+    if(booted) return; booted=true; el();
+    if(cfg().subtitle){ document.getElementById('aiaSub').textContent=cfg().subtitle; }
+    launch.addEventListener('click', open); closeBtn.addEventListener('click', close);
+    input.addEventListener('input', function(){ sendBtn.disabled=!input.value.trim(); input.style.height='auto'; input.style.height=Math.min(120,input.scrollHeight)+'px'; });
+    input.addEventListener('keydown', function(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); if(input.value.trim()) send(); } });
+    sendBtn.addEventListener('click', send);
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape'&&panel.classList.contains('open')) close(); });
+  }
+  document.addEventListener('DOMContentLoaded', boot);
+  return { open:open, close:close, boot:boot };
+})();
+</script>

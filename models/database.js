@@ -152,6 +152,23 @@ async function initDatabase() {
   `);
 
   // ── COMMENTS (threaded comments per control) ──
+  // ── ASSESSMENT AI ASSISTANT CHAT (conversation history for the SA&A Assistant) ──
+  db.run(`
+    CREATE TABLE IF NOT EXISTS assessment_chats (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER,
+      assessment_id INTEGER,
+      mode TEXT,
+      author_user_id INTEGER,
+      author_name TEXT,
+      author_role TEXT,
+      message TEXT,
+      ai_reply TEXT,
+      actions_json TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   db.run(`
     CREATE TABLE IF NOT EXISTS comments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
