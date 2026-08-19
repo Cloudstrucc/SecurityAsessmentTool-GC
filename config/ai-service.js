@@ -533,6 +533,64 @@ async function testConnection() {
   return (text || '').trim();
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// SA&A ASSESSMENT ASSISTANT (chat + per-control answer refinement)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Conversational assistant for tailoring / understanding a control set.
+ * Returns { reply, actions[] } — actions are proposals the human approves.
+ */
+async function assessmentChat({ mode = 'create', frameworkLabel = 'ITSG-33', profileSummary = '', projectContext = '', selectedControls = [], baselineCount = 0, message = '', history = [] }) {
+  const modeDesc = {
+    create: 'The assessor is CREATING an assessment and tailoring which controls are in scope. You may propose adding, removing, or tailoring controls.',
+    review: 'The assessor is REVIEWING/auditing a submitted assessment. Answer questions and suggest tailoring; do not propose bulk scope changes unless explicitly asked.',
+    evidence: 'A project team member is providing EVIDENCE for controls. Help them understand what each control requires and how to answer clearly; do not change scope.'
+  }[mode] || '';
+  const selectedList = (selectedControls || []).slice(0, 400).map(c => `${c.id} — ${c.title || ''}`).join('\n');
+  const system = `You are the "SA&A Assessment Assistant", an expert Security Assessment & Authorization (SA&A) helper embedded in the Vanguard SA&A platform. You help assessors and project teams tailor and understand security control sets for ${frameworkLabel}.
+${modeDesc}
+Current control profile: ${profileSummary || 'n/a'}
+Full baseline size: ${baselineCount || 'n/a'} controls.
+Currently IN-SCOPE controls (${(selectedControls || []).length}):
+${selectedList || '(none listed)'}
+
+Rules:
+- Be concise, practical and specific to the control IDs shown.
+- When the user asks to change the in-scope set (e.g. "remove controls specific to on-prem", "add controls covering API security"), propose concrete changes by control ID.
+- Only "add" controls that genuinely belong to the ${frameworkLabel} baseline. For remove/tailor prefer IDs from the in-scope list.
+- NEVER apply changes yourself — you only propose; the human approves every change.
+
+Respond with ONLY a JSON object (no prose outside it):
+{
+  "reply": "your conversational answer (brief; markdown ok)",
+  "actions": [ { "op": "remove" | "add" | "tailor", "controlIds": ["AC-2"], "reason": "short reason", "tailoring": "for op=tailor only: suggested tailoring note" } ]
+}
+If no scope change is warranted, return "actions": [].`;
+  const convo = (history || []).slice(-8).map(h => `${h.role === 'assistant' ? 'Assistant' : 'User'}: ${h.content}`).join('\n');
+  const userContent = `${projectContext ? 'Project context: ' + projectContext + '\n\n' : ''}${convo ? 'Conversation so far:\n' + convo + '\n\n' : ''}User: ${message}`;
+  const text = await callClaude(system, userContent, { maxTokens: 1500 });
+  let parsed;
+  try { parsed = parseJSON(text); } catch (e) { parsed = { reply: text, actions: [] }; }
+  if (!parsed || typeof parsed !== 'object') parsed = { reply: String(text), actions: [] };
+  if (!Array.isArray(parsed.actions)) parsed.actions = [];
+  return { reply: parsed.reply || '', actions: parsed.actions };
+}
+
+/**
+ * Expand a user's brief note into a comprehensive control implementation / evidence
+ * statement. Grounded only in what the user wrote (never invents specifics).
+ */
+async function refineControlAnswer({ controlId = '', controlTitle = '', controlGuidance = '', userSummary = '', frameworkLabel = 'ITSG-33' }) {
+  const system = `You are the "SA&A Assessment Assistant". A user wrote a brief note describing how a security control is implemented (or the evidence for it). Expand it into a clear, professional, comprehensive control implementation / evidence statement suitable for a ${frameworkLabel} security assessment.
+- Stay grounded ONLY in what the user wrote; do NOT invent specific product names, versions, dates or configurations they did not mention. Where detail is missing, describe in general terms what should be stated.
+- Plain, professional language. 1–3 short paragraphs. Return ONLY the refined statement text — no preamble, headings or markdown fences.`;
+  const userContent = `Control ${controlId}${controlTitle ? ' — ' + controlTitle : ''}.
+${controlGuidance ? 'What this control expects: ' + controlGuidance + '\n' : ''}User's brief note: ${userSummary}`;
+  const text = await callClaude(system, userContent, { maxTokens: 1200 });
+  return String(text || '').trim();
+}
+
 module.exports = {
   isConfigured,
   callClaude,
@@ -543,5 +601,7 @@ module.exports = {
   suggestAdditionalControls,
   generateEvidenceNarrative,
   generateBulkEvidence,
-  generateEvidenceGuidance
+  generateEvidenceGuidance,
+  assessmentChat,
+  refineControlAnswer
 };

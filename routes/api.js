@@ -344,6 +344,56 @@ router.get('/ai/status', (req, res) => {
   res.json({ configured: ai.isConfigured() });
 });
 
+// ── SA&A Assessment Assistant: chat (create / review / evidence) ────────────
+router.post('/ai/assessment-chat', ensureAuthenticated, express.json(), async (req, res) => {
+  try {
+    if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY or configure your own provider.' });
+    if (!aiAllowed(req, res, 'assessment-chat')) return;
+    const { projectId, assessmentId, mode, message, selected, history, profileSummary, projectContext, baselineCount, frameworkLabel } = req.body;
+    if (!message || !String(message).trim()) return res.status(400).json({ error: 'Message is required.' });
+    const result = await ai.assessmentChat({
+      mode: mode || 'create',
+      frameworkLabel: frameworkLabel || 'ITSG-33',
+      profileSummary: profileSummary || '',
+      projectContext: projectContext || '',
+      selectedControls: Array.isArray(selected) ? selected : [],
+      baselineCount: baselineCount || 0,
+      message: String(message),
+      history: Array.isArray(history) ? history : []
+    });
+    try {
+      run(`INSERT INTO assessment_chats (project_id, assessment_id, mode, author_user_id, author_name, author_role, message, ai_reply, actions_json)
+           VALUES (?,?,?,?,?,?,?,?,?)`,
+        [projectId || null, assessmentId || null, mode || 'create', req.user.id, req.user.name || '', req.user.role || '',
+         String(message), result.reply || '', JSON.stringify(result.actions || [])]);
+    } catch (e) { /* history persistence is non-fatal */ }
+    access.recordAiUse(req.user, 'assessment-chat');
+    res.json({ success: true, reply: result.reply, actions: result.actions });
+  } catch (err) {
+    console.error('AI assessment-chat error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── SA&A Assessment Assistant: refine a control answer/evidence ─────────────
+router.post('/ai/refine-answer', ensureAuthenticated, express.json(), async (req, res) => {
+  try {
+    if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY or configure your own provider.' });
+    if (!aiAllowed(req, res, 'refine')) return;
+    const { controlId, controlTitle, controlGuidance, userSummary, frameworkLabel } = req.body;
+    if (!userSummary || String(userSummary).trim().length < 3) return res.status(400).json({ error: 'Please enter a brief answer to refine.' });
+    const refined = await ai.refineControlAnswer({
+      controlId: controlId || '', controlTitle: controlTitle || '', controlGuidance: controlGuidance || '',
+      userSummary: String(userSummary), frameworkLabel: frameworkLabel || 'ITSG-33'
+    });
+    access.recordAiUse(req.user, 'refine');
+    res.json({ success: true, refined });
+  } catch (err) {
+    console.error('AI refine error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Intake-side: Parse uploaded document ────────────────────────────────────
 router.post('/ai/parse-document', aiUpload.single('document'), async (req, res) => {
   try {
