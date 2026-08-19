@@ -10,7 +10,12 @@
   .aia-panel.open{transform:none}
   .aia-head{background:linear-gradient(120deg,#4f46e5,#6d28d9);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px}
   .aia-head .ico{width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:17px;flex:0 0 auto}
-  .aia-head h3{margin:0;font-size:15px;font-weight:750;line-height:1.15}
+  .aia-head h3{margin:0;font-size:15px;font-weight:750;line-height:1.15;color:#fff !important}
+  .aia-msg.bot strong{font-weight:700;color:#111}
+  .aia-msg.bot code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:#eef0fe;color:#3730a3;padding:1px 5px;border-radius:5px}
+  .aia-msg.bot ul{margin:6px 0;padding-left:20px}
+  .aia-msg.bot li{margin:2px 0}
+  .aia-msg.bot > div{margin:0 0 3px}
   .aia-head p{margin:1px 0 0;font-size:11.5px;color:#dcd7ff}
   .aia-head .x{margin-left:auto;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1}
   .aia-msgs{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:#f7f7fb}
@@ -76,8 +81,31 @@ window.AIAssist = (function(){
     var g = c.greeting || 'Hi — I’m your SA&A Assessment Assistant. Ask me to remove, add or tailor controls, or ask whether the current set covers a particular scope.';
     add('bot', g);
   }
+  function cleanReply(t){
+    // Belt-and-suspenders: if a reply still arrives as raw JSON, extract .reply.
+    var s=String(t||'').trim();
+    if(s.charAt(0)==='{' && s.indexOf('"reply"')>-1){
+      try{ var o=JSON.parse(s); if(o&&o.reply) return String(o.reply); }catch(e){
+        var m=s.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"/); if(m) return m[1].replace(/\\n/g,'\n').replace(/\\"/g,'"').replace(/\\\\/g,'\\');
+      }
+    }
+    return s;
+  }
+  function mdToHtml(t){
+    var lines=String(t).split('\n'), html='', inList=false;
+    function esc(s){ return escapeHtml(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>'); }
+    lines.forEach(function(ln){
+      var m=ln.match(/^\s*[-*]\s+(.*)$/);
+      if(m){ if(!inList){html+='<ul>';inList=true;} html+='<li>'+esc(m[1])+'</li>'; }
+      else { if(inList){html+='</ul>';inList=false;} if(ln.trim()==='') html+='<br>'; else html+='<div>'+esc(ln)+'</div>'; }
+    });
+    if(inList) html+='</ul>';
+    return html;
+  }
   function add(kind, text){
-    var d=document.createElement('div'); d.className='aia-msg '+kind; d.textContent=text; msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight; return d;
+    var d=document.createElement('div'); d.className='aia-msg '+kind;
+    if(kind==='bot'){ d.innerHTML=mdToHtml(cleanReply(text)); } else { d.textContent=text; }
+    msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight; return d;
   }
   function typing(on){
     var t=document.getElementById('aiaTyping');
