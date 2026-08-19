@@ -8,6 +8,9 @@
   </div>
 
   <form method="POST" action="/admin/projects/new" id="projectForm" enctype="multipart/form-data">
+    <!-- Holds the AI reference document (if one was used to pre-fill the project) so
+         it is saved as the project's first document on creation. Set via JS. -->
+    <input type="file" name="reference_document" id="referenceDocInput" class="d-none" tabindex="-1" aria-hidden="true">
 
     <!-- AI Quick Start -->
     <div class="form-section" style="border-left:3px solid #8b5cf6; background:linear-gradient(135deg,#faf5ff 0%,#f5f3ff 100%);">
@@ -29,6 +32,7 @@
               <button type="button" class="btn btn-sm w-100 mt-2 text-white" style="background:#8b5cf6;" id="aiDocParseBtn" disabled onclick="aiParseDocument()">
                 <i class="bi bi-stars me-1"></i>Analyze & Pre-Fill
               </button>
+              <div id="refDocNote" class="small text-success mt-2" style="display:none;"><i class="bi bi-paperclip me-1"></i><span id="refDocNoteText"></span></div>
             </div>
           </div>
         </div>
@@ -811,6 +815,16 @@ async function aiParseDocument() {
     const data = await resp.json();
     if (!data.success) throw new Error(data.error || 'Analysis failed');
     window._projectAiFields = data.fields;
+    // Attach the analyzed document so it becomes the project's first saved document.
+    try {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      const refInput = document.getElementById('referenceDocInput');
+      if (refInput) refInput.files = dt.files;
+      const note = document.getElementById('refDocNote');
+      const noteText = document.getElementById('refDocNoteText');
+      if (note && noteText) { noteText.textContent = file.name + ' will be saved to this project’s documents.'; note.style.display = 'block'; }
+    } catch (e) { /* DataTransfer unsupported — the reference doc simply won't be auto-saved */ }
     aiHideStatus();
     aiShowResults(data.fields, data.fields.reasoning);
   } catch (err) {
