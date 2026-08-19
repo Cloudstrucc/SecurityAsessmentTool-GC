@@ -23,7 +23,7 @@
   @media (prefers-reduced-motion:reduce){.vg-reg-ring,.vg-reg-bar>i{transition:none}}
   @media (max-width:560px){.vg-reg-hero{gap:14px;padding:16px}.vg-reg-meta h1{font-size:19px}}
 
-  /* Two-column registration: form (left) + Protected B guidance (right) */
+  /* Two-column registration: form (left) + personal-information guidance (right) */
   .vg-reg-2col{width:100%;max-width:960px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,360px);gap:30px;align-items:start}
   .vg-reg-2col > .vg-auth-card{max-width:none;width:100%}
   .vg-reg-aside{position:sticky;top:24px;background:var(--vg-mist);border:1px solid var(--vg-line);border-radius:var(--vg-radius-lg);padding:24px 24px;min-width:0}
@@ -43,7 +43,7 @@
     .vg-reg-aside{position:static;order:2}
   }
 
-  /* Protected B (PBMM) attestation modal */
+  /* Personal-information (PBMM) attestation modal */
   .vg-modal-back{position:fixed;inset:0;background:rgba(10,22,38,.55);display:none;align-items:center;justify-content:center;z-index:5000;padding:18px}
   .vg-modal-back.open{display:flex}
   .vg-modal{background:#fff;border-radius:var(--vg-radius-lg);max-width:560px;width:100%;box-shadow:var(--vg-shadow-lg);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;border-top:5px solid var(--vg-navy-800)}
@@ -176,7 +176,7 @@
     </p>
   </div>
 
-  <aside class="vg-reg-aside" aria-label="About registration and Protected B">
+  <aside class="vg-reg-aside" aria-label="About registration and personal information">
     <div class="rs-eyebrow">{{t 'regside.eyebrow'}}</div>
     <h2>{{t 'regside.title'}}</h2>
     <p>{{t 'regside.intro'}}</p>
@@ -232,7 +232,7 @@
 </div>
 
 <script>
-// Protected B (PBMM) attestation gate — shown before an account is created,
+// Personal-information (PBMM) attestation gate — shown before an account is created,
 // for BOTH the password submit and the passkey sign-up.
 window.PBMMAttest = (function(){
   var ok = false, pending = null, lastFocus = null;
@@ -295,7 +295,7 @@ window.PBMMAttest = (function(){
     var fd = new FormData(form);
     if (!fd.get('first_name') || !fd.get('last_name') || !fd.get('email') || !fd.get('organization')) { err('Please fill in your name, organization and email first.'); return; }
     if (!form.querySelector('input[name="agree"]').checked) { err('Please accept the Terms of Service.'); return; }
-    // Require the Protected B attestation before creating the account.
+    // Require the personal-information attestation before creating the account.
     if (window.PBMMAttest && !window.PBMMAttest.ok()) { window.PBMMAttest.require(function(){ btn.click(); }); return; }
     var original = btn.innerHTML; btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>&nbsp;Creating account…';
