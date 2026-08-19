@@ -1430,3 +1430,25 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 }
 </style>
+
+{{> ai-assess-helper }}
+<script>
+// SA&A Assessment Assistant — review mode (assessor Q&A + guidance on this assessment).
+window.AIAssistConfig = {
+  mode: 'review',
+  assessmentId: {{assessment.id}},
+  projectId: {{assessment.project_id}},
+  frameworkLabel: '{{assessment.security_framework}}',
+  profileSummary: 'profile {{assessment.security_profile}}; C/I/A {{assessment.confidentiality_level}} / {{assessment.integrity_level}} / {{assessment.availability_level}}',
+  subtitle: 'Review help · ask about this assessment',
+  greeting: 'Hi — ask me anything about this assessment: whether the controls cover a given scope, what a control expects, or how to word an audit note.',
+  getSelected: function(){
+    return Array.prototype.map.call(document.querySelectorAll('.control-id'), function(el){
+      var p = el.closest('.control-card') || el.parentElement;
+      var t = p ? p.querySelector('.control-title') : null;
+      return { id: (el.textContent||'').trim(), title: t ? (t.textContent||'').trim() : '' };
+    }).filter(function(c){ return c.id; });
+  },
+  applyActions: function(){}   // review mode: guidance only (no bulk scope CRUD here)
+};
+</script>
