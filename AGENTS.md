@@ -29,6 +29,11 @@ Write all user-facing copy to be internationally neutral. The product is not Can
   Do **not** add keys under the nested `nav` object — it shadows flat `nav.*` lookups; use
   `navbar.*` instead.
 - i18next **preloads locales at startup** — restart the dev server / redeploy after editing them.
+- **Localize external links too.** Any `target="_blank"` link to an information resource must open
+  in the user's language. Store the URL as a locale key (e.g. `pbmm.urlProtectedB`) with a
+  per-language value (`fr.wikipedia.org/…` for French, percent-encoded), reference it as
+  `href="{{t 'key'}}"`, and verify each resolves (HTTP 200). Fall back to English only where no
+  localized version exists.
 
 ## Testing
 - Run `npm run test:e2e` before committing app changes. Note the suite currently expects

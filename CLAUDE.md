@@ -39,3 +39,10 @@ user-facing content or building new features, keep the copy internationally neut
   uniquely-prefixed keys (e.g. `rf.*`, `pl.*`, `pbmm.*`) — do NOT add keys under the nested
   `nav` object (it shadows flat `nav.*` lookups; use `navbar.*`). i18next **preloads locales at
   startup**, so restart/redeploy after changing them.
+- **External links that open in a new tab must be localized too.** Store each external URL as a
+  locale key (e.g. `pbmm.urlProtectedB`) and give every language the language-appropriate target
+  (e.g. `fr.wikipedia.org/…` for French, percent-encoded) so the page opens in the user's
+  language — the reader should never have to switch language on the destination. Verify each URL
+  resolves (HTTP 200); fall back to the English URL only where no localized version exists.
+  Reference these via `href="{{t 'key'}}"` — never hardcode an English URL in a `target="_blank"`
+  link.
