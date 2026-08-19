@@ -116,7 +116,7 @@ window.AIAssist = (function(){
       baselineCount:c.baselineCount||0, message:text, history:history.slice(-8),
       selected:(c.getSelected?c.getSelected():[]).slice(0,400) };
     try{
-      var r=await fetch('/api/ai/assessment-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      var r=await fetch((c.chatEndpoint)||'/api/ai/assessment-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
       var data=await r.json(); typing(false);
       if(!r.ok||!data.success) throw new Error(data.error||'The assistant could not respond.');
       add('bot', data.reply||'(no reply)'); history.push({role:'assistant',content:data.reply||''});

@@ -9,6 +9,7 @@ const bcrypt = require('bcryptjs');
 const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
 const QRCode = require('qrcode');
 const { UPLOAD_DIR, INTAKE_UPLOAD_DIR: intakeUploadDir, ensureUploadDirs } = require('../config/storage');
+const ai = require('../config/ai-service');
 const { determineProfile, detectComplexity } = require('../config/security-profiles');
 const {
   normalizeFramework,
@@ -252,6 +253,58 @@ router.post('/respond/:code/comment/:controlId', express.json(), (req, res) => {
     [req.params.controlId, assessment.project_owner_name, content]);
 
   res.json({ success: true });
+});
+
+// ── SA&A Assessment Assistant (evidence mode) — code-gated for the respond page ──
+router.post('/respond/:code/ai-chat', express.json(), async (req, res) => {
+  try {
+    const code = req.params.code.toUpperCase();
+    const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
+    if (!assessment) return res.status(404).json({ error: 'Invalid access code.' });
+    if (!ai.isConfigured()) return res.status(503).json({ error: 'AI is not configured.' });
+    const message = req.body.message;
+    if (!message || !String(message).trim()) return res.status(400).json({ error: 'Message is required.' });
+    const controls = all('SELECT control_id, title FROM assessment_controls WHERE assessment_id = ? AND is_applicable = 1 ORDER BY family, control_id', [assessment.id])
+      .map(c => ({ id: c.control_id, title: c.title }));
+    const project = get('SELECT name, description, security_framework FROM projects WHERE id = ?', [assessment.project_id]) || {};
+    const result = await ai.assessmentChat({
+      mode: 'evidence',
+      frameworkLabel: assessment.security_framework || project.security_framework || 'ITSG-33',
+      projectContext: (project.name || '') + ' — ' + String(project.description || '').slice(0, 400),
+      selectedControls: controls, baselineCount: controls.length,
+      message: String(message), history: Array.isArray(req.body.history) ? req.body.history : []
+    });
+    try {
+      run(`INSERT INTO assessment_chats (project_id, assessment_id, mode, author_user_id, author_name, author_role, message, ai_reply, actions_json)
+           VALUES (?,?,?,?,?,?,?,?,?)`,
+        [assessment.project_id, assessment.id, 'evidence', null, assessment.assigned_to_email || 'evidence-provider', 'evidence',
+         String(message), result.reply || '', '[]']);
+    } catch (e) { /* non-fatal */ }
+    // Evidence mode is guidance-only — never expose scope CRUD to the evidence provider.
+    res.json({ success: true, reply: result.reply, actions: [] });
+  } catch (err) {
+    console.error('respond ai-chat error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/respond/:code/ai-refine', express.json(), async (req, res) => {
+  try {
+    const code = req.params.code.toUpperCase();
+    const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
+    if (!assessment) return res.status(404).json({ error: 'Invalid access code.' });
+    if (!ai.isConfigured()) return res.status(503).json({ error: 'AI is not configured.' });
+    const { controlId, controlTitle, controlGuidance, userSummary } = req.body;
+    if (!userSummary || String(userSummary).trim().length < 3) return res.status(400).json({ error: 'Please enter a brief answer to refine.' });
+    const refined = await ai.refineControlAnswer({
+      controlId: controlId || '', controlTitle: controlTitle || '', controlGuidance: controlGuidance || '',
+      userSummary: String(userSummary), frameworkLabel: assessment.security_framework || 'ITSG-33'
+    });
+    res.json({ success: true, refined });
+  } catch (err) {
+    console.error('respond ai-refine error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Submit all evidence
