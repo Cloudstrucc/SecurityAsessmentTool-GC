@@ -575,6 +575,12 @@ async function initDatabase() {
 
   // ── SCHEMA MIGRATIONS (safely add columns missing from older databases) ──
   const migrations = [
+    // Assessment-time control-profile override (C/I/A + resolved profile the
+    // assessor chose when creating the package; may differ from the project's).
+    ['assessments', 'security_profile', 'ALTER TABLE assessments ADD COLUMN security_profile TEXT'],
+    ['assessments', 'confidentiality_level', 'ALTER TABLE assessments ADD COLUMN confidentiality_level TEXT'],
+    ['assessments', 'integrity_level', 'ALTER TABLE assessments ADD COLUMN integrity_level TEXT'],
+    ['assessments', 'availability_level', 'ALTER TABLE assessments ADD COLUMN availability_level TEXT'],
     ['users', 'totp_secret', 'ALTER TABLE users ADD COLUMN totp_secret TEXT'],
     ['users', 'mfa_enabled', 'ALTER TABLE users ADD COLUMN mfa_enabled INTEGER DEFAULT 0'],
     ['users', 'is_break_glass', 'ALTER TABLE users ADD COLUMN is_break_glass INTEGER DEFAULT 0'],

@@ -17,6 +17,43 @@
     {{#if intake}}<br><small class="text-muted">Linked intake: <code>{{intake.ref_code}}</code></small>{{/if}}
   </div>
 
+  {{#if showProfileCard}}
+  <div class="card mb-3" id="controlProfile">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-sliders me-2"></i>Control profile</span>
+      {{#if profile.overridden}}<span class="badge bg-warning text-dark">Adjusted for this assessment</span>{{else}}<span class="badge bg-secondary">Project baseline</span>{{/if}}
+    </div>
+    <div class="card-body">
+      <p class="text-muted small mb-3">Confidentiality stays the formal baseline (<span class="text-uppercase">{{profile.confidentiality}}</span>). Retune <strong>integrity</strong> and <strong>availability</strong> to change the resolved profile and the recommended control set for this assessment — this does not change the project's intake record.</p>
+      <form method="GET" action="/admin/projects/{{project.id}}/assessments/new" class="row g-2 align-items-end">
+        {{#if allParam}}<input type="hidden" name="all" value="1">{{/if}}
+        <input type="hidden" name="confidentiality" value="{{profile.confidentiality}}">
+        <div class="col-md-3">
+          <label class="form-label small mb-1">Confidentiality (baseline)</label>
+          <input class="form-control form-control-sm text-capitalize" value="{{profile.confidentiality}}" disabled>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small mb-1">Integrity</label>
+          <select class="form-select form-select-sm text-capitalize" name="integrity">
+            {{#each levelOptions}}<option value="{{this}}" {{#if (eq this ../profile.integrity)}}selected{{/if}}>{{this}}</option>{{/each}}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small mb-1">Availability</label>
+          <select class="form-select form-select-sm text-capitalize" name="availability">
+            {{#each levelOptions}}<option value="{{this}}" {{#if (eq this ../profile.availability)}}selected{{/if}}>{{this}}</option>{{/each}}
+          </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+          <button class="btn btn-primary btn-sm"><i class="bi bi-arrow-repeat me-1"></i>Update controls</button>
+          {{#if profile.overridden}}<a href="/admin/projects/{{project.id}}/assessments/new{{#if allParam}}?all=1{{/if}}" class="btn btn-outline-secondary btn-sm">Reset</a>{{/if}}
+        </div>
+      </form>
+      <div class="small text-muted mt-2">Resolved profile: <span class="badge bg-info text-dark">{{profile.id}}</span> · recommended set updates when you change integrity or availability.</div>
+    </div>
+  </div>
+  {{/if}}
+
   <div class="d-flex gap-2 mb-3">
     {{#if usingTailoredRecommendation}}
       <a href="/admin/projects/{{project.id}}/assessments/new?all=1" class="btn btn-outline-primary btn-sm">
@@ -49,6 +86,12 @@
   {{/if}}
 
   <form method="POST" action="/admin/projects/{{project.id}}/assessments/new" id="assessmentForm">
+    {{#if showProfileCard}}
+    <input type="hidden" name="security_profile" value="{{profile.id}}">
+    <input type="hidden" name="confidentiality_level" value="{{profile.confidentiality}}">
+    <input type="hidden" name="integrity_level" value="{{profile.integrity}}">
+    <input type="hidden" name="availability_level" value="{{profile.availability}}">
+    {{/if}}
 
     <!-- Sticky toolbar -->
     <div class="progress-sticky">

@@ -391,7 +391,7 @@ function getProjectDocuments(projectId) {
     FROM project_documents d
     JOIN projects p ON p.id = d.project_id
     WHERE d.project_id = ? AND d.status != 'deleted'
-    ORDER BY d.created_at DESC
+    ORDER BY d.created_at DESC, d.id DESC
   `, [projectId]);
 }
 
@@ -1131,7 +1131,7 @@ router.get('/projects/new', ensureAuthenticated, (req, res) => {
   });
 });
 
-router.post('/projects/new', ensureAuthenticated, intakeUpload.array('attachments', 10), (req, res) => {
+router.post('/projects/new', ensureAuthenticated, intakeUpload.fields([{ name: 'attachments', maxCount: 10 }, { name: 'reference_document', maxCount: 1 }]), (req, res) => {
   try {
     const { name, description, data_classification, hosting_type, app_type, has_pii,
       technologies, specifications, project_owner_name, project_owner_email,
@@ -1195,14 +1195,19 @@ router.post('/projects/new', ensureAuthenticated, intakeUpload.array('attachment
       if (userOrg) run('UPDATE projects SET organization_id = ? WHERE id = ?', [userOrg.id, projectId]);
     }
 
+    // req.files is now an object: { attachments: [...], reference_document: [...] }.
+    // The AI reference document (used to pre-fill the project) is captured here so
+    // it is saved as a project document — recorded LAST so it sorts first in the list.
+    const attachmentFiles = (req.files && req.files.attachments) || [];
+    const referenceFiles = (req.files && req.files.reference_document) || [];
     const intakeId = createProjectIntake({
       projectId,
       body: req.body,
       createdBy: req.user.id,
-      files: req.files || [],
+      files: [...attachmentFiles, ...referenceFiles],
       status: 'in-review'
     });
-    recordProjectDocuments({ projectId, intakeId, files: req.files || [], user: req.user });
+    recordProjectDocuments({ projectId, intakeId, files: [...attachmentFiles, ...referenceFiles], user: req.user });
 
     const assignmentMode = req.body.assignment_mode;
     if (assignmentMode === 'existing' || assignmentMode === 'invite') {
@@ -1727,9 +1732,41 @@ router.post('/projects/:id/ai/suggest-controls', ensureAuthenticated, express.js
 router.get('/projects/:projectId/assessments/new', ensureAuthenticated, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
   if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+
+  // ── Assessment-time control-profile override ──
+  // The assessor can retune integrity / availability (confidentiality stays the
+  // formal baseline) to change the resolved profile and the recommended control
+  // set for THIS assessment, without altering the project's intake record.
+  const LEVELS = ['low', 'medium', 'high'];
+  const q = req.query;
+  const projItsg = isItsgFramework(normalizeFramework(project.security_framework));
+  const baseConf = project.confidentiality_level || project.data_classification || 'protected-b';
+  const ovConf = (q.confidentiality && CONFIDENTIALITY_LEVELS[q.confidentiality]) ? q.confidentiality : baseConf;
+  const ovInt = (q.integrity && LEVELS.includes(q.integrity)) ? q.integrity : (project.integrity_level || 'medium');
+  const ovAva = (q.availability && LEVELS.includes(q.availability)) ? q.availability : (project.availability_level || 'medium');
+  const profileOverridden = !!(q.integrity || q.availability || q.confidentiality);
+  let effectiveProfile = project.security_profile;
+  let profileTailoringNotes = [];
+  if (projItsg) {
+    const det = determineProfile({
+      confidentiality: ovConf, integrity: ovInt, availability: ovAva,
+      hasPII: !!project.has_pii, isHVA: !!project.is_hva,
+      hasComplexity: detectComplexity(project.description || '')
+    });
+    effectiveProfile = det.profile.id;
+    profileTailoringNotes = det.tailoringNotes || [];
+  }
+  const effectiveProject = {
+    ...project,
+    confidentiality_level: ovConf,
+    integrity_level: ovInt,
+    availability_level: ovAva,
+    security_profile: effectiveProfile
+  };
+
   const intake = getPrimaryIntakeForProject(project.id);
   const documents = getProjectDocuments(project.id);
-  const selection = getAssessmentControlsForProject(project, documents, req.query.all === '1');
+  const selection = getAssessmentControlsForProject(effectiveProject, documents, req.query.all === '1');
   const saaCheck = selection.saaCheck;
   if (!saaCheck.requiresSAA && !req.query.force) {
     // Redirect to guidance report instead
@@ -1765,8 +1802,21 @@ router.get('/projects/:projectId/assessments/new', ensureAuthenticated, (req, re
     documents,
     saaReason: saaCheck.reason,
     framework: frameworkMetadata(selection.framework),
-    frameworkSummary: buildFrameworkSummary(project),
-    isItsgFramework: isItsgFramework(selection.framework)
+    frameworkSummary: buildFrameworkSummary(effectiveProject),
+    isItsgFramework: isItsgFramework(selection.framework),
+    // Control-profile override UI + values to persist on the assessment
+    profile: {
+      confidentiality: ovConf,
+      integrity: ovInt,
+      availability: ovAva,
+      id: effectiveProfile,
+      overridden: profileOverridden,
+      isBaseline: !profileOverridden,
+      tailoringNotes: profileTailoringNotes
+    },
+    levelOptions: LEVELS,
+    allParam: req.query.all === '1',
+    showProfileCard: projItsg
   });
 });
 
@@ -1778,11 +1828,19 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
 
     const inviteCode = uuidv4().substring(0, 8).toUpperCase();
     const frameworkFields = getFrameworkFields(project);
+    // Control-profile the assessor confirmed on the New Assessment screen (may
+    // retune integrity/availability vs. the project's intake categorization).
+    const aProfile = req.body.security_profile || project.security_profile || null;
+    const aConf = req.body.confidentiality_level || project.confidentiality_level || project.data_classification || null;
+    const aInt = req.body.integrity_level || project.integrity_level || null;
+    const aAva = req.body.availability_level || project.availability_level || null;
     const assessmentId = run(`INSERT INTO assessments
-      (project_id, intake_id, type, status, invite_code, security_framework, framework_baseline, framework_category, framework_applicability, created_by)
-      VALUES (?, ?, 'initial', 'draft', ?, ?, ?, ?, ?, ?)`,
+      (project_id, intake_id, type, status, invite_code, security_framework, framework_baseline, framework_category, framework_applicability,
+       security_profile, confidentiality_level, integrity_level, availability_level, created_by)
+      VALUES (?, ?, 'initial', 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [project.id, intakeId, inviteCode, frameworkFields.securityFramework, frameworkFields.frameworkBaseline,
-        frameworkFields.frameworkCategory, frameworkFields.frameworkApplicability, req.user.id]);
+        frameworkFields.frameworkCategory, frameworkFields.frameworkApplicability,
+        aProfile, aConf, aInt, aAva, req.user.id]);
     copyIntakeAssignmentsToAssessment(intakeId, assessmentId, req.user.id);
 
     console.log('[Assessment] Created assessment ID:', assessmentId, 'invite:', inviteCode);
