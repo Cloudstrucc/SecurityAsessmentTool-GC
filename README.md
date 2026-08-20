@@ -350,6 +350,7 @@ cd /home/site/wwwroot && node scripts/manage-users.js list
 - Keep `SESSION_SECRET`, admin passwords, SMTP secrets, and API keys in the env files (gitignored) / App Service application settings — never commit real secrets.
 - After deploying, create or rotate the break-glass account from an SSH session and store the generated password offline.
 - i18next preloads locales at startup, so restart/redeploy after changing `locales/*.json`.
+- **One-time on first start after upgrading to real integration validation:** any custom domain that was marked verified under the old self-attesting flow (flag set, but never DNS-checked) is reset to unverified, logging `Migration: cleared N self-attested custom-domain verification flag(s)`. The domain itself is kept — a root admin re-proves it with **Check DNS & verify**. Domains verified by a real DNS check are untouched.
 
 ## Troubleshooting
 

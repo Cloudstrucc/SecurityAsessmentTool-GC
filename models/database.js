@@ -920,6 +920,25 @@ async function initDatabase() {
     }
   });
 
+  // Custom domains used to be "verified" by self-attestation: the root admin
+  // clicked a button and the flag flipped without any DNS lookup. Verification now
+  // performs a real DNS check and stamps `domain_checked_at` on success, so
+  // `custom_domain_verified = 1` must always imply a non-null `domain_checked_at`.
+  // Clear any flag that predates real checking (or that some other path set without
+  // one) so those domains show as unverified until they are genuinely re-proven.
+  try {
+    const stale = db.exec(`SELECT COUNT(*) FROM org_settings
+                           WHERE custom_domain_verified = 1 AND domain_checked_at IS NULL`);
+    const staleCount = stale.length ? Number(stale[0].values[0][0]) : 0;
+    if (staleCount > 0) {
+      db.run(`UPDATE org_settings SET custom_domain_verified = 0, updated_at = CURRENT_TIMESTAMP
+              WHERE custom_domain_verified = 1 AND domain_checked_at IS NULL`);
+      console.log(`Migration: cleared ${staleCount} self-attested custom-domain verification flag(s) — re-validate to prove them via DNS`);
+    }
+  } catch (e) {
+    // org_settings may not exist yet on a brand-new database — nothing to repair.
+  }
+
   // Older databases created POA&M items with assessment_id NOT NULL. ATO/iATO
   // remediation can be project-level, so relax that constraint while preserving rows.
   try {
