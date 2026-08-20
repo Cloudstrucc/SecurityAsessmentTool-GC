@@ -37,6 +37,13 @@
         <div class="col-md-8"><label class="form-label small">Send a test email to</label><input class="form-control" name="test_to" value="{{admin.email}}"></div>
         <div class="col-md-4"><button class="btn btn-outline-primary w-100"><i class="bi bi-send me-1"></i>Send test</button></div>
       </form>
+      {{#if settings.smtp_host}}
+        <hr>
+        <form method="POST" action="/admin/organization/smtp/delete"
+              onsubmit="return confirm('Remove your SMTP settings? Email will fall back to the platform default.');">
+          <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Delete SMTP settings</button>
+        </form>
+      {{/if}}
     </div>
   </div>
 
@@ -72,6 +79,13 @@
       </form>
       <hr>
       <form method="POST" action="/admin/organization/ai/test"><button class="btn btn-outline-primary"><i class="bi bi-plug me-1"></i>Test AI connection</button></form>
+      {{#unless (eq settings.ai_provider 'oob')}}{{#if settings.ai_provider}}
+        <hr>
+        <form method="POST" action="/admin/organization/ai/delete"
+              onsubmit="return confirm('Remove your custom AI provider? AI will use the platform default (Anthropic, metered).');">
+          <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Delete custom AI provider</button>
+        </form>
+      {{/if}}{{/unless}}
       <p class="text-muted small mt-2 mb-0">Prefer the platform default? Leave the provider on "Platform default". Your token usage and remaining allowance are shown on the dashboard.</p>
     </div>
   </div>
@@ -99,6 +113,13 @@
         <div class="col-md-8"><label class="form-label small">Send a test SMS to</label><input class="form-control" name="test_to" placeholder="+15551234567"></div>
         <div class="col-md-4"><button class="btn btn-outline-primary w-100"><i class="bi bi-send me-1"></i>Send test</button></div>
       </form>
+      {{#if settings.sms_account_sid}}
+        <hr>
+        <form method="POST" action="/admin/organization/sms/delete"
+              onsubmit="return confirm('Remove your SMS (Twilio) settings?');">
+          <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Delete SMS settings</button>
+        </form>
+      {{/if}}
     </div>
   </div>
 
@@ -126,11 +147,17 @@
           </table>
         </div>
         <p class="text-muted small">After the records propagate, the TLS certificate is issued at the hosting layer (e.g. Azure custom domain binding). Then confirm below.</p>
-        {{#unless settings.custom_domain_verified}}
-          <form method="POST" action="/admin/organization/domain/verify">
-            <button class="btn btn-outline-success"><i class="bi bi-check2-circle me-1"></i>I've added the records — mark verified</button>
+        <div class="d-flex flex-wrap gap-2">
+          {{#unless settings.custom_domain_verified}}
+            <form method="POST" action="/admin/organization/domain/verify">
+              <button class="btn btn-outline-success"><i class="bi bi-check2-circle me-1"></i>I've added the records — mark verified</button>
+            </form>
+          {{/unless}}
+          <form method="POST" action="/admin/organization/domain/delete"
+                onsubmit="return confirm('Remove the custom domain {{settings.custom_domain}}? The platform default domain will be used again.');">
+            <button class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete domain</button>
           </form>
-        {{/unless}}
+        </div>
       {{/if}}
     </div>
   </div>
