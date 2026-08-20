@@ -16,7 +16,12 @@ try {
 
 const RP_NAME = 'Aegis SA Platform';
 const RP_ID = process.env.WEBAUTHN_RP_ID || 'localhost';
-const ORIGIN = process.env.WEBAUTHN_ORIGIN || `http://localhost:${process.env.PORT || 3000}`;
+// WEBAUTHN_ORIGIN accepts a comma-separated list so a domain cutover can accept
+// passkeys from the old and new hostnames at once (e.g. the azurewebsites.net
+// default host plus a new custom domain) instead of locking users out mid-move.
+const ORIGIN_LIST = (process.env.WEBAUTHN_ORIGIN || `http://localhost:${process.env.PORT || 3000}`)
+  .split(',').map(s => s.trim()).filter(Boolean);
+const ORIGIN = ORIGIN_LIST.length > 1 ? ORIGIN_LIST : ORIGIN_LIST[0];
 
 function getAuthUserId(req) {
   if (req.user) return req.user.id;
