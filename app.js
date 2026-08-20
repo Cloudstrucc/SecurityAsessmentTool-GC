@@ -189,7 +189,17 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'change-this-secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false, httpOnly: true, maxAge: 24 * 60 * 60 * 1000, sameSite: 'lax' }
+  // Set SECURE_COOKIES=true once the app is served exclusively over HTTPS (e.g.
+  // behind a custom domain with a managed certificate) so the session cookie is
+  // never transmitted in the clear. Left off by default: enabling it while any
+  // plain-HTTP origin is still in use would drop sessions. `trust proxy` above
+  // lets Express see the real protocol behind Azure's front end.
+  cookie: {
+    secure: process.env.SECURE_COOKIES === 'true',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000,
+    sameSite: 'lax'
+  }
 }));
 
 initializePassport();
