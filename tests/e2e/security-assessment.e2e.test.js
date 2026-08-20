@@ -1077,3 +1077,70 @@ test('registration with an unknown comp code is rejected', async () => {
   assert.equal(res.status, 200);
   assert.match(await res.text(), /not valid/i);
 });
+
+test('assessment creation captures a baseline version and supports manual checkpoints', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Versioning Project');
+  const { assessmentId, assessmentPath } = await createSingleControlAssessment(jar, projectId);
+
+  // The detail page shows the version UI and the current-version badge.
+  const detail = await getText(jar, assessmentPath);
+  assert.match(detail.text, /Version history/);
+  assert.match(detail.text, /Current assessment version">v\d+/);
+
+  // A manual checkpoint saves the current state as the next version.
+  const cp = await request(jar, 'POST', `/admin/assessments/${assessmentId}/checkpoint`, {
+    json: { label: 'E2E manual checkpoint' }
+  });
+  assert.equal(cp.status, 200);
+  const cpData = await cp.json();
+  assert.equal(cpData.success, true);
+  assert.ok(cpData.version >= 2, 'a checkpoint should create a new version beyond the baseline');
+
+  // The checkpoint appears in the rendered version history.
+  const after = await getText(jar, assessmentPath);
+  assert.match(after.text, /E2E manual checkpoint/);
+});
+
+test('reverting an assessment restores the prior control set as a new active version', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Revert Project');
+  const { assessmentId, assessmentPath } = await createSingleControlAssessment(jar, projectId);
+
+  // Probe presence via the "add" endpoint: it only reports applied>0 when the
+  // control was ABSENT, so it doubles as a deterministic presence check.
+  const add = (cid) => request(jar, 'POST', `/admin/assessments/${assessmentId}/apply-ai-actions`, {
+    json: { actions: [{ op: 'add', controlIds: [cid], reason: 'e2e' }] }
+  }).then(r => r.json());
+
+  // Baseline v1 (from creation) has only AC-2. Adding AC-3 is a real change (applied 1).
+  assert.equal((await add('AC-3')).applied, 1, 'AC-3 was absent in the baseline');
+  assert.equal((await add('AC-3')).applied, 0, 'AC-3 is now present');
+
+  // Revert to the baseline (version 1) — should restore the AC-2-only control set.
+  const revert = await request(jar, 'POST', `/admin/assessments/${assessmentId}/revert/1`, { json: {} });
+  assert.equal(revert.status, 200);
+  const revertData = await revert.json();
+  assert.equal(revertData.success, true);
+  assert.equal(revertData.restoredFrom, 1);
+
+  // After the revert: AC-3 is gone again (add reports a change), AC-2 is preserved.
+  assert.equal((await add('AC-3')).applied, 1, 'revert should have removed AC-3');
+  assert.equal((await add('AC-2')).applied, 0, 'revert should have preserved AC-2');
+
+  // The revert is recorded in the audit history.
+  const detail = await getText(jar, assessmentPath);
+  assert.match(detail.text, /Reverted to version 1/);
+});
+
+test('the legacy sa-tool-overview.html path redirects to the live overview route', async () => {
+  const jar = new CookieJar();
+  const redirect = await request(jar, 'GET', '/sa-tool-overview.html', { redirect: 'manual' });
+  assert.equal(redirect.status, 302);
+  assert.equal(redirect.headers.get('location'), '/sa-tool-overview');
+
+  const overview = await getText(jar, '/sa-tool-overview');
+  assert.equal(overview.response.status, 200);
+  assert.match(overview.text, /Aegis SA/);
+  assert.doesNotMatch(overview.text, /Vanguard SA(&amp;|&)A/);
+});
