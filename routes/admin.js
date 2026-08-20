@@ -1885,12 +1885,122 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
       console.log('[Assessment] Inserted', statements.length, 'controls for assessment', assessmentId);
     }
 
+    // Baseline version 1 — the starting point the assessor can always revert to.
+    createAssessmentVersion(assessmentId, {
+      label: 'Created', summary: `Baseline — ${statements.length} control(s)`, user: req.user
+    });
+
     req.flash('success', `Assessment created with ${statements.length} controls. You can now review and send the invite.`);
     res.redirect(`/admin/assessments/${assessmentId}`);
   } catch (err) {
     console.error('Assessment creation error:', err);
     req.flash('error', 'Failed to create assessment: ' + err.message);
     res.redirect(`/admin/projects/${req.params.projectId}`);
+  }
+});
+
+// ── Assessment versioning (audit history + revert) ────────────────────────────
+// A "version" is a point-in-time snapshot of the assessment's tailored control set
+// plus its profile fields. Snapshots are captured at meaningful commit points
+// (creation, AI-applied changes, manual checkpoints) and on every revert, giving a
+// full audit trail the assessor can roll back to. Reverting never destroys data:
+// the current live state is snapshotted first, then the chosen version is restored
+// into a brand-new active version.
+
+// Fields we preserve/restore alongside the control set (not status/invite/signatures).
+function pickAssessmentSnapshotFields(a) {
+  return {
+    security_framework: a.security_framework, framework_baseline: a.framework_baseline,
+    framework_category: a.framework_category, framework_applicability: a.framework_applicability,
+    security_profile: a.security_profile, confidentiality_level: a.confidentiality_level,
+    integrity_level: a.integrity_level, availability_level: a.availability_level
+  };
+}
+
+// Snapshot the current live state as the next version. Returns the new version number.
+function createAssessmentVersion(assessmentId, { label = '', summary = '', user = null } = {}) {
+  const a = get('SELECT * FROM assessments WHERE id = ?', [assessmentId]);
+  if (!a) return null;
+  const controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY id', [assessmentId]);
+  const maxV = get('SELECT MAX(version) v FROM assessment_versions WHERE assessment_id = ?', [assessmentId]);
+  const version = ((maxV && maxV.v) || 0) + 1;
+  const snapshot = JSON.stringify({ assessment: pickAssessmentSnapshotFields(a), controls });
+  run(`INSERT INTO assessment_versions (assessment_id, version, label, summary, created_by, created_by_name, snapshot_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [assessmentId, version, label || ('Version ' + version), summary || '',
+     (user && user.id) || null, (user && user.name) || '', snapshot]);
+  run('UPDATE assessments SET version = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [version, assessmentId]);
+  return version;
+}
+
+// Replace an assessment's controls with the rows captured in a snapshot.
+function restoreControlsFromSnapshot(assessmentId, controls) {
+  run('DELETE FROM assessment_controls WHERE assessment_id = ?', [assessmentId]);
+  (controls || []).forEach(c => {
+    const row = Object.assign({}, c);
+    delete row.id;
+    row.assessment_id = assessmentId;
+    const keys = Object.keys(row);
+    run(`INSERT INTO assessment_controls (${keys.join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`,
+      keys.map(k => row[k]));
+  });
+}
+
+// Manual checkpoint — assessor saves a named version of the current state.
+router.post('/assessments/:id/checkpoint', ensureAuthenticated, express.json(), (req, res) => {
+  try {
+    const a = get('SELECT id FROM assessments WHERE id = ?', [req.params.id]);
+    if (!a) return res.status(404).json({ error: 'Assessment not found' });
+    const label = String(req.body.label || 'Checkpoint').trim().slice(0, 80) || 'Checkpoint';
+    const version = createAssessmentVersion(a.id, { label, summary: 'Manual checkpoint', user: req.user });
+    res.json({ success: true, version });
+  } catch (err) {
+    console.error('checkpoint error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Revert to a prior version. Preserves the current state in history, restores the
+// chosen snapshot, and records the restored state as a new active version.
+router.post('/assessments/:id/revert/:version', ensureAuthenticated, express.json(), (req, res) => {
+  try {
+    const a = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+    if (!a) return res.status(404).json({ error: 'Assessment not found' });
+    const target = get('SELECT * FROM assessment_versions WHERE assessment_id = ? AND version = ?',
+      [a.id, req.params.version]);
+    if (!target) return res.status(404).json({ error: 'Version not found' });
+    let snap;
+    try { snap = JSON.parse(target.snapshot_json || '{}'); }
+    catch (e) { return res.status(500).json({ error: 'Snapshot is corrupted and cannot be restored' }); }
+
+    // 1) Preserve the current live state so nothing is lost.
+    createAssessmentVersion(a.id, {
+      label: 'Superseded state', summary: `Auto-saved before reverting to version ${target.version}`, user: req.user
+    });
+    // 2) Restore the chosen version's controls and profile fields.
+    restoreControlsFromSnapshot(a.id, snap.controls || []);
+    const sa = snap.assessment || {};
+    run(`UPDATE assessments SET security_profile = ?, confidentiality_level = ?, integrity_level = ?,
+         availability_level = ?, framework_baseline = ?, framework_category = ?, framework_applicability = ?,
+         updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [sa.security_profile != null ? sa.security_profile : a.security_profile,
+       sa.confidentiality_level != null ? sa.confidentiality_level : a.confidentiality_level,
+       sa.integrity_level != null ? sa.integrity_level : a.integrity_level,
+       sa.availability_level != null ? sa.availability_level : a.availability_level,
+       sa.framework_baseline != null ? sa.framework_baseline : a.framework_baseline,
+       sa.framework_category != null ? sa.framework_category : a.framework_category,
+       sa.framework_applicability != null ? sa.framework_applicability : a.framework_applicability,
+       a.id]);
+    // 3) Record the restored state as the new active version.
+    const newVersion = createAssessmentVersion(a.id, {
+      label: `Reverted to version ${target.version}`,
+      summary: `Restored from version ${target.version}` + (target.label ? ` (${target.label})` : ''),
+      user: req.user
+    });
+    res.json({ success: true, version: newVersion, restoredFrom: target.version });
+  } catch (err) {
+    console.error('revert error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -1931,6 +2041,12 @@ router.post('/assessments/:id/apply-ai-actions', ensureAuthenticated, express.js
       });
     });
     run('UPDATE assessments SET updated_at = CURRENT_TIMESTAMP WHERE id = ?', [assessment.id]);
+    if (applied > 0) {
+      createAssessmentVersion(assessment.id, {
+        label: 'AI-applied changes',
+        summary: `${applied} change(s) applied via the SA&A Assistant`, user: req.user
+      });
+    }
     res.json({ success: true, applied });
   } catch (err) {
     console.error('apply-ai-actions error:', err);
@@ -2022,10 +2138,19 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     lowCount: checklistItems.filter(i => i.risk_level === 'low').length
   };
 
+  // Version history (audit trail). Assessments created before this feature have no
+  // snapshots yet — lazily capture the current state as a baseline so it's revertable.
+  let versions = all('SELECT id, version, label, summary, created_by_name, created_at FROM assessment_versions WHERE assessment_id = ? ORDER BY version DESC', [assessment.id]);
+  if (versions.length === 0) {
+    createAssessmentVersion(assessment.id, { label: 'Baseline', summary: 'Current state captured', user: req.user });
+    assessment.version = 1;
+    versions = all('SELECT id, version, label, summary, created_by_name, created_at FROM assessment_versions WHERE assessment_id = ? ORDER BY version DESC', [assessment.id]);
+  }
+
   res.render('admin/assessment-detail', {
     title: `Assessment: ${assessment.project_name}`,
     isAdmin: true, isAssessments: true,
-    admin: req.user, assessment, assignments, users: getAssignableUsers(),
+    admin: req.user, assessment, assignments, users: getAssignableUsers(), versions,
     families: Object.values(families), controls, stats, checklistItems, poamStats, documents, atoRecords,
     tailorMode: req.query.tailor === '1',
     projectContextJSON: JSON.stringify({
