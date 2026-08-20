@@ -47,6 +47,12 @@ router.get('/portal', (req, res) => {
   });
 });
 
+// How-to page for the SA&A Assessment Assistant (opened from the assistant's ? icon).
+// Public so it works from both admin pages and the code-gated evidence portal.
+router.get('/assistant-help', (req, res) => {
+  res.render('assistant-help', { title: 'SA&A Assessment Assistant — How to use', layout: 'home' });
+});
+
 // Product brief — served through the app so it gets the site header, the
 // language switcher, and full i18n. (Both paths kept: the old static URL
 // ...sa-tool-overview.html is linked from several pages.)

@@ -554,23 +554,6 @@ router.post('/ai/save-guidance/:controlDbId', ensureAuthenticated, express.json(
   }
 });
 
-// ── Bulk evidence generation ────────────────────────────────────────────────
-router.post('/ai/generate-bulk-evidence', ensureAuthenticated, express.json(), async (req, res) => {
-  try {
-    if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY.' });
-    if (!aiAllowed(req, res, 'bulk-evidence')) return;
-    const { controls, projectContext } = req.body;
-    if (!controls || !controls.length) return res.status(400).json({ error: 'Controls list required' });
-
-    const result = await ai.generateBulkEvidence(controls, projectContext || {});
-    access.recordAiUse(req.user, 'bulk-evidence');
-    res.json({ success: true, narratives: result });
-  } catch (err) {
-    console.error('AI bulk evidence error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // ── Self-assessment wizard ──────────────────────────────────────────────────
 router.post('/self-assessment/questions', express.json(), async (req, res) => {
   try {

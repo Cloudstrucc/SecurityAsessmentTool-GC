@@ -17,7 +17,9 @@
   .aia-msg.bot li{margin:2px 0}
   .aia-msg.bot > div{margin:0 0 3px}
   .aia-head p{margin:1px 0 0;font-size:11.5px;color:#dcd7ff}
-  .aia-head .x{margin-left:auto;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1}
+  .aia-head .aia-help{margin-left:auto;flex:0 0 auto;width:24px;height:24px;border-radius:50%;border:1.5px solid rgba(255,255,255,.55);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;text-decoration:none;line-height:1}
+  .aia-head .aia-help:hover{background:rgba(255,255,255,.2)}
+  .aia-head .x{margin-left:8px;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1}
   .aia-msgs{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:#f7f7fb}
   .aia-msg{max-width:88%;padding:10px 13px;border-radius:13px;font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
   .aia-msg.user{align-self:flex-end;background:#4f46e5;color:#fff;border-bottom-right-radius:4px}
@@ -58,6 +60,7 @@
       <h3 id="aiaTitle">SA&amp;A Assessment Assistant (AI)</h3>
       <p id="aiaSub">Ask to refine, add or remove controls</p>
     </div>
+    <a class="aia-help" href="/assistant-help" target="_blank" rel="noopener" title="How to use the assistant" aria-label="How to use the SA&amp;A Assistant (opens in a new tab)">?</a>
     <button type="button" class="x" id="aiaClose" aria-label="Close assistant">&times;</button>
   </div>
   <div class="aia-msgs" id="aiaMsgs"></div>
