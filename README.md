@@ -21,6 +21,7 @@ Node.js/Express application for managing security assessment & authorization (SA
 - Supports TOTP MFA and passkeys, with TOTP available as a fallback whenever a passkey is used.
 - Supports a controlled break-glass assessor account that uses password-only login for emergency recovery.
 - Gives tenant root admins full CRUD over organization settings at `/admin/organization` — own SMTP, own SMS (Twilio), a bring-your-own AI provider / MCP server, and a custom domain. Each group can be created, updated, tested, and **deleted**; deleting clears the stored credentials and falls back to the platform default.
+- Validates every integration for real, never by self-attestation: a **custom domain is only marked verified when its TXT ownership record and CNAME (or apex A) routing record actually resolve in public DNS**; SMTP is checked with a real connection + auth handshake (no mail sent); SMS with a live Twilio credential call; the AI provider with a real model round-trip. Each shows a **Last valid check** timestamp with a re-validate button, and keeps a **24-hour check log**.
 
 ## Requirements
 
@@ -275,7 +276,7 @@ Current executable checks:
 - Reverting an assessment restores the prior control set as a new active version and records the revert in the audit history.
 - The legacy `/sa-tool-overview.html` path redirects to the live overview route (guards against stale static files in `wwwroot`).
 
-The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 36 checks.
+The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 39 checks.
 
 In the Codex sandbox, binding a local test server may require approval. On a normal developer machine, `npm run test:e2e` should run directly.
 

@@ -37,6 +37,7 @@
         <div class="col-md-8"><label class="form-label small">Send a test email to</label><input class="form-control" name="test_to" value="{{admin.email}}"></div>
         <div class="col-md-4"><button class="btn btn-outline-primary w-100"><i class="bi bi-send me-1"></i>Send test</button></div>
       </form>
+      {{> org-check-panel feature="smtp" label="SMTP" verifiedAt=settings.smtp_verified_at history=checkHistory.smtp}}
       {{#if settings.smtp_host}}
         <hr>
         <form method="POST" action="/admin/organization/smtp/delete"
@@ -79,6 +80,7 @@
       </form>
       <hr>
       <form method="POST" action="/admin/organization/ai/test"><button class="btn btn-outline-primary"><i class="bi bi-plug me-1"></i>Test AI connection</button></form>
+      {{> org-check-panel feature="ai" label="AI provider" verifiedAt=settings.ai_verified_at history=checkHistory.ai}}
       {{#unless (eq settings.ai_provider 'oob')}}{{#if settings.ai_provider}}
         <hr>
         <form method="POST" action="/admin/organization/ai/delete"
@@ -113,6 +115,7 @@
         <div class="col-md-8"><label class="form-label small">Send a test SMS to</label><input class="form-control" name="test_to" placeholder="+15551234567"></div>
         <div class="col-md-4"><button class="btn btn-outline-primary w-100"><i class="bi bi-send me-1"></i>Send test</button></div>
       </form>
+      {{> org-check-panel feature="sms" label="SMS" verifiedAt=settings.sms_verified_at history=checkHistory.sms}}
       {{#if settings.sms_account_sid}}
         <hr>
         <form method="POST" action="/admin/organization/sms/delete"
@@ -146,11 +149,13 @@
             </tbody>
           </table>
         </div>
-        <p class="text-muted small">After the records propagate, the TLS certificate is issued at the hosting layer (e.g. Azure custom domain binding). Then confirm below.</p>
+        <p class="text-muted small">After the records propagate, the TLS certificate is issued at the hosting layer (e.g. Azure custom domain binding).
+          Verification below performs a <strong>real DNS lookup</strong> — the domain is only marked verified once both records actually resolve.
+          DNS changes can take up to 48 hours to propagate.</p>
         <div class="d-flex flex-wrap gap-2">
           {{#unless settings.custom_domain_verified}}
             <form method="POST" action="/admin/organization/domain/verify">
-              <button class="btn btn-outline-success"><i class="bi bi-check2-circle me-1"></i>I've added the records — mark verified</button>
+              <button class="btn btn-outline-success"><i class="bi bi-shield-check me-1"></i>Check DNS &amp; verify</button>
             </form>
           {{/unless}}
           <form method="POST" action="/admin/organization/domain/delete"
@@ -158,6 +163,7 @@
             <button class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete domain</button>
           </form>
         </div>
+        {{> org-check-panel feature="domain" label="DNS" verifiedAt=settings.domain_checked_at history=checkHistory.domain}}
       {{/if}}
     </div>
   </div>

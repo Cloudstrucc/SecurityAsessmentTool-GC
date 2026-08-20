@@ -10,6 +10,7 @@ const access = require('../config/access');
 const orgSettings = require('../config/org-settings');
 const emailService = require('../utils/emailService');
 const smsService = require('../utils/smsService');
+const checks = require('../config/integration-checks');
 
 const router = express.Router();
 
@@ -22,9 +23,28 @@ function renderConsole(req, res, extra = {}) {
   const settings = org ? orgSettings.getSettings(org.id) : null;
   return res.render('admin/org-settings', Object.assign({
     title: 'Organization Settings', layout: 'main', isAdmin: true, admin: req.user,
-    org, settings, host: req.get('host')
+    org, settings, host: req.get('host'),
+    // Last 24h of validation history per integration, for the log panels.
+    checkHistory: org ? checks.historyAll(org.id) : {},
+    domainToken: org ? checks.domainVerificationToken(org.id) : ''
   }, extra));
 }
+
+/**
+ * Re-run a real validation for one integration (the reload icon next to
+ * "Last valid check"). Works for smtp | sms | domain | ai.
+ */
+router.post('/organization/:feature/validate', access.ensureRootAdmin, async (req, res) => {
+  const org = currentOrg(req);
+  const feature = String(req.params.feature || '');
+  if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
+  if (!checks.FEATURES.includes(feature)) { req.flash('error', 'Unknown integration.'); return res.redirect('/admin/organization'); }
+  const result = await checks.runCheck(feature, {
+    orgId: org.id, expectedHost: req.get('host'), user: req.user, kind: 'validate'
+  });
+  req.flash(result.ok ? 'success' : 'error', result.message);
+  res.redirect(`/admin/organization#${feature}`);
+});
 
 // Console
 router.get('/organization', access.ensureRootAdmin, (req, res) => renderConsole(req, res));
@@ -44,6 +64,11 @@ router.post('/organization/smtp/test', access.ensureRootAdmin, async (req, res) 
   if (!cfg) { req.flash('error', 'Save and enable SMTP settings before testing.'); return res.redirect('/admin/organization#smtp'); }
   const to = (req.body.test_to || req.user.email || '').trim();
   const result = await emailService.sendTestEmail(cfg, to);
+  checks.recordResult(org.id, 'smtp', {
+    ok: !!result.sent,
+    message: result.sent ? `Test email delivered to ${to}.` : `Test email failed: ${result.error}`,
+    detail: { to, host: cfg.host, port: cfg.port }
+  }, { kind: 'test', user: req.user });
   if (result.sent) req.flash('success', `Test email sent to ${to}.`);
   else req.flash('error', `Test email failed: ${result.error}`);
   res.redirect('/admin/organization#smtp');
@@ -72,6 +97,11 @@ router.post('/organization/sms/test', access.ensureRootAdmin, async (req, res) =
   const to = (req.body.test_to || '').trim();
   if (!to) { req.flash('error', 'Enter a destination phone number to test.'); return res.redirect('/admin/organization#sms'); }
   const result = await smsService.sendTestSms(settings, to);
+  checks.recordResult(org.id, 'sms', {
+    ok: !!result.sent,
+    message: result.sent ? `Test SMS delivered to ${to}.` : `Test SMS failed: ${result.error}`,
+    detail: { to, from: settings && settings.sms_from }
+  }, { kind: 'test', user: req.user });
   if (result.sent) req.flash('success', `Test SMS sent to ${to}.`);
   else req.flash('error', `Test SMS failed: ${result.error}`);
   res.redirect('/admin/organization#sms');
@@ -96,15 +126,9 @@ router.post('/organization/ai', access.ensureRootAdmin, (req, res) => {
 
 router.post('/organization/ai/test', access.ensureRootAdmin, async (req, res) => {
   const org = currentOrg(req);
-  const cfg = orgSettings.aiConfig(org && org.id);
-  const { runWithAiContext } = require('../config/ai-context');
-  const ai = require('../config/ai-service');
-  try {
-    const reply = await runWithAiContext(Object.assign({ userId: req.user.id }, cfg), () => ai.testConnection());
-    req.flash('success', `AI provider "${cfg.provider}" responded: "${reply}".`);
-  } catch (err) {
-    req.flash('error', `AI test failed (${cfg.provider}): ${err.message}`);
-  }
+  if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
+  const result = await checks.runCheck('ai', { orgId: org.id, user: req.user, kind: 'test' });
+  req.flash(result.ok ? 'success' : 'error', result.message);
   res.redirect('/admin/organization#ai');
 });
 
@@ -125,13 +149,20 @@ router.post('/organization/domain', access.ensureRootAdmin, (req, res) => {
   res.redirect('/admin/organization#domain');
 });
 
-router.post('/organization/domain/verify', access.ensureRootAdmin, (req, res) => {
+/**
+ * Verify the custom domain by actually resolving its DNS records. The domain is
+ * only marked verified when the ownership TXT record and the routing CNAME (or an
+ * apex A record) genuinely resolve — self-attestation is not accepted.
+ */
+router.post('/organization/domain/verify', access.ensureRootAdmin, async (req, res) => {
   const org = currentOrg(req);
-  // DNS/TLS binding is performed at the hosting layer (e.g. Azure custom domain).
-  // Here the root admin confirms the records are in place; a real DNS check can
-  // be added later. Mark verified so the app can start using the domain.
-  orgSettings.setDomainVerified(org.id, true);
-  req.flash('success', 'Custom domain marked verified.');
+  if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
+  const result = await checks.runCheck('domain', {
+    orgId: org.id, expectedHost: req.get('host'), user: req.user, kind: 'verify'
+  });
+  orgSettings.setDomainVerified(org.id, result.ok);
+  if (result.ok) req.flash('success', `Custom domain verified. ${result.message}`);
+  else req.flash('error', `${result.message} DNS changes can take up to 48 hours to propagate — try again once they have.`);
   res.redirect('/admin/organization#domain');
 });
 
