@@ -31,8 +31,13 @@ const intakeUpload = multer({
   limits: { fileSize: 25 * 1024 * 1024 }
 });
 
-// Home page
+// Home page — signed-in users go to their own dashboard, not the marketing page.
 router.get('/', (req, res) => {
+  // Assessors / admins / practitioners (Passport session): /admin/dashboard
+  // role-branches to the admin dashboard or the practitioner "My Dashboard".
+  if (req.isAuthenticated && req.isAuthenticated()) return res.redirect('/admin/dashboard');
+  // Client / project evidence users (client session): the Client Portal.
+  if (req.session && req.session.clientId) return res.redirect('/portal');
   res.render('index', {
     title: 'Vanguard Cloud Services - SA&A Platform',
     layout: 'home',
@@ -50,7 +55,7 @@ router.get('/portal', (req, res) => {
 // How-to page for the SA&A Assessment Assistant (opened from the assistant's ? icon).
 // Public so it works from both admin pages and the code-gated evidence portal.
 router.get('/assistant-help', (req, res) => {
-  res.render('assistant-help', { title: 'SA&A Assessment Assistant — How to use', layout: 'home' });
+  res.render('assistant-help', { title: req.t ? req.t('ah.metaTitle') : 'SA&A Assessment Assistant — How to use', layout: 'home' });
 });
 
 // Product brief — served through the app so it gets the site header, the
