@@ -1216,7 +1216,7 @@ function aiCopyNarrative(btn, controlDbId) {
   });
 }
 
-// Page setup (Bulk Evidence Guidance removed — superseded by the SA&A Assessment Assistant)
+// Page setup (Bulk Evidence Guidance removed — superseded by the Aegis SA Assistant)
 document.addEventListener('DOMContentLoaded', function() {
   // Hide the legacy AI floating button so only the Assistant launcher shows.
   var fab = document.getElementById('aiTriggerBtn');
@@ -1508,7 +1508,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 {{> ai-assess-helper }}
 <script>
-// SA&A Assessment Assistant — review mode (assessor Q&A + guidance on this assessment).
+// Aegis SA Assistant — review mode (assessor Q&A + guidance on this assessment).
 window.AIAssistConfig = {
   mode: 'review',
   assessmentId: {{assessment.id}},

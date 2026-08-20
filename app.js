@@ -278,7 +278,7 @@ initialize().then(() => {
     console.log(`
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║   Vanguard Cloud Services SA&A Platform                      ║
+║   Aegis SA Platform — Vanguard Cloud Services                ║
 ║   Multi-framework security assessment workflows              ║
 ║                                                              ║
 ║   Server:       http://localhost:${PORT}                       ║

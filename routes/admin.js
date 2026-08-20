@@ -888,7 +888,7 @@ router.get('/mfa-setup', async (req, res) => {
     run('UPDATE users SET totp_secret = ? WHERE id = ?', [secret, user.id]);
   }
 
-  const otpauth = otpGenerateURI({ issuer: 'Vanguard SA&A Platform', label: user.email, secret });
+  const otpauth = otpGenerateURI({ issuer: 'Aegis SA Platform', label: user.email, secret });
   try {
     const qrCodeUrl = await QRCode.toDataURL(otpauth);
     res.render('admin/login', {
@@ -2004,7 +2004,7 @@ router.post('/assessments/:id/revert/:version', ensureAuthenticated, express.jso
   }
 });
 
-// Apply AI-proposed control changes to an existing assessment (SA&A Assistant, review mode).
+// Apply AI-proposed control changes to an existing assessment (Aegis SA Assistant, review mode).
 router.post('/assessments/:id/apply-ai-actions', ensureAuthenticated, express.json(), (req, res) => {
   try {
     const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
@@ -2044,7 +2044,7 @@ router.post('/assessments/:id/apply-ai-actions', ensureAuthenticated, express.js
     if (applied > 0) {
       createAssessmentVersion(assessment.id, {
         label: 'AI-applied changes',
-        summary: `${applied} change(s) applied via the SA&A Assistant`, user: req.user
+        summary: `${applied} change(s) applied via the Aegis SA Assistant`, user: req.user
       });
     }
     res.json({ success: true, applied });

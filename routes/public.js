@@ -39,7 +39,7 @@ router.get('/', (req, res) => {
   // Client / project evidence users (client session): the Client Portal.
   if (req.session && req.session.clientId) return res.redirect('/portal');
   res.render('index', {
-    title: 'Vanguard Cloud Services - SA&A Platform',
+    title: 'Vanguard Cloud Services - Aegis SA Platform',
     layout: 'home',
     frameworkHighlights: ['ITSG-33', 'CIS Controls v8', 'ISO 27001', 'FedRAMP', 'NIST SP 800-53', 'ASD ISM', 'Essential Eight']
   });
@@ -52,10 +52,10 @@ router.get('/portal', (req, res) => {
   });
 });
 
-// How-to page for the SA&A Assessment Assistant (opened from the assistant's ? icon).
+// How-to page for the Aegis SA Assistant (opened from the assistant's ? icon).
 // Public so it works from both admin pages and the code-gated evidence portal.
 router.get('/assistant-help', (req, res) => {
-  res.render('assistant-help', { title: req.t ? req.t('ah.metaTitle') : 'SA&A Assessment Assistant — How to use', layout: 'home' });
+  res.render('assistant-help', { title: req.t ? req.t('ah.metaTitle') : 'Aegis SA Assistant — How to use', layout: 'home' });
 });
 
 // Product brief — served through the app so it gets the site header, the
@@ -63,7 +63,7 @@ router.get('/assistant-help', (req, res) => {
 // ...sa-tool-overview.html is linked from several pages.)
 function renderProductBrief(req, res) {
   res.render('product-brief', {
-    title: req.t ? req.t('pb.metaTitle') : 'Vanguard SA&A — Product brief',
+    title: req.t ? req.t('pb.metaTitle') : 'Aegis SA — Product brief',
     layout: 'home'
   });
 }
@@ -266,7 +266,7 @@ router.post('/respond/:code/comment/:controlId', express.json(), (req, res) => {
   res.json({ success: true });
 });
 
-// ── SA&A Assessment Assistant (evidence mode) — code-gated for the respond page ──
+// ── Aegis SA Assistant (evidence mode) — code-gated for the respond page ──
 router.post('/respond/:code/ai-chat', express.json(), async (req, res) => {
   try {
     const code = req.params.code.toUpperCase();
@@ -465,7 +465,7 @@ router.get('/client/mfa-setup', async (req, res) => {
   const user = get('SELECT id, email, totp_secret FROM users WHERE id = ?', [userId]);
   if (!user || !user.totp_secret) { return res.redirect('/client/register'); }
 
-  const otpauth = otpGenerateURI({ issuer: 'Vanguard SA&A Platform', label: user.email, secret: user.totp_secret });
+  const otpauth = otpGenerateURI({ issuer: 'Aegis SA Platform', label: user.email, secret: user.totp_secret });
 
   try {
     const qrCodeUrl = await QRCode.toDataURL(otpauth);

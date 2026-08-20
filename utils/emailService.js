@@ -97,7 +97,7 @@ async function sendVia(cfg, mailOptions) {
 async function sendTestEmail(cfg, to) {
   return sendVia(cfg, {
     to,
-    subject: 'Vanguard SA&A — SMTP test',
+    subject: 'Aegis SA — SMTP test',
     html: `<div style="font-family:Inter,Arial,sans-serif">
       <p>✅ Your custom SMTP configuration works.</p>
       <p>This test message was sent from Vanguard SA&amp;A using your organization's mail server.</p>
@@ -138,7 +138,7 @@ async function sendInvite({ to, recipientName, projectName, inviteCode, expiresA
           <p>If you have questions, please contact ${assessorName}.</p>
         </div>
         <div style="padding: 16px; text-align: center; color: #6c757d; font-size: 12px;">
-          Government of Canada – SA&A Tool
+          Government of Canada – Aegis SA
         </div>
       </div>
     `
@@ -206,7 +206,7 @@ async function sendSubmissionNotification({ assessorEmail, projectName, submitte
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to: assessorEmail,
     subject: `Evidence Submitted – ${projectName}`,
-    html: `<p>${submitterName} has submitted evidence for <strong>${projectName}</strong>. Please review the submission in the SA&A portal.</p>`
+    html: `<p>${submitterName} has submitted evidence for <strong>${projectName}</strong>. Please review the submission in the Aegis SA portal.</p>`
   });
 }
 

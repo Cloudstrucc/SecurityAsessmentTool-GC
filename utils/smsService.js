@@ -31,7 +31,7 @@ async function sendSms(settings, to, body) {
 }
 
 async function sendTestSms(settings, to) {
-  return sendSms(settings, to, 'Vanguard SA&A — your SMS configuration works. This is a test message.');
+  return sendSms(settings, to, 'Aegis SA — your SMS configuration works. This is a test message.');
 }
 
 module.exports = { sendSms, sendTestSms };
