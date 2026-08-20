@@ -81,6 +81,16 @@ function buildTransportFromConfig(cfg) {
   });
 }
 
+/**
+ * Validate a tenant SMTP config by opening a real connection and completing the
+ * auth handshake, WITHOUT sending a message. Rejects with the server's error.
+ */
+async function verifyTransport(cfg) {
+  const t = buildTransportFromConfig(cfg);
+  await t.verify();
+  return true;
+}
+
 /** Send using an explicit tenant SMTP config (bypasses the default transport). */
 async function sendVia(cfg, mailOptions) {
   try {
@@ -229,5 +239,6 @@ module.exports = {
   sendMail,
   sendVia,
   sendRouted,
-  sendTestEmail
+  sendTestEmail,
+  verifyTransport
 };

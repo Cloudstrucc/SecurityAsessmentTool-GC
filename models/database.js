@@ -169,6 +169,22 @@ async function initDatabase() {
     )
   `);
 
+  // ── INTEGRATION CHECK LOG (per-tenant; 24h rolling retention) ──
+  // One row per validation attempt against SMTP / SMS / custom domain / AI provider.
+  db.run(`
+    CREATE TABLE IF NOT EXISTS org_setting_checks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      organization_id INTEGER NOT NULL,
+      feature TEXT NOT NULL,          -- smtp | sms | domain | ai
+      kind TEXT,                      -- validate | test
+      ok INTEGER DEFAULT 0,
+      message TEXT,
+      detail TEXT,
+      checked_by TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   // ── ASSESSMENT VERSIONS (point-in-time snapshots for audit history + revert) ──
   db.run(`
     CREATE TABLE IF NOT EXISTS assessment_versions (
@@ -718,6 +734,12 @@ async function initDatabase() {
     ['org_settings', 'ai_base_url', 'ALTER TABLE org_settings ADD COLUMN ai_base_url TEXT'],   // for custom / on-prem OpenAI-compatible endpoints
     ['org_settings', 'ai_mcp_url', 'ALTER TABLE org_settings ADD COLUMN ai_mcp_url TEXT'],
     ['org_settings', 'ai_mcp_token', 'ALTER TABLE org_settings ADD COLUMN ai_mcp_token TEXT'],
+    // Last SUCCESSFUL validation per integration ("Last valid check"). Kept on the
+    // settings row so it survives the 24h purge of org_setting_checks.
+    ['org_settings', 'smtp_verified_at', 'ALTER TABLE org_settings ADD COLUMN smtp_verified_at DATETIME'],
+    ['org_settings', 'sms_verified_at', 'ALTER TABLE org_settings ADD COLUMN sms_verified_at DATETIME'],
+    ['org_settings', 'domain_checked_at', 'ALTER TABLE org_settings ADD COLUMN domain_checked_at DATETIME'],
+    ['org_settings', 'ai_verified_at', 'ALTER TABLE org_settings ADD COLUMN ai_verified_at DATETIME'],
     // Per-tenant OOB token allowance + usage.
     ['organizations', 'token_limit', 'ALTER TABLE organizations ADD COLUMN token_limit INTEGER'],       // null = plan default
     ['organizations', 'tokens_extra', 'ALTER TABLE organizations ADD COLUMN tokens_extra INTEGER DEFAULT 0'], // topped-up tokens

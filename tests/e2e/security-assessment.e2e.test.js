@@ -1028,9 +1028,11 @@ test('root admin can create, verify and delete organization settings (CRUD)', as
   assert.match(page.text, /assess\.e2e\.test/, 'domain is saved and shown');
   assert.match(page.text, /Delete domain/, 'a delete control is offered once a domain exists');
 
+  // Verification performs a real DNS lookup, so a domain with no records stays
+  // unverified. (The DNS-gating itself is covered by its own test below.)
   await request(jar, 'POST', '/admin/organization/domain/verify', { form: {} });
   page = await getText(jar, '/admin/organization');
-  assert.match(page.text, /Verified/, 'domain can be marked verified');
+  assert.match(page.text, /DNS not verified/, 'verification reports the missing DNS records');
 
   await request(jar, 'POST', '/admin/organization/domain/delete', { form: {} });
   page = await getText(jar, '/admin/organization');
@@ -1065,6 +1067,64 @@ test('root admin can create, verify and delete organization settings (CRUD)', as
   await request(jar, 'POST', '/admin/organization/ai/delete', { form: {} });
   page = await getText(jar, '/admin/organization');
   assert.match(page.text, /Using platform default/, 'deleting the AI provider restores the platform default');
+});
+
+test('a custom domain is only verified when its DNS records really resolve', async () => {
+  const jar = new CookieJar();
+  const email = `dns.check.${Date.now()}@example.test`;
+  await request(jar, 'POST', '/register', {
+    form: {
+      plan: 'trial', first_name: 'Dns', last_name: 'Check',
+      organization: 'E2E DNS Org', email, password: 'TrialPassword123!', agree: '1'
+    }
+  });
+
+  // .invalid is reserved (RFC 2606) so this can never resolve — no DNS records exist.
+  await request(jar, 'POST', '/admin/organization/domain', { form: { custom_domain: 'e2e-not-real.invalid' } });
+  await request(jar, 'POST', '/admin/organization/domain/verify', { form: {} });
+
+  const page = await getText(jar, '/admin/organization');
+  assert.doesNotMatch(page.text, /badge bg-success ms-2">Verified/,
+    'a domain with no DNS records must NOT be marked verified');
+  assert.match(page.text, /DNS not verified/, 'the failure names the missing records');
+  // The attempt is recorded in the 24h check log.
+  assert.match(page.text, /Last valid check/, 'the validation status panel is shown');
+});
+
+test('each integration exposes a re-validate action that records check history', async () => {
+  const jar = new CookieJar();
+  const email = `checks.${Date.now()}@example.test`;
+  await request(jar, 'POST', '/register', {
+    form: {
+      plan: 'trial', first_name: 'Checks', last_name: 'User',
+      organization: 'E2E Checks Org', email, password: 'TrialPassword123!', agree: '1'
+    }
+  });
+
+  // Unconfigured integrations validate without any outbound call and report why.
+  for (const feature of ['smtp', 'sms', 'ai']) {
+    const res = await request(jar, 'POST', `/admin/organization/${feature}/validate`, { form: {} });
+    assert.equal(res.status, 302, `${feature} re-validate should redirect back`);
+    assert.match(res.headers.get('location'), new RegExp(`#${feature}$`));
+  }
+
+  const page = await getText(jar, '/admin/organization');
+  assert.match(page.text, /is not configured/, 'an unconfigured integration reports the reason');
+  assert.match(page.text, /History is kept for 24 hours|No checks recorded/, 'the 24h log panel renders');
+
+  // An unknown integration is rejected rather than logged.
+  const bogus = await request(jar, 'POST', '/admin/organization/notreal/validate', { form: {} });
+  assert.equal(bogus.status, 302);
+  assert.equal(bogus.headers.get('location'), '/admin/organization');
+});
+
+test('integration validation is restricted to root administrators', async () => {
+  const jar = await loginAdminWithTotp();
+  for (const feature of ['smtp', 'sms', 'domain', 'ai']) {
+    const res = await request(jar, 'POST', `/admin/organization/${feature}/validate`, { form: {} });
+    assert.equal(res.status, 302);
+    assert.equal(res.headers.get('location'), '/admin/dashboard', `${feature} validation is root-admin only`);
+  }
 });
 
 test('organization settings deletes are restricted to root administrators', async () => {

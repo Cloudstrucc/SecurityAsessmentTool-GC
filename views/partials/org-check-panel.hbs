@@ -1,0 +1,55 @@
+{{!--
+  Validation status strip for one organization integration.
+  Params: feature (smtp|sms|domain|ai), label, verifiedAt, history
+  Shows the last SUCCESSFUL validation, a reload button that re-runs the real
+  check, and the last 24 hours of check history.
+--}}
+<div class="border rounded p-2 mt-3 bg-light-subtle">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <div class="small">
+      <span class="text-muted">Last valid check:</span>
+      {{#if verifiedAt}}
+        <strong class="text-success"><i class="bi bi-patch-check-fill me-1"></i>{{formatDateTime verifiedAt}}</strong>
+      {{else}}
+        <strong class="text-danger"><i class="bi bi-patch-exclamation me-1"></i>Never validated</strong>
+      {{/if}}
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <form method="POST" action="/admin/organization/{{feature}}/validate" class="d-inline">
+        <button class="btn btn-sm btn-outline-primary" title="Re-run a real {{label}} validation now">
+          <i class="bi bi-arrow-clockwise me-1"></i>Re-validate
+        </button>
+      </form>
+      <button class="btn btn-sm btn-link text-decoration-none" type="button"
+              data-bs-toggle="collapse" data-bs-target="#checkLog-{{feature}}"
+              aria-expanded="false" aria-controls="checkLog-{{feature}}">
+        <i class="bi bi-journal-text me-1"></i>Log ({{history.length}})
+      </button>
+    </div>
+  </div>
+  <div class="collapse mt-2" id="checkLog-{{feature}}">
+    {{#if history.length}}
+      <div class="table-responsive">
+        <table class="table table-sm table-borderless mb-1 small">
+          <thead class="text-muted"><tr><th>When</th><th>Type</th><th>Result</th><th>By</th></tr></thead>
+          <tbody>
+            {{#each history}}
+              <tr>
+                <td class="text-nowrap">{{formatDateTime this.created_at}}</td>
+                <td><span class="badge bg-secondary-subtle text-secondary-emphasis">{{this.kind}}</span></td>
+                <td>
+                  {{#if this.ok}}<i class="bi bi-check-circle-fill text-success me-1"></i>{{else}}<i class="bi bi-x-circle-fill text-danger me-1"></i>{{/if}}
+                  {{this.message}}
+                </td>
+                <td class="text-nowrap text-muted">{{#if this.checked_by}}{{this.checked_by}}{{else}}—{{/if}}</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+      <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i>History is kept for 24 hours.</p>
+    {{else}}
+      <p class="text-muted small mb-0">No checks recorded in the last 24 hours.</p>
+    {{/if}}
+  </div>
+</div>
