@@ -1894,6 +1894,50 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
   }
 });
 
+// Apply AI-proposed control changes to an existing assessment (SA&A Assistant, review mode).
+router.post('/assessments/:id/apply-ai-actions', ensureAuthenticated, express.json(), (req, res) => {
+  try {
+    const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+    if (!assessment) return res.status(404).json({ error: 'Assessment not found' });
+    const actions = Array.isArray(req.body.actions) ? req.body.actions : [];
+    const framework = assessment.security_framework || 'ITSG-33';
+    let applied = 0;
+    actions.forEach(a => {
+      const op = String(a.op || '').toLowerCase();
+      (Array.isArray(a.controlIds) ? a.controlIds : []).forEach(rawId => {
+        const cid = String(rawId || '').trim();
+        if (!cid) return;
+        if (op === 'remove') {
+          run('DELETE FROM assessment_controls WHERE assessment_id = ? AND control_id = ?', [assessment.id, cid]);
+          applied++;
+        } else if (op === 'tailor') {
+          if (a.tailoring) {
+            run('UPDATE assessment_controls SET tailored_description = ?, updated_at = CURRENT_TIMESTAMP WHERE assessment_id = ? AND control_id = ?',
+              [a.tailoring, assessment.id, cid]);
+            applied++;
+          }
+        } else if (op === 'add') {
+          const exists = get('SELECT id FROM assessment_controls WHERE assessment_id = ? AND control_id = ?', [assessment.id, cid]);
+          if (!exists) {
+            const cat = get('SELECT title, family, category FROM security_control_catalog WHERE framework = ? AND control_id = ?', [framework, cid]) || {};
+            const family = cat.family || (cid.split(/[.\-(]/)[0]) || cid;
+            const familyName = cat.category || CONTROL_FAMILIES[family] || family;
+            run(`INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title, description, is_applicable, priority, framework, guidance_source)
+                 VALUES (?, ?, ?, ?, ?, ?, 1, 'P1', ?, 'ai')`,
+              [assessment.id, cid, family, familyName, cat.title || cid, a.reason || '', framework]);
+            applied++;
+          }
+        }
+      });
+    });
+    run('UPDATE assessments SET updated_at = CURRENT_TIMESTAMP WHERE id = ?', [assessment.id]);
+    res.json({ success: true, applied });
+  } catch (err) {
+    console.error('apply-ai-actions error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/assessments', ensureAuthenticated, (req, res) => {
   const filter = req.query.filter;
   let where = 'a.archived_at IS NULL AND p.archived_at IS NULL';
