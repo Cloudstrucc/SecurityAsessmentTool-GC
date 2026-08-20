@@ -27,6 +27,13 @@
   .aia-msg.sys{align-self:center;background:#eef0fe;color:#4338ca;font-size:12px;text-align:center;border-radius:8px}
   .aia-actions{align-self:flex-start;max-width:96%;background:#fff;border:1px solid #ddd6fe;border-radius:12px;padding:10px 12px;width:100%}
   .aia-actions h4{margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#6d28d9}
+  .aia-act-head{margin-bottom:8px}
+  .aia-act-head .btns{display:flex;gap:8px;flex-wrap:wrap}
+  .aia-act-head .btns button{font-size:12px;font-weight:700;border-radius:7px;padding:5px 12px;cursor:pointer;border:1px solid transparent}
+  .aia-act-head .apall{background:#4f46e5;color:#fff}
+  .aia-act-head .dzall{background:#fff;border-color:#d1d5db;color:#374151}
+  .aia-act-head .btns button[disabled]{opacity:.5;cursor:not-allowed}
+  .aia-applying{margin-top:8px;font-size:12.5px;color:#6d28d9;font-weight:600;display:flex;align-items:center;gap:7px}
   .aia-act{border:1px solid #eee;border-radius:9px;padding:8px 10px;margin-bottom:7px;font-size:12.75px}
   .aia-act .op{font-weight:800;text-transform:uppercase;font-size:10.5px;letter-spacing:.04em;padding:1px 7px;border-radius:6px;margin-right:6px}
   .aia-act .op.remove{background:#fdecec;color:#b91c1c}
@@ -118,24 +125,58 @@ window.AIAssist = (function(){
   }
   function renderActions(actions){
     if(!actions || !actions.length) return;
+    var valid=actions.filter(function(a){ return ['remove','add','tailor'].indexOf((a.op||'').toLowerCase())>-1; });
+    if(!valid.length) return;
     var wrap=document.createElement('div'); wrap.className='aia-actions';
-    wrap.innerHTML='<h4>Proposed changes — approve to apply</h4>';
-    actions.forEach(function(a){
-      var op=(a.op||'').toLowerCase(); if(['remove','add','tailor'].indexOf(op)<0) return;
-      var ids=(a.controlIds||[]).join(', ');
-      var row=document.createElement('div'); row.className='aia-act';
+    var head=document.createElement('div'); head.className='aia-act-head';
+    head.innerHTML='<h4>Proposed changes — approve to apply</h4>'+
+      '<div class="btns"><button type="button" class="apall">Approve all ('+valid.length+')</button><button type="button" class="dzall">Dismiss all</button></div>';
+    wrap.appendChild(head);
+    var rows=[];
+    valid.forEach(function(a){
+      var op=(a.op||'').toLowerCase(); var ids=(a.controlIds||[]).join(', ');
+      var row=document.createElement('div'); row.className='aia-act'; row._action=a; row._done=false;
       row.innerHTML='<div><span class="op '+op+'">'+op+'</span><span class="ids">'+(ids||'')+'</span></div>'+
         (a.reason?'<div class="reason">'+escapeHtml(a.reason)+'</div>':'')+
         (op==='tailor'&&a.tailoring?'<div class="reason"><em>'+escapeHtml(a.tailoring)+'</em></div>':'')+
         '<div class="btns"><button type="button" class="ap">Approve</button><button type="button" class="dz">Dismiss</button></div>';
-      row.querySelector('.ap').onclick=function(){
-        try{ (cfg().applyActions||function(){})([a]); }catch(e){ console.error(e); }
-        row.classList.add('done'); add('sys','Applied: '+op+' '+ids);
-      };
-      row.querySelector('.dz').onclick=function(){ row.classList.add('done'); };
-      wrap.appendChild(row);
+      row.querySelector('.ap').onclick=function(){ applyItems([{a:a,row:row}], wrap); };
+      row.querySelector('.dz').onclick=function(){ row._done=true; row.classList.add('done'); };
+      rows.push(row); wrap.appendChild(row);
     });
+    head.querySelector('.apall').onclick=function(){
+      var pending=rows.filter(function(r){ return !r._done; }).map(function(r){ return {a:r._action,row:r}; });
+      if(pending.length) applyItems(pending, wrap);
+    };
+    head.querySelector('.dzall').onclick=function(){ rows.forEach(function(r){ if(!r._done){ r._done=true; r.classList.add('done'); } }); };
     msgs.appendChild(wrap); msgs.scrollTop=msgs.scrollHeight;
+  }
+  function setBusy(wrap, busy){
+    Array.prototype.forEach.call(wrap.querySelectorAll('button'), function(b){ b.disabled=busy; });
+    var s=wrap.querySelector('.aia-applying');
+    if(busy){ if(!s){ s=document.createElement('div'); s.className='aia-applying'; s.innerHTML='<span class="spinner-border spinner-border-sm"></span> Applying changes…'; wrap.appendChild(s); } }
+    else if(s){ s.remove(); }
+  }
+  async function applyItems(items, wrap){
+    var c=cfg(); var actions=items.map(function(it){ return it.a; });
+    setBusy(wrap, true);
+    try{
+      if(c.applyEndpoint){
+        // Persisted apply (e.g. reviewing an existing assessment).
+        var r=await fetch(c.applyEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({actions:actions,assessmentId:c.assessmentId||null})});
+        var data=await r.json();
+        if(!r.ok||!data.success) throw new Error(data.error||'Could not apply the changes.');
+        items.forEach(function(it){ it.row._done=true; it.row.classList.add('done'); });
+        setBusy(wrap,false);
+        add('sys','✓ '+(data.applied!=null? data.applied+' change(s) saved.' : 'Changes saved.')+' Refresh the page to see the updated controls.');
+      } else {
+        // Client-side apply against the on-page form (e.g. creating an assessment).
+        try{ (c.applyActions||function(){})(actions); }catch(e){ console.error(e); }
+        items.forEach(function(it){ it.row._done=true; it.row.classList.add('done'); });
+        setBusy(wrap,false);
+        add('sys','✓ Applied '+actions.length+' change(s) to your selection below.');
+      }
+    }catch(err){ setBusy(wrap,false); add('sys', (err&&err.message)||'Something went wrong applying the changes.'); }
   }
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g,function(m){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]);}); }
   async function send(){

@@ -225,6 +225,10 @@ app.use((req, res, next) => {
       }
     } catch (e) { /* db not ready yet */ }
   }
+  // Where the brand/logo links point: signed-in users go to their dashboard, not the
+  // marketing home. Assessors/admins/practitioners -> /admin/dashboard (role-branched);
+  // client/evidence users -> the Client Portal; anonymous -> marketing home.
+  res.locals.homeHref = req.user ? '/admin/dashboard' : (req.session && req.session.clientId ? '/portal' : '/');
   next();
 });
 

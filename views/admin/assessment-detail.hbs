@@ -1377,14 +1377,16 @@ window.AIAssistConfig = {
   frameworkLabel: '{{assessment.security_framework}}',
   profileSummary: 'profile {{assessment.security_profile}}; C/I/A {{assessment.confidentiality_level}} / {{assessment.integrity_level}} / {{assessment.availability_level}}',
   subtitle: 'Review help · ask about this assessment',
-  greeting: 'Hi — ask me anything about this assessment: whether the controls cover a given scope, what a control expects, or how to word an audit note.',
+  greeting: 'Hi — ask me anything about this assessment: whether the controls cover a given scope, what a control expects, or how to word an audit note. If I propose control changes, approving them saves to this assessment.',
+  // Approving proposed changes here PERSISTS them to the assessment (add / remove / tailor),
+  // then prompts a refresh to see the updated control list.
+  applyEndpoint: '/admin/assessments/{{assessment.id}}/apply-ai-actions',
   getSelected: function(){
     return Array.prototype.map.call(document.querySelectorAll('.control-id'), function(el){
       var p = el.closest('.control-card') || el.parentElement;
       var t = p ? p.querySelector('.control-title') : null;
       return { id: (el.textContent||'').trim(), title: t ? (t.textContent||'').trim() : '' };
     }).filter(function(c){ return c.id; });
-  },
-  applyActions: function(){}   // review mode: guidance only (no bulk scope CRUD here)
+  }
 };
 </script>
