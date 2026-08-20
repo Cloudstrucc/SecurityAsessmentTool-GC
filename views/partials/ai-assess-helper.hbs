@@ -4,7 +4,9 @@
     font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 12px 30px rgba(79,70,229,.35)}
   .aia-launch:hover{filter:brightness(1.05)}
   .aia-launch .bi{font-size:16px}
-  .aia-panel{position:fixed;top:0;right:0;height:100vh;width:min(420px,96vw);z-index:1300;background:#fff;
+  .aia-scrim{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:1290;opacity:0;visibility:hidden;transition:opacity .2s ease}
+  .aia-scrim.open{opacity:1;visibility:visible}
+  .aia-panel{position:fixed;top:0;right:0;height:100vh;height:100dvh;width:min(420px,96vw);z-index:1300;background:#fff;box-sizing:border-box;
     border-left:1px solid #e5e7eb;box-shadow:-14px 0 40px rgba(15,23,42,.18);display:flex;flex-direction:column;
     transform:translateX(100%);transition:transform .25s ease}
   .aia-panel.open{transform:none}
@@ -21,7 +23,7 @@
   .aia-head .aia-help:hover{background:rgba(255,255,255,.2)}
   .aia-head .x{margin-left:8px;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1}
   .aia-msgs{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:#f7f7fb}
-  .aia-msg{max-width:88%;padding:10px 13px;border-radius:13px;font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
+  .aia-msg{max-width:88%;padding:10px 13px;border-radius:13px;font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere}
   .aia-msg.user{align-self:flex-end;background:#4f46e5;color:#fff;border-bottom-right-radius:4px}
   .aia-msg.bot{align-self:flex-start;background:#fff;border:1px solid #e5e7eb;color:#22303a;border-bottom-left-radius:4px}
   .aia-msg.sys{align-self:center;background:#eef0fe;color:#4338ca;font-size:12px;text-align:center;border-radius:8px}
@@ -54,20 +56,30 @@
   .aia-foot .send[disabled]{opacity:.5;cursor:not-allowed}
   .aia-typing{align-self:flex-start;color:#8b8b9a;font-size:12.5px;font-style:italic}
   @media (prefers-reduced-motion:reduce){.aia-panel{transition:none}}
+  /* Phones: the panel takes the full screen so nothing is clipped off the right edge. */
+  @media (max-width:640px){
+    .aia-panel{width:100vw;max-width:100vw;height:100vh;height:100dvh;border-left:none}
+    .aia-launch span{display:none}
+    .aia-launch{right:16px;bottom:16px;padding:0;width:52px;height:52px;justify-content:center;border-radius:50%}
+    .aia-launch .bi{font-size:20px}
+    .aia-msg{max-width:92%}
+  }
+  body.aia-locked{overflow:hidden}
 </style>
 
-<button type="button" class="aia-launch" id="aiaLaunch" aria-label="Open the SA&A Assessment Assistant">
-  <i class="bi bi-robot" aria-hidden="true"></i><span>SA&amp;A Assistant</span>
+<button type="button" class="aia-launch" id="aiaLaunch" aria-label="Open the Aegis SA Assistant">
+  <i class="bi bi-robot" aria-hidden="true"></i><span>Aegis SA Assistant</span>
 </button>
 
+<div class="aia-scrim" id="aiaScrim" aria-hidden="true"></div>
 <aside class="aia-panel" id="aiaPanel" role="dialog" aria-modal="false" aria-labelledby="aiaTitle" aria-hidden="true">
   <div class="aia-head">
     <div class="ico" aria-hidden="true"><i class="bi bi-robot"></i></div>
     <div>
-      <h3 id="aiaTitle">SA&amp;A Assessment Assistant (AI)</h3>
+      <h3 id="aiaTitle">Aegis SA Assistant (AI)</h3>
       <p id="aiaSub">Ask to refine, add or remove controls</p>
     </div>
-    <a class="aia-help" href="/assistant-help" target="_blank" rel="noopener" title="How to use the assistant" aria-label="How to use the SA&amp;A Assistant (opens in a new tab)">?</a>
+    <a class="aia-help" href="/assistant-help" target="_blank" rel="noopener" title="How to use the assistant" aria-label="How to use the Aegis SA Assistant (opens in a new tab)">?</a>
     <button type="button" class="x" id="aiaClose" aria-label="Close assistant">&times;</button>
   </div>
   <div class="aia-msgs" id="aiaMsgs"></div>
@@ -79,16 +91,20 @@
 
 <script>
 window.AIAssist = (function(){
-  var panel, msgs, input, sendBtn, launch, closeBtn, history = [], booted = false;
+  var panel, scrim, msgs, input, sendBtn, launch, closeBtn, history = [], booted = false, greeted = false;
   function cfg(){ return window.AIAssistConfig || {}; }
-  function el(){ panel=document.getElementById('aiaPanel');msgs=document.getElementById('aiaMsgs');input=document.getElementById('aiaInput');
+  function el(){ panel=document.getElementById('aiaPanel');scrim=document.getElementById('aiaScrim');msgs=document.getElementById('aiaMsgs');input=document.getElementById('aiaInput');
     sendBtn=document.getElementById('aiaSend');launch=document.getElementById('aiaLaunch');closeBtn=document.getElementById('aiaClose'); }
-  function open(){ panel.classList.add('open');panel.setAttribute('aria-hidden','false');input.focus();
-    if(!history.length) greet(); }
-  function close(){ panel.classList.remove('open');panel.setAttribute('aria-hidden','true'); }
+  function open(){ panel.classList.add('open');panel.setAttribute('aria-hidden','false');
+    if(scrim){ scrim.classList.add('open'); scrim.setAttribute('aria-hidden','false'); }
+    document.body.classList.add('aia-locked'); input.focus(); greet(); }
+  function close(){ panel.classList.remove('open');panel.setAttribute('aria-hidden','true');
+    if(scrim){ scrim.classList.remove('open'); scrim.setAttribute('aria-hidden','true'); }
+    document.body.classList.remove('aia-locked'); }
   function greet(){
+    if(greeted) return; greeted = true;
     var c=cfg();
-    var g = c.greeting || 'Hi — I’m your SA&A Assessment Assistant. Ask me to remove, add or tailor controls, or ask whether the current set covers a particular scope.';
+    var g = c.greeting || 'Hi — I’m your Aegis SA Assistant. Ask me to remove, add or tailor controls, or ask whether the current set covers a particular scope.';
     add('bot', g);
   }
   function cleanReply(t){
@@ -200,6 +216,7 @@ window.AIAssist = (function(){
     if(booted) return; booted=true; el();
     if(cfg().subtitle){ document.getElementById('aiaSub').textContent=cfg().subtitle; }
     launch.addEventListener('click', open); closeBtn.addEventListener('click', close);
+    if(scrim) scrim.addEventListener('click', close);
     input.addEventListener('input', function(){ sendBtn.disabled=!input.value.trim(); input.style.height='auto'; input.style.height=Math.min(120,input.scrollHeight)+'px'; });
     input.addEventListener('keydown', function(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); if(input.value.trim()) send(); } });
     sendBtn.addEventListener('click', send);

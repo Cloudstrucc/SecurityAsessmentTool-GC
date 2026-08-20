@@ -24,7 +24,7 @@
           <div class="col-md-4"><label class="form-label">Port</label><input class="form-control" name="smtp_port" value="{{settings.smtp_port}}" placeholder="587"></div>
           <div class="col-md-6"><label class="form-label">Username</label><input class="form-control" name="smtp_user" value="{{settings.smtp_user}}" placeholder="mailer@yourdomain.com"></div>
           <div class="col-md-6"><label class="form-label">Password</label><input class="form-control" type="password" name="smtp_password" placeholder="{{#if settings.smtp_password}}•••••••• (saved — leave blank to keep){{else}}App password / SMTP password{{/if}}"></div>
-          <div class="col-md-8"><label class="form-label">From address</label><input class="form-control" name="smtp_from" value="{{settings.smtp_from}}" placeholder="Vanguard SA&amp;A &lt;noreply@yourdomain.com&gt;"></div>
+          <div class="col-md-8"><label class="form-label">From address</label><input class="form-control" name="smtp_from" value="{{settings.smtp_from}}" placeholder="Aegis SA &lt;noreply@yourdomain.com&gt;"></div>
           <div class="col-md-4 d-flex align-items-end gap-3">
             <div class="form-check"><input class="form-check-input" type="checkbox" name="smtp_secure" value="1" id="smtp_secure" {{#if settings.smtp_secure}}checked{{/if}}><label class="form-check-label" for="smtp_secure">TLS (465)</label></div>
             <div class="form-check"><input class="form-check-input" type="checkbox" name="smtp_enabled" value="1" id="smtp_enabled" {{#if settings.smtp_enabled}}checked{{/if}}><label class="form-check-label" for="smtp_enabled">Enable</label></div>

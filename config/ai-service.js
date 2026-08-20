@@ -1,5 +1,5 @@
 /**
- * GC SA&A Tool — AI Service Layer
+ * GC Aegis SA — AI Service Layer
  * 
  * Wraps the Anthropic Messages API with specialized prompt functions
  * for intake parsing, review summarization, control recommendations,
@@ -510,7 +510,7 @@ async function testConnection() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SA&A ASSESSMENT ASSISTANT (chat + per-control answer refinement)
+// AEGIS SA ASSISTANT (chat + per-control answer refinement)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
@@ -524,7 +524,7 @@ async function assessmentChat({ mode = 'create', frameworkLabel = 'ITSG-33', pro
     evidence: 'A project team member is providing EVIDENCE for controls. Help them understand what each control requires and how to answer clearly; do not change scope.'
   }[mode] || '';
   const selectedList = (selectedControls || []).slice(0, 400).map(c => `${c.id} — ${c.title || ''}`).join('\n');
-  const system = `You are the "SA&A Assessment Assistant", an expert Security Assessment & Authorization (SA&A) helper embedded in the Vanguard SA&A platform. You help assessors and project teams tailor and understand security control sets for ${frameworkLabel}.
+  const system = `You are the "Aegis SA Assistant", an expert Security Assessment & Authorization (SA&A) helper embedded in the Aegis SA platform. You help assessors and project teams tailor and understand security control sets for ${frameworkLabel}.
 ${modeDesc}
 Current control profile: ${profileSummary || 'n/a'}
 Full baseline size: ${baselineCount || 'n/a'} controls.
@@ -581,7 +581,7 @@ function parseChatResponse(text) {
  * statement. Grounded only in what the user wrote (never invents specifics).
  */
 async function refineControlAnswer({ controlId = '', controlTitle = '', controlGuidance = '', userSummary = '', frameworkLabel = 'ITSG-33' }) {
-  const system = `You are the "SA&A Assessment Assistant". A user wrote a brief note describing how a security control is implemented (or the evidence for it). Expand it into a clear, professional, comprehensive control implementation / evidence statement suitable for a ${frameworkLabel} security assessment.
+  const system = `You are the "Aegis SA Assistant". A user wrote a brief note describing how a security control is implemented (or the evidence for it). Expand it into a clear, professional, comprehensive control implementation / evidence statement suitable for a ${frameworkLabel} security assessment.
 - Stay grounded ONLY in what the user wrote; do NOT invent specific product names, versions, dates or configurations they did not mention. Where detail is missing, describe in general terms what should be stated.
 - Plain, professional language. 1–3 short paragraphs. Return ONLY the refined statement text — no preamble, headings or markdown fences.`;
   const userContent = `Control ${controlId}${controlTitle ? ' — ' + controlTitle : ''}.

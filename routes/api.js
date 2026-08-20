@@ -14,7 +14,7 @@ try {
   simpleWebAuthn = null;
 }
 
-const RP_NAME = 'Vanguard SA&A Platform';
+const RP_NAME = 'Aegis SA Platform';
 const RP_ID = process.env.WEBAUTHN_RP_ID || 'localhost';
 const ORIGIN = process.env.WEBAUTHN_ORIGIN || `http://localhost:${process.env.PORT || 3000}`;
 
@@ -344,7 +344,7 @@ router.get('/ai/status', (req, res) => {
   res.json({ configured: ai.isConfigured() });
 });
 
-// ── SA&A Assessment Assistant: chat (create / review / evidence) ────────────
+// ── Aegis SA Assistant: chat (create / review / evidence) ────────────
 router.post('/ai/assessment-chat', ensureAuthenticated, express.json(), async (req, res) => {
   try {
     if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY or configure your own provider.' });
@@ -375,7 +375,7 @@ router.post('/ai/assessment-chat', ensureAuthenticated, express.json(), async (r
   }
 });
 
-// ── SA&A Assessment Assistant: refine a control answer/evidence ─────────────
+// ── Aegis SA Assistant: refine a control answer/evidence ─────────────
 router.post('/ai/refine-answer', ensureAuthenticated, express.json(), async (req, res) => {
   try {
     if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY or configure your own provider.' });

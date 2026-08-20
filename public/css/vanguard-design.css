@@ -1,7 +1,7 @@
 /* ============================================================================
    Vanguard Design System — vanguard-design.css
-   Shared visual language for Vanguard Cloud Services SA&A Platform.
-   Derived from the Vanguard SA&A product brief (navy + sky gradient).
+   Shared visual language for Vanguard Cloud Services Aegis SA Platform.
+   Derived from the Aegis SA product brief (navy + sky gradient).
    Load AFTER Bootstrap to layer the Vanguard look on top of app views,
    or standalone for marketing / registration / pricing pages.
    ============================================================================ */
@@ -254,3 +254,15 @@
   outline:3px solid var(--vg-sky-400); outline-offset:2px;
 }
 @media(prefers-reduced-motion:reduce){ .vg-btn{ transition:none; } }
+
+/* ── Responsive safety net (app-wide) ──────────────────────────────────────
+   Keeps content from forcing horizontal page scroll on small screens without
+   changing any deliberate layout. Media never overflows its column; long code
+   and preformatted blocks scroll inside themselves; bare data tables scroll
+   horizontally on phones instead of widening the page. */
+img, svg, video, canvas { max-width: 100%; height: auto; }
+pre, code { overflow-x: auto; max-width: 100%; }
+@media (max-width: 575.98px) {
+  .table:not(.table-responsive .table) { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .text-nowrap-sm-scroll { overflow-x: auto; }
+}
