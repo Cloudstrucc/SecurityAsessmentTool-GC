@@ -366,11 +366,36 @@ router.post('/ai/assessment-chat', ensureAuthenticated, express.json(), async (r
            VALUES (?,?,?,?,?,?,?,?,?)`,
         [projectId || null, assessmentId || null, mode || 'create', req.user.id, req.user.name || '', req.user.role || '',
          String(message), result.reply || '', JSON.stringify(result.actions || [])]);
+      // Retention: keep only the last 24 hours of chat history; purge older rows on write.
+      run("DELETE FROM assessment_chats WHERE created_at < datetime('now','-24 hours')");
     } catch (e) { /* history persistence is non-fatal */ }
     access.recordAiUse(req.user, 'assessment-chat');
     res.json({ success: true, reply: result.reply, actions: result.actions });
   } catch (err) {
     console.error('AI assessment-chat error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Aegis SA Assistant: chat history (last 24 hours for this assessment/project) ──
+router.get('/ai/assessment-chat/history', ensureAuthenticated, (req, res) => {
+  try {
+    const assessmentId = req.query.assessmentId ? String(req.query.assessmentId) : null;
+    const projectId = req.query.projectId ? String(req.query.projectId) : null;
+    const cols = 'author_name, author_role, message, ai_reply, actions_json, created_at';
+    let rows = [];
+    if (assessmentId) {
+      rows = all(`SELECT ${cols} FROM assessment_chats
+                  WHERE assessment_id = ? AND created_at >= datetime('now','-24 hours')
+                  ORDER BY created_at ASC, id ASC`, [assessmentId]);
+    } else if (projectId) {
+      rows = all(`SELECT ${cols} FROM assessment_chats
+                  WHERE project_id = ? AND assessment_id IS NULL AND created_at >= datetime('now','-24 hours')
+                  ORDER BY created_at ASC, id ASC`, [projectId]);
+    }
+    res.json({ success: true, history: rows });
+  } catch (err) {
+    console.error('assessment-chat history error:', err);
     res.status(500).json({ error: err.message });
   }
 });

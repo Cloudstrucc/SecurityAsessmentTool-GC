@@ -1,13 +1,30 @@
-<div class="container">
+<div class="container{{#if viewingVersion}} assessment-readonly{{/if}}">
+  {{#if viewingVersion}}
+  <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2 sticky-top shadow-sm" style="top:0;z-index:1020">
+    <span><i class="bi bi-eye-fill me-2"></i>You are viewing a <strong>read-only snapshot of version {{viewingVersion}}</strong>. Edits are disabled here.</span>
+    <a href="/admin/assessments/{{assessment.id}}" class="btn btn-sm btn-outline-dark"><i class="bi bi-arrow-return-left me-1"></i>Back to current version</a>
+  </div>
+  {{/if}}
   <div class="d-flex align-items-center mb-4">
     <a href="/admin/projects/{{assessment.project_id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
     <div class="flex-grow-1">
       <h1 class="mb-0">{{assessment.project_name}}</h1>
       <p class="text-muted mb-0">Assessment Package — {{{statusBadge assessment.status}}}
-        <span class="badge bg-dark ms-1" title="Current assessment version">v{{#if assessment.version}}{{assessment.version}}{{else}}1{{/if}}</span>
+        {{#if viewingVersion}}<span class="badge bg-warning text-dark ms-1">Viewing v{{viewingVersion}}</span>{{else}}<span class="badge bg-dark ms-1" title="Current assessment version">v{{#if assessment.version}}{{assessment.version}}{{else}}1{{/if}}</span>{{/if}}
       </p>
     </div>
   </div>
+  {{#if viewingVersion}}
+  <style>
+    /* Read-only version view: neutralize edit affordances inside the control set. */
+    .assessment-readonly form button[type="submit"],
+    .assessment-readonly .control-card button,
+    .assessment-readonly .control-card input,
+    .assessment-readonly .control-card select,
+    .assessment-readonly .control-card textarea { pointer-events:none; opacity:.55; }
+    .assessment-readonly .aia-launch { display:none !important; }
+  </style>
+  {{/if}}
 
   <!-- Status & Actions Bar -->
   <div class="card mb-4">
@@ -63,10 +80,13 @@
         </div>
         <div class="col-md-4 text-md-end">
           <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+            {{#unless viewingVersion}}
             <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#versionHistoryModal">
               <i class="bi bi-clock-history me-1"></i>Version history
             </button>
-            {{!-- Action buttons based on status --}}
+            {{/unless}}
+            {{!-- Action buttons based on status (hidden while viewing a past version) --}}
+            {{#unless viewingVersion}}
             {{#eq assessment.status "draft"}}
               {{#if tailorMode}}
                 <button type="submit" form="tailoringForm" class="btn btn-success">
@@ -135,6 +155,7 @@
             <a href="/admin/projects/{{assessment.project_id}}/controls.pdf" class="btn btn-outline-primary btn-sm">
               <i class="bi bi-file-earmark-pdf me-1"></i>Controls PDF
             </a>
+            {{/unless}}
           </div>
         </div>
       </div>
@@ -1242,16 +1263,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     familySections.forEach(sec => observer.observe(sec));
 
-    // Smooth scroll
+    // Smooth scroll. The sticky-header offset is handled purely in CSS via
+    // `scroll-margin-top` on the family sections, so scrollIntoView lands on the
+    // clicked family's first control every time (no racy post-scroll nudge).
     navItems.forEach(item => {
       item.addEventListener('click', function(e) {
         e.preventDefault();
         const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          // Offset for fixed header
-          setTimeout(() => window.scrollBy(0, -80), 300);
-        }
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     });
   }
@@ -1271,6 +1290,9 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+/* Anchor offset so clicking a family lands on its first control, clear of the
+   sticky page header (rather than scrolling under it onto the previous family). */
+[id^="family-"] { scroll-margin-top: 90px; }
 /* Family Navigation Sidebar */
 .family-nav {
   position: sticky;
@@ -1403,7 +1425,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 · {{formatDateTime this.created_at}}
               </div>
             </div>
-            <div class="flex-shrink-0">
+            <div class="flex-shrink-0 d-flex flex-column align-items-end gap-1">
+              <button type="button" class="btn btn-sm btn-outline-primary"
+                onclick="saaShowVersionSummary({{this.version}})">
+                <i class="bi bi-list-check me-1"></i>Summary
+              </button>
               {{#if (eq this.version ../assessment.version)}}
                 <span class="text-muted small"><i class="bi bi-check2-circle me-1"></i>Current</span>
               {{else}}
@@ -1455,11 +1481,77 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
+{{!-- ── Version change summary ── --}}
+<div class="modal fade" id="versionSummaryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-list-check me-2"></i>Version <span id="vsVersion"></span> — summary of changes</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="vsBody">
+        <div class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</div>
+      </div>
+      <div class="modal-footer">
+        <a href="#" id="vsOpenFull" class="btn btn-outline-primary" target="_blank" rel="noopener">
+          <i class="bi bi-box-arrow-up-right me-1"></i>Open full version in a new tab
+        </a>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-// Version history — revert + checkpoint.
+// Version history — revert + checkpoint + change summary.
 (function(){
   var assessmentId = {{assessment.id}};
   var pendingRevert = null;
+
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; }); }
+  function chips(ids, cls){ return ids.map(function(i){ return '<span class="badge ' + cls + ' me-1 mb-1">' + esc(i) + '</span>'; }).join(''); }
+
+  window.saaShowVersionSummary = function(version){
+    document.getElementById('vsVersion').textContent = version;
+    var full = '/admin/assessments/' + assessmentId + '?version=' + version;
+    document.getElementById('vsOpenFull').setAttribute('href', full);
+    var body = document.getElementById('vsBody');
+    body.innerHTML = '<div class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</div>';
+    var hist = bootstrap.Modal.getInstance(document.getElementById('versionHistoryModal'));
+    if (hist) hist.hide();
+    new bootstrap.Modal(document.getElementById('versionSummaryModal')).show();
+    fetch('/admin/assessments/' + assessmentId + '/versions/' + version + '/summary')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d.success) throw new Error(d.error || 'Could not load summary');
+        var h = '';
+        h += '<p class="mb-2"><strong>' + esc(d.label || ('Version ' + d.version)) + '</strong>' +
+             '<span class="text-muted"> · by ' + esc(d.author) + '</span></p>';
+        if (d.summary) h += '<p class="small text-muted">' + esc(d.summary) + '</p>';
+        h += '<p class="small text-muted mb-3">This version holds <strong>' + d.controlCount + '</strong> control(s)' +
+             (d.previousVersion != null ? ', compared against version ' + d.previousVersion + '.' : '.') + '</p>';
+        if (d.isBaseline) {
+          h += '<div class="alert alert-info mb-0"><i class="bi bi-info-circle me-1"></i>This is the baseline version — the starting point for the change history.</div>';
+        } else if (!d.added.length && !d.removed.length && !d.changed.length && !d.profileChanges.length) {
+          h += '<div class="alert alert-secondary mb-0">No control or profile differences from the previous version.</div>';
+        } else {
+          if (d.added.length)   h += '<div class="mb-3"><div class="fw-semibold text-success mb-1"><i class="bi bi-plus-circle me-1"></i>Added (' + d.added.length + ')</div>' + chips(d.added, 'bg-success-subtle text-success-emphasis border border-success-subtle') + '</div>';
+          if (d.removed.length) h += '<div class="mb-3"><div class="fw-semibold text-danger mb-1"><i class="bi bi-dash-circle me-1"></i>Removed (' + d.removed.length + ')</div>' + chips(d.removed, 'bg-danger-subtle text-danger-emphasis border border-danger-subtle') + '</div>';
+          if (d.changed.length) {
+            h += '<div class="mb-3"><div class="fw-semibold text-primary mb-1"><i class="bi bi-pencil-square me-1"></i>Modified (' + d.changed.length + ')</div><ul class="small mb-0">';
+            d.changed.forEach(function(c){ h += '<li><code>' + esc(c.control_id) + '</code> — ' + esc(c.fields.join(', ')) + '</li>'; });
+            h += '</ul></div>';
+          }
+          if (d.profileChanges.length) {
+            h += '<div class="mb-0"><div class="fw-semibold text-secondary mb-1"><i class="bi bi-sliders me-1"></i>Profile changes</div><ul class="small mb-0">';
+            d.profileChanges.forEach(function(p){ h += '<li>' + esc(p.field) + ': <span class="text-muted">' + esc(p.from) + '</span> → <strong>' + esc(p.to) + '</strong></li>'; });
+            h += '</ul></div>';
+          }
+        }
+        body.innerHTML = h;
+      })
+      .catch(function(e){ body.innerHTML = '<div class="alert alert-danger mb-0">' + esc(e.message || 'Could not load summary') + '</div>'; });
+  };
 
   window.saaConfirmRevert = function(version, label){
     pendingRevert = version;
@@ -1506,6 +1598,7 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 
+{{#unless viewingVersion}}
 {{> ai-assess-helper }}
 <script>
 // Aegis SA Assistant — review mode (assessor Q&A + guidance on this assessment).
@@ -1529,3 +1622,4 @@ window.AIAssistConfig = {
   }
 };
 </script>
+{{/unless}}

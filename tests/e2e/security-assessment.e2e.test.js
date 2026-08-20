@@ -1144,3 +1144,34 @@ test('the legacy sa-tool-overview.html path redirects to the live overview route
   assert.match(overview.text, /Aegis SA/);
   assert.doesNotMatch(overview.text, /Vanguard SA(&amp;|&)A/);
 });
+
+test('a version summary reports the controls added since the previous version', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Version Summary Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+
+  // Baseline v1 = AC-2 (from creation). Add AC-3 → v2.
+  const apply = await request(jar, 'POST', `/admin/assessments/${assessmentId}/apply-ai-actions`, {
+    json: { actions: [{ op: 'add', controlIds: ['AC-3'], reason: 'e2e' }] }
+  });
+  assert.equal((await apply.json()).success, true);
+
+  const s = await (await request(jar, 'GET', `/admin/assessments/${assessmentId}/versions/2/summary`)).json();
+  assert.equal(s.success, true);
+  assert.equal(s.previousVersion, 1);
+  assert.ok(s.added.includes('AC-3'), 'AC-3 should be reported as added in v2');
+
+  const base = await (await request(jar, 'GET', `/admin/assessments/${assessmentId}/versions/1/summary`)).json();
+  assert.equal(base.isBaseline, true);
+});
+
+test('viewing a past version renders a read-only snapshot without the assistant', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Version View Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+
+  const view = await getText(jar, `/admin/assessments/${assessmentId}?version=1`);
+  assert.equal(view.response.status, 200);
+  assert.match(view.text, /read-only snapshot of version 1/);
+  assert.doesNotMatch(view.text, /AIAssistConfig/, 'the assistant must not load on a read-only version view');
+});

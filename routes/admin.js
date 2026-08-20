@@ -2004,6 +2004,54 @@ router.post('/assessments/:id/revert/:version', ensureAuthenticated, express.jso
   }
 });
 
+// Summary of what changed in a version (diffed against the previous version).
+router.get('/assessments/:id/versions/:version/summary', ensureAuthenticated, (req, res) => {
+  try {
+    const a = get('SELECT id FROM assessments WHERE id = ?', [req.params.id]);
+    if (!a) return res.status(404).json({ error: 'Assessment not found' });
+    const cur = get('SELECT * FROM assessment_versions WHERE assessment_id = ? AND version = ?', [a.id, req.params.version]);
+    if (!cur) return res.status(404).json({ error: 'Version not found' });
+    const prev = get('SELECT * FROM assessment_versions WHERE assessment_id = ? AND version < ? ORDER BY version DESC LIMIT 1', [a.id, req.params.version]);
+    const parse = (row) => { try { return JSON.parse((row && row.snapshot_json) || '{}'); } catch (e) { return {}; } };
+    const curSnap = parse(cur);
+    const prevSnap = prev ? parse(prev) : null;
+    const curControls = Array.isArray(curSnap.controls) ? curSnap.controls : [];
+    const byId = (arr) => { const m = {}; (arr || []).forEach(c => { m[c.control_id] = c; }); return m; };
+    const curMap = byId(curControls);
+    const prevMap = prevSnap ? byId(prevSnap.controls) : {};
+    const added = [], removed = [], changed = [], profileChanges = [];
+    if (prevSnap) {
+      Object.keys(curMap).forEach(cid => { if (!(cid in prevMap)) added.push(cid); });
+      Object.keys(prevMap).forEach(cid => { if (!(cid in curMap)) removed.push(cid); });
+      Object.keys(curMap).forEach(cid => {
+        if (cid in prevMap) {
+          const cc = curMap[cid], pc = prevMap[cid];
+          const fields = ['tailored_description', 'is_applicable', 'priority', 'evidence_status', 'audit_result'];
+          const diffs = fields.filter(f => String(cc[f] == null ? '' : cc[f]) !== String(pc[f] == null ? '' : pc[f]));
+          if (diffs.length) changed.push({ control_id: cid, fields: diffs });
+        }
+      });
+      const pf = ['security_profile', 'confidentiality_level', 'integrity_level', 'availability_level', 'framework_baseline', 'framework_category', 'framework_applicability'];
+      const ca = curSnap.assessment || {}, pa = prevSnap.assessment || {};
+      pf.forEach(f => { if (String(ca[f] || '') !== String(pa[f] || '')) profileChanges.push({ field: f, from: pa[f] || '—', to: ca[f] || '—' }); });
+    }
+    res.json({
+      success: true,
+      version: cur.version, label: cur.label, summary: cur.summary,
+      author: cur.created_by_name || 'System', created_at: cur.created_at,
+      previousVersion: prev ? prev.version : null,
+      isBaseline: !prev,
+      controlCount: curControls.length,
+      added: added.sort(), removed: removed.sort(),
+      changed: changed.sort((x, y) => x.control_id.localeCompare(y.control_id)),
+      profileChanges
+    });
+  } catch (err) {
+    console.error('version summary error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Apply AI-proposed control changes to an existing assessment (Aegis SA Assistant, review mode).
 router.post('/assessments/:id/apply-ai-actions', ensureAuthenticated, express.json(), (req, res) => {
   try {
@@ -2096,7 +2144,25 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
   `, [req.params.id]);
   if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
 
-  const controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessment.id]);
+  let controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessment.id]);
+
+  // Read-only "view a past version" mode: ?version=N renders the same UI populated
+  // from that version's snapshot instead of the live control set.
+  let viewingVersion = null;
+  if (req.query.version) {
+    const vrow = get('SELECT * FROM assessment_versions WHERE assessment_id = ? AND version = ?', [assessment.id, req.query.version]);
+    if (vrow) {
+      try {
+        const snap = JSON.parse(vrow.snapshot_json || '{}');
+        if (Array.isArray(snap.controls)) {
+          controls = snap.controls.slice().sort((a, b) =>
+            (a.family || '').localeCompare(b.family || '') || (a.control_id || '').localeCompare(b.control_id || ''));
+          viewingVersion = vrow.version;
+        }
+      } catch (e) { /* fall back to live controls */ }
+    }
+  }
+
   const families = {};
   controls.forEach(c => {
     if (!families[c.family]) families[c.family] = { code: c.family, name: c.family_name, controls: [] };
@@ -2141,18 +2207,18 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
   // Version history (audit trail). Assessments created before this feature have no
   // snapshots yet — lazily capture the current state as a baseline so it's revertable.
   let versions = all('SELECT id, version, label, summary, created_by_name, created_at FROM assessment_versions WHERE assessment_id = ? ORDER BY version DESC', [assessment.id]);
-  if (versions.length === 0) {
+  if (versions.length === 0 && !viewingVersion) {
     createAssessmentVersion(assessment.id, { label: 'Baseline', summary: 'Current state captured', user: req.user });
     assessment.version = 1;
     versions = all('SELECT id, version, label, summary, created_by_name, created_at FROM assessment_versions WHERE assessment_id = ? ORDER BY version DESC', [assessment.id]);
   }
 
   res.render('admin/assessment-detail', {
-    title: `Assessment: ${assessment.project_name}`,
+    title: viewingVersion ? `Assessment v${viewingVersion}: ${assessment.project_name}` : `Assessment: ${assessment.project_name}`,
     isAdmin: true, isAssessments: true,
-    admin: req.user, assessment, assignments, users: getAssignableUsers(), versions,
+    admin: req.user, assessment, assignments, users: getAssignableUsers(), versions, viewingVersion,
     families: Object.values(families), controls, stats, checklistItems, poamStats, documents, atoRecords,
-    tailorMode: req.query.tailor === '1',
+    tailorMode: req.query.tailor === '1' && !viewingVersion,
     projectContextJSON: JSON.stringify({
       name: assessment.project_name,
       description: assessment.project_description || '',
