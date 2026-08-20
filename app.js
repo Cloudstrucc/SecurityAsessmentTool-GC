@@ -173,6 +173,12 @@ app.post('/billing/webhook', express.raw({ type: 'application/json' }), billingR
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb', parameterLimit: 10000 }));
 app.use(cookieParser());
+// Guard against stale static exports lingering in wwwroot. Old deploys shipped a
+// static `sa-tool-overview.html`, and because deploys use `--clean false` that file
+// is never removed — so `express.static` below would serve the outdated file (old
+// branding) instead of the live route. Intercept the `.html` path BEFORE static and
+// hand it to the renderer so the current page always wins.
+app.get('/sa-tool-overview.html', (req, res) => res.redirect(302, '/sa-tool-overview'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(UPLOAD_DIR));
 app.use(i18nMiddleware());
