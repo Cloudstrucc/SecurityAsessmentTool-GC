@@ -79,6 +79,22 @@ Project documents stay associated with the project and can be referenced later b
 
 AI can assist with suggested controls and evidence language, but the assessor remains responsible for final control selection and final guidance.
 
+### 5.1 Version History And Revert
+
+Every assessment is versioned so changes are auditable and reversible.
+
+1. On the assessment page, note the version badge (for example `v3`) next to the status.
+2. Select **Version history** to open the audit list. Each entry shows the version number, a label (Created, AI-applied changes, a manual checkpoint name, or "Reverted to version N"), who made it, and when.
+3. Select **Create checkpoint** at any time to save the current control set as a named version before a large change.
+4. To roll back, select **Revert to this** on an earlier version. A prominent confirmation explains that reverting **creates a new active version** from that snapshot and that the current active version is superseded (it stays in history for audit — nothing is deleted).
+5. After confirming, the assessment's tailored control set and security profile are restored from the chosen version, and a new active version is recorded.
+
+Snapshots are captured automatically at creation (the baseline), after AI-applied changes, and on manual checkpoints. Signatures and the invite code are never affected by a revert.
+
+### 5.2 The Aegis SA Assistant
+
+The **Aegis SA Assistant** is an in-app AI chat (launcher in the bottom-right of the assessment page). Ask it to remove, add, or tailor controls, to check whether the current set covers a given scope, or to help word an audit note. It **proposes** changes; nothing is applied until the assessor approves — either per item or with **Approve all**. Approved changes are saved to the assessment (refresh to see the updated control list).
+
 ## 6. Assessor: Generate AI Evidence Guidance
 
 ![Assessment detail with AI guidance and assignment areas](assets/guide/desktop-07-assessment-detail-assignment.png)

@@ -1,6 +1,8 @@
-# GC Security Assessment Tool
+# Aegis SA — Security Assessment Platform
 
-Node.js/Express application for managing Government of Canada security assessment work: project intake, project records, ITSG-33 assessment packages, evidence collection, assignment, MFA, and assessor/client workflows.
+**Aegis SA** ("SA" = Security Assessment) is the product name; the codebase, Azure resources, and env files still use the legacy `vanguard-saa` / `sa-tool` identifiers.
+
+Node.js/Express application for managing security assessment & authorization (SA&A) work: project intake, project records, multi-framework assessment packages (ITSG-33, NIST SP 800-53, CIS, ISO/IEC 27001, FedRAMP, ASD ISM, ACSC Essential Eight), evidence collection, assignment, MFA, and assessor/client workflows. User-facing content is internationally neutral and localized into 8 languages.
 
 ## What This App Does
 
@@ -10,6 +12,8 @@ Node.js/Express application for managing Government of Canada security assessmen
 - Lets assessors create assessments from projects and link them back to the related intake.
 - Stores project documentation for later AI analysis, evidence guidance, audit traceability, and reporting references.
 - Lets assessors tailor assessment controls, edit guidance/evidence fields, and preserve AI guidance provenance.
+- Versions each assessment: every change checkpoint (creation, AI-applied changes, manual checkpoints) is captured as a point-in-time snapshot, with a full audit history and non-destructive revert to any prior version.
+- Includes the **Aegis SA Assistant** — an in-app AI chat that helps tailor controls, answer coverage questions, and draft evidence (assessor approves every change).
 - Provides project-level report branding, control exports, full project exports, ATO/iATO records, and POA&M management.
 - Includes an admin security control catalog at `/admin/security-controls` with ITSG-33, CIS, ISO/IEC 27001, FedRAMP, NIST SP 800-53, ASD ISM, and ACSC Essential Eight entries.
 - Includes an authenticated Help guide with screenshots, plus standalone Markdown and HTML guide files under `docs/`.
@@ -266,10 +270,11 @@ Current executable checks:
 - Admin can preview and save AI evidence guidance generated from uploaded project documentation.
 - Admin can create editable ATO/iATO records and manage linked POA&M items.
 - Admin can browse the security control catalog.
+- Assessment creation captures a baseline version and manual checkpoints add new versions.
+- Reverting an assessment restores the prior control set as a new active version and records the revert in the audit history.
+- The legacy `/sa-tool-overview.html` path redirects to the live overview route (guards against stale static files in `wwwroot`).
 
-Current skipped check:
-
-- Self-assessment creation, because this branch does not currently expose a self-assessment route.
+The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 32 checks.
 
 In the Codex sandbox, binding a local test server may require approval. On a normal developer machine, `npm run test:e2e` should run directly.
 
@@ -291,56 +296,58 @@ chmod +x deploy-azure.sh
 ./deploy-azure.sh
 ```
 
-Optional overrides:
+### Environments
+
+The Azure apps live in the **vanguardcs** tenant, subscription **"Power Platform Dev"**. Each environment has its own App Service, resource group, and env file. A deploy syncs the named env file's keys to that app's settings.
+
+| Environment | `AZURE_APP_NAME`    | `AZURE_RESOURCE_GROUP`  | `AZURE_ENV_FILE` |
+| ----------- | ------------------- | ----------------------- | ---------------- |
+| prod        | `vanguard-saa-prod` | `gc-sa-tool-prod-rg`    | `.env`           |
+| qa          | `vanguard-saa-qa`   | `gc-sa-tool-qa-rg`      | `.env.qa`        |
+| dev         | `vanguard-saa-dev`  | `gc-sa-tool-dev-rg`     | `.env.dev`       |
+
+If a deploy errors with "app not found", select the subscription first:
 
 ```bash
-export AZURE_RESOURCE_GROUP=gc-sa-tool-rg
-export AZURE_APP_NAME=gc-sa-tool-prod
-export AZURE_LOCATION=canadacentral
-export AZURE_SKU=B1
-./deploy-azure.sh
+az account set --subscription "Power Platform Dev"
 ```
 
-Update an existing app:
+### Update an environment (code + that env's settings)
 
 ```bash
-AZURE_RESOURCE_GROUP=gc-sa-tool-rg AZURE_APP_NAME=gc-sa-tool-prod ./deploy-azure.sh --update-only --yes
+AZURE_APP_NAME=vanguard-saa-prod AZURE_RESOURCE_GROUP=gc-sa-tool-prod-rg AZURE_ENV_FILE=.env     bash deploy-azure.sh --update-only -y
+AZURE_APP_NAME=vanguard-saa-qa   AZURE_RESOURCE_GROUP=gc-sa-tool-qa-rg   AZURE_ENV_FILE=.env.qa  bash deploy-azure.sh --update-only -y
+AZURE_APP_NAME=vanguard-saa-dev  AZURE_RESOURCE_GROUP=gc-sa-tool-dev-rg  AZURE_ENV_FILE=.env.dev bash deploy-azure.sh --update-only -y
 ```
 
-Update settings only:
+### Deploy all three (prod → qa → dev) in one command
+
+The `&&` chain stops on the first failure so a bad build never propagates:
 
 ```bash
-AZURE_RESOURCE_GROUP=gc-sa-tool-rg AZURE_APP_NAME=gc-sa-tool-prod ./deploy-azure.sh --settings-only
+AZURE_APP_NAME=vanguard-saa-prod AZURE_RESOURCE_GROUP=gc-sa-tool-prod-rg AZURE_ENV_FILE=.env bash deploy-azure.sh --update-only -y && AZURE_APP_NAME=vanguard-saa-qa AZURE_RESOURCE_GROUP=gc-sa-tool-qa-rg AZURE_ENV_FILE=.env.qa bash deploy-azure.sh --update-only -y && AZURE_APP_NAME=vanguard-saa-dev AZURE_RESOURCE_GROUP=gc-sa-tool-dev-rg AZURE_ENV_FILE=.env.dev bash deploy-azure.sh --update-only -y
 ```
 
-View logs:
+### Logs / restart / user scripts (substitute the env's app + RG)
 
 ```bash
-az webapp log tail --name gc-sa-tool-prod --resource-group gc-sa-tool-rg
+az webapp log tail --name vanguard-saa-prod --resource-group gc-sa-tool-prod-rg
+az webapp restart  --name vanguard-saa-prod --resource-group gc-sa-tool-prod-rg
+az webapp ssh      --name vanguard-saa-prod --resource-group gc-sa-tool-prod-rg
+# inside the SSH session:
+cd /home/site/wwwroot && node scripts/manage-users.js list
 ```
 
-Restart:
+### Important deployment behavior (gotchas)
 
-```bash
-az webapp restart --name gc-sa-tool-prod --resource-group gc-sa-tool-rg
-```
-
-Run user scripts in Azure:
-
-```bash
-az webapp ssh --name gc-sa-tool-prod --resource-group gc-sa-tool-rg
-cd /home/site/wwwroot
-node scripts/manage-users.js list
-node scripts/manage-users.js admin --email admin@youragency.gc.ca --password 'NewPassword123!'
-```
-
-Azure notes:
-
-- The deployment script enables App Service storage with `WEBSITES_ENABLE_APP_SERVICE_STORAGE=true`.
-- Code deploys use `az webapp deploy --clean false` and exclude local `data/`, `uploads/`, and generated test reports from the ZIP package.
+- **`deploy-azure.sh` zips the current working directory** (`zip -r … .`). Always deploy from a checkout on the latest `main` (`git checkout main && git pull`) — deploying from a stale folder ships stale code even though the app restarts.
+- **Deploys use `az webapp deploy --clean false`**, so files removed from the repo are **not** deleted from `wwwroot`. A stale static file can therefore linger and be served by `express.static` ahead of a route with the same path. This bit us with a leftover `public/sa-tool-overview.html`; the app now redirects that path to the route (`app.js`), but if you hit a similar case, delete the orphan via `az webapp ssh` → `rm /home/site/wwwroot/public/<file>`.
+- The script enables App Service storage with `WEBSITES_ENABLE_APP_SERVICE_STORAGE=true`, and excludes local `data/`, `uploads/`, and generated test reports from the ZIP.
+- **Do not deploy from CI or scripts that push to Azure without review** — deploys carry env-file settings to App Service application settings.
 - SQLite is acceptable for a small single-instance deployment. For production scale or multiple instances, plan a move to Azure SQL or another managed database.
-- Keep `SESSION_SECRET`, admin passwords, SMTP secrets, and API keys in App Service application settings.
+- Keep `SESSION_SECRET`, admin passwords, SMTP secrets, and API keys in the env files (gitignored) / App Service application settings — never commit real secrets.
 - After deploying, create or rotate the break-glass account from an SSH session and store the generated password offline.
+- i18next preloads locales at startup, so restart/redeploy after changing `locales/*.json`.
 
 ## Troubleshooting
 
