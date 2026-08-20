@@ -100,7 +100,7 @@ async function sendTestEmail(cfg, to) {
     subject: 'Aegis SA — SMTP test',
     html: `<div style="font-family:Inter,Arial,sans-serif">
       <p>✅ Your custom SMTP configuration works.</p>
-      <p>This test message was sent from Vanguard SA&amp;A using your organization's mail server.</p>
+      <p>This test message was sent from Aegis SA using your organization's mail server.</p>
     </div>`
   });
 }
@@ -185,7 +185,7 @@ async function sendAssignmentNotification({ to, recipientName, entityType, entit
     subject: `Assigned to ${entityType}: ${entityName}`,
     html: `
       <div style="font-family:'Noto Sans',Arial,sans-serif;max-width:600px;margin:0 auto">
-        <div style="background:#0a1626;color:#fff;padding:20px;border-radius:8px 8px 0 0"><h2 style="margin:0">Vanguard SA&amp;A</h2></div>
+        <div style="background:#0a1626;color:#fff;padding:20px;border-radius:8px 8px 0 0"><h2 style="margin:0">Aegis SA</h2></div>
         <div style="padding:22px;background:#f8f9fa;border:1px solid #e0e0e0">
           <p>Dear ${recipientName || 'colleague'},</p>
           <p>${assignedByName || 'An assessor'} assigned you to the ${entityType} <strong>${entityName}</strong>.</p>

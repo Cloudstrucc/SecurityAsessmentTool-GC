@@ -1,4 +1,4 @@
-# Agent guide — Vanguard SA&A
+# Agent guide — Aegis SA
 
 This file is for AI coding agents (and contributors) working in this repo. The full working
 agreement lives in [CLAUDE.md](CLAUDE.md); this is the short version plus the content rules.
