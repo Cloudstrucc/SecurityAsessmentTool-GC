@@ -169,6 +169,22 @@ async function initDatabase() {
     )
   `);
 
+  // ── ASSESSMENT VERSIONS (point-in-time snapshots for audit history + revert) ──
+  db.run(`
+    CREATE TABLE IF NOT EXISTS assessment_versions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      assessment_id INTEGER NOT NULL,
+      version INTEGER NOT NULL,
+      label TEXT,
+      summary TEXT,
+      created_by INTEGER,
+      created_by_name TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      snapshot_json TEXT,
+      FOREIGN KEY (assessment_id) REFERENCES assessments(id) ON DELETE CASCADE
+    )
+  `);
+
   db.run(`
     CREATE TABLE IF NOT EXISTS comments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -595,6 +611,7 @@ async function initDatabase() {
     // Assessment-time control-profile override (C/I/A + resolved profile the
     // assessor chose when creating the package; may differ from the project's).
     ['assessments', 'security_profile', 'ALTER TABLE assessments ADD COLUMN security_profile TEXT'],
+    ['assessments', 'version', 'ALTER TABLE assessments ADD COLUMN version INTEGER DEFAULT 1'],
     ['assessments', 'confidentiality_level', 'ALTER TABLE assessments ADD COLUMN confidentiality_level TEXT'],
     ['assessments', 'integrity_level', 'ALTER TABLE assessments ADD COLUMN integrity_level TEXT'],
     ['assessments', 'availability_level', 'ALTER TABLE assessments ADD COLUMN availability_level TEXT'],

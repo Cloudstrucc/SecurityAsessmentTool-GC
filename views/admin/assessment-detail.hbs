@@ -3,7 +3,9 @@
     <a href="/admin/projects/{{assessment.project_id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
     <div class="flex-grow-1">
       <h1 class="mb-0">{{assessment.project_name}}</h1>
-      <p class="text-muted mb-0">Assessment Package — {{{statusBadge assessment.status}}}</p>
+      <p class="text-muted mb-0">Assessment Package — {{{statusBadge assessment.status}}}
+        <span class="badge bg-dark ms-1" title="Current assessment version">v{{#if assessment.version}}{{assessment.version}}{{else}}1{{/if}}</span>
+      </p>
     </div>
   </div>
 
@@ -61,6 +63,9 @@
         </div>
         <div class="col-md-4 text-md-end">
           <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#versionHistoryModal">
+              <i class="bi bi-clock-history me-1"></i>Version history
+            </button>
             {{!-- Action buttons based on status --}}
             {{#eq assessment.status "draft"}}
               {{#if tailorMode}}
@@ -1366,6 +1371,140 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 }
 </style>
+
+{{!-- ── Version history modal (audit trail + revert) ── --}}
+<div class="modal fade" id="versionHistoryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-clock-history me-2"></i>Version history</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="text-muted small">Every change checkpoint is kept for audit. Reverting to an earlier
+            version creates a new active version — nothing is lost.</span>
+          <button type="button" class="btn btn-sm btn-outline-primary ms-2 flex-shrink-0" onclick="saaCreateCheckpoint()">
+            <i class="bi bi-bookmark-plus me-1"></i>Create checkpoint
+          </button>
+        </div>
+        <div class="list-group">
+          {{#each versions}}
+          <div class="list-group-item d-flex justify-content-between align-items-start gap-3">
+            <div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-secondary">v{{this.version}}</span>
+                <strong>{{this.label}}</strong>
+                {{#if (eq this.version ../assessment.version)}}<span class="badge bg-success">Active</span>{{/if}}
+              </div>
+              {{#if this.summary}}<div class="small text-muted">{{this.summary}}</div>{{/if}}
+              <div class="small text-muted">
+                <i class="bi bi-person me-1"></i>{{#if this.created_by_name}}{{this.created_by_name}}{{else}}System{{/if}}
+                · {{formatDateTime this.created_at}}
+              </div>
+            </div>
+            <div class="flex-shrink-0">
+              {{#if (eq this.version ../assessment.version)}}
+                <span class="text-muted small"><i class="bi bi-check2-circle me-1"></i>Current</span>
+              {{else}}
+                <button type="button" class="btn btn-sm btn-outline-danger"
+                  onclick="saaConfirmRevert({{this.version}}, {{json this.label}})">
+                  <i class="bi bi-arrow-counterclockwise me-1"></i>Revert to this
+                </button>
+              {{/if}}
+            </div>
+          </div>
+          {{else}}
+          <div class="text-muted small p-2">No saved versions yet.</div>
+          {{/each}}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{!-- ── Revert confirmation (prominent warning) ── --}}
+<div class="modal fade" id="revertConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog">
+    <div class="modal-content border-danger">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Revert this assessment?</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-2">You are about to revert this assessment to
+          <strong>version <span id="revertVersionNum"></span></strong>
+          <span id="revertVersionLabel" class="text-muted"></span>.</p>
+        <div class="alert alert-warning mb-2">
+          <i class="bi bi-info-circle-fill me-1"></i>
+          Reverting <strong>creates a new version</strong> from that snapshot and makes it the active state.
+          The <strong>current active version will no longer be the active one</strong> — it is kept in the
+          version history for audit, but the assessment's live control set will be replaced by the selected
+          version. Any edits made since the last checkpoint will be superseded.
+        </div>
+        <p class="small text-muted mb-0">Signatures and the invite code are not affected — only the tailored
+          control set and security profile are restored.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="revertConfirmBtn">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>Revert &amp; create new version
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Version history — revert + checkpoint.
+(function(){
+  var assessmentId = {{assessment.id}};
+  var pendingRevert = null;
+
+  window.saaConfirmRevert = function(version, label){
+    pendingRevert = version;
+    document.getElementById('revertVersionNum').textContent = version;
+    document.getElementById('revertVersionLabel').textContent = label ? ('— ' + label) : '';
+    var hist = bootstrap.Modal.getInstance(document.getElementById('versionHistoryModal'));
+    if (hist) hist.hide();
+    new bootstrap.Modal(document.getElementById('revertConfirmModal')).show();
+  };
+
+  var confirmBtn = document.getElementById('revertConfirmBtn');
+  if (confirmBtn) confirmBtn.addEventListener('click', function(){
+    if (pendingRevert == null) return;
+    var btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Reverting…';
+    fetch('/admin/assessments/' + assessmentId + '/revert/' + pendingRevert, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }
+    }).then(function(r){ return r.json().then(function(d){ return { ok: r.ok, d: d }; }); })
+      .then(function(res){
+        if (!res.ok || !res.d.success) throw new Error((res.d && res.d.error) || 'Revert failed');
+        window.location.reload();
+      })
+      .catch(function(e){
+        alert(e.message || 'Revert failed');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-counterclockwise me-1"></i>Revert &amp; create new version';
+      });
+  });
+
+  window.saaCreateCheckpoint = function(){
+    var label = prompt('Name this checkpoint (optional):', 'Checkpoint');
+    if (label === null) return;
+    fetch('/admin/assessments/' + assessmentId + '/checkpoint', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ label: label || 'Checkpoint' })
+    }).then(function(r){ return r.json().then(function(d){ return { ok: r.ok, d: d }; }); })
+      .then(function(res){
+        if (!res.ok || !res.d.success) throw new Error((res.d && res.d.error) || 'Could not save checkpoint');
+        window.location.reload();
+      })
+      .catch(function(e){ alert(e.message || 'Could not save checkpoint'); });
+  };
+})();
+</script>
 
 {{> ai-assess-helper }}
 <script>
