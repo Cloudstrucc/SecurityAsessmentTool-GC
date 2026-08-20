@@ -1010,6 +1010,74 @@ test('public registration on the trial plan creates a workspace and signs in', a
   assert.match(welcome.text, /breakglass\+org/i, 'shows the generated break-glass account');
 });
 
+test('root admin can create, verify and delete organization settings (CRUD)', async () => {
+  // Registering a workspace makes this user its root admin, so the org console is reachable.
+  const jar = new CookieJar();
+  const email = `org.crud.${Date.now()}@example.test`;
+  const reg = await request(jar, 'POST', '/register', {
+    form: {
+      plan: 'trial', first_name: 'Org', last_name: 'Crud',
+      organization: 'E2E Org CRUD', email, password: 'TrialPassword123!', agree: '1'
+    }
+  });
+  assert.equal(reg.status, 302);
+
+  // ── Custom domain: create → verify → delete ──
+  await request(jar, 'POST', '/admin/organization/domain', { form: { custom_domain: 'assess.e2e.test' } });
+  let page = await getText(jar, '/admin/organization');
+  assert.match(page.text, /assess\.e2e\.test/, 'domain is saved and shown');
+  assert.match(page.text, /Delete domain/, 'a delete control is offered once a domain exists');
+
+  await request(jar, 'POST', '/admin/organization/domain/verify', { form: {} });
+  page = await getText(jar, '/admin/organization');
+  assert.match(page.text, /Verified/, 'domain can be marked verified');
+
+  await request(jar, 'POST', '/admin/organization/domain/delete', { form: {} });
+  page = await getText(jar, '/admin/organization');
+  assert.doesNotMatch(page.text, /assess\.e2e\.test/, 'deleting removes the custom domain');
+
+  // ── SMTP: create → delete (credentials must be cleared, not just hidden) ──
+  await request(jar, 'POST', '/admin/organization/smtp', {
+    form: { smtp_host: 'smtp.e2e.test', smtp_port: '587', smtp_user: 'u@e2e.test', smtp_password: 'secret', smtp_enabled: '1' }
+  });
+  page = await getText(jar, '/admin/organization');
+  assert.match(page.text, /smtp\.e2e\.test/);
+  await request(jar, 'POST', '/admin/organization/smtp/delete', { form: {} });
+  page = await getText(jar, '/admin/organization');
+  assert.doesNotMatch(page.text, /smtp\.e2e\.test/, 'deleting clears SMTP settings');
+
+  // ── SMS: create → delete ──
+  await request(jar, 'POST', '/admin/organization/sms', {
+    form: { sms_provider: 'twilio', sms_account_sid: 'ACe2etest', sms_auth_token: 'tok', sms_from: '+15551234567', sms_enabled: '1' }
+  });
+  page = await getText(jar, '/admin/organization');
+  assert.match(page.text, /ACe2etest/);
+  await request(jar, 'POST', '/admin/organization/sms/delete', { form: {} });
+  page = await getText(jar, '/admin/organization');
+  assert.doesNotMatch(page.text, /ACe2etest/, 'deleting clears SMS settings');
+
+  // ── AI provider: bring-your-own → delete falls back to the platform default ──
+  await request(jar, 'POST', '/admin/organization/ai', {
+    form: { ai_provider: 'openai', ai_api_key: 'sk-e2e-test', ai_model: 'gpt-4o' }
+  });
+  page = await getText(jar, '/admin/organization');
+  assert.match(page.text, /Delete custom AI provider/, 'a BYO provider can be deleted');
+  await request(jar, 'POST', '/admin/organization/ai/delete', { form: {} });
+  page = await getText(jar, '/admin/organization');
+  assert.match(page.text, /Using platform default/, 'deleting the AI provider restores the platform default');
+});
+
+test('organization settings deletes are restricted to root administrators', async () => {
+  // The seeded assessor is not a tenant root admin — every delete must bounce.
+  const jar = await loginAdminWithTotp();
+  for (const path of ['/organization/domain/delete', '/organization/smtp/delete',
+                      '/organization/sms/delete', '/organization/ai/delete']) {
+    const res = await request(jar, 'POST', `/admin${path}`, { form: {} });
+    assert.equal(res.status, 302, `${path} should redirect a non-root admin`);
+    assert.equal(res.headers.get('location'), '/admin/dashboard', `${path} is root-admin only`);
+  }
+});
+
 test('root-admin console is restricted to root administrators', async () => {
   // The seeded assessor is not a tenant root admin, so the org console is blocked.
   const jar = await loginAdminWithTotp();

@@ -49,6 +49,14 @@ router.post('/organization/smtp/test', access.ensureRootAdmin, async (req, res) 
   res.redirect('/admin/organization#smtp');
 });
 
+router.post('/organization/smtp/delete', access.ensureRootAdmin, (req, res) => {
+  const org = currentOrg(req);
+  if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
+  orgSettings.clearSmtp(org.id);
+  req.flash('success', 'SMTP settings removed. Email now uses the platform default.');
+  res.redirect('/admin/organization#smtp');
+});
+
 // ── SMS ──
 router.post('/organization/sms', access.ensureRootAdmin, (req, res) => {
   const org = currentOrg(req);
@@ -66,6 +74,14 @@ router.post('/organization/sms/test', access.ensureRootAdmin, async (req, res) =
   const result = await smsService.sendTestSms(settings, to);
   if (result.sent) req.flash('success', `Test SMS sent to ${to}.`);
   else req.flash('error', `Test SMS failed: ${result.error}`);
+  res.redirect('/admin/organization#sms');
+});
+
+router.post('/organization/sms/delete', access.ensureRootAdmin, (req, res) => {
+  const org = currentOrg(req);
+  if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
+  orgSettings.clearSms(org.id);
+  req.flash('success', 'SMS settings removed.');
   res.redirect('/admin/organization#sms');
 });
 
@@ -92,6 +108,14 @@ router.post('/organization/ai/test', access.ensureRootAdmin, async (req, res) =>
   res.redirect('/admin/organization#ai');
 });
 
+router.post('/organization/ai/delete', access.ensureRootAdmin, (req, res) => {
+  const org = currentOrg(req);
+  if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
+  orgSettings.clearAi(org.id);
+  req.flash('success', 'Custom AI provider removed. AI now uses the platform default (OOB).');
+  res.redirect('/admin/organization#ai');
+});
+
 // ── Custom domain ──
 router.post('/organization/domain', access.ensureRootAdmin, (req, res) => {
   const org = currentOrg(req);
@@ -108,6 +132,14 @@ router.post('/organization/domain/verify', access.ensureRootAdmin, (req, res) =>
   // be added later. Mark verified so the app can start using the domain.
   orgSettings.setDomainVerified(org.id, true);
   req.flash('success', 'Custom domain marked verified.');
+  res.redirect('/admin/organization#domain');
+});
+
+router.post('/organization/domain/delete', access.ensureRootAdmin, (req, res) => {
+  const org = currentOrg(req);
+  if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
+  orgSettings.clearDomain(org.id);
+  req.flash('success', 'Custom domain removed. The platform default domain is used again.');
   res.redirect('/admin/organization#domain');
 });
 

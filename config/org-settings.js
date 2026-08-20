@@ -60,6 +60,35 @@ function setDomainVerified(orgId, verified) {
   return getSettings(orgId);
 }
 
+// ── Delete / clear (the "D" in CRUD): reset a settings group to its default. ──
+function clearSmtp(orgId) {
+  ensureRow(orgId);
+  run(`UPDATE org_settings SET smtp_host=NULL, smtp_port=587, smtp_user=NULL, smtp_password=NULL,
+       smtp_from=NULL, smtp_secure=0, smtp_enabled=0, updated_at=CURRENT_TIMESTAMP WHERE organization_id=?`, [orgId]);
+  return getSettings(orgId);
+}
+
+function clearSms(orgId) {
+  ensureRow(orgId);
+  run(`UPDATE org_settings SET sms_provider='twilio', sms_account_sid=NULL, sms_auth_token=NULL,
+       sms_from=NULL, sms_enabled=0, updated_at=CURRENT_TIMESTAMP WHERE organization_id=?`, [orgId]);
+  return getSettings(orgId);
+}
+
+function clearDomain(orgId) {
+  ensureRow(orgId);
+  run(`UPDATE org_settings SET custom_domain=NULL, custom_domain_verified=0,
+       updated_at=CURRENT_TIMESTAMP WHERE organization_id=?`, [orgId]);
+  return getSettings(orgId);
+}
+
+function clearAi(orgId) {
+  ensureRow(orgId);
+  run(`UPDATE org_settings SET ai_provider='oob', ai_api_key=NULL, ai_model=NULL, ai_base_url=NULL,
+       ai_mcp_url=NULL, ai_mcp_token=NULL, updated_at=CURRENT_TIMESTAMP WHERE organization_id=?`, [orgId]);
+  return getSettings(orgId);
+}
+
 /** nodemailer transport config from org SMTP settings, or null if not usable. */
 function smtpConfig(settings) {
   if (!settings || !settings.smtp_enabled || !settings.smtp_host) return null;
@@ -121,5 +150,6 @@ function aiConfig(orgId) {
 
 module.exports = {
   getSettings, updateSmtp, updateSms, updateDomain, setDomainVerified, smtpConfig, orgSmtp,
+  clearSmtp, clearSms, clearDomain, clearAi,
   AI_PROVIDERS, updateAi, aiConfig
 };

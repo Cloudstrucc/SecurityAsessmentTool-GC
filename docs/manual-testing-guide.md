@@ -88,7 +88,7 @@ On `/admin/licensing`, for a member (not root/break‑glass):
 
 ## 11. Automated tests
 ```bash
-npm run test:e2e     # 34 tests, should be 34/34
+npm run test:e2e     # 36 tests, should be 36/36
 ```
 The suite sets `MFA_ENABLED=true` on its own server, so it runs the full TOTP/passkey flow with no extra flags. Coverage includes assessment versioning, revert/restore, and the `/sa-tool-overview.html` redirect.
 
