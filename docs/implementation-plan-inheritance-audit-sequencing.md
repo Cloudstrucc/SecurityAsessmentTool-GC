@@ -1,7 +1,7 @@
 # Implementation Plan — Control Inheritance, LLM Audit, and Process Sequencing
 
 **Status:** Proposal for review. Nothing implemented yet.
-**Scope:** Three new features for the Vanguard SA&A platform (Node/Express + Handlebars + sql.js SQLite, LLM via `config/ai-service.js`).
+**Scope:** Three new features for the Aegis SA platform (Node/Express + Handlebars + sql.js SQLite, LLM via `config/ai-service.js`).
 
 Grounding facts confirmed in the codebase:
 - `assessment_controls` already has `is_inherited` and `inherited_from` columns (unused today) — a foundation for Feature 1.
