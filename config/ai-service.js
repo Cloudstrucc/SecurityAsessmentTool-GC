@@ -468,30 +468,6 @@ Write the evidence narrative for this control:`;
 /**
  * Generate evidence narratives for multiple controls in batch.
  */
-async function generateBulkEvidence(controls, projectContext) {
-  const system = `You are a GC IT Security practitioner writing evidence narratives for an SA&A assessment. Generate a concise evidence narrative (2-3 sentences each) for each of the listed controls.
-
-Respond ONLY with a JSON object mapping control IDs to narratives:
-{
-  "AC-1": "narrative text...",
-  "AC-2": "narrative text..."
-}`;
-
-  const controlList = controls.map(c => `- ${c.control_id}: ${c.title} (${c.evidence_guidance})`).join('\n');
-
-  const userContent = `
-PROJECT: ${projectContext.name}
-Tech: ${projectContext.technologies}
-Hosting: ${projectContext.hosting_type}
-Classification: ${projectContext.confidentiality_level}/${projectContext.integrity_level}/${projectContext.availability_level}
-
-CONTROLS (generate evidence for each):
-${controlList}`;
-
-  const result = await callClaude(system, userContent, { maxTokens: 4096 });
-  return parseJSON(result);
-}
-
 /**
  * Generate evidence guidance for a control — tells the CLIENT what they need to provide.
  * This is used by the assessor to populate the evidence_guidance field.
@@ -623,7 +599,6 @@ module.exports = {
   reviewIntake,
   suggestAdditionalControls,
   generateEvidenceNarrative,
-  generateBulkEvidence,
   generateEvidenceGuidance,
   assessmentChat,
   refineControlAnswer

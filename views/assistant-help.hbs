@@ -1,0 +1,121 @@
+<div class="vg vg-page">
+<style>
+  .ah-scope{--ah:#6d28d9;--ah2:#4f46e5;--ah-soft:#f5f3ff;--ah-line:#e9d5ff;--ink:#22303a;--muted:#5f7185}
+  .ah-hero{background:linear-gradient(120deg,var(--ah2),var(--ah));color:#fff;border-radius:18px;padding:34px 32px;margin:26px auto 0;max-width:900px;display:flex;gap:18px;align-items:center}
+  .ah-hero .ico{flex:0 0 auto;width:56px;height:56px;border-radius:14px;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:26px}
+  .ah-hero h1{font-size:27px;font-weight:800;margin:0;color:#fff;line-height:1.15}
+  .ah-hero p{margin:6px 0 0;color:#e5e0ff;font-size:15px}
+  .ah-wrap{max-width:900px;margin:0 auto;padding:8px 20px 60px}
+  .ah-scope section{margin-top:34px}
+  .ah-scope h2{font-size:20px;font-weight:750;color:var(--ink);margin:0 0 12px;display:flex;align-items:center;gap:9px}
+  .ah-scope h2 .b{width:26px;height:26px;border-radius:8px;background:var(--ah-soft);color:var(--ah);display:grid;place-items:center;font-size:14px}
+  .ah-scope p{color:#2b3c52;line-height:1.65;margin:0 0 12px;font-size:15px}
+  .ah-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:6px}
+  @media(max-width:720px){.ah-cards{grid-template-columns:1fr}}
+  .ah-card{border:1px solid var(--ah-line);border-radius:14px;padding:18px;background:var(--ah-soft)}
+  .ah-card .tag{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ah)}
+  .ah-card b{display:block;font-size:15.5px;color:var(--ink);margin:6px 0 5px}
+  .ah-card span{font-size:13.5px;color:var(--muted);line-height:1.55}
+  .ah-steps{list-style:none;counter-reset:s;padding:0;margin:8px 0 0}
+  .ah-steps li{counter-increment:s;position:relative;padding:10px 0 10px 44px;border-bottom:1px solid #eef0f7}
+  .ah-steps li:last-child{border-bottom:none}
+  .ah-steps li::before{content:counter(s);position:absolute;left:0;top:9px;width:28px;height:28px;border-radius:50%;background:var(--ah2);color:#fff;font-weight:700;font-size:13px;display:grid;place-items:center}
+  .ah-steps b{color:var(--ink)}
+  .ah-steps span{color:var(--muted);font-size:14px}
+  .ah-ex{background:#fff;border:1px solid var(--ah-line);border-radius:12px;padding:14px 16px;margin-top:10px}
+  .ah-ex .q{display:flex;gap:9px;align-items:flex-start;margin:6px 0;font-size:14px;color:var(--ink)}
+  .ah-ex .q i{color:var(--ah);margin-top:2px}
+  .ah-note{display:flex;gap:10px;background:#eefaf3;border-left:3px solid #2fa06d;border-radius:0 10px 10px 0;padding:13px 15px;color:#1e5b40;font-size:14px;line-height:1.55;margin-top:14px}
+  .ah-pill{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(120deg,var(--ah2),var(--ah));color:#fff;border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px}
+</style>
+
+<nav class="vg-nav">
+  <div class="vg-container vg-nav-inner">
+    <a href="/" class="vg-brand">
+      <span class="vg-brand-name">Vanguard Cloud Services</span>
+      <span class="vg-brand-sep">|</span>
+      <span class="vg-brand-product">SA&amp;A</span>
+    </a>
+    <div class="vg-nav-links">
+      <a href="/" class="vg-nav-link hide-sm">{{t 'navbar.home'}}</a>
+      <a href="/sa-tool-overview" class="vg-nav-link hide-sm">{{t 'navbar.productBrief'}}</a>
+      {{> vg-langswitch}}
+    </div>
+  </div>
+</nav>
+
+<div class="ah-scope">
+  <div class="ah-hero">
+    <div class="ico" aria-hidden="true"><i class="bi bi-robot"></i></div>
+    <div>
+      <h1>SA&amp;A Assessment Assistant — how to use it</h1>
+      <p>Your AI helper for tailoring controls, answering questions, and writing evidence — you approve every change.</p>
+    </div>
+  </div>
+
+  <div class="ah-wrap">
+    <section>
+      <h2><span class="b"><i class="bi bi-stars"></i></span>What it is</h2>
+      <p>The <strong>SA&amp;A Assessment Assistant</strong> is an AI chat helper built into the assessment workflow. It understands the controls in front of you and helps you tailor the set, understand what each control expects, and write clear evidence — in plain language. It <strong>proposes</strong>; you decide. Nothing changes until you approve it.</p>
+    </section>
+
+    <section>
+      <h2><span class="b"><i class="bi bi-geo-alt"></i></span>Where to find it</h2>
+      <p>Look for the <span class="ah-pill"><i class="bi bi-robot"></i> SA&amp;A Assistant</span> button in the bottom-right corner. It appears while you’re:</p>
+      <ul class="ah-steps">
+        <li><b>Creating an assessment</b> <span>— tailor which controls are in scope.</span></li>
+        <li><b>Reviewing an assessment</b> <span>— ask questions about coverage and wording.</span></li>
+        <li><b>Providing evidence</b> <span>— on the evidence portal, get help understanding controls and writing answers.</span></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><span class="b"><i class="bi bi-people"></i></span>Three ways it helps</h2>
+      <div class="ah-cards">
+        <div class="ah-card"><div class="tag">Create</div><b>Tailor the control set</b><span>Ask it to remove, add, or tailor controls for your architecture. It proposes changes you approve.</span></div>
+        <div class="ah-card"><div class="tag">Review</div><b>Answer assessor questions</b><span>Ask whether the controls cover a scope, what a control expects, or how to word an audit note.</span></div>
+        <div class="ah-card"><div class="tag">Evidence</div><b>Guide evidence providers</b><span>Explains what each control needs and helps expand a quick note into a full statement.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="b"><i class="bi bi-chat-dots"></i></span>Chatting with it</h2>
+      <p>Open the assistant and type in plain language. For example:</p>
+      <div class="ah-ex">
+        <div class="q"><i class="bi bi-arrow-return-right"></i><span>“This system uses Entra ID with security groups for RBAC — tailor the access-control and IA controls accordingly.”</span></div>
+        <div class="q"><i class="bi bi-arrow-return-right"></i><span>“Remove controls that are specific to on-premises physical infrastructure.”</span></div>
+        <div class="q"><i class="bi bi-arrow-return-right"></i><span>“Add controls that cover API and input validation.”</span></div>
+        <div class="q"><i class="bi bi-arrow-return-right"></i><span>“Do the current controls cover data-at-rest encryption?”</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="b"><i class="bi bi-check2-square"></i></span>Approving proposed changes</h2>
+      <p>When you ask for a scope change, the assistant lists <strong>Proposed changes</strong> under its reply — each tagged <em>remove</em>, <em>add</em>, or <em>tailor</em>, with a reason. Review them and:</p>
+      <ul class="ah-steps">
+        <li><b>Approve</b> <span>— applies the change: unchecks a removed control, adds one to the set, or fills in a tailoring note. You’ll see it reflected in the control list immediately.</span></li>
+        <li><b>Dismiss</b> <span>— ignores that suggestion, no change made.</span></li>
+      </ul>
+      <div class="ah-note"><i class="bi bi-shield-check"></i><div>The assistant never changes your assessment on its own — every add, remove, or tailoring is a proposal you approve.</div></div>
+    </section>
+
+    <section>
+      <h2><span class="b"><i class="bi bi-magic"></i></span>Refine with AI (per control)</h2>
+      <p>On a control’s tailoring or evidence field you’ll see a <strong>“Refine with AI”</strong> button. Type a short note — e.g. <em>“accounts in Entra ID, managers approve, quarterly review”</em> — and it expands it into a complete, professionally-worded statement, grounded only in what you wrote. You get a <strong>preview</strong> and approve before it replaces the text.</p>
+    </section>
+
+    <section>
+      <h2><span class="b"><i class="bi bi-info-circle"></i></span>Good to know</h2>
+      <ul class="ah-steps">
+        <li><b>You’re always in control</b> <span>— it proposes; you approve. It won’t invent product names or details you didn’t provide.</span></li>
+        <li><b>It reads the current set</b> <span>— suggestions are specific to the controls and profile in front of you.</span></li>
+        <li><b>It respects your plan</b> <span>— AI runs on your organization’s configured provider and counts toward your plan’s AI usage.</span></li>
+      </ul>
+    </section>
+  </div>
+</div>
+
+<footer class="vg-footer">
+  <div class="vg-container"><div>Vanguard SA&amp;A · Vanguard Cloud Services · vanguardcs.ca</div></div>
+</footer>
+</div>
