@@ -2619,5 +2619,14 @@
   "co.allRecords": "Tout le projet",
   "co.deleteMsg": "Supprimer le message",
   "co.thread": "Discussion",
-  "co.postedIn": "dans"
+  "co.postedIn": "dans",
+  "ik.accept": "Accepter la demande",
+  "ik.acceptTitle": "Accepter cette demande ?",
+  "ik.acceptExisting": "Cette demande appartient déjà à un projet. L'acceptation consigne la décision et vous amène à ce projet — aucun nouveau projet n'est créé.",
+  "ik.acceptNew": "L'acceptation crée un projet à partir de cette demande et vous y amène.",
+  "ik.noAssessment": "Aucune évaluation n'est créée. Vous créerez l'évaluation à partir du projet lorsque vous serez prêt.",
+  "ik.confirm": "Accepter la demande",
+  "ik.cancel": "Annuler",
+  "ik.accepted": "Acceptée",
+  "ik.viewProject": "Voir le projet"
 }

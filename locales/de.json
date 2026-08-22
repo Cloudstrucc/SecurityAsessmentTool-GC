@@ -2597,5 +2597,14 @@
   "co.allRecords": "Gesamtes Projekt",
   "co.deleteMsg": "Nachricht löschen",
   "co.thread": "Diskussion",
-  "co.postedIn": "in"
+  "co.postedIn": "in",
+  "ik.accept": "Erfassung annehmen",
+  "ik.acceptTitle": "Diese Erfassung annehmen?",
+  "ik.acceptExisting": "Diese Erfassung gehört bereits zu einem Projekt. Die Annahme hält die Entscheidung fest und führt Sie zu diesem Projekt — es wird kein neues Projekt angelegt.",
+  "ik.acceptNew": "Bei Annahme wird aus dieser Erfassung ein Projekt erstellt und Sie werden dorthin geführt.",
+  "ik.noAssessment": "Es wird keine Bewertung erstellt. Die Bewertung erstellen Sie später aus dem Projekt heraus.",
+  "ik.confirm": "Erfassung annehmen",
+  "ik.cancel": "Abbrechen",
+  "ik.accepted": "Angenommen",
+  "ik.viewProject": "Projekt ansehen"
 }

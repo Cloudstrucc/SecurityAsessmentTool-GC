@@ -2597,5 +2597,14 @@
   "co.allRecords": "プロジェクト全体",
   "co.deleteMsg": "メッセージを削除",
   "co.thread": "ディスカッション",
-  "co.postedIn": "—"
+  "co.postedIn": "—",
+  "ik.accept": "受付を承認",
+  "ik.acceptTitle": "この受付を承認しますか？",
+  "ik.acceptExisting": "この受付は既にプロジェクトに紐づいています。承認すると決定が記録され、そのプロジェクトへ移動します。新しいプロジェクトは作成されません。",
+  "ik.acceptNew": "承認すると、この受付からプロジェクトを作成し、そのプロジェクトへ移動します。",
+  "ik.noAssessment": "評価は作成されません。準備ができたらプロジェクトから評価を作成してください。",
+  "ik.confirm": "受付を承認",
+  "ik.cancel": "キャンセル",
+  "ik.accepted": "承認済み",
+  "ik.viewProject": "プロジェクトを表示"
 }

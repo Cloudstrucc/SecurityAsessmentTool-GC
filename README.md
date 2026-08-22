@@ -10,6 +10,9 @@ Node.js/Express application for managing security assessment & authorization (SA
 - Lets assessors create projects directly from the admin dashboard.
 - Creates a project intake record when a project is created by an assessor.
 - Lets assessors create assessments from projects and link them back to the related intake.
+- **Accepting an intake never creates an assessment.** If the intake already belongs to a project,
+  acceptance records the decision and returns to that project; a standalone (client-submitted)
+  intake creates a project only. Creating the assessment stays an explicit step from the project.
 - Stores project documentation for later AI analysis, evidence guidance, audit traceability, and reporting references.
 - Lets assessors tailor assessment controls, edit guidance/evidence fields, and preserve AI guidance provenance.
 - Shows a **business process flow** (chevron) on projects, intakes and assessments: the project's
@@ -290,7 +293,7 @@ Current executable checks:
 - Reverting an assessment restores the prior control set as a new active version and records the revert in the audit history.
 - The legacy `/sa-tool-overview.html` path redirects to the live overview route (guards against stale static files in `wwwroot`).
 
-The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 51 checks. See [docs/TESTING.md](docs/TESTING.md) for what each one covers.
+The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 54 checks. See [docs/TESTING.md](docs/TESTING.md) for what each one covers.
 
 In the Codex sandbox, binding a local test server may require approval. On a normal developer machine, `npm run test:e2e` should run directly.
 

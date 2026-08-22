@@ -2619,5 +2619,14 @@
   "co.allRecords": "Todo el proyecto",
   "co.deleteMsg": "Eliminar mensaje",
   "co.thread": "Discusión",
-  "co.postedIn": "en"
+  "co.postedIn": "en",
+  "ik.accept": "Aceptar solicitud",
+  "ik.acceptTitle": "¿Aceptar esta solicitud?",
+  "ik.acceptExisting": "Esta solicitud ya pertenece a un proyecto. Al aceptarla se registra la decisión y se le lleva a ese proyecto: no se crea un proyecto nuevo.",
+  "ik.acceptNew": "Al aceptar se crea un proyecto a partir de esta solicitud y se le lleva a él.",
+  "ik.noAssessment": "No se crea ninguna evaluación. Creará la evaluación desde el proyecto cuando esté listo.",
+  "ik.confirm": "Aceptar solicitud",
+  "ik.cancel": "Cancelar",
+  "ik.accepted": "Aceptada",
+  "ik.viewProject": "Ver proyecto"
 }

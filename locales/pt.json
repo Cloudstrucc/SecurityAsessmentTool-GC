@@ -2597,5 +2597,14 @@
   "co.allRecords": "Projeto inteiro",
   "co.deleteMsg": "Excluir mensagem",
   "co.thread": "Discussão",
-  "co.postedIn": "em"
+  "co.postedIn": "em",
+  "ik.accept": "Aceitar solicitação",
+  "ik.acceptTitle": "Aceitar esta solicitação?",
+  "ik.acceptExisting": "Esta solicitação já pertence a um projeto. Aceitar registra a decisão e leva você a esse projeto — nenhum projeto novo é criado.",
+  "ik.acceptNew": "Aceitar cria um projeto a partir desta solicitação e leva você até ele.",
+  "ik.noAssessment": "Nenhuma avaliação é criada. Você cria a avaliação a partir do projeto quando estiver pronto.",
+  "ik.confirm": "Aceitar solicitação",
+  "ik.cancel": "Cancelar",
+  "ik.accepted": "Aceita",
+  "ik.viewProject": "Ver projeto"
 }

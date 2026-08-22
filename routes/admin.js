@@ -3543,10 +3543,32 @@ router.post('/intakes/:id/status', ensureAuthenticated, (req, res) => {
 });
 
 // Create project + assessment from intake
-router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
+/**
+ * Accept an intake.
+ *
+ * Accepting NEVER creates an assessment — that is a deliberate, separate step taken
+ * from the project once the intake is accepted. If the intake already belongs to a
+ * project (an assessor started from the project), acceptance only records the
+ * decision and returns to that project. Otherwise a project is created from the
+ * intake's own details and the intake is linked to it.
+ */
+router.post('/intakes/:id/accept', ensureAuthenticated, (req, res) => {
   try {
     const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
     if (!intake) { req.flash('error', 'Intake not found'); return res.redirect('/admin/intakes'); }
+
+    // Already tied to a project: accept in place, never duplicate the project.
+    if (intake.project_id) {
+      const existing = get('SELECT id, name FROM projects WHERE id = ?', [intake.project_id]);
+      if (existing) {
+        run(`UPDATE intake_submissions SET status = 'accepted', assessor_notes = ?,
+             assessor_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+          [req.body.assessorNotes || intake.assessor_notes || '',
+           req.body.assessorDescription || intake.assessor_description || '', intake.id]);
+        req.flash('success', `Intake accepted for "${existing.name}".`);
+        return res.redirect('/admin/projects/' + existing.id);
+      }
+    }
 
     const submittedTech = JSON.parse(intake.technologies || '[]');
     const additionalTech = Array.isArray(req.body.additionalTech) ? req.body.additionalTech : (req.body.additionalTech ? [req.body.additionalTech] : []);
@@ -3633,39 +3655,26 @@ router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
       '(excludeInherited:', req.body.excludeInherited || 'no',
       'onlyP1P2:', req.body.onlyP1P2 || 'no', ')');
 
-    const inviteCode = uuidv4().substring(0, 8).toUpperCase();
-    const assessmentId = run(
-      `INSERT INTO assessments (project_id, intake_id, type, status, invite_code, created_by) VALUES (?,?,?,?,?,?)`,
-      [projectId, intake.id, req.body.assessmentType || 'initial', 'draft', inviteCode, req.user.id]
-    );
-    copyIntakeAssignmentsToAssessment(intake.id, assessmentId, req.user.id);
-
-    const grouped = groupByFamily(filtered);
-    grouped.forEach(family => {
-      family.controls.forEach(control => {
-        run(
-          `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title, description,
-            tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority, risk_level
-          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-          [assessmentId, control.id, control.family, control.familyName, control.title, control.description,
-            control.tailoredDescription, control.evidenceGuidance,
-            control.isInherited ? 1 : 0, control.inheritedFrom.join(', '), 1, control.priority,
-            computeRiskLevel(control)]
-        );
-      });
-    });
-
+    // NOTE: no assessment is created here. The recommended control set is computed
+    // only to report the suggested profile; creating the assessment is a separate,
+    // explicit action from the project page.
     run(`UPDATE intake_submissions SET status = 'accepted', project_id = ?, assessor_notes = ?,
       assessor_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
       [projectId, req.body.assessorNotes || '', req.body.assessorDescription || '', req.params.id]);
 
-    req.flash('success', `Project "${intake.project_name}" created with ${filtered.length} controls (profile: ${securityProfile}).`);
-    res.redirect('/admin/assessments/' + assessmentId);
+    req.flash('success', `Intake accepted. Project "${intake.project_name}" created (profile: ${securityProfile}, ${filtered.length} controls recommended). Create the assessment when you are ready.`);
+    res.redirect('/admin/projects/' + projectId);
   } catch (err) {
-    console.error('Create project from intake error:', err);
-    req.flash('error', 'Failed to create project: ' + err.message);
+    console.error('Accept intake error:', err);
+    req.flash('error', 'Failed to accept the intake: ' + err.message);
     res.redirect('/admin/intakes/' + req.params.id);
   }
+});
+
+// Legacy path kept so old links/bookmarks keep working; acceptance is the same action.
+router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res, next) => {
+  req.url = `/intakes/${req.params.id}/accept`;
+  router.handle(req, res, next);
 });
 
 // Download intake attachment

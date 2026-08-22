@@ -2597,5 +2597,14 @@
   "co.allRecords": "Hele project",
   "co.deleteMsg": "Bericht verwijderen",
   "co.thread": "Discussie",
-  "co.postedIn": "in"
+  "co.postedIn": "in",
+  "ik.accept": "Aanvraag accepteren",
+  "ik.acceptTitle": "Deze aanvraag accepteren?",
+  "ik.acceptExisting": "Deze aanvraag hoort al bij een project. Accepteren legt het besluit vast en brengt je naar dat project — er wordt geen nieuw project aangemaakt.",
+  "ik.acceptNew": "Accepteren maakt een project aan op basis van deze aanvraag en brengt je erheen.",
+  "ik.noAssessment": "Er wordt geen beoordeling aangemaakt. Je maakt de beoordeling later vanuit het project aan.",
+  "ik.confirm": "Aanvraag accepteren",
+  "ik.cancel": "Annuleren",
+  "ik.accepted": "Geaccepteerd",
+  "ik.viewProject": "Project bekijken"
 }

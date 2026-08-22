@@ -58,7 +58,7 @@ generated artifacts — they are not committed.
 
 ---
 
-## The suite at a glance (51 checks)
+## The suite at a glance (54 checks)
 
 ### Authentication, MFA & accounts
 | Check | What it proves |
@@ -108,6 +108,13 @@ generated artifacts — they are not committed.
 | A project shows four stages with a derived current stage | Stage position is computed, never stored |
 | The project header no longer duplicates the create action | The duplicate button stayed removed |
 | The flow is localized in every supported language | All 8 languages render, including the stage counter |
+
+### Intake acceptance
+| Check | What it proves |
+|---|---|
+| Accepting an intake that already has a project creates nothing new | No duplicate project or assessment; returns to the existing project |
+| Accepting a standalone intake creates a project (no assessment) | Client-submitted intakes get a project, and only a project |
+| Accepting advances the project flow to the assessment stage | Intake stage completes and the next action becomes "Assessment created" |
 
 ### Decision packages (authorization)
 | Check | What it proves |

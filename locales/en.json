@@ -2576,5 +2576,14 @@
   "co.allRecords": "Whole project",
   "co.deleteMsg": "Delete message",
   "co.thread": "Discussion",
-  "co.postedIn": "in"
+  "co.postedIn": "in",
+  "ik.accept": "Accept Intake",
+  "ik.acceptTitle": "Accept this intake?",
+  "ik.acceptExisting": "This intake already belongs to a project. Accepting records the decision and takes you to that project — no new project is created.",
+  "ik.acceptNew": "Accepting creates a project from this intake and takes you to it.",
+  "ik.noAssessment": "No assessment is created. You create the assessment from the project when you are ready.",
+  "ik.confirm": "Accept intake",
+  "ik.cancel": "Cancel",
+  "ik.accepted": "Accepted",
+  "ik.viewProject": "View project"
 }

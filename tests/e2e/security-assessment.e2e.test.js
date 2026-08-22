@@ -1121,6 +1121,95 @@ test('the process flow is localized in every supported language', async () => {
   }
 });
 
+// ── Intake acceptance ────────────────────────────────────────────────────────
+async function submitClientIntake(jar, projectName) {
+  const res = await request(jar, 'POST', '/intake', {
+    form: {
+      projectName,
+      projectDescription: 'A protected B system submitted directly by a client, with no project yet.',
+      department: 'E2E Department', branch: 'Security Testing', appType: 'internal',
+      confidentialityLevel: 'protected-b', integrityLevel: 'medium', availabilityLevel: 'medium',
+      hostingType: 'azure', ownerName: 'E2E Client', ownerEmail: USERS.client.email
+    },
+    redirect: 'follow'
+  });
+  assert.equal(res.status, 200);
+  return res;
+}
+
+/** Find an intake row id by the project name it was submitted under. */
+async function findIntakeIdByName(adminJar, projectName) {
+  const list = await getText(adminJar, '/admin/intakes');
+  const rows = list.text.split(/<tr/).filter(r => r.includes(projectName));
+  assert.ok(rows.length, `intake for "${projectName}" should be listed`);
+  const id = rows[0].match(/\/admin\/intakes\/(\d+)/);
+  assert.ok(id, 'intake row should link to its record');
+  return id[1];
+}
+
+test('accepting an intake that already has a project does not create another project or assessment', async () => {
+  const jar = await loginAdminWithTotp();
+  // Creating a project as an assessor also creates its linked intake.
+  const { projectId } = await createAdminProject(jar, 'E2E Accept Existing Project');
+  const before = await getText(jar, '/admin/projects');
+  const projectsBefore = (before.text.match(/\/admin\/projects\/\d+/g) || []).length;
+
+  const intakeId = await findIntakeIdByName(jar, 'E2E Accept Existing Project');
+  const accept = await request(jar, 'POST', `/admin/intakes/${intakeId}/accept`, { form: {} });
+
+  // It returns to the EXISTING project — no new project is spun up.
+  assert.equal(accept.status, 302);
+  assert.equal(accept.headers.get('location'), `/admin/projects/${projectId}`);
+
+  const after = await getText(jar, '/admin/projects');
+  const projectsAfter = (after.text.match(/\/admin\/projects\/\d+/g) || []).length;
+  assert.equal(projectsAfter, projectsBefore, 'no additional project is created');
+
+  // No assessment is ever created by accepting an intake.
+  const project = await getText(jar, `/admin/projects/${projectId}`);
+  assert.doesNotMatch(project.text, /\/admin\/assessments\/\d+/,
+    'accepting an intake must not create an assessment');
+
+  // The intake itself is now accepted.
+  const intake = await getText(jar, `/admin/intakes/${intakeId}`);
+  assert.match(intake.text, /Accepted|accepted/);
+});
+
+test('accepting a standalone intake creates a project (but no assessment) and opens it', async () => {
+  const clientJar = await loginClientWithTotp();
+  await submitClientIntake(clientJar, 'E2E Standalone Intake');
+
+  const jar = await loginAdminWithTotp();
+  const intakeId = await findIntakeIdByName(jar, 'E2E Standalone Intake');
+
+  const accept = await request(jar, 'POST', `/admin/intakes/${intakeId}/accept`, { form: {} });
+  assert.equal(accept.status, 302);
+  const loc = accept.headers.get('location');
+  // A project is created and we are taken to it — never to an assessment.
+  assert.match(loc, /^\/admin\/projects\/\d+$/, 'acceptance lands on the new project');
+
+  const project = await getText(jar, loc);
+  assert.equal(project.response.status, 200);
+  assert.match(project.text, /E2E Standalone Intake/);
+  assert.doesNotMatch(project.text, /\/admin\/assessments\/\d+/,
+    'no assessment is created from the intake');
+});
+
+test('accepting an intake advances the project process flow to the assessment stage', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, projectPath } = await createAdminProject(jar, 'E2E Stage Advance Project');
+  const intakeId = await findIntakeIdByName(jar, 'E2E Stage Advance Project');
+
+  await request(jar, 'POST', `/admin/intakes/${intakeId}/accept`, { form: {} });
+
+  const page = await getText(jar, projectPath);
+  // Intake stage complete, assessment stage now current, and the next action named.
+  assert.match(page.text, /pf-chev pf-complete/, 'the intake stage reads complete');
+  assert.match(page.text, /pf-chev pf-current/, 'a later stage becomes current');
+  assert.match(page.text, /Next step:[\s\S]{0,120}Assessment created/,
+    'the next step is to create the assessment');
+});
+
 // ── Decision packages (Phase 2) ──────────────────────────────────────────────
 async function createDecisionPackage(jar, projectId, { assessmentId = null, type = 'ato' } = {}) {
   const res = await request(jar, 'POST', `/admin/projects/${projectId}/decision-packages`, {
