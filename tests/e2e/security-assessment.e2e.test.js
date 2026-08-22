@@ -1069,6 +1069,58 @@ test('root admin can create, verify and delete organization settings (CRUD)', as
   assert.match(page.text, /Using platform default/, 'deleting the AI provider restores the platform default');
 });
 
+test('a project shows the four-stage business process flow with a derived current stage', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectPath } = await createAdminProject(jar, 'E2E Process Flow Project');
+
+  const page = await getText(jar, projectPath);
+  assert.equal(page.response.status, 200);
+
+  // Four chevrons: Intake -> Security assessment -> Decision package -> Authorized.
+  const chevrons = (page.text.match(/class="pf-chev /g) || []).length;
+  assert.equal(chevrons, 4, 'the master flow renders four stages');
+  assert.match(page.text, /Stage \d of 4/, 'the stage counter is shown');
+
+  // Exactly one stage is current, and a next step is offered.
+  const current = (page.text.match(/pf-chev pf-current/g) || []).length;
+  assert.equal(current, 1, 'exactly one stage is current');
+  assert.match(page.text, /Next step:/, 'the next action is surfaced');
+
+  // Stage checklists link back to the underlying records.
+  assert.match(page.text, /Project created/);
+  assert.match(page.text, /Assessment created/);
+});
+
+test('the project header no longer duplicates the assessment create action', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectPath, projectId } = await createAdminProject(jar, 'E2E No Dup Button Project');
+  const page = await getText(jar, projectPath);
+  // The header button is gone; creating an assessment stays with the Assessments table.
+  assert.doesNotMatch(page.text, /New Assessment/, 'the duplicate header button is removed');
+  assert.match(page.text, new RegExp(`/admin/projects/${projectId}/assessments/new`),
+    'the create action is still reachable from the assessments section');
+});
+
+test('the process flow is localized in every supported language', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectPath } = await createAdminProject(jar, 'E2E Flow i18n Project');
+  const expected = {
+    fr: ['Progression du projet', 'Évaluation de sécurité', 'Étape'],
+    es: ['Progreso del proyecto', 'Evaluación de seguridad', 'Etapa'],
+    de: ['Projektfortschritt', 'Sicherheitsbewertung', 'Phase'],
+    pt: ['Progresso do projeto', 'Avaliação de segurança', 'Etapa'],
+    it: ['Avanzamento del progetto', 'Valutazione della sicurezza', 'Fase'],
+    nl: ['Voortgang van het project', 'Beveiligingsbeoordeling', 'Fase'],
+    ja: ['プロジェクトの進捗', 'セキュリティ評価', 'ステージ']
+  };
+  for (const [lang, phrases] of Object.entries(expected)) {
+    const page = await getText(jar, `${projectPath}?lang=${lang}`);
+    for (const phrase of phrases) {
+      assert.ok(page.text.includes(phrase), `${lang} flow should render "${phrase}"`);
+    }
+  }
+});
+
 test('a custom domain is only verified when its DNS records really resolve', async () => {
   const jar = new CookieJar();
   const email = `dns.check.${Date.now()}@example.test`;
