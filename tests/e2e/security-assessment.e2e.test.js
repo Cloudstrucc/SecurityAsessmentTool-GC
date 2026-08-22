@@ -1121,6 +1121,318 @@ test('the process flow is localized in every supported language', async () => {
   }
 });
 
+test('status badges are localized rather than hardcoded English', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Status Badge Project');
+  const { assessmentPath } = await createSingleControlAssessment(jar, projectId);
+
+  const en = await getText(jar, assessmentPath);
+  assert.match(en.text, /badge bg-secondary">Draft</, 'English still reads Draft');
+
+  const expected = { fr: 'Brouillon', es: 'Borrador', de: 'Entwurf', pt: 'Rascunho',
+                     it: 'Bozza', nl: 'Concept', ja: '下書き' };
+  for (const [lang, word] of Object.entries(expected)) {
+    const page = await getText(jar, `${assessmentPath}?lang=${lang}`);
+    assert.ok(page.text.includes(word), `${lang} status badge should read "${word}"`);
+    assert.ok(!page.text.includes('badge bg-secondary">Draft<'),
+      `${lang} must not fall back to the English badge`);
+  }
+});
+
+test('a decision package exports a PDF built from the pinned version', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E DP Export Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  const dp = await createDecisionPackage(jar, projectId, { assessmentId });
+
+  const buffer = await assertPdfDownload(jar, `${dp.path}/export-pdf`, 'decision package');
+  assert.ok(buffer.length > 1500, 'the exported package has real content');
+
+  const page = await getText(jar, dp.path);
+  assert.match(page.text, /export-pdf/, 'the export action is offered on the package');
+});
+
+test('the retired assessment ATO route no longer exists', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Retired ATO Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  const res = await request(jar, 'GET', `/admin/assessments/${assessmentId}/generate-ato`, { redirect: 'manual' });
+  assert.equal(res.status, 404, 'authorization now lives only in decision packages');
+});
+
+// ── Intake acceptance ────────────────────────────────────────────────────────
+async function submitClientIntake(jar, projectName) {
+  const res = await request(jar, 'POST', '/intake', {
+    form: {
+      projectName,
+      projectDescription: 'A protected B system submitted directly by a client, with no project yet.',
+      department: 'E2E Department', branch: 'Security Testing', appType: 'internal',
+      confidentialityLevel: 'protected-b', integrityLevel: 'medium', availabilityLevel: 'medium',
+      hostingType: 'azure', ownerName: 'E2E Client', ownerEmail: USERS.client.email
+    },
+    redirect: 'follow'
+  });
+  assert.equal(res.status, 200);
+  return res;
+}
+
+/** Find an intake row id by the project name it was submitted under. */
+async function findIntakeIdByName(adminJar, projectName) {
+  const list = await getText(adminJar, '/admin/intakes');
+  const rows = list.text.split(/<tr/).filter(r => r.includes(projectName));
+  assert.ok(rows.length, `intake for "${projectName}" should be listed`);
+  const id = rows[0].match(/\/admin\/intakes\/(\d+)/);
+  assert.ok(id, 'intake row should link to its record');
+  return id[1];
+}
+
+test('accepting an intake that already has a project does not create another project or assessment', async () => {
+  const jar = await loginAdminWithTotp();
+  // Creating a project as an assessor also creates its linked intake.
+  const { projectId } = await createAdminProject(jar, 'E2E Accept Existing Project');
+  const before = await getText(jar, '/admin/projects');
+  const projectsBefore = (before.text.match(/\/admin\/projects\/\d+/g) || []).length;
+
+  const intakeId = await findIntakeIdByName(jar, 'E2E Accept Existing Project');
+  const accept = await request(jar, 'POST', `/admin/intakes/${intakeId}/accept`, { form: {} });
+
+  // It returns to the EXISTING project — no new project is spun up.
+  assert.equal(accept.status, 302);
+  assert.equal(accept.headers.get('location'), `/admin/projects/${projectId}`);
+
+  const after = await getText(jar, '/admin/projects');
+  const projectsAfter = (after.text.match(/\/admin\/projects\/\d+/g) || []).length;
+  assert.equal(projectsAfter, projectsBefore, 'no additional project is created');
+
+  // No assessment is ever created by accepting an intake.
+  const project = await getText(jar, `/admin/projects/${projectId}`);
+  assert.doesNotMatch(project.text, /\/admin\/assessments\/\d+/,
+    'accepting an intake must not create an assessment');
+
+  // The intake itself is now accepted.
+  const intake = await getText(jar, `/admin/intakes/${intakeId}`);
+  assert.match(intake.text, /Accepted|accepted/);
+});
+
+test('accepting a standalone intake creates a project (but no assessment) and opens it', async () => {
+  const clientJar = await loginClientWithTotp();
+  await submitClientIntake(clientJar, 'E2E Standalone Intake');
+
+  const jar = await loginAdminWithTotp();
+  const intakeId = await findIntakeIdByName(jar, 'E2E Standalone Intake');
+
+  const accept = await request(jar, 'POST', `/admin/intakes/${intakeId}/accept`, { form: {} });
+  assert.equal(accept.status, 302);
+  const loc = accept.headers.get('location');
+  // A project is created and we are taken to it — never to an assessment.
+  assert.match(loc, /^\/admin\/projects\/\d+$/, 'acceptance lands on the new project');
+
+  const project = await getText(jar, loc);
+  assert.equal(project.response.status, 200);
+  assert.match(project.text, /E2E Standalone Intake/);
+  assert.doesNotMatch(project.text, /\/admin\/assessments\/\d+/,
+    'no assessment is created from the intake');
+});
+
+test('accepting an intake advances the project process flow to the assessment stage', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, projectPath } = await createAdminProject(jar, 'E2E Stage Advance Project');
+  const intakeId = await findIntakeIdByName(jar, 'E2E Stage Advance Project');
+
+  await request(jar, 'POST', `/admin/intakes/${intakeId}/accept`, { form: {} });
+
+  const page = await getText(jar, projectPath);
+  // Intake stage complete, assessment stage now current, and the next action named.
+  assert.match(page.text, /pf-chev pf-complete/, 'the intake stage reads complete');
+  assert.match(page.text, /pf-chev pf-current/, 'a later stage becomes current');
+  assert.match(page.text, /Next step:[\s\S]{0,120}Assessment created/,
+    'the next step is to create the assessment');
+});
+
+// ── Decision packages (Phase 2) ──────────────────────────────────────────────
+async function createDecisionPackage(jar, projectId, { assessmentId = null, type = 'ato' } = {}) {
+  const res = await request(jar, 'POST', `/admin/projects/${projectId}/decision-packages`, {
+    form: { assessment_id: assessmentId || '', decision_type: type }
+  });
+  assert.equal(res.status, 302);
+  const loc = res.headers.get('location');
+  assert.match(loc, /^\/admin\/decision-packages\/\d+$/, 'creation redirects to the new package');
+  return { path: loc, id: loc.match(/(\d+)$/)[1] };
+}
+
+test('creating a decision package pins an immutable assessment version and captures a snapshot', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Decision Pin Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  const dp = await createDecisionPackage(jar, projectId, { assessmentId, type: 'iato' });
+
+  const page = await getText(jar, dp.path);
+  assert.equal(page.response.status, 200);
+  // The package records the exact version it authorized and links to that snapshot.
+  assert.match(page.text, /Authorized assessment version/);
+  assert.match(page.text, new RegExp(`/admin/assessments/${assessmentId}\\?version=\\d+`),
+    'links to the pinned read-only version');
+  // Its own five-stage flow renders.
+  assert.equal((page.text.match(/class="pf-chev /g) || []).length, 5);
+
+  // The pinned version is a real, immutable snapshot in the assessment's history.
+  const history = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(history.text, /Pinned for decision package/);
+});
+
+test('the decision package state machine rejects invalid jumps and allows the full path', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Decision States Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  const dp = await createDecisionPackage(jar, projectId, { assessmentId });
+
+  // draft -> issued is not a legal transition.
+  await request(jar, 'POST', `${dp.path}/transition`, { form: { state: 'issued' } });
+  let page = await getText(jar, dp.path);
+  assert.doesNotMatch(page.text, /badge bg-dark ms-1">Issued/, 'an illegal jump must not take effect');
+
+  // The legal path does work, one step at a time.
+  for (const state of ['in-review', 'recommended', 'decided', 'issued']) {
+    await request(jar, 'POST', `${dp.path}/transition`, { form: { state } });
+  }
+  page = await getText(jar, dp.path);
+  assert.match(page.text, /badge bg-dark ms-1">Issued/, 'the package reaches Issued via legal steps');
+});
+
+test('an issued decision package cannot be deleted', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Decision Delete Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  const dp = await createDecisionPackage(jar, projectId, { assessmentId });
+  for (const state of ['in-review', 'recommended', 'decided', 'issued']) {
+    await request(jar, 'POST', `${dp.path}/transition`, { form: { state } });
+  }
+  const del = await request(jar, 'POST', `${dp.path}/delete`, { form: {} });
+  assert.equal(del.status, 302);
+  const still = await request(jar, 'GET', dp.path, { redirect: 'manual' });
+  assert.equal(still.status, 200, 'an issued package survives a delete attempt');
+});
+
+test('an assessment is locked while a decision is under review and released once issued', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Lock Project');
+  const { assessmentId, assessmentPath } = await createSingleControlAssessment(jar, projectId);
+  const dp = await createDecisionPackage(jar, projectId, { assessmentId });
+
+  await request(jar, 'POST', `${dp.path}/transition`, { form: { state: 'in-review' } });
+  let page = await getText(jar, assessmentPath);
+  assert.match(page.text, /Assessment locked/, 'locked while the decision is under review');
+
+  for (const state of ['recommended', 'decided', 'issued']) {
+    await request(jar, 'POST', `${dp.path}/transition`, { form: { state } });
+  }
+  page = await getText(jar, assessmentPath);
+  assert.doesNotMatch(page.text, /Assessment locked/, 'the lock is released once the decision is issued');
+});
+
+test('authorization has moved off the assessment into decision packages', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, projectPath } = await createAdminProject(jar, 'E2E ATO Moved Project');
+  const { assessmentPath } = await createSingleControlAssessment(jar, projectId);
+
+  const assessment = await getText(jar, assessmentPath);
+  assert.doesNotMatch(assessment.text, /generate-ato/, 'the Generate ATO action is gone');
+  assert.doesNotMatch(assessment.text, /Related ATO\/iATO/, 'the ATO pickers are gone');
+
+  const project = await getText(jar, projectPath);
+  assert.match(project.text, /Decision packages/, 'the project owns the decision package section');
+});
+
+// ── Collaboration (Phase 3) ──────────────────────────────────────────────────
+test('collaboration threads roll up to the project and filter by record', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Collab Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+
+  await request(jar, 'POST', `/admin/projects/${projectId}/collab`, {
+    json: { body: 'Project level note', entityType: 'project' }
+  });
+  await request(jar, 'POST', `/admin/projects/${projectId}/collab`, {
+    json: { body: 'Assessment level note', entityType: 'assessment', entityId: Number(assessmentId) }
+  });
+
+  const all = await (await request(jar, 'GET', `/admin/projects/${projectId}/collab`)).json();
+  assert.equal(all.success, true);
+  assert.equal(all.messages.length, 2, 'the project thread rolls up every record');
+
+  const scoped = await (await request(jar, 'GET',
+    `/admin/projects/${projectId}/collab?entityType=assessment&entityId=${assessmentId}`)).json();
+  assert.equal(scoped.messages.length, 1, 'a record thread shows only its own messages');
+  assert.match(scoped.messages[0].body, /Assessment level note/);
+});
+
+test('collaboration mentions resolve only project members and project records', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Mentions Project');
+  await createSingleControlAssessment(jar, projectId);
+
+  const listed = await (await request(jar, 'GET', `/admin/projects/${projectId}/collab`)).json();
+  const record = (listed.records || [])[0];
+  assert.ok(record, 'the project offers at least one mentionable record');
+
+  const posted = await (await request(jar, 'POST', `/admin/projects/${projectId}/collab`, {
+    json: { body: `@${record.label} and @definitely-not-a-member and @DP-9999` }
+  })).json();
+
+  const labels = posted.message.mentions.records.map(r => r.label);
+  assert.ok(labels.includes(record.label), "the project's own record resolves");
+  assert.ok(!labels.includes('DP-9999'), 'a record outside the project never resolves');
+  assert.ok(!posted.message.mentions.users.some(u => /definitely-not-a-member/.test(u.email || '')),
+    'a non-member is never resolved into a mention');
+});
+
+test('collaboration can be turned off per project and blocks posting when off', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, projectPath } = await createAdminProject(jar, 'E2E Collab Toggle Project');
+
+  await request(jar, 'POST', `/admin/projects/${projectId}/collaboration-toggle`, { form: {} });
+  const blocked = await request(jar, 'POST', `/admin/projects/${projectId}/collab`, {
+    json: { body: 'should not be stored' }
+  });
+  assert.equal(blocked.status, 403, 'posting is refused while collaboration is off');
+
+  const page = await getText(jar, projectPath);
+  assert.match(page.text, /Collaboration is turned off/);
+
+  // Turning it back on restores posting.
+  await request(jar, 'POST', `/admin/projects/${projectId}/collaboration-toggle`, { form: {} });
+  const ok = await request(jar, 'POST', `/admin/projects/${projectId}/collab`, { json: { body: 'back on' } });
+  assert.equal(ok.status, 200);
+});
+
+test('decision packages and collaboration are localized in every supported language', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, projectPath } = await createAdminProject(jar, 'E2E DP i18n Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  const dp = await createDecisionPackage(jar, projectId, { assessmentId });
+
+  const expected = {
+    fr: ['Dossiers de décision', 'Collaboration'],
+    es: ['Expedientes de decisión', 'Colaboración'],
+    de: ['Entscheidungsdossiers', 'Zusammenarbeit'],
+    pt: ['Pacotes de decisão', 'Colaboração'],
+    it: ['Fascicoli di decisione', 'Collaborazione'],
+    nl: ['Besluitdossiers', 'Samenwerking'],
+    ja: ['決定パッケージ', 'コラボレーション']
+  };
+  for (const [lang, phrases] of Object.entries(expected)) {
+    const page = await getText(jar, `${projectPath}?lang=${lang}`);
+    for (const phrase of phrases) {
+      assert.ok(page.text.includes(phrase), `${lang} project page should render "${phrase}"`);
+    }
+  }
+  // The package page localizes its pinned-version panel too.
+  // NB: assert on apostrophe-free copy — Handlebars escapes ' to &#x27; in the HTML.
+  const fr = await getText(jar, `${dp.path}?lang=fr`);
+  assert.ok(fr.text.includes('Type de décision'), 'fr decision package page is localized');
+  assert.ok(fr.text.includes('Autorité approbatrice'), 'fr decision package fields are localized');
+});
+
 test('a custom domain is only verified when its DNS records really resolve', async () => {
   const jar = new CookieJar();
   const email = `dns.check.${Date.now()}@example.test`;

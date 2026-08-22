@@ -27,8 +27,13 @@
       <button type="submit" class="btn btn-outline-info"><i class="bi bi-eye me-1"></i>Mark In Review</button>
     </form>
     {{/if}}
+    {{#unless (eq intake.status 'accepted')}}
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#acceptIntakeModal">
+      <i class="bi bi-check2-circle me-1"></i>{{t 'ik.accept'}}
+    </button>
+    {{/unless}}
     {{#if intake.project_id}}
-    <a href="/admin/projects/{{intake.project_id}}" class="btn btn-success"><i class="bi bi-folder me-1"></i>View Project</a>
+    <a href="/admin/projects/{{intake.project_id}}" class="btn btn-outline-success"><i class="bi bi-folder me-1"></i>{{t 'ik.viewProject'}}</a>
     {{/if}}
   </div>
 </div>
@@ -398,7 +403,7 @@
       <div class="card mb-3">
         <div class="card-header bg-light" style="color:var(--gc-text);"><i class="bi bi-pencil-square me-2"></i>Assessor Context</div>
         <div class="card-body">
-          <form method="POST" action="/admin/intakes/{{intake.id}}/create-project" id="createProjectForm">
+          <form method="POST" action="/admin/intakes/{{intake.id}}/accept" id="createProjectForm">
             <p class="small text-muted mb-3">Add context or adjust details before creating the project and assessment. These overrides feed into the recommendation engine.</p>
 
             <div class="mb-3">
@@ -522,8 +527,8 @@
               </div>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100" onclick="return confirm('This will create a new Project and Assessment from this intake. Continue?')">
-              <i class="bi bi-plus-circle me-1"></i>Create Project & Assessment
+            <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#acceptIntakeModal">
+              <i class="bi bi-check2-circle me-1"></i>{{t 'ik.accept'}}
             </button>
           </form>
         </div>
@@ -842,3 +847,31 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
+
+{{!-- Accept confirmation. The copy differs depending on whether a project already exists. --}}
+<div class="modal fade" id="acceptIntakeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-check2-circle me-2"></i>{{t 'ik.acceptTitle'}}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t 'ik.cancel'}}"></button>
+      </div>
+      <div class="modal-body">
+        {{#if intake.project_id}}
+          <p class="mb-2">{{t 'ik.acceptExisting'}}</p>
+        {{else}}
+          <p class="mb-2">{{t 'ik.acceptNew'}}</p>
+        {{/if}}
+        <div class="alert alert-info mb-0">
+          <i class="bi bi-info-circle me-1"></i>{{t 'ik.noAssessment'}}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{t 'ik.cancel'}}</button>
+        <button type="submit" form="createProjectForm" class="btn btn-success">
+          <i class="bi bi-check2-circle me-1"></i>{{t 'ik.confirm'}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

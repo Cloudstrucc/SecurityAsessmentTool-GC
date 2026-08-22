@@ -1,0 +1,146 @@
+{{!--
+  Collaboration panel — a floating discussion thread for the record in view.
+  Driven by window.CollabConfig = { projectId, entityType, entityId, canPost }.
+  All copy comes from co.* i18n keys. Content is never sent to the AI provider.
+--}}
+<button type="button" class="cb-launch" id="cbLaunch" aria-label="{{t 'co.thread'}}">
+  <i class="bi bi-chat-dots" aria-hidden="true"></i><span>{{t 'co.title'}}</span>
+  <span class="cb-badge" id="cbBadge" hidden>0</span>
+</button>
+
+<div class="cb-scrim" id="cbScrim" aria-hidden="true"></div>
+<aside class="cb-panel" id="cbPanel" role="dialog" aria-labelledby="cbTitle" aria-hidden="true">
+  <div class="cb-head">
+    <div class="ico" aria-hidden="true"><i class="bi bi-chat-dots"></i></div>
+    <div class="flex-grow-1">
+      <h3 id="cbTitle">{{t 'co.title'}}</h3>
+      <p id="cbSub">{{t 'co.thread'}}</p>
+    </div>
+    <button type="button" class="x" id="cbClose" aria-label="Close">&times;</button>
+  </div>
+  <div class="cb-msgs" id="cbMsgs"></div>
+  <div class="cb-foot">
+    <div class="cb-mentions" id="cbMentions" hidden></div>
+    <div class="cb-compose">
+      <textarea id="cbInput" rows="1" placeholder="{{t 'co.placeholder'}}"></textarea>
+      <button type="button" class="send" id="cbSend" aria-label="{{t 'co.send'}}" disabled><i class="bi bi-send"></i></button>
+    </div>
+    <p class="cb-privacy"><i class="bi bi-shield-lock me-1"></i>{{t 'co.privacyNote'}}</p>
+  </div>
+</aside>
+
+<style>
+  .cb-launch{position:fixed;right:22px;bottom:86px;z-index:1200;display:inline-flex;align-items:center;gap:9px;
+    background:#0f766e;color:#fff;border:none;border-radius:999px;padding:11px 18px;font-weight:700;font-size:.86rem;
+    box-shadow:0 6px 20px rgba(15,118,110,.35);cursor:pointer}
+  .cb-launch:hover{filter:brightness(1.06)}
+  .cb-badge{background:#fff;color:#0f766e;border-radius:999px;padding:1px 7px;font-size:.72rem;font-weight:800}
+  .cb-scrim{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:1290;opacity:0;visibility:hidden;transition:opacity .2s}
+  .cb-scrim.open{opacity:1;visibility:visible}
+  .cb-panel{position:fixed;top:0;right:0;height:100vh;height:100dvh;width:min(420px,96vw);z-index:1300;background:#fff;
+    box-sizing:border-box;border-left:1px solid #e5e7eb;box-shadow:-14px 0 40px rgba(15,23,42,.18);
+    display:flex;flex-direction:column;transform:translateX(102%);transition:transform .22s ease}
+  .cb-panel.open{transform:none}
+  .cb-head{background:linear-gradient(120deg,#0f766e,#115e59);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px}
+  .cb-head .ico{width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:17px;flex:0 0 auto}
+  .cb-head h3{margin:0;font-size:15px;font-weight:750;color:#fff !important}
+  .cb-head p{margin:1px 0 0;font-size:11.5px;color:#d7f0ec}
+  .cb-head .x{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1}
+  .cb-msgs{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#f7f9f9}
+  .cb-msg{background:#fff;border:1px solid #e5e7eb;border-radius:11px;padding:9px 12px;font-size:13.5px;line-height:1.45;
+    word-wrap:break-word;overflow-wrap:anywhere}
+  .cb-msg .who{font-weight:700;font-size:12px;color:#0f766e}
+  .cb-msg .when{font-size:11px;color:#8b95a1;margin-left:6px}
+  .cb-msg .where{font-size:11px;color:#8b95a1}
+  .cb-msg .mention{background:#e0f2f1;color:#0f766e;border-radius:5px;padding:0 4px;font-weight:600}
+  .cb-empty{color:#8b95a1;font-size:13px;text-align:center;padding:24px 8px}
+  .cb-foot{border-top:1px solid #eee;padding:10px;background:#fff}
+  .cb-compose{display:flex;gap:8px;align-items:flex-end}
+  .cb-compose textarea{flex:1;resize:none;border:1.5px solid #e5e7eb;border-radius:10px;padding:9px 11px;font-size:13.5px;font-family:inherit;max-height:120px}
+  .cb-compose textarea:focus{outline:none;border-color:#14b8a6;box-shadow:0 0 0 3px rgba(20,184,166,.15)}
+  .cb-compose .send{background:#0f766e;color:#fff;border:none;border-radius:10px;width:42px;height:42px;font-size:18px;cursor:pointer;flex:0 0 auto}
+  .cb-compose .send[disabled]{opacity:.5;cursor:not-allowed}
+  .cb-privacy{margin:7px 0 0;font-size:11px;color:#7b8794}
+  .cb-mentions{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px}
+  .cb-mentions button{background:#e0f2f1;color:#0f766e;border:1px solid #b2dfdb;border-radius:6px;padding:2px 8px;font-size:11.5px;cursor:pointer}
+  @media (max-width:640px){
+    .cb-panel{width:100vw;max-width:100vw;border-left:none}
+    .cb-launch{right:16px;bottom:78px;padding:0;width:48px;height:48px;justify-content:center;border-radius:50%}
+    .cb-launch span:not(.cb-badge){display:none}
+  }
+  body.cb-locked{overflow:hidden}
+</style>
+
+<script>
+(function(){
+  function cfg(){ return window.CollabConfig || {}; }
+  var panel, scrim, msgs, input, sendBtn, launch, closeBtn, badge, mentionBar, loaded=false, people=[], records=[];
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(m){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m];}); }
+  function el(){ panel=document.getElementById('cbPanel');scrim=document.getElementById('cbScrim');msgs=document.getElementById('cbMsgs');
+    input=document.getElementById('cbInput');sendBtn=document.getElementById('cbSend');launch=document.getElementById('cbLaunch');
+    closeBtn=document.getElementById('cbClose');badge=document.getElementById('cbBadge');mentionBar=document.getElementById('cbMentions'); }
+  function open(){ panel.classList.add('open');panel.setAttribute('aria-hidden','false');
+    scrim.classList.add('open');document.body.classList.add('cb-locked');
+    if(!loaded) load(); input.focus(); }
+  function close(){ panel.classList.remove('open');panel.setAttribute('aria-hidden','true');
+    scrim.classList.remove('open');document.body.classList.remove('cb-locked'); }
+  function base(){ return '/admin/projects/'+cfg().projectId+'/collab'; }
+  function render(list){
+    msgs.innerHTML='';
+    if(!list.length){ var e=document.createElement('div'); e.className='cb-empty'; e.textContent=cfg().emptyText||'No messages yet.'; msgs.appendChild(e); return; }
+    list.forEach(function(m){
+      var d=document.createElement('div'); d.className='cb-msg';
+      var body=esc(m.body).replace(/@([\w.@+-]+)/g,'<span class="mention">@$1</span>');
+      var where = (m.entity_type && m.entity_type!=='project') ? ' <span class="where">· '+esc(m.entity_type.replace('_',' '))+(m.entity_id?(' #'+m.entity_id):'')+'</span>' : '';
+      d.innerHTML='<div><span class="who">'+esc(m.user_name)+'</span><span class="when">'+esc((m.created_at||'').replace('T',' ').slice(0,16))+'</span>'+where+'</div><div>'+body+'</div>';
+      msgs.appendChild(d);
+    });
+    msgs.scrollTop=msgs.scrollHeight;
+  }
+  function renderMentions(){
+    if(!mentionBar) return;
+    var items=[].concat(people.slice(0,6).map(function(p){return {t:'@'+(p.email? p.email.split('@')[0] : p.name), title:p.name};}),
+                        records.slice(0,4).map(function(r){return {t:'@'+r.label, title:r.label};}));
+    if(!items.length){ mentionBar.hidden=true; return; }
+    mentionBar.hidden=false; mentionBar.innerHTML='';
+    items.forEach(function(it){ var b=document.createElement('button'); b.type='button'; b.textContent=it.t; b.title=it.title;
+      b.onclick=function(){ input.value=(input.value?input.value+' ':'')+it.t+' '; input.focus(); sendBtn.disabled=!input.value.trim(); };
+      mentionBar.appendChild(b); });
+  }
+  function load(){
+    var c=cfg(); var q=[];
+    if(c.entityType) q.push('entityType='+encodeURIComponent(c.entityType));
+    if(c.entityId) q.push('entityId='+encodeURIComponent(c.entityId));
+    fetch(base()+(q.length?('?'+q.join('&')):''))
+      .then(function(r){return r.json();})
+      .then(function(d){ if(!d.success) throw new Error(d.error||'error');
+        loaded=true; people=d.members||[]; records=d.records||[]; render(d.messages||[]); renderMentions();
+        if(badge){ badge.hidden=!(d.messages||[]).length; badge.textContent=(d.messages||[]).length; } })
+      .catch(function(){ msgs.innerHTML='<div class="cb-empty">—</div>'; });
+  }
+  function send(){
+    var text=(input.value||'').trim(); if(!text) return;
+    var c=cfg(); sendBtn.disabled=true;
+    fetch(base(),{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({body:text,entityType:c.entityType||'project',entityId:c.entityId||null})})
+      .then(function(r){return r.json();})
+      .then(function(d){ if(!d.success) throw new Error(d.error||'error');
+        input.value=''; input.style.height='auto'; load(); })
+      .catch(function(){ sendBtn.disabled=false; });
+  }
+  function boot(){
+    if(!document.getElementById('cbPanel')) return;
+    el();
+    if(!cfg().projectId){ launch.style.display='none'; return; }
+    launch.addEventListener('click',open); closeBtn.addEventListener('click',close); scrim.addEventListener('click',close);
+    input.addEventListener('input',function(){ sendBtn.disabled=!input.value.trim();
+      input.style.height='auto'; input.style.height=Math.min(120,input.scrollHeight)+'px'; });
+    input.addEventListener('keydown',function(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); if(input.value.trim()) send(); } });
+    sendBtn.addEventListener('click',send);
+    document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&panel.classList.contains('open')) close(); });
+    load();
+  }
+  document.addEventListener('DOMContentLoaded',boot);
+  window.Collab={open:open,close:close,reload:load};
+})();
+</script>

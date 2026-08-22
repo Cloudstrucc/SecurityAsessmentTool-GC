@@ -41,6 +41,11 @@ async function initialize() {
   try {
     await initDatabase();
     console.log('Database initialized');
+    // Fold any legacy ato_records into decision_packages (idempotent, one-time).
+    try {
+      const migrated = require('./config/decision-packages').migrateLegacyAtoRecords();
+      if (migrated > 0) console.log(`Migration: moved ${migrated} legacy ATO record(s) into decision packages`);
+    } catch (e) { console.error('Decision package migration skipped:', e.message); }
     await initI18n();
     console.log('i18n initialized');
     emailService.initialize();
@@ -95,6 +100,15 @@ app.engine('hbs', engine({
     ifLang: function(lang, options) {
       return (options.data?.root?.lang || DEFAULT_LANG) === lang ? options.fn(this) : options.inverse(this);
     },
+    // Maps a decision-package state to its i18n key so states render localized.
+    dpStateKey: function(state) {
+      const map = {
+        'draft': 'dp.stateDraft', 'in-review': 'dp.stateInReview', 'recommended': 'dp.stateRecommended',
+        'decided': 'dp.stateDecided', 'issued': 'dp.stateIssued', 'denied': 'dp.stateDenied',
+        'expired': 'dp.stateExpired', 'revoked': 'dp.stateRevoked'
+      };
+      return map[String(state || 'draft')] || 'dp.stateDraft';
+    },
     json: obj => JSON.stringify(obj),
     formatDate: function(date) {
       if (!date) return '';
@@ -107,26 +121,35 @@ app.engine('hbs', engine({
     currentYear: () => new Date().getFullYear(),
     inc: v => parseInt(v) + 1,
     percentage: (a, b) => b > 0 ? Math.round((a / b) * 100) : 0,
-    statusBadge: function(status) {
-      const badges = {
-        'draft': '<span class="badge bg-secondary">Draft</span>',
-        'in-progress': '<span class="badge bg-info">In Progress</span>',
-        'evidence-gathering': '<span class="badge bg-warning text-dark">Evidence Gathering</span>',
-        'submitted': '<span class="badge bg-primary">Submitted</span>',
-        'under-review': '<span class="badge bg-info">Under Review</span>',
-        'audit': '<span class="badge bg-warning text-dark">Audit</span>',
-        'completed': '<span class="badge bg-success">Completed</span>',
-        'met': '<span class="badge bg-success">Met</span>',
-        'partially-met': '<span class="badge bg-warning text-dark">Partially Met</span>',
-        'not-met': '<span class="badge bg-danger">Not Met</span>',
-        'pending': '<span class="badge bg-secondary">Pending</span>',
-        'ato': '<span class="badge bg-success">ATO Granted</span>',
-        'iato': '<span class="badge bg-warning text-dark">iATO Granted</span>',
-        'open': '<span class="badge bg-danger">Open</span>',
-        'closed': '<span class="badge bg-success">Closed</span>',
-        'archived': '<span class="badge bg-dark"><i class="bi bi-archive me-1"></i>Archived</span>'
+    // Localized status badge. Falls back to the raw status when a key is missing so
+    // an unrecognised value still renders something meaningful.
+    statusBadge: function(status, options) {
+      const req = options && options.data && options.data.root ? options.data.root.req : null;
+      const label = (key, fallback) => (req && req.t) ? req.t(key) : fallback;
+      const meta = {
+        'draft': ['bg-secondary', 'st.draft', 'Draft'],
+        'in-progress': ['bg-info', 'st.in-progress', 'In Progress'],
+        'evidence-gathering': ['bg-warning text-dark', 'st.evidence-gathering', 'Evidence Gathering'],
+        'submitted': ['bg-primary', 'st.submitted', 'Submitted'],
+        'under-review': ['bg-info', 'st.under-review', 'Under Review'],
+        'audit': ['bg-warning text-dark', 'st.audit', 'Audit'],
+        'completed': ['bg-success', 'st.completed', 'Completed'],
+        'met': ['bg-success', 'st.met', 'Met'],
+        'partially-met': ['bg-warning text-dark', 'st.partially-met', 'Partially Met'],
+        'not-met': ['bg-danger', 'st.not-met', 'Not Met'],
+        'pending': ['bg-secondary', 'st.pending', 'Pending'],
+        'ato': ['bg-success', 'st.ato', 'ATO Granted'],
+        'iato': ['bg-warning text-dark', 'st.iato', 'iATO Granted'],
+        'open': ['bg-danger', 'st.open', 'Open'],
+        'closed': ['bg-success', 'st.closed', 'Closed'],
+        'archived': ['bg-dark', 'st.archived', 'Archived']
       };
-      return badges[status] || `<span class="badge bg-secondary">${status || 'Unknown'}</span>`;
+      const hit = meta[status];
+      if (!hit) {
+        return `<span class="badge bg-secondary">${status || label('st.unknown', 'Unknown')}</span>`;
+      }
+      const icon = status === 'archived' ? '<i class="bi bi-archive me-1"></i>' : '';
+      return `<span class="badge ${hit[0]}">${icon}${label(hit[1], hit[2])}</span>`;
     },
     controlResultIcon: function(result) {
       const icons = {

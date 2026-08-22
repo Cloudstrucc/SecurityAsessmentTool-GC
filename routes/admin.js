@@ -4,6 +4,8 @@ const { v4: uuidv4 } = require('uuid');
 const { run, runBatch, all, get } = require('../models/database');
 const { passport, ensureAuthenticated, mfaEnabled } = require('../config/passport');
 const processFlows = require('../config/process-flows');
+const decisionPackages = require('../config/decision-packages');
+const collaboration = require('../config/collaboration');
 const { determineProfile, detectComplexity, categorizationLabel, categorizationFullLabel, SECURITY_PROFILES, CONFIDENTIALITY_LEVELS, INTEGRITY_LEVELS, AVAILABILITY_LEVELS } = require('../config/security-profiles');
 const { getRecommendedControls, assessSAARequirement, groupByFamily, COMMON_TECHNOLOGIES, CONTROL_FAMILIES, CONTROLS, GC_WEB_GUIDANCE, computeRiskLevel } = require('../config/itsg33-controls');
 const {
@@ -59,7 +61,7 @@ router.use((req, res, next) => {
   if (p === '/assessments' || p === '/intakes') return res.redirect('/admin/dashboard');
   // Per-action RBAC on an assessment: assessor-only actions are blocked even for
   // the assigned practitioner. They keep view, report downloads and comments.
-  if (/^\/assessments\/\d+\/(tailoring|send-invite|assign|start-audit|audit-control|complete-audit|checklist|poam|reactivate|generate-ato|delete|manage-controls|add-controls|remove-control|update-control|ai\/)/.test(p)) {
+  if (/^\/assessments\/\d+\/(tailoring|send-invite|assign|start-audit|audit-control|complete-audit|checklist|poam|reactivate|delete|manage-controls|add-controls|remove-control|update-control|ai\/)/.test(p)) {
     return deny('Only an assessor can perform that action.');
   }
   // Scope assessment/intake detail to the practitioner's own assignments.
@@ -574,6 +576,14 @@ function ensureProjectIntake(project, createdBy) {
       branch: project.branch
     }
   });
+}
+
+/** Tenant settings for the signed-in user (used for the collaboration kill-switch). */
+function orgSettingsFor(req) {
+  try {
+    const orgId = req.user && req.user.organization_id;
+    return orgId ? require('../config/org-settings').getSettings(orgId) : null;
+  } catch (e) { return null; }
 }
 
 function getAssignableUsers() {
@@ -1262,11 +1272,17 @@ router.get('/projects/:id', ensureAuthenticated, (req, res) => {
 
   // Master business-process flow (Intake -> Assessment -> Decision -> Authorized),
   // derived from the project's own records so it can never drift.
-  const projectFlow = processFlows.projectFlow({ project, intakes, assessments, decisions: atoRecords });
+  const decisionList = decisionPackages.listForProject(project.id);
+  const orgSettings = orgSettingsFor(req);
+  const collabEnabled = collaboration.isEnabled(project, orgSettings);
+  const projectFlow = processFlows.projectFlow({ project, intakes, assessments, decisions: decisionList });
 
   res.render('admin/project-detail', {
     title: project.name, isAdmin: true, isProjects: true,
     admin: req.user, project, assessments, intakes, projectFlow,
+    decisionPackages: decisionList, collabEnabled,
+    collabMessages: collabEnabled ? collaboration.listMessages(project.id).slice(-8) : [],
+    collabCount: collabEnabled ? collaboration.countMessages(project.id) : 0,
     intakeAssignments, assessmentAssignments, documents, branding, atoRecords, projectPoamItems,
     nonDraftAssessments,
     hasNonDraftAssessments: nonDraftAssessments.length > 0,
@@ -2057,6 +2073,228 @@ router.get('/assessments/:id/versions/:version/summary', ensureAuthenticated, (r
   }
 });
 
+// ── COLLABORATION (project-scoped discussion; never sent to the AI provider) ──
+function collabGuard(req, res) {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
+  if (!project) { res.status(404).json({ error: 'Project not found' }); return null; }
+  if (!collaboration.isEnabled(project, orgSettingsFor(req))) {
+    res.status(403).json({ error: 'Collaboration is turned off for this project.' });
+    return null;
+  }
+  return project;
+}
+
+router.get('/projects/:projectId/collab', ensureAuthenticated, (req, res) => {
+  const project = collabGuard(req, res); if (!project) return;
+  const entityType = req.query.entityType || null;
+  const entityId = req.query.entityId ? parseInt(req.query.entityId, 10) : null;
+  res.json({
+    success: true,
+    messages: collaboration.listMessages(project.id, { entityType, entityId }),
+    members: collaboration.projectMembers(project.id).map(m => ({ id: m.id, name: m.name, email: m.email })),
+    records: collaboration.projectRecords(project.id)
+  });
+});
+
+router.post('/projects/:projectId/collab', ensureAuthenticated, express.json(), (req, res) => {
+  const project = collabGuard(req, res); if (!project) return;
+  const msg = collaboration.postMessage({
+    projectId: project.id,
+    entityType: req.body.entityType || 'project',
+    entityId: req.body.entityId || null,
+    user: req.user,
+    body: req.body.body
+  });
+  if (!msg) return res.status(400).json({ error: 'Message cannot be empty.' });
+  let mentions = { users: [], records: [] };
+  try { mentions = JSON.parse(msg.mentions_json || '{}'); } catch (e) { /* ignore */ }
+  res.json({ success: true, message: Object.assign({}, msg, { mentions }) });
+});
+
+router.post('/projects/:projectId/collab/:id/delete', ensureAuthenticated, express.json(), (req, res) => {
+  const project = collabGuard(req, res); if (!project) return;
+  collaboration.deleteMessage(parseInt(req.params.id, 10), project.id);
+  res.json({ success: true });
+});
+
+router.post('/projects/:projectId/collaboration-toggle', ensureAuthenticated, (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+  const on = Number(project.collaboration_enabled) === 1 || project.collaboration_enabled == null ? 0 : 1;
+  run('UPDATE projects SET collaboration_enabled = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [on, project.id]);
+  req.flash('success', on ? 'Collaboration turned on for this project.' : 'Collaboration turned off for this project.');
+  res.redirect(`/admin/projects/${project.id}`);
+});
+
+// ── DECISION PACKAGES (authorization decisions) ───────────────────────────────
+// Creating a package PINS the assessment to an immutable version snapshot, and
+// captures POA&M + a hashed document manifest, so the authorization record can
+// always be proven against exactly what was assessed.
+router.post('/projects/:projectId/decision-packages', ensureAuthenticated, (req, res) => {
+  try {
+    const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
+    if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+
+    const assessmentId = req.body.assessment_id ? parseInt(req.body.assessment_id, 10) : null;
+    const assessment = assessmentId
+      ? get('SELECT * FROM assessments WHERE id = ? AND project_id = ?', [assessmentId, project.id])
+      : null;
+
+    // Pin an immutable version of the assessment being authorized.
+    let versionId = null, versionNumber = null;
+    if (assessment) {
+      const v = createAssessmentVersion(assessment.id, {
+        label: 'Pinned for decision package',
+        summary: 'Immutable snapshot captured for an authorization decision',
+        user: req.user
+      });
+      versionNumber = v;
+      const row = get('SELECT id FROM assessment_versions WHERE assessment_id = ? AND version = ?', [assessment.id, v]);
+      versionId = row ? row.id : null;
+    }
+
+    const decisionType = decisionPackages.DECISION_TYPES.includes(req.body.decision_type)
+      ? req.body.decision_type : 'ato';
+    const extra = decisionPackages.buildSnapshotExtra(project.id, assessment ? assessment.id : null);
+
+    const newId = run(`INSERT INTO decision_packages
+         (project_id, assessment_id, assessment_version_id, assessment_version, reference, title,
+          decision_type, state, authorizing_official, assessor, expires_at, snapshot_extra, created_by)
+         VALUES (?,?,?,?,?,?,?,'draft',?,?,?,?,?)`,
+      [project.id, assessment ? assessment.id : null, versionId, versionNumber,
+       decisionPackages.nextReference(project.id),
+       (req.body.title || `Authorization decision — ${project.name}`).trim(),
+       decisionType, (req.body.authorizing_official || '').trim() || null,
+       (req.body.assessor || '').trim() || null, req.body.expires_at || null,
+       JSON.stringify(extra), req.user.id]);
+
+    req.flash('success', 'Decision package created.' + (assessment ? ` Assessment pinned at version ${versionNumber}.` : ''));
+    res.redirect(`/admin/decision-packages/${newId}`);
+  } catch (err) {
+    console.error('decision package create error:', err);
+    req.flash('error', 'Could not create the decision package: ' + err.message);
+    res.redirect(`/admin/projects/${req.params.projectId}`);
+  }
+});
+
+router.get('/decision-packages/:id', ensureAuthenticated, (req, res) => {
+  const dp = get('SELECT * FROM decision_packages WHERE id = ?', [req.params.id]);
+  if (!dp) { req.flash('error', 'Decision package not found'); return res.redirect('/admin/projects'); }
+  const project = get('SELECT * FROM projects WHERE id = ?', [dp.project_id]);
+  const assessment = dp.assessment_id ? get('SELECT * FROM assessments WHERE id = ?', [dp.assessment_id]) : null;
+  let extra = { poam: [], documents: [] };
+  try { extra = JSON.parse(dp.snapshot_extra || '{}'); } catch (e) { /* ignore */ }
+
+  res.render('admin/decision-package-detail', {
+    title: `${dp.reference || 'Decision package'} — ${project ? project.name : ''}`,
+    isAdmin: true, admin: req.user, dp, project, assessment,
+    poam: extra.poam || [], documents: extra.documents || [],
+    decisionFlow: processFlows.decisionFlow(dp),
+    nextStates: (decisionPackages.TRANSITIONS[dp.state] || []),
+    collabEnabled: collaboration.isEnabled(project, orgSettingsFor(req))
+  });
+});
+
+router.post('/decision-packages/:id', ensureAuthenticated, (req, res) => {
+  const dp = get('SELECT * FROM decision_packages WHERE id = ?', [req.params.id]);
+  if (!dp) { req.flash('error', 'Decision package not found'); return res.redirect('/admin/projects'); }
+  const type = decisionPackages.DECISION_TYPES.includes(req.body.decision_type) ? req.body.decision_type : dp.decision_type;
+  run(`UPDATE decision_packages SET title=?, decision_type=?, executive_summary=?, residual_risk_statement=?,
+       decision_rationale=?, conditions=?, authorizing_official=?, assessor=?, expires_at=?,
+       updated_at=CURRENT_TIMESTAMP WHERE id=?`,
+    [(req.body.title || dp.title || '').trim(), type,
+     req.body.executive_summary || null, req.body.residual_risk_statement || null,
+     req.body.decision_rationale || null, req.body.conditions || null,
+     req.body.authorizing_official || null, req.body.assessor || null,
+     req.body.expires_at || null, dp.id]);
+  req.flash('success', 'Decision package saved.');
+  res.redirect(`/admin/decision-packages/${dp.id}`);
+});
+
+router.post('/decision-packages/:id/transition', ensureAuthenticated, (req, res) => {
+  const dp = get('SELECT * FROM decision_packages WHERE id = ?', [req.params.id]);
+  if (!dp) { req.flash('error', 'Decision package not found'); return res.redirect('/admin/projects'); }
+  const to = String(req.body.state || '');
+  if (!decisionPackages.canTransition(dp.state, to)) {
+    req.flash('error', `Cannot move a decision package from "${dp.state}" to "${to}".`);
+    return res.redirect(`/admin/decision-packages/${dp.id}`);
+  }
+  const who = req.user.name || req.user.email;
+  const sets = ['state = ?', 'updated_at = CURRENT_TIMESTAMP'];
+  const vals = [to];
+  if (to === 'recommended') { sets.push('recommended_by = ?', 'recommended_at = CURRENT_TIMESTAMP'); vals.push(who); }
+  if (to === 'decided' || to === 'denied') { sets.push('decided_by = ?', 'decided_at = CURRENT_TIMESTAMP'); vals.push(who); }
+  if (to === 'issued') { sets.push('issued_at = CURRENT_TIMESTAMP'); }
+  vals.push(dp.id);
+  run(`UPDATE decision_packages SET ${sets.join(', ')} WHERE id = ?`, vals);
+  req.flash('success', `Decision package moved to "${to}".`);
+  res.redirect(`/admin/decision-packages/${dp.id}`);
+});
+
+/**
+ * Export the decision package as a PDF. The controls come from the PINNED
+ * assessment version, not the live assessment, so the document always reflects
+ * exactly what was authorized.
+ */
+router.get('/decision-packages/:id/export-pdf', ensureAuthenticated, async (req, res) => {
+  try {
+    const dp = get('SELECT * FROM decision_packages WHERE id = ?', [req.params.id]);
+    if (!dp) { req.flash('error', 'Decision package not found'); return res.redirect('/admin/projects'); }
+    const project = get('SELECT * FROM projects WHERE id = ?', [dp.project_id]) || {};
+    const assessment = dp.assessment_id ? get('SELECT * FROM assessments WHERE id = ?', [dp.assessment_id]) : {};
+
+    // Prefer the pinned snapshot's controls; fall back to live only if unavailable.
+    let controls = [];
+    if (dp.assessment_version_id) {
+      const v = get('SELECT snapshot_json FROM assessment_versions WHERE id = ?', [dp.assessment_version_id]);
+      try { controls = (JSON.parse((v && v.snapshot_json) || '{}').controls) || []; } catch (e) { controls = []; }
+    }
+    if (!controls.length && dp.assessment_id) {
+      controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [dp.assessment_id]);
+    }
+
+    let extra = { poam: [] };
+    try { extra = JSON.parse(dp.snapshot_extra || '{}'); } catch (e) { /* ignore */ }
+
+    const outputDir = path.join(__dirname, '..', 'data', 'exports');
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+    const outputPath = path.join(outputDir, `${dp.reference || 'decision'}-${dp.id}-${Date.now()}.pdf`);
+
+    const merged = Object.assign({}, assessment, {
+      ato_type: dp.decision_type,
+      ato_expiry_date: dp.expires_at,
+      risk_acceptance_statement: dp.residual_risk_statement || '',
+      conditions_of_authorization: dp.conditions || ''
+    });
+
+    await pdfExport.generateATODocument(merged, project, dp.decision_type || 'ato', controls, outputPath, {
+      poamItems: extra.poam || [],
+      riskAcceptance: dp.residual_risk_statement || '',
+      poamNotes: dp.decision_rationale || ''
+    });
+
+    res.download(outputPath, `${dp.reference || 'decision-package'}.pdf`, err => {
+      if (err) console.error('decision package pdf download error:', err);
+    });
+  } catch (err) {
+    console.error('decision package export error:', err);
+    req.flash('error', 'Could not export the decision package: ' + err.message);
+    res.redirect('/admin/decision-packages/' + req.params.id);
+  }
+});
+
+router.post('/decision-packages/:id/delete', ensureAuthenticated, (req, res) => {
+  const dp = get('SELECT * FROM decision_packages WHERE id = ?', [req.params.id]);
+  if (!dp) { req.flash('error', 'Decision package not found'); return res.redirect('/admin/projects'); }
+  if (dp.state === 'issued') {
+    req.flash('error', 'An issued decision package cannot be deleted — revoke it instead.');
+    return res.redirect(`/admin/decision-packages/${dp.id}`);
+  }
+  run('DELETE FROM decision_packages WHERE id = ?', [dp.id]);
+  req.flash('success', 'Decision package deleted.');
+  res.redirect(`/admin/projects/${dp.project_id}`);
+});
+
 // Apply AI-proposed control changes to an existing assessment (Aegis SA Assistant, review mode).
 router.post('/assessments/:id/apply-ai-actions', ensureAuthenticated, express.json(), (req, res) => {
   try {
@@ -2223,6 +2461,8 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     isAdmin: true, isAssessments: true,
     admin: req.user, assessment, assignments, users: getAssignableUsers(), versions, viewingVersion,
     assessmentFlow: processFlows.assessmentFlow(assessment),
+    assessmentLock: decisionPackages.assessmentLock(assessment.id),
+    collabEnabled: collaboration.isEnabled(get('SELECT * FROM projects WHERE id = ?', [assessment.project_id]), orgSettingsFor(req)),
     families: Object.values(families), controls, stats, checklistItems, poamStats, documents, atoRecords,
     tailorMode: req.query.tailor === '1' && !viewingVersion,
     projectContextJSON: JSON.stringify({
@@ -2725,32 +2965,6 @@ router.get('/assessments/:id/export-pdf', ensureAuthenticated, async (req, res) 
   }
 });
 
-router.get('/assessments/:id/generate-ato', ensureAuthenticated, async (req, res) => {
-  try {
-    const assessment = get(`SELECT a.*, p.* FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?`, [req.params.id]);
-    const controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessment.id]);
-
-    const outputDir = path.join(__dirname, '..', 'data', 'exports');
-    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
-    const atoType = assessment.ato_type || 'ato';
-    const outputPath = path.join(outputDir, `${atoType}-${assessment.id}-${Date.now()}.pdf`);
-
-    await pdfExport.generateATODocument(assessment, assessment, atoType, controls, outputPath, {
-      poamItems: all('SELECT * FROM iato_checklist WHERE assessment_id = ? ORDER BY CASE risk_level WHEN \'high\' THEN 0 WHEN \'medium\' THEN 1 ELSE 2 END, deadline', [assessment.id]),
-      riskAcceptance: assessment.risk_acceptance_statement || '',
-      poamNotes: assessment.poam_notes || ''
-    });
-    
-    run(`UPDATE assessments SET ato_generated_at = CURRENT_TIMESTAMP WHERE id = ?`, [assessment.id]);
-    res.download(outputPath);
-  } catch (err) {
-    console.error(err);
-    req.flash('error', 'Failed to generate ATO document');
-    res.redirect(`/admin/assessments/${req.params.id}`);
-  }
-});
-
-// ── DELETE ASSESSMENT (Draft only) ──
 router.post('/assessments/:id/delete', ensureAuthenticated, (req, res) => {
   const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
   if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
@@ -3355,10 +3569,32 @@ router.post('/intakes/:id/status', ensureAuthenticated, (req, res) => {
 });
 
 // Create project + assessment from intake
-router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
+/**
+ * Accept an intake.
+ *
+ * Accepting NEVER creates an assessment — that is a deliberate, separate step taken
+ * from the project once the intake is accepted. If the intake already belongs to a
+ * project (an assessor started from the project), acceptance only records the
+ * decision and returns to that project. Otherwise a project is created from the
+ * intake's own details and the intake is linked to it.
+ */
+router.post('/intakes/:id/accept', ensureAuthenticated, (req, res) => {
   try {
     const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
     if (!intake) { req.flash('error', 'Intake not found'); return res.redirect('/admin/intakes'); }
+
+    // Already tied to a project: accept in place, never duplicate the project.
+    if (intake.project_id) {
+      const existing = get('SELECT id, name FROM projects WHERE id = ?', [intake.project_id]);
+      if (existing) {
+        run(`UPDATE intake_submissions SET status = 'accepted', assessor_notes = ?,
+             assessor_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+          [req.body.assessorNotes || intake.assessor_notes || '',
+           req.body.assessorDescription || intake.assessor_description || '', intake.id]);
+        req.flash('success', `Intake accepted for "${existing.name}".`);
+        return res.redirect('/admin/projects/' + existing.id);
+      }
+    }
 
     const submittedTech = JSON.parse(intake.technologies || '[]');
     const additionalTech = Array.isArray(req.body.additionalTech) ? req.body.additionalTech : (req.body.additionalTech ? [req.body.additionalTech] : []);
@@ -3445,39 +3681,26 @@ router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res) => {
       '(excludeInherited:', req.body.excludeInherited || 'no',
       'onlyP1P2:', req.body.onlyP1P2 || 'no', ')');
 
-    const inviteCode = uuidv4().substring(0, 8).toUpperCase();
-    const assessmentId = run(
-      `INSERT INTO assessments (project_id, intake_id, type, status, invite_code, created_by) VALUES (?,?,?,?,?,?)`,
-      [projectId, intake.id, req.body.assessmentType || 'initial', 'draft', inviteCode, req.user.id]
-    );
-    copyIntakeAssignmentsToAssessment(intake.id, assessmentId, req.user.id);
-
-    const grouped = groupByFamily(filtered);
-    grouped.forEach(family => {
-      family.controls.forEach(control => {
-        run(
-          `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title, description,
-            tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority, risk_level
-          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-          [assessmentId, control.id, control.family, control.familyName, control.title, control.description,
-            control.tailoredDescription, control.evidenceGuidance,
-            control.isInherited ? 1 : 0, control.inheritedFrom.join(', '), 1, control.priority,
-            computeRiskLevel(control)]
-        );
-      });
-    });
-
+    // NOTE: no assessment is created here. The recommended control set is computed
+    // only to report the suggested profile; creating the assessment is a separate,
+    // explicit action from the project page.
     run(`UPDATE intake_submissions SET status = 'accepted', project_id = ?, assessor_notes = ?,
       assessor_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
       [projectId, req.body.assessorNotes || '', req.body.assessorDescription || '', req.params.id]);
 
-    req.flash('success', `Project "${intake.project_name}" created with ${filtered.length} controls (profile: ${securityProfile}).`);
-    res.redirect('/admin/assessments/' + assessmentId);
+    req.flash('success', `Intake accepted. Project "${intake.project_name}" created (profile: ${securityProfile}, ${filtered.length} controls recommended). Create the assessment when you are ready.`);
+    res.redirect('/admin/projects/' + projectId);
   } catch (err) {
-    console.error('Create project from intake error:', err);
-    req.flash('error', 'Failed to create project: ' + err.message);
+    console.error('Accept intake error:', err);
+    req.flash('error', 'Failed to accept the intake: ' + err.message);
     res.redirect('/admin/intakes/' + req.params.id);
   }
+});
+
+// Legacy path kept so old links/bookmarks keep working; acceptance is the same action.
+router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res, next) => {
+  req.url = `/intakes/${req.params.id}/accept`;
+  router.handle(req, res, next);
 });
 
 // Download intake attachment

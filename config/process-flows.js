@@ -171,6 +171,28 @@ function assessmentFlow(assessment) {
   return decorate(markCurrent(stages));
 }
 
+/** A decision package's own flow. */
+function decisionFlow(dp) {
+  const state = String((dp && dp.state) || 'draft').toLowerCase();
+  const href = dp ? `/admin/decision-packages/${dp.id}` : null;
+  const order = ['draft', 'in-review', 'recommended', 'decided', 'issued'];
+  const r = order.indexOf(state) === -1 ? 0 : order.indexOf(state);
+  const terminal = ['denied', 'revoked', 'expired'].includes(state);
+  const at = i => terminal ? true : r >= i;
+  const mk = (key, labelKey, done, stepKey) => ({
+    key, labelKey, state: done ? STATE.COMPLETE : STATE.UPCOMING,
+    steps: [step(stepKey, done, href)], href, icon: null
+  });
+  const stages = [
+    mk('draft', 'pf.dStageDraft', !!dp, 'pf.stepDecisionCreated'),
+    mk('review', 'pf.dStageReview', at(1), 'pf.stepDecisionReview'),
+    mk('recommended', 'pf.dStageRecommended', at(2), 'pf.stepDecisionRecommended'),
+    mk('decided', 'pf.dStageDecided', at(3), 'pf.stepDecisionRecorded'),
+    mk('issued', 'pf.dStageIssued', at(4), 'pf.stepDecisionIssued')
+  ];
+  return decorate(markCurrent(stages));
+}
+
 /** For record-level flows: the first incomplete stage is the current one. */
 function markCurrent(stages) {
   const i = stages.findIndex(s => s.state !== STATE.COMPLETE);
@@ -203,5 +225,5 @@ function decorate(stages) {
 module.exports = {
   STATE, ASSESSMENT_ORDER, INTAKE_ORDER,
   activeIntake, activeAssessment, activeDecision,
-  projectFlow, intakeFlow, assessmentFlow
+  projectFlow, intakeFlow, assessmentFlow, decisionFlow
 };

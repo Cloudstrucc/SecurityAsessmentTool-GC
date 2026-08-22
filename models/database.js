@@ -169,6 +169,65 @@ async function initDatabase() {
     )
   `);
 
+  // ── DECISION PACKAGES (authorization decisions: ATO / iATO / denial) ──
+  // A decision package pins the EXACT assessment version it authorized. Versions are
+  // append-only snapshots, so the authorization record is immutable by construction —
+  // the live assessment may keep evolving without changing what was authorized.
+  db.run(`
+    CREATE TABLE IF NOT EXISTS decision_packages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      assessment_id INTEGER,
+      assessment_version_id INTEGER,
+      assessment_version INTEGER,
+      reference TEXT,
+      title TEXT,
+      decision_type TEXT DEFAULT 'ato',
+      state TEXT DEFAULT 'draft',
+      executive_summary TEXT,
+      residual_risk_statement TEXT,
+      decision_rationale TEXT,
+      conditions TEXT,
+      authorizing_official TEXT,
+      assessor TEXT,
+      recommended_by TEXT,
+      recommended_at DATETIME,
+      decided_by TEXT,
+      decided_at DATETIME,
+      issued_at DATETIME,
+      expires_at DATETIME,
+      snapshot_extra TEXT,
+      created_by INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+      FOREIGN KEY (assessment_id) REFERENCES assessments(id),
+      FOREIGN KEY (assessment_version_id) REFERENCES assessment_versions(id)
+    )
+  `);
+
+  // ── COLLABORATION MESSAGES (polymorphic; project is always the parent thread) ──
+  // Posted against a specific record but rolled up to the project so a whole
+  // conversation can be read in one place. Never sent to the AI provider.
+  db.run(`
+    CREATE TABLE IF NOT EXISTS collab_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      entity_type TEXT NOT NULL DEFAULT 'project',
+      entity_id INTEGER,
+      user_id INTEGER,
+      user_name TEXT,
+      user_role TEXT,
+      body TEXT NOT NULL,
+      mentions_json TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      edited_at DATETIME,
+      deleted_at DATETIME,
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `);
+
   // ── INTEGRATION CHECK LOG (per-tenant; 24h rolling retention) ──
   // One row per validation attempt against SMTP / SMS / custom domain / AI provider.
   db.run(`
@@ -740,6 +799,10 @@ async function initDatabase() {
     ['org_settings', 'sms_verified_at', 'ALTER TABLE org_settings ADD COLUMN sms_verified_at DATETIME'],
     ['org_settings', 'domain_checked_at', 'ALTER TABLE org_settings ADD COLUMN domain_checked_at DATETIME'],
     ['org_settings', 'ai_verified_at', 'ALTER TABLE org_settings ADD COLUMN ai_verified_at DATETIME'],
+    // Collaboration (chat) toggles. On by default; the org-level flag is a global
+    // kill-switch that wins over the per-project one.
+    ['org_settings', 'collaboration_enabled', 'ALTER TABLE org_settings ADD COLUMN collaboration_enabled INTEGER DEFAULT 1'],
+    ['projects', 'collaboration_enabled', 'ALTER TABLE projects ADD COLUMN collaboration_enabled INTEGER DEFAULT 1'],
     // Per-tenant OOB token allowance + usage.
     ['organizations', 'token_limit', 'ALTER TABLE organizations ADD COLUMN token_limit INTEGER'],       // null = plan default
     ['organizations', 'tokens_extra', 'ALTER TABLE organizations ADD COLUMN tokens_extra INTEGER DEFAULT 0'], // topped-up tokens
