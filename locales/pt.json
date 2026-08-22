@@ -2624,5 +2624,20 @@
   "st.closed": "Fechado",
   "st.archived": "Arquivado",
   "st.unknown": "Desconhecido",
-  "dp.exportPdf": "Exportar PDF"
+  "dp.exportPdf": "Exportar PDF",
+  "aq.tryThis": "Experimente perguntar",
+  "aq.project1": "Resuma a postura de segurança deste projeto",
+  "aq.project2": "Qual é a próxima etapa deste projeto?",
+  "aq.project3": "Que riscos devemos acompanhar aqui?",
+  "aq.intake1": "Resuma esta solicitação",
+  "aq.intake2": "Aponte o que estiver faltando ou pouco claro",
+  "aq.intake3": "Que categorização isto sugere?",
+  "aq.assessment1": "Estes controles cobrem nosso modelo de hospedagem?",
+  "aq.assessment2": "Quais controles ainda estão sem evidências?",
+  "aq.assessment3": "Ajude-me a redigir uma nota de auditoria",
+  "aq.decision1": "Redija uma declaração de risco residual",
+  "aq.decision2": "Resuma os itens POA&M pendentes",
+  "aq.decision3": "Que condições devem se aplicar a esta autorização?",
+  "ev.signInRequired": "Entre ou crie uma conta para fornecer evidências para esta avaliação.",
+  "ev.accountNeeded": "O envio de evidências agora exige uma conta para que cada contribuição seja atribuível."
 }

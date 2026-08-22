@@ -1273,6 +1273,7 @@ router.get('/projects/:id', ensureAuthenticated, (req, res) => {
   // Master business-process flow (Intake -> Assessment -> Decision -> Authorized),
   // derived from the project's own records so it can never drift.
   const decisionList = decisionPackages.listForProject(project.id);
+  const activeDecision = decisionPackages.activeForProject(project.id);
   const orgSettings = orgSettingsFor(req);
   const collabEnabled = collaboration.isEnabled(project, orgSettings);
   const projectFlow = processFlows.projectFlow({ project, intakes, assessments, decisions: decisionList });
@@ -1281,6 +1282,7 @@ router.get('/projects/:id', ensureAuthenticated, (req, res) => {
     title: project.name, isAdmin: true, isProjects: true,
     admin: req.user, project, assessments, intakes, projectFlow,
     decisionPackages: decisionList, collabEnabled,
+    decisionFlow: activeDecision ? processFlows.decisionFlow(activeDecision) : null,
     collabMessages: collabEnabled ? collaboration.listMessages(project.id).slice(-8) : [],
     collabCount: collabEnabled ? collaboration.countMessages(project.id) : 0,
     intakeAssignments, assessmentAssignments, documents, branding, atoRecords, projectPoamItems,

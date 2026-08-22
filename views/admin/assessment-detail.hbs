@@ -1029,7 +1029,6 @@ document.querySelectorAll('[id^="comments-"]').forEach(el => {
 });
 </script>
 
-{{> ai-panel }}
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1229,10 +1228,6 @@ function aiCopyNarrative(btn, controlDbId) {
 
 // Page setup (Bulk Evidence Guidance removed — superseded by the Aegis SA Assistant)
 document.addEventListener('DOMContentLoaded', function() {
-  // Hide the legacy AI floating button so only the Assistant launcher shows.
-  var fab = document.getElementById('aiTriggerBtn');
-  if (fab) fab.style.display = 'none';
-
   // ── Family Nav: scroll spy + filter ──
   const familySections = document.querySelectorAll('[id^="family-"]');
   const navItems = document.querySelectorAll('.family-nav-item');
@@ -1602,6 +1597,8 @@ window.AIAssistConfig = {
   greeting: 'Hi — ask me anything about this assessment: whether the controls cover a given scope, what a control expects, or how to word an audit note. If I propose control changes, approving them saves to this assessment.',
   // Approving proposed changes here PERSISTS them to the assessment (add / remove / tailor),
   // then prompts a refresh to see the updated control list.
+  suggestionsLabel: {{tjs 'aq.tryThis'}},
+  suggestions: [{{tjs 'aq.assessment1'}}, {{tjs 'aq.assessment2'}}, {{tjs 'aq.assessment3'}}],
   applyEndpoint: '/admin/assessments/{{assessment.id}}/apply-ai-actions',
   getSelected: function(){
     return Array.prototype.map.call(document.querySelectorAll('.control-id'), function(el){

@@ -2603,5 +2603,20 @@
   "st.closed": "Closed",
   "st.archived": "Archived",
   "st.unknown": "Unknown",
-  "dp.exportPdf": "Export PDF"
+  "dp.exportPdf": "Export PDF",
+  "aq.tryThis": "Try asking",
+  "aq.project1": "Summarize this project's security posture",
+  "aq.project2": "What is the next step for this project?",
+  "aq.project3": "Which risks should we watch here?",
+  "aq.intake1": "Summarize this submission",
+  "aq.intake2": "Flag anything missing or unclear",
+  "aq.intake3": "What categorization does this suggest?",
+  "aq.assessment1": "Do these controls cover our hosting model?",
+  "aq.assessment2": "Which controls still lack evidence?",
+  "aq.assessment3": "Help me word an audit note",
+  "aq.decision1": "Draft a residual risk statement",
+  "aq.decision2": "Summarize the outstanding POA&M items",
+  "aq.decision3": "What conditions should apply to this authorization?",
+  "ev.signInRequired": "Please sign in or create an account to provide evidence for this assessment.",
+  "ev.accountNeeded": "Evidence submission now requires an account so every contribution is attributable."
 }

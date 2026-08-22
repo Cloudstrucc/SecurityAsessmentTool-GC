@@ -58,7 +58,7 @@ generated artifacts — they are not committed.
 
 ---
 
-## The suite at a glance (57 checks)
+## The suite at a glance (62 checks)
 
 ### Authentication, MFA & accounts
 | Check | What it proves |
@@ -108,6 +108,15 @@ generated artifacts — they are not committed.
 | A project shows four stages with a derived current stage | Stage position is computed, never stored |
 | The project header no longer duplicates the create action | The duplicate button stayed removed |
 | The flow is localized in every supported language | All 8 languages render, including the stage counter |
+
+### Assistant (single chat surface)
+| Check | What it proves |
+|---|---|
+| The Assistant is on every major record | project · assessment · intake · decision package all offer it |
+| Context-aware starter prompts per record type | Prompts differ per record and are localized |
+| The legacy AI panel is no longer a chat entry point | Its floating trigger is gone/hidden; it survives only as a result viewer |
+| The project page shows the active decision package flow | Stage-3 progress is visible without opening the package |
+| The evidence portal requires an account | Anonymous read AND write are refused; signed-in users get through |
 
 ### Cross-cutting
 | Check | What it proves |

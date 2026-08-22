@@ -2624,5 +2624,20 @@
   "st.closed": "Gesloten",
   "st.archived": "Gearchiveerd",
   "st.unknown": "Onbekend",
-  "dp.exportPdf": "PDF exporteren"
+  "dp.exportPdf": "PDF exporteren",
+  "aq.tryThis": "Probeer te vragen",
+  "aq.project1": "Vat de beveiligingspositie van dit project samen",
+  "aq.project2": "Wat is de volgende stap voor dit project?",
+  "aq.project3": "Welke risico's moeten we hier volgen?",
+  "aq.intake1": "Vat deze aanvraag samen",
+  "aq.intake2": "Wijs aan wat ontbreekt of onduidelijk is",
+  "aq.intake3": "Welke categorisering suggereert dit?",
+  "aq.assessment1": "Dekken deze controls ons hostingmodel?",
+  "aq.assessment2": "Welke controls missen nog bewijs?",
+  "aq.assessment3": "Help me een auditnotitie te formuleren",
+  "aq.decision1": "Stel een verklaring van restrisico op",
+  "aq.decision2": "Vat de openstaande POA&M-items samen",
+  "aq.decision3": "Welke voorwaarden moeten voor deze autorisatie gelden?",
+  "ev.signInRequired": "Meld je aan of maak een account om bewijs voor deze beoordeling aan te leveren.",
+  "ev.accountNeeded": "Het aanleveren van bewijs vereist nu een account, zodat elke bijdrage herleidbaar is."
 }

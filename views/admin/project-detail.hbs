@@ -424,6 +424,9 @@
         </div>
         <div class="card-body">
           <p class="small text-muted">{{t 'dp.blurb'}}</p>
+          {{#if decisionFlow}}
+            {{> process-flow flow=decisionFlow titleKey='pf.decisionProgress' idPrefix='pfdpproj'}}
+          {{/if}}
           {{#if decisionPackages.length}}
             <div class="table-responsive">
               <table class="table table-sm align-middle">
@@ -597,3 +600,18 @@ document.querySelectorAll('.assignment-mode').forEach(select => {
   {{> collab-panel }}
   <script>window.CollabConfig = { projectId: {{project.id}}, entityType: 'project', entityId: null };</script>
 {{/if}}
+
+{{> ai-assess-helper }}
+<script>
+// Aegis SA Assistant — project mode. Context is the project record in view.
+window.AIAssistConfig = {
+  mode: 'create',
+  projectId: {{project.id}},
+  frameworkLabel: '{{project.security_framework}}',
+  profileSummary: 'profile {{project.security_profile}}; C/I/A {{project.confidentiality_level}} / {{project.integrity_level}} / {{project.availability_level}}',
+  subtitle: {{tjs 'pf.title'}},
+  greeting: {{tjs 'co.blurb'}},
+  suggestionsLabel: {{tjs 'aq.tryThis'}},
+  suggestions: [{{tjs 'aq.project1'}}, {{tjs 'aq.project2'}}, {{tjs 'aq.project3'}}]
+};
+</script>

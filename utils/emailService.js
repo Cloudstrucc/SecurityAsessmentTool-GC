@@ -49,7 +49,27 @@ function initialize() {
 /**
  * Safe send — never throws, always returns { sent: boolean, error?: string }
  */
+/**
+ * The tenant SMTP for the request in flight, or null to use the platform default.
+ * Read from the ambient request context so EVERY message is tenant-routed without
+ * each call site having to thread the config through.
+ */
+function ambientOrgSmtp() {
+  try {
+    const { getAiContext } = require('../config/ai-context');
+    const orgId = (getAiContext() || {}).orgId;
+    if (!orgId) return null;
+    return require('../config/org-settings').orgSmtp(orgId);
+  } catch (e) {
+    return null;
+  }
+}
+
 async function safeSend(mailOptions) {
+  // Prefer the tenant's own mail server whenever one is configured and enabled.
+  const orgCfg = ambientOrgSmtp();
+  if (orgCfg) return sendVia(orgCfg, mailOptions);
+
   if (!transporter || !emailConfigured) {
     console.log(`[Email Mock] To: ${mailOptions.to} | Subject: ${mailOptions.subject}`);
     return { sent: false, error: 'Email not configured' };
@@ -239,6 +259,7 @@ module.exports = {
   sendMail,
   sendVia,
   sendRouted,
+  ambientOrgSmtp,
   sendTestEmail,
   verifyTransport
 };

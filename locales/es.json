@@ -2646,5 +2646,20 @@
   "st.closed": "Cerrado",
   "st.archived": "Archivado",
   "st.unknown": "Desconocido",
-  "dp.exportPdf": "Exportar PDF"
+  "dp.exportPdf": "Exportar PDF",
+  "aq.tryThis": "Pruebe a preguntar",
+  "aq.project1": "Resuma la postura de seguridad de este proyecto",
+  "aq.project2": "¿Cuál es el siguiente paso de este proyecto?",
+  "aq.project3": "¿Qué riesgos debemos vigilar aquí?",
+  "aq.intake1": "Resuma esta solicitud",
+  "aq.intake2": "Señale lo que falte o no esté claro",
+  "aq.intake3": "¿Qué categorización sugiere esto?",
+  "aq.assessment1": "¿Estos controles cubren nuestro modelo de alojamiento?",
+  "aq.assessment2": "¿Qué controles aún carecen de evidencia?",
+  "aq.assessment3": "Ayúdeme a redactar una nota de auditoría",
+  "aq.decision1": "Redacte una declaración de riesgo residual",
+  "aq.decision2": "Resuma los elementos POA&M pendientes",
+  "aq.decision3": "¿Qué condiciones deberían aplicarse a esta autorización?",
+  "ev.signInRequired": "Inicie sesión o cree una cuenta para aportar evidencia a esta evaluación.",
+  "ev.accountNeeded": "El envío de evidencia ahora requiere una cuenta para que cada aportación sea atribuible."
 }

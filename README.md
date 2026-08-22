@@ -30,7 +30,15 @@ Node.js/Express application for managing security assessment & authorization (SA
   records. On by default, switchable per project and org-wide. Collaboration content is **never
   sent to the AI provider**.
 - Versions each assessment: every change checkpoint (creation, AI-applied changes, manual checkpoints) is captured as a point-in-time snapshot, with a full audit history and non-destructive revert to any prior version.
-- Includes the **Aegis SA Assistant** — an in-app AI chat that helps tailor controls, answer coverage questions, and draft evidence (assessor approves every change).
+- Includes the **Aegis SA Assistant** — the single in-app AI chat, available on every major record
+  (project, intake, assessment, decision package, plus the evidence portal) with context-aware
+  starter prompts for the record in view. It helps tailor controls, answer coverage questions and
+  draft evidence; the assessor approves every change. Non-chat AI generators (document analysis,
+  intake review, control suggestions) remain, shown in a result panel.
+- **Evidence submission requires an account.** An invite code identifies which assessment you are
+  responding to, but contributors must sign in, so every contribution is attributable.
+- Routes **all** transactional email through the tenant's own SMTP when configured (not just
+  invitations), resolved from the request's organization context.
 - Provides project-level report branding, control exports, full project exports, decision-package PDF exports (rendered from the pinned assessment version), and POA&M management.
 - Includes an admin security control catalog at `/admin/security-controls` with ITSG-33, CIS, ISO/IEC 27001, FedRAMP, NIST SP 800-53, ASD ISM, and ACSC Essential Eight entries.
 - Includes an authenticated Help guide with screenshots, plus standalone Markdown and HTML guide files under `docs/`.
@@ -293,7 +301,7 @@ Current executable checks:
 - Reverting an assessment restores the prior control set as a new active version and records the revert in the audit history.
 - The legacy `/sa-tool-overview.html` path redirects to the live overview route (guards against stale static files in `wwwroot`).
 
-The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 57 checks. See [docs/TESTING.md](docs/TESTING.md) for what each one covers.
+The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 62 checks. See [docs/TESTING.md](docs/TESTING.md) for what each one covers.
 
 In the Codex sandbox, binding a local test server may require approval. On a normal developer machine, `npm run test:e2e` should run directly.
 

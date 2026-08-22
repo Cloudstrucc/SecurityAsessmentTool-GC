@@ -9,7 +9,10 @@
 --}}
 
 <!-- Floating AI trigger button -->
-<button id="aiTriggerBtn" class="ai-trigger-btn" onclick="AIPanel.toggle()" title="AI Assistant">
+<!-- Result viewer only. The floating trigger is hidden: the Aegis SA Assistant is the
+     single chat entry point, and this panel is opened programmatically by the
+     non-chat AI generators (document analysis, intake review, control suggestions). -->
+<button id="aiTriggerBtn" class="ai-trigger-btn" style="display:none" onclick="AIPanel.toggle()" title="AI Assistant">
   <i class="bi bi-stars"></i>
 </button>
 
