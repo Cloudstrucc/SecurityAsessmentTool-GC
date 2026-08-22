@@ -136,6 +136,10 @@
     .card { border:1px solid var(--cs-border); border-radius:14px; box-shadow:0 2px 10px rgba(15,32,54,.06); overflow:hidden; }
     .card-header { background:var(--cs-nav); color:#fff; font-weight:600; padding:.9rem 1.25rem; border-bottom:none; border-radius:0; }
     .card-header.bg-light { background:var(--cs-light)!important; color:var(--cs-text); }
+    /* Bootstrap's pale "-subtle" backgrounds need dark text — the default white above
+       is unreadable on them. Covers every subtle variant, not just the ones in use. */
+    .card-header[class*="-subtle"] { color:var(--cs-text)!important; }
+    .card-header[class*="-subtle"] .badge.bg-dark { color:#fff!important; }
 
     /* Page header treatment (title + actions) used across admin views */
     .page-head h1 { letter-spacing:-.015em; }
