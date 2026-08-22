@@ -135,6 +135,27 @@ router.get('/access', (req, res) => {
   res.redirect('/respond/' + code.toUpperCase().trim());
 });
 
+/**
+ * Evidence submission requires an account.
+ *
+ * The invite code alone used to be enough, which made contributions anonymous and
+ * unattributable. Now the code identifies WHICH assessment you are responding to,
+ * but you must be signed in (as a client or an assessor) to open or change it.
+ * The code is stashed so sign-in returns straight to the right assessment.
+ */
+function ensureEvidenceUser(req, res, next) {
+  if (req.user || (req.session && req.session.clientId)) return next();
+  const code = String(req.params.code || '').toUpperCase().trim();
+  if (code) req.session.pendingInviteCode = code;
+  const msg = req.t ? req.t('ev.signInRequired') : 'Please sign in or create an account to provide evidence for this assessment.';
+  // API-style callers get a status they can act on rather than a redirect to HTML.
+  const wantsJson = req.method !== 'GET' &&
+    String(req.get('accept') || '').includes('json') || String(req.get('content-type') || '').includes('json');
+  if (wantsJson) return res.status(401).json({ error: msg });
+  req.flash('info', msg);
+  return res.redirect('/client/login');
+}
+
 router.post('/respond/access', (req, res) => {
   const { code } = req.body;
   if (!code) { req.flash('error', 'Please enter an access code'); return res.redirect('/'); }
@@ -142,7 +163,7 @@ router.post('/respond/access', (req, res) => {
 });
 
 // Evidence submission portal dashboard
-router.get('/respond/:code', (req, res) => {
+router.get('/respond/:code', ensureEvidenceUser, (req, res) => {
   const code = req.params.code.toUpperCase().trim();
   console.log('[Public] Looking up invite code:', code);
   
@@ -213,7 +234,7 @@ router.get('/respond/:code', (req, res) => {
 });
 
 // Save evidence for a control (auto-save)
-router.post('/respond/:code/save/:controlId', express.json({ limit: '5mb' }), (req, res) => {
+router.post('/respond/:code/save/:controlId', ensureEvidenceUser, express.json({ limit: '5mb' }), (req, res) => {
   const code = req.params.code.toUpperCase();
   const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
   if (!assessment || assessment.status === 'submitted' || assessment.status === 'audit' || assessment.status === 'completed') {
@@ -231,7 +252,7 @@ router.post('/respond/:code/save/:controlId', express.json({ limit: '5mb' }), (r
 });
 
 // Upload attachment
-router.post('/respond/:code/upload/:controlId', upload.single('file'), (req, res) => {
+router.post('/respond/:code/upload/:controlId', ensureEvidenceUser, upload.single('file'), (req, res) => {
   const code = req.params.code.toUpperCase();
   const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
   if (!assessment || !req.file) return res.json({ success: false });
@@ -249,7 +270,7 @@ router.post('/respond/:code/upload/:controlId', upload.single('file'), (req, res
 });
 
 // Add comment
-router.post('/respond/:code/comment/:controlId', express.json(), (req, res) => {
+router.post('/respond/:code/comment/:controlId', ensureEvidenceUser, express.json(), (req, res) => {
   const code = req.params.code.toUpperCase();
   const assessment = get(`
     SELECT a.*, p.project_owner_name 
@@ -267,7 +288,7 @@ router.post('/respond/:code/comment/:controlId', express.json(), (req, res) => {
 });
 
 // ── Aegis SA Assistant (evidence mode) — code-gated for the respond page ──
-router.post('/respond/:code/ai-chat', express.json(), async (req, res) => {
+router.post('/respond/:code/ai-chat', ensureEvidenceUser, express.json(), async (req, res) => {
   try {
     const code = req.params.code.toUpperCase();
     const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
@@ -299,7 +320,7 @@ router.post('/respond/:code/ai-chat', express.json(), async (req, res) => {
   }
 });
 
-router.post('/respond/:code/ai-refine', express.json(), async (req, res) => {
+router.post('/respond/:code/ai-refine', ensureEvidenceUser, express.json(), async (req, res) => {
   try {
     const code = req.params.code.toUpperCase();
     const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
@@ -319,7 +340,7 @@ router.post('/respond/:code/ai-refine', express.json(), async (req, res) => {
 });
 
 // Submit all evidence
-router.post('/respond/:code/submit', (req, res) => {
+router.post('/respond/:code/submit', ensureEvidenceUser, (req, res) => {
   const code = req.params.code.toUpperCase();
   const assessment = get(`
     SELECT a.*, p.name as project_name, p.project_owner_name, p.project_owner_email
@@ -350,7 +371,7 @@ router.post('/respond/:code/submit', (req, res) => {
 });
 
 // iATO checklist view for project owner
-router.get('/respond/:code/checklist', (req, res) => {
+router.get('/respond/:code/checklist', ensureEvidenceUser, (req, res) => {
   const code = req.params.code.toUpperCase();
   const assessment = get(`
     SELECT a.*, p.name as project_name, p.project_owner_name

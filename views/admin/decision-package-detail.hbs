@@ -153,3 +153,19 @@
     window.CollabConfig = { projectId: {{dp.project_id}}, entityType: 'decision_package', entityId: {{dp.id}} };
   </script>
 {{/if}}
+
+{{> ai-assess-helper }}
+<script>
+// Aegis SA Assistant — decision mode. Context is the authorization decision.
+window.AIAssistConfig = {
+  mode: 'review',
+  projectId: {{dp.project_id}},
+  assessmentId: {{#if dp.assessment_id}}{{dp.assessment_id}}{{else}}null{{/if}},
+  frameworkLabel: 'ITSG-33',
+  profileSummary: 'decision package {{dp.reference}}; type {{dp.decision_type}}; state {{dp.state}}',
+  subtitle: {{tjs 'pf.decisionProgress'}},
+  greeting: {{tjs 'dp.blurb'}},
+  suggestionsLabel: {{tjs 'aq.tryThis'}},
+  suggestions: [{{tjs 'aq.decision1'}}, {{tjs 'aq.decision2'}}, {{tjs 'aq.decision3'}}]
+};
+</script>

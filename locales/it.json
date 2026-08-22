@@ -2624,5 +2624,20 @@
   "st.closed": "Chiuso",
   "st.archived": "Archiviato",
   "st.unknown": "Sconosciuto",
-  "dp.exportPdf": "Esporta PDF"
+  "dp.exportPdf": "Esporta PDF",
+  "aq.tryThis": "Prova a chiedere",
+  "aq.project1": "Riassumi la postura di sicurezza di questo progetto",
+  "aq.project2": "Qual è il prossimo passo per questo progetto?",
+  "aq.project3": "Quali rischi dovremmo monitorare qui?",
+  "aq.intake1": "Riassumi questa richiesta",
+  "aq.intake2": "Segnala ciò che manca o non è chiaro",
+  "aq.intake3": "Quale categorizzazione suggerisce?",
+  "aq.assessment1": "Questi controlli coprono il nostro modello di hosting?",
+  "aq.assessment2": "Quali controlli sono ancora privi di prove?",
+  "aq.assessment3": "Aiutami a formulare una nota di audit",
+  "aq.decision1": "Redigi una dichiarazione di rischio residuo",
+  "aq.decision2": "Riassumi gli elementi POA&M in sospeso",
+  "aq.decision3": "Quali condizioni dovrebbero applicarsi a questa autorizzazione?",
+  "ev.signInRequired": "Accedi o crea un account per fornire prove per questa valutazione.",
+  "ev.accountNeeded": "L'invio di prove ora richiede un account affinché ogni contributo sia attribuibile."
 }

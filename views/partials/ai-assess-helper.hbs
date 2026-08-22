@@ -64,6 +64,10 @@
   .aia-hist-btn{margin-left:8px;flex:0 0 auto;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:7px;padding:3px 9px;font-size:11.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
   .aia-hist-btn:hover{background:rgba(255,255,255,.28)}
   .aia-hist-btn[disabled]{opacity:.5;cursor:default}
+  .aia-sugs{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+  .aia-sugs .lbl{width:100%;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#8b8b9a;margin-bottom:1px}
+  .aia-sugs button{background:#eef0fe;color:#4338ca;border:1px solid #ddd6fe;border-radius:14px;padding:4px 11px;font-size:12px;cursor:pointer;text-align:left}
+  .aia-sugs button:hover{background:#e0e3fd}
   .aia-hist-divider{align-self:stretch;text-align:center;color:#9aa;font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin:2px 0;border-bottom:1px solid #e5e7eb;padding-bottom:6px}
   @media (prefers-reduced-motion:reduce){.aia-panel{transition:none}}
   /* Phones: the panel takes the full screen so nothing is clipped off the right edge. */
@@ -123,6 +127,22 @@ window.AIAssist = (function(){
     var c=cfg();
     var g = c.greeting || 'Hi — I’m your Aegis SA Assistant. Ask me to remove, add or tailor controls, or ask whether the current set covers a particular scope.';
     add('bot', g);
+    renderSuggestions();
+  }
+  // Context-aware starter prompts for the record in view. Clicking one sends it.
+  function renderSuggestions(){
+    var c=cfg();
+    var list=(c.suggestions||[]).filter(Boolean);
+    if(!list.length) return;
+    var wrap=document.createElement('div'); wrap.className='aia-sugs';
+    var lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent=c.suggestionsLabel||'Try asking';
+    wrap.appendChild(lbl);
+    list.forEach(function(text){
+      var b=document.createElement('button'); b.type='button'; b.textContent=text;
+      b.onclick=function(){ input.value=text; sendBtn.disabled=false; wrap.remove(); send(); };
+      wrap.appendChild(b);
+    });
+    msgs.appendChild(wrap); scrollBottom();
   }
   // Show the last 24h of persisted chat for this assessment/project, inserted above
   // the current session so the fresh greeting stays at the bottom.

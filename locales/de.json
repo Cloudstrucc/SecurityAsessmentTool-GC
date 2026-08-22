@@ -2624,5 +2624,20 @@
   "st.closed": "Geschlossen",
   "st.archived": "Archiviert",
   "st.unknown": "Unbekannt",
-  "dp.exportPdf": "PDF exportieren"
+  "dp.exportPdf": "PDF exportieren",
+  "aq.tryThis": "Fragen Sie zum Beispiel",
+  "aq.project1": "Fassen Sie die Sicherheitslage dieses Projekts zusammen",
+  "aq.project2": "Was ist der nächste Schritt für dieses Projekt?",
+  "aq.project3": "Welche Risiken sollten wir hier beobachten?",
+  "aq.intake1": "Fassen Sie diese Einreichung zusammen",
+  "aq.intake2": "Weisen Sie auf Fehlendes oder Unklares hin",
+  "aq.intake3": "Welche Kategorisierung legt das nahe?",
+  "aq.assessment1": "Decken diese Kontrollen unser Hosting-Modell ab?",
+  "aq.assessment2": "Für welche Kontrollen fehlen noch Nachweise?",
+  "aq.assessment3": "Helfen Sie mir, eine Audit-Notiz zu formulieren",
+  "aq.decision1": "Entwerfen Sie eine Restrisikoerklärung",
+  "aq.decision2": "Fassen Sie die offenen POA&M-Einträge zusammen",
+  "aq.decision3": "Welche Auflagen sollten für diese Autorisierung gelten?",
+  "ev.signInRequired": "Bitte melden Sie sich an oder erstellen Sie ein Konto, um Nachweise für diese Bewertung einzureichen.",
+  "ev.accountNeeded": "Die Einreichung von Nachweisen erfordert jetzt ein Konto, damit jeder Beitrag zuordenbar ist."
 }

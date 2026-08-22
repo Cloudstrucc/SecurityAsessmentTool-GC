@@ -2646,5 +2646,20 @@
   "st.closed": "Fermé",
   "st.archived": "Archivé",
   "st.unknown": "Inconnu",
-  "dp.exportPdf": "Exporter en PDF"
+  "dp.exportPdf": "Exporter en PDF",
+  "aq.tryThis": "Essayez de demander",
+  "aq.project1": "Résumez la posture de sécurité de ce projet",
+  "aq.project2": "Quelle est la prochaine étape de ce projet ?",
+  "aq.project3": "Quels risques faut-il surveiller ici ?",
+  "aq.intake1": "Résumez cette soumission",
+  "aq.intake2": "Signalez ce qui manque ou n'est pas clair",
+  "aq.intake3": "Quelle catégorisation cela suggère-t-il ?",
+  "aq.assessment1": "Ces contrôles couvrent-ils notre modèle d'hébergement ?",
+  "aq.assessment2": "Quels contrôles manquent encore de preuves ?",
+  "aq.assessment3": "Aidez-moi à rédiger une note d'audit",
+  "aq.decision1": "Rédigez un énoncé de risque résiduel",
+  "aq.decision2": "Résumez les éléments POA&M en suspens",
+  "aq.decision3": "Quelles conditions devraient s'appliquer à cette autorisation ?",
+  "ev.signInRequired": "Veuillez vous connecter ou créer un compte pour fournir des preuves pour cette évaluation.",
+  "ev.accountNeeded": "La soumission de preuves exige désormais un compte afin que chaque contribution soit attribuable."
 }

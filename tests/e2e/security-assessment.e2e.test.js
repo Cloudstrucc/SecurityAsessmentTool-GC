@@ -1160,6 +1160,100 @@ test('the retired assessment ATO route no longer exists', async () => {
   assert.equal(res.status, 404, 'authorization now lives only in decision packages');
 });
 
+// ── Phase 4: assistant consolidation ─────────────────────────────────────────
+test('the Aegis SA Assistant is the single chat surface on every major record', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, projectPath } = await createAdminProject(jar, 'E2E Assistant Surface Project');
+  const { assessmentPath, assessmentId } = await createSingleControlAssessment(jar, projectId);
+  const dp = await createDecisionPackage(jar, projectId, { assessmentId });
+  const intakeId = await findIntakeIdByName(jar, 'E2E Assistant Surface Project');
+
+  for (const [label, url] of [
+    ['project', projectPath],
+    ['assessment', assessmentPath],
+    ['intake', `/admin/intakes/${intakeId}`],
+    ['decision package', dp.path]
+  ]) {
+    const page = await getText(jar, url);
+    assert.match(page.text, /aiaLaunch/, `${label} offers the Aegis SA Assistant`);
+    assert.match(page.text, /AIAssistConfig/, `${label} configures the assistant`);
+  }
+});
+
+test('the assistant offers context-aware starter prompts per record type', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, projectPath } = await createAdminProject(jar, 'E2E Assistant Prompts Project');
+  const { assessmentPath } = await createSingleControlAssessment(jar, projectId);
+
+  const project = await getText(jar, projectPath);
+  assert.match(project.text, /suggestions:/, 'the project assistant has starter prompts');
+  assert.match(project.text, /next step for this project/i, 'prompts are project-specific');
+
+  const assessment = await getText(jar, assessmentPath);
+  assert.match(assessment.text, /lack evidence/i, 'prompts are assessment-specific');
+
+  // Prompts are localized like everything else.
+  const fr = await getText(jar, `${projectPath}?lang=fr`);
+  assert.ok(fr.text.includes('prochaine étape'), 'starter prompts are localized');
+});
+
+test('the legacy AI panel is no longer a chat entry point', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Legacy Panel Project');
+  const { assessmentPath } = await createSingleControlAssessment(jar, projectId);
+
+  const assessment = await getText(jar, assessmentPath);
+  assert.doesNotMatch(assessment.text, /aiTriggerBtn/,
+    'the assessment no longer loads the legacy AI panel at all');
+
+  // Where the panel is still needed as a result viewer, its floating trigger is hidden.
+  const intakeId = await findIntakeIdByName(jar, 'E2E Legacy Panel Project');
+  const intake = await getText(jar, `/admin/intakes/${intakeId}`);
+  if (intake.text.includes('aiTriggerBtn')) {
+    assert.match(intake.text, /id="aiTriggerBtn"[^>]*style="display:none"/,
+      'the legacy trigger is hidden where the panel is kept as a result viewer');
+  }
+});
+
+// ── Residual item 1: decision package flow on the project page ───────────────
+test('the project page shows the active decision package flow', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, projectPath } = await createAdminProject(jar, 'E2E DP Flow On Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+
+  const before = await getText(jar, projectPath);
+  assert.doesNotMatch(before.text, /pfdpproj-st-/, 'no decision flow before a package exists');
+
+  await createDecisionPackage(jar, projectId, { assessmentId });
+  const after = await getText(jar, projectPath);
+  assert.match(after.text, /pfdpproj-st-/, 'the decision package flow appears on the project');
+});
+
+// ── Residual item 3: evidence submission requires an account ─────────────────
+test('the evidence portal requires an account and returns to the invite after sign-in', async () => {
+  const admin = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(admin, 'E2E Evidence Auth Project');
+  const { assessmentPath } = await createSingleControlAssessment(admin, projectId);
+  const detail = await getText(admin, assessmentPath);
+  const code = detail.text.match(/[A-F0-9]{8}/i);
+  assert.ok(code, 'the assessment exposes an invite code');
+
+  // Anonymous access is refused and routed to sign-in.
+  const anon = new CookieJar();
+  const res = await request(anon, 'GET', `/respond/${code[0]}`, { redirect: 'manual' });
+  assert.equal(res.status, 302, 'anonymous evidence access is refused');
+  assert.equal(res.headers.get('location'), '/client/login');
+
+  // Anonymous writes are refused too, not just the page view.
+  const write = await request(anon, 'POST', `/respond/${code[0]}/submit`, { form: {} });
+  assert.equal(write.status, 302, 'anonymous submission is refused');
+
+  // A signed-in client can reach it.
+  const client = await loginClientWithTotp();
+  const ok = await request(client, 'GET', `/respond/${code[0]}`, { redirect: 'manual' });
+  assert.notEqual(ok.status, 302, 'a signed-in user is not bounced to sign-in');
+});
+
 // ── Intake acceptance ────────────────────────────────────────────────────────
 async function submitClientIntake(jar, projectName) {
   const res = await request(jar, 'POST', '/intake', {

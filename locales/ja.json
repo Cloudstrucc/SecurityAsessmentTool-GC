@@ -2624,5 +2624,20 @@
   "st.closed": "完了",
   "st.archived": "アーカイブ済み",
   "st.unknown": "不明",
-  "dp.exportPdf": "PDF を書き出す"
+  "dp.exportPdf": "PDF を書き出す",
+  "aq.tryThis": "質問の例",
+  "aq.project1": "このプロジェクトのセキュリティ状況を要約して",
+  "aq.project2": "このプロジェクトの次のステップは？",
+  "aq.project3": "ここで注視すべきリスクは？",
+  "aq.intake1": "この受付内容を要約して",
+  "aq.intake2": "不足や不明瞭な点を指摘して",
+  "aq.intake3": "どの分類が妥当と考えられる？",
+  "aq.assessment1": "これらのコントロールはホスティング形態を網羅している？",
+  "aq.assessment2": "証跡が不足しているコントロールは？",
+  "aq.assessment3": "監査メモの書き方を手伝って",
+  "aq.decision1": "残存リスクの記述を作成して",
+  "aq.decision2": "未対応の POA&M 項目を要約して",
+  "aq.decision3": "この認可にはどの条件を付すべき？",
+  "ev.signInRequired": "この評価の証跡を提出するには、サインインするかアカウントを作成してください。",
+  "ev.accountNeeded": "証跡の提出にはアカウントが必要になりました。すべての提出者を明確にするためです。"
 }
