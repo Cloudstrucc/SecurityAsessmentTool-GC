@@ -1,8 +1,8 @@
 <div class="container{{#if viewingVersion}} assessment-readonly{{/if}}">
   {{#if viewingVersion}}
   <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2 sticky-top shadow-sm" style="top:0;z-index:1020">
-    <span><i class="bi bi-eye-fill me-2"></i>You are viewing a <strong>read-only snapshot of version {{viewingVersion}}</strong>. Edits are disabled here.</span>
-    <a href="/admin/assessments/{{assessment.id}}" class="btn btn-sm btn-outline-dark"><i class="bi bi-arrow-return-left me-1"></i>Back to current version</a>
+    <span><i class="bi bi-eye-fill me-2"></i>{{t 'ux.readOnlyBanner' version=viewingVersion}}</span>
+    <a href="/admin/assessments/{{assessment.id}}" class="btn btn-sm btn-outline-dark"><i class="bi bi-arrow-return-left me-1"></i>{{t 'ui.backToCurrentVersion'}}</a>
   </div>
   {{/if}}
   <div class="d-flex align-items-center mb-4">
@@ -10,7 +10,7 @@
     <div class="flex-grow-1">
       <h1 class="mb-0">{{assessment.project_name}}</h1>
       <p class="text-muted mb-0">Assessment Package — {{{statusBadge assessment.status}}}
-        {{#if viewingVersion}}<span class="badge bg-warning text-dark ms-1">Viewing v{{viewingVersion}}</span>{{else}}<span class="badge bg-dark ms-1" title="Current assessment version">v{{#if assessment.version}}{{assessment.version}}{{else}}1{{/if}}</span>{{/if}}
+        {{#if viewingVersion}}<span class="badge bg-warning text-dark ms-1">Viewing v{{viewingVersion}}</span>{{else}}<span class="badge bg-dark ms-1" title="{{t 'ui.currentAssessmentVersion'}}">v{{#if assessment.version}}{{assessment.version}}{{else}}1{{/if}}</span>{{/if}}
       </p>
     </div>
   </div>
@@ -33,37 +33,37 @@
         <div class="col-md-8">
           <div class="d-flex flex-wrap gap-3 align-items-center">
             <div>
-              <span class="small text-muted d-block">Invite Code</span>
+              <span class="small text-muted d-block">{{t 'ui.inviteCode'}}</span>
               <code class="fs-5 fw-bold">{{assessment.invite_code}}</code>
             </div>
             {{#if assessment.intake_ref_code}}
               <div class="vr d-none d-md-block"></div>
               <div>
-                <span class="small text-muted d-block">Intake</span>
+                <span class="small text-muted d-block">{{t 'ui.intake'}}</span>
                 <a href="/admin/intakes/{{assessment.intake_id}}" class="text-decoration-none"><code>{{assessment.intake_ref_code}}</code></a>
               </div>
             {{/if}}
             <div class="vr d-none d-md-block"></div>
             <div>
-              <span class="small text-muted d-block">Owner</span>
+              <span class="small text-muted d-block">{{t 'ui.owner'}}</span>
               <span class="fw-semibold">{{assessment.project_owner_name}}</span>
             </div>
             {{#if assessment.assigned_to_email}}
               <div class="vr d-none d-md-block"></div>
               <div>
-                <span class="small text-muted d-block">Assigned To</span>
+                <span class="small text-muted d-block">{{t 'ui.assignedTo'}}</span>
                 <span class="fw-semibold">{{assessment.assigned_to_email}}</span>
               </div>
             {{/if}}
             <div class="vr d-none d-md-block"></div>
             <div>
-              <span class="small text-muted d-block">Classification</span>
+              <span class="small text-muted d-block">{{t 'ui.classification'}}</span>
               <span class="badge bg-info">{{assessment.data_classification}}</span>
             </div>
             {{#if assessment.overall_score}}
               <div class="vr d-none d-md-block"></div>
               <div>
-                <span class="small text-muted d-block">Score</span>
+                <span class="small text-muted d-block">{{t 'ui.score'}}</span>
                 <span class="fw-bold fs-5 {{#ifCond assessment.overall_score '>=' 80}}text-success{{else}}text-danger{{/ifCond}}">
                   {{assessment.overall_score}}%
                 </span>
@@ -72,7 +72,7 @@
             {{#if assessment.result}}
               <div class="vr d-none d-md-block"></div>
               <div>
-                <span class="small text-muted d-block">Result</span>
+                <span class="small text-muted d-block">{{t 'ui.result'}}</span>
                 {{{statusBadge assessment.result}}}
               </div>
             {{/if}}
@@ -82,7 +82,7 @@
           <div class="d-flex flex-wrap gap-2 justify-content-md-end">
             {{#unless viewingVersion}}
             <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#versionHistoryModal">
-              <i class="bi bi-clock-history me-1"></i>Version history
+              <i class="bi bi-clock-history me-1"></i>{{t 'ui.versionHistory'}}
             </button>
             {{/unless}}
             {{!-- Action buttons based on status (hidden while viewing a past version) --}}
@@ -90,65 +90,65 @@
             {{#eq assessment.status "draft"}}
               {{#if tailorMode}}
                 <button type="submit" form="tailoringForm" class="btn btn-success">
-                  <i class="bi bi-save me-1"></i>Save Tailoring
+                  <i class="bi bi-save me-1"></i>{{t 'ui.saveTailoring'}}
                 </button>
                 <a href="/admin/assessments/{{assessment.id}}" class="btn btn-outline-secondary">
-                  <i class="bi bi-x-lg me-1"></i>Cancel
+                  <i class="bi bi-x-lg me-1"></i>{{t 'ui.cancel'}}
                 </a>
               {{else}}
                 <a href="/admin/assessments/{{assessment.id}}?tailor=1" class="btn btn-outline-primary">
-                  <i class="bi bi-pencil-square me-1"></i>Tailor
+                  <i class="bi bi-pencil-square me-1"></i>{{t 'ui.tailor'}}
                 </a>
                 <a href="/admin/assessments/{{assessment.id}}/manage-controls" class="btn btn-outline-primary">
-                  <i class="bi bi-gear me-1"></i>Manage Controls
+                  <i class="bi bi-gear me-1"></i>{{t 'ui.manageControls'}}
                 </a>
               {{/if}}
               <form method="POST" action="/admin/assessments/{{assessment.id}}/send-invite" class="d-inline">
-                <button class="btn btn-primary"><i class="bi bi-send me-1"></i>Send Invite</button>
+                <button class="btn btn-primary"><i class="bi bi-send me-1"></i>{{t 'ui.sendInvite'}}</button>
               </form>
               <form method="POST" action="/admin/assessments/{{assessment.id}}/delete" class="d-inline"
                 onsubmit="return confirm('Delete this draft assessment? This cannot be undone.')">
                 <input type="hidden" name="return_to" value="/admin/projects/{{assessment.project_id}}">
-                <button class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+                <button class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i>{{t 'ui.delete'}}</button>
               </form>
             {{/eq}}
 
             {{#eq assessment.status "evidence-gathering"}}
               <a href="/admin/assessments/{{assessment.id}}/manage-controls" class="btn btn-outline-primary btn-sm">
-                <i class="bi bi-gear me-1"></i>Manage Controls
+                <i class="bi bi-gear me-1"></i>{{t 'ui.manageControls'}}
               </a>
               <form method="POST" action="/admin/assessments/{{assessment.id}}/send-invite" class="d-inline">
-                <button class="btn btn-outline-primary btn-sm"><i class="bi bi-send me-1"></i>Resend Invite</button>
+                <button class="btn btn-outline-primary btn-sm"><i class="bi bi-send me-1"></i>{{t 'ui.resendInvite'}}</button>
               </form>
-              <a href="/respond/{{assessment.invite_code}}" target="_blank" class="btn btn-outline-success btn-sm" title="Open the public evidence submission portal">
-                <i class="bi bi-box-arrow-up-right me-1"></i>Open Portal
+              <a href="/respond/{{assessment.invite_code}}" target="_blank" class="btn btn-outline-success btn-sm" title="{{t 'ui.openThePublicEvidenceSubmission'}}">
+                <i class="bi bi-box-arrow-up-right me-1"></i>{{t 'ui.openPortal'}}
               </a>
             {{/eq}}
 
             {{#eq assessment.status "submitted"}}
               <form method="POST" action="/admin/assessments/{{assessment.id}}/start-audit" class="d-inline">
-                <button class="btn btn-warning"><i class="bi bi-search me-1"></i>Start Audit</button>
+                <button class="btn btn-warning"><i class="bi bi-search me-1"></i>{{t 'ui.startAudit'}}</button>
               </form>
               <form method="POST" action="/admin/assessments/{{assessment.id}}/reactivate" class="d-inline">
-                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-unlock me-1"></i>Reactivate</button>
+                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-unlock me-1"></i>{{t 'ui.reactivate'}}</button>
               </form>
             {{/eq}}
 
             {{#eq assessment.status "audit"}}
               <button class="btn btn-success" data-bs-toggle="collapse" data-bs-target="#completeAuditForm">
-                <i class="bi bi-check-circle me-1"></i>Complete Audit
+                <i class="bi bi-check-circle me-1"></i>{{t 'ui.completeAudit'}}
               </button>
             {{/eq}}
 
 
             <a href="/admin/assessments/{{assessment.id}}/export-pdf" class="btn btn-outline-primary btn-sm">
-              <i class="bi bi-download me-1"></i>Export PDF
+              <i class="bi bi-download me-1"></i>{{t 'ui.exportPdf'}}
             </a>
             <a href="/admin/projects/{{assessment.project_id}}/controls.csv" class="btn btn-outline-primary btn-sm">
-              <i class="bi bi-filetype-csv me-1"></i>Controls CSV
+              <i class="bi bi-filetype-csv me-1"></i>{{t 'ui.controlsCsv'}}
             </a>
             <a href="/admin/projects/{{assessment.project_id}}/controls.pdf" class="btn btn-outline-primary btn-sm">
-              <i class="bi bi-file-earmark-pdf me-1"></i>Controls PDF
+              <i class="bi bi-file-earmark-pdf me-1"></i>{{t 'ui.controlsPdf'}}
             </a>
             {{/unless}}
           </div>
@@ -170,7 +170,7 @@
   {{/unless}}
 
   <div class="card mb-4">
-    <div class="card-header bg-light"><i class="bi bi-person-check me-2"></i>Assignment</div>
+    <div class="card-header bg-light"><i class="bi bi-person-check me-2"></i>{{t 'ui.assignment'}}</div>
     <div class="card-body">
       {{#if assignments.length}}
         <div class="row g-2 mb-3">
@@ -185,45 +185,45 @@
           {{/each}}
         </div>
       {{else}}
-        <p class="text-muted small">No one has been assigned to this assessment yet.</p>
+        <p class="text-muted small">{{t 'ui.noOneHasBeenAssigned'}}</p>
       {{/if}}
       <form method="POST" action="/admin/assessments/{{assessment.id}}/assign" class="row g-2 align-items-end">
         <div class="col-md-3">
-          <label class="form-label small fw-semibold" for="assessment_assignment_mode">User</label>
+          <label class="form-label small fw-semibold" for="assessment_assignment_mode">{{t 'ui.user'}}</label>
           <select class="form-select form-select-sm assignment-mode" id="assessment_assignment_mode" name="assignment_mode" data-scope="assessment">
-            <option value="existing">Existing user</option>
-            <option value="invite">Invite new user</option>
+            <option value="existing">{{t 'ui.existingUser'}}</option>
+            <option value="invite">{{t 'ui.inviteNewUser'}}</option>
           </select>
         </div>
         <div class="col-md-5 assignment-existing-assessment">
-          <label class="form-label small fw-semibold" for="assignee_user_id">Existing User</label>
+          <label class="form-label small fw-semibold" for="assignee_user_id">{{t 'ui.existingUser2'}}</label>
           <select class="form-select form-select-sm" id="assignee_user_id" name="assignee_user_id">
-            <option value="">Choose a user...</option>
+            <option value="">{{t 'ui.chooseAUser'}}</option>
             {{#each users}}
               <option value="{{this.id}}">{{this.name}} — {{this.email}} ({{this.role}})</option>
             {{/each}}
           </select>
         </div>
         <div class="col-md-4 assignment-existing-assessment">
-          <label class="form-label small fw-semibold" for="assignment_notes_existing">Notes</label>
+          <label class="form-label small fw-semibold" for="assignment_notes_existing">{{t 'ui.notes'}}</label>
           <input type="text" class="form-control form-control-sm" id="assignment_notes_existing" name="assignment_notes">
         </div>
         <div class="col-12 assignment-invite-assessment d-none">
           <div class="row g-2">
             <div class="col-md-2">
               <select class="form-select form-select-sm" name="assignee_role">
-                <option value="client">Client</option>
-                <option value="assessor">Assessor</option>
+                <option value="client">{{t 'ui.client'}}</option>
+                <option value="assessor">{{t 'ui.assessor'}}</option>
               </select>
             </div>
-            <div class="col-md-3"><input type="text" class="form-control form-control-sm" name="invite_name" placeholder="Name"></div>
-            <div class="col-md-3"><input type="email" class="form-control form-control-sm" name="invite_email" placeholder="Email"></div>
-            <div class="col-md-2"><input type="text" class="form-control form-control-sm" name="invite_organization" placeholder="Organization"></div>
-            <div class="col-md-2"><input type="text" class="form-control form-control-sm" name="invite_message" placeholder="Invite message"></div>
+            <div class="col-md-3"><input type="text" class="form-control form-control-sm" name="invite_name" placeholder="{{t 'ui.name'}}"></div>
+            <div class="col-md-3"><input type="email" class="form-control form-control-sm" name="invite_email" placeholder="{{t 'ui.email'}}"></div>
+            <div class="col-md-2"><input type="text" class="form-control form-control-sm" name="invite_organization" placeholder="{{t 'ui.organization'}}"></div>
+            <div class="col-md-2"><input type="text" class="form-control form-control-sm" name="invite_message" placeholder="{{t 'ui.inviteMessage'}}"></div>
           </div>
         </div>
         <div class="col-12">
-          <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-person-plus me-1"></i>Assign Assessment & Intake</button>
+          <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-person-plus me-1"></i>{{t 'ui.assignAssessmentIntake'}}</button>
         </div>
       </form>
     </div>
@@ -231,12 +231,12 @@
 
   {{#if documents.length}}
   <div class="card mb-4" id="ai-doc-guidance">
-    <div class="card-header bg-light"><i class="bi bi-stars me-2"></i>AI Guidance From Project Documentation</div>
+    <div class="card-header bg-light"><i class="bi bi-stars me-2"></i>{{t 'ui.aiGuidanceFromProjectDocumentation'}}</div>
     <div class="card-body">
-      <p class="text-muted small mb-3">Select project documents and controls, preview Anthropic-generated evidence guidance, then save only the guidance you approve.</p>
+      <p class="text-muted small mb-3">{{t 'ui.selectProjectDocumentsAndControls'}}</p>
       <div class="row g-3">
         <div class="col-md-5">
-          <label class="form-label small fw-semibold">Project Documents</label>
+          <label class="form-label small fw-semibold">{{t 'ui.projectDocuments'}}</label>
           <div class="border rounded p-2" style="max-height:180px;overflow:auto;">
             {{#each documents}}
               <div class="form-check small">
@@ -247,16 +247,16 @@
           </div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small fw-semibold">Control Scope</label>
+          <label class="form-label small fw-semibold">{{t 'ui.controlScope'}}</label>
           <select class="form-select form-select-sm" id="aiControlScope">
-            <option value="visible">Visible controls on page</option>
-            <option value="selected">Checked controls only</option>
+            <option value="visible">{{t 'ui.visibleControlsOnPage'}}</option>
+            <option value="selected">{{t 'ui.checkedControlsOnly'}}</option>
           </select>
-          <div class="form-text">Use tailoring checkboxes below to choose a smaller set.</div>
+          <div class="form-text">{{t 'ui.useTailoringCheckboxesBelowTo'}}</div>
         </div>
         <div class="col-md-3 d-flex align-items-end">
           <button type="button" class="btn btn-sm text-white w-100" style="background:#8b5cf6;" onclick="aiGenerateFromDocuments()">
-            <i class="bi bi-stars me-1"></i>Preview Guidance
+            <i class="bi bi-stars me-1"></i>{{t 'ui.previewGuidance'}}
           </button>
         </div>
       </div>
@@ -271,43 +271,43 @@
     <div class="col-6 col-lg">
       <div class="stat-card">
         <div class="stat-number">{{stats.total}}</div>
-        <div class="stat-label">Total Controls</div>
+        <div class="stat-label">{{t 'ui.totalControls'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
       <div class="stat-card">
         <div class="stat-number">{{stats.inherited}}</div>
-        <div class="stat-label">Inherited</div>
+        <div class="stat-label">{{t 'ui.inherited'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
       <div class="stat-card">
         <div class="stat-number">{{stats.evidenceProvided}}</div>
-        <div class="stat-label">Evidence Provided</div>
+        <div class="stat-label">{{t 'ui.evidenceProvided'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
       <div class="stat-card">
         <div class="stat-number text-success">{{stats.met}}</div>
-        <div class="stat-label">Met</div>
+        <div class="stat-label">{{t 'ui.met'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
       <div class="stat-card">
         <div class="stat-number" style="color:var(--gc-warning)">{{stats.partiallyMet}}</div>
-        <div class="stat-label">Partially Met</div>
+        <div class="stat-label">{{t 'ui.partiallyMet'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
       <div class="stat-card">
         <div class="stat-number text-danger">{{stats.notMet}}</div>
-        <div class="stat-label">Not Met</div>
+        <div class="stat-label">{{t 'ui.notMet'}}</div>
       </div>
     </div>
     <div class="col-6 col-lg">
       <div class="stat-card">
         <div class="stat-number" style="color:#dc3545">{{stats.highRisk}}</div>
-        <div class="stat-label">High Risk (TBS)</div>
+        <div class="stat-label">{{t 'ui.highRiskTbs'}}</div>
       </div>
     </div>
   </div>
@@ -317,7 +317,7 @@
     <div class="card mb-4">
       <div class="card-body">
         <div class="d-flex justify-content-between mb-2">
-          <span class="fw-semibold">Audit Progress</span>
+          <span class="fw-semibold">{{t 'ui.auditProgress'}}</span>
           <span class="fw-bold">{{stats.score}}%</span>
         </div>
         <div class="progress" style="height:12px">
@@ -343,7 +343,7 @@
   <div class="collapse mb-4" id="completeAuditForm">
     <div class="card border-warning">
       <div class="card-header bg-warning text-dark fw-bold">
-        <i class="bi bi-shield-check me-2"></i>Complete Audit — TBS Authorization Decision
+        <i class="bi bi-shield-check me-2"></i>{{t 'ui.completeAuditTbsAuthorizationDecision'}}
       </div>
       <div class="card-body">
         <form method="POST" action="/admin/assessments/{{assessment.id}}/complete-audit"
@@ -352,56 +352,56 @@
             <div class="col-6 col-md-3">
               <div class="p-2 rounded text-center" style="background:#fef2f2">
                 <div class="fw-bold text-danger fs-5">{{stats.highRiskNotMet}}</div>
-                <small class="text-muted">High-Risk Findings</small>
+                <small class="text-muted">{{t 'ui.highRiskFindings'}}</small>
               </div>
             </div>
             <div class="col-6 col-md-3">
               <div class="p-2 rounded text-center" style="background:#f0fdf4">
                 <div class="fw-bold text-success fs-5">{{stats.met}}</div>
-                <small class="text-muted">Controls Met</small>
+                <small class="text-muted">{{t 'ui.controlsMet'}}</small>
               </div>
             </div>
             <div class="col-6 col-md-3">
               <div class="p-2 rounded text-center" style="background:#fffbeb">
                 <div class="fw-bold" style="color:var(--gc-warning)">{{stats.partiallyMet}}</div>
-                <small class="text-muted">Partially Met</small>
+                <small class="text-muted">{{t 'ui.partiallyMet'}}</small>
               </div>
             </div>
             <div class="col-6 col-md-3">
               <div class="p-2 rounded text-center" style="background:#fef2f2">
                 <div class="fw-bold text-danger">{{stats.notMet}}</div>
-                <small class="text-muted">Not Met</small>
+                <small class="text-muted">{{t 'ui.notMet'}}</small>
               </div>
             </div>
           </div>
           {{#if stats.highRiskNotMet}}
           <div class="alert alert-danger py-2 small mb-3">
             <i class="bi bi-exclamation-triangle me-1"></i>
-            <strong>TBS Policy:</strong> {{stats.highRiskNotMet}} high-risk control(s) not met. Per TBS Directive on Security Management, full ATO cannot be granted with outstanding high-risk findings. Consider iATO with POA&M.
+            <strong>{{t 'ui.tbsPolicy'}}</strong> {{stats.highRiskNotMet}} high-risk control(s) not met. Per TBS Directive on Security Management, full ATO cannot be granted with outstanding high-risk findings. Consider iATO with POA&M.
           </div>
           {{/if}}
           <div class="row g-3 mb-3">
             <div class="col-md-4">
-              <label class="form-label small fw-bold">Override Result</label>
+              <label class="form-label small fw-bold">{{t 'ui.overrideResult'}}</label>
               <select class="form-select form-select-sm" name="overrideResult">
-                <option value="">Auto-calculate (TBS rules)</option>
-                <option value="ato">ATO — Full Authority</option>
-                <option value="iato">iATO — Interim + POA&M</option>
-                <option value="denied">Denied</option>
+                <option value="">{{t 'ui.autoCalculateTbsRules'}}</option>
+                <option value="ato">{{t 'ui.atoFullAuthority'}}</option>
+                <option value="iato">{{t 'ui.iatoInterimPoaM'}}</option>
+                <option value="denied">{{t 'ui.denied'}}</option>
               </select>
             </div>
             <div class="col-md-4">
-              <label class="form-label small fw-bold">iATO Expiry Date</label>
+              <label class="form-label small fw-bold">{{t 'ui.iatoExpiryDate'}}</label>
               <input type="date" class="form-control form-control-sm" name="atoExpiryDate">
-              <small class="text-muted">Default: 90 days if iATO</small>
+              <small class="text-muted">{{t 'ui.default90DaysIfIato'}}</small>
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label small fw-bold">Risk Acceptance Statement <span class="text-muted fw-normal">(required for iATO per TBS)</span></label>
+            <label class="form-label small fw-bold">{{t 'ui.riskAcceptanceStatement'}} <span class="text-muted fw-normal">{{t 'ui.requiredForIatoPerTbs'}}</span></label>
             <textarea class="form-control form-control-sm" name="riskAcceptance" rows="3"
-              placeholder="Document residual risk acceptance rationale per TBS Directive on Security Management..."></textarea>
+              placeholder="{{t 'ui.documentResidualRiskAcceptanceRationale'}}"></textarea>
           </div>
-          <button type="submit" class="btn btn-success"><i class="bi bi-shield-check me-1"></i>Complete Audit & Issue Decision</button>
+          <button type="submit" class="btn btn-success"><i class="bi bi-shield-check me-1"></i>{{t 'ui.completeAuditIssueDecision'}}</button>
         </form>
       </div>
     </div>
@@ -411,8 +411,8 @@
 {{#if tailorMode}}
   <form id="tailoringForm" method="POST" action="/admin/assessments/{{assessment.id}}/tailoring">
     <div class="alert alert-warning d-flex justify-content-between align-items-center">
-      <div><i class="bi bi-pencil-square me-2"></i><strong>Tailoring mode enabled.</strong> Edit fields, mark applicability, or remove controls, then save.</div>
-      <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-save me-1"></i>Save Tailoring</button>
+      <div><i class="bi bi-pencil-square me-2"></i><strong>{{t 'ui.tailoringModeEnabled'}}</strong> {{t 'ui.editFieldsMarkApplicabilityOr'}}</div>
+      <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-save me-1"></i>{{t 'ui.saveTailoring'}}</button>
     </div>
   {{/if}}
 
@@ -462,9 +462,9 @@
             </div>
             <div class="d-flex gap-1">
               <span class="badge bg-secondary">{{this.priority}}</span>
-              {{#eq this.risk_level "high"}}<span class="badge bg-danger">High Risk</span>{{/eq}}
-              {{#eq this.risk_level "medium"}}<span class="badge bg-warning text-dark">Med Risk</span>{{/eq}}
-              {{#eq this.risk_level "low"}}<span class="badge bg-info">Low Risk</span>{{/eq}}
+              {{#eq this.risk_level "high"}}<span class="badge bg-danger">{{t 'ui.highRisk'}}</span>{{/eq}}
+              {{#eq this.risk_level "medium"}}<span class="badge bg-warning text-dark">{{t 'ui.medRisk'}}</span>{{/eq}}
+              {{#eq this.risk_level "low"}}<span class="badge bg-info">{{t 'ui.lowRisk'}}</span>{{/eq}}
               {{#if this.audit_result}}{{{statusBadge this.audit_result}}}{{/if}}
             </div>
           </div>
@@ -473,11 +473,11 @@
             <div class="border rounded p-3 mt-3" style="background:#f8f9fa;">
               <div class="row g-2">
                 <div class="col-md-8">
-                  <label class="form-label small fw-semibold">Control Title</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.controlTitle'}}</label>
                   <input type="text" class="form-control form-control-sm" name="title_{{this.id}}" value="{{this.title}}">
                 </div>
                 <div class="col-md-2">
-                  <label class="form-label small fw-semibold">Priority</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.priority'}}</label>
                   <select class="form-select form-select-sm" name="priority_{{this.id}}">
                     <option value="P1" {{#eq this.priority "P1"}}selected{{/eq}}>P1</option>
                     <option value="P2" {{#eq this.priority "P2"}}selected{{/eq}}>P2</option>
@@ -485,79 +485,79 @@
                   </select>
                 </div>
                 <div class="col-md-2">
-                  <label class="form-label small fw-semibold">Risk</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.risk'}}</label>
                   <select class="form-select form-select-sm" name="risk_level_{{this.id}}">
-                    <option value="high" {{#eq this.risk_level "high"}}selected{{/eq}}>High</option>
-                    <option value="medium" {{#eq this.risk_level "medium"}}selected{{/eq}}>Medium</option>
-                    <option value="low" {{#eq this.risk_level "low"}}selected{{/eq}}>Low</option>
+                    <option value="high" {{#eq this.risk_level "high"}}selected{{/eq}}>{{t 'ui.high'}}</option>
+                    <option value="medium" {{#eq this.risk_level "medium"}}selected{{/eq}}>{{t 'ui.medium'}}</option>
+                    <option value="low" {{#eq this.risk_level "low"}}selected{{/eq}}>{{t 'ui.low'}}</option>
                   </select>
                 </div>
                 <div class="col-12">
-                  <label class="form-label small fw-semibold">Control Description</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.controlDescription'}}</label>
                   <textarea class="form-control form-control-sm" name="description_{{this.id}}" rows="2">{{this.description}}</textarea>
                 </div>
                 <div class="col-12">
-                  <label class="form-label small fw-semibold">Control Guidance</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.controlGuidance'}}</label>
                   <textarea class="form-control form-control-sm" name="control_guidance_{{this.id}}" rows="2">{{this.control_guidance}}</textarea>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">Tailored Description</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.tailoredDescription'}}</label>
                   <textarea class="form-control form-control-sm" name="tailored_description_{{this.id}}" rows="3">{{this.tailored_description}}</textarea>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">Evidence Guidance</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.evidenceGuidance'}}</label>
                   <textarea class="form-control form-control-sm" name="evidence_guidance_{{this.id}}" rows="3">{{this.evidence_guidance}}</textarea>
                   <input type="hidden" name="guidance_source_{{this.id}}" value="{{this.guidance_source}}">
                   {{#if this.guidance_source}}<div class="form-text">Source: {{this.guidance_source}}{{#if this.ai_generated_at}} on {{formatDate this.ai_generated_at}}{{/if}}</div>{{/if}}
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">Evidence Collected</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.evidenceCollected'}}</label>
                   <textarea class="form-control form-control-sm" name="evidence_text_{{this.id}}" rows="3">{{this.evidence_text}}</textarea>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">Assessor Notes</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.assessorNotes'}}</label>
                   <textarea class="form-control form-control-sm" name="assessor_notes_{{this.id}}" rows="3">{{this.assessor_notes}}</textarea>
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label small fw-semibold">Evidence Status</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.evidenceStatus'}}</label>
                   <select class="form-select form-select-sm" name="evidence_status_{{this.id}}">
-                    <option value="pending" {{#eq this.evidence_status "pending"}}selected{{/eq}}>Pending</option>
-                    <option value="provided" {{#eq this.evidence_status "provided"}}selected{{/eq}}>Provided</option>
-                    <option value="reviewed" {{#eq this.evidence_status "reviewed"}}selected{{/eq}}>Reviewed</option>
+                    <option value="pending" {{#eq this.evidence_status "pending"}}selected{{/eq}}>{{t 'ui.pending'}}</option>
+                    <option value="provided" {{#eq this.evidence_status "provided"}}selected{{/eq}}>{{t 'ui.provided'}}</option>
+                    <option value="reviewed" {{#eq this.evidence_status "reviewed"}}selected{{/eq}}>{{t 'ui.reviewed'}}</option>
                   </select>
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label small fw-semibold">Assessment Status</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.assessmentStatus'}}</label>
                   <select class="form-select form-select-sm" name="audit_result_{{this.id}}">
-                    <option value="" {{#unless this.audit_result}}selected{{/unless}}>Pending</option>
-                    <option value="met" {{#eq this.audit_result "met"}}selected{{/eq}}>Met</option>
-                    <option value="partially-met" {{#eq this.audit_result "partially-met"}}selected{{/eq}}>Partially Met</option>
-                    <option value="not-met" {{#eq this.audit_result "not-met"}}selected{{/eq}}>Not Met</option>
+                    <option value="" {{#unless this.audit_result}}selected{{/unless}}>{{t 'ui.pending'}}</option>
+                    <option value="met" {{#eq this.audit_result "met"}}selected{{/eq}}>{{t 'ui.met'}}</option>
+                    <option value="partially-met" {{#eq this.audit_result "partially-met"}}selected{{/eq}}>{{t 'ui.partiallyMet'}}</option>
+                    <option value="not-met" {{#eq this.audit_result "not-met"}}selected{{/eq}}>{{t 'ui.notMet'}}</option>
                   </select>
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label small fw-semibold">Applicability</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.applicability'}}</label>
                   <select class="form-select form-select-sm" name="is_applicable_{{this.id}}">
-                    <option value="1" {{#if this.is_applicable}}selected{{/if}}>Applicable</option>
-                    <option value="0" {{#unless this.is_applicable}}selected{{/unless}}>Not Applicable</option>
+                    <option value="1" {{#if this.is_applicable}}selected{{/if}}>{{t 'ui.applicable'}}</option>
+                    <option value="0" {{#unless this.is_applicable}}selected{{/unless}}>{{t 'ui.notApplicable'}}</option>
                   </select>
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label small fw-semibold">Remove</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.remove'}}</label>
                   <div class="form-check mt-1">
                     <input class="form-check-input" type="checkbox" name="remove_control_ids" value="{{this.id}}" id="remove-{{this.id}}">
-                    <label class="form-check-label small" for="remove-{{this.id}}">Remove from assessment</label>
+                    <label class="form-check-label small" for="remove-{{this.id}}">{{t 'ui.removeFromAssessment'}}</label>
                   </div>
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label small fw-semibold">Inherited</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.inherited'}}</label>
                   <select class="form-select form-select-sm" name="is_inherited_{{this.id}}">
                     <option value="0" {{#unless this.is_inherited}}selected{{/unless}}>No</option>
-                    <option value="1" {{#if this.is_inherited}}selected{{/if}}>Yes</option>
+                    <option value="1" {{#if this.is_inherited}}selected{{/if}}>{{t 'ui.yes'}}</option>
                   </select>
                 </div>
                 <div class="col-md-9">
-                  <label class="form-label small fw-semibold">Inherited From</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.inheritedFrom'}}</label>
                   <input type="text" class="form-control form-control-sm" name="inherited_from_{{this.id}}" value="{{this.inherited_from}}">
                 </div>
               </div>
@@ -565,13 +565,13 @@
           {{else}}
             {{#if this.description}}
               <div class="mt-2 p-2 rounded" style="background:#f8f9fa">
-                <small class="text-muted fw-semibold d-block mb-1">Control Description</small>
+                <small class="text-muted fw-semibold d-block mb-1">{{t 'ui.controlDescription'}}</small>
                 <small>{{this.description}}</small>
               </div>
             {{/if}}
             {{#if this.control_guidance}}
               <div class="mt-2 p-2 rounded" style="background:#eef5ff">
-                <small class="text-muted fw-semibold d-block mb-1">Control Guidance</small>
+                <small class="text-muted fw-semibold d-block mb-1">{{t 'ui.controlGuidance'}}</small>
                 <small>{{this.control_guidance}}</small>
               </div>
             {{/if}}
@@ -579,14 +579,14 @@
 
           {{#if this.tailored_description}}
             <div class="mt-2 p-2 rounded" style="background:#f8f9fa">
-              <small class="text-muted fw-semibold d-block mb-1">Tailored Description</small>
+              <small class="text-muted fw-semibold d-block mb-1">{{t 'ui.tailoredDescription'}}</small>
               <small>{{this.tailored_description}}</small>
             </div>
           {{/if}}
 
           {{#if this.evidence_guidance}}
             <div class="mt-2 p-2 rounded" style="background:#fff8e1">
-              <small class="text-muted fw-semibold d-block mb-1"><i class="bi bi-info-circle me-1"></i>Evidence Guidance</small>
+              <small class="text-muted fw-semibold d-block mb-1"><i class="bi bi-info-circle me-1"></i>{{t 'ui.evidenceGuidance'}}</small>
               <small>{{this.evidence_guidance}}</small>
               {{#if this.guidance_source}}<small class="d-block text-muted mt-1">Source: {{this.guidance_source}}</small>{{/if}}
             </div>
@@ -597,7 +597,7 @@
             <button type="button" class="btn btn-sm text-white" style="background:#8b5cf6; font-size:.78rem;"
               onclick="aiGenerateGuidance({{this.id}}, '{{this.control_id}}', '{{this.title}}')"
               id="ai-ev-btn-{{this.id}}">
-              <i class="bi bi-stars me-1"></i>AI Evidence Guidance
+              <i class="bi bi-stars me-1"></i>{{t 'ui.aiEvidenceGuidance'}}
             </button>
             <div id="ai-ev-status-{{this.id}}" class="small text-muted" style="display:none;"></div>
           </div>
@@ -607,7 +607,7 @@
           <!-- Evidence (if provided) -->
           {{#eq this.evidence_status "provided"}}
             <div class="mt-2 p-2 rounded border" style="background:#f0fff0">
-              <small class="text-success fw-semibold d-block mb-1"><i class="bi bi-check-circle me-1"></i>Evidence Submitted</small>
+              <small class="text-success fw-semibold d-block mb-1"><i class="bi bi-check-circle me-1"></i>{{t 'ui.evidenceSubmitted'}}</small>
               <div class="small">{{{this.evidence_html}}}</div>
               {{#if this.evidence_text}}
                 {{#unless this.evidence_html}}
@@ -618,8 +618,8 @@
           {{/eq}}
           {{#unless this.evidence_text}}
             <div class="mt-2 p-2 rounded border" style="background:#fff">
-              <small class="text-muted fw-semibold d-block mb-1">Evidence Collected</small>
-              <small class="text-muted">No evidence collected yet.</small>
+              <small class="text-muted fw-semibold d-block mb-1">{{t 'ui.evidenceCollected'}}</small>
+              <small class="text-muted">{{t 'ui.noEvidenceCollectedYet'}}</small>
             </div>
           {{/unless}}
 
@@ -631,7 +631,7 @@
 
           {{#if this.assessor_notes}}
             <div class="mt-2 p-2 rounded" style="background:#f5f3ff">
-              <small class="fw-semibold d-block mb-1"><i class="bi bi-journal-text me-1"></i>Assessor Notes</small>
+              <small class="fw-semibold d-block mb-1"><i class="bi bi-journal-text me-1"></i>{{t 'ui.assessorNotes'}}</small>
               <small>{{this.assessor_notes}}</small>
             </div>
           {{/if}}
@@ -640,21 +640,21 @@
           {{#eq ../../assessment.status "audit"}}
             <div class="audit-row mt-3 p-2 rounded" style="background:#f5f7fa">
               <div class="d-flex gap-2 align-items-center flex-wrap">
-                <span class="small fw-semibold text-muted me-2">Audit:</span>
+                <span class="small fw-semibold text-muted me-2">{{t 'ui.audit'}}</span>
                 <button type="button" class="audit-btn met {{#eq this.audit_result 'met'}}active{{/eq}}"
-                  onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'met', this)" title="Met">
+                  onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'met', this)" title="{{t 'ui.met'}}">
                   <i class="bi bi-check-lg"></i>
                 </button>
                 <button type="button" class="audit-btn partial {{#eq this.audit_result 'partially-met'}}active{{/eq}}"
-                  onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'partially-met', this)" title="Partially Met">
+                  onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'partially-met', this)" title="{{t 'ui.partiallyMet'}}">
                   <i class="bi bi-dash-lg"></i>
                 </button>
                 <button type="button" class="audit-btn not-met {{#eq this.audit_result 'not-met'}}active{{/eq}}"
-                  onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'not-met', this)" title="Not Met">
+                  onclick="auditControl({{this.id}}, '{{../../assessment.id}}', 'not-met', this)" title="{{t 'ui.notMet'}}">
                   <i class="bi bi-x-lg"></i>
                 </button>
                 <input type="text" class="form-control form-control-sm flex-grow-1"
-                  id="audit-comment-{{this.id}}" placeholder="Auditor comments..."
+                  id="audit-comment-{{this.id}}" placeholder="{{t 'ui.auditorComments2'}}"
                   value="{{this.audit_comments}}"
                   onchange="auditControl({{this.id}}, '{{../../assessment.id}}', null, null, this.value)">
               </div>
@@ -665,7 +665,7 @@
           {{#if this.audit_comments}}
             {{#neq ../../assessment.status "audit"}}
               <div class="mt-2 p-2 rounded" style="background:#fdf2f8">
-                <small class="fw-semibold d-block mb-1"><i class="bi bi-chat-left-text me-1"></i>Auditor Comments</small>
+                <small class="fw-semibold d-block mb-1"><i class="bi bi-chat-left-text me-1"></i>{{t 'ui.auditorComments'}}</small>
                 <small>{{this.audit_comments}}</small>
               </div>
             {{/neq}}
@@ -675,16 +675,16 @@
           <div class="mt-2">
             <button type="button" class="btn btn-sm btn-link text-decoration-none p-0"
               data-bs-toggle="collapse" data-bs-target="#comments-{{this.id}}">
-              <i class="bi bi-chat-dots me-1"></i>Comments
+              <i class="bi bi-chat-dots me-1"></i>{{t 'ui.comments'}}
             </button>
           </div>
           <div class="collapse mt-2" id="comments-{{this.id}}">
             <div class="comment-thread border rounded p-2" id="thread-{{this.id}}">
-              <div class="text-muted small text-center py-2">Loading comments...</div>
+              <div class="text-muted small text-center py-2">{{t 'ui.loadingComments'}}</div>
             </div>
             <div class="input-group mt-2">
               <input type="text" class="form-control form-control-sm" id="commentInput-{{this.id}}"
-                placeholder="Add a comment...">
+                placeholder="{{t 'ui.addAComment'}}">
               <button class="btn btn-sm btn-outline-primary" onclick="addComment({{this.id}}, '{{../../assessment.id}}')">
                 <i class="bi bi-send"></i>
               </button>
@@ -701,11 +701,11 @@
     <div class="col-lg-3 d-none d-lg-block">
       <div class="family-nav" id="familyNav">
         <div class="family-nav-header">
-          <i class="bi bi-list-nested me-1"></i>Control Families
+          <i class="bi bi-list-nested me-1"></i>{{t 'ui.controlFamilies'}}
         </div>
         <div class="family-nav-filter mb-2">
           <input type="text" class="form-control form-control-sm" id="familyFilter"
-            placeholder="Filter families..." style="font-size:.75rem;">
+            placeholder="{{t 'ui.filterFamilies'}}" style="font-size:.75rem;">
         </div>
         <div class="family-nav-list" id="familyNavList">
           {{#each families}}
@@ -1156,15 +1156,14 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-clock-history me-2"></i>Version history</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title"><i class="bi bi-clock-history me-2"></i>{{t 'ui.versionHistory'}}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t 'ui.close'}}"></button>
       </div>
       <div class="modal-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <span class="text-muted small">Every change checkpoint is kept for audit. Reverting to an earlier
-            version creates a new active version — nothing is lost.</span>
+          <span class="text-muted small">{{t 'ui.everyChangeCheckpointIsKept'}}</span>
           <button type="button" class="btn btn-sm btn-outline-primary ms-2 flex-shrink-0" onclick="saaCreateCheckpoint()">
-            <i class="bi bi-bookmark-plus me-1"></i>Create checkpoint
+            <i class="bi bi-bookmark-plus me-1"></i>{{t 'ui.createCheckpoint'}}
           </button>
         </div>
         <div class="list-group">
@@ -1174,7 +1173,7 @@ document.addEventListener('DOMContentLoaded', function() {
               <div class="d-flex align-items-center gap-2 mb-1">
                 <span class="badge bg-secondary">v{{this.version}}</span>
                 <strong>{{this.label}}</strong>
-                {{#if (eq this.version ../assessment.version)}}<span class="badge bg-success">Active</span>{{/if}}
+                {{#if (eq this.version ../assessment.version)}}<span class="badge bg-success">{{t 'ui.active'}}</span>{{/if}}
               </div>
               {{#if this.summary}}<div class="small text-muted">{{this.summary}}</div>{{/if}}
               <div class="small text-muted">
@@ -1185,20 +1184,20 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="flex-shrink-0 d-flex flex-column align-items-end gap-1">
               <button type="button" class="btn btn-sm btn-outline-primary"
                 onclick="saaShowVersionSummary({{this.version}})">
-                <i class="bi bi-list-check me-1"></i>Summary
+                <i class="bi bi-list-check me-1"></i>{{t 'ui.summary'}}
               </button>
               {{#if (eq this.version ../assessment.version)}}
-                <span class="text-muted small"><i class="bi bi-check2-circle me-1"></i>Current</span>
+                <span class="text-muted small"><i class="bi bi-check2-circle me-1"></i>{{t 'ui.current'}}</span>
               {{else}}
                 <button type="button" class="btn btn-sm btn-outline-danger"
                   onclick="saaConfirmRevert({{this.version}}, {{json this.label}})">
-                  <i class="bi bi-arrow-counterclockwise me-1"></i>Revert to this
+                  <i class="bi bi-arrow-counterclockwise me-1"></i>{{t 'ui.revertToThis'}}
                 </button>
               {{/if}}
             </div>
           </div>
           {{else}}
-          <div class="text-muted small p-2">No saved versions yet.</div>
+          <div class="text-muted small p-2">{{t 'ui.noSavedVersionsYet'}}</div>
           {{/each}}
         </div>
       </div>
@@ -1211,27 +1210,23 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="modal-dialog">
     <div class="modal-content border-danger">
       <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Revert this assessment?</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{t 'ui.revertThisAssessment'}}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{t 'ui.close'}}"></button>
       </div>
       <div class="modal-body">
-        <p class="mb-2">You are about to revert this assessment to
-          <strong>version <span id="revertVersionNum"></span></strong>
+        <p class="mb-2">{{t 'ui.youAreAboutToRevert'}}
+          <strong>{{t 'ui.version'}} <span id="revertVersionNum"></span></strong>
           <span id="revertVersionLabel" class="text-muted"></span>.</p>
         <div class="alert alert-warning mb-2">
           <i class="bi bi-info-circle-fill me-1"></i>
-          Reverting <strong>creates a new version</strong> from that snapshot and makes it the active state.
-          The <strong>current active version will no longer be the active one</strong> — it is kept in the
-          version history for audit, but the assessment's live control set will be replaced by the selected
-          version. Any edits made since the last checkpoint will be superseded.
+          {{t 'ux.revertExplain'}}
         </div>
-        <p class="small text-muted mb-0">Signatures and the invite code are not affected — only the tailored
-          control set and security profile are restored.</p>
+        <p class="small text-muted mb-0">{{t 'ui.signaturesAndTheInviteCode'}}</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{t 'ui.cancel'}}</button>
         <button type="button" class="btn btn-danger" id="revertConfirmBtn">
-          <i class="bi bi-arrow-counterclockwise me-1"></i>Revert &amp; create new version
+          <i class="bi bi-arrow-counterclockwise me-1"></i>{{t 'ui.revertAmpCreateNewVersion'}}
         </button>
       </div>
     </div>
@@ -1243,17 +1238,17 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-list-check me-2"></i>Version <span id="vsVersion"></span> — summary of changes</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title"><i class="bi bi-list-check me-2"></i>{{t 'ux.versionSummaryTitle'}} <span id="vsVersion"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t 'ui.close'}}"></button>
       </div>
       <div class="modal-body" id="vsBody">
-        <div class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</div>
+        <div class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>{{t 'ui.loading'}}</div>
       </div>
       <div class="modal-footer">
         <a href="#" id="vsOpenFull" class="btn btn-outline-primary" target="_blank" rel="noopener">
-          <i class="bi bi-box-arrow-up-right me-1"></i>Open full version in a new tab
+          <i class="bi bi-box-arrow-up-right me-1"></i>{{t 'ui.openFullVersionInA'}}
         </a>
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{t 'ui.close'}}</button>
       </div>
     </div>
   </div>

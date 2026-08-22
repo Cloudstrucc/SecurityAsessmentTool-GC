@@ -12,7 +12,7 @@
 <!-- Result viewer only. The floating trigger is hidden: the Aegis SA Assistant is the
      single chat entry point, and this panel is opened programmatically by the
      non-chat AI generators (document analysis, intake review, control suggestions). -->
-<button id="aiTriggerBtn" class="ai-trigger-btn" style="display:none" onclick="AIPanel.toggle()" title="AI Assistant">
+<button id="aiTriggerBtn" class="ai-trigger-btn" style="display:none" onclick="AIPanel.toggle()" title="{{t 'ui.aiAssistant'}}">
   <i class="bi bi-stars"></i>
 </button>
 
@@ -25,8 +25,8 @@
     <div class="d-flex align-items-center gap-2">
       <div class="ai-panel-icon"><i class="bi bi-stars"></i></div>
       <div>
-        <h5 class="mb-0" id="aiPanelTitle">AI Assistant</h5>
-        <small class="text-muted" id="aiPanelSubtitle">Powered by Claude</small>
+        <h5 class="mb-0" id="aiPanelTitle">{{t 'ui.aiAssistant'}}</h5>
+        <small class="text-muted" id="aiPanelSubtitle">{{t 'ui.poweredByClaude'}}</small>
       </div>
     </div>
     <button class="btn btn-sm btn-link text-muted" onclick="AIPanel.close()" style="font-size:1.25rem;">
@@ -38,7 +38,7 @@
     <!-- Dynamic content goes here -->
     <div class="text-center text-muted py-5">
       <i class="bi bi-stars" style="font-size:3rem;opacity:0.2;"></i>
-      <p class="mt-3">Select an AI action to get started</p>
+      <p class="mt-3">{{t 'ui.selectAnAiActionTo'}}</p>
     </div>
   </div>
 

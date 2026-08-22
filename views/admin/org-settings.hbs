@@ -1,7 +1,7 @@
 <div class="container">
   <div class="page-head d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
     <div>
-      <h1 class="mb-1">Organization Settings</h1>
+      <h1 class="mb-1">{{t 'ui.organizationSettings2'}}</h1>
       <p class="text-muted mb-0">Root-admin only · {{org.name}} · <span class="badge bg-info text-dark">{{org.plan}}</span></p>
       <div class="rule"></div>
     </div>
@@ -9,40 +9,40 @@
 
   <div class="alert alert-info d-flex align-items-center" style="border-left:4px solid var(--cs-accent)">
     <i class="bi bi-shield-lock me-2"></i>
-    <div>These settings apply to your whole tenant and are restricted to the <strong>primary (root) administrator</strong>. Bring your own mail server, SMS provider, and domain instead of the platform defaults.</div>
+    <div>{{t 'ux.orgSettingsIntro'}}</div>
   </div>
 
   <!-- ── SMTP ── -->
   <div class="card mb-4" id="smtp">
     <div class="card-header"><i class="bi bi-envelope-at me-2"></i>Email (SMTP)
-      {{#if settings.smtp_enabled}}<span class="badge bg-success ms-2">Enabled</span>{{else}}<span class="badge bg-secondary ms-2">Using platform default</span>{{/if}}
+      {{#if settings.smtp_enabled}}<span class="badge bg-success ms-2">{{t 'ui.enabled'}}</span>{{else}}<span class="badge bg-secondary ms-2">{{t 'ui.usingPlatformDefault'}}</span>{{/if}}
     </div>
     <div class="card-body">
       <form method="POST" action="/admin/organization/smtp">
         <div class="row g-3">
-          <div class="col-md-8"><label class="form-label">SMTP host</label><input class="form-control" name="smtp_host" value="{{settings.smtp_host}}" placeholder="smtp.yourdomain.com"></div>
-          <div class="col-md-4"><label class="form-label">Port</label><input class="form-control" name="smtp_port" value="{{settings.smtp_port}}" placeholder="587"></div>
-          <div class="col-md-6"><label class="form-label">Username</label><input class="form-control" name="smtp_user" value="{{settings.smtp_user}}" placeholder="mailer@yourdomain.com"></div>
-          <div class="col-md-6"><label class="form-label">Password</label><input class="form-control" type="password" name="smtp_password" placeholder="{{#if settings.smtp_password}}•••••••• (saved — leave blank to keep){{else}}App password / SMTP password{{/if}}"></div>
-          <div class="col-md-8"><label class="form-label">From address</label><input class="form-control" name="smtp_from" value="{{settings.smtp_from}}" placeholder="Aegis SA &lt;noreply@yourdomain.com&gt;"></div>
+          <div class="col-md-8"><label class="form-label">{{t 'ui.smtpHost'}}</label><input class="form-control" name="smtp_host" value="{{settings.smtp_host}}" placeholder="{{t 'ui.smtpYourdomainCom'}}"></div>
+          <div class="col-md-4"><label class="form-label">{{t 'ui.port'}}</label><input class="form-control" name="smtp_port" value="{{settings.smtp_port}}" placeholder="587"></div>
+          <div class="col-md-6"><label class="form-label">{{t 'ui.username'}}</label><input class="form-control" name="smtp_user" value="{{settings.smtp_user}}" placeholder="{{t 'ui.mailerYourdomainCom'}}"></div>
+          <div class="col-md-6"><label class="form-label">{{t 'ui.password'}}</label><input class="form-control" type="password" name="smtp_password" placeholder="{{#if settings.smtp_password}}•••••••• (saved — leave blank to keep){{else}}App password / SMTP password{{/if}}"></div>
+          <div class="col-md-8"><label class="form-label">{{t 'ui.fromAddress'}}</label><input class="form-control" name="smtp_from" value="{{settings.smtp_from}}" placeholder="{{t 'ui.aegisSaLtNoreplyYourdomain'}}"></div>
           <div class="col-md-4 d-flex align-items-end gap-3">
             <div class="form-check"><input class="form-check-input" type="checkbox" name="smtp_secure" value="1" id="smtp_secure" {{#if settings.smtp_secure}}checked{{/if}}><label class="form-check-label" for="smtp_secure">TLS (465)</label></div>
-            <div class="form-check"><input class="form-check-input" type="checkbox" name="smtp_enabled" value="1" id="smtp_enabled" {{#if settings.smtp_enabled}}checked{{/if}}><label class="form-check-label" for="smtp_enabled">Enable</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="smtp_enabled" value="1" id="smtp_enabled" {{#if settings.smtp_enabled}}checked{{/if}}><label class="form-check-label" for="smtp_enabled">{{t 'ui.enable'}}</label></div>
           </div>
         </div>
-        <button class="btn btn-primary mt-3"><i class="bi bi-save me-1"></i>Save SMTP</button>
+        <button class="btn btn-primary mt-3"><i class="bi bi-save me-1"></i>{{t 'ui.saveSmtp'}}</button>
       </form>
       <hr>
       <form method="POST" action="/admin/organization/smtp/test" class="row g-2 align-items-end">
-        <div class="col-md-8"><label class="form-label small">Send a test email to</label><input class="form-control" name="test_to" value="{{admin.email}}"></div>
-        <div class="col-md-4"><button class="btn btn-outline-primary w-100"><i class="bi bi-send me-1"></i>Send test</button></div>
+        <div class="col-md-8"><label class="form-label small">{{t 'ui.sendATestEmailTo'}}</label><input class="form-control" name="test_to" value="{{admin.email}}"></div>
+        <div class="col-md-4"><button class="btn btn-outline-primary w-100"><i class="bi bi-send me-1"></i>{{t 'ui.sendTest'}}</button></div>
       </form>
       {{> org-check-panel feature="smtp" label="SMTP" verifiedAt=settings.smtp_verified_at history=checkHistory.smtp}}
       {{#if settings.smtp_host}}
         <hr>
         <form method="POST" action="/admin/organization/smtp/delete"
               onsubmit="return confirm('Remove your SMTP settings? Email will fall back to the platform default.');">
-          <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Delete SMTP settings</button>
+          <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>{{t 'ui.deleteSmtpSettings'}}</button>
         </form>
       {{/if}}
     </div>
@@ -51,76 +51,76 @@
   <!-- ── AI provider ── -->
   <div class="card mb-4" id="ai">
     <div class="card-header"><i class="bi bi-robot me-2"></i>AI provider (bring your own LLM / MCP)
-      {{#if (eq settings.ai_provider 'oob')}}<span class="badge bg-secondary ms-2">Using platform default (Anthropic)</span>
+      {{#if (eq settings.ai_provider 'oob')}}<span class="badge bg-secondary ms-2">{{t 'ui.usingPlatformDefaultAnthropic'}}</span>
       {{else}}{{#if settings.ai_provider}}<span class="badge bg-success ms-2">Own: {{settings.ai_provider}}</span>{{/if}}{{/if}}
     </div>
     <div class="card-body">
-      <p class="text-muted small">Use the platform's built-in AI (metered against your plan's token allowance), or bring your own frontier-model API — Anthropic, OpenAI, xAI (Grok), Google Gemini — or a custom / on-prem OpenAI-compatible endpoint. With your own provider, you pay that provider directly and no platform tokens are consumed.</p>
+      <p class="text-muted small">{{t 'ui.useThePlatformSBuilt'}}</p>
       <form method="POST" action="/admin/organization/ai">
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label">Provider</label>
+            <label class="form-label">{{t 'ui.provider'}}</label>
             <select class="form-select" name="ai_provider">
-              <option value="oob" {{#if (eq settings.ai_provider 'oob')}}selected{{/if}}>Platform default (Anthropic, metered)</option>
-              <option value="anthropic" {{#if (eq settings.ai_provider 'anthropic')}}selected{{/if}}>Anthropic (your key)</option>
-              <option value="openai" {{#if (eq settings.ai_provider 'openai')}}selected{{/if}}>OpenAI (your key)</option>
-              <option value="grok" {{#if (eq settings.ai_provider 'grok')}}selected{{/if}}>xAI — Grok (your key)</option>
-              <option value="gemini" {{#if (eq settings.ai_provider 'gemini')}}selected{{/if}}>Google Gemini (your key)</option>
-              <option value="custom" {{#if (eq settings.ai_provider 'custom')}}selected{{/if}}>Custom / on-prem (OpenAI-compatible)</option>
+              <option value="oob" {{#if (eq settings.ai_provider 'oob')}}selected{{/if}}>{{t 'ui.platformDefaultAnthropicMetered'}}</option>
+              <option value="anthropic" {{#if (eq settings.ai_provider 'anthropic')}}selected{{/if}}>{{t 'ui.anthropicYourKey'}}</option>
+              <option value="openai" {{#if (eq settings.ai_provider 'openai')}}selected{{/if}}>{{t 'ui.openaiYourKey'}}</option>
+              <option value="grok" {{#if (eq settings.ai_provider 'grok')}}selected{{/if}}>{{t 'ui.xaiGrokYourKey'}}</option>
+              <option value="gemini" {{#if (eq settings.ai_provider 'gemini')}}selected{{/if}}>{{t 'ui.googleGeminiYourKey'}}</option>
+              <option value="custom" {{#if (eq settings.ai_provider 'custom')}}selected{{/if}}>{{t 'ui.customOnPremOpenaiCompatible'}}</option>
             </select>
           </div>
-          <div class="col-md-6"><label class="form-label">Model <span class="text-muted">(optional)</span></label><input class="form-control" name="ai_model" value="{{settings.ai_model}}" placeholder="e.g. gpt-4o, claude-sonnet-4, gemini-1.5-pro"></div>
-          <div class="col-md-6"><label class="form-label">API key</label><input class="form-control" type="password" name="ai_api_key" placeholder="{{#if settings.ai_api_key}}•••••••• (saved — leave blank to keep){{else}}Your provider API key{{/if}}"></div>
-          <div class="col-md-6"><label class="form-label">Base URL <span class="text-muted">(custom / on-prem only)</span></label><input class="form-control" name="ai_base_url" value="{{settings.ai_base_url}}" placeholder="https://llm.yourdomain/v1"></div>
-          <div class="col-12"><hr class="my-1"><div class="small fw-semibold text-muted">MCP server <span class="fw-normal">(optional — connect your own Model Context Protocol server)</span></div></div>
-          <div class="col-md-6"><label class="form-label">MCP server URL</label><input class="form-control" name="ai_mcp_url" value="{{settings.ai_mcp_url}}" placeholder="https://mcp.yourdomain/sse"></div>
-          <div class="col-md-6"><label class="form-label">MCP auth token</label><input class="form-control" type="password" name="ai_mcp_token" placeholder="{{#if settings.ai_mcp_token}}•••••••• (saved){{else}}Bearer token (if required){{/if}}"></div>
+          <div class="col-md-6"><label class="form-label">{{t 'ui.model'}} <span class="text-muted">{{t 'ui.optional'}}</span></label><input class="form-control" name="ai_model" value="{{settings.ai_model}}" placeholder="{{t 'ui.eGGpt4oClaude'}}"></div>
+          <div class="col-md-6"><label class="form-label">{{t 'ui.apiKey'}}</label><input class="form-control" type="password" name="ai_api_key" placeholder="{{#if settings.ai_api_key}}•••••••• (saved — leave blank to keep){{else}}Your provider API key{{/if}}"></div>
+          <div class="col-md-6"><label class="form-label">{{t 'ui.baseUrl'}} <span class="text-muted">{{t 'ui.customOnPremOnly'}}</span></label><input class="form-control" name="ai_base_url" value="{{settings.ai_base_url}}" placeholder="https://llm.yourdomain/v1"></div>
+          <div class="col-12"><hr class="my-1"><div class="small fw-semibold text-muted">{{t 'ui.mcpServer'}} <span class="fw-normal">{{t 'ui.optionalConnectYourOwnModel'}}</span></div></div>
+          <div class="col-md-6"><label class="form-label">{{t 'ui.mcpServerUrl'}}</label><input class="form-control" name="ai_mcp_url" value="{{settings.ai_mcp_url}}" placeholder="https://mcp.yourdomain/sse"></div>
+          <div class="col-md-6"><label class="form-label">{{t 'ui.mcpAuthToken'}}</label><input class="form-control" type="password" name="ai_mcp_token" placeholder="{{#if settings.ai_mcp_token}}•••••••• (saved){{else}}Bearer token (if required){{/if}}"></div>
         </div>
-        <button class="btn btn-primary mt-3"><i class="bi bi-save me-1"></i>Save AI settings</button>
+        <button class="btn btn-primary mt-3"><i class="bi bi-save me-1"></i>{{t 'ui.saveAiSettings'}}</button>
       </form>
       <hr>
-      <form method="POST" action="/admin/organization/ai/test"><button class="btn btn-outline-primary"><i class="bi bi-plug me-1"></i>Test AI connection</button></form>
+      <form method="POST" action="/admin/organization/ai/test"><button class="btn btn-outline-primary"><i class="bi bi-plug me-1"></i>{{t 'ui.testAiConnection'}}</button></form>
       {{> org-check-panel feature="ai" label="AI provider" verifiedAt=settings.ai_verified_at history=checkHistory.ai}}
       {{#unless (eq settings.ai_provider 'oob')}}{{#if settings.ai_provider}}
         <hr>
         <form method="POST" action="/admin/organization/ai/delete"
               onsubmit="return confirm('Remove your custom AI provider? AI will use the platform default (Anthropic, metered).');">
-          <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Delete custom AI provider</button>
+          <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>{{t 'ui.deleteCustomAiProvider'}}</button>
         </form>
       {{/if}}{{/unless}}
-      <p class="text-muted small mt-2 mb-0">Prefer the platform default? Leave the provider on "Platform default". Your token usage and remaining allowance are shown on the dashboard.</p>
+      <p class="text-muted small mt-2 mb-0">{{t 'ui.preferThePlatformDefaultLeave'}}</p>
     </div>
   </div>
 
   <!-- ── SMS ── -->
   <div class="card mb-4" id="sms">
     <div class="card-header"><i class="bi bi-chat-dots me-2"></i>SMS (Twilio)
-      {{#if settings.sms_enabled}}<span class="badge bg-success ms-2">Enabled</span>{{else}}<span class="badge bg-secondary ms-2">Disabled</span>{{/if}}
+      {{#if settings.sms_enabled}}<span class="badge bg-success ms-2">{{t 'ui.enabled'}}</span>{{else}}<span class="badge bg-secondary ms-2">{{t 'ui.disabled'}}</span>{{/if}}
     </div>
     <div class="card-body">
       <form method="POST" action="/admin/organization/sms">
         <input type="hidden" name="sms_provider" value="twilio">
         <div class="row g-3">
-          <div class="col-md-6"><label class="form-label">Account SID</label><input class="form-control" name="sms_account_sid" value="{{settings.sms_account_sid}}" placeholder="AC…"></div>
-          <div class="col-md-6"><label class="form-label">Auth token</label><input class="form-control" type="password" name="sms_auth_token" placeholder="{{#if settings.sms_auth_token}}•••••••• (saved — leave blank to keep){{else}}Twilio auth token{{/if}}"></div>
-          <div class="col-md-6"><label class="form-label">From number</label><input class="form-control" name="sms_from" value="{{settings.sms_from}}" placeholder="+15551234567"></div>
+          <div class="col-md-6"><label class="form-label">{{t 'ui.accountSid'}}</label><input class="form-control" name="sms_account_sid" value="{{settings.sms_account_sid}}" placeholder="AC…"></div>
+          <div class="col-md-6"><label class="form-label">{{t 'ui.authToken'}}</label><input class="form-control" type="password" name="sms_auth_token" placeholder="{{#if settings.sms_auth_token}}•••••••• (saved — leave blank to keep){{else}}Twilio auth token{{/if}}"></div>
+          <div class="col-md-6"><label class="form-label">{{t 'ui.fromNumber'}}</label><input class="form-control" name="sms_from" value="{{settings.sms_from}}" placeholder="+15551234567"></div>
           <div class="col-md-6 d-flex align-items-end">
-            <div class="form-check"><input class="form-check-input" type="checkbox" name="sms_enabled" value="1" id="sms_enabled" {{#if settings.sms_enabled}}checked{{/if}}><label class="form-check-label" for="sms_enabled">Enable</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="sms_enabled" value="1" id="sms_enabled" {{#if settings.sms_enabled}}checked{{/if}}><label class="form-check-label" for="sms_enabled">{{t 'ui.enable'}}</label></div>
           </div>
         </div>
-        <button class="btn btn-primary mt-3"><i class="bi bi-save me-1"></i>Save SMS</button>
+        <button class="btn btn-primary mt-3"><i class="bi bi-save me-1"></i>{{t 'ui.saveSms'}}</button>
       </form>
       <hr>
       <form method="POST" action="/admin/organization/sms/test" class="row g-2 align-items-end">
-        <div class="col-md-8"><label class="form-label small">Send a test SMS to</label><input class="form-control" name="test_to" placeholder="+15551234567"></div>
-        <div class="col-md-4"><button class="btn btn-outline-primary w-100"><i class="bi bi-send me-1"></i>Send test</button></div>
+        <div class="col-md-8"><label class="form-label small">{{t 'ui.sendATestSmsTo'}}</label><input class="form-control" name="test_to" placeholder="+15551234567"></div>
+        <div class="col-md-4"><button class="btn btn-outline-primary w-100"><i class="bi bi-send me-1"></i>{{t 'ui.sendTest'}}</button></div>
       </form>
       {{> org-check-panel feature="sms" label="SMS" verifiedAt=settings.sms_verified_at history=checkHistory.sms}}
       {{#if settings.sms_account_sid}}
         <hr>
         <form method="POST" action="/admin/organization/sms/delete"
               onsubmit="return confirm('Remove your SMS (Twilio) settings?');">
-          <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Delete SMS settings</button>
+          <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>{{t 'ui.deleteSmsSettings'}}</button>
         </form>
       {{/if}}
     </div>
@@ -150,38 +150,36 @@
   <!-- ── Custom domain ── -->
   <div class="card mb-4" id="domain">
     <div class="card-header"><i class="bi bi-globe2 me-2"></i>Custom domain
-      {{#if settings.custom_domain_verified}}<span class="badge bg-success ms-2">Verified</span>{{else}}{{#if settings.custom_domain}}<span class="badge bg-warning text-dark ms-2">Pending</span>{{/if}}{{/if}}
+      {{#if settings.custom_domain_verified}}<span class="badge bg-success ms-2">{{t 'ui.verified'}}</span>{{else}}{{#if settings.custom_domain}}<span class="badge bg-warning text-dark ms-2">{{t 'ui.pending'}}</span>{{/if}}{{/if}}
     </div>
     <div class="card-body">
       <form method="POST" action="/admin/organization/domain" class="row g-2 align-items-end">
-        <div class="col-md-8"><label class="form-label">Your domain</label><input class="form-control" name="custom_domain" value="{{settings.custom_domain}}" placeholder="assess.yourdomain.gc.ca"></div>
-        <div class="col-md-4"><button class="btn btn-primary w-100"><i class="bi bi-save me-1"></i>Save domain</button></div>
+        <div class="col-md-8"><label class="form-label">{{t 'ui.yourDomain'}}</label><input class="form-control" name="custom_domain" value="{{settings.custom_domain}}" placeholder="{{t 'ui.assessYourdomainGcCa'}}"></div>
+        <div class="col-md-4"><button class="btn btn-primary w-100"><i class="bi bi-save me-1"></i>{{t 'ui.saveDomain'}}</button></div>
       </form>
 
       {{#if settings.custom_domain}}
         <hr>
-        <p class="fw-semibold mb-2">DNS records to add at your registrar</p>
+        <p class="fw-semibold mb-2">{{t 'ui.dnsRecordsToAddAt'}}</p>
         <div class="table-responsive">
           <table class="table table-sm">
-            <thead><tr><th>Type</th><th>Name</th><th>Value</th></tr></thead>
+            <thead><tr><th>{{t 'ui.type'}}</th><th>{{t 'ui.name'}}</th><th>{{t 'ui.value'}}</th></tr></thead>
             <tbody>
               <tr><td>CNAME</td><td><code>{{settings.custom_domain}}</code></td><td><code>{{host}}</code></td></tr>
               <tr><td>TXT</td><td><code>_vanguard-verify.{{settings.custom_domain}}</code></td><td><code>vanguard-domain-verification=org{{org.id}}</code></td></tr>
             </tbody>
           </table>
         </div>
-        <p class="text-muted small">After the records propagate, the TLS certificate is issued at the hosting layer (e.g. Azure custom domain binding).
-          Verification below performs a <strong>real DNS lookup</strong> — the domain is only marked verified once both records actually resolve.
-          DNS changes can take up to 48 hours to propagate.</p>
+        <p class="text-muted small">{{t 'ux.dnsVerifyExplain'}}</p>
         <div class="d-flex flex-wrap gap-2">
           {{#unless settings.custom_domain_verified}}
             <form method="POST" action="/admin/organization/domain/verify">
-              <button class="btn btn-outline-success"><i class="bi bi-shield-check me-1"></i>Check DNS &amp; verify</button>
+              <button class="btn btn-outline-success"><i class="bi bi-shield-check me-1"></i>{{t 'ui.checkDnsAmpVerify'}}</button>
             </form>
           {{/unless}}
           <form method="POST" action="/admin/organization/domain/delete"
                 onsubmit="return confirm('Remove the custom domain {{settings.custom_domain}}? The platform default domain will be used again.');">
-            <button class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete domain</button>
+            <button class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i>{{t 'ui.deleteDomain'}}</button>
           </form>
         </div>
         {{> org-check-panel feature="domain" label="DNS" verifiedAt=settings.domain_checked_at history=checkHistory.domain}}

@@ -59,7 +59,12 @@ async function initialize() {
         .flushDue({ baseUrl: process.env.PUBLIC_BASE_URL || '' })
         .then(n => { if (n) console.log(`[Notifications] sent ${n} mention digest(s)`); })
         .catch(err => console.error('[Notifications] sweep failed:', err.message));
+      // Catch up on anything queued while the app was down, then sweep periodically.
+      // A request-triggered sweep (below) covers restarts between intervals, so a
+      // digest is never stranded just because the process cycled.
+      sweep();
       setInterval(sweep, 5 * 60 * 1000).unref();
+      app.locals.sweepMentions = sweep;
     }
 
     console.log('Application initialized successfully');
@@ -303,6 +308,19 @@ app.use((req, res, next) => {
     else if (uid) ctx = { userId: uid, orgId: null, provider: 'oob', isByo: false };
   } catch (e) { /* db not ready */ }
   require('./config/ai-context').runWithAiContext(ctx, next);
+});
+
+// Opportunistic mention-digest flush. The interval timer only runs while the
+// process is alive; this makes ordinary traffic a second trigger, throttled so it
+// costs nothing per request.
+let lastSweepAt = 0;
+app.use((req, res, next) => {
+  const sweep = app.locals.sweepMentions;
+  if (sweep && Date.now() - lastSweepAt > 5 * 60 * 1000) {
+    lastSweepAt = Date.now();
+    setImmediate(sweep);
+  }
+  next();
 });
 
 // Routes

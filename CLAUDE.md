@@ -36,7 +36,13 @@ user-facing content or building new features, keep the copy internationally neut
 
 - **All user-facing strings are localized via i18next** in `locales/*.json`. **Every new feature
   must ship fully localized in ALL 8 supported languages (en, fr, es, de, pt, it, nl, ja) — not
-  English-only, and not English+French with the rest falling back.** This applies to the admin /
+  English-only, and not English+French with the rest falling back.**
+- **LOCALIZATION IS PART OF "DONE", NOT A FOLLOW-UP.** Before writing any user-visible string,
+  add the key to all 8 locale files and reference it with `{{t 'key'}}`. Never write literal
+  English into a template, a flash message, an `alert()`, a `title`/`placeholder`/`aria-label`,
+  an email subject or body, or a JS string that reaches the screen. If you catch yourself typing
+  visible prose into a `.hbs` or a route, stop and make it a key first. "I'll localize it later"
+  is how the admin UI ended up English-only. This applies to the admin /
   signed-in UI as much as the public pages: any new label, button, heading, modal, flash message,
   empty state, or `title`/`aria-label` gets a key in all 8 locale files before the feature ships.
   Verify parity (same key count in every file) as part of the change. Use flat,

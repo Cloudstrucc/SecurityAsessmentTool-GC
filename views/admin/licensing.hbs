@@ -1,13 +1,13 @@
 <div class="container">
   <div class="page-head d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
     <div>
-      <h1 class="mb-1">Licensing</h1>
+      <h1 class="mb-1">{{t 'ui.licensing'}}</h1>
       <p class="text-muted mb-0">Root-admin only · {{org.name}}</p>
       <div class="rule"></div>
     </div>
     <form method="POST" action="/admin/licensing/seats" class="d-flex gap-2 align-items-end">
       {{#if (eq org.status 'comped')}}
-        <div><label class="form-label small mb-1">Set seats</label><input class="form-control form-control-sm" name="seats" type="number" min="1" value="{{seats.total}}" style="width:90px"></div>
+        <div><label class="form-label small mb-1">{{t 'ui.setSeats'}}</label><input class="form-control form-control-sm" name="seats" type="number" min="1" value="{{seats.total}}" style="width:90px"></div>
       {{/if}}
       <button class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>{{#if (eq org.status 'comped')}}Update seats{{else}}Add seats{{/if}}</button>
     </form>
@@ -15,21 +15,21 @@
 
   <!-- Seat summary -->
   <div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-number">{{seats.usedLicensed}}{{#if seats.total}}/{{seats.total}}{{/if}}</div><div class="stat-label">Licensed seats used</div></div></div>
-    <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-number">{{seats.admins}}/{{seats.adminCap}}</div><div class="stat-label">Admins used</div></div></div>
-    <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-number" style="font-size:1.4rem;padding-top:.5rem">{{seats.plan}}</div><div class="stat-label">Plan</div></div></div>
-    <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-number" style="font-size:1.4rem;padding-top:.5rem">{{seats.status}}</div><div class="stat-label">Status</div></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-number">{{seats.usedLicensed}}{{#if seats.total}}/{{seats.total}}{{/if}}</div><div class="stat-label">{{t 'ui.licensedSeatsUsed'}}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-number">{{seats.admins}}/{{seats.adminCap}}</div><div class="stat-label">{{t 'ui.adminsUsed'}}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-number" style="font-size:1.4rem;padding-top:.5rem">{{seats.plan}}</div><div class="stat-label">{{t 'ui.plan'}}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-number" style="font-size:1.4rem;padding-top:.5rem">{{seats.status}}</div><div class="stat-label">{{t 'ui.status'}}</div></div></div>
   </div>
 
   <div class="row g-4">
     <!-- Members -->
     <div class="col-lg-8">
       <div class="card">
-        <div class="card-header"><i class="bi bi-people me-2"></i>Members</div>
+        <div class="card-header"><i class="bi bi-people me-2"></i>{{t 'ui.members'}}</div>
         <div class="card-body p-0">
           <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
-              <thead><tr><th>Name</th><th>Role</th><th>License</th><th class="text-end">Actions</th></tr></thead>
+              <thead><tr><th>{{t 'ui.name'}}</th><th>{{t 'ui.role'}}</th><th>{{t 'ui.license'}}</th><th class="text-end">{{t 'ui.actions'}}</th></tr></thead>
               <tbody>
                 {{#each members}}
                   <tr{{#unless this.is_active}} class="opacity-50"{{/unless}}>
@@ -38,31 +38,31 @@
                       <div class="small text-muted">{{this.email}}</div>
                     </td>
                     <td>
-                      {{#if this.is_root_admin}}<span class="badge bg-dark">Root admin</span>
-                      {{else if this.is_break_glass}}<span class="badge bg-warning text-dark">Break-glass</span>
-                      {{else if (eq this.account_type 'admin')}}<span class="badge bg-primary">Admin</span>
-                      {{else}}<span class="badge bg-secondary">User</span>{{/if}}
-                      {{#unless this.is_active}}<span class="badge bg-light text-dark border ms-1">Inactive</span>{{/unless}}
+                      {{#if this.is_root_admin}}<span class="badge bg-dark">{{t 'ui.rootAdmin'}}</span>
+                      {{else if this.is_break_glass}}<span class="badge bg-warning text-dark">{{t 'ui.breakGlass'}}</span>
+                      {{else if (eq this.account_type 'admin')}}<span class="badge bg-primary">{{t 'ui.admin'}}</span>
+                      {{else}}<span class="badge bg-secondary">{{t 'ui.user'}}</span>{{/if}}
+                      {{#unless this.is_active}}<span class="badge bg-light text-dark border ms-1">{{t 'ui.inactive'}}</span>{{/unless}}
                     </td>
-                    <td>{{#if this.is_licensed}}<span class="badge bg-success"><i class="bi bi-check2 me-1"></i>Licensed</span>{{else}}<span class="badge bg-light text-dark border">None</span>{{/if}}</td>
+                    <td>{{#if this.is_licensed}}<span class="badge bg-success"><i class="bi bi-check2 me-1"></i>{{t 'ui.licensed'}}</span>{{else}}<span class="badge bg-light text-dark border">{{t 'ui.none'}}</span>{{/if}}</td>
                     <td class="text-end text-nowrap">
                       {{#if this.is_root_admin}}<span class="text-muted small">—</span>
-                      {{else if this.is_break_glass}}<span class="text-muted small">recovery</span>
+                      {{else if this.is_break_glass}}<span class="text-muted small">{{t 'ui.recovery'}}</span>
                       {{else if this.is_active}}
                         <form method="POST" action="/admin/licensing/user/{{this.id}}/admin" class="d-inline">
-                          <button class="btn btn-sm btn-outline-primary" title="Toggle admin"><i class="bi bi-person-gear"></i>{{#if (eq this.account_type 'admin')}} Demote{{else}} Make admin{{/if}}</button>
+                          <button class="btn btn-sm btn-outline-primary" title="{{t 'ui.toggleAdmin'}}"><i class="bi bi-person-gear"></i>{{#if (eq this.account_type 'admin')}} Demote{{else}} Make admin{{/if}}</button>
                         </form>
                         <form method="POST" action="/admin/licensing/user/{{this.id}}/license" class="d-inline ms-1">
-                          <button class="btn btn-sm btn-outline-secondary" title="Toggle license">{{#if this.is_licensed}}Revoke{{else}}Grant{{/if}} license</button>
+                          <button class="btn btn-sm btn-outline-secondary" title="{{t 'ui.toggleLicense'}}">{{#if this.is_licensed}}Revoke{{else}}Grant{{/if}} license</button>
                         </form>
                         <form method="POST" action="/admin/users/{{this.id}}/reset-password" class="d-inline ms-1" onsubmit="return confirm('Reset {{this.name}}\'s password? A one-time password is shown and MFA re-enrollment is forced.')">
-                          <button class="btn btn-sm btn-outline-warning" title="Reset password"><i class="bi bi-key"></i></button>
+                          <button class="btn btn-sm btn-outline-warning" title="{{t 'ui.resetPassword'}}"><i class="bi bi-key"></i></button>
                         </form>
                         <form method="POST" action="/admin/users/{{this.id}}/reset-mfa" class="d-inline ms-1" onsubmit="return confirm('Reset MFA (TOTP + passkeys) for {{this.name}}? They re-enroll on next sign-in.')">
-                          <button class="btn btn-sm btn-outline-warning" title="Reset MFA"><i class="bi bi-shield-lock"></i></button>
+                          <button class="btn btn-sm btn-outline-warning" title="{{t 'ui.resetMfa'}}"><i class="bi bi-shield-lock"></i></button>
                         </form>
                         <form method="POST" action="/admin/licensing/user/{{this.id}}/remove" class="d-inline ms-1" onsubmit="return confirm('Deactivate {{this.name}} and free their seat?')">
-                          <button class="btn btn-sm btn-outline-danger" title="Deactivate"><i class="bi bi-person-dash"></i></button>
+                          <button class="btn btn-sm btn-outline-danger" title="{{t 'ui.deactivate'}}"><i class="bi bi-person-dash"></i></button>
                         </form>
                       {{/if}}
                     </td>
@@ -78,20 +78,20 @@
     <!-- Invite + pending -->
     <div class="col-lg-4">
       <div class="card mb-4">
-        <div class="card-header"><i class="bi bi-person-plus me-2"></i>Invite a user</div>
+        <div class="card-header"><i class="bi bi-person-plus me-2"></i>{{t 'ui.inviteAUser'}}</div>
         <div class="card-body">
           <form method="POST" action="/admin/licensing/invite">
-            <div class="mb-2"><label class="form-label small">Name</label><input class="form-control" name="name" placeholder="Full name"></div>
-            <div class="mb-2"><label class="form-label small">Email</label><input class="form-control" type="email" name="email" required></div>
-            <div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="as_admin" value="1" id="as_admin"><label class="form-check-label" for="as_admin">Invite as admin</label></div>
-            <button class="btn btn-primary w-100"><i class="bi bi-send me-1"></i>Send invitation</button>
-            <p class="text-muted small mt-2 mb-0">Consumes a licensed seat. The user sets their own password when they redeem.</p>
+            <div class="mb-2"><label class="form-label small">{{t 'ui.name'}}</label><input class="form-control" name="name" placeholder="{{t 'ui.fullName'}}"></div>
+            <div class="mb-2"><label class="form-label small">{{t 'ui.email'}}</label><input class="form-control" type="email" name="email" required></div>
+            <div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="as_admin" value="1" id="as_admin"><label class="form-check-label" for="as_admin">{{t 'ui.inviteAsAdmin'}}</label></div>
+            <button class="btn btn-primary w-100"><i class="bi bi-send me-1"></i>{{t 'ui.sendInvitation'}}</button>
+            <p class="text-muted small mt-2 mb-0">{{t 'ui.consumesALicensedSeatThe'}}</p>
           </form>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-header"><i class="bi bi-hourglass-split me-2"></i>Pending invitations</div>
+        <div class="card-header"><i class="bi bi-hourglass-split me-2"></i>{{t 'ui.pendingInvitations'}}</div>
         <div class="card-body p-0">
           {{#if pending.length}}
             <ul class="list-group list-group-flush">
@@ -103,7 +103,7 @@
               {{/each}}
             </ul>
           {{else}}
-            <div class="p-3 text-muted small text-center">No pending invitations.</div>
+            <div class="p-3 text-muted small text-center">{{t 'ui.noPendingInvitations'}}</div>
           {{/if}}
         </div>
       </div>

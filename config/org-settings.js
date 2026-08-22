@@ -3,15 +3,24 @@
  * and custom domain instead of the SaaS defaults. Backed by the org_settings
  * table (PK = organization_id).
  *
- * Note: SMTP passwords / SMS tokens are stored as provided. They are never
- * echoed back to the UI (the form shows a "configured" placeholder instead).
- * Encrypting these at rest is a recommended follow-up.
+ * Tenant secrets (SMTP password, SMS auth token, AI API key, MCP token) are
+ * ENCRYPTED AT REST via config/secrets.js and decrypted only when read back here.
+ * They are never echoed to the UI (the form shows a "configured" placeholder).
+ * Decryption is backwards compatible: values written before encryption was enabled
+ * are returned as-is and upgraded the next time they are saved.
  */
 const { get, run } = require('../models/database');
+const secrets = require('./secrets');
+
+const SECRET_COLUMNS = ['smtp_password', 'sms_auth_token', 'ai_api_key', 'ai_mcp_token'];
 
 function getSettings(orgId) {
   if (!orgId) return null;
-  return get('SELECT * FROM org_settings WHERE organization_id = ?', [orgId]) || null;
+  const row = get('SELECT * FROM org_settings WHERE organization_id = ?', [orgId]) || null;
+  if (!row) return null;
+  // Decrypt transparently so every caller keeps working with plain values.
+  SECRET_COLUMNS.forEach(c => { if (row[c]) row[c] = secrets.decrypt(row[c]); });
+  return row;
 }
 
 function ensureRow(orgId) {
@@ -27,7 +36,7 @@ function updateSmtp(orgId, s) {
   const pass = (s.smtp_password && s.smtp_password.length) ? s.smtp_password : cur.smtp_password;
   run(`UPDATE org_settings SET smtp_host=?, smtp_port=?, smtp_user=?, smtp_password=?, smtp_from=?,
        smtp_secure=?, smtp_enabled=?, updated_at=CURRENT_TIMESTAMP WHERE organization_id=?`,
-    [s.smtp_host || null, parseInt(s.smtp_port, 10) || 587, s.smtp_user || null, pass || null,
+    [s.smtp_host || null, parseInt(s.smtp_port, 10) || 587, s.smtp_user || null, secrets.encrypt(pass) || null,
      s.smtp_from || null, s.smtp_secure ? 1 : 0, s.smtp_enabled ? 1 : 0, orgId]);
   return getSettings(orgId);
 }
@@ -38,7 +47,7 @@ function updateSms(orgId, s) {
   const token = (s.sms_auth_token && s.sms_auth_token.length) ? s.sms_auth_token : cur.sms_auth_token;
   run(`UPDATE org_settings SET sms_provider=?, sms_account_sid=?, sms_auth_token=?, sms_from=?,
        sms_enabled=?, updated_at=CURRENT_TIMESTAMP WHERE organization_id=?`,
-    [s.sms_provider || 'twilio', s.sms_account_sid || null, token || null, s.sms_from || null,
+    [s.sms_provider || 'twilio', s.sms_account_sid || null, secrets.encrypt(token) || null, s.sms_from || null,
      s.sms_enabled ? 1 : 0, orgId]);
   return getSettings(orgId);
 }
@@ -127,8 +136,8 @@ function updateAi(orgId, s) {
   const provider = AI_PROVIDERS.includes(s.ai_provider) ? s.ai_provider : 'oob';
   run(`UPDATE org_settings SET ai_provider=?, ai_api_key=?, ai_model=?, ai_base_url=?,
        ai_mcp_url=?, ai_mcp_token=?, updated_at=CURRENT_TIMESTAMP WHERE organization_id=?`,
-    [provider, key || null, s.ai_model || null, s.ai_base_url || null,
-     s.ai_mcp_url || null, mcpTok || null, orgId]);
+    [provider, secrets.encrypt(key) || null, s.ai_model || null, s.ai_base_url || null,
+     s.ai_mcp_url || null, secrets.encrypt(mcpTok) || null, orgId]);
   return getSettings(orgId);
 }
 

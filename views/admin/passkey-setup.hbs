@@ -1,26 +1,26 @@
 <div class="container py-5" style="max-width:520px;">
   <div class="text-center mb-4">
     <i class="bi bi-person-bounding-box" style="font-size:3rem;color:var(--gc-nav)"></i>
-    <h2 class="mt-2" style="color:var(--gc-nav)">Register a Passkey</h2>
-    <p class="text-muted">Use a device passkey for faster MFA. TOTP remains available as a fallback.</p>
+    <h2 class="mt-2" style="color:var(--gc-nav)">{{t 'ui.registerAPasskey'}}</h2>
+    <p class="text-muted">{{t 'ui.useADevicePasskeyFor'}}</p>
   </div>
 
   <div class="card">
     <div class="card-body p-4">
       {{#if hasWebAuthn}}
         <div class="alert alert-success small">
-          <i class="bi bi-check-circle me-1"></i>Passkey already registered. You can re-register to update it.
+          <i class="bi bi-check-circle me-1"></i>{{t 'ui.passkeyAlreadyRegisteredYouCan'}}
         </div>
       {{/if}}
       <div class="text-center mb-4">
         <i class="bi bi-fingerprint" style="font-size:3.5rem;color:var(--gc-nav);opacity:0.65"></i>
       </div>
       <button class="btn btn-primary w-100 py-2 mb-3" id="registerPasskeyBtn">
-        <i class="bi bi-person-bounding-box me-1"></i>Register Passkey
+        <i class="bi bi-person-bounding-box me-1"></i>{{t 'ui.registerPasskey'}}
       </button>
       <div id="passkeyStatus" class="small d-none mb-3"></div>
       <a href="/admin/dashboard" class="btn btn-outline-secondary w-100">
-        <i class="bi bi-arrow-right me-1"></i>Continue with TOTP Only
+        <i class="bi bi-arrow-right me-1"></i>{{t 'ui.continueWithTotpOnly'}}
       </a>
     </div>
   </div>
