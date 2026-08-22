@@ -119,6 +119,43 @@ if ! az account show &> /dev/null; then
   err "Not logged in to Azure. Run: az login"
 fi
 
+# `az account show` only reads the LOCAL credential cache, so it still succeeds when
+# the refresh token has expired (conditional-access sign-in frequency). Every real API
+# call then fails, and the first one this script makes is the app-existence check —
+# which surfaced as a misleading "app not found ... (will create)" and risked creating
+# duplicate infrastructure. Force a real token refresh here so an expired session is
+# caught up front, with the exact command needed to fix it.
+#
+# The probe is time-boxed: when credentials are stale `az` can block trying to
+# re-authenticate interactively, and a deploy script must never hang.
+AZ_PROBE_OUT="$(mktemp)"
+trap 'rm -f "$AZ_PROBE_OUT"' EXIT
+
+az account get-access-token --query expiresOn -o tsv >"$AZ_PROBE_OUT" 2>&1 &
+AZ_PROBE_PID=$!
+( sleep 25; kill -TERM "$AZ_PROBE_PID" 2>/dev/null ) 2>/dev/null &
+AZ_PROBE_KILLER=$!
+AZ_PROBE_RC=0
+wait "$AZ_PROBE_PID" 2>/dev/null || AZ_PROBE_RC=$?
+kill -TERM "$AZ_PROBE_KILLER" 2>/dev/null || true
+
+if [ "$AZ_PROBE_RC" -ne 0 ]; then
+  AZ_TENANT="$(az account show --query tenantId -o tsv 2>/dev/null || true)"
+  echo ""
+  echo "  Azure session is not usable — this is an AUTHENTICATION problem, not a missing app."
+  echo "  (\`az account show\` reads a local cache and can look fine while the token is dead.)"
+  echo ""
+  echo "  Re-authenticate, then run this deploy again:"
+  echo ""
+  if [ -n "$AZ_TENANT" ]; then
+    echo "    az login --tenant \"$AZ_TENANT\" --scope \"https://management.core.windows.net//.default\""
+  else
+    echo "    az login"
+  fi
+  echo ""
+  err "Azure token refresh failed: $(head -c 300 "$AZ_PROBE_OUT" | tr '\n' ' ')"
+fi
+
 SUBSCRIPTION=$(az account show --query "name" -o tsv)
 log "Azure subscription: $SUBSCRIPTION"
 
@@ -209,6 +246,12 @@ fi
 echo ""
 
 if $UPDATE_ONLY && ! $EXISTING_APP; then
+  echo ""
+  echo "  Your Azure session is valid, so this really is a naming problem."
+  echo "  List what actually exists with:"
+  echo ""
+  echo "    az webapp list --query \"[].{name:name, rg:resourceGroup}\" -o table"
+  echo ""
   err "--update-only specified but app '$APP_NAME' not found in resource group '$RESOURCE_GROUP'"
 fi
 
