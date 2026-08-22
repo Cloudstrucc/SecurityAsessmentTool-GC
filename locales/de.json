@@ -2682,5 +2682,18 @@
   "pm.stateDeferred": "Zurückgestellt",
   "pm.remediationPlan": "Maßnahmenplan",
   "pm.milestone": "Meilenstein",
-  "pm.noPermissionSubmit": "Nur Personen, die dieser Arbeit zugewiesen sind, dürfen Nachweise einreichen."
+  "pm.noPermissionSubmit": "Nur Personen, die dieser Arbeit zugewiesen sind, dürfen Nachweise einreichen.",
+  "nt.title": "Benachrichtigungseinstellungen",
+  "nt.blurb": "Legen Sie fest, wie Sie über Erwähnungen informiert werden. Sie werden nur benachrichtigt, wenn Sie namentlich erwähnt werden.",
+  "nt.inapp": "Erwähnungen in der App anzeigen",
+  "nt.email": "Mich per E-Mail über Erwähnungen informieren",
+  "nt.emailNote": "E-Mails werden gebündelt — höchstens eine Nachricht pro Datensatz alle 15 Minuten.",
+  "nt.save": "Einstellungen speichern",
+  "nt.saved": "Benachrichtigungseinstellungen gespeichert.",
+  "nt.orgTitle": "Erwähnungsbenachrichtigungen",
+  "nt.orgEnabled": "Erwähnungsbenachrichtigungen für diese Organisation zulassen",
+  "nt.orgExcerpt": "Nachrichtentext in Benachrichtigungs-E-Mails aufnehmen",
+  "nt.orgExcerptNote": "Standardmäßig aus. Ist die Option aus, enthalten E-Mails nur einen Link — Diskussionstext gelangt nie in Postfächer oder Mail-Protokolle.",
+  "nt.mentionedYou": "hat Sie erwähnt",
+  "nt.openDiscussion": "Diskussion öffnen"
 }

@@ -2682,5 +2682,18 @@
   "pm.stateDeferred": "Uitgesteld",
   "pm.remediationPlan": "Herstelplan",
   "pm.milestone": "Mijlpaal",
-  "pm.noPermissionSubmit": "Alleen gebruikers die aan dit werk zijn toegewezen mogen bewijs aanleveren."
+  "pm.noPermissionSubmit": "Alleen gebruikers die aan dit werk zijn toegewezen mogen bewijs aanleveren.",
+  "nt.title": "Meldingsvoorkeuren",
+  "nt.blurb": "Kies hoe je over vermeldingen wordt geïnformeerd. Je krijgt alleen een melding als iemand je bij naam noemt.",
+  "nt.inapp": "Vermeldingen in de app tonen",
+  "nt.email": "Mail mij over vermeldingen",
+  "nt.emailNote": "E-mails worden gebundeld — hoogstens één bericht per record per 15 minuten.",
+  "nt.save": "Voorkeuren opslaan",
+  "nt.saved": "Meldingsvoorkeuren opgeslagen.",
+  "nt.orgTitle": "Vermeldingsmeldingen",
+  "nt.orgEnabled": "Vermeldingsmeldingen toestaan voor deze organisatie",
+  "nt.orgExcerpt": "Berichttekst opnemen in meldings-e-mails",
+  "nt.orgExcerptNote": "Standaard uit. Als dit uit staat bevatten e-mails alleen een link — discussietekst komt nooit in mailboxen of maillogs terecht.",
+  "nt.mentionedYou": "heeft je genoemd",
+  "nt.openDiscussion": "Discussie openen"
 }

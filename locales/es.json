@@ -2704,5 +2704,18 @@
   "pm.stateDeferred": "Aplazada",
   "pm.remediationPlan": "Plan de corrección",
   "pm.milestone": "Hito",
-  "pm.noPermissionSubmit": "Solo los usuarios asignados a este trabajo pueden aportar evidencia."
+  "pm.noPermissionSubmit": "Solo los usuarios asignados a este trabajo pueden aportar evidencia.",
+  "nt.title": "Preferencias de notificación",
+  "nt.blurb": "Elija cómo quiere enterarse de las menciones. Solo se le notifica cuando alguien le menciona por su nombre.",
+  "nt.inapp": "Mostrar menciones en la aplicación",
+  "nt.email": "Enviarme un correo sobre las menciones",
+  "nt.emailNote": "Los correos se agrupan: como máximo un mensaje por registro cada 15 minutos.",
+  "nt.save": "Guardar preferencias",
+  "nt.saved": "Preferencias de notificación guardadas.",
+  "nt.orgTitle": "Notificaciones de mención",
+  "nt.orgEnabled": "Permitir notificaciones de mención en esta organización",
+  "nt.orgExcerpt": "Incluir el texto del mensaje en los correos de notificación",
+  "nt.orgExcerptNote": "Desactivado por defecto. Cuando está desactivado, los correos solo contienen un enlace: el texto de la discusión nunca se coloca en bandejas de entrada ni en registros de correo.",
+  "nt.mentionedYou": "le mencionó",
+  "nt.openDiscussion": "Abrir la discusión"
 }

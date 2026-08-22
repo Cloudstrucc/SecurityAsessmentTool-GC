@@ -2682,5 +2682,18 @@
   "pm.stateDeferred": "Adiada",
   "pm.remediationPlan": "Plano de correção",
   "pm.milestone": "Marco",
-  "pm.noPermissionSubmit": "Apenas usuários designados para este trabalho podem enviar evidências."
+  "pm.noPermissionSubmit": "Apenas usuários designados para este trabalho podem enviar evidências.",
+  "nt.title": "Preferências de notificação",
+  "nt.blurb": "Escolha como quer saber das menções. Você só é notificado quando alguém o menciona pelo nome.",
+  "nt.inapp": "Mostrar menções no aplicativo",
+  "nt.email": "Enviar e-mail sobre menções",
+  "nt.emailNote": "Os e-mails são agrupados — no máximo uma mensagem por registro a cada 15 minutos.",
+  "nt.save": "Salvar preferências",
+  "nt.saved": "Preferências de notificação salvas.",
+  "nt.orgTitle": "Notificações de menção",
+  "nt.orgEnabled": "Permitir notificações de menção nesta organização",
+  "nt.orgExcerpt": "Incluir o texto da mensagem nos e-mails de notificação",
+  "nt.orgExcerptNote": "Desativado por padrão. Quando desativado, os e-mails contêm apenas um link — o texto da discussão nunca é colocado em caixas de entrada ou logs de e-mail.",
+  "nt.mentionedYou": "mencionou você",
+  "nt.openDiscussion": "Abrir a discussão"
 }

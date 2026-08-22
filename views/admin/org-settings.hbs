@@ -126,6 +126,27 @@
     </div>
   </div>
 
+  <!-- ── Mention notifications ── -->
+  <div class="card mb-4" id="notifications">
+    <div class="card-header"><i class="bi bi-bell me-2"></i>{{t 'nt.orgTitle'}}</div>
+    <div class="card-body">
+      <form method="POST" action="/admin/organization/notifications">
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" name="notify_mentions_enabled" value="1"
+                 id="ntEnabled" {{#unless (eq settings.notify_mentions_enabled 0)}}checked{{/unless}}>
+          <label class="form-check-label" for="ntEnabled">{{t 'nt.orgEnabled'}}</label>
+        </div>
+        <div class="form-check mb-1">
+          <input class="form-check-input" type="checkbox" name="notify_mention_excerpt" value="1"
+                 id="ntExcerpt" {{#if (eq settings.notify_mention_excerpt 1)}}checked{{/if}}>
+          <label class="form-check-label" for="ntExcerpt">{{t 'nt.orgExcerpt'}}</label>
+        </div>
+        <p class="text-muted small">{{t 'nt.orgExcerptNote'}}</p>
+        <button class="btn btn-primary"><i class="bi bi-save me-1"></i>{{t 'dp.save'}}</button>
+      </form>
+    </div>
+  </div>
+
   <!-- ── Custom domain ── -->
   <div class="card mb-4" id="domain">
     <div class="card-header"><i class="bi bi-globe2 me-2"></i>Custom domain

@@ -206,6 +206,26 @@ async function initDatabase() {
     )
   `);
 
+  // ── MENTION EMAIL QUEUE (batched notifications) ──
+  // In-app notifications are immediate; email is batched so a busy thread cannot
+  // spam someone into muting the feature. One digest per user per record per window.
+  db.run(`
+    CREATE TABLE IF NOT EXISTS mention_email_queue (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      project_id INTEGER NOT NULL,
+      entity_type TEXT,
+      entity_id INTEGER,
+      message_id INTEGER,
+      author_name TEXT,
+      excerpt TEXT,
+      link TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      sent_at DATETIME,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `);
+
   // ── DECISION PACKAGE VERSIONS (audit history + revert) ──
   // Snapshots the package's own editorial fields only. POA&M items and their review
   // verdicts are deliberately NOT rolled back by a revert: reverting an editorial
@@ -843,6 +863,12 @@ async function initDatabase() {
     ['decision_packages', 'parent_package_id', 'ALTER TABLE decision_packages ADD COLUMN parent_package_id INTEGER'],
     ['decision_packages', 'extension_reason', 'ALTER TABLE decision_packages ADD COLUMN extension_reason TEXT'],
     ['decision_packages', 'version', 'ALTER TABLE decision_packages ADD COLUMN version INTEGER DEFAULT 1'],
+    // Mention notification preferences (per user) and tenant policy (per org).
+    ['users', 'notify_mentions_inapp', 'ALTER TABLE users ADD COLUMN notify_mentions_inapp INTEGER DEFAULT 1'],
+    ['users', 'notify_mentions_email', 'ALTER TABLE users ADD COLUMN notify_mentions_email INTEGER DEFAULT 1'],
+    ['org_settings', 'notify_mentions_enabled', 'ALTER TABLE org_settings ADD COLUMN notify_mentions_enabled INTEGER DEFAULT 1'],
+    // Link-only by default: message text is NOT put into inboxes unless a tenant opts in.
+    ['org_settings', 'notify_mention_excerpt', 'ALTER TABLE org_settings ADD COLUMN notify_mention_excerpt INTEGER DEFAULT 0'],
     // Per-tenant OOB token allowance + usage.
     ['organizations', 'token_limit', 'ALTER TABLE organizations ADD COLUMN token_limit INTEGER'],       // null = plan default
     ['organizations', 'tokens_extra', 'ALTER TABLE organizations ADD COLUMN tokens_extra INTEGER DEFAULT 0'], // topped-up tokens

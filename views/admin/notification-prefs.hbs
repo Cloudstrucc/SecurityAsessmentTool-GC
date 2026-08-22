@@ -1,0 +1,28 @@
+<div class="container" style="max-width:760px">
+  <div class="d-flex align-items-center mb-4">
+    <a href="/admin/notifications" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
+    <div>
+      <h1 class="mb-0">{{t 'nt.title'}}</h1>
+      <p class="text-muted mb-0">{{t 'nt.blurb'}}</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <form method="POST" action="/admin/notifications/preferences">
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" name="notify_mentions_inapp" value="1"
+                 id="npInapp" {{#if prefs.inapp}}checked{{/if}}>
+          <label class="form-check-label" for="npInapp">{{t 'nt.inapp'}}</label>
+        </div>
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="notify_mentions_email" value="1"
+                 id="npEmail" {{#if prefs.email}}checked{{/if}}>
+          <label class="form-check-label" for="npEmail">{{t 'nt.email'}}</label>
+        </div>
+        <p class="text-muted small">{{t 'nt.emailNote'}}</p>
+        <button class="btn btn-primary"><i class="bi bi-save me-1"></i>{{t 'nt.save'}}</button>
+      </form>
+    </div>
+  </div>
+</div>

@@ -105,7 +105,19 @@ function postMessage({ projectId, entityType = 'project', entityId = null, user,
     [projectId, type, entityId || null, (user && user.id) || null,
      (user && (user.name || user.email)) || 'Unknown', (user && user.role) || null,
      text, JSON.stringify(mentions)]);
-  return get('SELECT * FROM collab_messages WHERE id = ?', [id]);
+  const stored = get('SELECT * FROM collab_messages WHERE id = ?', [id]);
+
+  // Tell the people who were actually mentioned. Never lets a notification
+  // failure break the act of posting a message.
+  try {
+    const project = get('SELECT name FROM projects WHERE id = ?', [projectId]);
+    require('./mention-notifications').notifyMentions({
+      message: stored, mentions, author: user,
+      projectName: project && project.name
+    });
+  } catch (e) { /* non-fatal */ }
+
+  return stored;
 }
 
 /**

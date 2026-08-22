@@ -49,6 +49,19 @@ async function initialize() {
     await initI18n();
     console.log('i18n initialized');
     emailService.initialize();
+
+    // Mention emails are batched: a sweeper sends one digest per user per record
+    // once the window has elapsed. In-app notifications are immediate and do not
+    // depend on this. Disabled under test so the suite stays deterministic.
+    if (process.env.NODE_ENV !== 'test') {
+      const mentions = require('./config/mention-notifications');
+      const sweep = () => mentions
+        .flushDue({ baseUrl: process.env.PUBLIC_BASE_URL || '' })
+        .then(n => { if (n) console.log(`[Notifications] sent ${n} mention digest(s)`); })
+        .catch(err => console.error('[Notifications] sweep failed:', err.message));
+      setInterval(sweep, 5 * 60 * 1000).unref();
+    }
+
     console.log('Application initialized successfully');
   } catch (error) {
     console.error('Initialization error:', error);

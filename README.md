@@ -38,6 +38,10 @@ Node.js/Express application for managing security assessment & authorization (SA
   to the project, with @mentions resolved server-side against that project's own people and
   records. On by default, switchable per project and org-wide. Collaboration content is **never
   sent to the AI provider**.
+- Notifies people when they are **@mentioned** in collaboration. In-app notifications are
+  immediate; email is **batched** (one digest per person per record per 15 minutes) so a busy
+  thread cannot become a firehose. Emails are **link-only by default** — discussion text is only
+  included if a tenant explicitly opts in. Per-user preferences and a tenant-level policy.
 - Versions each assessment: every change checkpoint (creation, AI-applied changes, manual checkpoints) is captured as a point-in-time snapshot, with a full audit history and non-destructive revert to any prior version.
 - Includes the **Aegis SA Assistant** — the single in-app AI chat, available on every major record
   (project, intake, assessment, decision package, plus the evidence portal) with context-aware
@@ -310,7 +314,7 @@ Current executable checks:
 - Reverting an assessment restores the prior control set as a new active version and records the revert in the audit history.
 - The legacy `/sa-tool-overview.html` path redirects to the live overview route (guards against stale static files in `wwwroot`).
 
-The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 68 checks. See [docs/TESTING.md](docs/TESTING.md) for what each one covers.
+The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 71 checks. See [docs/TESTING.md](docs/TESTING.md) for what each one covers.
 
 In the Codex sandbox, binding a local test server may require approval. On a normal developer machine, `npm run test:e2e` should run directly.
 

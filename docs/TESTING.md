@@ -58,7 +58,7 @@ generated artifacts — they are not committed.
 
 ---
 
-## The suite at a glance (68 checks)
+## The suite at a glance (71 checks)
 
 ### Authentication, MFA & accounts
 | Check | What it proves |
@@ -140,6 +140,13 @@ generated artifacts — they are not committed.
 | An issued package cannot be deleted | Issued authorizations are protected (revoke instead) |
 | An assessment is locked under review, released once issued | The package cannot shift under the approver, and work resumes after |
 | Authorization has moved off the assessment | The old ATO UI is gone from the assessment page |
+
+### Mention notifications
+| Check | What it proves |
+|---|---|
+| A mention notifies in-app and never the author | Self-mentions produce nothing |
+| Preferences can be changed and are respected | Per-user in-app / email toggles persist |
+| Emails are link-only unless the tenant opts in | Discussion text stays out of inboxes by default |
 
 ### POA&M (conditions on a decision package)
 | Check | What it proves |

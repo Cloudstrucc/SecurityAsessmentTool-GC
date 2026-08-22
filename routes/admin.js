@@ -3511,6 +3511,23 @@ router.post('/settings/password', ensureAuthenticated, (req, res) => {
 });
 
 // ── NOTIFICATIONS ──
+// ── Mention notification preferences ────────────────────────────────────────
+router.get('/notifications/preferences', ensureAuthenticated, (req, res) => {
+  const u = get('SELECT notify_mentions_inapp, notify_mentions_email FROM users WHERE id = ?', [req.user.id]) || {};
+  const on = v => (v === null || v === undefined) ? true : Number(v) === 1;
+  res.render('admin/notification-prefs', {
+    title: 'Notification preferences', isAdmin: true, admin: req.user,
+    prefs: { inapp: on(u.notify_mentions_inapp), email: on(u.notify_mentions_email) }
+  });
+});
+
+router.post('/notifications/preferences', ensureAuthenticated, (req, res) => {
+  run('UPDATE users SET notify_mentions_inapp = ?, notify_mentions_email = ? WHERE id = ?',
+    [req.body.notify_mentions_inapp ? 1 : 0, req.body.notify_mentions_email ? 1 : 0, req.user.id]);
+  req.flash('success', req.t ? req.t('nt.saved') : 'Notification preferences saved.');
+  res.redirect('/admin/notifications/preferences');
+});
+
 router.get('/notifications', ensureAuthenticated, (req, res) => {
   const notifications = all('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 100', [req.user.id]);
   run('UPDATE notifications SET read_at = CURRENT_TIMESTAMP WHERE user_id = ? AND read_at IS NULL', [req.user.id]);
