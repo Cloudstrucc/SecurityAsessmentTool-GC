@@ -99,6 +99,53 @@
         </div>
       </div>
 
+      {{!-- Live POA&M (the conditions this authorization depends on) --}}
+      <div class="card mb-4 border-warning">
+        <div class="card-header bg-warning-subtle d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-clipboard2-check me-2"></i>{{t 'pm.title'}}</span>
+          <span class="badge bg-dark">{{t 'pm.summaryMet' accepted=poamSummary.accepted total=poamSummary.total}}</span>
+        </div>
+        <div class="card-body">
+          <div class="d-flex flex-wrap gap-2 mb-2">
+            {{#if poamSummary.overdue}}<span class="badge bg-danger"><i class="bi bi-flag-fill me-1"></i>{{poamSummary.overdue}} · {{t 'pm.overdue'}}</span>{{/if}}
+            {{#if poamSummary.awaitingReview}}<span class="badge bg-primary">{{poamSummary.awaitingReview}} · {{t 'pm.awaitingReview'}}</span>{{/if}}
+            {{#if poamSummary.deferred}}<span class="badge bg-secondary">{{poamSummary.deferred}} · {{t 'pm.stateDeferred'}}</span>{{/if}}
+          </div>
+          <a href="/admin/decision-packages/{{dp.id}}/poam" class="btn btn-sm btn-warning">
+            <i class="bi bi-clipboard2-check me-1"></i>{{t 'pm.openPoam'}}
+          </a>
+          {{#unless poamPromotion.ok}}
+            <p class="small text-muted mt-2 mb-0"><i class="bi bi-info-circle me-1"></i>
+              {{#eq poamPromotion.reason 'overdue'}}{{t 'pm.promoteBlockedOverdue'}}{{/eq}}
+              {{#eq poamPromotion.reason 'deferred'}}{{t 'pm.promoteBlockedDeferred'}}{{/eq}}
+              {{#eq poamPromotion.reason 'outstanding'}}{{t 'pm.promoteBlockedOutstanding'}}{{/eq}}
+            </p>
+          {{/unless}}
+        </div>
+      </div>
+
+      {{!-- Version history (editorial fields only; POA&M verdicts are never rolled back) --}}
+      <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-clock-history me-2"></i>v{{dp.version}}</div>
+        <div class="card-body p-0">
+          <ul class="list-group list-group-flush small">
+            {{#each dpVersions}}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><span class="badge bg-secondary me-1">v{{this.version}}</span>{{this.label}}
+                  <span class="text-muted">· {{formatDateTime this.created_at}}</span></span>
+                {{#if ../canRevert}}
+                  {{#neq this.version ../dp.version}}
+                    <button class="btn btn-sm btn-outline-danger" onclick="dpRevert({{this.version}})">
+                      <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                  {{/neq}}
+                {{/if}}
+              </li>
+            {{/each}}
+          </ul>
+        </div>
+      </div>
+
       <div class="card mb-4">
         <div class="card-header"><i class="bi bi-list-task me-2"></i>{{t 'dp.poamTitle'}} <span class="badge bg-secondary ms-1">{{poam.length}}</span></div>
         <div class="card-body p-0">
@@ -168,4 +215,14 @@ window.AIAssistConfig = {
   suggestionsLabel: {{tjs 'aq.tryThis'}},
   suggestions: [{{tjs 'aq.decision1'}}, {{tjs 'aq.decision2'}}, {{tjs 'aq.decision3'}}]
 };
+</script>
+
+<script>
+function dpRevert(version){
+  fetch('/admin/decision-packages/{{dp.id}}/revert/' + version, {
+    method:'POST', headers:{'Content-Type':'application/json'}
+  }).then(function(r){ return r.json().then(function(d){ return {ok:r.ok, d:d}; }); })
+    .then(function(res){ if(!res.ok||!res.d.success) throw new Error(res.d.error||'Revert failed'); window.location.reload(); })
+    .catch(function(e){ alert(e.message); });
+}
 </script>

@@ -206,6 +206,25 @@ async function initDatabase() {
     )
   `);
 
+  // ── DECISION PACKAGE VERSIONS (audit history + revert) ──
+  // Snapshots the package's own editorial fields only. POA&M items and their review
+  // verdicts are deliberately NOT rolled back by a revert: reverting an editorial
+  // mistake must never erase an assessor's decision or a team's submitted evidence.
+  db.run(`
+    CREATE TABLE IF NOT EXISTS decision_package_versions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      decision_package_id INTEGER NOT NULL,
+      version INTEGER NOT NULL,
+      label TEXT,
+      summary TEXT,
+      created_by INTEGER,
+      created_by_name TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      snapshot_json TEXT,
+      FOREIGN KEY (decision_package_id) REFERENCES decision_packages(id) ON DELETE CASCADE
+    )
+  `);
+
   // ── COLLABORATION MESSAGES (polymorphic; project is always the parent thread) ──
   // Posted against a specific record but rolled up to the project so a whole
   // conversation can be read in one place. Never sent to the AI provider.
@@ -803,6 +822,27 @@ async function initDatabase() {
     // kill-switch that wins over the per-project one.
     ['org_settings', 'collaboration_enabled', 'ALTER TABLE org_settings ADD COLUMN collaboration_enabled INTEGER DEFAULT 1'],
     ['projects', 'collaboration_enabled', 'ALTER TABLE projects ADD COLUMN collaboration_enabled INTEGER DEFAULT 1'],
+    // POA&M moves to decision packages: conditions attached to a conditional
+    // authorization, with their own review loop and due-date history.
+    ['iato_checklist', 'decision_package_id', 'ALTER TABLE iato_checklist ADD COLUMN decision_package_id INTEGER'],
+    ['iato_checklist', 'state', "ALTER TABLE iato_checklist ADD COLUMN state TEXT DEFAULT 'open'"],
+    ['iato_checklist', 'evidence_submitted_at', 'ALTER TABLE iato_checklist ADD COLUMN evidence_submitted_at DATETIME'],
+    ['iato_checklist', 'evidence_submitted_by', 'ALTER TABLE iato_checklist ADD COLUMN evidence_submitted_by TEXT'],
+    ['iato_checklist', 'reviewed_at', 'ALTER TABLE iato_checklist ADD COLUMN reviewed_at DATETIME'],
+    ['iato_checklist', 'reviewed_by', 'ALTER TABLE iato_checklist ADD COLUMN reviewed_by TEXT'],
+    ['iato_checklist', 'review_decision', 'ALTER TABLE iato_checklist ADD COLUMN review_decision TEXT'],
+    ['iato_checklist', 'review_notes', 'ALTER TABLE iato_checklist ADD COLUMN review_notes TEXT'],
+    ['iato_checklist', 'deferred_to_package_id', 'ALTER TABLE iato_checklist ADD COLUMN deferred_to_package_id INTEGER'],
+    ['iato_checklist', 'carried_from_item_id', 'ALTER TABLE iato_checklist ADD COLUMN carried_from_item_id INTEGER'],
+    // Due-date history: the original commitment, the previous value, and how often it moved.
+    ['iato_checklist', 'deadline_original', 'ALTER TABLE iato_checklist ADD COLUMN deadline_original DATETIME'],
+    ['iato_checklist', 'deadline_previous', 'ALTER TABLE iato_checklist ADD COLUMN deadline_previous DATETIME'],
+    ['iato_checklist', 'deadline_changes', 'ALTER TABLE iato_checklist ADD COLUMN deadline_changes INTEGER DEFAULT 0'],
+    ['iato_checklist', 'deadline_change_reason', 'ALTER TABLE iato_checklist ADD COLUMN deadline_change_reason TEXT'],
+    // A package that extends an earlier one (approval extended with conditions).
+    ['decision_packages', 'parent_package_id', 'ALTER TABLE decision_packages ADD COLUMN parent_package_id INTEGER'],
+    ['decision_packages', 'extension_reason', 'ALTER TABLE decision_packages ADD COLUMN extension_reason TEXT'],
+    ['decision_packages', 'version', 'ALTER TABLE decision_packages ADD COLUMN version INTEGER DEFAULT 1'],
     // Per-tenant OOB token allowance + usage.
     ['organizations', 'token_limit', 'ALTER TABLE organizations ADD COLUMN token_limit INTEGER'],       // null = plan default
     ['organizations', 'tokens_extra', 'ALTER TABLE organizations ADD COLUMN tokens_extra INTEGER DEFAULT 0'], // topped-up tokens

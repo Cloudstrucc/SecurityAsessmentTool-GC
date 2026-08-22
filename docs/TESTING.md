@@ -58,7 +58,7 @@ generated artifacts — they are not committed.
 
 ---
 
-## The suite at a glance (62 checks)
+## The suite at a glance (68 checks)
 
 ### Authentication, MFA & accounts
 | Check | What it proves |
@@ -140,6 +140,16 @@ generated artifacts — they are not committed.
 | An issued package cannot be deleted | Issued authorizations are protected (revoke instead) |
 | An assessment is locked under review, released once issued | The package cannot shift under the approver, and work resumes after |
 | Authorization has moved off the assessment | The old ATO UI is gone from the assessment page |
+
+### POA&M (conditions on a decision package)
+| Check | What it proves |
+|---|---|
+| POA&M has moved off the assessment | The assessment no longer shows or manages conditions |
+| A condition runs the evidence-then-review loop | Team submits evidence → assessor accepts → counted as met |
+| A full ATO is blocked while conditions are outstanding or overdue | Promotion gate is enforced server-side, with the reason explained |
+| Extending carries unfinished conditions into the successor | Originals are deferred and linked to where they went |
+| Decision package edits are versioned; revert restores fields | Audit history is real, not just a baseline |
+| Revert never touches POA&M verdicts; issued packages can't be reverted | An editorial revert cannot erase review decisions |
 
 ### Collaboration
 | Check | What it proves |

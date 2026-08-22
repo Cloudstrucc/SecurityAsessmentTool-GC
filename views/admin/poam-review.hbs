@@ -1,0 +1,167 @@
+<div class="container">
+  <div class="d-flex align-items-center mb-4">
+    <a href="/admin/decision-packages/{{dp.id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
+    <div class="flex-grow-1">
+      <h1 class="mb-0">{{t 'pm.title'}}</h1>
+      <p class="text-muted mb-0">{{dp.reference}} — {{project.name}}
+        <span class="badge bg-dark ms-1">{{t (dpStateKey dp.state)}}</span></p>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <p class="small text-muted">{{t 'pm.blurb'}}</p>
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <span class="badge bg-success">{{t 'pm.summaryMet' accepted=summary.accepted total=summary.total}}</span>
+        {{#if summary.awaitingReview}}<span class="badge bg-primary">{{summary.awaitingReview}} · {{t 'pm.awaitingReview'}}</span>{{/if}}
+        {{#if summary.overdue}}<span class="badge bg-danger"><i class="bi bi-flag-fill me-1"></i>{{summary.overdue}} · {{t 'pm.overdue'}}</span>{{/if}}
+        {{#if summary.deferred}}<span class="badge bg-secondary">{{summary.deferred}} · {{t 'pm.stateDeferred'}}</span>{{/if}}
+      </div>
+
+      {{#if canReview}}
+      <hr>
+      <div class="d-flex flex-wrap gap-2">
+        {{#if promotion.ok}}
+          <form method="POST" action="/admin/decision-packages/{{dp.id}}/promote">
+            <button class="btn btn-success"><i class="bi bi-award me-1"></i>{{t 'pm.promote'}}</button>
+          </form>
+        {{else}}
+          <div class="alert alert-warning mb-0 py-2 px-3 small flex-grow-1">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            {{#eq promotion.reason 'overdue'}}{{t 'pm.promoteBlockedOverdue'}}{{/eq}}
+            {{#eq promotion.reason 'deferred'}}{{t 'pm.promoteBlockedDeferred'}}{{/eq}}
+            {{#eq promotion.reason 'outstanding'}}{{t 'pm.promoteBlockedOutstanding'}}{{/eq}}
+          </div>
+        {{/if}}
+        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#extendModal">
+          <i class="bi bi-arrow-repeat me-1"></i>{{t 'pm.extend'}}
+        </button>
+        <form method="POST" action="/admin/decision-packages/{{dp.id}}/poam/generate">
+          <button class="btn btn-outline-primary"><i class="bi bi-magic me-1"></i>{{t 'pm.generate'}}</button>
+        </form>
+      </div>
+      {{/if}}
+    </div>
+  </div>
+
+  {{#if items.length}}
+    {{#each items}}
+      <div class="card mb-3 {{#if this.overdue}}border-danger{{/if}}">
+        <div class="card-body">
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+            <div>
+              <strong>{{#if this.control_id}}<code class="me-1">{{this.control_id}}</code>{{/if}}{{this.description}}</strong>
+              <div class="small text-muted mt-1">
+                <span class="badge bg-light text-dark border">{{this.risk_level}}</span>
+                {{#if this.deadline}}<span class="ms-2">{{t 'pm.due'}}: {{formatDate this.deadline}}</span>{{/if}}
+                {{#if this.overdue}}<span class="badge bg-danger ms-2"><i class="bi bi-flag-fill me-1"></i>{{t 'pm.overdue'}}</span>{{/if}}
+                {{#if this.extended}}
+                  <span class="badge bg-warning text-dark ms-1" title="{{t 'pm.originalDue'}}: {{formatDate this.deadline_original}}">
+                    <i class="bi bi-clock-history me-1"></i>{{t 'pm.extendedTimes' n=this.deadline_changes}}
+                  </span>
+                {{/if}}
+                {{#if this.carried_from_item_id}}<span class="badge bg-info ms-1">{{t 'pm.carriedFrom'}}</span>{{/if}}
+                {{#if this.assigned_to}}<span class="ms-2">{{t 'pm.owner'}}: {{this.assigned_to}}</span>{{/if}}
+              </div>
+            </div>
+            <span class="badge bg-secondary">{{t (pmStateKey this.state)}}</span>
+          </div>
+
+          {{#if this.remediation_plan}}<p class="small mb-2"><strong>{{t 'pm.remediationPlan'}}:</strong> {{this.remediation_plan}}</p>{{/if}}
+          {{#if this.evidence_text}}
+            <div class="bg-light border rounded p-2 mb-2 small">
+              <strong>{{t 'pm.evidence'}}:</strong> {{this.evidence_text}}
+              {{#if this.evidence_submitted_by}}<div class="text-muted">— {{this.evidence_submitted_by}}, {{formatDateTime this.evidence_submitted_at}}</div>{{/if}}
+            </div>
+          {{/if}}
+          {{#if this.review_notes}}
+            <div class="alert alert-secondary py-2 px-3 small mb-2">
+              <strong>{{t 'pm.reviewNotes'}}:</strong> {{this.review_notes}}
+              {{#if this.reviewed_by}}<div class="text-muted">— {{this.reviewed_by}}, {{formatDateTime this.reviewed_at}}</div>{{/if}}
+            </div>
+          {{/if}}
+
+          {{#if this.isOpen}}
+            <div class="row g-2">
+              {{#if ../canSubmit}}
+                <div class="col-md-6">
+                  <form method="POST" action="/admin/decision-packages/{{../dp.id}}/poam/{{this.id}}/evidence" class="d-flex gap-2">
+                    <input class="form-control form-control-sm" name="evidence_text" placeholder="{{t 'pm.evidence'}}" required>
+                    <button class="btn btn-sm btn-primary text-nowrap">{{t 'pm.submitEvidence'}}</button>
+                  </form>
+                </div>
+              {{/if}}
+              {{#if ../canReview}}
+                <div class="col-md-6">
+                  <form method="POST" action="/admin/decision-packages/{{../dp.id}}/poam/{{this.id}}/review" class="d-flex gap-2 flex-wrap">
+                    <input class="form-control form-control-sm flex-grow-1" name="review_notes" placeholder="{{t 'pm.reviewNotes'}}">
+                    <button class="btn btn-sm btn-success" name="decision" value="accept">{{t 'pm.accept'}}</button>
+                    <button class="btn btn-sm btn-outline-danger" name="decision" value="reject">{{t 'pm.reject'}}</button>
+                    <button class="btn btn-sm btn-outline-secondary" name="decision" value="defer">{{t 'pm.defer'}}</button>
+                  </form>
+                </div>
+                <div class="col-12">
+                  <form method="POST" action="/admin/decision-packages/{{../dp.id}}/poam/{{this.id}}/deadline" class="row g-2 align-items-end">
+                    <div class="col-md-3"><label class="form-label small mb-0">{{t 'pm.changeDue'}}</label>
+                      <input type="date" class="form-control form-control-sm" name="deadline" value="{{this.deadline}}"></div>
+                    <div class="col-md-6"><label class="form-label small mb-0">{{t 'pm.changeReason'}}</label>
+                      <input class="form-control form-control-sm" name="reason"></div>
+                    <div class="col-md-3"><button class="btn btn-sm btn-outline-primary w-100">{{t 'pm.changeDue'}}</button></div>
+                  </form>
+                </div>
+              {{/if}}
+            </div>
+          {{/if}}
+        </div>
+      </div>
+    {{/each}}
+  {{else}}
+    <div class="alert alert-light border">{{t 'pm.none'}}</div>
+  {{/if}}
+
+  {{#if canReview}}
+  <div class="card">
+    <div class="card-header"><i class="bi bi-plus-circle me-2"></i>{{t 'pm.addItem'}}</div>
+    <div class="card-body">
+      <form method="POST" action="/admin/decision-packages/{{dp.id}}/poam/add" class="row g-2 align-items-end">
+        <div class="col-md-5"><label class="form-label small">{{t 'pm.description'}}</label>
+          <input class="form-control form-control-sm" name="description" required></div>
+        <div class="col-md-2"><label class="form-label small">{{t 'pm.risk'}}</label>
+          <select class="form-select form-select-sm" name="risk_level">
+            <option value="high">high</option><option value="medium" selected>medium</option><option value="low">low</option>
+          </select></div>
+        <div class="col-md-2"><label class="form-label small">{{t 'pm.due'}}</label>
+          <input type="date" class="form-control form-control-sm" name="deadline"></div>
+        <div class="col-md-2"><label class="form-label small">{{t 'pm.owner'}}</label>
+          <input class="form-control form-control-sm" name="assigned_to"></div>
+        <div class="col-md-1"><button class="btn btn-sm btn-primary w-100"><i class="bi bi-plus-lg"></i></button></div>
+      </form>
+    </div>
+  </div>
+  {{/if}}
+</div>
+
+<div class="modal fade" id="extendModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" action="/admin/decision-packages/{{dp.id}}/extend" class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">{{t 'pm.extend'}}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <p class="small text-muted">{{t 'pm.extendBlurb'}}</p>
+        <label class="form-label small">{{t 'pm.extendReason'}}</label>
+        <textarea class="form-control" name="extension_reason" rows="2"></textarea>
+        <label class="form-label small mt-2">{{t 'dp.expires'}}</label>
+        <input type="date" class="form-control" name="expires_at">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{t 'ik.cancel'}}</button>
+        <button class="btn btn-primary">{{t 'pm.extend'}}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{{#if collabEnabled}}
+  {{> collab-panel }}
+  <script>window.CollabConfig = { projectId: {{dp.project_id}}, entityType: 'decision_package', entityId: {{dp.id}} };</script>
+{{/if}}

@@ -520,134 +520,31 @@ test('admin can generate previewed AI evidence guidance from uploaded SADD docum
   assert.match(refreshed.text, /ai-generated/);
 });
 
-test('admin can create editable ATO records and manage linked POA&M items', async () => {
+test('the legacy ATO record editor still manages its own authorization fields', async () => {
+  // ATO records predate decision packages. The editor remains for historical records,
+  // but POA&M is no longer part of it — conditions belong to the decision package.
   const jar = await loginAdminWithTotp();
-  const { projectId } = await createAdminProject(jar, 'E2E ATO POAM Project');
-  const { assessmentPath, assessmentId } = await createSingleControlAssessment(jar, projectId);
+  const { projectId } = await createAdminProject(jar, 'E2E Legacy ATO Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
 
   const atoCreate = await request(jar, 'POST', `/admin/projects/${projectId}/ato/new`, {
     form: {
-      assessment_id: assessmentId,
-      record_type: 'iato',
-      title: 'E2E Interim Authorization',
-      system_name: 'E2E ATO POAM Project',
-      organization_name: 'E2E Department',
-      authorizing_official: 'Authorizing Official',
-      assessor: 'E2E Assessor',
-      authorization_status: 'draft',
+      assessment_id: assessmentId, record_type: 'iato',
+      title: 'E2E Interim Authorization', system_name: 'E2E Legacy ATO Project',
+      organization_name: 'E2E Department', authorizing_official: 'Authorizing Official',
+      assessor: 'E2E Assessor', authorization_status: 'draft',
       executive_summary: 'Editable iATO summary.',
-      system_description: 'Editable system description.',
-      assessment_scope: 'Editable assessment scope.',
-      risk_summary: 'Editable risk summary.',
-      residual_risk_statement: 'Editable residual risk statement.',
-      conditions_of_authorization: 'Editable authorization conditions.',
-      security_control_summary: 'Editable control summary.',
-      poam_summary: 'Editable POA&M summary.',
-      assessor_notes: 'Editable assessor notes.'
+      residual_risk_statement: 'Editable residual risk statement.'
     }
   });
   assert.equal(atoCreate.status, 302);
   const atoPath = atoCreate.headers.get('location');
   assert.match(atoPath, /^\/admin\/ato\/\d+$/);
-  const atoId = atoPath.match(/(\d+)$/)[1];
 
   const atoPage = await getText(jar, atoPath);
   assert.match(atoPage.text, /E2E Interim Authorization/);
   assert.match(atoPage.text, /Editable iATO summary/);
-
-  const addPoam = await request(jar, 'POST', `/admin/assessments/${assessmentId}/checklist/add`, {
-    form: {
-      ato_record_id: atoId,
-      control_id: 'AC-2',
-      description: 'E2E finding requiring remediation',
-      risk_level: 'medium',
-      deadline: '2026-12-31',
-      assigned_to: 'Control Owner',
-      remediation_plan: 'Initial mitigation plan',
-      milestone: 'Initial milestone',
-      residual_risk: 'Initial residual risk',
-      assessor_notes: 'Initial POA&M assessor note'
-    }
-  });
-  assert.equal(addPoam.status, 302);
-  const poamPage = await getText(jar, assessmentPath);
-  assert.match(poamPage.text, /E2E finding requiring remediation/);
-  assert.match(poamPage.text, /Initial mitigation plan/);
-  const itemId = poamPage.text.match(/\/admin\/assessments\/\d+\/poam\/(\d+)\/delete/)?.[1];
-  assert.ok(itemId, 'POA&M item id should be visible in delete form');
-
-  const updatePoam = await request(jar, 'POST', `/admin/assessments/${assessmentId}/poam/${itemId}/update`, {
-    form: {
-      description: 'E2E finding updated after review',
-      status: 'in-progress',
-      risk_level: 'high',
-      deadline: '2026-11-30',
-      assigned_to: 'Updated Owner',
-      remediation_plan: 'Updated mitigation plan',
-      milestone: 'Updated milestone note',
-      residual_risk: 'Updated residual risk note',
-      assessor_notes: 'Updated assessor POA&M note',
-      ato_record_id: atoId
-    }
-  });
-  assert.equal(updatePoam.status, 302);
-  const updated = await getText(jar, assessmentPath);
-  assert.match(updated.text, /E2E finding updated after review/);
-  assert.match(updated.text, /Updated mitigation plan/);
-  assert.match(updated.text, /Updated residual risk note/);
-  assert.match(updated.text, /Updated assessor POA(?:&amp;|&)M note/);
-
-  const addAtoPoam = await request(jar, 'POST', `/admin/ato/${atoId}/poam/add`, {
-    form: {
-      assessment_id: assessmentId,
-      control_id: 'AC-2',
-      description: 'ATO-level remediation item created from authorization package',
-      risk_level: 'high',
-      status: 'open',
-      deadline: '2026-10-31',
-      assigned_to: 'Authorization Owner',
-      original_finding: 'Authorization finding requiring tracked remediation',
-      remediation_plan: 'Authorization package mitigation plan',
-      milestone: 'Authorization package milestone',
-      residual_risk: 'Authorization residual risk',
-      assessor_notes: 'Authorization assessor note'
-    }
-  });
-  assert.equal(addAtoPoam.status, 302);
-
-  const atoWithPoam = await getText(jar, atoPath);
-  assert.match(atoWithPoam.text, /ATO-level remediation item created from authorization package/);
-  assert.match(atoWithPoam.text, /Authorization package mitigation plan/);
-  const atoPoamItemId = atoWithPoam.text.match(/\/admin\/ato\/\d+\/poam\/(\d+)\/delete/)?.[1];
-  assert.ok(atoPoamItemId, 'ATO POA&M item id should be visible in delete form');
-
-  const updateAtoPoam = await request(jar, 'POST', `/admin/ato/${atoId}/poam/${atoPoamItemId}/update`, {
-    form: {
-      assessment_id: assessmentId,
-      control_id: 'AC-2',
-      description: 'ATO-level remediation item updated from authorization package',
-      risk_level: 'medium',
-      status: 'in-progress',
-      deadline: '2026-09-30',
-      assigned_to: 'Updated Authorization Owner',
-      original_finding: 'Updated authorization finding',
-      remediation_plan: 'Updated authorization mitigation plan',
-      milestone: 'Updated authorization milestone',
-      residual_risk: 'Updated authorization residual risk',
-      assessor_notes: 'Updated authorization assessor note'
-    }
-  });
-  assert.equal(updateAtoPoam.status, 302);
-  const atoUpdated = await getText(jar, atoPath);
-  assert.match(atoUpdated.text, /ATO-level remediation item updated from authorization package/);
-  assert.match(atoUpdated.text, /Updated authorization mitigation plan/);
-
-  const deleteAtoPoam = await request(jar, 'POST', `/admin/ato/${atoId}/poam/${atoPoamItemId}/delete`);
-  assert.equal(deleteAtoPoam.status, 302);
-  const atoAfterDelete = await getText(jar, atoPath);
-  assert.doesNotMatch(atoAfterDelete.text, /ATO-level remediation item updated from authorization package/);
 });
-
 test('admin can export assessment, controls, full project, and ATO PDFs', async () => {
   const jar = await loginAdminWithTotp();
   const { projectId } = await createAdminProject(jar, 'E2E PDF Export Project');
@@ -1158,6 +1055,162 @@ test('the retired assessment ATO route no longer exists', async () => {
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   const res = await request(jar, 'GET', `/admin/assessments/${assessmentId}/generate-ato`, { redirect: 'manual' });
   assert.equal(res.status, 404, 'authorization now lives only in decision packages');
+});
+
+// ── POA&M as conditions on a decision package ───────────────────────────────
+async function addCondition(jar, dpPath, fields = {}) {
+  const res = await request(jar, 'POST', `${dpPath}/poam/add`, {
+    form: Object.assign({ description: 'E2E condition', risk_level: 'medium' }, fields)
+  });
+  assert.equal(res.status, 302);
+}
+
+async function poamPage(jar, dpPath) { return getText(jar, `${dpPath}/poam`); }
+
+/** The newest condition id on a package, read back from its POA&M page. */
+function lastConditionId(text) {
+  const ids = [...text.matchAll(/\/poam\/(\d+)\/(?:evidence|review)/g)].map(m => Number(m[1]));
+  return ids.length ? Math.max(...ids) : null;
+}
+
+test('POA&M has moved off the assessment and onto the decision package', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E POAM Move Project');
+  const { assessmentId, assessmentPath } = await createSingleControlAssessment(jar, projectId);
+  const dp = await createDecisionPackage(jar, projectId, { assessmentId });
+
+  const assessment = await getText(jar, assessmentPath);
+  assert.doesNotMatch(assessment.text, /Plan of Action/i, 'the assessment no longer shows POA&M');
+  assert.doesNotMatch(assessment.text, /poam\/auto-populate/, 'the assessment POA&M actions are gone');
+
+  const page = await poamPage(jar, dp.path);
+  assert.equal(page.response.status, 200);
+  assert.match(page.text, /Plan of Action &amp; Milestones|Plan of Action & Milestones/);
+});
+
+test('a condition runs the evidence-then-review loop', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E POAM Loop Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  const dp = await createDecisionPackage(jar, projectId, { assessmentId });
+  await addCondition(jar, dp.path, { description: 'Encrypt backups', deadline: '2030-01-01' });
+
+  let page = await poamPage(jar, dp.path);
+  const itemId = lastConditionId(page.text);
+  assert.ok(itemId, 'the condition is listed with its actions');
+
+  await request(jar, 'POST', `${dp.path}/poam/${itemId}/evidence`, { form: { evidence_text: 'AES-256 enabled' } });
+  page = await poamPage(jar, dp.path);
+  assert.match(page.text, /Awaiting review/, 'submitted evidence moves the item to review');
+
+  await request(jar, 'POST', `${dp.path}/poam/${itemId}/review`, { form: { decision: 'accept', review_notes: 'Verified' } });
+  page = await poamPage(jar, dp.path);
+  assert.match(page.text, /1 of 1 conditions met/, 'an accepted condition counts as met');
+});
+
+test('a full ATO cannot be granted while conditions are outstanding or overdue', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E POAM Gate Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  const dp = await createDecisionPackage(jar, projectId, { assessmentId, type: 'iato' });
+
+  // An overdue condition blocks promotion outright.
+  await addCondition(jar, dp.path, { description: 'Overdue work', deadline: '2020-01-01' });
+  let page = await poamPage(jar, dp.path);
+  assert.match(page.text, /Overdue/, 'the overdue condition is flagged');
+
+  await request(jar, 'POST', `${dp.path}/promote`, { form: {} });
+  let detail = await getText(jar, dp.path);
+  assert.match(detail.text, /value="iato" selected/, 'the package is still a conditional iATO');
+  const pkg = await poamPage(jar, dp.path);
+  assert.match(pkg.text, /new due date|accepted before a full ATO/i, 'the block is explained');
+
+  // Fixing the date is not enough — the condition must actually be accepted.
+  const itemId = lastConditionId(pkg.text);
+  await request(jar, 'POST', `${dp.path}/poam/${itemId}/deadline`,
+    { form: { deadline: '2030-01-01', reason: 'Vendor slipped' } });
+  page = await poamPage(jar, dp.path);
+  assert.match(page.text, /Due date changed 1 time/, 'the due-date change is recorded with its history');
+
+  await request(jar, 'POST', `${dp.path}/poam/${itemId}/evidence`, { form: { evidence_text: 'Done' } });
+  await request(jar, 'POST', `${dp.path}/poam/${itemId}/review`, { form: { decision: 'accept' } });
+  await request(jar, 'POST', `${dp.path}/promote`, { form: {} });
+  detail = await getText(jar, dp.path);
+  assert.match(detail.text, /value="ato" selected/,
+    'promotion succeeds once every condition is accepted');
+});
+
+test('extending an authorization carries unfinished conditions into the successor', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E POAM Extend Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  const dp = await createDecisionPackage(jar, projectId, { assessmentId, type: 'iato' });
+  await addCondition(jar, dp.path, { description: 'Unfinished work item', deadline: '2030-06-30' });
+
+  const res = await request(jar, 'POST', `${dp.path}/extend`,
+    { form: { extension_reason: 'More time needed', expires_at: '2031-01-01' } });
+  assert.equal(res.status, 302);
+  const successor = res.headers.get('location');
+  assert.match(successor, /^\/admin\/decision-packages\/\d+\/poam$/, 'lands on the successor POA&M');
+
+  const carried = await getText(jar, successor);
+  assert.match(carried.text, /Unfinished work item/, 'the condition was carried forward');
+  assert.match(carried.text, /Carried forward/, 'and is marked as carried');
+
+  const original = await poamPage(jar, dp.path);
+  assert.match(original.text, /Deferred/, 'the original condition is now deferred');
+});
+
+// ── Decision package versioning ─────────────────────────────────────────────
+test('decision package edits are versioned and revert restores the earlier fields', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E DP Version Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  const dp = await createDecisionPackage(jar, projectId, { assessmentId });
+
+  await request(jar, 'POST', dp.path, { form: { title: 'Renamed package', decision_type: 'iato' } });
+  let page = await getText(jar, dp.path);
+  assert.match(page.text, /Renamed package/);
+  assert.match(page.text, /v1 Created|Created/, 'the baseline version is recorded');
+  assert.match(page.text, /Edited/, 'the edit is recorded as its own version');
+
+  const revert = await request(jar, 'POST', `${dp.path}/revert/1`, { json: {} });
+  assert.equal(revert.status, 200);
+  const body = await revert.json();
+  assert.equal(body.success, true);
+
+  page = await getText(jar, dp.path);
+  assert.doesNotMatch(page.text, /value="Renamed package"/, 'the earlier title was restored');
+});
+
+test('reverting never touches POA&M verdicts, and an issued package cannot be reverted', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E DP Revert Guard Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  const dp = await createDecisionPackage(jar, projectId, { assessmentId });
+  await addCondition(jar, dp.path, { description: 'Reviewed condition', deadline: '2030-01-01' });
+
+  let page = await poamPage(jar, dp.path);
+  const itemId = lastConditionId(page.text);
+  await request(jar, 'POST', `${dp.path}/poam/${itemId}/evidence`, { form: { evidence_text: 'Evidence' } });
+  await request(jar, 'POST', `${dp.path}/poam/${itemId}/review`, { form: { decision: 'accept' } });
+
+  // Revert the package's editorial fields...
+  await request(jar, 'POST', dp.path, { form: { title: 'Changed', decision_type: 'iato' } });
+  await request(jar, 'POST', `${dp.path}/revert/1`, { json: {} });
+
+  // ...the accepted verdict must survive it.
+  page = await poamPage(jar, dp.path);
+  assert.match(page.text, /1 of 1 conditions met/, 'review verdicts survive an editorial revert');
+
+  // Once issued, revert is refused outright.
+  for (const state of ['in-review', 'recommended', 'decided', 'issued']) {
+    await request(jar, 'POST', `${dp.path}/transition`, { form: { state } });
+  }
+  const refused = await request(jar, 'POST', `${dp.path}/revert/1`, { json: {} });
+  assert.equal(refused.status, 400, 'an issued authorization cannot be reverted');
+  const err = await refused.json();
+  assert.match(err.error, /issued authorization cannot be reverted/i);
 });
 
 // ── Phase 4: assistant consolidation ─────────────────────────────────────────
