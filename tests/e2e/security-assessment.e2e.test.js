@@ -1121,6 +1121,45 @@ test('the process flow is localized in every supported language', async () => {
   }
 });
 
+test('status badges are localized rather than hardcoded English', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Status Badge Project');
+  const { assessmentPath } = await createSingleControlAssessment(jar, projectId);
+
+  const en = await getText(jar, assessmentPath);
+  assert.match(en.text, /badge bg-secondary">Draft</, 'English still reads Draft');
+
+  const expected = { fr: 'Brouillon', es: 'Borrador', de: 'Entwurf', pt: 'Rascunho',
+                     it: 'Bozza', nl: 'Concept', ja: '下書き' };
+  for (const [lang, word] of Object.entries(expected)) {
+    const page = await getText(jar, `${assessmentPath}?lang=${lang}`);
+    assert.ok(page.text.includes(word), `${lang} status badge should read "${word}"`);
+    assert.ok(!page.text.includes('badge bg-secondary">Draft<'),
+      `${lang} must not fall back to the English badge`);
+  }
+});
+
+test('a decision package exports a PDF built from the pinned version', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E DP Export Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  const dp = await createDecisionPackage(jar, projectId, { assessmentId });
+
+  const buffer = await assertPdfDownload(jar, `${dp.path}/export-pdf`, 'decision package');
+  assert.ok(buffer.length > 1500, 'the exported package has real content');
+
+  const page = await getText(jar, dp.path);
+  assert.match(page.text, /export-pdf/, 'the export action is offered on the package');
+});
+
+test('the retired assessment ATO route no longer exists', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Retired ATO Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  const res = await request(jar, 'GET', `/admin/assessments/${assessmentId}/generate-ato`, { redirect: 'manual' });
+  assert.equal(res.status, 404, 'authorization now lives only in decision packages');
+});
+
 // ── Intake acceptance ────────────────────────────────────────────────────────
 async function submitClientIntake(jar, projectName) {
   const res = await request(jar, 'POST', '/intake', {

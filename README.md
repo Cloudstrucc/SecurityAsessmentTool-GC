@@ -31,7 +31,7 @@ Node.js/Express application for managing security assessment & authorization (SA
   sent to the AI provider**.
 - Versions each assessment: every change checkpoint (creation, AI-applied changes, manual checkpoints) is captured as a point-in-time snapshot, with a full audit history and non-destructive revert to any prior version.
 - Includes the **Aegis SA Assistant** — an in-app AI chat that helps tailor controls, answer coverage questions, and draft evidence (assessor approves every change).
-- Provides project-level report branding, control exports, full project exports, ATO/iATO records, and POA&M management.
+- Provides project-level report branding, control exports, full project exports, decision-package PDF exports (rendered from the pinned assessment version), and POA&M management.
 - Includes an admin security control catalog at `/admin/security-controls` with ITSG-33, CIS, ISO/IEC 27001, FedRAMP, NIST SP 800-53, ASD ISM, and ACSC Essential Eight entries.
 - Includes an authenticated Help guide with screenshots, plus standalone Markdown and HTML guide files under `docs/`.
 - Lets assessors assign intakes and assessments to existing users or invite new client/assessor users.
@@ -293,7 +293,7 @@ Current executable checks:
 - Reverting an assessment restores the prior control set as a new active version and records the revert in the audit history.
 - The legacy `/sa-tool-overview.html` path redirects to the live overview route (guards against stale static files in `wwwroot`).
 
-The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 54 checks. See [docs/TESTING.md](docs/TESTING.md) for what each one covers.
+The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 57 checks. See [docs/TESTING.md](docs/TESTING.md) for what each one covers.
 
 In the Codex sandbox, binding a local test server may require approval. On a normal developer machine, `npm run test:e2e` should run directly.
 

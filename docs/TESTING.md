@@ -58,7 +58,7 @@ generated artifacts — they are not committed.
 
 ---
 
-## The suite at a glance (54 checks)
+## The suite at a glance (57 checks)
 
 ### Authentication, MFA & accounts
 | Check | What it proves |
@@ -108,6 +108,13 @@ generated artifacts — they are not committed.
 | A project shows four stages with a derived current stage | Stage position is computed, never stored |
 | The project header no longer duplicates the create action | The duplicate button stayed removed |
 | The flow is localized in every supported language | All 8 languages render, including the stage counter |
+
+### Cross-cutting
+| Check | What it proves |
+|---|---|
+| Status badges are localized, not hardcoded English | `statusBadge` renders per language and never falls back to English |
+| A decision package exports a PDF from the pinned version | The document reflects what was authorized, not live data |
+| The retired assessment ATO route no longer exists | Authorization lives only in decision packages (404) |
 
 ### Intake acceptance
 | Check | What it proves |

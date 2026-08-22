@@ -61,7 +61,7 @@ router.use((req, res, next) => {
   if (p === '/assessments' || p === '/intakes') return res.redirect('/admin/dashboard');
   // Per-action RBAC on an assessment: assessor-only actions are blocked even for
   // the assigned practitioner. They keep view, report downloads and comments.
-  if (/^\/assessments\/\d+\/(tailoring|send-invite|assign|start-audit|audit-control|complete-audit|checklist|poam|reactivate|generate-ato|delete|manage-controls|add-controls|remove-control|update-control|ai\/)/.test(p)) {
+  if (/^\/assessments\/\d+\/(tailoring|send-invite|assign|start-audit|audit-control|complete-audit|checklist|poam|reactivate|delete|manage-controls|add-controls|remove-control|update-control|ai\/)/.test(p)) {
     return deny('Only an assessor can perform that action.');
   }
   // Scope assessment/intake detail to the practitioner's own assignments.
@@ -2231,6 +2231,58 @@ router.post('/decision-packages/:id/transition', ensureAuthenticated, (req, res)
   res.redirect(`/admin/decision-packages/${dp.id}`);
 });
 
+/**
+ * Export the decision package as a PDF. The controls come from the PINNED
+ * assessment version, not the live assessment, so the document always reflects
+ * exactly what was authorized.
+ */
+router.get('/decision-packages/:id/export-pdf', ensureAuthenticated, async (req, res) => {
+  try {
+    const dp = get('SELECT * FROM decision_packages WHERE id = ?', [req.params.id]);
+    if (!dp) { req.flash('error', 'Decision package not found'); return res.redirect('/admin/projects'); }
+    const project = get('SELECT * FROM projects WHERE id = ?', [dp.project_id]) || {};
+    const assessment = dp.assessment_id ? get('SELECT * FROM assessments WHERE id = ?', [dp.assessment_id]) : {};
+
+    // Prefer the pinned snapshot's controls; fall back to live only if unavailable.
+    let controls = [];
+    if (dp.assessment_version_id) {
+      const v = get('SELECT snapshot_json FROM assessment_versions WHERE id = ?', [dp.assessment_version_id]);
+      try { controls = (JSON.parse((v && v.snapshot_json) || '{}').controls) || []; } catch (e) { controls = []; }
+    }
+    if (!controls.length && dp.assessment_id) {
+      controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [dp.assessment_id]);
+    }
+
+    let extra = { poam: [] };
+    try { extra = JSON.parse(dp.snapshot_extra || '{}'); } catch (e) { /* ignore */ }
+
+    const outputDir = path.join(__dirname, '..', 'data', 'exports');
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+    const outputPath = path.join(outputDir, `${dp.reference || 'decision'}-${dp.id}-${Date.now()}.pdf`);
+
+    const merged = Object.assign({}, assessment, {
+      ato_type: dp.decision_type,
+      ato_expiry_date: dp.expires_at,
+      risk_acceptance_statement: dp.residual_risk_statement || '',
+      conditions_of_authorization: dp.conditions || ''
+    });
+
+    await pdfExport.generateATODocument(merged, project, dp.decision_type || 'ato', controls, outputPath, {
+      poamItems: extra.poam || [],
+      riskAcceptance: dp.residual_risk_statement || '',
+      poamNotes: dp.decision_rationale || ''
+    });
+
+    res.download(outputPath, `${dp.reference || 'decision-package'}.pdf`, err => {
+      if (err) console.error('decision package pdf download error:', err);
+    });
+  } catch (err) {
+    console.error('decision package export error:', err);
+    req.flash('error', 'Could not export the decision package: ' + err.message);
+    res.redirect('/admin/decision-packages/' + req.params.id);
+  }
+});
+
 router.post('/decision-packages/:id/delete', ensureAuthenticated, (req, res) => {
   const dp = get('SELECT * FROM decision_packages WHERE id = ?', [req.params.id]);
   if (!dp) { req.flash('error', 'Decision package not found'); return res.redirect('/admin/projects'); }
@@ -2913,32 +2965,6 @@ router.get('/assessments/:id/export-pdf', ensureAuthenticated, async (req, res) 
   }
 });
 
-router.get('/assessments/:id/generate-ato', ensureAuthenticated, async (req, res) => {
-  try {
-    const assessment = get(`SELECT a.*, p.* FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?`, [req.params.id]);
-    const controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessment.id]);
-
-    const outputDir = path.join(__dirname, '..', 'data', 'exports');
-    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
-    const atoType = assessment.ato_type || 'ato';
-    const outputPath = path.join(outputDir, `${atoType}-${assessment.id}-${Date.now()}.pdf`);
-
-    await pdfExport.generateATODocument(assessment, assessment, atoType, controls, outputPath, {
-      poamItems: all('SELECT * FROM iato_checklist WHERE assessment_id = ? ORDER BY CASE risk_level WHEN \'high\' THEN 0 WHEN \'medium\' THEN 1 ELSE 2 END, deadline', [assessment.id]),
-      riskAcceptance: assessment.risk_acceptance_statement || '',
-      poamNotes: assessment.poam_notes || ''
-    });
-    
-    run(`UPDATE assessments SET ato_generated_at = CURRENT_TIMESTAMP WHERE id = ?`, [assessment.id]);
-    res.download(outputPath);
-  } catch (err) {
-    console.error(err);
-    req.flash('error', 'Failed to generate ATO document');
-    res.redirect(`/admin/assessments/${req.params.id}`);
-  }
-});
-
-// ── DELETE ASSESSMENT (Draft only) ──
 router.post('/assessments/:id/delete', ensureAuthenticated, (req, res) => {
   const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
   if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
