@@ -2682,5 +2682,18 @@
   "pm.stateDeferred": "Rinviata",
   "pm.remediationPlan": "Piano di rimedio",
   "pm.milestone": "Traguardo",
-  "pm.noPermissionSubmit": "Solo gli utenti assegnati a questo lavoro possono inviare prove."
+  "pm.noPermissionSubmit": "Solo gli utenti assegnati a questo lavoro possono inviare prove.",
+  "nt.title": "Preferenze di notifica",
+  "nt.blurb": "Scegli come vuoi ricevere le menzioni. Ricevi una notifica solo quando qualcuno ti menziona per nome.",
+  "nt.inapp": "Mostra le menzioni nell'app",
+  "nt.email": "Inviami un'email per le menzioni",
+  "nt.emailNote": "Le email sono raggruppate: al massimo un messaggio per record ogni 15 minuti.",
+  "nt.save": "Salva preferenze",
+  "nt.saved": "Preferenze di notifica salvate.",
+  "nt.orgTitle": "Notifiche di menzione",
+  "nt.orgEnabled": "Consenti le notifiche di menzione per questa organizzazione",
+  "nt.orgExcerpt": "Includi il testo del messaggio nelle email di notifica",
+  "nt.orgExcerptNote": "Disattivato per impostazione predefinita. Quando è disattivato, le email contengono solo un link: il testo della discussione non finisce mai nelle caselle di posta né nei log di posta.",
+  "nt.mentionedYou": "ti ha menzionato",
+  "nt.openDiscussion": "Apri la discussione"
 }

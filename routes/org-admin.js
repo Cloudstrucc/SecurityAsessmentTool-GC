@@ -140,6 +140,18 @@ router.post('/organization/ai/delete', access.ensureRootAdmin, (req, res) => {
   res.redirect('/admin/organization#ai');
 });
 
+// ── Mention notifications (tenant policy) ──
+router.post('/organization/notifications', access.ensureRootAdmin, (req, res) => {
+  const org = currentOrg(req);
+  if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
+  orgSettings.updateNotifications(org.id, {
+    enabled: !!req.body.notify_mentions_enabled,
+    excerpt: !!req.body.notify_mention_excerpt
+  });
+  req.flash('success', 'Notification settings saved.');
+  res.redirect('/admin/organization#notifications');
+});
+
 // ── Custom domain ──
 router.post('/organization/domain', access.ensureRootAdmin, (req, res) => {
   const org = currentOrg(req);

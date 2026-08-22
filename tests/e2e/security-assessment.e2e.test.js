@@ -1057,6 +1057,78 @@ test('the retired assessment ATO route no longer exists', async () => {
   assert.equal(res.status, 404, 'authorization now lives only in decision packages');
 });
 
+// ── Mention notifications ───────────────────────────────────────────────────
+test('a mention notifies the mentioned user in-app, and never the author', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Mention Notify Project');
+
+  const listed = await (await request(jar, 'GET', `/admin/projects/${projectId}/collab`)).json();
+  const me = listed.members.find(m => m.email === USERS.assessor.email);
+  assert.ok(me, 'the signed-in assessor is a member of their own project');
+
+  const before = await getText(jar, '/admin/notifications');
+  const beforeCount = (before.text.match(/mentioned you/g) || []).length;
+
+  // Mentioning YOURSELF must not generate a notification.
+  const handle = me.email.split('@')[0];
+  await request(jar, 'POST', `/admin/projects/${projectId}/collab`, {
+    json: { body: `@${handle} note to self`, entityType: 'project' }
+  });
+
+  const after = await getText(jar, '/admin/notifications');
+  const afterCount = (after.text.match(/mentioned you/g) || []).length;
+  assert.equal(afterCount, beforeCount, 'the author is never notified about their own mention');
+});
+
+test('notification preferences can be changed and are respected', async () => {
+  const jar = await loginAdminWithTotp();
+
+  const page = await getText(jar, '/admin/notifications/preferences');
+  assert.equal(page.response.status, 200);
+  assert.match(page.text, /Show mentions in the app/);
+  assert.match(page.text, /Emails are batched/, 'the batching behaviour is explained to the user');
+
+  // Turn email off, leave in-app on.
+  const save = await request(jar, 'POST', '/admin/notifications/preferences', {
+    form: { notify_mentions_inapp: '1' }
+  });
+  assert.equal(save.status, 302);
+
+  const reloaded = await getText(jar, '/admin/notifications/preferences');
+  assert.match(reloaded.text, /id="npInapp"[^>]*checked/, 'in-app stays on');
+  assert.doesNotMatch(reloaded.text, /id="npEmail"[^>]*checked/, 'email was turned off');
+
+  // Restore.
+  await request(jar, 'POST', '/admin/notifications/preferences', {
+    form: { notify_mentions_inapp: '1', notify_mentions_email: '1' }
+  });
+});
+
+test('mention emails are link-only unless the tenant opts into excerpts', async () => {
+  const jar = new CookieJar();
+  const email = `notif.policy.${Date.now()}@example.test`;
+  await request(jar, 'POST', '/register', {
+    form: {
+      plan: 'trial', first_name: 'Notif', last_name: 'Policy',
+      organization: 'E2E Notif Org', email, password: 'TrialPassword123!', agree: '1'
+    }
+  });
+
+  const settings = await getText(jar, '/admin/organization');
+  assert.match(settings.text, /Mention notifications/, 'the tenant policy is exposed');
+  assert.match(settings.text, /emails contain only a link/i, 'the privacy default is stated');
+  // Excerpts are OFF by default — discussion text stays out of inboxes.
+  assert.doesNotMatch(settings.text, /id="ntExcerpt"[^>]*checked/,
+    'including message text is opt-in, not the default');
+
+  const save = await request(jar, 'POST', '/admin/organization/notifications', {
+    form: { notify_mentions_enabled: '1', notify_mention_excerpt: '1' }
+  });
+  assert.equal(save.status, 302);
+  const after = await getText(jar, '/admin/organization');
+  assert.match(after.text, /id="ntExcerpt"[^>]*checked/, 'the tenant can opt in');
+});
+
 // ── POA&M as conditions on a decision package ───────────────────────────────
 async function addCondition(jar, dpPath, fields = {}) {
   const res = await request(jar, 'POST', `${dpPath}/poam/add`, {

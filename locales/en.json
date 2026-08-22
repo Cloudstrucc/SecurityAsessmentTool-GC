@@ -2661,5 +2661,18 @@
   "pm.stateDeferred": "Deferred",
   "pm.remediationPlan": "Remediation plan",
   "pm.milestone": "Milestone",
-  "pm.noPermissionSubmit": "Only users assigned to this work may submit evidence."
+  "pm.noPermissionSubmit": "Only users assigned to this work may submit evidence.",
+  "nt.title": "Notification preferences",
+  "nt.blurb": "Choose how you hear about mentions. You are only notified when someone mentions you by name.",
+  "nt.inapp": "Show mentions in the app",
+  "nt.email": "Email me about mentions",
+  "nt.emailNote": "Emails are batched — at most one message per record every 15 minutes.",
+  "nt.save": "Save preferences",
+  "nt.saved": "Notification preferences saved.",
+  "nt.orgTitle": "Mention notifications",
+  "nt.orgEnabled": "Allow mention notifications for this organization",
+  "nt.orgExcerpt": "Include the message text in notification emails",
+  "nt.orgExcerptNote": "Off by default. When off, emails contain only a link — discussion text is never placed in inboxes or mail logs.",
+  "nt.mentionedYou": "mentioned you",
+  "nt.openDiscussion": "Open the discussion"
 }

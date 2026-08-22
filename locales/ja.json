@@ -2682,5 +2682,18 @@
   "pm.stateDeferred": "保留",
   "pm.remediationPlan": "是正計画",
   "pm.milestone": "マイルストーン",
-  "pm.noPermissionSubmit": "この作業に割り当てられたユーザーのみが証跡を提出できます。"
+  "pm.noPermissionSubmit": "この作業に割り当てられたユーザーのみが証跡を提出できます。",
+  "nt.title": "通知設定",
+  "nt.blurb": "メンションの受け取り方を選択します。名前でメンションされた場合のみ通知されます。",
+  "nt.inapp": "アプリ内でメンションを表示",
+  "nt.email": "メンションをメールで通知",
+  "nt.emailNote": "メールはまとめて送信されます。1 レコードにつき 15 分あたり最大 1 通です。",
+  "nt.save": "設定を保存",
+  "nt.saved": "通知設定を保存しました。",
+  "nt.orgTitle": "メンション通知",
+  "nt.orgEnabled": "この組織でメンション通知を許可",
+  "nt.orgExcerpt": "通知メールにメッセージ本文を含める",
+  "nt.orgExcerptNote": "既定ではオフです。オフの場合、メールにはリンクのみが含まれ、ディスカッションの本文が受信箱やメールログに残ることはありません。",
+  "nt.mentionedYou": "があなたをメンションしました",
+  "nt.openDiscussion": "ディスカッションを開く"
 }

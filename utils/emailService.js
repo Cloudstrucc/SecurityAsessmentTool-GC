@@ -227,6 +227,48 @@ async function sendAssignmentNotification({ to, recipientName, entityType, entit
   });
 }
 
+/**
+ * Batched mention digest. LINK-ONLY by design: collaboration can contain personal
+ * information, so message text is included only when the tenant has explicitly
+ * opted in (org_settings.notify_mention_excerpt).
+ */
+async function sendMentionNotification({ to, recipientName, projectName, count, authors, link, excerpts = [], baseUrl = '' }) {
+  const who = (authors && authors.length)
+    ? (authors.length === 1 ? authors[0] : `${authors[0]} and ${authors.length - 1} other(s)`)
+    : 'Someone';
+  const subject = count > 1
+    ? `You were mentioned ${count} times in ${projectName}`
+    : `${who} mentioned you in ${projectName}`;
+  const excerptHtml = (excerpts && excerpts.length)
+    ? `<div style="margin:14px 0;padding:12px;background:#f5f7fa;border-left:3px solid #0f766e;border-radius:4px;color:#333">
+         ${excerpts.map(e => `<p style="margin:0 0 8px">${String(e).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</p>`).join('')}
+       </div>`
+    : '';
+  return safeSend({
+    from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+    to,
+    subject,
+    html: `
+      <div style="font-family:Inter,Arial,sans-serif;max-width:600px;margin:0 auto">
+        <div style="background:#0f766e;color:#fff;padding:20px;border-radius:8px 8px 0 0">
+          <h2 style="margin:0;font-size:18px">Aegis SA — you were mentioned</h2>
+        </div>
+        <div style="padding:22px;background:#f8f9fa;border:1px solid #e0e0e0">
+          <p>Hello ${recipientName || ''},</p>
+          <p><strong>${who}</strong> mentioned you in the discussion for <strong>${projectName}</strong>${count > 1 ? ` (${count} mentions)` : ''}.</p>
+          ${excerptHtml}
+          <p style="margin-top:18px">
+            <a href="${link}" style="display:inline-block;background:#0f766e;color:#fff;padding:11px 22px;border-radius:6px;text-decoration:none;font-weight:600">Open the discussion</a>
+          </p>
+          <p style="color:#6c757d;font-size:12px;margin-top:20px">
+            You are receiving this because you were mentioned by name.
+            <a href="${baseUrl}/admin/notifications/preferences">Change your notification preferences</a>.
+          </p>
+        </div>
+      </div>`
+  });
+}
+
 async function sendMail(mailOptions) {
   return safeSend(mailOptions);
 }
@@ -256,6 +298,7 @@ module.exports = {
   sendAssignmentNotification,
   sendSubmissionNotification,
   sendATONotification,
+  sendMentionNotification,
   sendMail,
   sendVia,
   sendRouted,

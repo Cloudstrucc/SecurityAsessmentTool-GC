@@ -61,6 +61,15 @@ function setDomainVerified(orgId, verified) {
 }
 
 // ── Delete / clear (the "D" in CRUD): reset a settings group to its default. ──
+/** Mention notification policy for a tenant (creates the settings row if needed). */
+function updateNotifications(orgId, { enabled, excerpt }) {
+  ensureRow(orgId);
+  run(`UPDATE org_settings SET notify_mentions_enabled = ?, notify_mention_excerpt = ?,
+       updated_at = CURRENT_TIMESTAMP WHERE organization_id = ?`,
+    [enabled ? 1 : 0, excerpt ? 1 : 0, orgId]);
+  return getSettings(orgId);
+}
+
 function clearSmtp(orgId) {
   ensureRow(orgId);
   run(`UPDATE org_settings SET smtp_host=NULL, smtp_port=587, smtp_user=NULL, smtp_password=NULL,
@@ -150,6 +159,6 @@ function aiConfig(orgId) {
 
 module.exports = {
   getSettings, updateSmtp, updateSms, updateDomain, setDomainVerified, smtpConfig, orgSmtp,
-  clearSmtp, clearSms, clearDomain, clearAi,
+  clearSmtp, clearSms, clearDomain, clearAi, updateNotifications,
   AI_PROVIDERS, updateAi, aiConfig
 };

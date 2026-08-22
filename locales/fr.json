@@ -2704,5 +2704,18 @@
   "pm.stateDeferred": "Reportée",
   "pm.remediationPlan": "Plan de correction",
   "pm.milestone": "Jalon",
-  "pm.noPermissionSubmit": "Seuls les utilisateurs affectés à ce travail peuvent soumettre des preuves."
+  "pm.noPermissionSubmit": "Seuls les utilisateurs affectés à ce travail peuvent soumettre des preuves.",
+  "nt.title": "Préférences de notification",
+  "nt.blurb": "Choisissez comment vous êtes informé des mentions. Vous n'êtes notifié que lorsqu'on vous mentionne nommément.",
+  "nt.inapp": "Afficher les mentions dans l'application",
+  "nt.email": "M'envoyer un courriel pour les mentions",
+  "nt.emailNote": "Les courriels sont regroupés — au plus un message par enregistrement toutes les 15 minutes.",
+  "nt.save": "Enregistrer les préférences",
+  "nt.saved": "Préférences de notification enregistrées.",
+  "nt.orgTitle": "Notifications de mention",
+  "nt.orgEnabled": "Autoriser les notifications de mention pour cette organisation",
+  "nt.orgExcerpt": "Inclure le texte du message dans les courriels de notification",
+  "nt.orgExcerptNote": "Désactivé par défaut. Lorsque c'est désactivé, les courriels ne contiennent qu'un lien — le texte des discussions n'est jamais placé dans les boîtes de réception ni dans les journaux de messagerie.",
+  "nt.mentionedYou": "vous a mentionné",
+  "nt.openDiscussion": "Ouvrir la discussion"
 }
