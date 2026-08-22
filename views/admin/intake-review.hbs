@@ -1,6 +1,6 @@
 <div class="container">
 <div class="mb-4">
-  <a href="/admin/intakes" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i> Back to Intakes</a>
+  <a href="/admin/intakes" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i> {{t 'ui.backToIntakes'}}</a>
 </div>
 
 <div class="d-flex justify-content-between align-items-start mb-4">
@@ -8,9 +8,9 @@
     <h2>{{intake.project_name}}</h2>
     <div class="d-flex gap-2 align-items-center">
       <code>{{intake.ref_code}}</code>
-      {{#if (eq intake.status 'pending')}}<span class="badge bg-warning">Pending Review</span>
-      {{else if (eq intake.status 'in-review')}}<span class="badge bg-info">In Review</span>
-      {{else if (eq intake.status 'accepted')}}<span class="badge bg-success">Accepted</span>
+      {{#if (eq intake.status 'pending')}}<span class="badge bg-warning">{{t 'ui.pendingReview'}}</span>
+      {{else if (eq intake.status 'in-review')}}<span class="badge bg-info">{{t 'ui.inReview'}}</span>
+      {{else if (eq intake.status 'accepted')}}<span class="badge bg-success">{{t 'ui.accepted'}}</span>
       {{else}}<span class="badge bg-secondary">{{intake.status}}</span>{{/if}}
       <span class="text-muted small">Submitted {{formatDate intake.created_at}}</span>
     </div>
@@ -18,13 +18,13 @@
   <div class="d-flex gap-2">
     {{#if (neq intake.status 'accepted')}}
     <button type="button" class="btn text-white" style="background:#8b5cf6;" onclick="aiReviewIntake()">
-      <i class="bi bi-stars me-1"></i>AI Review
+      <i class="bi bi-stars me-1"></i>{{t 'ui.aiReview'}}
     </button>
     {{/if}}
     {{#if (eq intake.status 'pending')}}
     <form method="POST" action="/admin/intakes/{{intake.id}}/status" style="display:inline;">
       <input type="hidden" name="status" value="in-review">
-      <button type="submit" class="btn btn-outline-info"><i class="bi bi-eye me-1"></i>Mark In Review</button>
+      <button type="submit" class="btn btn-outline-info"><i class="bi bi-eye me-1"></i>{{t 'ui.markInReview'}}</button>
     </form>
     {{/if}}
     {{#unless (eq intake.status 'accepted')}}
@@ -49,36 +49,36 @@
     <!-- Project Info -->
     <div class="form-section">
       <div class="section-header">
-        <h4 class="section-title"><span class="section-number">1</span> Project Information</h4>
+        <h4 class="section-title"><span class="section-number">1</span> {{t 'ui.projectInformation'}}</h4>
       </div>
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label small text-muted">Department / Agency</label>
+          <label class="form-label small text-muted">{{t 'ui.departmentAgency'}}</label>
           <div class="fw-bold">{{intake.department}}</div>
         </div>
         <div class="col-md-6">
-          <label class="form-label small text-muted">Branch / Directorate</label>
+          <label class="form-label small text-muted">{{t 'ui.branchDirectorate'}}</label>
           <div>{{#if intake.branch}}{{intake.branch}}{{else}}<span class="text-muted">—</span>{{/if}}</div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">Application Type</label>
+          <label class="form-label small text-muted">{{t 'ui.applicationType'}}</label>
           <div>
-            {{#if (eq intake.app_type 'internal')}}<span class="badge bg-light text-dark"><i class="bi bi-lock me-1"></i>Internal Only</span>
-            {{else if (eq intake.app_type 'external')}}<span class="badge bg-warning"><i class="bi bi-globe me-1"></i>External / Public</span>
-            {{else if (eq intake.app_type 'hybrid')}}<span class="badge bg-info"><i class="bi bi-arrow-left-right me-1"></i>Hybrid</span>
+            {{#if (eq intake.app_type 'internal')}}<span class="badge bg-light text-dark"><i class="bi bi-lock me-1"></i>{{t 'ui.internalOnly'}}</span>
+            {{else if (eq intake.app_type 'external')}}<span class="badge bg-warning"><i class="bi bi-globe me-1"></i>{{t 'ui.externalPublic'}}</span>
+            {{else if (eq intake.app_type 'hybrid')}}<span class="badge bg-info"><i class="bi bi-arrow-left-right me-1"></i>{{t 'ui.hybrid'}}</span>
             {{else}}{{intake.app_type}}{{/if}}
           </div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">Target Go-Live</label>
+          <label class="form-label small text-muted">{{t 'ui.targetGoLive'}}</label>
           <div>{{#if intake.target_date}}{{intake.target_date}}{{else}}<span class="text-muted">—</span>{{/if}}</div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">Estimated Users</label>
+          <label class="form-label small text-muted">{{t 'ui.estimatedUsers'}}</label>
           <div>{{#if intake.user_count}}{{intake.user_count}}{{else}}<span class="text-muted">—</span>{{/if}}</div>
         </div>
         <div class="col-12">
-          <label class="form-label small text-muted">Project Description</label>
+          <label class="form-label small text-muted">{{t 'ui.projectDescription'}}</label>
           <div class="p-3 bg-light rounded" style="white-space:pre-wrap;">{{intake.project_description}}</div>
         </div>
       </div>
@@ -87,36 +87,36 @@
     <!-- Security Categorization -->
     <div class="form-section">
       <div class="section-header">
-        <h4 class="section-title"><span class="section-number">2</span> Security Categorization</h4>
+        <h4 class="section-title"><span class="section-number">2</span> {{t 'ui.securityCategorization'}}</h4>
       </div>
 
       <div class="row g-3 mb-3">
         <div class="col-md-4">
-          <label class="form-label small text-muted"><i class="bi bi-shield-lock me-1"></i>Confidentiality</label>
+          <label class="form-label small text-muted"><i class="bi bi-shield-lock me-1"></i>{{t 'ui.confidentiality'}}</label>
           <div>
-            {{#if (eq intake.confidentiality_level 'top-secret')}}<span class="badge bg-dark" style="font-size:0.9rem;">Top Secret</span>
-            {{else if (eq intake.confidentiality_level 'secret')}}<span class="badge bg-dark" style="font-size:0.9rem;">Secret</span>
-            {{else if (eq intake.confidentiality_level 'confidential')}}<span class="badge bg-dark" style="font-size:0.9rem;">Confidential</span>
-            {{else if (eq intake.confidentiality_level 'protected-c')}}<span class="badge bg-danger" style="font-size:0.9rem;">Protected C</span>
-            {{else if (eq intake.confidentiality_level 'protected-b')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">Protected B</span>
-            {{else if (eq intake.confidentiality_level 'protected-a')}}<span class="badge bg-info" style="font-size:0.9rem;">Protected A</span>
+            {{#if (eq intake.confidentiality_level 'top-secret')}}<span class="badge bg-dark" style="font-size:0.9rem;">{{t 'ui.topSecret'}}</span>
+            {{else if (eq intake.confidentiality_level 'secret')}}<span class="badge bg-dark" style="font-size:0.9rem;">{{t 'ui.secret'}}</span>
+            {{else if (eq intake.confidentiality_level 'confidential')}}<span class="badge bg-dark" style="font-size:0.9rem;">{{t 'ui.confidential'}}</span>
+            {{else if (eq intake.confidentiality_level 'protected-c')}}<span class="badge bg-danger" style="font-size:0.9rem;">{{t 'ui.protectedC'}}</span>
+            {{else if (eq intake.confidentiality_level 'protected-b')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">{{t 'ui.protectedB'}}</span>
+            {{else if (eq intake.confidentiality_level 'protected-a')}}<span class="badge bg-info" style="font-size:0.9rem;">{{t 'ui.protectedA'}}</span>
             {{else}}<span class="badge bg-secondary" style="font-size:0.9rem;">{{intake.confidentiality_level}}</span>{{/if}}
           </div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted"><i class="bi bi-check2-square me-1"></i>Integrity</label>
+          <label class="form-label small text-muted"><i class="bi bi-check2-square me-1"></i>{{t 'ui.integrity2'}}</label>
           <div>
-            {{#if (eq intake.integrity_level 'high')}}<span class="badge bg-danger" style="font-size:0.9rem;">High</span>
-            {{else if (eq intake.integrity_level 'medium')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">Medium</span>
-            {{else}}<span class="badge bg-success" style="font-size:0.9rem;">Low</span>{{/if}}
+            {{#if (eq intake.integrity_level 'high')}}<span class="badge bg-danger" style="font-size:0.9rem;">{{t 'ui.high'}}</span>
+            {{else if (eq intake.integrity_level 'medium')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">{{t 'ui.medium'}}</span>
+            {{else}}<span class="badge bg-success" style="font-size:0.9rem;">{{t 'ui.low'}}</span>{{/if}}
           </div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted"><i class="bi bi-clock-history me-1"></i>Availability</label>
+          <label class="form-label small text-muted"><i class="bi bi-clock-history me-1"></i>{{t 'ui.availability2'}}</label>
           <div>
-            {{#if (eq intake.availability_level 'high')}}<span class="badge bg-danger" style="font-size:0.9rem;">High</span>
-            {{else if (eq intake.availability_level 'medium')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">Medium</span>
-            {{else}}<span class="badge bg-success" style="font-size:0.9rem;">Low</span>{{/if}}
+            {{#if (eq intake.availability_level 'high')}}<span class="badge bg-danger" style="font-size:0.9rem;">{{t 'ui.high'}}</span>
+            {{else if (eq intake.availability_level 'medium')}}<span class="badge bg-warning text-dark" style="font-size:0.9rem;">{{t 'ui.medium'}}</span>
+            {{else}}<span class="badge bg-success" style="font-size:0.9rem;">{{t 'ui.low'}}</span>{{/if}}
             {{#if intake.is_hva}}<span class="badge bg-danger ms-1" style="font-size:0.8rem;"><i class="bi bi-star-fill me-1"></i>HVA</span>{{/if}}
           </div>
         </div>
@@ -124,26 +124,26 @@
 
       {{#if intake.security_profile}}
       <div class="alert alert-info py-2 mb-3">
-        <i class="bi bi-cpu me-2"></i><strong>Determined Profile:</strong>
+        <i class="bi bi-cpu me-2"></i><strong>{{t 'ui.determinedProfile'}}</strong>
         <span class="badge bg-primary ms-2">{{intake.security_profile}}</span>
       </div>
       {{/if}}
 
       <div class="row g-3">
         <div class="col-md-4">
-          <label class="form-label small text-muted">ATIP Subject</label>
+          <label class="form-label small text-muted">{{t 'ui.atipSubject'}}</label>
           <div>{{#if intake.atip_subject}}{{intake.atip_subject}}{{else}}—{{/if}}</div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">PIA Status</label>
+          <label class="form-label small text-muted">{{t 'ui.piaStatus'}}</label>
           <div>{{#if intake.pia_completed}}{{intake.pia_completed}}{{else}}—{{/if}}</div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">Contains PII</label>
-          <div>{{#if intake.has_pii}}<span class="badge bg-danger">Yes</span>{{else}}<span class="badge bg-success">No</span>{{/if}}</div>
+          <label class="form-label small text-muted">{{t 'ui.containsPii'}}</label>
+          <div>{{#if intake.has_pii}}<span class="badge bg-danger">{{t 'ui.yes'}}</span>{{else}}<span class="badge bg-success">No</span>{{/if}}</div>
         </div>
         <div class="col-12">
-          <label class="form-label small text-muted">PII Types Identified</label>
+          <label class="form-label small text-muted">{{t 'ui.piiTypesIdentified'}}</label>
           {{#if intake.has_pii}}
           <div class="d-flex flex-wrap gap-2 mt-1">
             {{#each piiList}}
@@ -153,7 +153,7 @@
             {{/each}}
           </div>
           {{else}}
-          <div class="text-muted">No PII identified</div>
+          <div class="text-muted">{{t 'ui.noPiiIdentified'}}</div>
           {{/if}}
         </div>
       </div>
@@ -162,19 +162,19 @@
     <!-- Hosting & Technology -->
     <div class="form-section">
       <div class="section-header">
-        <h4 class="section-title"><span class="section-number">3</span> Hosting & Technology</h4>
+        <h4 class="section-title"><span class="section-number">3</span> {{t 'ui.hostingTechnology'}}</h4>
       </div>
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label small text-muted">Hosting</label>
+          <label class="form-label small text-muted">{{t 'ui.hosting'}}</label>
           <div><span class="badge bg-info" style="font-size:0.85rem;">{{intake.hosting_type}}</span></div>
         </div>
         <div class="col-md-6">
-          <label class="form-label small text-muted">Data Residency</label>
+          <label class="form-label small text-muted">{{t 'ui.dataResidency'}}</label>
           <div>{{#if intake.hosting_region}}{{intake.hosting_region}}{{else}}—{{/if}}</div>
         </div>
         <div class="col-12">
-          <label class="form-label small text-muted">Technologies</label>
+          <label class="form-label small text-muted">{{t 'ui.technologies'}}</label>
           <div class="d-flex flex-wrap gap-2 mt-1">
             {{#each techList}}
             <span class="badge bg-light text-dark border" style="font-size:0.85rem;"><i class="bi bi-gear me-1"></i>{{this}}</span>
@@ -183,7 +183,7 @@
         </div>
         {{#if intake.other_tech}}
         <div class="col-12">
-          <label class="form-label small text-muted">Other Technologies</label>
+          <label class="form-label small text-muted">{{t 'ui.otherTechnologies'}}</label>
           <div class="p-2 bg-light rounded small">{{intake.other_tech}}</div>
         </div>
         {{/if}}
@@ -193,7 +193,7 @@
     <!-- Architecture & Integrations -->
     <div class="form-section">
       <div class="section-header">
-        <h4 class="section-title"><span class="section-number">4</span> Architecture & Integrations</h4>
+        <h4 class="section-title"><span class="section-number">4</span> {{t 'ui.architectureIntegrations'}}</h4>
       </div>
       <div class="row g-3">
         <div class="col-md-4">
@@ -201,21 +201,21 @@
           <div>{{#if intake.has_apis}}{{intake.has_apis}}{{else}}—{{/if}}</div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">GC Interconnections</label>
+          <label class="form-label small text-muted">{{t 'ui.gcInterconnections'}}</label>
           <div>{{#if intake.gc_interconnections}}{{intake.gc_interconnections}}{{else}}—{{/if}}</div>
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">Mobile / BYOD</label>
+          <label class="form-label small text-muted">{{t 'ui.mobileByod'}}</label>
           <div>{{#if intake.mobile_access}}{{intake.mobile_access}}{{else}}—{{/if}}</div>
         </div>
         {{#if intake.interconnections}}
         <div class="col-12">
-          <label class="form-label small text-muted">Listed Interconnections</label>
+          <label class="form-label small text-muted">{{t 'ui.listedInterconnections'}}</label>
           <div class="p-2 bg-light rounded small" style="white-space:pre-wrap;">{{intake.interconnections}}</div>
         </div>
         {{/if}}
         <div class="col-md-6">
-          <label class="form-label small text-muted">External Users</label>
+          <label class="form-label small text-muted">{{t 'ui.externalUsers'}}</label>
           <div>{{#if intake.external_users}}{{intake.external_users}}{{else}}—{{/if}}</div>
         </div>
       </div>
@@ -225,7 +225,7 @@
     {{#if intake.completed_activities}}
     <div class="form-section">
       <div class="section-header">
-        <h4 class="section-title"><span class="section-number">5</span> Existing Security Activities</h4>
+        <h4 class="section-title"><span class="section-number">5</span> {{t 'ui.existingSecurityActivities'}}</h4>
       </div>
       <div class="d-flex flex-wrap gap-2">
         {{#each activityList}}
@@ -240,17 +240,17 @@
     <!-- Contacts -->
     <div class="form-section">
       <div class="section-header">
-        <h4 class="section-title"><span class="section-number">6</span> Key Contacts</h4>
+        <h4 class="section-title"><span class="section-number">6</span> {{t 'ui.keyContacts'}}</h4>
       </div>
       <div class="row g-3">
         <div class="col-md-4">
-          <label class="form-label small text-muted">Project Owner</label>
+          <label class="form-label small text-muted">{{t 'ui.projectOwner2'}}</label>
           <div class="fw-bold">{{intake.owner_name}}</div>
           <div class="small"><a href="mailto:{{intake.owner_email}}">{{intake.owner_email}}</a></div>
           {{#if intake.owner_title}}<div class="small text-muted">{{intake.owner_title}}</div>{{/if}}
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">Technical Lead</label>
+          <label class="form-label small text-muted">{{t 'ui.technicalLead'}}</label>
           {{#if intake.tech_lead_name}}
           <div class="fw-bold">{{intake.tech_lead_name}}</div>
           <div class="small"><a href="mailto:{{intake.tech_lead_email}}">{{intake.tech_lead_email}}</a></div>
@@ -258,7 +258,7 @@
           {{else}}<div class="text-muted">—</div>{{/if}}
         </div>
         <div class="col-md-4">
-          <label class="form-label small text-muted">Authorizing Official</label>
+          <label class="form-label small text-muted">{{t 'ui.authorizingOfficial'}}</label>
           {{#if intake.authority_name}}
           <div class="fw-bold">{{intake.authority_name}}</div>
           <div class="small"><a href="mailto:{{intake.authority_email}}">{{intake.authority_email}}</a></div>
@@ -291,7 +291,7 @@
     {{#if intake.additional_notes}}
     <div class="form-section">
       <div class="section-header">
-        <h4 class="section-title"><span class="section-number">8</span> Additional Notes</h4>
+        <h4 class="section-title"><span class="section-number">8</span> {{t 'ui.additionalNotes'}}</h4>
       </div>
       <div class="p-3 bg-light rounded" style="white-space:pre-wrap;">{{intake.additional_notes}}</div>
     </div>
@@ -304,46 +304,46 @@
 
       <!-- Recommendation Preview -->
       <div class="card mb-3">
-        <div class="card-header"><i class="bi bi-cpu me-2"></i>Engine Preview</div>
+        <div class="card-header"><i class="bi bi-cpu me-2"></i>{{t 'ui.enginePreview'}}</div>
         <div class="card-body">
           {{#if saaRequired}}
             <div class="alert alert-warning small py-1 px-2 mb-2">
-              <i class="bi bi-shield-exclamation me-1"></i><strong>SA&amp;A Required</strong>
+              <i class="bi bi-shield-exclamation me-1"></i><strong>{{t 'ui.saAmpARequired'}}</strong>
             </div>
           {{else}}
             <div class="alert alert-success small py-1 px-2 mb-2">
-              <i class="bi bi-check-circle me-1"></i><strong>No SA&amp;A Required</strong><br>
-              <small>GC Web Guidance Report will be generated</small>
+              <i class="bi bi-check-circle me-1"></i><strong>{{t 'ui.noSaAmpARequired'}}</strong><br>
+              <small>{{t 'ui.gcWebGuidanceReportWill'}}</small>
             </div>
           {{/if}}
           <div class="small text-muted mb-2">{{saaReason}}</div>
           <div class="d-flex justify-content-between mb-2">
-            <span class="text-muted small">Estimated controls:</span>
+            <span class="text-muted small">{{t 'ui.estimatedControls'}}</span>
             <span class="fw-bold">{{controlCount}}</span>
           </div>
           <div class="d-flex justify-content-between mb-2">
-            <span class="text-muted small">P1 (mandatory):</span>
+            <span class="text-muted small">{{t 'ui.p1Mandatory'}}</span>
             <span>{{p1Count}}</span>
           </div>
           <div class="d-flex justify-content-between mb-2">
-            <span class="text-muted small">P2 (conditional):</span>
+            <span class="text-muted small">{{t 'ui.p2Conditional'}}</span>
             <span>{{p2Count}}</span>
           </div>
           <div class="d-flex justify-content-between mb-2">
-            <span class="text-muted small">P3 (situational):</span>
+            <span class="text-muted small">{{t 'ui.p3Situational'}}</span>
             <span>{{p3Count}}</span>
           </div>
           <div class="d-flex justify-content-between">
-            <span class="text-muted small">Inherited controls:</span>
+            <span class="text-muted small">{{t 'ui.inheritedControls'}}</span>
             <span>{{inheritedCount}}</span>
           </div>
           <hr>
-          <small class="text-muted">Based on submitted project details. Adjust below to refine.</small>
+          <small class="text-muted">{{t 'ui.basedOnSubmittedProjectDetails'}}</small>
         </div>
       </div>
 
       <div class="card mb-3">
-        <div class="card-header bg-light" style="color:var(--gc-text);"><i class="bi bi-person-check me-2"></i>Assignment</div>
+        <div class="card-header bg-light" style="color:var(--gc-text);"><i class="bi bi-person-check me-2"></i>{{t 'ui.assignment'}}</div>
         <div class="card-body">
           {{#if assignments.length}}
             {{#each assignments}}
@@ -354,18 +354,18 @@
               </div>
             {{/each}}
           {{else}}
-            <p class="text-muted small">No one has been assigned to this intake yet.</p>
+            <p class="text-muted small">{{t 'ui.noOneHasBeenAssigned2'}}</p>
           {{/if}}
           <form method="POST" action="/admin/intakes/{{intake.id}}/assign">
             <div class="mb-2">
               <select class="form-select form-select-sm assignment-mode" name="assignment_mode" data-scope="intake">
-                <option value="existing">Select existing user</option>
-                <option value="invite">Invite new user</option>
+                <option value="existing">{{t 'ui.selectExistingUser'}}</option>
+                <option value="invite">{{t 'ui.inviteNewUser'}}</option>
               </select>
             </div>
             <div class="assignment-existing-intake mb-2">
               <select class="form-select form-select-sm" name="assignee_user_id">
-                <option value="">Choose a user...</option>
+                <option value="">{{t 'ui.chooseAUser'}}</option>
                 {{#each users}}
                   <option value="{{this.id}}">{{this.name}} — {{this.email}} ({{this.role}})</option>
                 {{/each}}
@@ -375,24 +375,24 @@
               <div class="row g-2">
                 <div class="col-5">
                   <select class="form-select form-select-sm" name="assignee_role">
-                    <option value="client">Client</option>
-                    <option value="assessor">Assessor</option>
+                    <option value="client">{{t 'ui.client'}}</option>
+                    <option value="assessor">{{t 'ui.assessor'}}</option>
                   </select>
                 </div>
-                <div class="col-7"><input type="text" class="form-control form-control-sm" name="invite_name" placeholder="Name"></div>
-                <div class="col-12"><input type="email" class="form-control form-control-sm" name="invite_email" placeholder="Email"></div>
-                <div class="col-12"><input type="text" class="form-control form-control-sm" name="invite_organization" placeholder="Organization"></div>
+                <div class="col-7"><input type="text" class="form-control form-control-sm" name="invite_name" placeholder="{{t 'ui.name'}}"></div>
+                <div class="col-12"><input type="email" class="form-control form-control-sm" name="invite_email" placeholder="{{t 'ui.email'}}"></div>
+                <div class="col-12"><input type="text" class="form-control form-control-sm" name="invite_organization" placeholder="{{t 'ui.organization'}}"></div>
               </div>
             </div>
             {{#if linkedAssessments.length}}
               <div class="form-check mt-2">
                 <input class="form-check-input" type="checkbox" id="assign_linked_assessments" name="assign_linked_assessments" value="1" checked>
-                <label class="form-check-label small" for="assign_linked_assessments">Also assign linked assessments</label>
+                <label class="form-check-label small" for="assign_linked_assessments">{{t 'ui.alsoAssignLinkedAssessments'}}</label>
               </div>
             {{/if}}
-            <textarea class="form-control form-control-sm mt-2" name="assignment_notes" rows="2" placeholder="Optional message"></textarea>
+            <textarea class="form-control form-control-sm mt-2" name="assignment_notes" rows="2" placeholder="{{t 'ui.optionalMessage'}}"></textarea>
             <button type="submit" class="btn btn-sm btn-primary w-100 mt-2">
-              <i class="bi bi-person-plus me-1"></i>Assign Intake
+              <i class="bi bi-person-plus me-1"></i>{{t 'ui.assignIntake'}}
             </button>
           </form>
         </div>
@@ -401,68 +401,68 @@
       <!-- Assessor Actions -->
       {{#if (neq intake.status 'accepted')}}
       <div class="card mb-3">
-        <div class="card-header bg-light" style="color:var(--gc-text);"><i class="bi bi-pencil-square me-2"></i>Assessor Context</div>
+        <div class="card-header bg-light" style="color:var(--gc-text);"><i class="bi bi-pencil-square me-2"></i>{{t 'ui.assessorContext'}}</div>
         <div class="card-body">
           <form method="POST" action="/admin/intakes/{{intake.id}}/accept" id="createProjectForm">
-            <p class="small text-muted mb-3">Add context or adjust details before creating the project and assessment. These overrides feed into the recommendation engine.</p>
+            <p class="small text-muted mb-3">{{t 'ui.addContextOrAdjustDetails'}}</p>
 
             <div class="mb-3">
-              <label class="form-label small fw-bold">Override Confidentiality</label>
+              <label class="form-label small fw-bold">{{t 'ui.overrideConfidentiality'}}</label>
               <select class="form-select form-select-sm" name="overrideClassification">
                 <option value="">Use submitted ({{intake.confidentiality_level}})</option>
                 <optgroup label="Non-National Interest">
-                  <option value="unclassified">Unclassified</option>
-                  <option value="protected-a">Protected A</option>
-                  <option value="protected-b">Protected B</option>
-                  <option value="protected-c">Protected C</option>
+                  <option value="unclassified">{{t 'ui.unclassified'}}</option>
+                  <option value="protected-a">{{t 'ui.protectedA'}}</option>
+                  <option value="protected-b">{{t 'ui.protectedB'}}</option>
+                  <option value="protected-c">{{t 'ui.protectedC'}}</option>
                 </optgroup>
                 <optgroup label="National Interest (Classified)">
-                  <option value="confidential">Confidential</option>
-                  <option value="secret">Secret</option>
-                  <option value="top-secret">Top Secret</option>
+                  <option value="confidential">{{t 'ui.confidential'}}</option>
+                  <option value="secret">{{t 'ui.secret'}}</option>
+                  <option value="top-secret">{{t 'ui.topSecret'}}</option>
                 </optgroup>
               </select>
             </div>
 
             <div class="row g-2 mb-3">
               <div class="col-md-6">
-                <label class="form-label small fw-bold">Override Integrity</label>
+                <label class="form-label small fw-bold">{{t 'ui.overrideIntegrity'}}</label>
                 <select class="form-select form-select-sm" name="overrideIntegrity">
                   <option value="">Use submitted ({{intake.integrity_level}})</option>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
+                  <option value="low">{{t 'ui.low'}}</option>
+                  <option value="medium">{{t 'ui.medium'}}</option>
+                  <option value="high">{{t 'ui.high'}}</option>
                 </select>
               </div>
               <div class="col-md-6">
-                <label class="form-label small fw-bold">Override Availability</label>
+                <label class="form-label small fw-bold">{{t 'ui.overrideAvailability'}}</label>
                 <select class="form-select form-select-sm" name="overrideAvailability">
                   <option value="">Use submitted ({{intake.availability_level}})</option>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
+                  <option value="low">{{t 'ui.low'}}</option>
+                  <option value="medium">{{t 'ui.medium'}}</option>
+                  <option value="high">{{t 'ui.high'}}</option>
                 </select>
               </div>
             </div>
 
             <div class="form-check mb-3">
               <input class="form-check-input" type="checkbox" name="overrideHVA" value="1" id="overrideHVA" {{#if intake.is_hva}}checked{{/if}}>
-              <label class="form-check-label small fw-bold" for="overrideHVA">High Value Asset (HVA)</label>
+              <label class="form-check-label small fw-bold" for="overrideHVA">{{t 'ui.highValueAssetHva'}}</label>
             </div>
 
             <div class="mb-3">
-              <label class="form-label small fw-bold">Override App Type</label>
+              <label class="form-label small fw-bold">{{t 'ui.overrideAppType'}}</label>
               <select class="form-select form-select-sm" name="overrideAppType">
                 <option value="">Use submitted ({{intake.app_type}})</option>
-                <option value="internal">Internal</option>
-                <option value="external">External</option>
-                <option value="hybrid">Hybrid</option>
+                <option value="internal">{{t 'ui.internal'}}</option>
+                <option value="external">{{t 'ui.external'}}</option>
+                <option value="hybrid">{{t 'ui.hybrid'}}</option>
               </select>
             </div>
 
             <div class="mb-3">
-              <label class="form-label small fw-bold">Additional Technologies</label>
-              <p class="text-muted small mb-1">Add technologies the client may not have listed.</p>
+              <label class="form-label small fw-bold">{{t 'ui.additionalTechnologies'}}</label>
+              <p class="text-muted small mb-1">{{t 'ui.addTechnologiesTheClientMay'}}</p>
               <div class="row g-1">
                 {{#each allTechnologies}}
                 <div class="col-12">
@@ -470,7 +470,7 @@
                     <input class="form-check-input" type="checkbox" name="additionalTech" value="{{this.key}}" id="addtech-{{this.key}}"
                       {{#if this.alreadySelected}} checked disabled{{/if}}>
                     <label class="form-check-label small" for="addtech-{{this.key}}">
-                      {{this.name}} {{#if this.alreadySelected}}<span class="text-muted">(already selected)</span>{{/if}}
+                      {{this.name}} {{#if this.alreadySelected}}<span class="text-muted">{{t 'ui.alreadySelected'}}</span>{{/if}}
                     </label>
                   </div>
                 </div>
@@ -479,32 +479,32 @@
             </div>
 
             <div class="mb-3">
-              <label class="form-label small fw-bold">Additional Description Context</label>
-              <textarea class="form-control form-control-sm" name="assessorDescription" rows="3" placeholder="Add keywords for the engine: e.g. 'API gateway, microservices, containerized, data lake'"></textarea>
-              <small class="text-muted">Appended to the project description for the recommendation engine.</small>
+              <label class="form-label small fw-bold">{{t 'ui.additionalDescriptionContext'}}</label>
+              <textarea class="form-control form-control-sm" name="assessorDescription" rows="3" placeholder="{{t 'ui.addKeywordsForTheEngine'}}"></textarea>
+              <small class="text-muted">{{t 'ui.appendedToTheProjectDescription'}}</small>
             </div>
 
             <div class="mb-3">
-              <label class="form-label small fw-bold">Assessor Notes (internal)</label>
-              <textarea class="form-control form-control-sm" name="assessorNotes" rows="3" placeholder="Internal notes about this intake (not shared with client)..."></textarea>
+              <label class="form-label small fw-bold">{{t 'ui.assessorNotesInternal'}}</label>
+              <textarea class="form-control form-control-sm" name="assessorNotes" rows="3" placeholder="{{t 'ui.internalNotesAboutThisIntake'}}"></textarea>
             </div>
 
             <div class="mb-3">
-              <label class="form-label small fw-bold">Assessment Type</label>
+              <label class="form-label small fw-bold">{{t 'ui.assessmentType'}}</label>
               <select class="form-select form-select-sm" name="assessmentType">
-                <option value="initial">Initial Assessment</option>
-                <option value="renewal">Renewal</option>
-                <option value="reassessment">Reassessment</option>
+                <option value="initial">{{t 'ui.initialAssessment'}}</option>
+                <option value="renewal">{{t 'ui.renewal'}}</option>
+                <option value="reassessment">{{t 'ui.reassessment'}}</option>
               </select>
             </div>
 
             <!-- Control Selection Options -->
             <div class="card bg-light border-0 mb-3">
               <div class="card-body py-2 px-3">
-                <small class="fw-bold d-block mb-2"><i class="bi bi-funnel me-1"></i>Control Selection</small>
+                <small class="fw-bold d-block mb-2"><i class="bi bi-funnel me-1"></i>{{t 'ui.controlSelection'}}</small>
                 <div class="d-flex justify-content-between small mb-1">
-                  <span>Profile: <strong>{{profileId}}</strong></span>
-                  <span>Controls: <strong>{{controlCount}}</strong></span>
+                  <span>{{t 'ui.profile'}} <strong>{{profileId}}</strong></span>
+                  <span>{{t 'ui.controls'}} <strong>{{controlCount}}</strong></span>
                 </div>
                 <div class="d-flex flex-wrap gap-2 small mb-2">
                   <span class="badge bg-danger">P1: {{p1Count}}</span>
@@ -521,7 +521,7 @@
                 <div class="form-check form-check-sm">
                   <input class="form-check-input" type="checkbox" name="onlyP1P2" value="1" id="onlyP1P2">
                   <label class="form-check-label small" for="onlyP1P2">
-                    Include only P1 &amp; P2 priority controls
+                    {{t 'ui.includeOnlyP1AmpP2'}}
                   </label>
                 </div>
               </div>
@@ -540,20 +540,20 @@
           <form method="POST" action="/admin/intakes/{{intake.id}}/status">
             <input type="hidden" name="status" value="declined">
             <div class="mb-2">
-              <textarea class="form-control form-control-sm" name="declineReason" rows="2" placeholder="Reason for declining (optional)"></textarea>
+              <textarea class="form-control form-control-sm" name="declineReason" rows="2" placeholder="{{t 'ui.reasonForDecliningOptional'}}"></textarea>
             </div>
             <button type="submit" class="btn btn-outline-danger btn-sm w-100" onclick="return confirm('Decline this intake?')">
-              <i class="bi bi-x-circle me-1"></i>Decline Intake
+              <i class="bi bi-x-circle me-1"></i>{{t 'ui.declineIntake'}}
             </button>
           </form>
         </div>
       </div>
       {{else}}
       <div class="alert alert-success">
-        <i class="bi bi-check-circle me-2"></i><strong>Accepted</strong><br>
+        <i class="bi bi-check-circle me-2"></i><strong>{{t 'ui.accepted'}}</strong><br>
         Project created from this intake.
         {{#if intake.project_id}}
-        <a href="/admin/projects/{{intake.project_id}}" class="d-block mt-2">View Project <i class="bi bi-arrow-right"></i></a>
+        <a href="/admin/projects/{{intake.project_id}}" class="d-block mt-2">{{t 'ui.viewProject'}} <i class="bi bi-arrow-right"></i></a>
         {{/if}}
       </div>
       {{/if}}

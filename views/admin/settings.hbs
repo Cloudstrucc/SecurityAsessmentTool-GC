@@ -1,25 +1,25 @@
 <div class="container" style="max-width:800px">
-  <h1 class="mb-1">Settings</h1>
-  <p class="text-muted mb-4">Application configuration</p>
+  <h1 class="mb-1">{{t 'ui.settings'}}</h1>
+  <p class="text-muted mb-4">{{t 'ui.applicationConfiguration'}}</p>
 
   <div class="form-section">
     <div class="section-header">
       <h3 class="section-title">
         <span class="section-number"><i class="bi bi-person"></i></span>
-        Account
+        {{t 'ui.account'}}
       </h3>
     </div>
     <table class="table table-borderless mb-0">
       <tr>
-        <td class="fw-semibold text-muted" style="width:35%">Name</td>
+        <td class="fw-semibold text-muted" style="width:35%">{{t 'ui.name'}}</td>
         <td>{{admin.name}}</td>
       </tr>
       <tr>
-        <td class="fw-semibold text-muted">Email</td>
+        <td class="fw-semibold text-muted">{{t 'ui.email'}}</td>
         <td>{{admin.email}}</td>
       </tr>
       <tr>
-        <td class="fw-semibold text-muted">Role</td>
+        <td class="fw-semibold text-muted">{{t 'ui.role'}}</td>
         <td><span class="badge bg-info">{{admin.role}}</span></td>
       </tr>
     </table>
@@ -29,19 +29,19 @@
     <div class="section-header">
       <h3 class="section-title">
         <span class="section-number"><i class="bi bi-shield-lock"></i></span>
-        Security
+        {{t 'ui.security'}}
       </h3>
     </div>
     <form method="POST" action="/admin/settings/password" class="row g-3" style="max-width:520px">
-      <div class="col-12"><label class="form-label">Current password</label><input class="form-control" type="password" name="current_password" required></div>
-      <div class="col-md-6"><label class="form-label">New password</label><input class="form-control" type="password" name="new_password" placeholder="At least 10 characters" required></div>
-      <div class="col-md-6"><label class="form-label">Confirm new password</label><input class="form-control" type="password" name="confirm_password" required></div>
-      <div class="col-12"><button class="btn btn-primary"><i class="bi bi-key me-1"></i>Change password</button></div>
+      <div class="col-12"><label class="form-label">{{t 'ui.currentPassword'}}</label><input class="form-control" type="password" name="current_password" required></div>
+      <div class="col-md-6"><label class="form-label">{{t 'ui.newPassword'}}</label><input class="form-control" type="password" name="new_password" placeholder="{{t 'ui.atLeast10Characters'}}" required></div>
+      <div class="col-md-6"><label class="form-label">{{t 'ui.confirmNewPassword'}}</label><input class="form-control" type="password" name="confirm_password" required></div>
+      <div class="col-12"><button class="btn btn-primary"><i class="bi bi-key me-1"></i>{{t 'ui.changePassword'}}</button></div>
     </form>
     <hr>
     <div class="d-flex flex-wrap gap-2">
-      <a href="/admin/passkey-setup" class="btn btn-outline-secondary"><i class="bi bi-fingerprint me-1"></i>Add / manage passkeys</a>
-      <a href="/admin/mfa-setup" class="btn btn-outline-secondary"><i class="bi bi-phone me-1"></i>Set up authenticator (TOTP)</a>
+      <a href="/admin/passkey-setup" class="btn btn-outline-secondary"><i class="bi bi-fingerprint me-1"></i>{{t 'ui.addManagePasskeys'}}</a>
+      <a href="/admin/mfa-setup" class="btn btn-outline-secondary"><i class="bi bi-phone me-1"></i>{{t 'ui.setUpAuthenticatorTotp'}}</a>
     </div>
   </div>
 
@@ -49,10 +49,10 @@
     <div class="section-header">
       <h3 class="section-title">
         <span class="section-number"><i class="bi bi-info-circle"></i></span>
-        About
+        {{t 'ui.about'}}
       </h3>
     </div>
-    <p>Vanguard Cloud Services Security Assessment & Authorization (SA&A) Platform for multi-framework compliance and assessment workflows.</p>
-    <p class="small text-muted mb-0">Built with Node.js, Express, Bootstrap 5, and sql.js. Version 1.0.0</p>
+    <p>{{t 'ui.vanguardCloudServicesSecurityAssessment'}}</p>
+    <p class="small text-muted mb-0">{{t 'ui.builtWithNodeJsExpress'}}</p>
   </div>
 </div>

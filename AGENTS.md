@@ -23,7 +23,11 @@ Write all user-facing copy to be internationally neutral. The product is not Can
 
 ## Localization
 - All user-facing strings go through **i18next** (`locales/*.json`). **Every new feature must ship
-  fully localized in ALL 8 supported languages (en, fr, es, de, pt, it, nl, ja).** English-only —
+  fully localized in ALL 8 supported languages (en, fr, es, de, pt, it, nl, ja).**
+- **Localization is part of "done".** Add the key to all 8 locale files *before* writing the
+  string, and reference it as `{{t 'key'}}`. This applies to templates, flash messages, `alert()`
+  text, `title` / `placeholder` / `aria-label` attributes, email subjects and bodies, and any JS
+  string that reaches the screen. Never leave literal English in a view "to localize later". English-only —
   or English+French with the rest falling back — is not acceptable for new work, and this applies
   to the admin / signed-in UI as much as the public pages. Labels, buttons, headings, modals,
   flash messages, empty states and `title`/`aria-label` text all need keys in all 8 files.

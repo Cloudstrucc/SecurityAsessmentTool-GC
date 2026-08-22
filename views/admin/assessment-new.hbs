@@ -2,7 +2,7 @@
   <div class="d-flex align-items-center mb-4">
     <a href="/admin/projects/{{project.id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
     <div>
-      <h1 class="mb-0">New Assessment</h1>
+      <h1 class="mb-0">{{t 'ui.newAssessment'}}</h1>
       <p class="text-muted mb-0">{{project.name}} — Select &amp; tailor {{framework.label}} controls</p>
     </div>
   </div>
@@ -14,42 +14,42 @@
     Review the recommended controls, approve or reject selections, add more manually later, and then create the assessment package.
     {{#if usingTailoredRecommendation}}<br><small class="text-muted">Full baseline available: {{baselineCount}} controls. The assessor remains in control of the final selected set.</small>{{/if}}
     {{#if saaReason}}<br><small class="text-muted">Determination: {{saaReason}}</small>{{/if}}
-    {{#if intake}}<br><small class="text-muted">Linked intake: <code>{{intake.ref_code}}</code></small>{{/if}}
+    {{#if intake}}<br><small class="text-muted">{{t 'ui.linkedIntake'}} <code>{{intake.ref_code}}</code></small>{{/if}}
   </div>
 
   {{#if showProfileCard}}
   <div class="card mb-3" id="controlProfile">
     <div class="card-header bg-light d-flex justify-content-between align-items-center">
-      <span><i class="bi bi-sliders me-2"></i>Control profile</span>
-      {{#if profile.overridden}}<span class="badge bg-warning text-dark">Adjusted for this assessment</span>{{else}}<span class="badge bg-secondary">Project baseline</span>{{/if}}
+      <span><i class="bi bi-sliders me-2"></i>{{t 'ui.controlProfile'}}</span>
+      {{#if profile.overridden}}<span class="badge bg-warning text-dark">{{t 'ui.adjustedForThisAssessment'}}</span>{{else}}<span class="badge bg-secondary">{{t 'ui.projectBaseline'}}</span>{{/if}}
     </div>
     <div class="card-body">
-      <p class="text-muted small mb-3">Confidentiality stays the formal baseline (<span class="text-uppercase">{{profile.confidentiality}}</span>). Retune <strong>integrity</strong> and <strong>availability</strong> to change the resolved profile and the recommended control set for this assessment — this does not change the project's intake record.</p>
+      <p class="text-muted small mb-3">{{t 'ui.confidentialityStaysTheFormalBaseline'}}<span class="text-uppercase">{{profile.confidentiality}}</span>{{t 'ui.retune'}} <strong>{{t 'ui.integrity'}}</strong> {{t 'ui.and'}} <strong>{{t 'ui.availability'}}</strong> {{t 'ui.toChangeTheResolvedProfile'}}</p>
       <form method="GET" action="/admin/projects/{{project.id}}/assessments/new" class="row g-2 align-items-end">
         {{#if allParam}}<input type="hidden" name="all" value="1">{{/if}}
         <input type="hidden" name="confidentiality" value="{{profile.confidentiality}}">
         <div class="col-md-3">
-          <label class="form-label small mb-1">Confidentiality (baseline)</label>
+          <label class="form-label small mb-1">{{t 'ui.confidentialityBaseline'}}</label>
           <input class="form-control form-control-sm text-capitalize" value="{{profile.confidentiality}}" disabled>
         </div>
         <div class="col-md-3">
-          <label class="form-label small mb-1">Integrity</label>
+          <label class="form-label small mb-1">{{t 'ui.integrity2'}}</label>
           <select class="form-select form-select-sm text-capitalize" name="integrity">
             {{#each levelOptions}}<option value="{{this}}" {{#if (eq this ../profile.integrity)}}selected{{/if}}>{{this}}</option>{{/each}}
           </select>
         </div>
         <div class="col-md-3">
-          <label class="form-label small mb-1">Availability</label>
+          <label class="form-label small mb-1">{{t 'ui.availability2'}}</label>
           <select class="form-select form-select-sm text-capitalize" name="availability">
             {{#each levelOptions}}<option value="{{this}}" {{#if (eq this ../profile.availability)}}selected{{/if}}>{{this}}</option>{{/each}}
           </select>
         </div>
         <div class="col-md-3 d-flex gap-2">
-          <button class="btn btn-primary btn-sm"><i class="bi bi-arrow-repeat me-1"></i>Update controls</button>
-          {{#if profile.overridden}}<a href="/admin/projects/{{project.id}}/assessments/new{{#if allParam}}?all=1{{/if}}" class="btn btn-outline-secondary btn-sm">Reset</a>{{/if}}
+          <button class="btn btn-primary btn-sm"><i class="bi bi-arrow-repeat me-1"></i>{{t 'ui.updateControls'}}</button>
+          {{#if profile.overridden}}<a href="/admin/projects/{{project.id}}/assessments/new{{#if allParam}}?all=1{{/if}}" class="btn btn-outline-secondary btn-sm">{{t 'ui.reset'}}</a>{{/if}}
         </div>
       </form>
-      <div class="small text-muted mt-2">Resolved profile: <span class="badge bg-info text-dark">{{profile.id}}</span> · recommended set updates when you change integrity or availability.</div>
+      <div class="small text-muted mt-2">{{t 'ui.resolvedProfile'}} <span class="badge bg-info text-dark">{{profile.id}}</span> {{t 'ui.recommendedSetUpdatesWhenYou'}}</div>
     </div>
   </div>
   {{/if}}
@@ -61,21 +61,21 @@
       </a>
     {{else}}
       <a href="/admin/projects/{{project.id}}/assessments/new" class="btn btn-outline-primary btn-sm">
-        <i class="bi bi-stars me-1"></i>Use Tailored Recommendation
+        <i class="bi bi-stars me-1"></i>{{t 'ui.useTailoredRecommendation'}}
       </a>
     {{/if}}
     {{#if isItsgFramework}}
       <a href="/admin/projects/{{project.id}}/guidance" class="btn btn-outline-success btn-sm">
-        <i class="bi bi-file-text me-1"></i>View GC Web Guidance Report Instead
+        <i class="bi bi-file-text me-1"></i>{{t 'ui.viewGcWebGuidanceReport'}}
       </a>
     {{/if}}
   </div>
 
   {{#if documents.length}}
     <div class="card mb-3">
-      <div class="card-header bg-light"><i class="bi bi-stars me-2"></i>AI-Assisted Control Selection Inputs</div>
+      <div class="card-header bg-light"><i class="bi bi-stars me-2"></i>{{t 'ui.aiAssistedControlSelectionInputs'}}</div>
       <div class="card-body small">
-        <p class="text-muted mb-2">The tailored recommendation can use these uploaded project documents as context. You can still add or remove controls before saving.</p>
+        <p class="text-muted mb-2">{{t 'ui.theTailoredRecommendationCanUse'}}</p>
         <div class="d-flex flex-wrap gap-2">
           {{#each documents}}
             <span class="badge bg-light text-dark border"><i class="bi bi-file-earmark me-1"></i>{{this.original_name}}</span>
@@ -100,10 +100,10 @@
           <span class="fw-semibold" id="selectedCount">{{controlCount}}</span> of {{controlCount}} controls selected
         </div>
         <div class="d-flex gap-2">
-          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll(true)">Select All</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll(false)">Deselect All</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll(true)">{{t 'ui.selectAll'}}</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll(false)">{{t 'ui.deselectAll'}}</button>
           <button type="submit" class="btn btn-primary">
-            <i class="bi bi-clipboard-check me-1"></i>Create Assessment
+            <i class="bi bi-clipboard-check me-1"></i>{{t 'ui.createAssessment'}}
           </button>
         </div>
       </div>
@@ -131,10 +131,10 @@
               <div class="d-flex gap-1">
                 <span class="badge bg-secondary">{{this.priority}}</span>
                 {{#if this.inheritedFrom}}
-                  <span class="badge bg-info"><i class="bi bi-arrow-left-right me-1"></i>Inherited</span>
+                  <span class="badge bg-info"><i class="bi bi-arrow-left-right me-1"></i>{{t 'ui.inherited'}}</span>
                 {{/if}}
                 {{#if this.hasTemplate}}
-                  <span class="badge bg-success"><i class="bi bi-recycle me-1"></i>Template</span>
+                  <span class="badge bg-success"><i class="bi bi-recycle me-1"></i>{{t 'ui.template'}}</span>
                 {{/if}}
               </div>
             </div>
@@ -160,17 +160,17 @@
               <div class="row g-2 mt-1">
                 <div class="col-md-6">
                   <div class="d-flex justify-content-between align-items-center">
-                    <label class="form-label small fw-semibold mb-1">Tailored Description</label>
+                    <label class="form-label small fw-semibold mb-1">{{t 'ui.tailoredDescription'}}</label>
                     <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" style="font-size:12px;color:#6d28d9"
-                      onclick="aiRefineControl('{{this.id}}', {{{json this.title}}}, this)"><i class="bi bi-stars me-1"></i>Refine with AI</button>
+                      onclick="aiRefineControl('{{this.id}}', {{{json this.title}}}, this)"><i class="bi bi-stars me-1"></i>{{t 'ui.refineWithAi'}}</button>
                   </div>
                   <textarea class="form-control form-control-sm" name="tailored[{{this.id}}]" id="tailored-{{this.id}}" rows="3"
-                    placeholder="Type a quick note, then 'Refine with AI' for a fuller draft…">{{this.tailoredDescription}}</textarea>
+                    placeholder="{{t 'ui.typeAQuickNoteThen'}}">{{this.tailoredDescription}}</textarea>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">Evidence Guidance</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.evidenceGuidance'}}</label>
                   <textarea class="form-control form-control-sm" name="guidance[{{this.id}}]" rows="3"
-                    placeholder="What evidence the project owner should provide...">{{this.evidenceGuidance}}</textarea>
+                    placeholder="{{t 'ui.whatEvidenceTheProjectOwner'}}">{{this.evidenceGuidance}}</textarea>
                 </div>
               </div>
               {{#if this.inheritedFrom}}
@@ -182,17 +182,17 @@
                 </div>
               {{/if}}
               <div class="mt-2">
-                <label class="form-label small fw-semibold">Applicability</label>
+                <label class="form-label small fw-semibold">{{t 'ui.applicability'}}</label>
                 <select class="form-select form-select-sm" name="applicable[{{this.id}}]" style="max-width:200px">
-                  <option value="1" selected>In Scope</option>
-                  <option value="0">Out of Scope</option>
+                  <option value="1" selected>{{t 'ui.inScope'}}</option>
+                  <option value="0">{{t 'ui.outOfScope'}}</option>
                 </select>
               </div>
             </div>
 
             <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 mt-2"
               data-bs-toggle="collapse" data-bs-target="#tailor-{{this.id}}">
-              <i class="bi bi-pencil-square me-1"></i>Tailor
+              <i class="bi bi-pencil-square me-1"></i>{{t 'ui.tailor'}}
             </button>
           </div>
         {{/each}}
@@ -201,10 +201,10 @@
 
     <div class="d-flex justify-content-between align-items-center mt-4 mb-5">
       <a href="/admin/projects/{{project.id}}" class="btn btn-outline-secondary">
-        <i class="bi bi-x-lg me-1"></i>Cancel
+        <i class="bi bi-x-lg me-1"></i>{{t 'ui.cancel'}}
       </a>
       <button type="submit" class="btn btn-primary btn-lg">
-        <i class="bi bi-clipboard-check me-2"></i>Create Assessment Package
+        <i class="bi bi-clipboard-check me-2"></i>{{t 'ui.createAssessmentPackage'}}
       </button>
     </div>
   </form>

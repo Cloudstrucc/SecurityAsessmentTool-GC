@@ -67,7 +67,7 @@
                 <label for="email" class="form-label">{{t 'auth.email'}}</label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                  <input type="email" class="form-control" id="email" name="email" required autofocus placeholder="assessor@agency.gc.ca" value="{{prefillEmail}}">
+                  <input type="email" class="form-control" id="email" name="email" required autofocus placeholder="{{t 'ui.assessorAgencyGcCa'}}" value="{{prefillEmail}}">
                 </div>
               </div>
               <div class="mb-4">
@@ -85,7 +85,7 @@
               <span class="flex-grow-1 border-top"></span><span class="px-2">or</span><span class="flex-grow-1 border-top"></span>
             </div>
             <button type="button" id="passkeyLoginBtn" class="btn btn-outline-primary w-100 py-2">
-              <i class="bi bi-fingerprint me-2"></i>Sign in with a passkey
+              <i class="bi bi-fingerprint me-2"></i>{{t 'ui.signInWithAPasskey'}}
             </button>
             <div id="passkeyLoginError" class="text-danger small mt-2 d-none"></div>
           {{/if}}

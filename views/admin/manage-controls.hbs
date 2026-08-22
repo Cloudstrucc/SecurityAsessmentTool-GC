@@ -2,7 +2,7 @@
   <div class="d-flex align-items-center mb-4">
     <a href="/admin/assessments/{{assessment.id}}" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
     <div class="flex-grow-1">
-      <h1 class="mb-0">Manage Controls</h1>
+      <h1 class="mb-0">{{t 'ui.manageControls'}}</h1>
       <p class="text-muted mb-0">{{assessment.project_name}} — Add, remove, or update assessment controls</p>
     </div>
     <div>
@@ -14,12 +14,12 @@
   <ul class="nav nav-tabs mb-4" role="tablist">
     <li class="nav-item">
       <a class="nav-link active" data-bs-toggle="tab" href="#tab-current">
-        <i class="bi bi-list-check me-1"></i>Current Controls <span class="badge bg-primary ms-1">{{currentCount}}</span>
+        <i class="bi bi-list-check me-1"></i>{{t 'ui.currentControls'}} <span class="badge bg-primary ms-1">{{currentCount}}</span>
       </a>
     </li>
     <li class="nav-item">
       <a class="nav-link" data-bs-toggle="tab" href="#tab-add">
-        <i class="bi bi-plus-circle me-1"></i>Add Controls <span class="badge bg-secondary ms-1">{{availableCount}}</span>
+        <i class="bi bi-plus-circle me-1"></i>{{t 'ui.addControls'}} <span class="badge bg-secondary ms-1">{{availableCount}}</span>
       </a>
     </li>
   </ul>
@@ -32,7 +32,7 @@
         <i class="bi bi-info-circle me-1"></i>
         These controls are currently in this assessment. You can remove controls or update their tailored descriptions and evidence guidance.
         {{#eq assessment.status "draft"}}
-        Changes can be made freely while the assessment is in <strong>Draft</strong> status.
+        Changes can be made freely while the assessment is in <strong>{{t 'ui.draft'}}</strong> status.
         {{/eq}}
       </div>
 
@@ -54,10 +54,10 @@
             </div>
             <div class="d-flex gap-1 align-items-center">
               <span class="badge bg-secondary">{{this.priority}}</span>
-              {{#if this.is_inherited}}<span class="badge bg-info">Inherited</span>{{/if}}
+              {{#if this.is_inherited}}<span class="badge bg-info">{{t 'ui.inherited'}}</span>{{/if}}
               <form method="POST" action="/admin/assessments/{{../../assessment.id}}/remove-control/{{this.id}}"
                 class="d-inline ms-2" onsubmit="return confirm('Remove {{this.control_id}} — {{this.title}}?')">
-                <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="Remove from assessment">
+                <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="{{t 'ui.removeFromAssessment'}}">
                   <i class="bi bi-x-lg"></i>
                 </button>
               </form>
@@ -66,7 +66,7 @@
 
           <p class="control-desc mb-2 small">{{this.description}}</p>
           {{#if this.control_guidance}}
-            <div class="small text-muted mb-2"><strong>Guidance:</strong> {{this.control_guidance}}</div>
+            <div class="small text-muted mb-2"><strong>{{t 'ui.guidance'}}</strong> {{this.control_guidance}}</div>
           {{/if}}
 
           <!-- Inline edit -->
@@ -74,64 +74,64 @@
             <form method="POST" action="/admin/assessments/{{../../assessment.id}}/update-control/{{this.id}}">
               <div class="row g-2 mt-1">
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">Tailored Description</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.tailoredDescription'}}</label>
                   <textarea class="form-control form-control-sm" name="tailored_description" rows="3"
-                    placeholder="Project-specific description...">{{this.tailored_description}}</textarea>
+                    placeholder="{{t 'ui.projectSpecificDescription'}}">{{this.tailored_description}}</textarea>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">Evidence Guidance</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.evidenceGuidance'}}</label>
                   <textarea class="form-control form-control-sm" name="evidence_guidance" rows="3"
-                    placeholder="What evidence should be provided...">{{this.evidence_guidance}}</textarea>
+                    placeholder="{{t 'ui.whatEvidenceShouldBeProvided'}}">{{this.evidence_guidance}}</textarea>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">Control Guidance</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.controlGuidance'}}</label>
                   <textarea class="form-control form-control-sm" name="control_guidance" rows="3"
-                    placeholder="Catalog or assessor guidance...">{{this.control_guidance}}</textarea>
+                    placeholder="{{t 'ui.catalogOrAssessorGuidance'}}">{{this.control_guidance}}</textarea>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">Assessor Notes</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.assessorNotes'}}</label>
                   <textarea class="form-control form-control-sm" name="assessor_notes" rows="3"
-                    placeholder="Internal notes for the assessment team...">{{this.assessor_notes}}</textarea>
+                    placeholder="{{t 'ui.internalNotesForTheAssessment'}}">{{this.assessor_notes}}</textarea>
                 </div>
               </div>
               <div class="row g-2 mt-1">
                 <div class="col-md-3">
-                  <label class="form-label small fw-semibold">Applicability</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.applicability'}}</label>
                   <select class="form-select form-select-sm" name="is_applicable">
-                    <option value="1" {{#if this.is_applicable}}selected{{/if}}>In Scope</option>
-                    <option value="0" {{#unless this.is_applicable}}selected{{/unless}}>Out of Scope</option>
+                    <option value="1" {{#if this.is_applicable}}selected{{/if}}>{{t 'ui.inScope'}}</option>
+                    <option value="0" {{#unless this.is_applicable}}selected{{/unless}}>{{t 'ui.outOfScope'}}</option>
                   </select>
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label small fw-semibold">Inherited</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.inherited'}}</label>
                   <select class="form-select form-select-sm" name="is_inherited">
                     <option value="0" {{#unless this.is_inherited}}selected{{/unless}}>No</option>
-                    <option value="1" {{#if this.is_inherited}}selected{{/if}}>Yes</option>
+                    <option value="1" {{#if this.is_inherited}}selected{{/if}}>{{t 'ui.yes'}}</option>
                   </select>
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label small fw-semibold">Risk Level</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.riskLevel'}}</label>
                   <select class="form-select form-select-sm" name="risk_level">
-                    <option value="high" {{#eq this.risk_level "high"}}selected{{/eq}}>High</option>
-                    <option value="medium" {{#eq this.risk_level "medium"}}selected{{/eq}}>Medium</option>
-                    <option value="low" {{#eq this.risk_level "low"}}selected{{/eq}}>Low</option>
+                    <option value="high" {{#eq this.risk_level "high"}}selected{{/eq}}>{{t 'ui.high'}}</option>
+                    <option value="medium" {{#eq this.risk_level "medium"}}selected{{/eq}}>{{t 'ui.medium'}}</option>
+                    <option value="low" {{#eq this.risk_level "low"}}selected{{/eq}}>{{t 'ui.low'}}</option>
                   </select>
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label small fw-semibold">Inherited From</label>
+                  <label class="form-label small fw-semibold">{{t 'ui.inheritedFrom'}}</label>
                   <input type="text" class="form-control form-control-sm" name="inherited_from"
-                    value="{{this.inherited_from}}" placeholder="e.g. Azure, SSC">
+                    value="{{this.inherited_from}}" placeholder="{{t 'ui.eGAzureSsc'}}">
                 </div>
               </div>
               <div class="mt-2">
-                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save me-1"></i>Save Changes</button>
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save me-1"></i>{{t 'ui.saveChanges'}}</button>
               </div>
             </form>
           </div>
 
           <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 mt-1"
             data-bs-toggle="collapse" data-bs-target="#edit-{{this.id}}">
-            <i class="bi bi-pencil-square me-1"></i>Edit
+            <i class="bi bi-pencil-square me-1"></i>{{t 'ui.edit'}}
           </button>
         </div>
         {{/each}}
@@ -141,7 +141,7 @@
       {{#unless currentFamilies}}
         <div class="text-center py-5 text-muted">
           <i class="bi bi-inbox" style="font-size:3rem"></i>
-          <p class="mt-2">No controls in this assessment yet. Use the <strong>Add Controls</strong> tab to add from the ITSG-33 catalog.</p>
+          <p class="mt-2">{{t 'ui.noControlsInThisAssessment'}} <strong>{{t 'ui.addControls'}}</strong> {{t 'ui.tabToAddFromThe'}}</p>
         </div>
       {{/unless}}
     </div>
@@ -150,7 +150,7 @@
     <div class="tab-pane fade" id="tab-add">
       <div class="alert alert-info small mb-3">
         <i class="bi bi-info-circle me-1"></i>
-        Select controls from the full ITSG-33 catalog to add to this assessment. Controls already included are shown as disabled.
+        {{t 'ui.selectControlsFromTheFull'}}
       </div>
 
       <form method="POST" action="/admin/assessments/{{assessment.id}}/add-controls" id="addControlsForm">
@@ -158,19 +158,19 @@
         <div class="progress-sticky">
           <div class="d-flex justify-content-between align-items-center">
             <div>
-              <span class="fw-semibold" id="addCount">0</span> controls selected to add
+              <span class="fw-semibold" id="addCount">0</span> {{t 'ui.controlsSelectedToAdd'}}
             </div>
             <div class="d-flex gap-2">
               <input type="text" class="form-control form-control-sm" id="controlSearch"
-                placeholder="Filter by ID or keyword..." style="max-width:220px" oninput="filterControls(this.value)">
+                placeholder="{{t 'ui.filterByIdOrKeyword'}}" style="max-width:220px" oninput="filterControls(this.value)">
               <select class="form-select form-select-sm" id="familyFilter" style="max-width:160px" onchange="filterByFamily(this.value)">
-                <option value="">All Families</option>
+                <option value="">{{t 'ui.allFamilies'}}</option>
                 {{#each allFamilies}}
                   <option value="{{this.code}}">{{this.code}} — {{this.name}}</option>
                 {{/each}}
               </select>
               <button type="submit" class="btn btn-primary btn-sm" id="addBtn" disabled>
-                <i class="bi bi-plus-circle me-1"></i>Add Selected
+                <i class="bi bi-plus-circle me-1"></i>{{t 'ui.addSelected'}}
               </button>
             </div>
           </div>
@@ -202,7 +202,7 @@
               <div class="d-flex gap-1">
                 <span class="badge bg-secondary">{{this.priority}}</span>
                 {{#if this.alreadyAdded}}
-                  <span class="badge bg-success"><i class="bi bi-check me-1"></i>Added</span>
+                  <span class="badge bg-success"><i class="bi bi-check me-1"></i>{{t 'ui.added'}}</span>
                 {{/if}}
               </div>
             </div>
@@ -214,7 +214,7 @@
 
         <div class="text-center mt-3 mb-5">
           <button type="submit" class="btn btn-primary" id="addBtnBottom" disabled>
-            <i class="bi bi-plus-circle me-1"></i>Add Selected Controls
+            <i class="bi bi-plus-circle me-1"></i>{{t 'ui.addSelectedControls'}}
           </button>
         </div>
       </form>

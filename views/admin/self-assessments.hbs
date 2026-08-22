@@ -1,24 +1,24 @@
 <div class="container">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h1 class="mb-1">Self-Assessments</h1>
-      <p class="text-muted mb-0">Pre-intake submissions and access-code requests from anonymous users.</p>
+      <h1 class="mb-1">{{t 'ui.selfAssessments'}}</h1>
+      <p class="text-muted mb-0">{{t 'ui.preIntakeSubmissionsAndAccess'}}</p>
     </div>
     <a class="btn btn-outline-primary" href="/self-assessment" target="_blank">
-      <i class="bi bi-box-arrow-up-right me-1"></i>Public Entry
+      <i class="bi bi-box-arrow-up-right me-1"></i>{{t 'ui.publicEntry'}}
     </a>
   </div>
 
   <div class="row g-3 mb-4">
-    <div class="col-md-3 col-6"><div class="stat-card"><div class="stat-number">{{stats.total}}</div><div class="stat-label">Total</div></div></div>
-    <div class="col-md-3 col-6"><div class="stat-card"><div class="stat-number text-primary">{{stats.submitted}}</div><div class="stat-label">Pending Review</div></div></div>
-    <div class="col-md-3 col-6"><div class="stat-card"><div class="stat-number text-warning">{{stats.reviewed}}</div><div class="stat-label">Reviewed</div></div></div>
-    <div class="col-md-3 col-6"><div class="stat-card"><div class="stat-number text-success">{{stats.intakeCreated}}</div><div class="stat-label">Intake Created</div></div></div>
+    <div class="col-md-3 col-6"><div class="stat-card"><div class="stat-number">{{stats.total}}</div><div class="stat-label">{{t 'ui.total'}}</div></div></div>
+    <div class="col-md-3 col-6"><div class="stat-card"><div class="stat-number text-primary">{{stats.submitted}}</div><div class="stat-label">{{t 'ui.pendingReview'}}</div></div></div>
+    <div class="col-md-3 col-6"><div class="stat-card"><div class="stat-number text-warning">{{stats.reviewed}}</div><div class="stat-label">{{t 'ui.reviewed'}}</div></div></div>
+    <div class="col-md-3 col-6"><div class="stat-card"><div class="stat-number text-success">{{stats.intakeCreated}}</div><div class="stat-label">{{t 'ui.intakeCreated'}}</div></div></div>
   </div>
 
   <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <span><i class="bi bi-clipboard2-pulse me-2"></i>Submitted Self-Assessments</span>
+      <span><i class="bi bi-clipboard2-pulse me-2"></i>{{t 'ui.submittedSelfAssessments'}}</span>
       <span class="badge bg-light text-dark">{{assessments.length}}</span>
     </div>
     <div class="card-body p-0">
@@ -27,13 +27,13 @@
           <table class="table table-hover mb-0">
             <thead>
               <tr>
-                <th>Reference</th>
-                <th>Submitter</th>
-                <th>System</th>
-                <th>Jurisdiction</th>
-                <th>Score</th>
-                <th>Status</th>
-                <th>Submitted</th>
+                <th>{{t 'ui.reference'}}</th>
+                <th>{{t 'ui.submitter'}}</th>
+                <th>{{t 'ui.system'}}</th>
+                <th>{{t 'ui.jurisdiction'}}</th>
+                <th>{{t 'ui.score'}}</th>
+                <th>{{t 'ui.status'}}</th>
+                <th>{{t 'ui.submitted'}}</th>
                 <th></th>
               </tr>
             </thead>
@@ -55,12 +55,12 @@
                     </div>
                   </td>
                   <td>
-                    {{#if (eq this.status 'submitted')}}<span class="badge bg-primary">Pending Review</span>{{/if}}
-                    {{#if (eq this.status 'reviewed')}}<span class="badge bg-warning text-dark">Reviewed</span>{{/if}}
-                    {{#if (eq this.status 'intake-created')}}<span class="badge bg-success">Intake Created</span>{{/if}}
+                    {{#if (eq this.status 'submitted')}}<span class="badge bg-primary">{{t 'ui.pendingReview'}}</span>{{/if}}
+                    {{#if (eq this.status 'reviewed')}}<span class="badge bg-warning text-dark">{{t 'ui.reviewed'}}</span>{{/if}}
+                    {{#if (eq this.status 'intake-created')}}<span class="badge bg-success">{{t 'ui.intakeCreated'}}</span>{{/if}}
                   </td>
                   <td class="small text-muted">{{formatDate this.created_at}}</td>
-                  <td><a class="btn btn-sm btn-outline-primary" href="/admin/self-assessments/{{this.id}}"><i class="bi bi-eye me-1"></i>Review</a></td>
+                  <td><a class="btn btn-sm btn-outline-primary" href="/admin/self-assessments/{{this.id}}"><i class="bi bi-eye me-1"></i>{{t 'ui.review'}}</a></td>
                 </tr>
               {{/each}}
             </tbody>
@@ -69,7 +69,7 @@
       {{else}}
         <div class="p-5 text-center text-muted">
           <i class="bi bi-clipboard2-pulse" style="font-size:2.5rem;"></i>
-          <p class="mt-2 mb-0">No self-assessments submitted yet.</p>
+          <p class="mt-2 mb-0">{{t 'ui.noSelfAssessmentsSubmittedYet'}}</p>
         </div>
       {{/if}}
     </div>
@@ -86,12 +86,12 @@
           <table class="table table-hover mb-0">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Organization</th>
-                <th>Reason</th>
-                <th>Status</th>
-                <th>Requested</th>
+                <th>{{t 'ui.name'}}</th>
+                <th>{{t 'ui.email'}}</th>
+                <th>{{t 'ui.organization'}}</th>
+                <th>{{t 'ui.reason'}}</th>
+                <th>{{t 'ui.status'}}</th>
+                <th>{{t 'ui.requested'}}</th>
                 <th></th>
               </tr>
             </thead>
@@ -103,19 +103,19 @@
                   <td>{{this.organization}}</td>
                   <td class="small text-muted">{{truncate this.reason 80}}</td>
                   <td>
-                    {{#if (eq this.status 'pending')}}<span class="badge bg-warning text-dark">Pending</span>{{/if}}
-                    {{#if (eq this.status 'approved')}}<span class="badge bg-success">Approved</span><div class="small">Code: <code>{{this.access_code}}</code></div>{{/if}}
-                    {{#if (eq this.status 'denied')}}<span class="badge bg-danger">Denied</span>{{/if}}
+                    {{#if (eq this.status 'pending')}}<span class="badge bg-warning text-dark">{{t 'ui.pending'}}</span>{{/if}}
+                    {{#if (eq this.status 'approved')}}<span class="badge bg-success">{{t 'ui.approved'}}</span><div class="small">{{t 'ui.code2'}} <code>{{this.access_code}}</code></div>{{/if}}
+                    {{#if (eq this.status 'denied')}}<span class="badge bg-danger">{{t 'ui.denied'}}</span>{{/if}}
                   </td>
                   <td class="small text-muted">{{formatDate this.created_at}}</td>
                   <td>
                     {{#if (eq this.status 'pending')}}
                       <div class="d-flex gap-1">
                         <form method="POST" action="/admin/self-assessment-requests/{{this.id}}/approve">
-                          <button class="btn btn-sm btn-success" title="Approve"><i class="bi bi-check-lg"></i></button>
+                          <button class="btn btn-sm btn-success" title="{{t 'ui.approve'}}"><i class="bi bi-check-lg"></i></button>
                         </form>
                         <form method="POST" action="/admin/self-assessment-requests/{{this.id}}/deny">
-                          <button class="btn btn-sm btn-outline-danger" title="Deny"><i class="bi bi-x-lg"></i></button>
+                          <button class="btn btn-sm btn-outline-danger" title="{{t 'ui.deny'}}"><i class="bi bi-x-lg"></i></button>
                         </form>
                       </div>
                     {{/if}}
@@ -126,7 +126,7 @@
           </table>
         </div>
       {{else}}
-        <div class="p-4 text-center text-muted">No access requests yet.</div>
+        <div class="p-4 text-center text-muted">{{t 'ui.noAccessRequestsYet'}}</div>
       {{/if}}
     </div>
   </div>

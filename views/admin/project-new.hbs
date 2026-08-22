@@ -2,8 +2,8 @@
   <div class="d-flex align-items-center mb-4">
     <a href="/admin/projects" class="btn btn-outline-primary me-3"><i class="bi bi-arrow-left"></i></a>
     <div>
-      <h1 class="mb-0">New Project</h1>
-      <p class="text-muted mb-0">Define the IM/IT project for security assessment</p>
+      <h1 class="mb-0">{{t 'ui.newProject'}}</h1>
+      <p class="text-muted mb-0">{{t 'ui.defineTheImItProject'}}</p>
     </div>
   </div>
 
@@ -16,21 +16,21 @@
     <div class="form-section" style="border-left:3px solid #8b5cf6; background:linear-gradient(135deg,#faf5ff 0%,#f5f3ff 100%);">
       <div class="section-header" style="border-bottom-color:#e9d5ff;">
         <h3 class="section-title" style="color:#6d28d9;">
-          <i class="bi bi-stars me-2"></i>AI-Assisted Project Intake
+          <i class="bi bi-stars me-2"></i>{{t 'ui.aiAssistedProjectIntake'}}
           <span class="badge text-white" style="font-size:0.65rem;background:#8b5cf6;vertical-align:middle;">BETA</span>
         </h3>
-        <p class="section-description">Upload a project document or describe the system in plain language. The AI assistant will propose field values before anything is saved.</p>
+        <p class="section-description">{{t 'ui.uploadAProjectDocumentOr'}}</p>
       </div>
 
       <div class="row g-3">
         <div class="col-md-6">
           <div class="card h-100" style="border-color:#e9d5ff;">
             <div class="card-body">
-              <h6 class="fw-bold mb-2"><i class="bi bi-file-earmark-arrow-up me-1" style="color:#8b5cf6;"></i>Upload A Document</h6>
-              <p class="text-muted small mb-2">Use a design doc, PIA, TRA, architecture diagram, charter, or requirements file.</p>
+              <h6 class="fw-bold mb-2"><i class="bi bi-file-earmark-arrow-up me-1" style="color:#8b5cf6;"></i>{{t 'ui.uploadADocument'}}</h6>
+              <p class="text-muted small mb-2">{{t 'ui.useADesignDocPia'}}</p>
               <input type="file" class="form-control form-control-sm" id="aiDocUpload" accept=".pdf,.txt,.md,.doc,.docx,.png,.jpg,.jpeg">
               <button type="button" class="btn btn-sm w-100 mt-2 text-white" style="background:#8b5cf6;" id="aiDocParseBtn" disabled onclick="aiParseDocument()">
-                <i class="bi bi-stars me-1"></i>Analyze & Pre-Fill
+                <i class="bi bi-stars me-1"></i>{{t 'ui.analyzePreFill'}}
               </button>
               <div id="refDocNote" class="small text-success mt-2" style="display:none;"><i class="bi bi-paperclip me-1"></i><span id="refDocNoteText"></span></div>
             </div>
@@ -40,11 +40,11 @@
         <div class="col-md-6">
           <div class="card h-100" style="border-color:#e9d5ff;">
             <div class="card-body">
-              <h6 class="fw-bold mb-2"><i class="bi bi-chat-text me-1" style="color:#8b5cf6;"></i>Describe The Project</h6>
-              <p class="text-muted small mb-2">Describe the purpose, users, data, hosting, and integrations.</p>
-              <textarea class="form-control form-control-sm" id="aiPlainDesc" rows="3" placeholder="e.g. A cloud-hosted portal used by staff to manage applications, exchange documents with clients, and connect to your identity provider and case-management system..."></textarea>
+              <h6 class="fw-bold mb-2"><i class="bi bi-chat-text me-1" style="color:#8b5cf6;"></i>{{t 'ui.describeTheProject'}}</h6>
+              <p class="text-muted small mb-2">{{t 'ui.describeThePurposeUsersData'}}</p>
+              <textarea class="form-control form-control-sm" id="aiPlainDesc" rows="3" placeholder="{{t 'ui.eGACloudHosted'}}"></textarea>
               <button type="button" class="btn btn-sm w-100 mt-2 text-white" style="background:#8b5cf6;" id="aiSuggestBtn" disabled onclick="aiSuggestFromDescription()">
-                <i class="bi bi-stars me-1"></i>Get Suggestions
+                <i class="bi bi-stars me-1"></i>{{t 'ui.getSuggestions'}}
               </button>
             </div>
           </div>
@@ -59,38 +59,38 @@
       <div class="section-header">
         <h3 class="section-title">
           <span class="section-number">1</span>
-          Project Information
+          {{t 'ui.projectInformation'}}
         </h3>
-        <p class="section-description">Basic details about the IM/IT system or application</p>
+        <p class="section-description">{{t 'ui.basicDetailsAboutTheIm'}}</p>
       </div>
       <div class="mb-3">
-        <label class="form-label" for="name">Project Name <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" id="name" name="name" required placeholder="e.g., HR Case Management System">
+        <label class="form-label" for="name">{{t 'ui.projectName'}} <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="name" name="name" required placeholder="{{t 'ui.eGHrCaseManagement'}}">
       </div>
       <div class="mb-3">
-        <label class="form-label" for="description">Project Description <span class="text-danger">*</span></label>
+        <label class="form-label" for="description">{{t 'ui.projectDescription'}} <span class="text-danger">*</span></label>
         <textarea class="form-control" id="description" name="description" rows="4" required
-          placeholder="Describe the system's purpose, users, data flows, and key functionality..."></textarea>
-        <div class="form-text">Provide enough detail for the system to recommend appropriate ITSG-33 controls.</div>
+          placeholder="{{t 'ui.describeTheSystemSPurpose'}}"></textarea>
+        <div class="form-text">{{t 'ui.provideEnoughDetailForThe'}}</div>
       </div>
       <div class="mb-3">
-        <label class="form-label" for="specifications">Technical Specifications (optional)</label>
+        <label class="form-label" for="specifications">{{t 'ui.technicalSpecificationsOptional'}}</label>
         <textarea class="form-control" id="specifications" name="specifications" rows="3"
-          placeholder="Architecture details, integration points, APIs, etc. Markdown supported."></textarea>
+          placeholder="{{t 'ui.architectureDetailsIntegrationPointsApis'}}"></textarea>
       </div>
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label" for="department">Department / Agency</label>
-          <input type="text" class="form-control" id="department" name="department" placeholder="e.g., Treasury Board Secretariat">
+          <label class="form-label" for="department">{{t 'ui.departmentAgency'}}</label>
+          <input type="text" class="form-control" id="department" name="department" placeholder="{{t 'ui.eGTreasuryBoardSecretariat'}}">
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="branch">Branch / Directorate</label>
-          <input type="text" class="form-control" id="branch" name="branch" placeholder="e.g., Digital Services">
+          <label class="form-label" for="branch">{{t 'ui.branchDirectorate'}}</label>
+          <input type="text" class="form-control" id="branch" name="branch" placeholder="{{t 'ui.eGDigitalServices'}}">
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="user_count">Estimated User Count</label>
+          <label class="form-label" for="user_count">{{t 'ui.estimatedUserCount'}}</label>
           <select class="form-select" id="user_count" name="user_count">
-            <option value="">Select...</option>
+            <option value="">{{t 'ui.select'}}</option>
             <option value="1-50">1 - 50</option>
             <option value="51-500">51 - 500</option>
             <option value="501-5000">501 - 5,000</option>
@@ -99,9 +99,9 @@
         </div>
       </div>
       <div class="mt-3">
-        <label class="form-label" for="attachments">Project Documents</label>
+        <label class="form-label" for="attachments">{{t 'ui.projectDocuments'}}</label>
         <input type="file" class="form-control" id="attachments" name="attachments" multiple>
-        <div class="form-text">Upload architecture notes, diagrams, requirements, or other intake documents.</div>
+        <div class="form-text">{{t 'ui.uploadArchitectureNotesDiagramsRequirements'}}</div>
       </div>
     </div>
 
@@ -110,13 +110,13 @@
       <div class="section-header">
         <h3 class="section-title">
           <span class="section-number">2</span>
-          Classification & Data Sensitivity
+          {{t 'ui.classificationDataSensitivity'}}
         </h3>
-        <p class="section-description">Select the framework first. ITSG-33 uses C/I/A; other frameworks use baseline/category tailoring fields.</p>
+        <p class="section-description">{{t 'ui.selectTheFrameworkFirstItsg'}}</p>
       </div>
       <div class="card mb-3 border-0 bg-light">
         <div class="card-body">
-          <label class="form-label fw-semibold" for="security_framework">Security Framework</label>
+          <label class="form-label fw-semibold" for="security_framework">{{t 'ui.securityFramework'}}</label>
           <select class="form-select" id="security_framework" name="security_framework" required>
             {{#each frameworkOptions}}
               <option value="{{this.id}}">{{this.label}}</option>
@@ -129,16 +129,16 @@
         <div class="card-body">
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label" for="framework_baseline">Baseline / Implementation Group</label>
+              <label class="form-label" for="framework_baseline">{{t 'ui.baselineImplementationGroup'}}</label>
               <select class="form-select" id="framework_baseline" name="framework_baseline"></select>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="framework_category">Category / Applicability</label>
+              <label class="form-label" for="framework_category">{{t 'ui.categoryApplicability'}}</label>
               <select class="form-select" id="framework_category" name="framework_category"></select>
             </div>
             <div class="col-12">
-              <label class="form-label" for="framework_applicability">Framework Tailoring Notes</label>
-              <textarea class="form-control" id="framework_applicability" name="framework_applicability" rows="2" placeholder="Framework scoping, baseline override, regulatory driver, or Statement of Applicability note."></textarea>
+              <label class="form-label" for="framework_applicability">{{t 'ui.frameworkTailoringNotes'}}</label>
+              <textarea class="form-control" id="framework_applicability" name="framework_applicability" rows="2" placeholder="{{t 'ui.frameworkScopingBaselineOverrideRegulatory'}}"></textarea>
             </div>
           </div>
         </div>
@@ -146,53 +146,53 @@
       <div id="projectItsgCategorization">
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label" for="data_classification">Data Classification <span class="text-danger">*</span></label>
+          <label class="form-label" for="data_classification">{{t 'ui.dataClassification'}} <span class="text-danger">*</span></label>
           <select class="form-select" id="data_classification" name="data_classification" required>
-            <option value="unclassified">Unclassified</option>
-            <option value="protected-a">Protected A</option>
-            <option value="protected-b" selected>Protected B</option>
-            <option value="protected-c">Protected C</option>
-            <option value="confidential">Confidential</option>
-            <option value="secret">Secret</option>
-            <option value="top-secret">Top Secret</option>
+            <option value="unclassified">{{t 'ui.unclassified'}}</option>
+            <option value="protected-a">{{t 'ui.protectedA'}}</option>
+            <option value="protected-b" selected>{{t 'ui.protectedB'}}</option>
+            <option value="protected-c">{{t 'ui.protectedC'}}</option>
+            <option value="confidential">{{t 'ui.confidential'}}</option>
+            <option value="secret">{{t 'ui.secret'}}</option>
+            <option value="top-secret">{{t 'ui.topSecret'}}</option>
           </select>
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="app_type">Application Type <span class="text-danger">*</span></label>
+          <label class="form-label" for="app_type">{{t 'ui.applicationType'}} <span class="text-danger">*</span></label>
           <select class="form-select" id="app_type" name="app_type" required>
-            <option value="internal">Internal-Facing</option>
-            <option value="external">External-Facing (Public)</option>
-            <option value="hybrid">Both Internal & External</option>
+            <option value="internal">{{t 'ui.internalFacing'}}</option>
+            <option value="external">{{t 'ui.externalFacingPublic'}}</option>
+            <option value="hybrid">{{t 'ui.bothInternalExternal'}}</option>
           </select>
         </div>
       </div>
       <div class="row g-3 mt-1">
         <div class="col-md-4">
-          <label class="form-label" for="confidentiality_level">Confidentiality</label>
+          <label class="form-label" for="confidentiality_level">{{t 'ui.confidentiality'}}</label>
           <select class="form-select" id="confidentiality_level" name="confidentiality_level">
-            <option value="unclassified">Unclassified</option>
-            <option value="protected-a">Protected A</option>
-            <option value="protected-b" selected>Protected B</option>
-            <option value="protected-c">Protected C</option>
-            <option value="confidential">Confidential</option>
-            <option value="secret">Secret</option>
-            <option value="top-secret">Top Secret</option>
+            <option value="unclassified">{{t 'ui.unclassified'}}</option>
+            <option value="protected-a">{{t 'ui.protectedA'}}</option>
+            <option value="protected-b" selected>{{t 'ui.protectedB'}}</option>
+            <option value="protected-c">{{t 'ui.protectedC'}}</option>
+            <option value="confidential">{{t 'ui.confidential'}}</option>
+            <option value="secret">{{t 'ui.secret'}}</option>
+            <option value="top-secret">{{t 'ui.topSecret'}}</option>
           </select>
         </div>
         <div class="col-md-4">
-          <label class="form-label" for="integrity_level">Integrity</label>
+          <label class="form-label" for="integrity_level">{{t 'ui.integrity2'}}</label>
           <select class="form-select" id="integrity_level" name="integrity_level">
-            <option value="low">Low</option>
-            <option value="medium" selected>Medium</option>
-            <option value="high">High</option>
+            <option value="low">{{t 'ui.low'}}</option>
+            <option value="medium" selected>{{t 'ui.medium'}}</option>
+            <option value="high">{{t 'ui.high'}}</option>
           </select>
         </div>
         <div class="col-md-4">
-          <label class="form-label" for="availability_level">Availability</label>
+          <label class="form-label" for="availability_level">{{t 'ui.availability2'}}</label>
           <select class="form-select" id="availability_level" name="availability_level">
-            <option value="low">Low</option>
-            <option value="medium" selected>Medium</option>
-            <option value="high">High</option>
+            <option value="low">{{t 'ui.low'}}</option>
+            <option value="medium" selected>{{t 'ui.medium'}}</option>
+            <option value="high">{{t 'ui.high'}}</option>
           </select>
         </div>
       </div>
@@ -200,53 +200,53 @@
         <div class="form-check form-switch">
           <input class="form-check-input" type="checkbox" id="has_pii" name="has_pii" value="1" checked>
           <label class="form-check-label fw-semibold" for="has_pii">
-            <i class="bi bi-person-badge me-1"></i>System processes Personally Identifiable Information (PII)
+            <i class="bi bi-person-badge me-1"></i>{{t 'ui.systemProcessesPersonallyIdentifiableInformation'}}
           </label>
-          <div class="form-text ms-4">Enabling this adds privacy-specific controls (e.g., AP, UL, DM families)</div>
+          <div class="form-text ms-4">{{t 'ui.enablingThisAddsPrivacySpecific'}}</div>
         </div>
       </div>
       <div class="mt-2">
         <div class="form-check">
           <input class="form-check-input" type="checkbox" id="is_hva" name="is_hva" value="1">
           <label class="form-check-label fw-semibold" for="is_hva">
-            High Value Asset (HVA)
+            {{t 'ui.highValueAssetHva'}}
           </label>
         </div>
       </div>
       </div>
       <div class="mt-3">
-        <label class="form-label fw-semibold">PII Types</label>
+        <label class="form-label fw-semibold">{{t 'ui.piiTypes'}}</label>
         <div class="row g-2">
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="name-address" id="pii-name"><label class="form-check-label" for="pii-name">Name or contact info</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="name-address" id="pii-name"><label class="form-check-label" for="pii-name">{{t 'ui.nameOrContactInfo'}}</label></div></div>
           <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="sin" id="pii-sin"><label class="form-check-label" for="pii-sin">SIN</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="financial" id="pii-financial"><label class="form-check-label" for="pii-financial">Financial</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="health" id="pii-health"><label class="form-check-label" for="pii-health">Health</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="biometric" id="pii-biometric"><label class="form-check-label" for="pii-biometric">Biometric</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="employment" id="pii-employment"><label class="form-check-label" for="pii-employment">Employment / HR</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="immigration" id="pii-immigration"><label class="form-check-label" for="pii-immigration">Immigration</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="law-enforcement" id="pii-law"><label class="form-check-label" for="pii-law">Law enforcement</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="indigenous" id="pii-indigenous"><label class="form-check-label" for="pii-indigenous">Indigenous / Treaty</label></div></div>
-          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="none" id="pii-none"><label class="form-check-label" for="pii-none">None</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="financial" id="pii-financial"><label class="form-check-label" for="pii-financial">{{t 'ui.financial'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="health" id="pii-health"><label class="form-check-label" for="pii-health">{{t 'ui.health'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="biometric" id="pii-biometric"><label class="form-check-label" for="pii-biometric">{{t 'ui.biometric'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="employment" id="pii-employment"><label class="form-check-label" for="pii-employment">{{t 'ui.employmentHr'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="immigration" id="pii-immigration"><label class="form-check-label" for="pii-immigration">{{t 'ui.immigration'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="law-enforcement" id="pii-law"><label class="form-check-label" for="pii-law">{{t 'ui.lawEnforcement'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="indigenous" id="pii-indigenous"><label class="form-check-label" for="pii-indigenous">{{t 'ui.indigenousTreaty'}}</label></div></div>
+          <div class="col-md-4"><div class="form-check"><input class="form-check-input pii-type" type="checkbox" name="piiTypes" value="none" id="pii-none"><label class="form-check-label" for="pii-none">{{t 'ui.none'}}</label></div></div>
         </div>
       </div>
       <div class="row g-3 mt-1">
         <div class="col-md-6">
-          <label class="form-label" for="atip_subject">ATIP Subject</label>
+          <label class="form-label" for="atip_subject">{{t 'ui.atipSubject'}}</label>
           <select class="form-select" id="atip_subject" name="atip_subject">
-            <option value="">Select...</option>
-            <option value="yes">Yes</option>
+            <option value="">{{t 'ui.select'}}</option>
+            <option value="yes">{{t 'ui.yes'}}</option>
             <option value="no">No</option>
-            <option value="unsure">Unsure</option>
+            <option value="unsure">{{t 'ui.unsure'}}</option>
           </select>
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="pia_completed">PIA Status</label>
+          <label class="form-label" for="pia_completed">{{t 'ui.piaStatus'}}</label>
           <select class="form-select" id="pia_completed" name="pia_completed">
-            <option value="">Select...</option>
-            <option value="yes">Yes - completed</option>
-            <option value="in-progress">In progress</option>
-            <option value="no">No - not started</option>
-            <option value="not-required">Not required</option>
+            <option value="">{{t 'ui.select'}}</option>
+            <option value="yes">{{t 'ui.yesCompleted'}}</option>
+            <option value="in-progress">{{t 'ui.inProgress2'}}</option>
+            <option value="no">{{t 'ui.noNotStarted'}}</option>
+            <option value="not-required">{{t 'ui.notRequired'}}</option>
           </select>
         </div>
       </div>
@@ -257,33 +257,33 @@
       <div class="section-header">
         <h3 class="section-title">
           <span class="section-number">3</span>
-          Hosting Environment
+          {{t 'ui.hostingEnvironment'}}
         </h3>
-        <p class="section-description">Where the system is deployed and operated</p>
+        <p class="section-description">{{t 'ui.whereTheSystemIsDeployed'}}</p>
       </div>
       <div class="mb-3">
-        <label class="form-label" for="hosting_type">Primary Hosting <span class="text-danger">*</span></label>
+        <label class="form-label" for="hosting_type">{{t 'ui.primaryHosting'}} <span class="text-danger">*</span></label>
         <select class="form-select" id="hosting_type" name="hosting_type" required>
-          <option value="azure">Microsoft Azure (GC Cloud)</option>
-          <option value="aws">Amazon Web Services (GC Cloud)</option>
-          <option value="gcp">Google Cloud Platform</option>
-          <option value="ibm">IBM Cloud</option>
-          <option value="ssc">SSC Data Centre</option>
-          <option value="on-premises">On-Premises</option>
-          <option value="hybrid">Hybrid (Cloud + On-Premises)</option>
-          <option value="saas">SaaS / Third-Party Hosted</option>
-          <option value="other">Other</option>
+          <option value="azure">{{t 'ui.microsoftAzureGcCloud'}}</option>
+          <option value="aws">{{t 'ui.amazonWebServicesGcCloud'}}</option>
+          <option value="gcp">{{t 'ui.googleCloudPlatform'}}</option>
+          <option value="ibm">{{t 'ui.ibmCloud'}}</option>
+          <option value="ssc">{{t 'ui.sscDataCentre'}}</option>
+          <option value="on-premises">{{t 'ui.onPremises'}}</option>
+          <option value="hybrid">{{t 'ui.hybridCloudOnPremises'}}</option>
+          <option value="saas">{{t 'ui.saasThirdPartyHosted'}}</option>
+          <option value="other">{{t 'ui.other'}}</option>
         </select>
       </div>
       <div class="mb-3">
-        <label class="form-label" for="hosting_region">Data Residency</label>
+        <label class="form-label" for="hosting_region">{{t 'ui.dataResidency'}}</label>
         <select class="form-select" id="hosting_region" name="hosting_region">
-          <option value="">Select...</option>
-          <option value="canada-only" selected>Canada Only</option>
-          <option value="canada-primary">Canada Primary With Limited Failover</option>
-          <option value="north-america">North America</option>
-          <option value="global">Global</option>
-          <option value="unsure">Unsure</option>
+          <option value="">{{t 'ui.select'}}</option>
+          <option value="canada-only" selected>{{t 'ui.canadaOnly'}}</option>
+          <option value="canada-primary">{{t 'ui.canadaPrimaryWithLimitedFailover'}}</option>
+          <option value="north-america">{{t 'ui.northAmerica'}}</option>
+          <option value="global">{{t 'ui.global'}}</option>
+          <option value="unsure">{{t 'ui.unsure'}}</option>
         </select>
       </div>
     </div>
@@ -293,50 +293,50 @@
       <div class="section-header">
         <h3 class="section-title">
           <span class="section-number">4</span>
-          Architecture & Integrations
+          {{t 'ui.architectureIntegrations'}}
         </h3>
-        <p class="section-description">Capture the same intake context clients provide when describing system connections and access patterns.</p>
+        <p class="section-description">{{t 'ui.captureTheSameIntakeContext'}}</p>
       </div>
       <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label" for="has_apis">APIs</label>
           <select class="form-select" id="has_apis" name="has_apis">
-            <option value="">Select...</option>
-            <option value="exposes">Exposes APIs</option>
-            <option value="consumes">Consumes APIs</option>
-            <option value="both">Both exposes and consumes APIs</option>
+            <option value="">{{t 'ui.select'}}</option>
+            <option value="exposes">{{t 'ui.exposesApis'}}</option>
+            <option value="consumes">{{t 'ui.consumesApis'}}</option>
+            <option value="both">{{t 'ui.bothExposesAndConsumesApis'}}</option>
             <option value="no">No APIs</option>
           </select>
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="gc_interconnections">GC Interconnections</label>
+          <label class="form-label" for="gc_interconnections">{{t 'ui.gcInterconnections'}}</label>
           <select class="form-select" id="gc_interconnections" name="gc_interconnections">
-            <option value="">Select...</option>
-            <option value="yes">Yes</option>
+            <option value="">{{t 'ui.select'}}</option>
+            <option value="yes">{{t 'ui.yes'}}</option>
             <option value="no">No</option>
-            <option value="planned">Planned</option>
+            <option value="planned">{{t 'ui.planned'}}</option>
           </select>
         </div>
         <div class="col-12">
-          <label class="form-label" for="interconnections">Known Interconnections</label>
-          <textarea class="form-control" id="interconnections" name="interconnections" rows="3" placeholder="APIs, file transfers, GC systems, identity providers, payment systems, document repositories..."></textarea>
+          <label class="form-label" for="interconnections">{{t 'ui.knownInterconnections'}}</label>
+          <textarea class="form-control" id="interconnections" name="interconnections" rows="3" placeholder="{{t 'ui.apisFileTransfersGcSystems'}}"></textarea>
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="mobile_access">Mobile / BYOD Access</label>
+          <label class="form-label" for="mobile_access">{{t 'ui.mobileByodAccess'}}</label>
           <select class="form-select" id="mobile_access" name="mobile_access">
-            <option value="">Select...</option>
-            <option value="yes">Yes</option>
+            <option value="">{{t 'ui.select'}}</option>
+            <option value="yes">{{t 'ui.yes'}}</option>
             <option value="no">No</option>
-            <option value="planned">Planned</option>
+            <option value="planned">{{t 'ui.planned'}}</option>
           </select>
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="external_users">External Users</label>
+          <label class="form-label" for="external_users">{{t 'ui.externalUsers'}}</label>
           <select class="form-select" id="external_users" name="external_users">
-            <option value="">Select...</option>
-            <option value="yes">Public or partner users</option>
-            <option value="no">GC employees only</option>
-            <option value="contractors">Contractors / consultants only</option>
+            <option value="">{{t 'ui.select'}}</option>
+            <option value="yes">{{t 'ui.publicOrPartnerUsers'}}</option>
+            <option value="no">{{t 'ui.gcEmployeesOnly'}}</option>
+            <option value="contractors">{{t 'ui.contractorsConsultantsOnly'}}</option>
           </select>
         </div>
       </div>
@@ -347,23 +347,23 @@
       <div class="section-header">
         <h3 class="section-title">
           <span class="section-number">5</span>
-          Initial Assignment
+          {{t 'ui.initialAssignment'}}
         </h3>
-        <p class="section-description">Optionally assign the new intake to an existing user or invite a new client/assessor.</p>
+        <p class="section-description">{{t 'ui.optionallyAssignTheNewIntake'}}</p>
       </div>
       <div class="row g-3">
         <div class="col-md-4">
-          <label class="form-label" for="assignment_mode">Assignment</label>
+          <label class="form-label" for="assignment_mode">{{t 'ui.assignment'}}</label>
           <select class="form-select" id="assignment_mode" name="assignment_mode">
-            <option value="">Do not assign yet</option>
-            <option value="existing">Select existing user</option>
-            <option value="invite">Invite new user</option>
+            <option value="">{{t 'ui.doNotAssignYet'}}</option>
+            <option value="existing">{{t 'ui.selectExistingUser'}}</option>
+            <option value="invite">{{t 'ui.inviteNewUser'}}</option>
           </select>
         </div>
         <div class="col-md-8 assignment-existing d-none">
-          <label class="form-label" for="assignee_user_id">Existing User</label>
+          <label class="form-label" for="assignee_user_id">{{t 'ui.existingUser2'}}</label>
           <select class="form-select" id="assignee_user_id" name="assignee_user_id">
-            <option value="">Choose a user...</option>
+            <option value="">{{t 'ui.chooseAUser'}}</option>
             {{#each users}}
               <option value="{{this.id}}">{{this.name}} — {{this.email}} ({{this.role}})</option>
             {{/each}}
@@ -373,26 +373,26 @@
       <div class="assignment-invite d-none mt-3">
         <div class="row g-3">
           <div class="col-md-4">
-            <label class="form-label" for="assignee_role">Invite As</label>
+            <label class="form-label" for="assignee_role">{{t 'ui.inviteAs'}}</label>
             <select class="form-select" id="assignee_role" name="assignee_role">
-              <option value="client">Client User</option>
-              <option value="assessor">Assessor</option>
+              <option value="client">{{t 'ui.clientUser'}}</option>
+              <option value="assessor">{{t 'ui.assessor'}}</option>
             </select>
           </div>
           <div class="col-md-4">
-            <label class="form-label" for="invite_name">Name</label>
+            <label class="form-label" for="invite_name">{{t 'ui.name'}}</label>
             <input type="text" class="form-control" id="invite_name" name="invite_name">
           </div>
           <div class="col-md-4">
-            <label class="form-label" for="invite_email">Email</label>
+            <label class="form-label" for="invite_email">{{t 'ui.email'}}</label>
             <input type="email" class="form-control" id="invite_email" name="invite_email">
           </div>
           <div class="col-md-6">
-            <label class="form-label" for="invite_organization">Organization</label>
+            <label class="form-label" for="invite_organization">{{t 'ui.organization'}}</label>
             <input type="text" class="form-control" id="invite_organization" name="invite_organization">
           </div>
           <div class="col-md-6">
-            <label class="form-label" for="invite_message">Message</label>
+            <label class="form-label" for="invite_message">{{t 'ui.message'}}</label>
             <input type="text" class="form-control" id="invite_message" name="invite_message">
           </div>
         </div>
@@ -404,9 +404,9 @@
       <div class="section-header">
         <h3 class="section-title">
           <span class="section-number">6</span>
-          Technology Stack
+          {{t 'ui.technologyStack'}}
         </h3>
-        <p class="section-description">Select all technologies currently in use. These help identify inherited security controls.</p>
+        <p class="section-description">{{t 'ui.selectAllTechnologiesCurrentlyIn'}}</p>
       </div>
 
       <div class="row g-2" id="techGrid">
@@ -423,8 +423,8 @@
         {{/each}}
       </div>
       <div class="mt-3">
-        <label class="form-label" for="other_tech">Other Technologies / Notes</label>
-        <textarea class="form-control" id="other_tech" name="other_tech" rows="2" placeholder="List technologies not covered above."></textarea>
+        <label class="form-label" for="other_tech">{{t 'ui.otherTechnologiesNotes'}}</label>
+        <textarea class="form-control" id="other_tech" name="other_tech" rows="2" placeholder="{{t 'ui.listTechnologiesNotCoveredAbove'}}"></textarea>
       </div>
     </div>
 
@@ -433,17 +433,17 @@
       <div class="section-header">
         <h3 class="section-title">
           <span class="section-number">7</span>
-          Existing Security Posture
+          {{t 'ui.existingSecurityPosture'}}
         </h3>
-        <p class="section-description">Record security activities already completed or in progress.</p>
+        <p class="section-description">{{t 'ui.recordSecurityActivitiesAlreadyCompleted'}}</p>
       </div>
       <div class="row g-2">
-        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="tra" id="act-tra"><label class="form-check-label" for="act-tra">Threat & Risk Assessment (TRA)</label></div></div>
-        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="pia" id="act-pia"><label class="form-check-label" for="act-pia">Privacy Impact Assessment (PIA)</label></div></div>
-        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="ssp" id="act-ssp"><label class="form-check-label" for="act-ssp">System Security Plan (SSP)</label></div></div>
-        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="vapt" id="act-vapt"><label class="form-check-label" for="act-vapt">Vulnerability Assessment / Pen Test</label></div></div>
-        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="network-diagram" id="act-network-diagram"><label class="form-check-label" for="act-network-diagram">Network / Architecture Diagram</label></div></div>
-        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="previous-sa" id="act-previous-sa"><label class="form-check-label" for="act-previous-sa">Previous SA&A / ATO</label></div></div>
+        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="tra" id="act-tra"><label class="form-check-label" for="act-tra">{{t 'ui.threatRiskAssessmentTra'}}</label></div></div>
+        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="pia" id="act-pia"><label class="form-check-label" for="act-pia">{{t 'ui.privacyImpactAssessmentPia'}}</label></div></div>
+        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="ssp" id="act-ssp"><label class="form-check-label" for="act-ssp">{{t 'ui.systemSecurityPlanSsp'}}</label></div></div>
+        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="vapt" id="act-vapt"><label class="form-check-label" for="act-vapt">{{t 'ui.vulnerabilityAssessmentPenTest'}}</label></div></div>
+        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="network-diagram" id="act-network-diagram"><label class="form-check-label" for="act-network-diagram">{{t 'ui.networkArchitectureDiagram'}}</label></div></div>
+        <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="completedActivities" value="previous-sa" id="act-previous-sa"><label class="form-check-label" for="act-previous-sa">{{t 'ui.previousSaAAto'}}</label></div></div>
       </div>
     </div>
 
@@ -452,42 +452,42 @@
       <div class="section-header">
         <h3 class="section-title">
           <span class="section-number">8</span>
-          Key Contacts
+          {{t 'ui.keyContacts'}}
         </h3>
-        <p class="section-description">Individuals involved in the assessment and authorization process</p>
+        <p class="section-description">{{t 'ui.individualsInvolvedInTheAssessment'}}</p>
       </div>
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label">Project Owner / Architect Name <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" name="project_owner_name" required placeholder="Full name">
+          <label class="form-label">{{t 'ui.projectOwnerArchitectName'}} <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="project_owner_name" required placeholder="{{t 'ui.fullName'}}">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Project Owner / Architect Email <span class="text-danger">*</span></label>
-          <input type="email" class="form-control" name="project_owner_email" required placeholder="name@agency.gc.ca">
+          <label class="form-label">{{t 'ui.projectOwnerArchitectEmail'}} <span class="text-danger">*</span></label>
+          <input type="email" class="form-control" name="project_owner_email" required placeholder="{{t 'ui.nameAgencyGcCa'}}">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Project Authority Name</label>
-          <input type="text" class="form-control" name="project_authority_name" placeholder="Full name">
+          <label class="form-label">{{t 'ui.projectAuthorityName'}}</label>
+          <input type="text" class="form-control" name="project_authority_name" placeholder="{{t 'ui.fullName'}}">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Project Authority Email</label>
-          <input type="email" class="form-control" name="project_authority_email" placeholder="name@agency.gc.ca">
+          <label class="form-label">{{t 'ui.projectAuthorityEmail'}}</label>
+          <input type="email" class="form-control" name="project_authority_email" placeholder="{{t 'ui.nameAgencyGcCa'}}">
         </div>
         <div class="col-md-6">
-          <label class="form-label">CIO / Delegated Authority Name</label>
-          <input type="text" class="form-control" name="cio_name" placeholder="Full name">
+          <label class="form-label">{{t 'ui.cioDelegatedAuthorityName'}}</label>
+          <input type="text" class="form-control" name="cio_name" placeholder="{{t 'ui.fullName'}}">
         </div>
         <div class="col-md-6">
-          <label class="form-label">CIO / Delegated Authority Email</label>
-          <input type="email" class="form-control" name="cio_email" placeholder="name@agency.gc.ca">
+          <label class="form-label">{{t 'ui.cioDelegatedAuthorityEmail'}}</label>
+          <input type="email" class="form-control" name="cio_email" placeholder="{{t 'ui.nameAgencyGcCa'}}">
         </div>
       </div>
     </div>
 
     <div class="d-flex justify-content-between align-items-center mt-4 mb-5">
-      <a href="/admin/projects" class="btn btn-outline-secondary"><i class="bi bi-x-lg me-1"></i>Cancel</a>
+      <a href="/admin/projects" class="btn btn-outline-secondary"><i class="bi bi-x-lg me-1"></i>{{t 'ui.cancel'}}</a>
       <button type="submit" class="btn btn-primary btn-lg">
-        <i class="bi bi-folder-plus me-2"></i>Create Project
+        <i class="bi bi-folder-plus me-2"></i>{{t 'ui.createProject'}}
       </button>
     </div>
   </form>

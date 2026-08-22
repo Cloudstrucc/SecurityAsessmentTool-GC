@@ -520,76 +520,26 @@ test('admin can generate previewed AI evidence guidance from uploaded SADD docum
   assert.match(refreshed.text, /ai-generated/);
 });
 
-test('the legacy ATO record editor still manages its own authorization fields', async () => {
-  // ATO records predate decision packages. The editor remains for historical records,
-  // but POA&M is no longer part of it — conditions belong to the decision package.
-  const jar = await loginAdminWithTotp();
-  const { projectId } = await createAdminProject(jar, 'E2E Legacy ATO Project');
-  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
-
-  const atoCreate = await request(jar, 'POST', `/admin/projects/${projectId}/ato/new`, {
-    form: {
-      assessment_id: assessmentId, record_type: 'iato',
-      title: 'E2E Interim Authorization', system_name: 'E2E Legacy ATO Project',
-      organization_name: 'E2E Department', authorizing_official: 'Authorizing Official',
-      assessor: 'E2E Assessor', authorization_status: 'draft',
-      executive_summary: 'Editable iATO summary.',
-      residual_risk_statement: 'Editable residual risk statement.'
-    }
-  });
-  assert.equal(atoCreate.status, 302);
-  const atoPath = atoCreate.headers.get('location');
-  assert.match(atoPath, /^\/admin\/ato\/\d+$/);
-
-  const atoPage = await getText(jar, atoPath);
-  assert.match(atoPage.text, /E2E Interim Authorization/);
-  assert.match(atoPage.text, /Editable iATO summary/);
-});
-test('admin can export assessment, controls, full project, and ATO PDFs', async () => {
+test('admin can export assessment, controls and full project PDFs', async () => {
+  // Authorization PDFs now come from decision packages (covered by their own test);
+  // the legacy /admin/ato editor and its export were retired with ato_records.
   const jar = await loginAdminWithTotp();
   const { projectId } = await createAdminProject(jar, 'E2E PDF Export Project');
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
 
-  const atoCreate = await request(jar, 'POST', `/admin/projects/${projectId}/ato/new`, {
-    form: {
-      assessment_id: assessmentId,
-      record_type: 'iato',
-      title: 'E2E PDF Export iATO',
-      system_name: 'E2E PDF Export Project',
-      organization_name: 'E2E Department',
-      authorization_status: 'draft',
-      executive_summary: 'PDF export authorization summary.',
-      system_description: 'PDF export system description.',
-      assessment_scope: 'PDF export assessment scope.',
-      risk_summary: 'PDF export risk summary.',
-      residual_risk_statement: 'PDF export residual risk.',
-      conditions_of_authorization: 'PDF export authorization conditions.',
-      security_control_summary: 'PDF export control summary.',
-      poam_summary: 'PDF export POA&M summary.',
-      assessor_notes: 'PDF export assessor notes.'
-    }
-  });
-  assert.equal(atoCreate.status, 302);
-  const atoId = atoCreate.headers.get('location').match(/(\d+)$/)[1];
-
-  await request(jar, 'POST', `/admin/ato/${atoId}/poam/add`, {
-    form: {
-      assessment_id: assessmentId,
-      control_id: 'AC-2',
-      description: 'PDF export remediation item',
-      risk_level: 'medium',
-      deadline: '2026-12-31',
-      assigned_to: 'PDF Owner',
-      remediation_plan: 'PDF mitigation plan'
-    }
-  });
-
   await assertPdfDownload(jar, `/admin/assessments/${assessmentId}/export-pdf`, 'assessment PDF');
   await assertPdfDownload(jar, `/admin/projects/${projectId}/controls.pdf`, 'controls PDF');
   await assertPdfDownload(jar, `/admin/projects/${projectId}/report.pdf`, 'full project PDF');
-  await assertPdfDownload(jar, `/admin/ato/${atoId}/export-pdf`, 'ATO PDF');
 });
 
+test('the retired legacy ATO editor is gone', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Retired ATO Editor Project');
+  for (const url of [`/admin/projects/${projectId}/ato/new`, '/admin/ato/1']) {
+    const res = await request(jar, 'GET', url, { redirect: 'manual' });
+    assert.equal(res.status, 404, `${url} should no longer exist`);
+  }
+});
 test('admin can browse the security control catalog', async () => {
   const jar = await loginAdminWithTotp();
   const page = await getText(jar, '/admin/security-controls?q=account');

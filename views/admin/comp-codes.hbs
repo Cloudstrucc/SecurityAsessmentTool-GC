@@ -1,23 +1,23 @@
 <div class="container">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h1 class="mb-1">Comp Codes</h1>
-      <p class="text-muted mb-0">Grant free access to a plan — no payment required at registration.</p>
+      <h1 class="mb-1">{{t 'ui.compCodes'}}</h1>
+      <p class="text-muted mb-0">{{t 'ui.grantFreeAccessToA'}}</p>
     </div>
   </div>
 
   <div class="row g-4">
     <div class="col-lg-5">
       <div class="card">
-        <div class="card-header"><i class="bi bi-ticket-perforated me-2"></i>Create a comp code</div>
+        <div class="card-header"><i class="bi bi-ticket-perforated me-2"></i>{{t 'ui.createACompCode'}}</div>
         <div class="card-body">
           <form method="POST" action="/admin/comp-codes">
             <div class="mb-3">
-              <label class="form-label small fw-semibold">Code</label>
+              <label class="form-label small fw-semibold">{{t 'ui.code'}}</label>
               <input class="form-control" name="code" placeholder="VCS-PILOT-2026" required>
             </div>
             <div class="mb-3">
-              <label class="form-label small fw-semibold">Plan granted</label>
+              <label class="form-label small fw-semibold">{{t 'ui.planGranted'}}</label>
               <select class="form-select" name="plan">
                 {{#each plans}}
                   {{#unless (eq this.key 'trial')}}<option value="{{this.key}}"{{#if (eq this.key 'business')}} selected{{/if}}>{{this.label}}</option>{{/unless}}
@@ -26,19 +26,19 @@
             </div>
             <div class="row">
               <div class="col-6 mb-3">
-                <label class="form-label small fw-semibold">Max redemptions</label>
+                <label class="form-label small fw-semibold">{{t 'ui.maxRedemptions'}}</label>
                 <input class="form-control" type="number" name="max_redemptions" value="1" min="1">
               </div>
               <div class="col-6 mb-3">
-                <label class="form-label small fw-semibold">Expires <span class="text-muted">(optional)</span></label>
+                <label class="form-label small fw-semibold">{{t 'ui.expires'}} <span class="text-muted">{{t 'ui.optional'}}</span></label>
                 <input class="form-control" type="date" name="expires_at">
               </div>
             </div>
             <div class="mb-3">
-              <label class="form-label small fw-semibold">Note <span class="text-muted">(optional)</span></label>
-              <input class="form-control" name="note" placeholder="e.g. Partner pilot">
+              <label class="form-label small fw-semibold">{{t 'ui.note'}} <span class="text-muted">{{t 'ui.optional'}}</span></label>
+              <input class="form-control" name="note" placeholder="{{t 'ui.eGPartnerPilot'}}">
             </div>
-            <button class="btn btn-primary w-100" type="submit"><i class="bi bi-plus-lg me-1"></i>Create comp code</button>
+            <button class="btn btn-primary w-100" type="submit"><i class="bi bi-plus-lg me-1"></i>{{t 'ui.createCompCode'}}</button>
           </form>
         </div>
       </div>
@@ -51,7 +51,7 @@
             <div class="table-responsive">
               <table class="table table-hover mb-0 align-middle">
                 <thead>
-                  <tr><th>Code</th><th>Plan</th><th>Uses</th><th>Expires</th><th>Status</th><th></th></tr>
+                  <tr><th>{{t 'ui.code'}}</th><th>{{t 'ui.plan'}}</th><th>{{t 'ui.uses'}}</th><th>{{t 'ui.expires'}}</th><th>{{t 'ui.status'}}</th><th></th></tr>
                 </thead>
                 <tbody>
                   {{#each codes}}
@@ -60,10 +60,10 @@
                       <td><span class="badge bg-info text-dark">{{this.plan}}</span></td>
                       <td class="text-muted">{{this.redemptions}} / {{this.max_redemptions}}</td>
                       <td class="text-muted small">{{#if this.expires_at}}{{formatDate this.expires_at}}{{else}}—{{/if}}</td>
-                      <td>{{#if this.active}}<span class="badge bg-success">Active</span>{{else}}<span class="badge bg-secondary">Disabled</span>{{/if}}</td>
+                      <td>{{#if this.active}}<span class="badge bg-success">{{t 'ui.active'}}</span>{{else}}<span class="badge bg-secondary">{{t 'ui.disabled'}}</span>{{/if}}</td>
                       <td class="text-end">
                         <form method="POST" action="/admin/comp-codes/{{this.id}}/toggle" class="d-inline">
-                          <button class="btn btn-sm btn-outline-secondary" title="Toggle active">
+                          <button class="btn btn-sm btn-outline-secondary" title="{{t 'ui.toggleActive'}}">
                             <i class="bi bi-{{#if this.active}}pause{{else}}play{{/if}}"></i>
                           </button>
                         </form>
@@ -76,8 +76,8 @@
           {{else}}
             <div class="p-5 text-center text-muted">
               <i class="bi bi-ticket-perforated" style="font-size:3rem"></i>
-              <h4 class="mt-3">No comp codes yet</h4>
-              <p>Create one to grant free access for pilots or partners.</p>
+              <h4 class="mt-3">{{t 'ui.noCompCodesYet'}}</h4>
+              <p>{{t 'ui.createOneToGrantFree'}}</p>
             </div>
           {{/if}}
         </div>

@@ -1,70 +1,70 @@
 <div class="container-fluid">
   <div class="d-flex align-items-center justify-content-between mb-4 gap-3 flex-wrap">
     <div>
-      <h1 class="mb-0">Security Control Catalog</h1>
-      <p class="text-muted mb-0">Browse supported framework controls, guidance, definitions, and metadata.</p>
+      <h1 class="mb-0">{{t 'ui.securityControlCatalog'}}</h1>
+      <p class="text-muted mb-0">{{t 'ui.browseSupportedFrameworkControlsGuidance'}}</p>
     </div>
     <a class="btn btn-outline-success" href="/admin/security-controls.csv?framework={{filters.framework}}&family={{filters.family}}&q={{filters.q}}&baseline={{filters.baseline}}&category={{filters.category}}&applicability={{filters.applicability}}&status={{filters.status}}">
-      <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export CSV
+      <i class="bi bi-file-earmark-spreadsheet me-1"></i>{{t 'ui.exportCsv'}}
     </a>
   </div>
 
   <form method="GET" action="/admin/security-controls" class="form-section mb-4">
     <div class="section-header">
-      <h3 class="section-title"><span class="section-number">1</span>Filters</h3>
+      <h3 class="section-title"><span class="section-number">1</span>{{t 'ui.filters'}}</h3>
     </div>
     <div class="row g-3">
       <div class="col-md-3">
-        <label class="form-label" for="q">Keyword</label>
-        <input type="search" class="form-control" id="q" name="q" value="{{filters.q}}" placeholder="Control ID, title, guidance">
+        <label class="form-label" for="q">{{t 'ui.keyword'}}</label>
+        <input type="search" class="form-control" id="q" name="q" value="{{filters.q}}" placeholder="{{t 'ui.controlIdTitleGuidance'}}">
       </div>
       <div class="col-md-2">
-        <label class="form-label" for="framework">Framework</label>
+        <label class="form-label" for="framework">{{t 'ui.framework'}}</label>
         <select class="form-select" id="framework" name="framework">
-          <option value="">All</option>
+          <option value="">{{t 'ui.all'}}</option>
           {{#each frameworks}}
             <option value="{{this.framework}}" {{#eq ../filters.framework this.framework}}selected{{/eq}}>{{this.framework}}</option>
           {{/each}}
         </select>
       </div>
       <div class="col-md-2">
-        <label class="form-label" for="family">Family</label>
+        <label class="form-label" for="family">{{t 'ui.family'}}</label>
         <select class="form-select" id="family" name="family">
-          <option value="">All</option>
+          <option value="">{{t 'ui.all'}}</option>
           {{#each families}}
             <option value="{{this.family}}" {{#eq ../filters.family this.family}}selected{{/eq}}>{{this.family}} - {{this.category}}</option>
           {{/each}}
         </select>
       </div>
       <div class="col-md-2">
-        <label class="form-label" for="category">Category</label>
+        <label class="form-label" for="category">{{t 'ui.category'}}</label>
         <select class="form-select" id="category" name="category">
-          <option value="">All</option>
+          <option value="">{{t 'ui.all'}}</option>
           {{#each categories}}
             <option value="{{this.category}}" {{#eq ../filters.category this.category}}selected{{/eq}}>{{this.category}}</option>
           {{/each}}
         </select>
       </div>
       <div class="col-md-1">
-        <label class="form-label" for="status">Status</label>
+        <label class="form-label" for="status">{{t 'ui.status'}}</label>
         <select class="form-select" id="status" name="status">
-          <option value="">All</option>
+          <option value="">{{t 'ui.all'}}</option>
           {{#each statuses}}
             <option value="{{this.status}}" {{#eq ../filters.status this.status}}selected{{/eq}}>{{this.status}}</option>
           {{/each}}
         </select>
       </div>
       <div class="col-md-2">
-        <label class="form-label" for="baseline">Baseline</label>
-        <input type="text" class="form-control" id="baseline" name="baseline" value="{{filters.baseline}}" placeholder="PBMM, Low">
+        <label class="form-label" for="baseline">{{t 'ui.baseline'}}</label>
+        <input type="text" class="form-control" id="baseline" name="baseline" value="{{filters.baseline}}" placeholder="{{t 'ui.pbmmLow'}}">
       </div>
       <div class="col-md-3">
-        <label class="form-label" for="applicability">Applicability</label>
-        <input type="text" class="form-control" id="applicability" name="applicability" value="{{filters.applicability}}" placeholder="Shared service, cloud">
+        <label class="form-label" for="applicability">{{t 'ui.applicability'}}</label>
+        <input type="text" class="form-control" id="applicability" name="applicability" value="{{filters.applicability}}" placeholder="{{t 'ui.sharedServiceCloud'}}">
       </div>
       <div class="col-md-9 d-flex align-items-end gap-2 flex-wrap">
-        <button class="btn btn-primary" type="submit"><i class="bi bi-funnel me-1"></i>Apply</button>
-        <a class="btn btn-outline-secondary" href="/admin/security-controls">Reset</a>
+        <button class="btn btn-primary" type="submit"><i class="bi bi-funnel me-1"></i>{{t 'ui.apply'}}</button>
+        <a class="btn btn-outline-secondary" href="/admin/security-controls">{{t 'ui.reset'}}</a>
         <span class="badge bg-primary fs-6">{{controls.length}} controls</span>
       </div>
     </div>
@@ -72,22 +72,22 @@
 
   <div class="form-section">
     <div class="section-header d-flex align-items-center justify-content-between gap-3 flex-wrap">
-      <h3 class="section-title mb-0"><span class="section-number">2</span>Catalog</h3>
-      <input type="search" class="form-control form-control-sm" id="catalogQuickFilter" placeholder="Quick filter visible rows..." style="max-width:320px;">
+      <h3 class="section-title mb-0"><span class="section-number">2</span>{{t 'ui.catalog'}}</h3>
+      <input type="search" class="form-control form-control-sm" id="catalogQuickFilter" placeholder="{{t 'ui.quickFilterVisibleRows'}}" style="max-width:320px;">
     </div>
     <div class="table-responsive">
       <table class="table table-hover align-middle" id="catalogTable">
         <thead>
           <tr>
-            <th data-sort="framework">Framework</th>
-            <th data-sort="control">Control ID</th>
-            <th data-sort="title">Title</th>
-            <th data-sort="family">Family</th>
-            <th>Description</th>
-            <th>Guidance</th>
-            <th>Baseline</th>
-            <th>Applicability</th>
-            <th>Status</th>
+            <th data-sort="framework">{{t 'ui.framework'}}</th>
+            <th data-sort="control">{{t 'ui.controlId'}}</th>
+            <th data-sort="title">{{t 'ui.title'}}</th>
+            <th data-sort="family">{{t 'ui.family'}}</th>
+            <th>{{t 'ui.description'}}</th>
+            <th>{{t 'ui.guidance2'}}</th>
+            <th>{{t 'ui.baseline'}}</th>
+            <th>{{t 'ui.applicability'}}</th>
+            <th>{{t 'ui.status'}}</th>
           </tr>
         </thead>
         <tbody>
@@ -118,7 +118,7 @@
     {{#unless controls.length}}
       <div class="text-center text-muted py-5">
         <i class="bi bi-search" style="font-size:2.5rem;"></i>
-        <p class="mb-0 mt-2">No controls matched the current filters.</p>
+        <p class="mb-0 mt-2">{{t 'ui.noControlsMatchedTheCurrent'}}</p>
       </div>
     {{/unless}}
   </div>

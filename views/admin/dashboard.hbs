@@ -1,12 +1,12 @@
 <div class="container">
   <div class="page-head d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
     <div>
-      <h1 class="mb-1">Dashboard</h1>
+      <h1 class="mb-1">{{t 'ui.dashboard'}}</h1>
       <p class="text-muted mb-0">Welcome back, {{admin.name}}</p>
       <div class="rule"></div>
     </div>
     <a href="/admin/projects/new" class="btn btn-primary">
-      <i class="bi bi-plus-lg me-1"></i>New Project
+      <i class="bi bi-plus-lg me-1"></i>{{t 'ui.newProject'}}
     </a>
   </div>
 
@@ -17,7 +17,7 @@
         <div class="stat-card">
           <div class="stat-icon" style="background:#e7f1fb;color:var(--gc-accent)"><i class="bi bi-folder2-open"></i></div>
           <div class="stat-number">{{stats.totalProjects}}</div>
-          <div class="stat-label">Total Projects</div>
+          <div class="stat-label">{{t 'ui.totalProjects'}}</div>
         </div>
       </a>
     </div>
@@ -26,7 +26,7 @@
         <div class="stat-card">
           <div class="stat-icon" style="background:#fff3cd;color:var(--gc-warning)"><i class="bi bi-clipboard-check"></i></div>
           <div class="stat-number">{{stats.activeAssessments}}</div>
-          <div class="stat-label">Active Assessments</div>
+          <div class="stat-label">{{t 'ui.activeAssessments'}}</div>
         </div>
       </a>
     </div>
@@ -35,7 +35,7 @@
         <div class="stat-card">
           <div class="stat-icon" style="background:#f8d7da;color:var(--gc-danger)"><i class="bi bi-search"></i></div>
           <div class="stat-number">{{stats.pendingAudits}}</div>
-          <div class="stat-label">Pending Audits</div>
+          <div class="stat-label">{{t 'ui.pendingAudits'}}</div>
         </div>
       </a>
     </div>
@@ -44,7 +44,7 @@
         <div class="stat-card">
           <div class="stat-icon" style="background:#d8eeca;color:var(--gc-success)"><i class="bi bi-patch-check"></i></div>
           <div class="stat-number">{{stats.activeATOs}}</div>
-          <div class="stat-label">Active ATOs</div>
+          <div class="stat-label">{{t 'ui.activeAtos'}}</div>
         </div>
       </a>
     </div>
@@ -53,7 +53,7 @@
         <div class="stat-card {{#if stats.pendingIntakes}}border-warning{{/if}}">
           <div class="stat-icon" style="background:#e2d9f3;color:#6f42c1"><i class="bi bi-inbox"></i></div>
           <div class="stat-number">{{stats.pendingIntakes}}</div>
-          <div class="stat-label">Pending Intakes</div>
+          <div class="stat-label">{{t 'ui.pendingIntakes'}}</div>
         </div>
       </a>
     </div>
@@ -62,7 +62,7 @@
         <div class="stat-card {{#if stats.pendingSelfAssessments}}border-warning{{/if}}">
           <div class="stat-icon" style="background:#f0f4ff;color:var(--gc-accent)"><i class="bi bi-clipboard2-pulse"></i></div>
           <div class="stat-number">{{stats.pendingSelfAssessments}}</div>
-          <div class="stat-label">Self-Assessments</div>
+          <div class="stat-label">{{t 'ui.selfAssessments'}}</div>
         </div>
       </a>
     </div>
@@ -74,10 +74,10 @@
       <div class="card mb-4">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-            <div><i class="bi bi-robot me-2" style="color:var(--cs-accent)"></i><strong>Built-in AI usage</strong> <span class="text-muted small">this month</span></div>
+            <div><i class="bi bi-robot me-2" style="color:var(--cs-accent)"></i><strong>{{t 'ui.builtInAiUsage'}}</strong> <span class="text-muted small">{{t 'ui.thisMonth'}}</span></div>
             <div class="d-flex align-items-center gap-2">
               <span class="small text-muted">{{tokenStatus.used}} / {{tokenStatus.limit}} tokens ({{tokenStatus.pct}}%)</span>
-              {{#if isRootAdmin}}<a href="/billing/tokens" class="btn btn-sm btn-primary"><i class="bi bi-plus-circle me-1"></i>Add tokens</a>{{/if}}
+              {{#if isRootAdmin}}<a href="/billing/tokens" class="btn btn-sm btn-primary"><i class="bi bi-plus-circle me-1"></i>{{t 'ui.addTokens'}}</a>{{/if}}
             </div>
           </div>
           <div class="progress" style="height:10px">
@@ -85,14 +85,14 @@
           </div>
           <div class="small text-muted mt-1">
             {{tokenStatus.remaining}} tokens remaining.
-            {{#ifCond tokenStatus.pct '>=' 90}}You're nearly out — <a href="/billing/tokens">top up</a> or <a href="/admin/organization#ai">use your own AI provider</a>.{{else}}Prefer uncapped AI? <a href="/admin/organization#ai">Bring your own provider</a>.{{/ifCond}}
+            {{#ifCond tokenStatus.pct '>=' 90}}You're nearly out — <a href="/billing/tokens">{{t 'ui.topUp'}}</a> or <a href="/admin/organization#ai">{{t 'ui.useYourOwnAiProvider'}}</a>.{{else}}Prefer uncapped AI? <a href="/admin/organization#ai">{{t 'ui.bringYourOwnProvider'}}</a>.{{/ifCond}}
           </div>
         </div>
       </div>
     {{/unless}}
   {{else}}
     <div class="alert alert-info d-flex align-items-center mb-4" style="border-left:4px solid var(--cs-accent)">
-      <i class="bi bi-robot me-2"></i><div>AI is running on your <strong>own {{aiProvider}}</strong> provider — no platform token limit applies. Manage it under <a href="/admin/organization#ai">Organization settings</a>.</div>
+      <i class="bi bi-robot me-2"></i><div>{{t 'ui.aiIsRunningOnYour'}} <strong>own {{aiProvider}}</strong> {{t 'ui.providerNoPlatformTokenLimit'}} <a href="/admin/organization#ai">{{t 'ui.organizationSettings'}}</a>.</div>
     </div>
   {{/if}}
 
@@ -101,8 +101,8 @@
     <div class="col-lg-6">
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span><i class="bi bi-folder2-open me-2"></i>Recent Projects</span>
-          <a href="/admin/projects" class="btn btn-sm btn-outline-light">View All</a>
+          <span><i class="bi bi-folder2-open me-2"></i>{{t 'ui.recentProjects'}}</span>
+          <a href="/admin/projects" class="btn btn-sm btn-outline-light">{{t 'ui.viewAll'}}</a>
         </div>
         <div class="card-body p-0">
           {{#if projects.length}}
@@ -110,10 +110,10 @@
               <table class="table table-hover mb-0">
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>Classification</th>
-                    <th>Status</th>
-                    <th>Updated</th>
+                    <th>{{t 'ui.name'}}</th>
+                    <th>{{t 'ui.classification'}}</th>
+                    <th>{{t 'ui.status'}}</th>
+                    <th>{{t 'ui.updated'}}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -131,7 +131,7 @@
           {{else}}
             <div class="p-4 text-center text-muted">
               <i class="bi bi-folder-plus" style="font-size:2rem"></i>
-              <p class="mt-2 mb-0">No projects yet. <a href="/admin/projects/new">Create your first project</a></p>
+              <p class="mt-2 mb-0">{{t 'ui.noProjectsYet'}} <a href="/admin/projects/new">{{t 'ui.createYourFirstProject'}}</a></p>
             </div>
           {{/if}}
         </div>
@@ -142,8 +142,8 @@
     <div class="col-lg-6">
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span><i class="bi bi-clipboard-check me-2"></i>Recent Assessments</span>
-          <a href="/admin/assessments" class="btn btn-sm btn-outline-light">View All</a>
+          <span><i class="bi bi-clipboard-check me-2"></i>{{t 'ui.recentAssessments'}}</span>
+          <a href="/admin/assessments" class="btn btn-sm btn-outline-light">{{t 'ui.viewAll'}}</a>
         </div>
         <div class="card-body p-0">
           {{#if assessments.length}}
@@ -151,10 +151,10 @@
               <table class="table table-hover mb-0">
                 <thead>
                   <tr>
-                    <th>Project</th>
-                    <th>Status</th>
-                    <th>Result</th>
-                    <th>Updated</th>
+                    <th>{{t 'ui.project'}}</th>
+                    <th>{{t 'ui.status'}}</th>
+                    <th>{{t 'ui.result'}}</th>
+                    <th>{{t 'ui.updated'}}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -174,7 +174,7 @@
           {{else}}
             <div class="p-4 text-center text-muted">
               <i class="bi bi-clipboard-plus" style="font-size:2rem"></i>
-              <p class="mt-2 mb-0">No assessments yet.</p>
+              <p class="mt-2 mb-0">{{t 'ui.noAssessmentsYet'}}</p>
             </div>
           {{/if}}
         </div>
@@ -187,7 +187,7 @@
       <div class="col-12">
         <div class="alert alert-warning">
           <i class="bi bi-exclamation-triangle me-2"></i>
-          <strong>{{stats.activeIATOs}} active iATO(s)</strong> require remediation tracking. Review the checklist items to ensure deadlines are met.
+          <strong>{{stats.activeIATOs}} active iATO(s)</strong> {{t 'ui.requireRemediationTrackingReviewThe'}}
         </div>
       </div>
     </div>
@@ -198,8 +198,8 @@
     <div class="col-12">
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span><i class="bi bi-inbox me-2"></i>Recent Intakes</span>
-          <a href="/admin/intakes" class="btn btn-sm btn-outline-light">View All</a>
+          <span><i class="bi bi-inbox me-2"></i>{{t 'ui.recentIntakes'}}</span>
+          <a href="/admin/intakes" class="btn btn-sm btn-outline-light">{{t 'ui.viewAll'}}</a>
         </div>
         <div class="card-body p-0">
           {{#if recentIntakes.length}}
@@ -207,12 +207,12 @@
               <table class="table table-hover mb-0">
                 <thead>
                   <tr>
-                    <th>Ref</th>
-                    <th>Project</th>
-                    <th>Department</th>
-                    <th>Classification</th>
-                    <th>Status</th>
-                    <th>Submitted</th>
+                    <th>{{t 'ui.ref'}}</th>
+                    <th>{{t 'ui.project'}}</th>
+                    <th>{{t 'ui.department'}}</th>
+                    <th>{{t 'ui.classification'}}</th>
+                    <th>{{t 'ui.status'}}</th>
+                    <th>{{t 'ui.submitted'}}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -223,10 +223,10 @@
                       <td class="text-muted small">{{this.department}}</td>
                       <td><span class="badge bg-info">{{this.data_classification}}</span></td>
                       <td>
-                        {{#ifCond this.status '==' 'pending'}}<span class="badge bg-warning text-dark">Pending</span>{{/ifCond}}
-                        {{#ifCond this.status '==' 'in-review'}}<span class="badge bg-info">In Review</span>{{/ifCond}}
-                        {{#ifCond this.status '==' 'accepted'}}<span class="badge bg-success">Accepted</span>{{/ifCond}}
-                        {{#ifCond this.status '==' 'declined'}}<span class="badge bg-danger">Declined</span>{{/ifCond}}
+                        {{#ifCond this.status '==' 'pending'}}<span class="badge bg-warning text-dark">{{t 'ui.pending'}}</span>{{/ifCond}}
+                        {{#ifCond this.status '==' 'in-review'}}<span class="badge bg-info">{{t 'ui.inReview'}}</span>{{/ifCond}}
+                        {{#ifCond this.status '==' 'accepted'}}<span class="badge bg-success">{{t 'ui.accepted'}}</span>{{/ifCond}}
+                        {{#ifCond this.status '==' 'declined'}}<span class="badge bg-danger">{{t 'ui.declined'}}</span>{{/ifCond}}
                       </td>
                       <td class="text-muted small">{{formatDate this.created_at}}</td>
                     </tr>
@@ -237,7 +237,7 @@
           {{else}}
             <div class="p-4 text-center text-muted">
               <i class="bi bi-inbox" style="font-size:2rem"></i>
-              <p class="mt-2 mb-0">No intakes submitted yet. Share the <a href="/intake" target="_blank">intake form</a> with project teams.</p>
+              <p class="mt-2 mb-0">{{t 'ui.noIntakesSubmittedYetShare'}} <a href="/intake" target="_blank">{{t 'ui.intakeForm'}}</a> {{t 'ui.withProjectTeams'}}</p>
             </div>
           {{/if}}
         </div>

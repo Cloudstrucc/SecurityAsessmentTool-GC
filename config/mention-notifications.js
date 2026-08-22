@@ -121,6 +121,20 @@ function markSent(ids) {
 }
 
 /**
+ * Claim rows for THIS flush before sending. Marking first means a crash mid-send
+ * can drop a digest, whereas marking after would let a second app instance (or an
+ * overlapping sweep) send the same digest twice. For a notification email,
+ * at-most-once is the right trade.
+ */
+function claim(ids) {
+  if (!ids.length) return 0;
+  const before = get(`SELECT COUNT(*) c FROM mention_email_queue
+                      WHERE sent_at IS NULL AND id IN (${ids.map(() => '?').join(',')})`, ids);
+  markSent(ids);
+  return (before && before.c) || 0;
+}
+
+/**
  * Send one digest per due batch. Safe to call repeatedly; already-sent rows are
  * never re-sent. Returns how many emails went out.
  */
@@ -133,6 +147,8 @@ async function flushDue({ baseUrl = '', windowMinutes = BATCH_WINDOW_MINUTES } =
     if (!rows.length) continue;
     const prefs = userPrefs(b.user_id);
     if (!prefs || !prefs.email || !prefs.address) { markSent(rows.map(r => r.id)); continue; }
+    // Claim before sending — see claim() for why at-most-once is the right trade.
+    if (claim(rows.map(r => r.id)) === 0) continue;
     const project = get('SELECT name FROM projects WHERE id = ?', [b.project_id]);
     const policy = orgPolicy(prefs.orgId);
     const excerpts = policy.excerpt ? rows.filter(r => r.excerpt).map(r => r.excerpt) : [];
@@ -148,8 +164,7 @@ async function flushDue({ baseUrl = '', windowMinutes = BATCH_WINDOW_MINUTES } =
         baseUrl
       });
       sent++;
-    } catch (e) { /* keep going; the rows are marked so we do not loop forever */ }
-    markSent(rows.map(r => r.id));
+    } catch (e) { /* rows are already claimed, so a failure cannot loop forever */ }
   }
   return sent;
 }
