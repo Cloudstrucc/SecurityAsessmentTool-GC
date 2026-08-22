@@ -109,6 +109,13 @@ app.engine('hbs', engine({
       };
       return map[String(state || 'draft')] || 'dp.stateDraft';
     },
+    // POA&M item state -> i18n key.
+    pmStateKey: function(state) {
+      const map = { 'open':'pm.stateOpen', 'in-progress':'pm.stateInProgress',
+        'evidence-submitted':'pm.stateEvidenceSubmitted', 'accepted':'pm.stateAccepted',
+        'rejected':'pm.stateRejected', 'deferred':'pm.stateDeferred' };
+      return map[String(state || 'open')] || 'pm.stateOpen';
+    },
     json: obj => JSON.stringify(obj),
     formatDate: function(date) {
       if (!date) return '';

@@ -25,6 +25,15 @@ Node.js/Express application for managing security assessment & authorization (SA
   append-only snapshot — plus the POA&M items and a document manifest with SHA-256 hashes, so
   what was authorized can always be proven. The assessment is locked while a decision is under
   review and released once issued; issued packages cannot be deleted (revoke instead).
+- Treats **POA&M as the conditions of a conditional authorization**, owned by the decision package
+  rather than the assessment. Each condition has its own due date and review loop: the project team
+  submits evidence, the assessor accepts, rejects or defers it. A full unconditional ATO is only
+  granted once every condition is accepted — overdue or deferred conditions block promotion.
+  Due-date changes keep their history (original, previous, change count and reason), and
+  **Extend with conditions** creates a successor package carrying unfinished conditions forward.
+- Versions decision packages for audit, with revert. Revert restores the package's editorial fields
+  only — it never rolls back POA&M verdicts or submitted evidence — and an issued authorization
+  cannot be reverted at all (revoke or supersede instead).
 - Provides project **collaboration**: discussion threads posted against any record but rolled up
   to the project, with @mentions resolved server-side against that project's own people and
   records. On by default, switchable per project and org-wide. Collaboration content is **never
@@ -301,7 +310,7 @@ Current executable checks:
 - Reverting an assessment restores the prior control set as a new active version and records the revert in the audit history.
 - The legacy `/sa-tool-overview.html` path redirects to the live overview route (guards against stale static files in `wwwroot`).
 
-The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 62 checks. See [docs/TESTING.md](docs/TESTING.md) for what each one covers.
+The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 68 checks. See [docs/TESTING.md](docs/TESTING.md) for what each one covers.
 
 In the Codex sandbox, binding a local test server may require approval. On a normal developer machine, `npm run test:e2e` should run directly.
 

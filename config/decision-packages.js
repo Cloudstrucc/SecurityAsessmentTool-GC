@@ -143,7 +143,83 @@ function migrateLegacyAtoRecords() {
   return migrated;
 }
 
+// ── Versioning (audit history + revert) ──────────────────────────────────────
+// Only the package's own editorial fields are snapshotted. POA&M items and their
+// review verdicts are deliberately excluded: reverting an editorial mistake must
+// never erase an assessor's decision or a team's submitted evidence.
+const VERSIONED_FIELDS = [
+  'title', 'decision_type', 'executive_summary', 'residual_risk_statement',
+  'decision_rationale', 'conditions', 'authorizing_official', 'assessor',
+  'expires_at', 'assessment_id', 'assessment_version_id', 'assessment_version'
+];
+
+/** States in which reverting is refused — an issued decision is a record of fact. */
+const NON_REVERTABLE_STATES = ['issued', 'expired', 'revoked'];
+
+function pickVersionedFields(dp) {
+  const out = {};
+  VERSIONED_FIELDS.forEach(f => { out[f] = dp[f] === undefined ? null : dp[f]; });
+  return out;
+}
+
+/** Snapshot the package's current editorial state as the next version. */
+function createVersion(packageId, { label = '', summary = '', user = null } = {}) {
+  const dp = get('SELECT * FROM decision_packages WHERE id = ?', [packageId]);
+  if (!dp) return null;
+  const maxV = get('SELECT MAX(version) v FROM decision_package_versions WHERE decision_package_id = ?', [packageId]);
+  const version = ((maxV && maxV.v) || 0) + 1;
+  run(`INSERT INTO decision_package_versions
+       (decision_package_id, version, label, summary, created_by, created_by_name, snapshot_json)
+       VALUES (?,?,?,?,?,?,?)`,
+    [packageId, version, label || ('Version ' + version), summary || '',
+     (user && user.id) || null, (user && (user.name || user.email)) || '',
+     JSON.stringify(pickVersionedFields(dp))]);
+  run('UPDATE decision_packages SET version = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [version, packageId]);
+  return version;
+}
+
+function listVersions(packageId) {
+  return all(`SELECT id, version, label, summary, created_by_name, created_at
+              FROM decision_package_versions WHERE decision_package_id = ?
+              ORDER BY version DESC`, [packageId]);
+}
+
+/**
+ * Restore an earlier editorial state as a NEW version. The current state is
+ * snapshotted first so nothing is lost, and POA&M items are untouched.
+ */
+function revertToVersion(packageId, version, user) {
+  const dp = get('SELECT * FROM decision_packages WHERE id = ?', [packageId]);
+  if (!dp) return { ok: false, error: 'not-found' };
+  if (NON_REVERTABLE_STATES.includes(String(dp.state))) {
+    return { ok: false, error: 'not-revertable', state: dp.state };
+  }
+  const target = get('SELECT * FROM decision_package_versions WHERE decision_package_id = ? AND version = ?',
+    [packageId, version]);
+  if (!target) return { ok: false, error: 'version-not-found' };
+  let snap;
+  try { snap = JSON.parse(target.snapshot_json || '{}'); }
+  catch (e) { return { ok: false, error: 'corrupt-snapshot' }; }
+
+  createVersion(packageId, {
+    label: 'Superseded state',
+    summary: `Auto-saved before reverting to version ${target.version}`, user
+  });
+  const sets = VERSIONED_FIELDS.map(f => `${f} = ?`).join(', ');
+  const vals = VERSIONED_FIELDS.map(f => (snap[f] === undefined ? null : snap[f]));
+  vals.push(packageId);
+  run(`UPDATE decision_packages SET ${sets}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, vals);
+  const newVersion = createVersion(packageId, {
+    label: `Reverted to version ${target.version}`,
+    summary: `Restored from version ${target.version}. POA&M items and review decisions were not affected.`,
+    user
+  });
+  return { ok: true, version: newVersion, restoredFrom: target.version };
+}
+
 module.exports = {
+  VERSIONED_FIELDS, NON_REVERTABLE_STATES,
+  createVersion, listVersions, revertToVersion,
   DECISION_TYPES, STATES, TRANSITIONS, LOCKING_STATES,
   canTransition, nextReference, buildSnapshotExtra, hashDocument,
   assessmentLock, activeForProject, listForProject, migrateLegacyAtoRecords

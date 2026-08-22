@@ -6,6 +6,7 @@ const { passport, ensureAuthenticated, mfaEnabled } = require('../config/passpor
 const processFlows = require('../config/process-flows');
 const decisionPackages = require('../config/decision-packages');
 const collaboration = require('../config/collaboration');
+const poam = require('../config/poam');
 const { determineProfile, detectComplexity, categorizationLabel, categorizationFullLabel, SECURITY_PROFILES, CONFIDENTIALITY_LEVELS, INTEGRITY_LEVELS, AVAILABILITY_LEVELS } = require('../config/security-profiles');
 const { getRecommendedControls, assessSAARequirement, groupByFamily, COMMON_TECHNOLOGIES, CONTROL_FAMILIES, CONTROLS, GC_WEB_GUIDANCE, computeRiskLevel } = require('../config/itsg33-controls');
 const {
@@ -2075,6 +2076,186 @@ router.get('/assessments/:id/versions/:version/summary', ensureAuthenticated, (r
   }
 });
 
+// ── POA&M (conditions on a decision package) ─────────────────────────────────
+/**
+ * Who may submit evidence for a condition: users assigned to the assessment the
+ * package pinned. When no assessment is pinned we fall back to users assigned to
+ * the project, so a package is never left with nobody able to respond.
+ */
+function canSubmitPoamEvidence(req, dp) {
+  if (!req.user) return false;
+  if (access.isAdmin(req.user)) return true;
+  const rows = dp.assessment_id
+    ? getEntityAssignments('assessment', [dp.assessment_id])
+    : getEntityAssignments('project', [dp.project_id]);
+  return rows.some(r => r.assigned_to === req.user.id);
+}
+
+function loadPackageOr404(req, res) {
+  const dp = get('SELECT * FROM decision_packages WHERE id = ?', [req.params.id]);
+  if (!dp) { req.flash('error', 'Decision package not found'); res.redirect('/admin/projects'); return null; }
+  return dp;
+}
+
+/** The POA&M review surface for a decision package. */
+router.get('/decision-packages/:id/poam', ensureAuthenticated, (req, res) => {
+  const dp = loadPackageOr404(req, res); if (!dp) return;
+  const project = get('SELECT * FROM projects WHERE id = ?', [dp.project_id]) || {};
+  res.render('admin/poam-review', {
+    title: `POA&M — ${dp.reference || 'Decision package'}`,
+    isAdmin: true, admin: req.user, dp, project,
+    items: poam.listForPackage(dp.id),
+    summary: poam.summary(dp.id),
+    promotion: poam.promotionCheck(dp.id),
+    canReview: access.isAdmin(req.user),
+    canSubmit: canSubmitPoamEvidence(req, dp),
+    collabEnabled: collaboration.isEnabled(project, orgSettingsFor(req))
+  });
+});
+
+router.post('/decision-packages/:id/poam/add', ensureAuthenticated, (req, res) => {
+  const dp = loadPackageOr404(req, res); if (!dp) return;
+  if (!(req.body.description || '').trim()) {
+    req.flash('error', 'A condition needs a description.');
+    return res.redirect(`/admin/decision-packages/${dp.id}/poam`);
+  }
+  poam.addItem(dp.id, dp.project_id, {
+    description: req.body.description, risk_level: req.body.risk_level,
+    deadline: req.body.deadline || null, assigned_to: req.body.assigned_to || null,
+    remediation_plan: req.body.remediation_plan || null, milestone: req.body.milestone || null,
+    control_id: req.body.control_id || null, assessment_id: dp.assessment_id || null
+  }, req.user);
+  req.flash('success', 'Condition added.');
+  res.redirect(`/admin/decision-packages/${dp.id}/poam`);
+});
+
+/** Seed conditions from the failed controls of the pinned version. */
+router.post('/decision-packages/:id/poam/generate', ensureAuthenticated, (req, res) => {
+  const dp = loadPackageOr404(req, res); if (!dp) return;
+  let controls = [];
+  if (dp.assessment_version_id) {
+    const v = get('SELECT snapshot_json FROM assessment_versions WHERE id = ?', [dp.assessment_version_id]);
+    try { controls = (JSON.parse((v && v.snapshot_json) || '{}').controls) || []; } catch (e) { controls = []; }
+  }
+  const added = poam.generateFromSnapshot(dp.id, dp.project_id, controls, req.user);
+  req.flash(added ? 'success' : 'info',
+    added ? `${added} condition(s) generated from the authorized version.`
+          : 'No failed controls in the pinned version — nothing to generate.');
+  res.redirect(`/admin/decision-packages/${dp.id}/poam`);
+});
+
+/** The project team submits evidence that a condition has been met. */
+router.post('/decision-packages/:id/poam/:itemId/evidence', ensureAuthenticated, (req, res) => {
+  const dp = loadPackageOr404(req, res); if (!dp) return;
+  if (!canSubmitPoamEvidence(req, dp)) {
+    req.flash('error', 'Only users assigned to this work may submit evidence.');
+    return res.redirect(`/admin/decision-packages/${dp.id}/poam`);
+  }
+  const r = poam.submitEvidence(req.params.itemId, req.body.evidence_text, req.user);
+  req.flash(r.ok ? 'success' : 'error',
+    r.ok ? 'Evidence submitted for review.' : `Could not submit evidence (${r.error}).`);
+  res.redirect(`/admin/decision-packages/${dp.id}/poam`);
+});
+
+/** The assessor accepts, rejects or defers a condition. */
+router.post('/decision-packages/:id/poam/:itemId/review', ensureAuthenticated, (req, res) => {
+  const dp = loadPackageOr404(req, res); if (!dp) return;
+  if (!access.isAdmin(req.user)) {
+    req.flash('error', 'Only assessors may review conditions.');
+    return res.redirect(`/admin/decision-packages/${dp.id}/poam`);
+  }
+  const r = poam.review(req.params.itemId, req.body.decision, req.body.review_notes, req.user);
+  req.flash(r.ok ? 'success' : 'error',
+    r.ok ? `Condition ${r.item.state}.` : `Could not record the review (${r.error}).`);
+  res.redirect(`/admin/decision-packages/${dp.id}/poam`);
+});
+
+/** Move a condition's due date, keeping the history. */
+router.post('/decision-packages/:id/poam/:itemId/deadline', ensureAuthenticated, (req, res) => {
+  const dp = loadPackageOr404(req, res); if (!dp) return;
+  if (!access.isAdmin(req.user)) {
+    req.flash('error', 'Only assessors may change a due date.');
+    return res.redirect(`/admin/decision-packages/${dp.id}/poam`);
+  }
+  poam.changeDeadline(req.params.itemId, req.body.deadline, req.body.reason);
+  req.flash('success', 'Due date updated.');
+  res.redirect(`/admin/decision-packages/${dp.id}/poam`);
+});
+
+router.post('/decision-packages/:id/poam/:itemId/delete', ensureAuthenticated, (req, res) => {
+  const dp = loadPackageOr404(req, res); if (!dp) return;
+  run('DELETE FROM iato_checklist WHERE id = ? AND decision_package_id = ?', [req.params.itemId, dp.id]);
+  req.flash('success', 'Condition removed.');
+  res.redirect(`/admin/decision-packages/${dp.id}/poam`);
+});
+
+/**
+ * Extend an approval with conditions: create a successor package that carries every
+ * unfinished condition forward, so the outstanding work survives the period change.
+ */
+router.post('/decision-packages/:id/extend', ensureAuthenticated, (req, res) => {
+  const dp = loadPackageOr404(req, res); if (!dp) return;
+  try {
+    const newId = run(`INSERT INTO decision_packages
+        (project_id, assessment_id, assessment_version_id, assessment_version, reference, title,
+         decision_type, state, authorizing_official, assessor, expires_at, snapshot_extra,
+         parent_package_id, extension_reason, created_by)
+        VALUES (?,?,?,?,?,?, 'iato', 'draft', ?,?,?,?,?,?,?)`,
+      [dp.project_id, dp.assessment_id, dp.assessment_version_id, dp.assessment_version,
+       decisionPackages.nextReference(dp.project_id),
+       `${dp.title || 'Authorization'} — extended`, dp.authorizing_official, dp.assessor,
+       req.body.expires_at || null, dp.snapshot_extra,
+       dp.id, (req.body.extension_reason || '').trim() || null, req.user.id]);
+    const carried = poam.carryForward(dp.id, newId, dp.project_id, req.user);
+    decisionPackages.createVersion(newId, {
+      label: 'Created by extension', summary: `Extends ${dp.reference}; ${carried} condition(s) carried forward`, user: req.user
+    });
+    req.flash('success', `Extension created. ${carried} outstanding condition(s) carried forward.`);
+    res.redirect(`/admin/decision-packages/${newId}/poam`);
+  } catch (err) {
+    console.error('extend decision package error:', err);
+    req.flash('error', 'Could not extend the authorization: ' + err.message);
+    res.redirect(`/admin/decision-packages/${dp.id}`);
+  }
+});
+
+/** Promote a conditional authorization to a full, unconditional ATO. */
+router.post('/decision-packages/:id/promote', ensureAuthenticated, (req, res) => {
+  const dp = loadPackageOr404(req, res); if (!dp) return;
+  const check = poam.promotionCheck(dp.id);
+  if (!check.ok) {
+    const why = check.reason === 'overdue'
+      ? 'an overdue condition must be given a realistic new due date first'
+      : check.reason === 'deferred'
+        ? 'deferred conditions must be carried into an extension first'
+        : 'every condition must be accepted first';
+    req.flash('error', `Cannot grant a full ATO — ${why}.`);
+    return res.redirect(`/admin/decision-packages/${dp.id}/poam`);
+  }
+  decisionPackages.createVersion(dp.id, { label: 'Before full ATO', summary: 'State before promotion', user: req.user });
+  run(`UPDATE decision_packages SET decision_type = 'ato', conditions = NULL,
+       updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [dp.id]);
+  decisionPackages.createVersion(dp.id, {
+    label: 'Promoted to full ATO', summary: 'All conditions met; authorization granted without conditions', user: req.user
+  });
+  req.flash('success', 'All conditions met — full ATO granted.');
+  res.redirect(`/admin/decision-packages/${dp.id}`);
+});
+
+// ── Decision package versions (audit history + revert) ───────────────────────
+router.post('/decision-packages/:id/revert/:version', ensureAuthenticated, express.json(), (req, res) => {
+  const dp = get('SELECT id FROM decision_packages WHERE id = ?', [req.params.id]);
+  if (!dp) return res.status(404).json({ error: 'Decision package not found' });
+  const r = decisionPackages.revertToVersion(dp.id, req.params.version, req.user);
+  if (!r.ok) {
+    const msg = r.error === 'not-revertable'
+      ? `An issued authorization cannot be reverted (state: ${r.state}). Revoke it or create an extension instead.`
+      : `Revert failed (${r.error}).`;
+    return res.status(400).json({ error: msg });
+  }
+  res.json({ success: true, version: r.version, restoredFrom: r.restoredFrom });
+});
+
 // ── COLLABORATION (project-scoped discussion; never sent to the AI provider) ──
 function collabGuard(req, res) {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.projectId]);
@@ -2170,6 +2351,9 @@ router.post('/projects/:projectId/decision-packages', ensureAuthenticated, (req,
        (req.body.assessor || '').trim() || null, req.body.expires_at || null,
        JSON.stringify(extra), req.user.id]);
 
+    decisionPackages.createVersion(newId, {
+      label: 'Created', summary: 'Baseline captured at creation', user: req.user
+    });
     req.flash('success', 'Decision package created.' + (assessment ? ` Assessment pinned at version ${versionNumber}.` : ''));
     res.redirect(`/admin/decision-packages/${newId}`);
   } catch (err) {
@@ -2187,10 +2371,18 @@ router.get('/decision-packages/:id', ensureAuthenticated, (req, res) => {
   let extra = { poam: [], documents: [] };
   try { extra = JSON.parse(dp.snapshot_extra || '{}'); } catch (e) { /* ignore */ }
 
+  let dpVersions = decisionPackages.listVersions(dp.id);
+  if (!dpVersions.length) {
+    decisionPackages.createVersion(dp.id, { label: 'Baseline', summary: 'Current state captured', user: req.user });
+    dpVersions = decisionPackages.listVersions(dp.id);
+  }
+
   res.render('admin/decision-package-detail', {
     title: `${dp.reference || 'Decision package'} — ${project ? project.name : ''}`,
     isAdmin: true, admin: req.user, dp, project, assessment,
     poam: extra.poam || [], documents: extra.documents || [],
+    poamSummary: poam.summary(dp.id), poamPromotion: poam.promotionCheck(dp.id),
+    dpVersions, canRevert: !decisionPackages.NON_REVERTABLE_STATES.includes(String(dp.state)),
     decisionFlow: processFlows.decisionFlow(dp),
     nextStates: (decisionPackages.TRANSITIONS[dp.state] || []),
     collabEnabled: collaboration.isEnabled(project, orgSettingsFor(req))
@@ -2209,6 +2401,10 @@ router.post('/decision-packages/:id', ensureAuthenticated, (req, res) => {
      req.body.decision_rationale || null, req.body.conditions || null,
      req.body.authorizing_official || null, req.body.assessor || null,
      req.body.expires_at || null, dp.id]);
+  // Snapshot after each edit so the history is a real audit trail, not just a baseline.
+  decisionPackages.createVersion(dp.id, {
+    label: 'Edited', summary: 'Decision package fields updated', user: req.user
+  });
   req.flash('success', 'Decision package saved.');
   res.redirect(`/admin/decision-packages/${dp.id}`);
 });
@@ -2433,21 +2629,11 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
   // Compute risk level for controls that don't have one
   controls.forEach(c => { if (!c.risk_level) c.risk_level = computeRiskLevel(c); });
 
-  const checklistItems = all('SELECT * FROM iato_checklist WHERE assessment_id = ? ORDER BY CASE risk_level WHEN \'high\' THEN 0 WHEN \'medium\' THEN 1 ELSE 2 END, deadline', [assessment.id]);
+  // POA&M now belongs to decision packages; the assessment no longer carries it.
   const assignments = getEntityAssignments('assessment', [assessment.id]);
   const documents = getProjectDocuments(assessment.project_id).map(d => ({ ...d, display_size: formatBytes(d.size) }));
   const atoRecords = all('SELECT id, record_type, title, authorization_status FROM ato_records WHERE project_id = ? ORDER BY updated_at DESC, created_at DESC', [assessment.project_id]);
-  const poamStats = {
-    total: checklistItems.length,
-    open: checklistItems.filter(i => i.status === 'open').length,
-    inProgress: checklistItems.filter(i => i.status === 'in-progress').length,
-    completed: checklistItems.filter(i => i.status === 'completed').length,
-    verified: checklistItems.filter(i => i.status === 'verified').length,
-    overdue: checklistItems.filter(i => i.status !== 'completed' && i.status !== 'verified' && i.deadline && new Date(i.deadline) < new Date()).length,
-    highCount: checklistItems.filter(i => i.risk_level === 'high').length,
-    mediumCount: checklistItems.filter(i => i.risk_level === 'medium').length,
-    lowCount: checklistItems.filter(i => i.risk_level === 'low').length
-  };
+
 
   // Version history (audit trail). Assessments created before this feature have no
   // snapshots yet — lazily capture the current state as a baseline so it's revertable.
@@ -2465,7 +2651,7 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     assessmentFlow: processFlows.assessmentFlow(assessment),
     assessmentLock: decisionPackages.assessmentLock(assessment.id),
     collabEnabled: collaboration.isEnabled(get('SELECT * FROM projects WHERE id = ?', [assessment.project_id]), orgSettingsFor(req)),
-    families: Object.values(families), controls, stats, checklistItems, poamStats, documents, atoRecords,
+    families: Object.values(families), controls, stats, documents, atoRecords,
     tailorMode: req.query.tailor === '1' && !viewingVersion,
     projectContextJSON: JSON.stringify({
       name: assessment.project_name,
@@ -2868,78 +3054,6 @@ router.post('/assessments/:id/checklist/add', ensureAuthenticated, (req, res) =>
   res.redirect(`/admin/assessments/${req.params.id}`);
 });
 
-router.post('/assessments/:id/poam/:itemId/update', ensureAuthenticated, (req, res) => {
-  const { status, risk_level, assigned_to, deadline, remediation_plan, milestone, evidence_text, residual_risk, assessor_notes, ato_record_id, description, original_finding } = req.body;
-  const updates = [];
-  const params = [];
-
-  if (description !== undefined) { updates.push('description = ?'); params.push(description); }
-  if (original_finding !== undefined) { updates.push('original_finding = ?'); params.push(original_finding); }
-  if (status) { updates.push('status = ?'); params.push(status); }
-  if (risk_level) { updates.push('risk_level = ?'); params.push(risk_level); }
-  if (assigned_to !== undefined) { updates.push('assigned_to = ?'); params.push(assigned_to); }
-  if (deadline) { updates.push('deadline = ?'); params.push(deadline); }
-  if (remediation_plan !== undefined) { updates.push('remediation_plan = ?'); params.push(remediation_plan); }
-  if (milestone !== undefined) { updates.push('milestone = ?'); params.push(milestone); }
-  if (evidence_text !== undefined) { updates.push('evidence_text = ?'); params.push(evidence_text); }
-  if (residual_risk !== undefined) { updates.push('residual_risk = ?'); params.push(residual_risk); }
-  if (assessor_notes !== undefined) { updates.push('assessor_notes = ?'); params.push(assessor_notes); }
-  if (ato_record_id !== undefined) { updates.push('ato_record_id = ?'); params.push(ato_record_id || null); }
-
-  if (status === 'completed') {
-    updates.push('completed_at = CURRENT_TIMESTAMP');
-  }
-  if (status === 'verified') {
-    updates.push('verified_at = CURRENT_TIMESTAMP');
-    updates.push('verified_by = ?'); params.push(req.user.id);
-  }
-
-  if (updates.length) {
-    updates.push('updated_at = CURRENT_TIMESTAMP');
-    params.push(req.params.itemId, req.params.id);
-    run(`UPDATE iato_checklist SET ${updates.join(', ')} WHERE id = ? AND assessment_id = ?`, params);
-  }
-  if (req.xhr || req.headers.accept?.includes('json')) {
-    return res.json({ success: true });
-  }
-  req.flash('success', 'POA&M item updated');
-  res.redirect(`/admin/assessments/${req.params.id}`);
-});
-
-router.post('/assessments/:id/poam/:itemId/delete', ensureAuthenticated, (req, res) => {
-  run('DELETE FROM iato_checklist WHERE id = ? AND assessment_id = ?', [req.params.itemId, req.params.id]);
-  req.flash('success', 'POA&M item removed');
-  res.redirect(`/admin/assessments/${req.params.id}`);
-});
-
-router.post('/assessments/:id/poam/auto-populate', ensureAuthenticated, (req, res) => {
-  const controls = all(`SELECT * FROM assessment_controls WHERE assessment_id = ? AND is_applicable = 1 
-    AND (audit_result = 'not-met' OR audit_result = 'partially-met')`, [req.params.id]);
-  const existing = all('SELECT control_id FROM iato_checklist WHERE assessment_id = ?', [req.params.id]);
-  const existingIds = new Set(existing.map(e => e.control_id));
-  let added = 0;
-
-  controls.forEach(c => {
-    if (!existingIds.has(c.control_id)) {
-      const riskLevel = c.risk_level || computeRiskLevel(c);
-      const defaultDeadline = new Date();
-      defaultDeadline.setDate(defaultDeadline.getDate() + (riskLevel === 'high' ? 30 : riskLevel === 'medium' ? 60 : 90));
-      const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
-      run(`INSERT INTO iato_checklist (project_id, assessment_id, control_id, description, risk_level,
-        original_finding, deadline, status, created_by)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 'open', ?)`,
-        [assessment?.project_id || null, req.params.id, c.control_id,
-         `Remediate ${c.control_id} — ${c.title}`,
-         riskLevel, c.audit_comments || `${c.audit_result}: ${c.title}`,
-         defaultDeadline.toISOString().split('T')[0], req.user.id]);
-      added++;
-    }
-  });
-  req.flash('success', `Auto-populated ${added} POA&M items from ${controls.length} findings (${existing.length} already existed).`);
-  res.redirect(`/admin/assessments/${req.params.id}`);
-});
-
-// ── REACTIVATE SUBMISSION ──
 router.post('/assessments/:id/reactivate', ensureAuthenticated, (req, res) => {
   run(`UPDATE assessments SET status = 'evidence-gathering', submitted_at = NULL, 
     updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [req.params.id]);
