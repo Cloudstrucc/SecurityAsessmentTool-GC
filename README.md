@@ -12,6 +12,11 @@ Node.js/Express application for managing security assessment & authorization (SA
 - Lets assessors create assessments from projects and link them back to the related intake.
 - Stores project documentation for later AI analysis, evidence guidance, audit traceability, and reporting references.
 - Lets assessors tailor assessment controls, edit guidance/evidence fields, and preserve AI guidance provenance.
+- Shows a **business process flow** (chevron) on projects, intakes and assessments: the project's
+  position in the lifecycle (Intake → Security assessment → Decision package → Authorized) is
+  **derived from its own records**, so it cannot drift. Each stage expands into a checklist of
+  completed/outstanding steps that link straight to the underlying record, and the next action is
+  surfaced explicitly. Fully localized in all 8 languages.
 - Versions each assessment: every change checkpoint (creation, AI-applied changes, manual checkpoints) is captured as a point-in-time snapshot, with a full audit history and non-destructive revert to any prior version.
 - Includes the **Aegis SA Assistant** — an in-app AI chat that helps tailor controls, answer coverage questions, and draft evidence (assessor approves every change).
 - Provides project-level report branding, control exports, full project exports, ATO/iATO records, and POA&M management.
@@ -276,7 +281,7 @@ Current executable checks:
 - Reverting an assessment restores the prior control set as a new active version and records the revert in the audit history.
 - The legacy `/sa-tool-overview.html` path redirects to the live overview route (guards against stale static files in `wwwroot`).
 
-The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 39 checks.
+The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 42 checks.
 
 In the Codex sandbox, binding a local test server may require approval. On a normal developer machine, `npm run test:e2e` should run directly.
 

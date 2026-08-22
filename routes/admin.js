@@ -3,6 +3,7 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { run, runBatch, all, get } = require('../models/database');
 const { passport, ensureAuthenticated, mfaEnabled } = require('../config/passport');
+const processFlows = require('../config/process-flows');
 const { determineProfile, detectComplexity, categorizationLabel, categorizationFullLabel, SECURITY_PROFILES, CONFIDENTIALITY_LEVELS, INTEGRITY_LEVELS, AVAILABILITY_LEVELS } = require('../config/security-profiles');
 const { getRecommendedControls, assessSAARequirement, groupByFamily, COMMON_TECHNOLOGIES, CONTROL_FAMILIES, CONTROLS, GC_WEB_GUIDANCE, computeRiskLevel } = require('../config/itsg33-controls');
 const {
@@ -1259,9 +1260,13 @@ router.get('/projects/:id', ensureAuthenticated, (req, res) => {
   // Assessments that would be permanently lost on delete (anything not in draft).
   const nonDraftAssessments = assessments.filter(a => a.status !== 'draft');
 
+  // Master business-process flow (Intake -> Assessment -> Decision -> Authorized),
+  // derived from the project's own records so it can never drift.
+  const projectFlow = processFlows.projectFlow({ project, intakes, assessments, decisions: atoRecords });
+
   res.render('admin/project-detail', {
     title: project.name, isAdmin: true, isProjects: true,
-    admin: req.user, project, assessments, intakes,
+    admin: req.user, project, assessments, intakes, projectFlow,
     intakeAssignments, assessmentAssignments, documents, branding, atoRecords, projectPoamItems,
     nonDraftAssessments,
     hasNonDraftAssessments: nonDraftAssessments.length > 0,
@@ -2217,6 +2222,7 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     title: viewingVersion ? `Assessment v${viewingVersion}: ${assessment.project_name}` : `Assessment: ${assessment.project_name}`,
     isAdmin: true, isAssessments: true,
     admin: req.user, assessment, assignments, users: getAssignableUsers(), versions, viewingVersion,
+    assessmentFlow: processFlows.assessmentFlow(assessment),
     families: Object.values(families), controls, stats, checklistItems, poamStats, documents, atoRecords,
     tailorMode: req.query.tailor === '1' && !viewingVersion,
     projectContextJSON: JSON.stringify({
@@ -3275,9 +3281,11 @@ router.get('/intakes/:id', ensureAuthenticated, (req, res) => {
   const catLabel = categorizationLabel(confLevel, intLevel, avaLevel);
   const catFullLabel = categorizationFullLabel(confLevel, intLevel, avaLevel);
 
+  const intakeFlow = processFlows.intakeFlow(intake);
+
   res.render('admin/intake-review', {
     title: 'Review: ' + intake.project_name, isAdmin: true,
-    user: req.user, intake, attachments, assignments, linkedAssessments,
+    user: req.user, intake, attachments, assignments, linkedAssessments, intakeFlow,
     users: getAssignableUsers(),
     piiList: piiTypes.filter(p => p !== 'none').map(p => PII_LABELS[p] || p),
     techList: technologies.map(t => COMMON_TECHNOLOGIES[t]?.name || t),

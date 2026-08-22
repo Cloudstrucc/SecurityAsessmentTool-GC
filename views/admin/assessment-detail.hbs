@@ -162,6 +162,10 @@
     </div>
   </div>
 
+  {{#unless viewingVersion}}
+  {{> process-flow flow=assessmentFlow titleKey='pf.assessmentProgress' idPrefix='pfassess'}}
+  {{/unless}}
+
   <div class="card mb-4">
     <div class="card-header bg-light"><i class="bi bi-person-check me-2"></i>Assignment</div>
     <div class="card-body">

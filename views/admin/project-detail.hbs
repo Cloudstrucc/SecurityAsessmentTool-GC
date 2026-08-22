@@ -9,9 +9,6 @@
       <a href="/admin/projects/{{project.id}}/guidance" class="btn btn-outline-success">
         <i class="bi bi-file-text me-1"></i>Web Guidance
       </a>
-      <a href="/admin/projects/{{project.id}}/assessments/new" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i>New Assessment
-      </a>
       {{#if isArchived}}
         <form action="/admin/projects/{{project.id}}/unarchive" method="POST" class="d-inline">
           <button type="submit" class="btn btn-outline-secondary">
@@ -30,6 +27,8 @@
       </button>
     </div>
   </div>
+
+  {{> process-flow flow=projectFlow titleKey='pf.title' idPrefix='pfproj'}}
 
   {{#if isArchived}}
     <div class="alert alert-dark d-flex align-items-center" role="alert">

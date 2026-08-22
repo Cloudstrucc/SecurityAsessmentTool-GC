@@ -22,9 +22,15 @@ Write all user-facing copy to be internationally neutral. The product is not Can
   not Canada-specific pages.
 
 ## Localization
-- All user-facing strings go through **i18next** (`locales/*.json`). Add new copy as keys in
-  **English + French** at minimum; the other six languages (es, de, pt, it, nl, ja) fall back to
-  English.
+- All user-facing strings go through **i18next** (`locales/*.json`). **Every new feature must ship
+  fully localized in ALL 8 supported languages (en, fr, es, de, pt, it, nl, ja).** English-only —
+  or English+French with the rest falling back — is not acceptable for new work, and this applies
+  to the admin / signed-in UI as much as the public pages. Labels, buttons, headings, modals,
+  flash messages, empty states and `title`/`aria-label` text all need keys in all 8 files.
+- **Check locale parity before committing:** every locale file must contain the same keys.
+  ```bash
+  node -e "const fs=require('fs');const f=(o,p,out={})=>{for(const k in o){const v=o[k],kk=p?p+'.'+k:k;v&&typeof v==='object'&&!Array.isArray(v)?f(v,kk,out):out[kk]=v}return out};const L=['en','fr','es','de','pt','it','nl','ja'];const d={};L.forEach(l=>d[l]=f(JSON.parse(fs.readFileSync('locales/'+l+'.json'))));const en=Object.keys(d.en);L.forEach(l=>{const m=en.filter(k=>!(k in d[l]));console.log(l,'keys:',Object.keys(d[l]).length,'missing:',m.length,m.slice(0,5).join(','))})"
+  ```
 - Use **flat, uniquely-prefixed keys** (`rf.*`, `pl.*`, `pbmm.*`, `regside.*`, `pb.*`, `navbar.*`).
   Do **not** add keys under the nested `nav` object — it shadows flat `nav.*` lookups; use
   `navbar.*` instead.

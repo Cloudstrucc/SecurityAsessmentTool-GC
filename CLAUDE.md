@@ -34,8 +34,12 @@ user-facing content or building new features, keep the copy internationally neut
 - The registration attestation is the **"Personal information & privacy notice"**
   (`pbmm.*` keys), not a "Protected B privacy notice".
 
-- **All user-facing strings are localized via i18next** in `locales/*.json`. Add new copy as
-  keys (English + French at minimum; the other 6 languages fall back to English). Use flat,
+- **All user-facing strings are localized via i18next** in `locales/*.json`. **Every new feature
+  must ship fully localized in ALL 8 supported languages (en, fr, es, de, pt, it, nl, ja) — not
+  English-only, and not English+French with the rest falling back.** This applies to the admin /
+  signed-in UI as much as the public pages: any new label, button, heading, modal, flash message,
+  empty state, or `title`/`aria-label` gets a key in all 8 locale files before the feature ships.
+  Verify parity (same key count in every file) as part of the change. Use flat,
   uniquely-prefixed keys (e.g. `rf.*`, `pl.*`, `pbmm.*`) — do NOT add keys under the nested
   `nav` object (it shadows flat `nav.*` lookups; use `navbar.*`). i18next **preloads locales at
   startup**, so restart/redeploy after changing them.
