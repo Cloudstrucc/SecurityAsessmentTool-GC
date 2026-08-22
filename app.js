@@ -41,6 +41,11 @@ async function initialize() {
   try {
     await initDatabase();
     console.log('Database initialized');
+    // Fold any legacy ato_records into decision_packages (idempotent, one-time).
+    try {
+      const migrated = require('./config/decision-packages').migrateLegacyAtoRecords();
+      if (migrated > 0) console.log(`Migration: moved ${migrated} legacy ATO record(s) into decision packages`);
+    } catch (e) { console.error('Decision package migration skipped:', e.message); }
     await initI18n();
     console.log('i18n initialized');
     emailService.initialize();
@@ -94,6 +99,15 @@ app.engine('hbs', engine({
     },
     ifLang: function(lang, options) {
       return (options.data?.root?.lang || DEFAULT_LANG) === lang ? options.fn(this) : options.inverse(this);
+    },
+    // Maps a decision-package state to its i18n key so states render localized.
+    dpStateKey: function(state) {
+      const map = {
+        'draft': 'dp.stateDraft', 'in-review': 'dp.stateInReview', 'recommended': 'dp.stateRecommended',
+        'decided': 'dp.stateDecided', 'issued': 'dp.stateIssued', 'denied': 'dp.stateDenied',
+        'expired': 'dp.stateExpired', 'revoked': 'dp.stateRevoked'
+      };
+      return map[String(state || 'draft')] || 'dp.stateDraft';
     },
     json: obj => JSON.stringify(obj),
     formatDate: function(date) {

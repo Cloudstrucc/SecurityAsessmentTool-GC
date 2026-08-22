@@ -418,60 +418,96 @@
       </div>
 
       <div class="card mt-3">
-        <div class="card-header"><i class="bi bi-file-earmark-bar-graph me-2"></i>Reports & Authorization</div>
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-award me-2"></i>{{t 'dp.title'}}</span>
+          <span class="badge bg-light text-dark border">{{decisionPackages.length}}</span>
+        </div>
         <div class="card-body">
-          <div class="d-flex flex-wrap gap-2 mb-3">
-            <a href="/admin/projects/{{project.id}}/controls.csv" class="btn btn-sm btn-outline-primary"><i class="bi bi-filetype-csv me-1"></i>Controls CSV</a>
-            <a href="/admin/projects/{{project.id}}/controls.pdf" class="btn btn-sm btn-outline-primary"><i class="bi bi-file-earmark-pdf me-1"></i>Controls PDF</a>
-            <a href="/admin/projects/{{project.id}}/report.pdf" class="btn btn-sm btn-outline-primary"><i class="bi bi-file-richtext me-1"></i>Full Project PDF</a>
-            <a href="/admin/projects/{{project.id}}/ato/new?type=ato" class="btn btn-sm btn-success"><i class="bi bi-shield-check me-1"></i>New ATO</a>
-            <a href="/admin/projects/{{project.id}}/ato/new?type=iato" class="btn btn-sm btn-warning"><i class="bi bi-shield-exclamation me-1"></i>New iATO</a>
-          </div>
-
-          {{#if atoRecords.length}}
-            <h6 class="fw-semibold small text-muted text-uppercase">ATO / iATO Records</h6>
-            <div class="table-responsive mb-3">
-              <table class="table table-sm mb-0">
-                <thead><tr><th>Type</th><th>Title</th><th>Status</th><th>Updated</th><th></th></tr></thead>
+          <p class="small text-muted">{{t 'dp.blurb'}}</p>
+          {{#if decisionPackages.length}}
+            <div class="table-responsive">
+              <table class="table table-sm align-middle">
+                <thead><tr>
+                  <th>{{t 'dp.reference'}}</th><th>{{t 'dp.type'}}</th><th>{{t 'dp.state'}}</th>
+                  <th>{{t 'dp.pinnedVersion'}}</th><th></th>
+                </tr></thead>
                 <tbody>
-                  {{#each atoRecords}}
+                  {{#each decisionPackages}}
                     <tr>
-                      <td class="text-uppercase">{{this.record_type}}</td>
-                      <td>{{this.title}}</td>
-                      <td>{{this.authorization_status}}</td>
-                      <td class="small text-muted">{{formatDate this.updated_at}}</td>
+                      <td><code>{{this.reference}}</code></td>
+                      <td>{{#eq this.decision_type 'iato'}}{{t 'dp.typeIato'}}{{else}}{{#eq this.decision_type 'denied'}}{{t 'dp.typeDenied'}}{{else}}{{t 'dp.typeAto'}}{{/eq}}{{/eq}}</td>
+                      <td><span class="badge bg-secondary">{{t (dpStateKey this.state)}}</span></td>
+                      <td>{{#if this.assessment_version}}<span class="badge bg-success">v{{this.assessment_version}}</span>{{else}}<span class="text-muted">—</span>{{/if}}</td>
                       <td class="text-end">
-                        <a href="/admin/ato/{{this.id}}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
-                        <a href="/admin/ato/{{this.id}}/export-pdf" class="btn btn-sm btn-outline-danger"><i class="bi bi-file-earmark-pdf"></i></a>
+                        <a href="/admin/decision-packages/{{this.id}}" class="btn btn-sm btn-outline-primary">
+                          <i class="bi bi-box-arrow-up-right me-1"></i>{{t 'dp.openPackage'}}
+                        </a>
                       </td>
                     </tr>
                   {{/each}}
                 </tbody>
               </table>
             </div>
+          {{else}}
+            <p class="text-muted small">{{t 'dp.none'}}</p>
           {{/if}}
 
-          {{#if projectPoamItems.length}}
-            <h6 class="fw-semibold small text-muted text-uppercase">Project POA&M Items</h6>
-            <div class="table-responsive">
-              <table class="table table-sm mb-0">
-                <thead><tr><th>Control</th><th>Finding</th><th>Owner</th><th>Due</th><th>Status</th></tr></thead>
-                <tbody>
-                  {{#each projectPoamItems}}
-                    <tr>
-                      <td><code>{{this.control_id}}</code></td>
-                      <td>{{this.description}}</td>
-                      <td>{{this.assigned_to}}</td>
-                      <td class="small">{{formatDate this.deadline}}</td>
-                      <td>{{this.status}}</td>
-                    </tr>
-                  {{/each}}
-                </tbody>
-              </table>
+          <form method="POST" action="/admin/projects/{{project.id}}/decision-packages" class="row g-2 align-items-end mt-2">
+            <div class="col-md-5">
+              <label class="form-label small">{{t 'dp.selectAssessment'}}</label>
+              <select class="form-select form-select-sm" name="assessment_id">
+                <option value="">—</option>
+                {{#each assessments}}<option value="{{this.id}}">#{{this.id}} · {{this.status}}</option>{{/each}}
+              </select>
             </div>
-          {{/if}}
+            <div class="col-md-4">
+              <label class="form-label small">{{t 'dp.type'}}</label>
+              <select class="form-select form-select-sm" name="decision_type">
+                <option value="ato">{{t 'dp.typeAto'}}</option>
+                <option value="iato">{{t 'dp.typeIato'}}</option>
+                <option value="denied">{{t 'dp.typeDenied'}}</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-primary btn-sm w-100"><i class="bi bi-plus-lg me-1"></i>{{t 'dp.create'}}</button>
+            </div>
+          </form>
         </div>
       </div>
+
+      {{!-- Collaboration --}}
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-chat-dots me-2"></i>{{t 'co.title'}}</span>
+          <form method="POST" action="/admin/projects/{{project.id}}/collaboration-toggle" class="d-inline">
+            <button class="btn btn-sm btn-outline-secondary">
+              {{#if collabEnabled}}{{t 'co.turnOff'}}{{else}}{{t 'co.turnOn'}}{{/if}}
+            </button>
+          </form>
+        </div>
+        <div class="card-body">
+          {{#if collabEnabled}}
+            <p class="small text-muted">{{t 'co.blurb'}}</p>
+            {{#if collabMessages.length}}
+              <ul class="list-group list-group-flush mb-2">
+                {{#each collabMessages}}
+                  <li class="list-group-item px-0">
+                    <div class="small"><strong>{{this.user_name}}</strong>
+                      <span class="text-muted ms-1">{{formatDateTime this.created_at}}</span></div>
+                    <div class="small">{{this.body}}</div>
+                  </li>
+                {{/each}}
+              </ul>
+            {{else}}
+              <p class="text-muted small">{{t 'co.empty'}}</p>
+            {{/if}}
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="window.Collab && window.Collab.open()">
+              <i class="bi bi-chat-dots me-1"></i>{{t 'co.expand'}} ({{collabCount}})
+            </button>
+          {{else}}
+            <p class="text-muted small mb-0">{{t 'co.disabled'}}</p>
+          {{/if}}
+        </div>
     </div>
   </div>
 </div>
@@ -556,3 +592,8 @@ document.querySelectorAll('.assignment-mode').forEach(select => {
   sync();
 });
 </script>
+
+{{#if collabEnabled}}
+  {{> collab-panel }}
+  <script>window.CollabConfig = { projectId: {{project.id}}, entityType: 'project', entityId: null };</script>
+{{/if}}

@@ -17,6 +17,15 @@ Node.js/Express application for managing security assessment & authorization (SA
   **derived from its own records**, so it cannot drift. Each stage expands into a checklist of
   completed/outstanding steps that link straight to the underlying record, and the next action is
   surfaced explicitly. Fully localized in all 8 languages.
+- Records authorization decisions as **decision packages** (ATO / iATO / denial) with their own
+  state machine. Each package **pins the exact assessment version it authorized** — an
+  append-only snapshot — plus the POA&M items and a document manifest with SHA-256 hashes, so
+  what was authorized can always be proven. The assessment is locked while a decision is under
+  review and released once issued; issued packages cannot be deleted (revoke instead).
+- Provides project **collaboration**: discussion threads posted against any record but rolled up
+  to the project, with @mentions resolved server-side against that project's own people and
+  records. On by default, switchable per project and org-wide. Collaboration content is **never
+  sent to the AI provider**.
 - Versions each assessment: every change checkpoint (creation, AI-applied changes, manual checkpoints) is captured as a point-in-time snapshot, with a full audit history and non-destructive revert to any prior version.
 - Includes the **Aegis SA Assistant** — an in-app AI chat that helps tailor controls, answer coverage questions, and draft evidence (assessor approves every change).
 - Provides project-level report branding, control exports, full project exports, ATO/iATO records, and POA&M management.
@@ -281,7 +290,7 @@ Current executable checks:
 - Reverting an assessment restores the prior control set as a new active version and records the revert in the audit history.
 - The legacy `/sa-tool-overview.html` path redirects to the live overview route (guards against stale static files in `wwwroot`).
 
-The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 42 checks.
+The suite forces `MFA_ENABLED=true` on the server it spawns, so `npm run test:e2e` runs the full TOTP/passkey flow directly — no extra environment variables are needed. It currently runs 51 checks. See [docs/TESTING.md](docs/TESTING.md) for what each one covers.
 
 In the Codex sandbox, binding a local test server may require approval. On a normal developer machine, `npm run test:e2e` should run directly.
 

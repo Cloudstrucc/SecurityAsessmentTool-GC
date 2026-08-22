@@ -140,11 +140,6 @@
               </button>
             {{/eq}}
 
-            {{#eq assessment.status "completed"}}
-              <a href="/admin/assessments/{{assessment.id}}/generate-ato" class="btn btn-success">
-                <i class="bi bi-file-earmark-pdf me-1"></i>Generate {{#if assessment.ato_type}}{{assessment.ato_type}}{{else}}ATO{{/if}}
-              </a>
-            {{/eq}}
 
             <a href="/admin/assessments/{{assessment.id}}/export-pdf" class="btn btn-outline-primary btn-sm">
               <i class="bi bi-download me-1"></i>Export PDF
@@ -162,6 +157,14 @@
     </div>
   </div>
 
+  {{#if assessmentLock}}
+    <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <span><i class="bi bi-lock-fill me-2"></i><strong>{{t 'dp.assessmentLocked'}}</strong> — {{t 'dp.lockedNote'}}</span>
+      <a href="/admin/decision-packages/{{assessmentLock.id}}" class="btn btn-sm btn-outline-dark">
+        <i class="bi bi-box-arrow-up-right me-1"></i>{{assessmentLock.reference}}
+      </a>
+    </div>
+  {{/if}}
   {{#unless viewingVersion}}
   {{> process-flow flow=assessmentFlow titleKey='pf.assessmentProgress' idPrefix='pfassess'}}
   {{/unless}}
@@ -544,15 +547,6 @@
                           <input type="text" class="form-control form-control-sm" name="assigned_to" value="{{this.assigned_to}}">
                         </div>
                         <div class="col-md-4">
-                          <label class="form-label small fw-semibold">Related ATO/iATO</label>
-                          <select class="form-select form-select-sm" name="ato_record_id">
-                            <option value="">None</option>
-                            {{#each ../atoRecords}}
-                              <option value="{{this.id}}" {{#eq ../ato_record_id this.id}}selected{{/eq}}>{{this.record_type}} - {{this.title}}</option>
-                            {{/each}}
-                          </select>
-                        </div>
-                        <div class="col-md-4">
                           <label class="form-label small fw-semibold">Original Finding</label>
                           <input type="text" class="form-control form-control-sm" name="original_finding" value="{{this.original_finding}}">
                         </div>
@@ -631,14 +625,6 @@
             </div>
           </div>
           <div class="row g-2 mt-2">
-            <div class="col-md-4">
-              <select class="form-select form-select-sm" name="ato_record_id">
-                <option value="">Related ATO/iATO (optional)</option>
-                {{#each atoRecords}}
-                  <option value="{{this.id}}">{{this.record_type}} - {{this.title}}</option>
-                {{/each}}
-              </select>
-            </div>
             <div class="col-md-4">
               <input type="text" class="form-control form-control-sm" name="residual_risk" placeholder="Residual risk notes (optional)">
             </div>
@@ -1627,3 +1613,8 @@ window.AIAssistConfig = {
 };
 </script>
 {{/unless}}
+
+{{#if collabEnabled}}
+  {{> collab-panel }}
+  <script>window.CollabConfig = { projectId: {{assessment.project_id}}, entityType: 'assessment', entityId: {{assessment.id}} };</script>
+{{/if}}
