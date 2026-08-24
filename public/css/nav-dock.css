@@ -7,9 +7,14 @@
 
 :root { --rail-w: 232px; --brand-h: 52px; }
 
+/* ── Layout: the content wrapper must grow so the footer stays at the bottom.
+   (body is a flex column with min-height:100vh; .gc-main flexes inside this.) ── */
+.gc-shell { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
+
 /* ── Breadcrumb (chip style — matches the approved mockup) ── */
+/* A little more vertical room so the breadcrumb isn't cramped against the menu bar. */
 .gc-breadcrumb-wrap { background:#fff; border-bottom:1px solid var(--cs-border); }
-.gc-breadcrumb-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding-top:.35rem; padding-bottom:.35rem; }
+.gc-breadcrumb-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding-top:.7rem; padding-bottom:.7rem; }
 .gc-breadcrumb { max-width:100%; min-width:0; }
 .gc-breadcrumb ol {
   display:flex; align-items:center; flex-wrap:wrap; gap:7px; list-style:none;
