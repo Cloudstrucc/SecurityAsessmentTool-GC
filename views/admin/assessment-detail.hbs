@@ -1356,8 +1356,8 @@ window.AIAssistConfig = {
   greeting: 'Hi — ask me anything about this assessment: whether the controls cover a given scope, what a control expects, or how to word an audit note. If I propose control changes, approving them saves to this assessment.',
   // Approving proposed changes here PERSISTS them to the assessment (add / remove / tailor),
   // then prompts a refresh to see the updated control list.
-  suggestionsLabel: {{tjs 'aq.tryThis'}},
-  suggestions: [{{tjs 'aq.assessment1'}}, {{tjs 'aq.assessment2'}}, {{tjs 'aq.assessment3'}}],
+  suggestionsLabel: {{{tjs 'aq.tryThis'}}},
+  suggestions: [{{{tjs 'aq.assessment1'}}}, {{{tjs 'aq.assessment2'}}}, {{{tjs 'aq.assessment3'}}}],
   applyEndpoint: '/admin/assessments/{{assessment.id}}/apply-ai-actions',
   getSelected: function(){
     return Array.prototype.map.call(document.querySelectorAll('.control-id'), function(el){
