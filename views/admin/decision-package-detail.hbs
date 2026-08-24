@@ -8,6 +8,7 @@
         <span class="badge bg-dark ms-1">{{t (dpStateKey dp.state)}}</span>
       </p>
     </div>
+    <div class="d-flex gap-2 record-actions">{{> export-menu type="decision-package" id=dp.id}}</div>
   </div>
 
   {{> process-flow flow=decisionFlow titleKey='pf.decisionProgress' idPrefix='pfdp'}}
@@ -179,8 +180,6 @@
           {{else}}<p class="text-muted small p-3 mb-0">{{t 'dp.noDocs'}}</p>{{/if}}
         </div>
       </div>
-
-      <div class="mb-2">{{> export-menu type="decision-package" id=dp.id}}</div>
 
       {{#neq dp.state 'issued'}}
       <form method="POST" action="/admin/decision-packages/{{dp.id}}/delete"

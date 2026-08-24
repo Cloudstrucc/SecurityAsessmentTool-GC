@@ -3662,5 +3662,17 @@
   "hf.tReportNotFoundBody": "make sure you're on a record you can open; reports follow the same access as the record's page.",
   "hf.tMfa": "MFA / sign-in issues:",
   "hf.tMfaBody": "use the passkey option or contact your organization administrator to reset multi-factor authentication.",
-  "hf.footerNote": "Still stuck? Ask the Aegis SA Assistant on any record page, or contact your administrator."
+  "hf.footerNote": "Still stuck? Ask the Aegis SA Assistant on any record page, or contact your administrator.",
+  "navd.labels": "Menu labels",
+  "navd.iconsOnly": "Icons only",
+  "navd.iconText": "Icon + title",
+  "navd.labelsShortcut": "Shortcut: Ctrl / ⌘ + \\",
+  "navd.expand": "Expand / collapse",
+  "navd.more": "More",
+  "ra.more": "More",
+  "ra.menu": "Menu",
+  "ra.dragToMove": "Drag to move",
+  "ra.dockHere": "Dock here",
+  "ra.labelsHint": "Ctrl / ⌘ + \\ toggles labels",
+  "ra.collaboration": "Collaboration"
 }

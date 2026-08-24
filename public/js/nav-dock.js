@@ -14,8 +14,13 @@
     pos: body.getAttribute('data-nav-default-pos') || 'top',
     pinned: body.getAttribute('data-nav-default-pinned') !== '0'
   };
-  var current = readOverride() || { pos: saved.pos, pinned: saved.pinned };
+  var savedLabels = body.getAttribute('data-nav-default-labels') || 'auto';
+  var over = readOverride() || {};
+  var current = { pos: over.pos || saved.pos, pinned: (typeof over.pinned === 'boolean' ? over.pinned : saved.pinned) };
+  var labels = over.labels || savedLabels;          // 'auto' | 'icons' | 'text'
+  var railExpanded = !!over.railExpanded;           // session-only rail widen
   var hideTimer = null;
+  var nav = document.getElementById('gcNav');
 
   function readOverride() {
     try { var v = JSON.parse(sessionStorage.getItem(SS_KEY)); if (v && v.pos) return { pos: v.pos, pinned: !!v.pinned }; }
@@ -23,7 +28,7 @@
     return null;
   }
   function writeOverride() {
-    try { sessionStorage.setItem(SS_KEY, JSON.stringify(current)); } catch (e) {}
+    try { sessionStorage.setItem(SS_KEY, JSON.stringify({ pos: current.pos, pinned: current.pinned, labels: labels, railExpanded: railExpanded })); } catch (e) {}
   }
   function isDefault() { return current.pos === saved.pos && current.pinned === saved.pinned; }
 
@@ -32,7 +37,147 @@
     body.classList.add('nav-pos-' + current.pos);
     body.classList.toggle('nav-pinned', current.pinned);
     if (current.pinned) body.classList.remove('nav-peek');
+    applyLabels();
     setBrandHeight();
+  }
+
+  // ── Compact-nav label mode ──────────────────────────────────────────────
+  // Wrap each top-level nav link's text in <span class="nav-txt"> once, and set
+  // a native title so icon-only mode keeps a tooltip.
+  function wrapLabels() {
+    if (!nav) return;
+    Array.prototype.forEach.call(nav.querySelectorAll(':scope > li > a'), function (a) {
+      if (a.querySelector('.nav-txt')) return;
+      var txt = '';
+      Array.prototype.forEach.call(a.childNodes, function (n) {
+        if (n.nodeType === 3 && n.textContent.trim()) txt += n.textContent;
+      });
+      txt = txt.trim();
+      if (!txt) return;
+      var span = document.createElement('span');
+      span.className = 'nav-txt';
+      span.textContent = txt;
+      // replace the first non-empty text node with the span; strip the rest
+      var done = false;
+      Array.prototype.slice.call(a.childNodes).forEach(function (n) {
+        if (n.nodeType === 3 && n.textContent.trim()) {
+          if (!done) { a.replaceChild(span, n); done = true; } else { a.removeChild(n); }
+        }
+      });
+      if (!a.getAttribute('title')) a.setAttribute('title', txt);
+    });
+  }
+
+  function applyLabels() {
+    ['nav-labels-auto', 'nav-labels-icons', 'nav-labels-text'].forEach(function (c) { body.classList.remove(c); });
+    body.classList.add('nav-labels-' + labels);
+    body.classList.toggle('nav-rail-expanded', railExpanded && current.pos !== 'top');
+    buildOverflow();
+    syncControls();
+  }
+
+  // Move top-bar items that don't fit onto one line into a "More" dropdown.
+  // Only runs on the desktop top bar when titles are shown (auto/text). Icon
+  // mode is compact enough to fit, and the rail scrolls vertically.
+  function buildOverflow() {
+    if (!nav) return;
+    restoreOverflow();
+    var wide = window.matchMedia('(min-width: 992px)').matches;
+    var showsTitles = current.pos === 'top' && labels !== 'icons';
+    if (!wide || current.pos !== 'top' || !showsTitles) return;
+    var lis = Array.prototype.filter.call(nav.children, function (li) {
+      return li.tagName === 'LI' && !li.classList.contains('nav-more');
+    });
+    // candidates = plain links only (never the trailing dropdowns / notifications / user menu)
+    var candidates = lis.filter(function (li) {
+      return !li.classList.contains('dropdown') && !li.querySelector('.dropdown-toggle') &&
+             !li.querySelector('a[href="/admin/notifications"]');
+    });
+    if (candidates.length < 2) return;
+    try {
+      var first = nav.querySelector(':scope > li');
+      if (!first) return;
+      var rowTop = first.offsetTop;
+      var more = makeMore();
+      // hide from the end until everything sits on the first row
+      for (var i = candidates.length - 1; i >= 0 && wrapped(); i--) {
+        var li = candidates[i];
+        if (li.offsetTop > rowTop || wrapped()) {
+          addToMore(more, li);
+        }
+      }
+      var menu = more.querySelector('.dropdown-menu');
+      if (!menu || !menu.children.length) restoreOverflow();
+    } catch (e) { restoreOverflow(); }
+
+    function wrapped() {
+      // more than one visual row among the visible top-level items
+      var vis = Array.prototype.filter.call(nav.children, function (li) {
+        return li.tagName === 'LI' && !li.classList.contains('nav-hidden') && li.offsetParent !== null;
+      });
+      if (vis.length < 2) return false;
+      var top0 = vis[0].offsetTop, maxTop = top0;
+      vis.forEach(function (li) { if (li.offsetTop > maxTop) maxTop = li.offsetTop; });
+      return maxTop - top0 > 4;
+    }
+  }
+  function makeMore() {
+    var more = nav.querySelector('.nav-more');
+    if (more) return more;
+    more = document.createElement('li');
+    more.className = 'nav-more dropdown';
+    more.innerHTML = '<a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">' +
+      '<i class="bi bi-three-dots" aria-hidden="true"></i><span class="nav-txt">' + (body.getAttribute('data-more-label') || 'More') + '</span></a>' +
+      '<ul class="dropdown-menu dropdown-menu-end"></ul>';
+    // insert before the first trailing dropdown (user/admin), else append
+    var trailing = Array.prototype.filter.call(nav.children, function (li) {
+      return li.classList && (li.classList.contains('dropdown') || (li.querySelector && li.querySelector('.dropdown-toggle')));
+    })[0];
+    if (trailing) nav.insertBefore(more, trailing); else nav.appendChild(more);
+    return more;
+  }
+  function addToMore(more, li) {
+    var menu = more.querySelector('.dropdown-menu');
+    var a = li.querySelector('a'); if (!a) return;
+    var item = document.createElement('li');
+    var icon = a.querySelector('i');
+    var label = (a.querySelector('.nav-txt') || {}).textContent || a.textContent.trim();
+    var link = document.createElement('a');
+    link.className = 'dropdown-item' + (a.classList.contains('active') ? ' active' : '');
+    link.href = a.getAttribute('href') || '#';
+    link.innerHTML = (icon ? '<i class="' + icon.className + '"></i>' : '') + '<span>' + label + '</span>';
+    item.appendChild(link);
+    menu.insertBefore(item, menu.firstChild);   // keep source order (we walk from the end)
+    li.classList.add('nav-hidden');
+    li.setAttribute('data-nav-moved', '1');
+  }
+  function restoreOverflow() {
+    if (!nav) return;
+    Array.prototype.forEach.call(nav.querySelectorAll('[data-nav-moved]'), function (li) {
+      li.classList.remove('nav-hidden'); li.removeAttribute('data-nav-moved');
+    });
+    var more = nav.querySelector('.nav-more'); if (more) more.parentNode.removeChild(more);
+  }
+
+  function setLabels(v) {
+    labels = v; railExpanded = false; writeOverride(); applyLabels();
+    persist({ navLabels: v });
+  }
+  function toggleLabels() {
+    var next = labels === 'icons' ? 'text' : 'icons';
+    setLabels(next);
+    // keep the record action toolbar in sync (one shortcut compacts/expands both)
+    try { document.dispatchEvent(new CustomEvent('aegis:labels-toggle', { detail: { mode: next } })); } catch (e) {}
+  }
+  function setRailExpanded(v) { railExpanded = v; writeOverride(); applyLabels(); }
+
+  function persist(obj) {
+    var form = new URLSearchParams();
+    Object.keys(obj).forEach(function (k) { form.set(k, obj[k]); });
+    fetch('/admin/ui-prefs', {
+      method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: form.toString(), credentials: 'same-origin'
+    }).catch(function () {});
   }
 
   function setBrandHeight() {
@@ -55,6 +200,14 @@
       var on = isDefault();
       b.classList.toggle('on', on);
       var i = b.querySelector('i'); if (i) i.className = 'bi ' + (on ? 'bi-star-fill' : 'bi-star');
+    });
+    // label-mode buttons (highlight the effective mode; 'auto' lights neither hard-set)
+    Array.prototype.forEach.call(document.querySelectorAll('[data-nav-labels]'), function (b) {
+      b.classList.toggle('on', b.getAttribute('data-nav-labels') === labels);
+    });
+    // rail expand button
+    Array.prototype.forEach.call(document.querySelectorAll('[data-nav-act="expand"]'), function (b) {
+      b.classList.toggle('on', railExpanded);
     });
   }
 
@@ -103,6 +256,21 @@
     Array.prototype.forEach.call(document.querySelectorAll('[data-nav-act="star"]'), function (b) {
       b.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); saveDefault(); });
     });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-nav-labels]'), function (b) {
+      b.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); setLabels(b.getAttribute('data-nav-labels')); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-nav-act="expand"]'), function (b) {
+      b.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); setRailExpanded(!railExpanded); });
+    });
+    // Power-user shortcut: Ctrl/⌘ + \ flips icons ⇄ icon+title (not while typing).
+    document.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && (e.key === '\\' || e.code === 'Backslash')) {
+        var t = e.target; var tag = t && t.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+        e.preventDefault(); toggleLabels();
+      }
+    });
+    window.addEventListener('resize', function () { buildOverflow(); });
     var ex = document.getElementById('navExpander');
     if (ex) ex.addEventListener('click', function (e) {
       e.preventDefault(); e.stopPropagation();
@@ -118,6 +286,6 @@
     t.classList.add('show'); setTimeout(function () { t.classList.remove('show'); }, 1900);
   }
 
-  applyBody(); syncControls(); bindControls(); bindPeek();
+  wrapLabels(); applyBody(); syncControls(); bindControls(); bindPeek();
   window.addEventListener('resize', setBrandHeight);
 })();

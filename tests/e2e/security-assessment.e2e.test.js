@@ -662,9 +662,10 @@ test('dockable nav: breadcrumb replaces the title link, and the menu position pe
   const { projectId, projectPath } = await createAdminProject(jar, 'E2E Nav Dock Project');
 
   const dash = (await getText(jar, '/admin/dashboard')).text;
-  // Default menu state is rendered server-side.
-  assert.match(dash, /class="nav-dock nav-pos-top nav-pinned"/, 'body carries the default nav state');
+  // Default menu state is rendered server-side (position, pinned + compact-nav label mode).
+  assert.match(dash, /class="nav-dock nav-pos-top nav-pinned nav-labels-\w+"/, 'body carries the default nav state');
   assert.ok(dash.includes('data-nav-act="star"'), 'the dock controls (set-default star) are present');
+  assert.ok(dash.includes('data-nav-labels="icons"') && dash.includes('data-nav-labels="text"'), 'the compact-nav label toggle is present');
   assert.ok(!dash.includes('>Security Assessment &amp; Authorization<') && !/nav\.appTitle/.test(dash),
     'the old app-title link is gone');
 
@@ -672,16 +673,27 @@ test('dockable nav: breadcrumb replaces the title link, and the menu position pe
   const proj = (await getText(jar, projectPath)).text;
   assert.ok(proj.includes('gc-breadcrumb'), 'the breadcrumb is rendered');
   assert.ok(proj.includes('E2E Nav Dock Project'), 'the breadcrumb leaf is the record name');
+  // The record action toolbar hook + its enhancement assets are present.
+  assert.ok(/class="[^"]*record-actions[^"]*"/.test(proj), 'the record action toolbar hook is on the page');
+  assert.ok(proj.includes('/js/record-actions.js') && proj.includes('/js/fab-dock.js'), 'the toolbar + FAB scripts are loaded');
 
   // Saving a preference persists and is applied on the next render.
   const res = await request(jar, 'POST', '/admin/nav-prefs', { form: { position: 'left', pinned: '0' } });
   assert.equal(res.status, 200, 'nav-prefs saves');
   const after = (await getText(jar, '/admin/dashboard')).text;
-  assert.match(after, /class="nav-dock nav-pos-left"/, 'the saved position is applied');
+  assert.match(after, /class="nav-dock nav-pos-left nav-labels-\w+"/, 'the saved position is applied');
   assert.ok(!/nav-pinned/.test(after.match(/class="nav-dock[^"]*"/)[0]), 'unpinned state is applied');
 
-  // Reset to the default so other tests see the normal chrome.
+  // Compact-nav + record action-toolbar label modes persist via /admin/ui-prefs.
+  const uiRes = await request(jar, 'POST', '/admin/ui-prefs', { form: { navLabels: 'icons', actionLabels: 'text' } });
+  assert.equal(uiRes.status, 200, 'ui-prefs saves label modes');
+  const afterUi = (await getText(jar, '/admin/dashboard')).text;
+  assert.match(afterUi, /nav-labels-icons/, 'the saved nav label mode is applied');
+  assert.match(afterUi, /data-action-labels="text"/, 'the saved action label mode is applied');
+
+  // Reset to the defaults so other tests see the normal chrome.
   await request(jar, 'POST', '/admin/nav-prefs', { form: { position: 'top', pinned: '1' } });
+  await request(jar, 'POST', '/admin/ui-prefs', { form: { navLabels: 'auto', actionLabels: 'icons' } });
 });
 
 test('the retired legacy ATO editor is gone', async () => {

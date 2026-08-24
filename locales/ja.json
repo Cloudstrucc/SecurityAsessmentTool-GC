@@ -3683,5 +3683,17 @@
   "hf.tReportNotFoundBody": "開けるレコードにいることを確認してください。レポートはそのレコードのページと同じアクセス権に従います。",
   "hf.tMfa": "MFA・サインインの問題：",
   "hf.tMfaBody": "パスキーを使うか、組織管理者に連絡して多要素認証をリセットしてください。",
-  "hf.footerNote": "まだ解決しませんか？ 任意のレコードページで Aegis SA アシスタントに尋ねるか、管理者に連絡してください。"
+  "hf.footerNote": "まだ解決しませんか？ 任意のレコードページで Aegis SA アシスタントに尋ねるか、管理者に連絡してください。",
+  "navd.labels": "メニューのラベル",
+  "navd.iconsOnly": "アイコンのみ",
+  "navd.iconText": "アイコン + タイトル",
+  "navd.labelsShortcut": "ショートカット: Ctrl / ⌘ + \\",
+  "navd.expand": "展開 / 折りたたみ",
+  "navd.more": "その他",
+  "ra.more": "その他",
+  "ra.menu": "メニュー",
+  "ra.dragToMove": "ドラッグして移動",
+  "ra.dockHere": "ここに固定",
+  "ra.labelsHint": "Ctrl / ⌘ + \\ でラベルを切り替え",
+  "ra.collaboration": "コラボレーション"
 }

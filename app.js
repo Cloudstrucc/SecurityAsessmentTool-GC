@@ -290,6 +290,9 @@ app.use((req, res, next) => {
       const navPos = ['top', 'left', 'right'].includes(req.user.nav_position) ? req.user.nav_position : 'top';
       res.locals.navPosition = navPos;
       res.locals.navPinned = req.user.nav_pinned == null ? 1 : Number(req.user.nav_pinned);
+      // Compact-nav label mode + record action-toolbar label mode (per-user saved defaults).
+      res.locals.navLabels = ['auto', 'icons', 'text'].includes(req.user.nav_labels) ? req.user.nav_labels : 'auto';
+      res.locals.actionLabels = ['icons', 'text'].includes(req.user.action_labels) ? req.user.action_labels : 'icons';
       const { get: dbGet } = require('./models/database');
       res.locals.unreadNotifications = dbGet('SELECT COUNT(*) c FROM notifications WHERE user_id = ? AND read_at IS NULL', [req.user.id])?.c || 0;
     } catch (e) { res.locals.aiStatus = null; }

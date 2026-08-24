@@ -3683,5 +3683,17 @@
   "hf.tReportNotFoundBody": "stellen Sie sicher, dass Sie einen Datensatz geöffnet haben, auf den Sie zugreifen dürfen; Berichte folgen demselben Zugriff wie die Datensatzseite.",
   "hf.tMfa": "MFA-/Anmeldeprobleme:",
   "hf.tMfaBody": "nutzen Sie die Passkey-Option oder wenden Sie sich an Ihren Organisationsadministrator, um die Multi-Faktor-Authentifizierung zurückzusetzen.",
-  "hf.footerNote": "Immer noch nicht weiter? Fragen Sie den Aegis SA-Assistenten auf einer beliebigen Datensatzseite oder wenden Sie sich an Ihren Administrator."
+  "hf.footerNote": "Immer noch nicht weiter? Fragen Sie den Aegis SA-Assistenten auf einer beliebigen Datensatzseite oder wenden Sie sich an Ihren Administrator.",
+  "navd.labels": "Menübeschriftungen",
+  "navd.iconsOnly": "Nur Symbole",
+  "navd.iconText": "Symbol + Titel",
+  "navd.labelsShortcut": "Tastenkürzel: Strg / ⌘ + \\",
+  "navd.expand": "Ein-/ausklappen",
+  "navd.more": "Mehr",
+  "ra.more": "Mehr",
+  "ra.menu": "Menü",
+  "ra.dragToMove": "Zum Verschieben ziehen",
+  "ra.dockHere": "Hier andocken",
+  "ra.labelsHint": "Strg / ⌘ + \\ schaltet Beschriftungen um",
+  "ra.collaboration": "Zusammenarbeit"
 }

@@ -148,3 +148,60 @@
 @media (max-width: 991px) {
   body.nav-dock .nav-dock-ctl, body.nav-dock .nav-hotzone { display:none !important; }
 }
+
+/* ═══ Compact nav — label modes (icons+tooltip ⇄ icon+title) ══════════════════
+   nav-dock.js wraps each nav link's text in <span class="nav-txt"> and sets a
+   native title (tooltip) so icon-only mode stays discoverable. Label mode is a
+   per-user saved default (nav-labels-auto|icons|text), flippable with Ctrl/⌘+\.
+   In "auto", the top bar shows icon+title (with a More overflow) and the side
+   rail shows icons+tooltip. Desktop only — small screens keep the hamburger. ── */
+.nav-pop-hint { font-size:10.5px; color:var(--cs-muted); margin-top:7px; }
+
+@media (min-width: 992px) {
+  /* ── TOP bar, icon-only mode: hide titles, centre icons, drop the label gap ── */
+  body.nav-dock.nav-pos-top.nav-labels-icons .gc-app-nav > li > a .nav-txt,
+  body.nav-dock.nav-pos-top.nav-labels-icons .gc-app-nav > li.dropdown > a .nav-txt { display:none; }
+  body.nav-dock.nav-pos-top.nav-labels-icons .gc-app-nav > li > a i,
+  body.nav-dock.nav-pos-top.nav-labels-icons .gc-app-nav > li.dropdown > a i { margin:0 !important; font-size:1.05rem; }
+  body.nav-dock.nav-pos-top.nav-labels-icons .gc-app-nav > li > a { padding:.5rem .62rem; }
+  /* keep the caret on dropdown toggles even without a label */
+  body.nav-dock.nav-pos-top.nav-labels-icons .gc-app-nav .dropdown-toggle::after { margin-left:.15rem; }
+
+  /* ── TOP "More" overflow (built by nav-dock.js in icon+title mode) ── */
+  .gc-app-nav .nav-more { position:relative; }
+  .gc-app-nav .nav-more > a.dropdown-toggle { cursor:pointer; }
+  .gc-app-nav .nav-more .dropdown-menu .dropdown-item { display:flex; align-items:center; gap:.5rem; }
+  .gc-app-nav .nav-more .dropdown-item.active { background:#eef6fd; color:var(--cs-nav); font-weight:600; }
+  /* hide the moved-into-More originals (JS toggles this class) */
+  .gc-app-nav > li.nav-hidden { display:none !important; }
+
+  /* ── SIDE RAIL: default icons+tooltip; widen to titles when text mode or expanded ── */
+  body.nav-dock.nav-pos-left:not(.nav-labels-text):not(.nav-rail-expanded),
+  body.nav-dock.nav-pos-right:not(.nav-labels-text):not(.nav-rail-expanded) { --rail-w:68px; }
+
+  body.nav-dock.nav-pos-left:not(.nav-labels-text):not(.nav-rail-expanded) .gc-app-nav .nav-txt,
+  body.nav-dock.nav-pos-right:not(.nav-labels-text):not(.nav-rail-expanded) .gc-app-nav .nav-txt { display:none; }
+  body.nav-dock.nav-pos-left:not(.nav-labels-text):not(.nav-rail-expanded) .gc-app-nav > li > a,
+  body.nav-dock.nav-pos-right:not(.nav-labels-text):not(.nav-rail-expanded) .gc-app-nav > li > a { justify-content:center; padding:.55rem 0; }
+  body.nav-dock.nav-pos-left:not(.nav-labels-text):not(.nav-rail-expanded) .gc-app-nav > li > a i,
+  body.nav-dock.nav-pos-right:not(.nav-labels-text):not(.nav-rail-expanded) .gc-app-nav > li > a i { margin:0 !important; font-size:1.15rem; }
+  /* collapsed rail: drop the dropdown caret; the submenu still opens on click below the icon */
+  body.nav-dock.nav-pos-left:not(.nav-labels-text):not(.nav-rail-expanded) .gc-app-nav .dropdown-toggle::after,
+  body.nav-dock.nav-pos-right:not(.nav-labels-text):not(.nav-rail-expanded) .gc-app-nav .dropdown-toggle::after { display:none; }
+  /* the collapsed rail's flyout menus overlay to the side instead of pushing width */
+  body.nav-dock.nav-pos-left:not(.nav-labels-text):not(.nav-rail-expanded) .gc-app-nav .dropdown-menu,
+  body.nav-dock.nav-pos-right:not(.nav-labels-text):not(.nav-rail-expanded) .gc-app-nav .dropdown-menu {
+    position:absolute !important; left:100% !important; top:0 !important; padding-left:.35rem;
+    background:#fff; border:1px solid var(--cs-border) !important; box-shadow:0 8px 22px rgba(15,32,54,.16) !important;
+    border-radius:8px; min-width:190px;
+  }
+  body.nav-dock.nav-pos-right:not(.nav-labels-text):not(.nav-rail-expanded) .gc-app-nav .dropdown-menu {
+    left:auto !important; right:100% !important;
+  }
+  .gc-app-bar { transition:width .2s cubic-bezier(.4,0,.2,1); }
+
+  /* The rail expand button flips its chevron when expanded */
+  body.nav-dock.nav-rail-expanded .nav-rail-ctl [data-nav-act="expand"] i { transform:rotate(180deg); }
+  /* hide the rail's own expand button when the rail is showing titles anyway (text mode) */
+  body.nav-dock.nav-labels-text .nav-rail-ctl [data-nav-act="expand"] { display:none; }
+}

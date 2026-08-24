@@ -6,7 +6,7 @@
       <p class="text-muted mb-0">{{dp.reference}} — {{project.name}}
         <span class="badge bg-dark ms-1">{{t (dpStateKey dp.state)}}</span></p>
     </div>
-    {{> export-menu type="poam" id=dp.id}}
+    <div class="d-flex gap-2 record-actions">{{> export-menu type="poam" id=dp.id}}</div>
   </div>
 
   <div class="card mb-4">
