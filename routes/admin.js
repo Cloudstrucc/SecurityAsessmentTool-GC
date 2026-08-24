@@ -1139,8 +1139,13 @@ router.get('/security-controls.csv', ensureAuthenticated, (req, res) => {
 });
 
 router.get('/help', ensureAuthenticated, (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'docs', 'client-assessor-guide.html'));
+  res.render('admin/help', {
+    title: req.t ? req.t('hf.title') : 'Help', isHelp: true, admin: req.user
+  });
 });
+
+// The old standalone assistant-help page is now a section of the help centre.
+router.get('/assistant-help', ensureAuthenticated, (req, res) => res.redirect('/admin/help?section=assistant'));
 
 router.get('/assets/guide/:file', ensureAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'docs', 'assets', 'guide', path.basename(req.params.file)));

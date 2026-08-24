@@ -52,11 +52,9 @@ router.get('/portal', (req, res) => {
   });
 });
 
-// How-to page for the Aegis SA Assistant (opened from the assistant's ? icon).
-// Public so it works from both admin pages and the code-gated evidence portal.
-router.get('/assistant-help', (req, res) => {
-  res.render('assistant-help', { title: req.t ? req.t('ah.metaTitle') : 'Aegis SA Assistant — How to use', layout: 'home' });
-});
+// The Aegis SA Assistant how-to is now a section of the signed-in help centre.
+// Redirect the old public URL there (auth will prompt a sign-in if needed).
+router.get('/assistant-help', (req, res) => res.redirect('/admin/help?section=assistant'));
 
 // Product brief — served through the app so it gets the site header, the
 // language switcher, and full i18n. (Both paths kept: the old static URL

@@ -1,0 +1,303 @@
+<div class="container help-page">
+  <div class="page-head mb-3">
+    <h1 class="h3 mb-1">{{t 'hf.title'}}</h1>
+    <div class="rule"></div>
+    <p class="text-muted mb-0">{{t 'hf.intro'}}</p>
+  </div>
+
+  <div class="help-layout">
+    {{!-- ── Sticky table of contents ── --}}
+    <nav class="help-toc" aria-label="{{t 'hf.contents'}}">
+      <div class="help-toc-inner">
+        <div class="toc-label">{{t 'hf.contents'}}</div>
+        <a href="?section=getting-started" data-sec="getting-started"><i class="bi bi-compass"></i> {{t 'hf.sGettingStarted'}}</a>
+        <a href="?section=projects" data-sec="projects"><i class="bi bi-folder2-open"></i> {{t 'hf.sProjects'}}</a>
+        <a href="?section=assessments" data-sec="assessments"><i class="bi bi-clipboard-check"></i> {{t 'hf.sAssessments'}}</a>
+        <a href="?section=evidence" data-sec="evidence"><i class="bi bi-paperclip"></i> {{t 'hf.sEvidence'}}</a>
+        <a href="?section=decisions" data-sec="decisions"><i class="bi bi-award"></i> {{t 'hf.sDecisions'}}</a>
+        <a href="?section=poam" data-sec="poam"><i class="bi bi-list-check"></i> {{t 'hf.sPoam'}}</a>
+        <a href="?section=reports" data-sec="reports"><i class="bi bi-file-earmark-bar-graph"></i> {{t 'hf.sReports'}}</a>
+        <a href="?section=settings" data-sec="settings"><i class="bi bi-sliders"></i> {{t 'hf.sSettings'}}</a>
+        <a href="?section=navigation" data-sec="navigation"><i class="bi bi-layout-sidebar"></i> {{t 'hf.sNavigation'}}</a>
+        <a href="?section=assistant" data-sec="assistant"><i class="bi bi-robot"></i> {{t 'hf.sAssistant'}}</a>
+        <a href="?section=troubleshooting" data-sec="troubleshooting"><i class="bi bi-life-preserver"></i> {{t 'hf.sTrouble'}}</a>
+      </div>
+    </nav>
+
+    {{!-- ── Content ── --}}
+    <div class="help-content">
+
+      <section id="getting-started" class="help-sec">
+        <h2><i class="bi bi-compass"></i> {{t 'hf.sGettingStarted'}}</h2>
+        <p>Aegis SA is a security assessment &amp; authorization (SA&amp;A) platform. You sign in as an
+          <b>assessor / administrator</b> or as an invited <b>project member</b>; multi-factor authentication
+          (MFA) is available and can be enforced org-wide. After signing in you land on your <b>Dashboard</b>,
+          which summarises your projects, active assessments, pending audits, authorizations, intakes and
+          pre-assessments.</p>
+        <ul>
+          <li><b>Administrators</b> see the full workspace and every project in their organization.</li>
+          <li><b>Project members</b> see only the projects and assessments they're assigned to.</li>
+          <li><b>Language</b> — switch anytime from the globe menu (top right); the whole UI is available in
+            8 languages.</li>
+        </ul>
+      </section>
+
+      <section id="projects" class="help-sec">
+        <h2><i class="bi bi-folder2-open"></i> {{t 'hf.sProjects'}}</h2>
+        <p>A <b>project</b> is the system under assessment. Create one from <b>Projects → New Project</b>, or
+          from an <b>intake</b> — the short profile a client submits (classification, C/I/A, PII, hosting,
+          technologies, contacts). Accepting an intake creates or updates its project.</p>
+        <ul>
+          <li><b>Documents</b> — upload the system security plan, TRA, test results and provider attestations
+            on the project page; they're available to the assessment and listed on the project report.</li>
+          <li><b>Report branding</b> — set an organization name, logo, colours and footer on the project's
+            <b>Report branding</b> card. Branding resolves <i>project → organization → platform default</i>,
+            so a project can override the org defaults (see <a href="?section=settings">Organization settings</a>).</li>
+          <li><b>Archive / delete</b> — archive hides a project from lists (reversible); delete requires typing
+            the exact name and purges it with its assessments.</li>
+        </ul>
+      </section>
+
+      <section id="assessments" class="help-sec">
+        <h2><i class="bi bi-clipboard-check"></i> {{t 'hf.sAssessments'}}</h2>
+        <p>An <b>assessment</b> is the SA&amp;A record for a system: a tailored control set, evidence, audit
+          results and the authorization decision. Create one from the project page, choose the framework and
+          profile (e.g. ITSG-33 PBMM), then <b>Tailor</b> the controls — mark applicability, inheritance and
+          priority.</p>
+        <ul>
+          <li><b>Versioning</b> — assessments are append-only. Each meaningful change creates a new version
+            you can view or revert to (reverting creates a <i>new</i> version, never overwriting one), giving
+            a full audit trail.</li>
+          <li><b>Control families</b> — the assessment groups controls by family; the assessment report scores
+            posture per family.</li>
+        </ul>
+      </section>
+
+      <section id="evidence" class="help-sec">
+        <h2><i class="bi bi-paperclip"></i> {{t 'hf.sEvidence'}}</h2>
+        <p>For each control, the system owner records <b>evidence</b> (text + attachments) and the assessor
+          records an <b>audit result</b> (satisfied / partially satisfied / not satisfied) with comments.</p>
+        <ul>
+          <li><b>AI evidence guidance</b> — from an assessment you can ask the Aegis SA Assistant to draft
+            evidence guidance from the uploaded documentation. You review a preview before anything is saved;
+            token usage is metered against your plan unless you bring your own AI provider.</li>
+        </ul>
+      </section>
+
+      <section id="decisions" class="help-sec">
+        <h2><i class="bi bi-award"></i> {{t 'hf.sDecisions'}}</h2>
+        <p>Authorization lives in a <b>decision package</b> (the iATO / ATO). A package <b>pins</b> a specific
+          assessment version, so the decision always reflects exactly what was authorized — even as work
+          continues on later assessment versions.</p>
+        <ul>
+          <li>Draft the executive summary, residual-risk statement, conditions and rationale; capture the
+            authorizing official, assessor and expiry; then advance the package through its states
+            (recommended → decided → issued). An issued package is sealed.</li>
+          <li>Editorial fields are versioned with an audit trail; a package can be reverted like an assessment
+            (until it's issued).</li>
+        </ul>
+      </section>
+
+      <section id="poam" class="help-sec">
+        <h2><i class="bi bi-list-check"></i> {{t 'hf.sPoam'}}</h2>
+        <p>A <b>Plan of Action &amp; Milestones (POA&amp;M)</b> item is a condition on an interim authorization:
+          the work required before a full ATO. POA&amp;M items belong to the <b>decision package</b>, not the
+          assessment.</p>
+        <ul>
+          <li>Each item runs a small review loop — the team submits evidence; the assessor accepts, rejects
+            (with feedback) or defers it.</li>
+          <li><b>Promotion to full ATO is blocked</b> while any item is overdue, deferred or outstanding.
+            Deadline changes keep a history (original date, every change, and the reason).</li>
+        </ul>
+      </section>
+
+      <section id="reports" class="help-sec">
+        <span class="new-badge">{{t 'hf.new'}}</span>
+        <h2><i class="bi bi-file-earmark-bar-graph"></i> {{t 'hf.sReports'}}</h2>
+        <p>Every record has a built-in, <b>deterministic</b> report — a straight render of the record, no AI.
+          Use the <b>Export</b> button on an intake, assessment, project, decision package or POA&amp;M page:
+          it opens a quick menu to download <b>PDF, Word, HTML or Markdown</b> (plus <b>CSV</b> where the data
+          is tabular), or <b>Open full report</b> for the on-screen viewer.</p>
+        <ul>
+          <li><b>Reports hub</b> (<i>Reports</i> in the menu) lists everything you can report on, plus a
+            <b>Report templates</b> catalog of the six built-in report types and an org <b>Portfolio</b>
+            summary (admins).</li>
+          <li><b>Branding</b> — reports use the resolved project/org branding (logo, colours, footer,
+            classification banner).</li>
+          <li><b>Reproducible</b> — decision-package and POA&amp;M reports render the pinned assessment
+            version, so they reproduce exactly.</li>
+          <li>Custom, AI-generated reports are on the roadmap; today's reports never use AI.</li>
+        </ul>
+      </section>
+
+      <section id="settings" class="help-sec">
+        <span class="new-badge">{{t 'hf.new'}}</span>
+        <h2><i class="bi bi-sliders"></i> {{t 'hf.sSettings'}}</h2>
+        <p>Root administrators manage tenant-wide settings under <b>Admin → Organization settings</b>:</p>
+        <ul>
+          <li><b>Bring your own integrations</b> — your own <b>SMTP</b> mail server, <b>SMS</b> provider and
+            a <b>custom domain</b>, instead of the platform defaults. Each has a real validation check (DNS
+            lookup, SMTP/SMS connection) with a last-verified timestamp and a 24-hour log.</li>
+          <li><b>AI provider</b> — use the built-in AI (metered against your plan) or bring your own
+            frontier-model API (Anthropic, OpenAI, xAI, Google) or a custom OpenAI-compatible endpoint. With
+            your own provider you pay that provider directly and no platform tokens are consumed.</li>
+          <li><b>Report branding</b> — org-level logo, colours and footer inherited by every project.</li>
+          <li><b>Notifications</b> — control mention notifications (in-app immediate; email digests are
+            link-only by default).</li>
+          <li><b>Security</b> — tenant secrets (SMTP password, SMS token, AI keys) are encrypted at rest.</li>
+        </ul>
+      </section>
+
+      <section id="navigation" class="help-sec">
+        <span class="new-badge">{{t 'hf.new'}}</span>
+        <h2><i class="bi bi-layout-sidebar"></i> {{t 'hf.sNavigation'}}</h2>
+        <p>The menu is <b>dockable per user</b>. Use the menu-settings control (the <i class="bi bi-sliders"></i>
+          button in the breadcrumb bar when the menu is on top, or the cluster at the bottom of the rail when
+          it's on the side) to:</p>
+        <ul>
+          <li><b>Position</b> — dock the menu <b>top, left or right</b>.</li>
+          <li><b>Pin</b> — keep it always visible, or unpin to let it auto-hide (reveal it by moving to the
+            docked edge).</li>
+          <li><b>Set as default</b> (the star) — save your current position + pin as your default for every
+            sign-in. The star lights up when the current view matches your saved default.</li>
+        </ul>
+        <p>The <b>breadcrumb</b> under the menu always shows where you are (Home › Section › Record).</p>
+      </section>
+
+      <section id="assistant" class="help-sec">
+        <h2><i class="bi bi-robot"></i> {{t 'ah.heroTitle'}}</h2>
+        <p class="text-muted">{{t 'ah.heroSub'}}</p>
+
+        <h3>{{t 'ah.s1Title'}}</h3>
+        <p>{{t 'ah.s1Body'}}</p>
+
+        <h3>{{t 'ah.s2Title'}}</h3>
+        <p>{{t 'ah.s2Intro'}}</p>
+        <ul>
+          <li><b>{{t 'ah.s2Li1a'}}</b> {{t 'ah.s2Li1b'}}</li>
+          <li><b>{{t 'ah.s2Li2a'}}</b> {{t 'ah.s2Li2b'}}</li>
+          <li><b>{{t 'ah.s2Li3a'}}</b> {{t 'ah.s2Li3b'}}</li>
+        </ul>
+
+        <h3>{{t 'ah.s3Title'}}</h3>
+        <div class="help-cards">
+          <div class="help-card"><div class="tag">{{t 'ah.tagCreate'}}</div><b>{{t 'ah.c1Title'}}</b><span>{{t 'ah.c1Body'}}</span></div>
+          <div class="help-card"><div class="tag">{{t 'ah.tagReview'}}</div><b>{{t 'ah.c2Title'}}</b><span>{{t 'ah.c2Body'}}</span></div>
+          <div class="help-card"><div class="tag">{{t 'ah.tagEvidence'}}</div><b>{{t 'ah.c3Title'}}</b><span>{{t 'ah.c3Body'}}</span></div>
+        </div>
+
+        <h3>{{t 'ah.s4Title'}}</h3>
+        <p>{{t 'ah.s4Intro'}}</p>
+        <ul class="help-ex">
+          <li><i class="bi bi-arrow-return-right"></i> {{t 'ah.ex1'}}</li>
+          <li><i class="bi bi-arrow-return-right"></i> {{t 'ah.ex2'}}</li>
+          <li><i class="bi bi-arrow-return-right"></i> {{t 'ah.ex3'}}</li>
+          <li><i class="bi bi-arrow-return-right"></i> {{t 'ah.ex4'}}</li>
+        </ul>
+
+        <h3>{{t 'ah.s5Title'}}</h3>
+        <p>{{t 'ah.s5Intro'}}</p>
+        <ul>
+          <li><b>{{t 'ah.s5Li1a'}}</b> {{t 'ah.s5Li1b'}}</li>
+          <li><b>{{t 'ah.s5Li2a'}}</b> {{t 'ah.s5Li2b'}}</li>
+        </ul>
+        <div class="help-note"><i class="bi bi-shield-check"></i> {{t 'ah.s5Note'}}</div>
+
+        <h3>{{t 'ah.s6Title'}}</h3>
+        <p>{{t 'ah.s6Body'}}</p>
+      </section>
+
+      <section id="troubleshooting" class="help-sec">
+        <h2><i class="bi bi-life-preserver"></i> {{t 'hf.sTrouble'}}</h2>
+        <ul>
+          <li><b>{{t 'ah.g1a'}}</b> {{t 'ah.g1b'}}</li>
+          <li><b>{{t 'ah.g2a'}}</b> {{t 'ah.g2b'}}</li>
+          <li><b>{{t 'ah.g3a'}}</b> {{t 'ah.g3b'}}</li>
+          <li><b>{{t 'hf.tReportNotFound'}}</b> {{t 'hf.tReportNotFoundBody'}}</li>
+          <li><b>{{t 'hf.tMfa'}}</b> {{t 'hf.tMfaBody'}}</li>
+        </ul>
+        <p class="text-muted small mt-3">{{t 'hf.footerNote'}}</p>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  .help-page .rule{height:3px;width:56px;background:var(--cs-grad);border-radius:2px;margin-top:.4rem}
+  .help-layout{display:grid;grid-template-columns:240px 1fr;gap:28px;align-items:start}
+  .help-toc{position:sticky;top:16px}
+  .help-toc-inner{background:#fff;border:1px solid var(--cs-border);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:2px}
+  .help-toc .toc-label{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--cs-muted);padding:6px 10px 8px}
+  .help-toc a{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;color:var(--cs-link);text-decoration:none;font-size:.9rem}
+  .help-toc a:hover{background:#f1f5f9}
+  .help-toc a.active{background:#eef6fd;color:var(--cs-nav);font-weight:700}
+  .help-toc a .bi{font-size:1rem;width:18px;text-align:center}
+  .help-content{min-width:0}
+  .help-sec{background:#fff;border:1px solid var(--cs-border);border-radius:14px;padding:20px 24px;margin-bottom:18px;scroll-margin-top:16px;position:relative}
+  .help-sec h2{font-size:1.25rem;display:flex;align-items:center;gap:10px;margin:0 0 12px;color:var(--cs-blue)}
+  .help-sec h3{font-size:1rem;color:var(--cs-blue);margin:18px 0 6px}
+  .help-sec p{margin:0 0 10px;line-height:1.65}
+  .help-sec ul{margin:0 0 10px;padding-left:1.1rem}
+  .help-sec li{margin-bottom:6px;line-height:1.6}
+  .help-sec .new-badge{position:absolute;top:16px;right:18px;background:#eaf7f1;border:1px solid #8fd0b3;color:#1c6f4a;font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;padding:2px 9px;border-radius:20px}
+  .help-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:6px 0 10px}
+  .help-card{border:1px solid var(--cs-border);border-radius:10px;padding:11px 13px;background:#fbfdff;display:flex;flex-direction:column;gap:3px}
+  .help-card .tag{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--cs-accent-dk)}
+  .help-card b{color:var(--cs-blue)} .help-card span{font-size:.86rem;color:var(--cs-muted)}
+  .help-ex{list-style:none;padding-left:0}
+  .help-ex li{display:flex;gap:8px;align-items:flex-start;background:#f6f9fc;border:1px solid var(--cs-border);border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:.9rem}
+  .help-ex .bi{color:var(--cs-accent-dk)}
+  .help-note{display:flex;gap:9px;align-items:flex-start;background:#eef6fd;border:1px solid #cfe4f6;border-radius:8px;padding:10px 13px;font-size:.9rem;color:var(--cs-text)}
+  .help-note .bi{color:var(--cs-accent-dk);font-size:1.1rem}
+  @media(max-width:860px){.help-layout{grid-template-columns:1fr}.help-toc{position:static}.help-toc-inner{flex-direction:row;flex-wrap:wrap;overflow-x:auto}}
+</style>
+
+<script>
+(function(){
+  var toc = document.querySelectorAll('.help-toc a[data-sec]');
+  var secs = document.querySelectorAll('.help-sec');
+  var lockUntil = 0; // while set (deep-link / click settling), the scroll-spy won't fight the URL
+  function setActive(id){
+    toc.forEach(function(a){ a.classList.toggle('active', a.getAttribute('data-sec')===id); });
+  }
+  function updateUrl(id){ try{ history.replaceState(null,'','?section='+id); }catch(e){} }
+  function scrollToSection(id, smooth){
+    var el = document.getElementById(id); if(!el) return;
+    el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+  }
+  // Click a TOC item → scroll + update URL (no full navigation).
+  toc.forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var id = a.getAttribute('data-sec');
+      lockUntil = Date.now() + 700;
+      setActive(id); updateUrl(id); scrollToSection(id, true);
+    });
+  });
+  // Scroll-spy: reflect the section in view in the TOC + the URL (unless locked).
+  if('IntersectionObserver' in window){
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting && Date.now() > lockUntil){ setActive(en.target.id); updateUrl(en.target.id); }
+      });
+    }, { rootMargin:'-20% 0px -70% 0px', threshold:0 });
+    secs.forEach(function(s){ obs.observe(s); });
+  }
+  // Deep link: /admin/help?section=slug (also accepts a bare ?slug like ?assistant).
+  function initialSection(){
+    var p = new URLSearchParams(location.search);
+    if(p.get('section') && document.getElementById(p.get('section'))) return p.get('section');
+    for(var k of p.keys()){ if(document.getElementById(k)) return k; } // ?assistant
+    return null;
+  }
+  var start = initialSection();
+  if(start && start !== 'getting-started'){
+    lockUntil = Date.now() + 1200; // don't let the observer overwrite the deep link while we settle
+    setActive(start);
+    // Wait for fonts/layout, then jump precisely.
+    window.addEventListener('load', function(){ setTimeout(function(){ scrollToSection(start); updateUrl(start); }, 80); });
+    setTimeout(function(){ scrollToSection(start); }, 250);
+  } else { setActive('getting-started'); }
+})();
+</script>
