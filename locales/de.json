@@ -3648,5 +3648,6 @@
   "rf.entity_project": "Projekt",
   "rf.entity_organization": "Organisation",
   "navbar.reports": "Berichte",
-  "rf.export": "Exportieren"
+  "rf.export": "Exportieren",
+  "rf.openFullReport": "Vollständigen Bericht öffnen"
 }

@@ -180,12 +180,7 @@
         </div>
       </div>
 
-      <a href="/admin/reports/decision-package/{{dp.id}}" class="btn btn-primary btn-sm mb-2 d-block">
-        <i class="bi bi-box-arrow-up me-1"></i>{{t 'rf.export'}}
-      </a>
-      <a href="/admin/reports/poam/{{dp.id}}" class="btn btn-outline-primary btn-sm mb-2 d-block">
-        <i class="bi bi-list-check me-1"></i>{{t 'rf.poamRegister'}}
-      </a>
+      <div class="mb-2">{{> export-menu type="decision-package" id=dp.id}}</div>
 
       {{#neq dp.state 'issued'}}
       <form method="POST" action="/admin/decision-packages/{{dp.id}}/delete"

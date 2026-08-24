@@ -66,11 +66,12 @@ function fmtDate(v) {
 }
 
 // ── tenant guards ──
-function projectForOrg(projectId, orgId) {
-  const p = get('SELECT * FROM projects WHERE id = ?', [projectId]);
-  if (!p) return null;
-  if (orgId && p.organization_id && Number(p.organization_id) !== Number(orgId)) return null;
-  return p;
+// Fetch a project for report CONTENT. Access control (who may run the report) is
+// enforced by the route (routes/reports.js), consistent with the rest of the admin
+// app — the model must not second-guess it with its own org check, or an admin who
+// can open a record's page would get a false "Report not found" on export.
+function projectForOrg(projectId, _orgId) {
+  return get('SELECT * FROM projects WHERE id = ?', [projectId]) || null;
 }
 
 function meta(kind, req) {

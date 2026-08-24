@@ -46,17 +46,13 @@ function assignedToProject(userId, projectId) {
   return rows.length > 0;
 }
 
-/** Does this user's org own this project? Prevents cross-tenant report reads. */
-function sameTenant(user, project) {
-  if (!project) return false;
-  const orgId = user && user.organization_id;
-  if (!orgId || !project.organization_id) return true; // single-tenant / legacy rows
-  return Number(project.organization_id) === Number(orgId);
-}
-
 /**
  * Authorize a (type, id) request. Returns { ok, project } or { ok:false, code }.
- * Admins pass on tenant match alone; non-admins additionally need an assignment.
+ *
+ * Access mirrors the rest of the admin app: an admin who can open a record's page
+ * can export its report (the admin pages themselves are not org-scoped, so the
+ * report route must not be stricter — that produced false "Report not found"
+ * errors). Non-admins may export only records they are assigned to.
  */
 function authorize(req, type, id) {
   const user = req.user;
@@ -67,7 +63,7 @@ function authorize(req, type, id) {
   }
   if (type === 'project') {
     const project = get('SELECT * FROM projects WHERE id = ?', [id]);
-    if (!project || !sameTenant(user, project)) return { ok: false, code: 404 };
+    if (!project) return { ok: false, code: 404 };
     if (admin) return { ok: true, project };
     return assignedToProject(user.id, id) ? { ok: true, project } : { ok: false, code: 403 };
   }
@@ -75,18 +71,14 @@ function authorize(req, type, id) {
     const a = get('SELECT * FROM assessments WHERE id = ?', [id]);
     if (!a) return { ok: false, code: 404 };
     const project = get('SELECT * FROM projects WHERE id = ?', [a.project_id]);
-    if (!sameTenant(user, project)) return { ok: false, code: 404 };
     if (admin) return { ok: true, project };
     return assignedToAssessment(user.id, id) ? { ok: true, project } : { ok: false, code: 403 };
   }
   if (type === 'intake') {
     const it = get('SELECT * FROM intake_submissions WHERE id = ?', [id]);
     if (!it) return { ok: false, code: 404 };
-    // An intake may not be linked to a project yet; scope by project when it is.
     const project = it.project_id ? get('SELECT * FROM projects WHERE id = ?', [it.project_id]) : null;
-    if (project && !sameTenant(user, project)) return { ok: false, code: 404 };
     if (admin) return { ok: true, project };
-    // Non-admins: assigned to the intake, or to its project.
     const viaIntake = all(`SELECT 1 FROM assessment_assignments
       WHERE entity_type = 'intake' AND entity_id = ? AND assigned_to = ? AND status != 'revoked'`, [id, user.id]).length > 0;
     const viaProject = it.project_id && assignedToProject(user.id, it.project_id);
@@ -96,7 +88,6 @@ function authorize(req, type, id) {
     const dp = get('SELECT * FROM decision_packages WHERE id = ?', [id]);
     if (!dp) return { ok: false, code: 404 };
     const project = get('SELECT * FROM projects WHERE id = ?', [dp.project_id]);
-    if (!sameTenant(user, project)) return { ok: false, code: 404 };
     if (admin) return { ok: true, project };
     const viaAssessment = dp.assessment_id && assignedToAssessment(user.id, dp.assessment_id);
     const viaProject = assignedToProject(user.id, dp.project_id);
