@@ -26,7 +26,7 @@ function initializePassport() {
     try {
       const user = get(`SELECT id, email, name, role, title, organization, is_break_glass,
         organization_id, account_type, is_licensed, is_root_admin, must_reenroll_mfa,
-        nav_position, nav_pinned
+        nav_position, nav_pinned, nav_labels, action_labels
         FROM users WHERE id = ?`, [id]);
       done(null, user);
     } catch (err) {

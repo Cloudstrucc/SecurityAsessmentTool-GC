@@ -3683,5 +3683,17 @@
   "hf.tReportNotFoundBody": "verifique se você está em um registro que pode abrir; os relatórios seguem o mesmo acesso da página do registro.",
   "hf.tMfa": "Problemas de MFA / login:",
   "hf.tMfaBody": "use a opção de chave de acesso ou contate o administrador da sua organização para redefinir a autenticação multifator.",
-  "hf.footerNote": "Ainda com dúvidas? Pergunte ao assistente Aegis SA em qualquer página de registro ou contate seu administrador."
+  "hf.footerNote": "Ainda com dúvidas? Pergunte ao assistente Aegis SA em qualquer página de registro ou contate seu administrador.",
+  "navd.labels": "Rótulos do menu",
+  "navd.iconsOnly": "Apenas ícones",
+  "navd.iconText": "Ícone + título",
+  "navd.labelsShortcut": "Atalho: Ctrl / ⌘ + \\",
+  "navd.expand": "Expandir / recolher",
+  "navd.more": "Mais",
+  "ra.more": "Mais",
+  "ra.menu": "Menu",
+  "ra.dragToMove": "Arraste para mover",
+  "ra.dockHere": "Encaixar aqui",
+  "ra.labelsHint": "Ctrl / ⌘ + \\ alterna rótulos",
+  "ra.collaboration": "Colaboração"
 }

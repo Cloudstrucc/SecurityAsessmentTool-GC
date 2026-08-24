@@ -3705,5 +3705,17 @@
   "hf.tReportNotFoundBody": "assurez-vous d'être sur un enregistrement accessible ; les rapports suivent les mêmes accès que la page de l'enregistrement.",
   "hf.tMfa": "Problèmes de MFA / connexion :",
   "hf.tMfaBody": "utilisez l'option de clé d'accès ou contactez l'administrateur de votre organisation pour réinitialiser l'authentification multifacteur.",
-  "hf.footerNote": "Toujours bloqué ? Interrogez l'assistant Aegis SA sur n'importe quelle page d'enregistrement, ou contactez votre administrateur."
+  "hf.footerNote": "Toujours bloqué ? Interrogez l'assistant Aegis SA sur n'importe quelle page d'enregistrement, ou contactez votre administrateur.",
+  "navd.labels": "Étiquettes du menu",
+  "navd.iconsOnly": "Icônes seules",
+  "navd.iconText": "Icône + titre",
+  "navd.labelsShortcut": "Raccourci : Ctrl / ⌘ + \\",
+  "navd.expand": "Développer / réduire",
+  "navd.more": "Plus",
+  "ra.more": "Plus",
+  "ra.menu": "Menu",
+  "ra.dragToMove": "Glisser pour déplacer",
+  "ra.dockHere": "Ancrer ici",
+  "ra.labelsHint": "Ctrl / ⌘ + \\ bascule les étiquettes",
+  "ra.collaboration": "Collaboration"
 }

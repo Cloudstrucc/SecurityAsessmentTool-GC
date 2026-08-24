@@ -1031,6 +1031,29 @@ router.post('/nav-prefs', ensureAuthenticated, (req, res) => {
   }
 });
 
+// Persist the compact-nav label mode and/or the record action-toolbar label mode.
+// Called (fire-and-forget) when the user flips icons ⇄ icon+text via the keyboard
+// shortcut or the menu-settings toggle; only the fields supplied are updated.
+router.post('/ui-prefs', ensureAuthenticated, (req, res) => {
+  const sets = [], params = [];
+  if (typeof req.body.navLabels !== 'undefined') {
+    const v = ['auto', 'icons', 'text'].includes(req.body.navLabels) ? req.body.navLabels : 'auto';
+    sets.push('nav_labels = ?'); params.push(v);
+  }
+  if (typeof req.body.actionLabels !== 'undefined') {
+    const v = ['icons', 'text'].includes(req.body.actionLabels) ? req.body.actionLabels : 'icons';
+    sets.push('action_labels = ?'); params.push(v);
+  }
+  if (!sets.length) return res.json({ ok: true });
+  try {
+    params.push(req.user.id);
+    run(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`, params);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ ok: false });
+  }
+});
+
 router.get('/dashboard', ensureAuthenticated, (req, res) => {
   const projects = all('SELECT * FROM projects WHERE archived_at IS NULL ORDER BY updated_at DESC LIMIT 10');
   const assessments = all(`

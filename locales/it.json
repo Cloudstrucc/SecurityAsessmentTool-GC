@@ -3683,5 +3683,17 @@
   "hf.tReportNotFoundBody": "assicurati di essere su un record che puoi aprire; i rapporti seguono lo stesso accesso della pagina del record.",
   "hf.tMfa": "Problemi di MFA / accesso:",
   "hf.tMfaBody": "usa l'opzione passkey o contatta l'amministratore della tua organizzazione per reimpostare l'autenticazione a più fattori.",
-  "hf.footerNote": "Ancora bloccato? Chiedi all'assistente Aegis SA in qualsiasi pagina di record o contatta il tuo amministratore."
+  "hf.footerNote": "Ancora bloccato? Chiedi all'assistente Aegis SA in qualsiasi pagina di record o contatta il tuo amministratore.",
+  "navd.labels": "Etichette del menu",
+  "navd.iconsOnly": "Solo icone",
+  "navd.iconText": "Icona + titolo",
+  "navd.labelsShortcut": "Scorciatoia: Ctrl / ⌘ + \\",
+  "navd.expand": "Espandi / comprimi",
+  "navd.more": "Altro",
+  "ra.more": "Altro",
+  "ra.menu": "Menu",
+  "ra.dragToMove": "Trascina per spostare",
+  "ra.dockHere": "Ancora qui",
+  "ra.labelsHint": "Ctrl / ⌘ + \\ attiva/disattiva le etichette",
+  "ra.collaboration": "Collaborazione"
 }

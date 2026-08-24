@@ -241,7 +241,7 @@
   </style>
   {{#if extraStyles}}{{{extraStyles}}}{{/if}}
 </head>
-<body vocab="http://schema.org/" typeof="WebPage"{{#if user}} class="nav-dock nav-pos-{{navPosition}}{{#if navPinned}} nav-pinned{{/if}}" data-nav-default-pos="{{navPosition}}" data-nav-default-pinned="{{navPinned}}"{{/if}}>
+<body vocab="http://schema.org/" typeof="WebPage"{{#if user}} class="nav-dock nav-pos-{{navPosition}}{{#if navPinned}} nav-pinned{{/if}} nav-labels-{{navLabels}}" data-nav-default-pos="{{navPosition}}" data-nav-default-pinned="{{navPinned}}" data-nav-default-labels="{{navLabels}}" data-action-labels="{{actionLabels}}" data-more-label="{{t 'navd.more'}}"{{/if}}>
 
   {{#if user}}
   <!-- Edge-reveal hotzones (shown only when the menu is unpinned) -->
@@ -372,6 +372,7 @@
         {{!-- Rail cluster (left/right mode); the top-mode expander lives in the breadcrumb bar --}}
         <div class="nav-dock-ctl nav-rail-ctl">
           <div class="crow">
+            <button type="button" class="nav-cbtn" data-nav-act="expand" title="{{t 'navd.expand'}}" aria-label="{{t 'navd.expand'}}"><i class="bi bi-chevron-double-right"></i></button>
             <button type="button" class="nav-cbtn" data-nav-act="pin" title="{{t 'navd.pin'}}"><i class="bi bi-pin-angle"></i></button>
             <div class="nav-posseg">
               <button type="button" class="nav-segbtn" data-nav-pos="top" title="{{t 'navd.top'}}"><i class="bi bi-window"></i></button>
@@ -405,6 +406,12 @@
             <button type="button" class="pbtn" data-nav-act="pin" title="{{t 'navd.pin'}}" aria-label="{{t 'navd.pin'}}"><i class="bi bi-pin-angle"></i></button>
             <button type="button" class="pbtn" data-nav-act="star" title="{{t 'navd.setDefault'}}" aria-label="{{t 'navd.setDefault'}}"><i class="bi bi-star"></i></button>
           </div>
+          <div class="ph">{{t 'navd.labels'}}</div>
+          <div class="prow">
+            <button type="button" class="pbtn" data-nav-labels="icons" title="{{t 'navd.iconsOnly'}}" aria-label="{{t 'navd.iconsOnly'}}"><i class="bi bi-grid-3x3-gap"></i></button>
+            <button type="button" class="pbtn" data-nav-labels="text" title="{{t 'navd.iconText'}}" aria-label="{{t 'navd.iconText'}}"><i class="bi bi-text-left"></i></button>
+          </div>
+          <div class="nav-pop-hint">{{t 'navd.labelsShortcut'}}</div>
         </div>
       </div>
     </div>

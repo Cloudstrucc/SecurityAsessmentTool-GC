@@ -3683,5 +3683,17 @@
   "hf.tReportNotFoundBody": "zorg dat je op een record zit dat je kunt openen; rapporten volgen dezelfde toegang als de recordpagina.",
   "hf.tMfa": "MFA-/aanmeldproblemen:",
   "hf.tMfaBody": "gebruik de passkey-optie of neem contact op met je organisatiebeheerder om multifactorauthenticatie te resetten.",
-  "hf.footerNote": "Nog steeds vast? Vraag het de Aegis SA-assistent op elke recordpagina of neem contact op met je beheerder."
+  "hf.footerNote": "Nog steeds vast? Vraag het de Aegis SA-assistent op elke recordpagina of neem contact op met je beheerder.",
+  "navd.labels": "Menulabels",
+  "navd.iconsOnly": "Alleen pictogrammen",
+  "navd.iconText": "Pictogram + titel",
+  "navd.labelsShortcut": "Sneltoets: Ctrl / ⌘ + \\",
+  "navd.expand": "Uitvouwen / inklappen",
+  "navd.more": "Meer",
+  "ra.more": "Meer",
+  "ra.menu": "Menu",
+  "ra.dragToMove": "Sleep om te verplaatsen",
+  "ra.dockHere": "Hier vastzetten",
+  "ra.labelsHint": "Ctrl / ⌘ + \\ wisselt labels",
+  "ra.collaboration": "Samenwerking"
 }

@@ -1046,6 +1046,11 @@ async function initDatabase() {
     // open (1) or auto-hides when unpinned (0). Default matches today's UI.
     ['users', 'nav_position', "ALTER TABLE users ADD COLUMN nav_position TEXT DEFAULT 'top'"],
     ['users', 'nav_pinned', 'ALTER TABLE users ADD COLUMN nav_pinned INTEGER DEFAULT 1'],
+    // Compact-nav label mode: 'auto' (per-position default — labels+overflow on top,
+    // icons+tooltip on the rail), 'icons' (icon-only everywhere) or 'text' (icon+title).
+    ['users', 'nav_labels', "ALTER TABLE users ADD COLUMN nav_labels TEXT DEFAULT 'auto'"],
+    // Record action-toolbar label mode: 'icons' (icon+tooltip, default) or 'text' (icon+label).
+    ['users', 'action_labels', "ALTER TABLE users ADD COLUMN action_labels TEXT DEFAULT 'icons'"],
   ];
 
   migrations.forEach(([table, column, sql]) => {
