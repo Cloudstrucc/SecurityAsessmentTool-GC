@@ -1086,11 +1086,12 @@ test('a decision package exports a PDF built from the pinned version', async () 
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   const dp = await createDecisionPackage(jar, projectId, { assessmentId });
 
-  const buffer = await assertPdfDownload(jar, `${dp.path}/export-pdf`, 'decision package');
+  // The pinned-version PDF is now produced by the unified report engine.
+  const buffer = await assertPdfDownload(jar, `/admin/reports/decision-package/${dp.id}.pdf`, 'decision package');
   assert.ok(buffer.length > 1500, 'the exported package has real content');
 
   const page = await getText(jar, dp.path);
-  assert.match(page.text, /export-pdf/, 'the export action is offered on the package');
+  assert.match(page.text, /\/admin\/reports\/decision-package\//, 'the export action is offered on the package');
 });
 
 test('the retired assessment ATO route no longer exists', async () => {

@@ -3646,5 +3646,7 @@
   "rf.entity_assessment": "Beoordeling",
   "rf.entity_decisionPackage": "Besluitpakket",
   "rf.entity_project": "Project",
-  "rf.entity_organization": "Organisatie"
+  "rf.entity_organization": "Organisatie",
+  "navbar.reports": "Rapporten",
+  "rf.export": "Exporteren"
 }

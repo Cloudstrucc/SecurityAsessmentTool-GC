@@ -1,0 +1,282 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nav — final design (chip breadcrumb + dockable menu)</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700;900&display=swap');
+:root{
+  --cs-nav:#0a1626;--cs-link:#2f80cf;--cs-blue:#143453;--cs-brand:#4d9fe0;
+  --cs-white:#fff;--cs-light:#f4f9fd;--cs-border:#dce7f2;--cs-text:#17273a;--cs-muted:#5f7185;
+  --cs-accent:#4d9fe0;--cs-accent-dk:#2f80cf;--cs-grad:linear-gradient(90deg,#6d7fca 0%,#4d9fe0 50%,#7cc9ee 100%);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:#e7edf3;font-family:'Lato','Inter',-apple-system,'Segoe UI',sans-serif;color:var(--cs-text)}
+h1,h2,h3{font-family:'Lato',sans-serif;color:var(--cs-blue);margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 18px 90px}
+.intro h1{font-size:26px;font-weight:900}
+.intro .rule{height:3px;width:60px;background:var(--cs-grad);border-radius:2px;margin:8px 0 12px}
+.intro p{color:var(--cs-muted);max-width:82ch;margin:0 0 6px}
+.sec-label{display:flex;align-items:center;gap:10px;margin:38px 0 12px}
+.sec-label .n{width:26px;height:26px;border-radius:50%;background:var(--cs-blue);color:#fff;font-weight:900;font-size:13px;display:grid;place-items:center;flex:0 0 auto}
+.sec-label h2{font-size:18px}.sec-label .cap{color:var(--cs-muted);font-size:13px}
+
+.frame{border:1px solid #cdd8e4;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(15,32,54,.12);background:#fff}
+.frame .omni{background:#e9eef4;border-bottom:1px solid #d5dfe9;padding:7px 12px;display:flex;align-items:center;gap:8px}
+.frame .omni .dot{width:11px;height:11px;border-radius:50%}
+.frame .omni .url{background:#fff;border:1px solid #d5dfe9;border-radius:6px;padding:3px 12px;margin-left:8px;flex:1;color:#334155;font-size:12px}
+.gc-fip{background:var(--cs-nav);color:#fff}
+.gc-fip-inner{display:flex;justify-content:space-between;align-items:center;padding:8px 20px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px}
+.brand .shield{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#6d7fca,#4d9fe0);display:grid;place-items:center;color:#fff;font-size:16px}
+.brand .sep{opacity:.4}.brand .prod{font-weight:400;opacity:.9}
+.lang{border:1px solid rgba(255,255,255,.25);border-radius:7px;padding:3px 10px;font-size:12.5px;color:#fff;background:none}
+.gc-app-bar{background:#fff;border-bottom:3px solid transparent;border-image:var(--cs-grad) 1}
+.gc-app-nav{display:flex;align-items:center;gap:0;list-style:none;margin:0;padding:0 20px;flex-wrap:wrap}
+.gc-app-nav li a{display:flex;align-items:center;gap:6px;padding:14px 12px;color:var(--cs-link);text-decoration:none;border-bottom:3px solid transparent;font-size:13.5px;white-space:nowrap}
+.gc-app-nav li a:hover{background:#f1f5f9;border-bottom-color:var(--cs-accent)}
+.gc-app-nav li a.active{border-bottom-color:var(--cs-brand);font-weight:600;color:var(--cs-nav)}
+.app-body{padding:22px 24px 30px;background:var(--cs-light);min-height:120px}
+.app-body h3{font-size:22px;font-weight:900}.app-body .muted{color:var(--cs-muted);font-size:13.5px}
+
+/* ── breadcrumb: chosen style #4 (chip + icons) ── */
+.bc4{padding:8px 20px;background:#fff;border-bottom:1px solid var(--cs-border);display:flex;align-items:center;gap:7px;font-size:13px}
+.bc4 a{color:var(--cs-link);text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.bc4 a:hover{text-decoration:underline}
+.bc4 .sep{color:#aab6c4}
+.bc4 .cur{background:#eef6fd;border:1px solid #cfe4f6;color:var(--cs-accent-dk);border-radius:20px;padding:2px 11px;font-weight:700;display:inline-flex;align-items:center;gap:5px}
+
+/* ── dock demo ── */
+.hint{font-size:12.5px;color:var(--cs-muted);margin:8px 2px 0;line-height:1.6}
+.hint b{color:var(--cs-text)}
+.stage{position:relative;height:480px;border:1px solid #cdd8e4;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 10px 30px rgba(15,32,54,.12);margin-top:12px}
+.stage .topbar{background:var(--cs-nav);color:#fff;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-weight:700;font-size:14px}
+.stage .content{position:absolute;inset:46px 0 0 0;background:var(--cs-light);transition:all .28s cubic-bezier(.4,0,.2,1);padding:20px}
+.dmenu{position:absolute;background:#fff;z-index:5;transition:transform .28s cubic-bezier(.4,0,.2,1),opacity .2s}
+.dmenu.top{top:46px;left:0;right:0;height:52px;display:flex;align-items:center;gap:2px;padding:0 10px;border-bottom:3px solid transparent;border-image:var(--cs-grad) 1;box-shadow:0 4px 12px rgba(15,32,54,.06)}
+.stage.pos-top .content{inset:98px 0 0 0}
+.dmenu.left,.dmenu.right{top:46px;bottom:0;width:210px;display:flex;flex-direction:column;padding:12px 8px 8px;gap:2px;border-top:3px solid transparent;border-image:var(--cs-grad) 1}
+.dmenu.left{left:0;box-shadow:4px 0 16px rgba(15,32,54,.08)}
+.dmenu.right{right:0;box-shadow:-4px 0 16px rgba(15,32,54,.08)}
+.stage.pos-left.pinned .content{inset:46px 0 0 210px}
+.stage.pos-right.pinned .content{inset:46px 210px 0 0}
+.stage.pos-left:not(.pinned):not(.peek) .dmenu.left{transform:translateX(-100%)}
+.stage.pos-right:not(.pinned):not(.peek) .dmenu.right{transform:translateX(100%)}
+.stage.pos-top:not(.pinned):not(.peek) .dmenu.top{transform:translateY(-100%);opacity:0}
+.hotzone{position:absolute;z-index:4}
+.hotzone.left{top:46px;bottom:0;left:0;width:8px;background:linear-gradient(90deg,rgba(77,159,224,.16),transparent)}
+.hotzone.right{top:46px;bottom:0;right:0;width:8px;background:linear-gradient(270deg,rgba(77,159,224,.16),transparent)}
+.hotzone.top{top:46px;left:0;right:0;height:8px;background:linear-gradient(180deg,rgba(77,159,224,.16),transparent)}
+.stage.pinned .hotzone{display:none}
+.di{display:flex;align-items:center;gap:9px;padding:9px 11px;color:var(--cs-link);text-decoration:none;border-radius:7px;font-size:13.5px;white-space:nowrap}
+.di:hover{background:#f1f5f9}
+.di.active{background:#eef6fd;color:var(--cs-nav);font-weight:700}
+.dmenu.top .di{padding:8px 11px}
+.di .bi{font-size:15px;width:18px;text-align:center}
+.navspacer{flex:1}
+
+/* ── the dock-control cluster (pin / position / star) ── */
+.cbtn{width:34px;height:32px;border:1px solid var(--cs-border);background:#fff;border-radius:8px;display:grid;place-items:center;cursor:pointer;color:var(--cs-blue);font-size:14px}
+.cbtn:hover{border-color:var(--cs-accent)}
+.cbtn.on{background:var(--cs-blue);border-color:var(--cs-blue);color:#fff}
+/* segmented Top/Left/Right */
+.posseg{display:inline-flex;border:1px solid var(--cs-border);border-radius:8px;overflow:hidden}
+.segbtn{width:32px;height:32px;border:none;border-right:1px solid var(--cs-border);background:#fff;cursor:pointer;color:var(--cs-blue);font-size:13px;display:grid;place-items:center}
+.segbtn:last-child{border-right:none}
+.segbtn.on{background:var(--cs-blue);color:#fff}
+.segbtn:hover:not(.on){background:#f1f5f9}
+/* rail cluster: pinned to the bottom of the rail, always visible */
+.cluster.rail{margin-top:auto;padding-top:10px;border-top:1px solid var(--cs-border)}
+.cluster.rail .crow{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.cluster.rail .crow-labels{display:flex;justify-content:space-between;margin-top:3px;font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--cs-muted)}
+.cluster.rail .crow-labels span:nth-child(2){flex:1;text-align:center}
+
+/* top expander button + popover */
+.expander{width:34px;height:32px;border:1px solid var(--cs-border);background:#fff;border-radius:8px;display:grid;place-items:center;cursor:pointer;color:var(--cs-blue);font-size:15px;margin-left:4px}
+.expander:hover{border-color:var(--cs-accent)}
+.expander.open{background:var(--cs-blue);border-color:var(--cs-blue);color:#fff}
+.popover{position:absolute;top:52px;right:10px;background:#fff;border:1px solid var(--cs-border);border-radius:10px;box-shadow:0 10px 26px rgba(15,32,54,.18);padding:10px;z-index:20;display:none;min-width:220px}
+.popover.show{display:block}
+.popover .ph{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--cs-muted);margin:2px 2px 7px}
+.popover .prow{display:flex;gap:6px;margin-bottom:8px}
+.popover .prow:last-child{margin-bottom:0}
+.popover .pbtn{flex:1;border:1px solid var(--cs-border);background:#fff;border-radius:7px;padding:7px 6px;font-family:inherit;font-size:12px;font-weight:600;color:var(--cs-blue);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.popover .pbtn .bi{font-size:15px}
+.popover .pbtn.on{background:var(--cs-blue);border-color:var(--cs-blue);color:#fff}
+
+/* position popover for rail cluster */
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--cs-nav);color:#fff;padding:11px 18px;border-radius:10px;font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,.3);opacity:0;transition:.25s;z-index:99;display:flex;align-items:center;gap:9px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.rec{border:1px solid var(--cs-border);border-left:4px solid var(--cs-accent);background:#fff;border-radius:0 10px 10px 0;padding:14px 16px;margin-top:16px}
+.rec h4{font-size:14px;margin-bottom:6px}.rec p{margin:0 0 6px;font-size:13.5px}
+.tag{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1c6f4a;background:#eaf7f1;border:1px solid #8fd0b3;border-radius:20px;padding:1px 9px;margin-left:6px}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="intro">
+    <h1>Navigation — final design</h1>
+    <div class="rule"></div>
+    <p>Your choices, built for a final look before I implement: breadcrumb <b>#4 (chip + icons)</b>, and a dockable
+      menu that defaults to <b>Top, pinned</b>. The dock controls (<i class="bi bi-pin-angle"></i> pin ·
+      <i class="bi bi-arrows-move"></i> position · <i class="bi bi-star"></i> set default) sit at the
+      <b>bottom of the rail</b> when docked left/right, and behind an <b>expander button</b> when docked at the top.</p>
+    <p>Interactive — try it below. Nothing is implemented in the app yet.</p>
+  </div>
+
+  <!-- PART 1 — breadcrumb #4 -->
+  <div class="sec-label"><span class="n">1</span><div><h2>Breadcrumb — chip + icons (chosen)</h2>
+    <div class="cap">Replaces the old “Security Assessment &amp; Authorization” link; sits under the menu.</div></div></div>
+  <div class="frame">
+    <div class="omni"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span>
+      <span class="url">vanguard-saa-dev.azurewebsites.net/admin/projects/esign-elections-canada</span></div>
+    <div class="gc-fip"><div class="gc-fip-inner">
+      <div class="brand"><span class="shield"><i class="bi bi-shield-check"></i></span>Vanguard Cloud Services <span class="sep">|</span><span class="prod">Aegis SA</span></div>
+      <button class="lang"><i class="bi bi-globe2"></i> EN</button></div></div>
+    <nav class="gc-app-bar"><ul class="gc-app-nav">
+      <li><a><i class="bi bi-bell"></i></a></li>
+      <li><a><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+      <li><a class="active"><i class="bi bi-folder2-open"></i> Projects</a></li>
+      <li><a><i class="bi bi-clipboard-check"></i> Assessments</a></li>
+      <li><a><i class="bi bi-inbox"></i> Intakes</a></li>
+      <li><a><i class="bi bi-file-earmark-bar-graph"></i> Reports</a></li>
+      <li><a><i class="bi bi-question-circle"></i> Help</a></li>
+    </ul></nav>
+    <div class="bc4">
+      <a href="#"><i class="bi bi-house-door"></i> Home</a>
+      <span class="sep">›</span>
+      <a href="#"><i class="bi bi-folder2-open"></i> Projects</a>
+      <span class="sep">›</span>
+      <span class="cur"><i class="bi bi-file-earmark-text"></i> ESign Elections Canada Broker Service</span>
+    </div>
+    <div class="app-body">
+      <h3>ESign Elections Canada Broker Service</h3>
+      <div class="muted">Protected B · PBMM · active — project detail</div>
+    </div>
+  </div>
+
+  <!-- PART 2 — dockable menu -->
+  <div class="sec-label"><span class="n">2</span><div><h2>Dockable menu — control placement</h2>
+    <div class="cap">Default is Top + pinned. Move it, and watch where the pin/position/star cluster lives.</div></div></div>
+  <div class="hint">
+    <b>Docked top</b> → the cluster is tucked behind the <i class="bi bi-sliders"></i> expander button at the right of the bar; click it to reveal pin / position / set-default. &nbsp;
+    <b>Docked left or right</b> → the cluster is always visible, pinned to the <b>bottom of the rail</b>. &nbsp;
+    <b>Pin off</b> → the menu auto-hides; reveal it by moving to the docked edge (it hides again ~2s after you leave).
+  </div>
+
+  <div class="stage pos-top pinned" id="stage">
+    <div class="topbar"><span><i class="bi bi-shield-check"></i> &nbsp;Vanguard Cloud Services &nbsp;<span style="opacity:.5">|</span>&nbsp; Aegis SA</span><span style="font-size:12px;opacity:.7">EN</span></div>
+    <div class="hotzone top"></div><div class="hotzone left"></div><div class="hotzone right"></div>
+    <nav class="dmenu top" id="dmenu"></nav>
+    <div class="popover" id="topPop">
+      <div class="ph">Menu position</div>
+      <div class="prow">
+        <button class="pbtn" data-pos="top"><i class="bi bi-window"></i>Top</button>
+        <button class="pbtn" data-pos="left"><i class="bi bi-layout-sidebar"></i>Left</button>
+        <button class="pbtn" data-pos="right"><i class="bi bi-layout-sidebar-reverse"></i>Right</button>
+      </div>
+      <div class="ph">Display</div>
+      <div class="prow">
+        <button class="pbtn" id="popPin"><i class="bi bi-pin-angle"></i>Pin open</button>
+        <button class="pbtn" id="popStar"><i class="bi bi-star"></i>Set default</button>
+      </div>
+    </div>
+    <div class="content">
+      <h3 style="font-size:20px;font-weight:900;margin-bottom:2px" id="stageTitle">Dashboard — Top, pinned</h3>
+      <div style="color:var(--cs-muted);font-size:13px">Move the menu with the controls; the page area reflows.</div>
+      <div style="margin-top:14px;padding:14px;background:#fff;border:1px solid var(--cs-border);border-radius:10px;font-size:13px;color:var(--cs-muted)">
+        Try: dock <b>Left</b> → see the 3 icons pinned at the bottom of the rail. Dock <b>Top</b> → they collapse behind the
+        <i class="bi bi-sliders"></i> button. Turn <b>Pin</b> off → move to the docked edge to reveal, then away to auto-hide.
+      </div>
+    </div>
+  </div>
+
+  <div class="rec">
+    <h4>How this maps to the build<span class="tag">on approval</span></h4>
+    <p><b>Breadcrumb #4</b> replaces the app-title link and renders from the route each page already knows
+      (Home › section › current record as a chip).</p>
+    <p><b>Dock cluster</b>: identical actions in both placements — only the <i>container</i> differs (rail-bottom vs.
+      top expander popover), so it's one component shown two ways. Position + pin + default persist per user;
+      everyone starts at <b>Top, pinned</b>.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="bi bi-check-circle-fill" style="color:#4d9fe0"></i><span id="toastMsg"></span></div>
+
+<script>
+const stage=document.getElementById('stage'), dmenu=document.getElementById('dmenu'), topPop=document.getElementById('topPop');
+let pos='top', pinned=true, hideTimer=null;
+// The user's saved default (position + pin). Seeded to the platform default.
+let savedDefault={pos:'top', pinned:true};
+function isDefault(){ return pos===savedDefault.pos && pinned===savedDefault.pinned; }
+
+const NAV=[['bi-speedometer2','Dashboard',true],['bi-folder2-open','Projects',false],
+  ['bi-clipboard-check','Assessments',false],['bi-inbox','Intakes',false],
+  ['bi-file-earmark-bar-graph','Reports',false],['bi-gear','Settings',false]];
+
+function seg(){
+  const b=(p,ic,label)=>`<button class="segbtn ${pos===p?'on':''}" data-pos="${p}" title="Dock ${label}"><i class="bi ${ic}"></i></button>`;
+  return `<div class="posseg">${b('top','bi-window','top')}${b('left','bi-layout-sidebar','left')}${b('right','bi-layout-sidebar-reverse','right')}</div>`;
+}
+function railCluster(){
+  return `<div class="cluster rail">
+    <div class="crow">
+      <button class="cbtn ${pinned?'on':''}" data-act="pin" title="Pin open / auto-hide"><i class="bi ${pinned?'bi-pin-angle-fill':'bi-pin-angle'}"></i></button>
+      ${seg()}
+      <button class="cbtn ${isDefault()?'on':''}" data-act="star" title="${isDefault()?'This is your default':'Set current position as my default'}"><i class="bi ${isDefault()?'bi-star-fill':'bi-star'}"></i></button>
+    </div>
+    <div class="crow-labels"><span>Pin</span><span>Position</span><span>Default</span></div>
+  </div>`;
+}
+
+function render(){
+  stage.className='stage pos-'+pos+(pinned?' pinned':'');
+  dmenu.className='dmenu '+pos;
+  let items=NAV.map(([ic,label,act])=>`<a class="di ${act?'active':''}"><i class="bi ${ic}"></i> ${label}</a>`).join('');
+  if(pos==='top'){
+    // nav items, spacer, then the expander button (cluster lives in the popover)
+    dmenu.innerHTML=items+`<span class="navspacer"></span>
+      <button class="expander ${topPop.classList.contains('show')?'open':''}" id="expBtn" title="Menu controls"><i class="bi bi-sliders"></i></button>`;
+    document.getElementById('expBtn').addEventListener('click',e=>{e.stopPropagation();topPop.classList.toggle('show');document.getElementById('expBtn').classList.toggle('open');});
+  } else {
+    // rail: nav items, then the cluster pinned to the bottom
+    dmenu.innerHTML=items+railCluster();
+    wireCluster(dmenu);
+  }
+  syncPopButtons();
+}
+function syncPopButtons(){
+  topPop.querySelectorAll('[data-pos]').forEach(b=>b.classList.toggle('on',b.dataset.pos===pos));
+  const pp=document.getElementById('popPin'); if(pp){pp.classList.toggle('on',pinned); pp.innerHTML=`<i class="bi ${pinned?'bi-pin-angle-fill':'bi-pin-angle'}"></i>${pinned?'Pinned':'Pin open'}`;}
+  const ps=document.getElementById('popStar'); if(ps){ps.classList.toggle('on',isDefault()); ps.innerHTML=`<i class="bi ${isDefault()?'bi-star-fill':'bi-star'}"></i>${isDefault()?'Default':'Set default'}`;}
+}
+function saveDefault(){ savedDefault={pos, pinned}; render(); toast('Saved “'+pos+', '+(pinned?'pinned':'auto-hide')+'” as your default.'); }
+function setPos(p){ pos=p; topPop.classList.remove('show'); if(!pinned) peek(); render(); title(); }
+function setPin(v){ pinned=v; render(); title(); }
+function title(){ document.getElementById('stageTitle').textContent='Dashboard — '+pos.charAt(0).toUpperCase()+pos.slice(1)+', '+(pinned?'pinned':'auto-hide'); }
+function toast(msg){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1900);}
+
+function wireCluster(root){
+  root.querySelectorAll('[data-act]').forEach(btn=>btn.addEventListener('click',e=>{
+    e.stopPropagation();
+    const act=btn.dataset.act;
+    if(act==='pin') setPin(!pinned);
+    else if(act==='star') saveDefault();
+  }));
+  root.querySelectorAll('.posseg [data-pos]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();setPos(b.dataset.pos);}));
+}
+
+// top popover controls
+topPop.querySelectorAll('[data-pos]').forEach(b=>b.addEventListener('click',()=>setPos(b.dataset.pos)));
+document.getElementById('popPin').addEventListener('click',()=>{setPin(!pinned);syncPopButtons();});
+document.getElementById('popStar').addEventListener('click',()=>saveDefault());
+document.addEventListener('click',()=>{topPop.classList.remove('show');const e=document.getElementById('expBtn');if(e)e.classList.remove('open');});
+
+// auto-hide reveal
+function peek(){stage.classList.add('peek');clearTimeout(hideTimer);hideTimer=setTimeout(()=>{if(!pinned)stage.classList.remove('peek');},2000);}
+document.querySelectorAll('.hotzone').forEach(h=>h.addEventListener('mouseenter',()=>{if(!pinned)peek();}));
+dmenu.addEventListener('mouseenter',()=>{if(!pinned){clearTimeout(hideTimer);stage.classList.add('peek');}});
+dmenu.addEventListener('mouseleave',()=>{if(!pinned)peek();});
+
+render(); title();
+</script>
+</body></html>

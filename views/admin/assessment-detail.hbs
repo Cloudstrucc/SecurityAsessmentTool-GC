@@ -141,14 +141,11 @@
             {{/eq}}
 
 
-            <a href="/admin/assessments/{{assessment.id}}/export-pdf" class="btn btn-outline-primary btn-sm">
-              <i class="bi bi-download me-1"></i>{{t 'ui.exportPdf'}}
+            <a href="/admin/reports/assessment/{{assessment.id}}" class="btn btn-primary btn-sm">
+              <i class="bi bi-box-arrow-up me-1"></i>{{t 'rf.export'}}
             </a>
             <a href="/admin/projects/{{assessment.project_id}}/controls.csv" class="btn btn-outline-primary btn-sm">
               <i class="bi bi-filetype-csv me-1"></i>{{t 'ui.controlsCsv'}}
-            </a>
-            <a href="/admin/projects/{{assessment.project_id}}/controls.pdf" class="btn btn-outline-primary btn-sm">
-              <i class="bi bi-file-earmark-pdf me-1"></i>{{t 'ui.controlsPdf'}}
             </a>
             {{/unless}}
           </div>
