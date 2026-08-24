@@ -217,15 +217,21 @@ function render(model, opts = {}) {
     }
 
     // ── footers on every buffered page ──
+    // The footer sits below the text area. pdfkit auto-adds a page whenever text
+    // would cross the bottom margin, so drawing a footer there spawns blank pages
+    // (one per footer line). Zeroing the page's bottom margin and passing
+    // lineBreak:false keeps every footer on its own page — no phantom pages.
     const range = doc.bufferedPageRange(); // { start, count }
     for (let i = range.start; i < range.start + range.count; i++) {
       doc.switchToPage(i);
+      doc.page.margins.bottom = 0;
       const fy = doc.page.height - 40;
+      const opt = { width: W(), lineBreak: false };
       doc.moveTo(L, fy).lineTo(R(), fy).lineWidth(0.5).strokeColor(border).stroke();
       doc.fontSize(7.6).fillColor(muted).font('Helvetica');
-      if (cls) doc.fillColor(ink).font('Helvetica-Bold').text(cls.toUpperCase(), L, fy + 5, { width: W() / 3 });
-      doc.fillColor(muted).font('Helvetica').text(b.footer_text || '', L, fy + 5, { width: W(), align: 'center' });
-      doc.text(`${m.reportId} · ${t('rf.page')} ${i - range.start + 1} ${t('rf.of')} ${range.count}`, L, fy + 5, { width: W(), align: 'right' });
+      if (cls) doc.fillColor(ink).font('Helvetica-Bold').text(cls.toUpperCase(), L, fy + 5, { ...opt, width: W() / 3 });
+      doc.fillColor(muted).font('Helvetica').text(b.footer_text || '', L, fy + 5, { ...opt, align: 'center' });
+      doc.text(`${m.reportId} · ${t('rf.page')} ${i - range.start + 1} ${t('rf.of')} ${range.count}`, L, fy + 5, { ...opt, align: 'right' });
     }
     doc.end();
   });

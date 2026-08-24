@@ -607,7 +607,10 @@ test('record pages show a quick Export dropdown with direct-download links', asy
   assert.ok(p.includes(`/admin/reports/project/${projectId}.pdf`), 'project page links straight to the PDF');
 
   // And the direct-download links actually produce a file (the "Report not found" regression).
-  await assertPdfDownload(jar, `/admin/reports/project/${projectId}.pdf`, 'project quick-export PDF');
+  const projPdf = await assertPdfDownload(jar, `/admin/reports/project/${projectId}.pdf`, 'project quick-export PDF');
+  // Regression guard: footers must not spawn blank trailing pages — a tiny fixture is one page.
+  const projPages = (projPdf.toString('latin1').match(/\/Type\s*\/Page\b/g) || []).length;
+  assert.ok(projPages <= 2, `project PDF should not have phantom blank pages (got ${projPages})`);
 });
 
 test('intake has a per-record report in every format, and the hub shows the report catalog', async () => {
