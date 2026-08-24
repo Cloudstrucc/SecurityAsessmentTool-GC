@@ -1,0 +1,357 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nav breadcrumb & dockable menu — design mockup</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700;900&display=swap');
+:root{
+  --cs-nav:#0a1626;--cs-nav-hover:#0d2136;--cs-link:#2f80cf;--cs-link-hover:#1d4ed8;
+  --cs-blue:#143453;--cs-brand:#4d9fe0;--cs-white:#fff;--cs-light:#f4f9fd;--cs-border:#dce7f2;
+  --cs-text:#17273a;--cs-muted:#5f7185;--cs-accent:#4d9fe0;--cs-accent-dk:#2f80cf;
+  --cs-grad:linear-gradient(90deg,#6d7fca 0%,#4d9fe0 50%,#7cc9ee 100%);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:#e7edf3;font-family:'Lato','Inter',-apple-system,'Segoe UI',sans-serif;color:var(--cs-text)}
+h1,h2,h3,h4{font-family:'Lato',sans-serif;color:var(--cs-blue);margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 18px 80px}
+.intro h1{font-size:26px;font-weight:900}
+.intro .rule{height:3px;width:60px;background:var(--cs-grad);border-radius:2px;margin:8px 0 12px}
+.intro p{color:var(--cs-muted);max-width:80ch;margin:0 0 6px}
+.sec-label{display:flex;align-items:center;gap:10px;margin:38px 0 14px}
+.sec-label .n{width:26px;height:26px;border-radius:50%;background:var(--cs-blue);color:#fff;font-weight:900;font-size:13px;display:grid;place-items:center;flex:0 0 auto}
+.sec-label h2{font-size:18px}
+.sec-label .cap{color:var(--cs-muted);font-size:13px}
+
+/* ── faux browser frame ── */
+.frame{border:1px solid #cdd8e4;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(15,32,54,.12);background:#fff}
+.frame .omni{background:#e9eef4;border-bottom:1px solid #d5dfe9;padding:7px 12px;display:flex;align-items:center;gap:8px;font-size:12px;color:#64748b}
+.frame .omni .dot{width:11px;height:11px;border-radius:50%}
+.frame .omni .url{background:#fff;border:1px solid #d5dfe9;border-radius:6px;padding:3px 12px;margin-left:8px;flex:1;color:#334155;font-size:12px}
+
+/* ── app chrome (matches the real app) ── */
+.gc-fip{background:var(--cs-nav);color:#fff}
+.gc-fip-inner{display:flex;justify-content:space-between;align-items:center;padding:8px 20px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px}
+.brand .shield{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#6d7fca,#4d9fe0);display:grid;place-items:center;color:#fff;font-size:16px}
+.brand .sep{opacity:.4;margin:0 2px}
+.brand .prod{font-weight:400;opacity:.9}
+.lang{border:1px solid rgba(255,255,255,.25);border-radius:7px;padding:3px 10px;font-size:12.5px;color:#fff;background:none}
+.gc-app-bar{background:#fff;border-bottom:3px solid transparent;border-image:var(--cs-grad) 1}
+.gc-app-inner{display:flex;align-items:center;gap:0;padding:0 20px}
+.gc-app-nav{display:flex;align-items:center;gap:0;list-style:none;margin:0;padding:0;flex-wrap:wrap}
+.gc-app-nav li a{display:flex;align-items:center;gap:6px;padding:14px 12px;color:var(--cs-link);text-decoration:none;border-bottom:3px solid transparent;font-size:13.5px;white-space:nowrap}
+.gc-app-nav li a:hover{background:#f1f5f9;border-bottom-color:var(--cs-accent)}
+.gc-app-nav li a.active{border-bottom-color:var(--cs-brand);font-weight:600;color:var(--cs-nav)}
+.app-body{padding:22px 24px 30px;background:var(--cs-light);min-height:150px}
+.app-body h3{font-size:22px;font-weight:900}
+.app-body .muted{color:var(--cs-muted);font-size:13.5px}
+.oldtitle{display:flex;align-items:center;gap:8px;padding:12px 20px;color:var(--cs-blue);font-weight:700;font-size:17px;border-bottom:1px solid var(--cs-border)}
+.oldtitle .rmv{margin-left:8px;font-size:11px;font-weight:700;color:#b42318;background:#fde8e8;border:1px solid #f3c0c0;border-radius:5px;padding:1px 7px}
+
+/* ── style switcher ── */
+.switch-row{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.switch-row button{border:1px solid var(--cs-border);background:#fff;border-radius:8px;padding:8px 13px;font-family:inherit;font-size:13px;font-weight:600;color:var(--cs-blue);cursor:pointer;transition:.12s}
+.switch-row button:hover{border-color:var(--cs-accent)}
+.switch-row button.on{background:var(--cs-blue);border-color:var(--cs-blue);color:#fff}
+.variant-note{font-size:13px;color:var(--cs-muted);margin:10px 2px 0;min-height:20px}
+
+/* ══ BREADCRUMB VARIANTS ══ */
+.bc{display:flex;align-items:center;gap:7px;font-size:13px}
+.bc a{color:var(--cs-link);text-decoration:none}
+.bc a:hover{text-decoration:underline}
+.bc .cur{color:var(--cs-text);font-weight:700}
+.bc .sep{color:#aab6c4}
+.bc .home{display:inline-flex}
+
+/* v1 minimal */
+.bc-v1{padding:7px 20px;background:#fff;border-bottom:1px solid var(--cs-border);font-size:12.5px}
+.bc-v1 .cur{font-weight:600}
+
+/* v2 light band */
+.bc-v2{padding:9px 20px;background:var(--cs-light);border-bottom:1px solid var(--cs-border)}
+
+/* v3 accent left-rule card */
+.bc-v3{margin:12px 20px 0;padding:8px 14px;background:#fff;border:1px solid var(--cs-border);border-left:3px solid var(--cs-accent);border-radius:0 8px 8px 0;box-shadow:0 1px 4px rgba(15,32,54,.05)}
+
+/* v4 chip current + icons */
+.bc-v4{padding:8px 20px;background:#fff;border-bottom:1px solid var(--cs-border)}
+.bc-v4 .cur{background:#eef6fd;border:1px solid #cfe4f6;color:var(--cs-accent-dk);border-radius:20px;padding:2px 11px;font-weight:700}
+.bc-v4 a{display:inline-flex;align-items:center;gap:5px}
+
+/* v5 eyebrow + title (2-line, most prominent) */
+.bc-v5{padding:11px 20px;background:#fff;border-bottom:1px solid var(--cs-border)}
+.bc-v5 .trail{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.4px;text-transform:uppercase;color:var(--cs-muted)}
+.bc-v5 .trail a{color:var(--cs-muted);font-weight:600}
+.bc-v5 .pagettl{font-size:19px;font-weight:900;color:var(--cs-blue);margin-top:2px}
+
+/* ── dock demo ── */
+.dockwrap{position:relative}
+.dock-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 6px;padding:12px 14px;background:#fff;border:1px solid var(--cs-border);border-radius:10px}
+.dock-controls .grp{display:flex;gap:6px;align-items:center}
+.dock-controls .lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--cs-muted);margin-right:2px}
+.iconbtn{border:1px solid var(--cs-border);background:#fff;border-radius:8px;width:38px;height:34px;display:grid;place-items:center;cursor:pointer;color:var(--cs-blue);font-size:15px}
+.iconbtn.on{background:var(--cs-blue);border-color:var(--cs-blue);color:#fff}
+.iconbtn:hover{border-color:var(--cs-accent)}
+.chipbtn{border:1px solid var(--cs-border);background:#fff;border-radius:8px;padding:7px 12px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--cs-blue);display:inline-flex;align-items:center;gap:6px}
+.chipbtn.on{background:var(--cs-blue);border-color:var(--cs-blue);color:#fff}
+
+/* dock stage */
+.stage{position:relative;height:460px;border:1px solid #cdd8e4;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 10px 30px rgba(15,32,54,.12)}
+.stage .topbar{background:var(--cs-nav);color:#fff;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-weight:700;font-size:14px}
+.stage .content{position:absolute;inset:46px 0 0 0;background:var(--cs-light);transition:all .28s cubic-bezier(.4,0,.2,1);padding:20px}
+.dmenu{position:absolute;background:#fff;z-index:5;transition:transform .28s cubic-bezier(.4,0,.2,1),opacity .2s;box-shadow:0 6px 22px rgba(15,32,54,.14)}
+/* top */
+.dmenu.top{top:46px;left:0;right:0;height:50px;display:flex;align-items:center;gap:2px;padding:0 12px;border-bottom:3px solid transparent;border-image:var(--cs-grad) 1;box-shadow:0 4px 12px rgba(15,32,54,.06)}
+.stage.pos-top .content{inset:96px 0 0 0}
+/* left / right rails */
+.dmenu.left,.dmenu.right{top:46px;bottom:0;width:200px;display:flex;flex-direction:column;padding:12px 8px;gap:2px;border-top:3px solid transparent;border-image:var(--cs-grad) 1}
+.dmenu.left{left:0;box-shadow:4px 0 16px rgba(15,32,54,.08)}
+.dmenu.right{right:0;box-shadow:-4px 0 16px rgba(15,32,54,.08)}
+.stage.pos-left.pinned .content{inset:46px 0 0 200px}
+.stage.pos-right.pinned .content{inset:46px 200px 0 0}
+/* hidden (unpinned auto-hide) */
+.stage.pos-left:not(.pinned):not(.peek) .dmenu.left{transform:translateX(-100%)}
+.stage.pos-right:not(.pinned):not(.peek) .dmenu.right{transform:translateX(100%)}
+.stage.pos-top:not(.pinned):not(.peek) .dmenu.top{transform:translateY(-100%);opacity:0}
+/* reveal hotzone hint */
+.hotzone{position:absolute;z-index:4;background:linear-gradient(90deg,rgba(77,159,224,.16),transparent)}
+.hotzone.left{top:46px;bottom:0;left:0;width:8px}
+.hotzone.right{top:46px;bottom:0;right:0;width:8px;background:linear-gradient(270deg,rgba(77,159,224,.16),transparent)}
+.hotzone.top{top:46px;left:0;right:0;height:8px;background:linear-gradient(180deg,rgba(77,159,224,.16),transparent)}
+.stage.pinned .hotzone{display:none}
+.di{display:flex;align-items:center;gap:9px;padding:9px 11px;color:var(--cs-link);text-decoration:none;border-radius:7px;font-size:13.5px;white-space:nowrap}
+.di:hover{background:#f1f5f9}
+.di.active{background:#eef6fd;color:var(--cs-nav);font-weight:700}
+.dmenu.top .di{padding:8px 11px;border-radius:6px}
+.di .bi{font-size:15px;width:18px;text-align:center}
+.dockbtns{display:flex;gap:4px;align-items:center}
+.dockbtns .mini{width:30px;height:30px;border-radius:7px;display:grid;place-items:center;cursor:pointer;color:#fff;background:rgba(255,255,255,.12);font-size:14px;border:none}
+.dockbtns .mini:hover{background:rgba(255,255,255,.24)}
+.dockbtns .mini.on{background:var(--cs-accent)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--cs-nav);color:#fff;padding:11px 18px;border-radius:10px;font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,.3);opacity:0;transition:.25s;z-index:99;display:flex;align-items:center;gap:9px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.legend{font-size:12.5px;color:var(--cs-muted);margin-top:8px;line-height:1.6}
+.legend b{color:var(--cs-text)}
+
+/* recommendation callouts */
+.rec{border:1px solid var(--cs-border);border-left:4px solid var(--cs-accent);background:#fff;border-radius:0 10px 10px 0;padding:14px 16px;margin-top:14px}
+.rec h4{font-size:14px;margin-bottom:6px}
+.rec p{margin:0 0 6px;font-size:13.5px;color:var(--cs-text)}
+.rec .tag{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1c6f4a;background:#eaf7f1;border:1px solid #8fd0b3;border-radius:20px;padding:1px 9px;margin-left:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.pros{font-size:12.5px;color:var(--cs-muted);margin-top:6px}
+.pros b{color:#1c6f4a}.cons b{color:#8a5a05}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="intro">
+    <h1>Header breadcrumb &amp; dockable menu</h1>
+    <div class="rule"></div>
+    <p>A design mockup for your review — <b>nothing is implemented yet</b>. Two changes:
+      (1) remove the <i>“Security Assessment &amp; Authorization”</i> title link and replace it with a
+      breadcrumb placed <b>under</b> the horizontal menu; (2) let users dock the menu to the top, left or
+      right, pin it open or auto-hide it, and save a default position.</p>
+    <p>Everything below is interactive — click the buttons and icons to feel each option.</p>
+  </div>
+
+  <!-- ══════════ PART 1 — BREADCRUMB ══════════ -->
+  <div class="sec-label"><span class="n">1</span><div>
+    <h2>Breadcrumb — 5 alternatives</h2>
+    <div class="cap">The switcher swaps the live breadcrumb style. Trail shown: Home › Projects › ESign Elections Canada Broker Service.</div>
+  </div></div>
+
+  <div class="switch-row" id="bcSwitch">
+    <button data-v="1" class="on">1 · Minimal</button>
+    <button data-v="2">2 · Light band</button>
+    <button data-v="3">3 · Accent card</button>
+    <button data-v="4">4 · Chip + icons</button>
+    <button data-v="5">5 · Eyebrow + page title</button>
+  </div>
+  <div class="variant-note" id="bcNote"></div>
+
+  <div class="frame" style="margin-top:6px">
+    <div class="omni"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span>
+      <span class="url">vanguard-saa-dev.azurewebsites.net/admin/projects/esign-elections-canada</span></div>
+    <div class="gc-fip"><div class="gc-fip-inner">
+      <div class="brand"><span class="shield"><i class="bi bi-shield-check"></i></span>Vanguard Cloud Services <span class="sep">|</span><span class="prod">Aegis SA</span></div>
+      <button class="lang"><i class="bi bi-globe2"></i> EN</button>
+    </div></div>
+    <!-- OLD title link, struck through to show what's removed -->
+    <div class="oldtitle" id="oldTitle"><i class="bi bi-cloud-check-fill" style="color:var(--cs-brand)"></i>
+      <span style="text-decoration:line-through;opacity:.5">Security Assessment &amp; Authorization</span>
+      <span class="rmv">REMOVED</span></div>
+    <nav class="gc-app-bar"><div class="gc-app-inner"><ul class="gc-app-nav">
+      <li><a><i class="bi bi-bell"></i></a></li>
+      <li><a><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+      <li><a class="active"><i class="bi bi-folder2-open"></i> Projects</a></li>
+      <li><a><i class="bi bi-clipboard-check"></i> Assessments</a></li>
+      <li><a><i class="bi bi-inbox"></i> Intakes</a></li>
+      <li><a><i class="bi bi-people"></i> Team</a></li>
+      <li><a><i class="bi bi-file-earmark-bar-graph"></i> Reports</a></li>
+      <li><a><i class="bi bi-question-circle"></i> Help</a></li>
+    </ul></div></nav>
+    <!-- breadcrumb slot -->
+    <div id="bcSlot"></div>
+    <div class="app-body">
+      <h3>ESign Elections Canada Broker Service</h3>
+      <div class="muted">Protected B · PBMM · active — project detail</div>
+    </div>
+  </div>
+
+  <!-- ══════════ PART 2 — DOCKABLE MENU ══════════ -->
+  <div class="sec-label"><span class="n">2</span><div>
+    <h2>Dockable &amp; pinnable menu</h2>
+    <div class="cap">Move the menu, pin it open or let it auto-hide, and set a default. Try it live below.</div>
+  </div></div>
+
+  <div class="dock-controls">
+    <div class="grp"><span class="lbl">Position</span>
+      <button class="chipbtn on" data-pos="top"><i class="bi bi-layout-text-window-reverse"></i> Top</button>
+      <button class="chipbtn" data-pos="left"><i class="bi bi-layout-sidebar"></i> Left</button>
+      <button class="chipbtn" data-pos="right"><i class="bi bi-layout-sidebar-reverse"></i> Right</button>
+    </div>
+    <div class="grp" style="margin-left:auto">
+      <span class="lbl">Pin</span>
+      <button class="iconbtn on" id="pinBtn" title="Keep the menu always visible"><i class="bi bi-pin-angle-fill"></i></button>
+      <button class="iconbtn" id="defBtn" title="Set current position as my default"><i class="bi bi-star"></i></button>
+    </div>
+  </div>
+  <div class="legend">
+    <b><i class="bi bi-pin-angle-fill"></i> Pin</b> — keep the menu always on screen. When <b>off</b>, a left/right rail slides
+    away and a top bar collapses; it reappears when you move the pointer to that screen edge (a faint highlight marks the edge),
+    and auto-hides again ~2s after you leave it. &nbsp; <b><i class="bi bi-star"></i> Star</b> — save the current position + pin
+    state as your default for every sign-in.
+  </div>
+
+  <div class="stage pos-top pinned" id="stage" style="margin-top:12px">
+    <div class="topbar"><span><i class="bi bi-shield-check"></i> &nbsp;Vanguard Cloud Services &nbsp;<span style="opacity:.5">|</span>&nbsp; Aegis SA</span>
+      <span style="font-size:12px;opacity:.7">EN</span></div>
+    <div class="hotzone top"></div><div class="hotzone left"></div><div class="hotzone right"></div>
+    <nav class="dmenu top" id="dmenu">
+      <a class="di active"><i class="bi bi-speedometer2"></i> Dashboard</a>
+      <a class="di"><i class="bi bi-folder2-open"></i> Projects</a>
+      <a class="di"><i class="bi bi-clipboard-check"></i> Assessments</a>
+      <a class="di"><i class="bi bi-inbox"></i> Intakes</a>
+      <a class="di"><i class="bi bi-file-earmark-bar-graph"></i> Reports</a>
+      <a class="di"><i class="bi bi-gear"></i> Settings</a>
+      <span style="flex:1"></span>
+      <span class="dockbtns" id="inlineBtns">
+        <button class="mini on" id="pinMini" title="Pin / auto-hide"><i class="bi bi-pin-angle-fill"></i></button>
+        <button class="mini" id="defMini" title="Set as default"><i class="bi bi-star"></i></button>
+      </span>
+    </nav>
+    <div class="content">
+      <h3 style="font-size:20px;font-weight:900;margin-bottom:2px">Dashboard</h3>
+      <div style="color:var(--cs-muted);font-size:13px">The grey panel is the page. Watch how it resizes as you dock and pin the menu.</div>
+      <div style="margin-top:14px;padding:14px;background:#fff;border:1px solid var(--cs-border);border-radius:10px;font-size:13px;color:var(--cs-muted)">
+        Tip: switch <b>Pin</b> off, then move your mouse to the docked edge of this box to reveal the menu. Leave it and it hides after ~2 seconds.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ RECOMMENDATION ══════════ -->
+  <div class="sec-label"><span class="n">3</span><div><h2>My recommendation</h2>
+    <div class="cap">What I'd ship as the default, and my honest read on the feature.</div></div></div>
+
+  <div class="grid2">
+    <div class="rec">
+      <h4>Breadcrumb: go with <b>#2 “Light band”</b> or <b>#5 “Eyebrow + title”</b><span class="tag">recommended</span></h4>
+      <p><b>#2</b> is the safe, familiar choice — a quiet full-width band under the menu that orients without shouting.
+        It matches the app's existing light surfaces and never competes with page headings.</p>
+      <p><b>#5</b> is stronger: it folds the page's H1 into the breadcrumb, so you reclaim vertical space and every page
+        gets a consistent title treatment. Pick this if you want the breadcrumb to also <i>be</i> the page header.</p>
+      <p class="pros"><b>Skip</b> #3 (accent card) for everyday use — it's eye-catching but heavy on every page. #1 is almost invisible; #4's chip is nice but the icons add clutter.</p>
+    </div>
+    <div class="rec">
+      <h4>Dockable menu: default to <b>Top, pinned</b><span class="tag">recommended default</span></h4>
+      <p>Top-pinned is what users already have and expect — zero learning curve, nothing hides, works on every screen size.
+        Offer <b>Left</b> as the opt-in power-user layout (great when the nav grows), and <b>Right</b> for left-handed / dual-monitor setups.</p>
+      <p class="cons pros">My honest take: <b>auto-hide is the risky part.</b> Timed hiding (the 2s) frustrates people who lose the menu mid-thought;
+        the industry trend (VS Code, Slack, Teams) is a <b>manual collapse</b> plus edge-reveal, not a timer. I'd ship the dock + pin,
+        make <b>edge-hover reveal</b> the behaviour when unpinned, and treat the 2s auto-hide as optional — off by default.</p>
+      <p class="pros">Net: <b>a genuinely nice power-user feature</b>, low risk <i>if</i> top-pinned stays the default and auto-hide is opt-in.</p>
+    </div>
+  </div>
+
+  <div class="rec" style="border-left-color:var(--cs-muted)">
+    <h4>Where preferences live</h4>
+    <p>Position + pin + auto-hide would save per user (a small addition to user settings), so the <i class="bi bi-star"></i> “set as default”
+      icon persists across sign-ins and devices. Until a user sets one, everyone gets <b>Top, pinned</b>.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="bi bi-check-circle-fill" style="color:#4d9fe0"></i><span id="toastMsg"></span></div>
+
+<script>
+// ── breadcrumb variants ──
+const HOME='<span class="home"><a href="#"><i class="bi bi-house-door"></i></a></span>';
+const variants = {
+  1:{cls:'bc-v1',sep:'/',note:'Minimal — 12.5px, thin border, no fill. Quietest option; easy to overlook.',two:false},
+  2:{cls:'bc-v2',sep:'›',note:'Light band — full-width #f4f9fd strip, chevron separators. Familiar and calm. (Recommended)',two:false},
+  3:{cls:'bc-v3',sep:'›',note:'Accent card — inset white card with a gradient-accent left rule. Prominent; can feel heavy on every page.',two:false},
+  4:{cls:'bc-v4',sep:'›',note:'Chip + icons — current page as an accent pill, small icons on crumbs. Modern but busier.',two:false},
+  5:{cls:'bc-v5',sep:'›',note:'Eyebrow + page title — tiny uppercase trail over a big page title. Doubles as the page header. (Recommended if replacing H1)',two:true}
+};
+const trail=[['Home','#'],['Projects','#'],['ESign Elections Canada Broker Service',null]];
+function renderBC(v){
+  const cfg=variants[v], slot=document.getElementById('bcSlot');
+  if(cfg.two){
+    slot.className=cfg.cls;
+    slot.innerHTML='<div class="trail">'+HOME+' <span class="sep">'+cfg.sep+'</span> '+
+      '<a href="#">Projects</a></div>'+
+      '<div class="pagettl">ESign Elections Canada Broker Service</div>';
+    document.getElementById('bcNote').textContent=cfg.note; return;
+  }
+  let inner='<div class="bc '+cfg.cls+'">';
+  if(v==='4'||v===4){ inner='<div class="bc bc-v4">'; }
+  inner=cfg.cls==='bc-v3'?'<div class="bc">':'<div class="bc">';
+  // build crumbs
+  let html='<a href="#"><i class="bi bi-house-door"></i></a>';
+  trail.slice(1).forEach(([label,href])=>{
+    html+=' <span class="sep">'+cfg.sep+'</span> ';
+    html+= href? '<a href="#">'+label+'</a>' : '<span class="cur">'+label+'</span>';
+  });
+  slot.className=cfg.cls;
+  slot.innerHTML='<div class="bc">'+html+'</div>';
+  document.getElementById('bcNote').textContent=cfg.note;
+}
+document.getElementById('bcSwitch').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  [...document.querySelectorAll('#bcSwitch button')].forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); renderBC(b.dataset.v);
+});
+renderBC('1');
+
+// ── dockable menu demo ──
+const stage=document.getElementById('stage');
+let pos='top', pinned=true, hideTimer=null;
+function apply(){
+  stage.className='stage pos-'+pos+(pinned?' pinned':'');
+  document.getElementById('dmenu').className='dmenu '+pos;
+  document.getElementById('pinBtn').classList.toggle('on',pinned);
+  document.getElementById('pinMini').classList.toggle('on',pinned);
+  // inline dock buttons only show on the top bar for space; rails show them too
+}
+document.querySelectorAll('[data-pos]').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('[data-pos]').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on'); pos=btn.dataset.pos; peek(); apply();
+}));
+function setPin(v){ pinned=v; apply(); }
+document.getElementById('pinBtn').addEventListener('click',()=>setPin(!pinned));
+document.getElementById('pinMini').addEventListener('click',()=>setPin(!pinned));
+
+// edge-reveal when unpinned
+function peek(){ stage.classList.add('peek'); clearTimeout(hideTimer);
+  hideTimer=setTimeout(()=>{ if(!pinned) stage.classList.remove('peek'); },2000); }
+stage.querySelectorAll('.hotzone').forEach(h=>h.addEventListener('mouseenter',()=>{ if(!pinned) peek(); }));
+document.getElementById('dmenu').addEventListener('mouseenter',()=>{ if(!pinned){clearTimeout(hideTimer); stage.classList.add('peek');} });
+document.getElementById('dmenu').addEventListener('mouseleave',()=>{ if(!pinned) peek(); });
+
+function toast(msg){ const t=document.getElementById('toast'); document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1900); }
+document.getElementById('defBtn').addEventListener('click',()=>toast('Saved “'+pos+', '+(pinned?'pinned':'auto-hide')+'” as your default menu.'));
+document.getElementById('defMini').addEventListener('click',()=>toast('Saved “'+pos+', '+(pinned?'pinned':'auto-hide')+'” as your default menu.'));
+apply();
+</script>
+</body></html>

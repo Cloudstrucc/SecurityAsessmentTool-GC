@@ -37,7 +37,27 @@ function render(model, opts = {}) {
     ]);
   }
 
-  if (m.type === 'assessment') {
+  if (m.type === 'intake') {
+    const i = m.intake;
+    out += h(2, t('rf.systemProfile'));
+    out += table([t('rf.role'), ''], [
+      [t('rf.securityFramework'), i.security_framework || 'ITSG-33'],
+      [t('rf.controlProfile'), `${i.security_profile || ''} ${i.framework_baseline || ''}`.trim()],
+      [t('rf.classification'), i.data_classification || ''],
+      [`${t('rf.confidentiality')}/${t('rf.integrity')}/${t('rf.availability')}`, `${i.confidentiality_level || ''} / ${i.integrity_level || ''} / ${i.availability_level || ''}`],
+      [t('rf.personalInformation'), i.has_pii ? 'Yes' : 'No'],
+      [t('rf.hosting'), i.hosting_type || ''],
+      [t('rf.systemType'), i.app_type || ''],
+      [t('rf.technologies'), (i.technologies || []).join(', ')]
+    ]);
+    out += h(2, t('rf.accountability'));
+    out += table([t('rf.role'), t('rf.name'), t('rf.contact')], [
+      [t('rf.systemOwner'), i.owner_name || '', i.owner_email || ''],
+      [t('rf.intakeTechLead'), i.tech_lead_name || '', i.tech_lead_email || ''],
+      [t('rf.authorizingOfficial'), i.authority_name || '', i.authority_email || '']
+    ]);
+    if (i.additional_notes) out += `### ${t('rf.intakeNotes')}\n\n${i.additional_notes}\n\n`;
+  } else if (m.type === 'assessment') {
     const s = m.stats, tot = s.totals;
     out += h(2, t('rf.assessmentSummary'));
     out += `- ${t('rf.overallScore')}: **${m.assessment.score}%**\n`;

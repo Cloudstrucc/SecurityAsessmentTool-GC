@@ -453,7 +453,48 @@ function portfolioBody(m, b, t, logoDataUri, cls) {
   return h;
 }
 
+function intakeBody(m, b, t, logoDataUri, cls) {
+  const i = m.intake;
+  const yn = v => v ? 'Yes' : 'No';
+  let h = `<div class="sheet">${masthead(b, logoDataUri, t('rf.report'))}
+    <div style="padding-top:12mm"><div class="eyebrow">${esc(m.title)}</div>
+      <h1 class="cover-title">${esc(m.subject)}</h1><div class="cover-sub">${esc(m.subtitle)}</div><div class="cover-accent"></div>
+      ${coverDocctl(t, m, [['rf.status', esc(i.status || '')], ['rf.submitted', esc(i.submitted_at)]], cls)}
+      <div class="stamp"><b>${esc(t('rf.liveNote'))}</b></div>
+    </div>${foot(b, m, cls)}</div>`;
+
+  h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span></span></div>
+    <section><div class="sec-h"><span class="num">1</span><h2>${esc(t('rf.systemProfile'))}</h2></div>
+      ${i.description ? `<p class="lede">${esc(i.description)}</p>` : ''}
+      <table class="kv">
+        <tr><th>${esc(t('rf.securityFramework'))}</th><td>${esc(i.security_framework || 'ITSG-33')}</td></tr>
+        <tr><th>${esc(t('rf.controlProfile'))}</th><td>${esc(i.security_profile || '')} ${i.framework_baseline ? '— ' + esc(i.framework_baseline) : ''}</td></tr>
+        <tr><th>${esc(t('rf.classification'))}</th><td>${esc(i.data_classification || '')}</td></tr>
+        <tr><th>${esc(t('rf.confidentiality'))} / ${esc(t('rf.integrity'))} / ${esc(t('rf.availability'))}</th><td>${esc(i.confidentiality_level || '')} / ${esc(i.integrity_level || '')} / ${esc(i.availability_level || '')}</td></tr>
+        <tr><th>${esc(t('rf.highValueAsset'))}</th><td>${yn(i.is_hva)}</td></tr>
+        <tr><th>${esc(t('rf.personalInformation'))}</th><td>${yn(i.has_pii)}${i.pii_types && i.pii_types.length ? ' — ' + esc(i.pii_types.join(', ')) : ''}</td></tr>
+        <tr><th>${esc(t('rf.hosting'))}</th><td>${esc(i.hosting_type || '')}${i.hosting_region ? ' · ' + esc(i.hosting_region) : ''}</td></tr>
+        <tr><th>${esc(t('rf.systemType'))}</th><td>${esc(i.app_type || '')}</td></tr>
+        <tr><th>${esc(t('rf.intakeUsers'))}</th><td>${esc(i.user_count || '')}${i.external_users ? ' · ' + esc(t('rf.intakeExternalUsers')) + ': ' + esc(i.external_users) : ''}</td></tr>
+        <tr><th>${esc(t('rf.technologies'))}</th><td>${esc((i.technologies || []).join(', '))}</td></tr>
+        <tr><th>${esc(t('rf.intakeDepartment'))}</th><td>${esc(i.department || '')}${i.branch ? ' · ' + esc(i.branch) : ''}</td></tr>
+        <tr><th>${esc(t('rf.intakeTargetDate'))}</th><td>${esc(i.target_date || '')}</td></tr>
+      </table>
+    </section>
+    <section><div class="sec-h"><span class="num">2</span><h2>${esc(t('rf.accountability'))}</h2></div>
+      <table class="data"><thead><tr><th>${esc(t('rf.role'))}</th><th>${esc(t('rf.name'))}</th><th>${esc(t('rf.contact'))}</th></tr></thead><tbody>
+        <tr><td>${esc(t('rf.systemOwner'))}</td><td>${esc(i.owner_name || '—')}${i.owner_title ? '<div style="font-size:8.2pt;color:var(--muted)">' + esc(i.owner_title) + '</div>' : ''}</td><td class="mono">${esc(i.owner_email || '')}</td></tr>
+        <tr><td>${esc(t('rf.intakeTechLead'))}</td><td>${esc(i.tech_lead_name || '—')}${i.tech_lead_title ? '<div style="font-size:8.2pt;color:var(--muted)">' + esc(i.tech_lead_title) + '</div>' : ''}</td><td class="mono">${esc(i.tech_lead_email || '')}</td></tr>
+        <tr><td>${esc(t('rf.authorizingOfficial'))}</td><td>${esc(i.authority_name || '—')}${i.authority_title ? '<div style="font-size:8.2pt;color:var(--muted)">' + esc(i.authority_title) + '</div>' : ''}</td><td class="mono">${esc(i.authority_email || '')}</td></tr>
+      </tbody></table>
+      ${i.additional_notes ? `<h3>${esc(t('rf.intakeNotes'))}</h3><p>${esc(i.additional_notes)}</p>` : ''}
+      ${(m.attachments && m.attachments.length) ? `<h3>${esc(t('rf.documents'))}</h3><table class="data"><thead><tr><th>${esc(t('rf.document'))}</th></tr></thead><tbody>${m.attachments.map(a => `<tr><td>${esc(a.original_name || a.filename || '')}</td></tr>`).join('')}</tbody></table>` : ''}
+    </section>${foot(b, m, cls)}</div>`;
+  return h;
+}
+
 const BODIES = {
+  intake: intakeBody,
   assessment: assessmentBody, 'decision-package': decisionBody,
   poam: poamBody, project: projectBody, portfolio: portfolioBody
 };

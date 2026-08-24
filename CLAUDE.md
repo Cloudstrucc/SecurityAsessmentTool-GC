@@ -20,7 +20,8 @@
 ## Reporting — keep the report model in sync with the data model
 The app has a unified reporting engine (see `docs/REPORTING.md`): one **format-agnostic
 report model** (`config/report-model.js`) feeds four **renderers**
-(`utils/report-render/` — HTML, PDF via pdfkit, DOCX, Markdown). **CSV is deliberately
+(`utils/report-render/` — HTML, PDF via pdfkit, DOCX, Markdown); the report types
+themselves are registered in `config/report-catalog.js`. **CSV is deliberately
 untouched** — it keeps its existing per-object routes; never fold CSV into the render engine.
 - **When you add a user-facing field or a new object that belongs in a report, update the
   report model AND every renderer, not just one.** A field added to an assessment/decision/

@@ -58,7 +58,7 @@ generated artifacts — they are not committed.
 
 ---
 
-## The suite at a glance (73 checks)
+## The suite at a glance (74 checks)
 
 ### Authentication, MFA & accounts
 | Check | What it proves |
@@ -130,6 +130,7 @@ generated artifacts — they are not committed.
 |---|---|
 | Unified reporting: hub, per-format downloads and branding | The report hub lists projects; assessment reports download as HTML, PDF, DOCX and Markdown; project-level branding (accent colour + footer) flows into the rendered report |
 | Reporting access: an unassigned client cannot download another tenant report | A user with no assignment to the assessment is refused (not a 200 PDF) |
+| Intake has a per-record report + the hub shows the report catalog | An intake exports as PDF/DOCX/HTML/Markdown, and the hub lists all six built-in report templates plus the intake record |
 
 ### Intake acceptance
 | Check | What it proves |

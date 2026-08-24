@@ -282,7 +282,54 @@ function portfolioSummary({ orgId, orgName, req } = {}) {
   };
 }
 
+// ════════════════════════════════════════════════════════════════════════
+// 6. INTAKE (the pre-project submission — a single record)
+// ════════════════════════════════════════════════════════════════════════
+function parseList(v) {
+  if (Array.isArray(v)) return v;
+  try { const a = JSON.parse(v || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+}
+function intakeReport(intakeId, { orgId, req } = {}) {
+  const i = get('SELECT * FROM intake_submissions WHERE id = ?', [intakeId]);
+  if (!i) return null;
+  // Tenant scope: an intake linked to a project must belong to the caller's org.
+  if (i.project_id) {
+    const p = projectForOrg(i.project_id, orgId);
+    if (!p) return null;
+  }
+  const attachments = all('SELECT * FROM intake_attachments WHERE intake_id = ? ORDER BY id', [intakeId]);
+  const techs = parseList(i.technologies);
+  if (i.other_tech) techs.push(i.other_tech);
+  return {
+    type: 'intake', immutable: false,
+    title: 'Intake submission', subject: i.project_name || 'Intake',
+    subtitle: `${i.security_framework || 'ITSG-33'} · ${i.security_profile || 'PBMM'} · ${i.status || 'pending'}`,
+    reportId: i.ref_code || `INT-${String(intakeId).padStart(4, '0')}`,
+    project: null, meta: meta('intake', req),
+    intake: {
+      ref_code: i.ref_code, status: i.status, project_name: i.project_name,
+      description: stripHtml(i.project_description), department: i.department, branch: i.branch,
+      target_date: i.target_date, user_count: i.user_count, app_type: i.app_type,
+      data_classification: i.data_classification, confidentiality_level: i.confidentiality_level,
+      integrity_level: i.integrity_level, availability_level: i.availability_level, is_hva: !!i.is_hva,
+      security_profile: i.security_profile, security_framework: i.security_framework,
+      framework_baseline: i.framework_baseline,
+      has_pii: !!i.has_pii, pii_types: parseList(i.pii_types), atip_subject: i.atip_subject,
+      pia_completed: i.pia_completed, hosting_type: i.hosting_type, hosting_region: i.hosting_region,
+      technologies: techs, has_apis: i.has_apis, mobile_access: i.mobile_access,
+      external_users: i.external_users, completed_activities: parseList(i.completed_activities),
+      owner_name: i.owner_name, owner_email: i.owner_email, owner_title: i.owner_title,
+      tech_lead_name: i.tech_lead_name, tech_lead_email: i.tech_lead_email, tech_lead_title: i.tech_lead_title,
+      authority_name: i.authority_name, authority_email: i.authority_email, authority_title: i.authority_title,
+      additional_notes: stripHtml(i.additional_notes), assessor_notes: stripHtml(i.assessor_notes),
+      submitted_at: fmtDate(i.created_at)
+    },
+    attachments
+  };
+}
+
 const BUILDERS = {
+  intake: (id, o) => intakeReport(id, o),
   assessment: (id, o) => assessmentReport(id, o),
   'decision-package': (id, o) => decisionPackage(id, o),
   poam: (id, o) => poamRegister(id, o),
@@ -298,6 +345,6 @@ function build(type, id, opts = {}) {
 }
 
 module.exports = {
-  build, assessmentReport, decisionPackage, poamRegister, projectRollup, portfolioSummary,
+  build, intakeReport, assessmentReport, decisionPackage, poamRegister, projectRollup, portfolioSummary,
   familyStats, normResult, RESULTS
 };
