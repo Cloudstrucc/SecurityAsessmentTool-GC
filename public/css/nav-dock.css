@@ -7,9 +7,14 @@
 
 :root { --rail-w: 232px; --brand-h: 52px; }
 
+/* ── Layout: the content wrapper must grow so the footer stays at the bottom.
+   (body is a flex column with min-height:100vh; .gc-main flexes inside this.) ── */
+.gc-shell { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
+
 /* ── Breadcrumb (chip style — matches the approved mockup) ── */
+/* A little more vertical room so the breadcrumb isn't cramped against the menu bar. */
 .gc-breadcrumb-wrap { background:#fff; border-bottom:1px solid var(--cs-border); }
-.gc-breadcrumb-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding-top:.35rem; padding-bottom:.35rem; }
+.gc-breadcrumb-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding-top:.7rem; padding-bottom:.7rem; }
 .gc-breadcrumb { max-width:100%; min-width:0; }
 .gc-breadcrumb ol {
   display:flex; align-items:center; flex-wrap:wrap; gap:7px; list-style:none;
@@ -50,21 +55,23 @@
   min-width:220px; display:none;
 }
 .nav-pop.show { display:block; }
-.nav-pop .ph { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--cs-muted); margin:2px 2px 7px; }
-.nav-pop .prow { display:flex; gap:6px; margin-bottom:8px; }
+.nav-pop { min-width:auto; }
+.nav-pop .ph { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--cs-muted); margin:2px 2px 5px; }
+.nav-pop .prow { display:flex; gap:5px; margin-bottom:8px; }
 .nav-pop .prow:last-child { margin-bottom:0; }
+/* The dock-control buttons are always compact icon + tooltip (no text labels). */
 .nav-pop .pbtn {
-  flex:1; border:1px solid var(--cs-border); background:#fff; border-radius:7px; padding:7px 6px;
-  font-family:inherit; font-size:12px; font-weight:600; color:var(--cs-blue); cursor:pointer;
-  display:flex; flex-direction:column; align-items:center; gap:3px;
+  width:30px; height:28px; border:1px solid var(--cs-border); background:#fff; border-radius:7px;
+  color:var(--cs-blue); cursor:pointer; display:grid; place-items:center; font-size:13px; padding:0;
 }
+.nav-pop .pbtn:hover { border-color:var(--cs-accent); }
 .nav-pop .pbtn.on { background:var(--cs-blue); border-color:var(--cs-blue); color:#fff; }
 
-/* The rail cluster (left/right) lives at the bottom of the rail */
+/* The rail cluster (left/right) lives at the bottom of the rail — icon + tooltip only. */
 .nav-rail-ctl { display:none; }
-.nav-rail-ctl .crow { display:flex; align-items:center; justify-content:space-between; gap:6px; }
-.nav-rail-ctl .crow-labels { display:flex; justify-content:space-between; margin-top:3px; font-size:8.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--cs-muted); }
-.nav-rail-ctl .crow-labels span:nth-child(2){ flex:1; text-align:center; }
+.nav-rail-ctl .crow { display:flex; align-items:center; justify-content:center; gap:5px; }
+.nav-rail-ctl .nav-cbtn { width:30px; height:28px; font-size:13px; }
+.nav-rail-ctl .nav-segbtn { width:28px; height:28px; font-size:12px; }
 
 /* By default (top) show the expander, hide the rail cluster */
 .nav-expander { display:inline-flex; position:relative; }

@@ -115,7 +115,9 @@
     .gc-menu-btn { display:none; background:none; border:1px solid var(--cs-border); border-radius:6px; padding:.3rem .6rem; cursor:pointer; font-size:1rem; color:var(--cs-text); }
     @media(max-width:991px) {
       .gc-menu-btn { display:block; }
-      .gc-app-nav { display:none; width:100%; flex-direction:column; }
+      .gc-app-nav { display:none; width:100%; flex-direction:column; align-items:stretch; }
+      .gc-app-nav li { width:100%; }
+      .gc-app-nav li a, .gc-app-nav li > span { text-align:left; }
       .gc-app-nav.show { display:flex; }
       .gc-app-nav li a { border-bottom:none; border-left:3px solid transparent; }
       .gc-app-nav li a.active { border-left-color:var(--cs-brand); border-bottom:none; }
@@ -378,7 +380,6 @@
             </div>
             <button type="button" class="nav-cbtn" data-nav-act="star" title="{{t 'navd.setDefault'}}"><i class="bi bi-star"></i></button>
           </div>
-          <div class="crow-labels"><span>{{t 'navd.pin'}}</span><span>{{t 'navd.position'}}</span><span>{{t 'navd.default'}}</span></div>
         </div>
         {{/if}}
       </div>
@@ -395,14 +396,14 @@
         <div class="nav-pop" id="navPop">
           <div class="ph">{{t 'navd.position'}}</div>
           <div class="prow">
-            <button type="button" class="pbtn" data-nav-pos="top"><i class="bi bi-window"></i>{{t 'navd.top'}}</button>
-            <button type="button" class="pbtn" data-nav-pos="left"><i class="bi bi-layout-sidebar"></i>{{t 'navd.left'}}</button>
-            <button type="button" class="pbtn" data-nav-pos="right"><i class="bi bi-layout-sidebar-reverse"></i>{{t 'navd.right'}}</button>
+            <button type="button" class="pbtn" data-nav-pos="top" title="{{t 'navd.top'}}" aria-label="{{t 'navd.top'}}"><i class="bi bi-window"></i></button>
+            <button type="button" class="pbtn" data-nav-pos="left" title="{{t 'navd.left'}}" aria-label="{{t 'navd.left'}}"><i class="bi bi-layout-sidebar"></i></button>
+            <button type="button" class="pbtn" data-nav-pos="right" title="{{t 'navd.right'}}" aria-label="{{t 'navd.right'}}"><i class="bi bi-layout-sidebar-reverse"></i></button>
           </div>
           <div class="ph">{{t 'navd.display'}}</div>
           <div class="prow">
-            <button type="button" class="pbtn" data-nav-act="pin"><i class="bi bi-pin-angle"></i>{{t 'navd.pin'}}</button>
-            <button type="button" class="pbtn" data-nav-act="star"><i class="bi bi-star"></i>{{t 'navd.setDefault'}}</button>
+            <button type="button" class="pbtn" data-nav-act="pin" title="{{t 'navd.pin'}}" aria-label="{{t 'navd.pin'}}"><i class="bi bi-pin-angle"></i></button>
+            <button type="button" class="pbtn" data-nav-act="star" title="{{t 'navd.setDefault'}}" aria-label="{{t 'navd.setDefault'}}"><i class="bi bi-star"></i></button>
           </div>
         </div>
       </div>
