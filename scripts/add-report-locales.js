@@ -1,0 +1,205 @@
+/**
+ * One-shot: add every reporting (`rf.*`) key to all 8 locale files.
+ * Idempotent — re-running overwrites the rf.* keys with these values and leaves
+ * everything else untouched. Order: en, fr, es, de, pt, it, nl, ja.
+ */
+const fs = require('fs');
+const path = require('path');
+const LOCALES = path.join(__dirname, '..', 'locales');
+const LANGS = ['en', 'fr', 'es', 'de', 'pt', 'it', 'nl', 'ja'];
+
+// key: [en, fr, es, de, pt, it, nl, ja]
+const T = {
+  // ── document chrome ──
+  'rf.report': ['report', 'rapport', 'informe', 'Bericht', 'relatório', 'rapporto', 'rapport', 'レポート'],
+  'rf.reportView': ['Report', 'Rapport', 'Informe', 'Bericht', 'Relatório', 'Rapporto', 'Rapport', 'レポート'],
+  'rf.generated': ['Generated', 'Généré', 'Generado', 'Erstellt', 'Gerado', 'Generato', 'Gegenereerd', '生成日時'],
+  'rf.generatedBy': ['by', 'par', 'por', 'von', 'por', 'da', 'door', '作成者'],
+  'rf.language': ['Language', 'Langue', 'Idioma', 'Sprache', 'Idioma', 'Lingua', 'Taal', '言語'],
+  'rf.reportId': ['Report ID', 'ID du rapport', 'ID del informe', 'Bericht-ID', 'ID do relatório', 'ID rapporto', 'Rapport-ID', 'レポートID'],
+  'rf.page': ['Page', 'Page', 'Página', 'Seite', 'Página', 'Pagina', 'Pagina', 'ページ'],
+  'rf.of': ['of', 'sur', 'de', 'von', 'de', 'di', 'van', '/'],
+  'rf.pinnedNote': ['Rendered from a pinned snapshot — this report reproduces byte for byte.',
+    'Généré à partir d\'un instantané figé — ce rapport se reproduit à l\'identique.',
+    'Generado a partir de una instantánea fijada: este informe se reproduce de forma idéntica.',
+    'Aus einer fixierten Momentaufnahme erstellt — dieser Bericht ist exakt reproduzierbar.',
+    'Gerado a partir de um instantâneo fixado — este relatório se reproduz byte a byte.',
+    'Generato da un\'istantanea bloccata: questo rapporto si riproduce identico.',
+    'Gegenereerd uit een vastgezette momentopname — dit rapport is exact reproduceerbaar.',
+    '固定されたスナップショットから生成 — このレポートは完全に再現できます。'],
+  'rf.liveNote': ['Reflects current state, not a pinned snapshot — a management view, not an authorization artefact.',
+    'Reflète l\'état actuel, pas un instantané figé — une vue de gestion, pas un artefact d\'autorisation.',
+    'Refleja el estado actual, no una instantánea fijada: una vista de gestión, no un artefacto de autorización.',
+    'Spiegelt den aktuellen Stand wider, keine fixierte Momentaufnahme — eine Management-Sicht, kein Autorisierungsartefakt.',
+    'Reflete o estado atual, não um instantâneo fixado — uma visão de gestão, não um artefato de autorização.',
+    'Riflette lo stato attuale, non un\'istantanea bloccata: una vista gestionale, non un artefatto di autorizzazione.',
+    'Weerspiegelt de huidige staat, geen vastgezette momentopname — een managementweergave, geen autorisatie-artefact.',
+    '固定スナップショットではなく現在の状態を反映 — 承認成果物ではなく管理ビューです。'],
+  'rf.contents': ['Contents', 'Sommaire', 'Contenido', 'Inhalt', 'Conteúdo', 'Contenuto', 'Inhoud', '目次'],
+  'rf.download': ['Download', 'Télécharger', 'Descargar', 'Herunterladen', 'Baixar', 'Scarica', 'Downloaden', 'ダウンロード'],
+  'rf.format': ['Format', 'Format', 'Formato', 'Format', 'Formato', 'Formato', 'Formaat', '形式'],
+
+  // ── sections ──
+  'rf.systemProfile': ['System profile', 'Profil du système', 'Perfil del sistema', 'Systemprofil', 'Perfil do sistema', 'Profilo del sistema', 'Systeemprofiel', 'システムプロファイル'],
+  'rf.assessmentSummary': ['Assessment summary', 'Résumé de l\'évaluation', 'Resumen de la evaluación', 'Bewertungsübersicht', 'Resumo da avaliação', 'Riepilogo della valutazione', 'Beoordelingssamenvatting', '評価サマリー'],
+  'rf.postureByFamily': ['Control posture by family', 'Posture des contrôles par famille', 'Estado de los controles por familia', 'Kontrollstatus nach Familie', 'Postura de controles por família', 'Stato dei controlli per famiglia', 'Controlestatus per familie', 'ファミリー別コントロール状況'],
+  'rf.controlDetail': ['Control detail', 'Détail des contrôles', 'Detalle de controles', 'Kontrolldetails', 'Detalhe dos controles', 'Dettaglio dei controlli', 'Controledetails', 'コントロール詳細'],
+  'rf.findings': ['Findings requiring action', 'Constats à traiter', 'Hallazgos que requieren acción', 'Handlungsbedarf', 'Constatações que exigem ação', 'Rilievi che richiedono azione', 'Bevindingen die actie vereisen', '対応が必要な所見'],
+  'rf.signatures': ['Authorization signatures', 'Signatures d\'autorisation', 'Firmas de autorización', 'Autorisierungsunterschriften', 'Assinaturas de autorização', 'Firme di autorizzazione', 'Autorisatiehandtekeningen', '承認署名'],
+  'rf.versionHistory': ['Version history', 'Historique des versions', 'Historial de versiones', 'Versionsverlauf', 'Histórico de versões', 'Cronologia versioni', 'Versiegeschiedenis', 'バージョン履歴'],
+  'rf.decision': ['Decision', 'Décision', 'Decisión', 'Entscheidung', 'Decisão', 'Decisione', 'Besluit', '決定'],
+  'rf.authorizationChain': ['Authorization chain', 'Chaîne d\'autorisation', 'Cadena de autorización', 'Autorisierungskette', 'Cadeia de autorização', 'Catena di autorizzazione', 'Autorisatieketen', '承認の流れ'],
+  'rf.assessmentBasis': ['Assessment basis', 'Base de l\'évaluation', 'Base de la evaluación', 'Bewertungsgrundlage', 'Base da avaliação', 'Base della valutazione', 'Beoordelingsbasis', '評価の根拠'],
+  'rf.conditions': ['Conditions', 'Conditions', 'Condiciones', 'Bedingungen', 'Condições', 'Condizioni', 'Voorwaarden', '条件'],
+  'rf.poamRegister': ['Plan of action & milestones', 'Plan d\'action et jalons', 'Plan de acción e hitos', 'Aktionsplan und Meilensteine', 'Plano de ação e marcos', 'Piano d\'azione e traguardi', 'Actieplan en mijlpalen', '対応計画とマイルストーン'],
+  'rf.deadlineHistory': ['Deadline change history', 'Historique des échéances', 'Historial de cambios de plazo', 'Verlauf der Friständerungen', 'Histórico de mudanças de prazo', 'Cronologia delle scadenze', 'Geschiedenis van deadlinewijzigingen', '期限変更履歴'],
+  'rf.reviewActivity': ['Review activity', 'Activité de revue', 'Actividad de revisión', 'Prüfaktivität', 'Atividade de revisão', 'Attività di revisione', 'Beoordelingsactiviteit', 'レビュー活動'],
+  'rf.assessments': ['Assessments', 'Évaluations', 'Evaluaciones', 'Bewertungen', 'Avaliações', 'Valutazioni', 'Beoordelingen', '評価'],
+  'rf.decisionPackages': ['Decision packages', 'Dossiers de décision', 'Paquetes de decisión', 'Entscheidungspakete', 'Pacotes de decisão', 'Pacchetti decisionali', 'Besluitpakketten', '決定パッケージ'],
+  'rf.outstandingConditions': ['Outstanding conditions', 'Conditions en suspens', 'Condiciones pendientes', 'Offene Bedingungen', 'Condições pendentes', 'Condizioni in sospeso', 'Openstaande voorwaarden', '未解決の条件'],
+  'rf.documents': ['Documents and evidence', 'Documents et preuves', 'Documentos y evidencia', 'Dokumente und Nachweise', 'Documentos e evidências', 'Documenti e prove', 'Documenten en bewijs', '文書と証跡'],
+  'rf.teamAccess': ['Team and access', 'Équipe et accès', 'Equipo y acceso', 'Team und Zugriff', 'Equipe e acesso', 'Team e accesso', 'Team en toegang', 'チームとアクセス'],
+  'rf.systems': ['Systems', 'Systèmes', 'Sistemas', 'Systeme', 'Sistemas', 'Sistemi', 'Systemen', 'システム'],
+  'rf.expiryWatchlist': ['Authorization expiry watchlist', 'Suivi des expirations d\'autorisation', 'Lista de vencimientos de autorización', 'Ablaufüberwachung der Autorisierung', 'Lista de expiração de autorização', 'Elenco scadenze autorizzazioni', 'Vervalbewaking van autorisaties', '承認期限ウォッチリスト'],
+  'rf.accountability': ['Accountability', 'Responsabilités', 'Responsabilidad', 'Verantwortlichkeit', 'Responsabilidade', 'Responsabilità', 'Verantwoordelijkheid', '責任者'],
+
+  // ── fields ──
+  'rf.securityFramework': ['Security framework', 'Cadre de sécurité', 'Marco de seguridad', 'Sicherheitsrahmen', 'Estrutura de segurança', 'Framework di sicurezza', 'Beveiligingsraamwerk', 'セキュリティフレームワーク'],
+  'rf.controlProfile': ['Control profile', 'Profil de contrôle', 'Perfil de control', 'Kontrollprofil', 'Perfil de controle', 'Profilo di controllo', 'Controleprofiel', 'コントロールプロファイル'],
+  'rf.classification': ['Classification', 'Classification', 'Clasificación', 'Klassifizierung', 'Classificação', 'Classificazione', 'Classificatie', '分類'],
+  'rf.confidentiality': ['Confidentiality', 'Confidentialité', 'Confidencialidad', 'Vertraulichkeit', 'Confidencialidade', 'Riservatezza', 'Vertrouwelijkheid', '機密性'],
+  'rf.integrity': ['Integrity', 'Intégrité', 'Integridad', 'Integrität', 'Integridade', 'Integrità', 'Integriteit', '完全性'],
+  'rf.availability': ['Availability', 'Disponibilité', 'Disponibilidad', 'Verfügbarkeit', 'Disponibilidade', 'Disponibilità', 'Beschikbaarheid', '可用性'],
+  'rf.highValueAsset': ['High-value asset', 'Actif de grande valeur', 'Activo de alto valor', 'Hochwertiger Vermögenswert', 'Ativo de alto valor', 'Asset di alto valore', 'Waardevol bedrijfsmiddel', '重要資産'],
+  'rf.personalInformation': ['Personal information', 'Renseignements personnels', 'Información personal', 'Personenbezogene Daten', 'Informações pessoais', 'Informazioni personali', 'Persoonsgegevens', '個人情報'],
+  'rf.hosting': ['Hosting', 'Hébergement', 'Alojamiento', 'Hosting', 'Hospedagem', 'Hosting', 'Hosting', 'ホスティング'],
+  'rf.systemType': ['System type', 'Type de système', 'Tipo de sistema', 'Systemtyp', 'Tipo de sistema', 'Tipo di sistema', 'Systeemtype', 'システム種別'],
+  'rf.technologies': ['Technologies', 'Technologies', 'Tecnologías', 'Technologien', 'Tecnologias', 'Tecnologie', 'Technologieën', '技術'],
+  'rf.lifecycleStatus': ['Lifecycle status', 'État du cycle de vie', 'Estado del ciclo de vida', 'Lebenszyklusstatus', 'Status do ciclo de vida', 'Stato del ciclo di vita', 'Levenscyclusstatus', 'ライフサイクル状態'],
+  'rf.systemOwner': ['System owner', 'Propriétaire du système', 'Propietario del sistema', 'Systemverantwortlicher', 'Proprietário do sistema', 'Proprietario del sistema', 'Systeemeigenaar', 'システム所有者'],
+  'rf.authorizingOfficial': ['Authorizing official', 'Responsable de l\'autorisation', 'Funcionario autorizador', 'Autorisierende Stelle', 'Autoridade autorizadora', 'Autorità di autorizzazione', 'Autoriserende functionaris', '承認責任者'],
+  'rf.cio': ['Chief information officer', 'Dirigeant principal de l\'information', 'Director de información', 'Chief Information Officer', 'Diretor de informação', 'Responsabile dei sistemi informativi', 'Chief Information Officer', '最高情報責任者'],
+  'rf.assessor': ['Security assessor', 'Évaluateur de sécurité', 'Evaluador de seguridad', 'Sicherheitsprüfer', 'Avaliador de segurança', 'Valutatore della sicurezza', 'Beveiligingsbeoordelaar', 'セキュリティ評価者'],
+  'rf.role': ['Role', 'Rôle', 'Rol', 'Rolle', 'Função', 'Ruolo', 'Rol', '役割'],
+  'rf.name': ['Name', 'Nom', 'Nombre', 'Name', 'Nome', 'Nome', 'Naam', '名前'],
+  'rf.contact': ['Contact', 'Contact', 'Contacto', 'Kontakt', 'Contato', 'Contatto', 'Contact', '連絡先'],
+
+  // ── stats / results ──
+  'rf.applicable': ['Applicable', 'Applicable', 'Aplicable', 'Anwendbar', 'Aplicável', 'Applicabile', 'Van toepassing', '該当'],
+  'rf.satisfied': ['Satisfied', 'Satisfait', 'Cumplido', 'Erfüllt', 'Atendido', 'Soddisfatto', 'Voldaan', '充足'],
+  'rf.partial': ['Partially satisfied', 'Partiellement satisfait', 'Parcialmente cumplido', 'Teilweise erfüllt', 'Parcialmente atendido', 'Parzialmente soddisfatto', 'Deels voldaan', '一部充足'],
+  'rf.notSatisfied': ['Not satisfied', 'Non satisfait', 'No cumplido', 'Nicht erfüllt', 'Não atendido', 'Non soddisfatto', 'Niet voldaan', '未充足'],
+  'rf.notApplicable': ['Not applicable', 'Non applicable', 'No aplicable', 'Nicht anwendbar', 'Não aplicável', 'Non applicabile', 'Niet van toepassing', '対象外'],
+  'rf.inherited': ['Inherited', 'Hérité', 'Heredado', 'Vererbt', 'Herdado', 'Ereditato', 'Overgenomen', '継承'],
+  'rf.pending': ['Pending', 'En attente', 'Pendiente', 'Ausstehend', 'Pendente', 'In attesa', 'In behandeling', '保留'],
+  'rf.score': ['Score', 'Score', 'Puntuación', 'Punktzahl', 'Pontuação', 'Punteggio', 'Score', 'スコア'],
+  'rf.overallScore': ['Overall score', 'Score global', 'Puntuación global', 'Gesamtpunktzahl', 'Pontuação geral', 'Punteggio complessivo', 'Totaalscore', '総合スコア'],
+  'rf.family': ['Family', 'Famille', 'Familia', 'Familie', 'Família', 'Famiglia', 'Familie', 'ファミリー'],
+  'rf.distribution': ['Distribution', 'Répartition', 'Distribución', 'Verteilung', 'Distribuição', 'Distribuzione', 'Verdeling', '分布'],
+  'rf.result': ['Result', 'Résultat', 'Resultado', 'Ergebnis', 'Resultado', 'Risultato', 'Resultaat', '結果'],
+  'rf.control': ['Control', 'Contrôle', 'Control', 'Kontrolle', 'Controle', 'Controllo', 'Controle', 'コントロール'],
+  'rf.title': ['Title', 'Titre', 'Título', 'Titel', 'Título', 'Titolo', 'Titel', 'タイトル'],
+  'rf.evidence': ['Evidence', 'Preuve', 'Evidencia', 'Nachweis', 'Evidência', 'Prova', 'Bewijs', '証跡'],
+  'rf.finding': ['Finding', 'Constat', 'Hallazgo', 'Feststellung', 'Constatação', 'Rilievo', 'Bevinding', '所見'],
+  'rf.priority': ['Priority', 'Priorité', 'Prioridad', 'Priorität', 'Prioridade', 'Priorità', 'Prioriteit', '優先度'],
+
+  // ── poam ──
+  'rf.risk': ['Risk', 'Risque', 'Riesgo', 'Risiko', 'Risco', 'Rischio', 'Risico', 'リスク'],
+  'rf.owner': ['Owner', 'Responsable', 'Responsable', 'Verantwortlich', 'Responsável', 'Responsabile', 'Eigenaar', '担当'],
+  'rf.due': ['Due', 'Échéance', 'Vencimiento', 'Fällig', 'Vencimento', 'Scadenza', 'Vervaldatum', '期限'],
+  'rf.originalDue': ['Original due', 'Échéance initiale', 'Vencimiento original', 'Ursprünglich fällig', 'Vencimento original', 'Scadenza originale', 'Oorspronkelijke vervaldatum', '当初期限'],
+  'rf.currentDue': ['Current due', 'Échéance actuelle', 'Vencimiento actual', 'Aktuell fällig', 'Vencimento atual', 'Scadenza attuale', 'Huidige vervaldatum', '現在の期限'],
+  'rf.moves': ['Moves', 'Reports', 'Cambios', 'Verschiebungen', 'Alterações', 'Spostamenti', 'Wijzigingen', '変更回数'],
+  'rf.state': ['State', 'État', 'Estado', 'Status', 'Estado', 'Stato', 'Status', '状態'],
+  'rf.milestone': ['Completion milestone', 'Jalon d\'achèvement', 'Hito de finalización', 'Abschluss-Meilenstein', 'Marco de conclusão', 'Traguardo di completamento', 'Voltooiingsmijlpaal', '完了マイルストーン'],
+  'rf.remediation': ['Remediation plan', 'Plan de correction', 'Plan de remediación', 'Behebungsplan', 'Plano de correção', 'Piano di rimedio', 'Herstelplan', '是正計画'],
+  'rf.overdue': ['Overdue', 'En retard', 'Vencido', 'Überfällig', 'Atrasado', 'In ritardo', 'Te laat', '期限超過'],
+  'rf.high': ['high', 'élevé', 'alto', 'hoch', 'alto', 'alto', 'hoog', '高'],
+  'rf.medium': ['medium', 'moyen', 'medio', 'mittel', 'médio', 'medio', 'gemiddeld', '中'],
+  'rf.low': ['low', 'faible', 'bajo', 'niedrig', 'baixo', 'basso', 'laag', '低'],
+  'rf.open': ['Open', 'Ouvert', 'Abierto', 'Offen', 'Aberto', 'Aperto', 'Open', '未対応'],
+  'rf.inProgress': ['In progress', 'En cours', 'En curso', 'In Bearbeitung', 'Em andamento', 'In corso', 'In uitvoering', '対応中'],
+  'rf.evidenceSubmitted': ['Evidence submitted', 'Preuve soumise', 'Evidencia enviada', 'Nachweis eingereicht', 'Evidência enviada', 'Prova inviata', 'Bewijs ingediend', '証跡提出済み'],
+  'rf.accepted': ['Accepted', 'Accepté', 'Aceptado', 'Akzeptiert', 'Aceito', 'Accettato', 'Geaccepteerd', '承認済み'],
+  'rf.rejected': ['Rejected', 'Rejeté', 'Rechazado', 'Abgelehnt', 'Rejeitado', 'Respinto', 'Afgewezen', '却下'],
+  'rf.deferred': ['Deferred', 'Reporté', 'Diferido', 'Zurückgestellt', 'Adiado', 'Rinviato', 'Uitgesteld', '延期'],
+  'rf.promotionBlocked': ['Promotion to full authorization is blocked', 'La promotion vers l\'autorisation complète est bloquée', 'La promoción a la autorización completa está bloqueada', 'Die Hochstufung zur vollen Autorisierung ist blockiert', 'A promoção para autorização completa está bloqueada', 'La promozione all\'autorizzazione completa è bloccata', 'Promotie naar volledige autorisatie is geblokkeerd', '完全承認への昇格はブロックされています'],
+  'rf.promotionClear': ['No conditions block promotion', 'Aucune condition ne bloque la promotion', 'Ninguna condición bloquea la promoción', 'Keine Bedingungen blockieren die Hochstufung', 'Nenhuma condição bloqueia a promoção', 'Nessuna condizione blocca la promozione', 'Geen voorwaarden blokkeren promotie', '昇格を妨げる条件はありません'],
+  'rf.totalItems': ['Total items', 'Total des éléments', 'Total de elementos', 'Elemente gesamt', 'Total de itens', 'Totale elementi', 'Totaal items', '合計項目'],
+  'rf.inFlight': ['In flight', 'En cours', 'En marcha', 'Laufend', 'Em andamento', 'In corso', 'Onderweg', '進行中'],
+
+  // ── decision ──
+  'rf.packageReference': ['Package reference', 'Référence du dossier', 'Referencia del paquete', 'Paketreferenz', 'Referência do pacote', 'Riferimento pacchetto', 'Pakketreferentie', 'パッケージ参照'],
+  'rf.decisionType': ['Decision type', 'Type de décision', 'Tipo de decisión', 'Entscheidungstyp', 'Tipo de decisão', 'Tipo di decisione', 'Besluittype', '決定種別'],
+  'rf.pinnedAssessment': ['Pinned assessment', 'Évaluation figée', 'Evaluación fijada', 'Fixierte Bewertung', 'Avaliação fixada', 'Valutazione bloccata', 'Vastgezette beoordeling', '固定評価'],
+  'rf.issued': ['Issued', 'Émis', 'Emitido', 'Ausgestellt', 'Emitido', 'Emesso', 'Uitgegeven', '発行'],
+  'rf.expires': ['Expires', 'Expire', 'Vence', 'Läuft ab', 'Expira', 'Scade', 'Verloopt', '有効期限'],
+  'rf.executiveSummary': ['Executive summary', 'Résumé', 'Resumen ejecutivo', 'Zusammenfassung', 'Resumo executivo', 'Sintesi', 'Managementsamenvatting', 'エグゼクティブサマリー'],
+  'rf.residualRisk': ['Residual risk statement', 'Déclaration de risque résiduel', 'Declaración de riesgo residual', 'Erklärung zum Restrisiko', 'Declaração de risco residual', 'Dichiarazione di rischio residuo', 'Verklaring restrisico', '残留リスクの記述'],
+  'rf.decisionRationale': ['Decision rationale', 'Justification de la décision', 'Justificación de la decisión', 'Entscheidungsbegründung', 'Justificativa da decisão', 'Motivazione della decisione', 'Onderbouwing besluit', '決定の根拠'],
+  'rf.conditionsOfAuth': ['Conditions of authorization', 'Conditions d\'autorisation', 'Condiciones de autorización', 'Autorisierungsbedingungen', 'Condições de autorização', 'Condizioni di autorizzazione', 'Autorisatievoorwaarden', '承認条件'],
+  'rf.version': ['Version', 'Version', 'Versión', 'Version', 'Versão', 'Versione', 'Versie', 'バージョン'],
+  'rf.date': ['Date', 'Date', 'Fecha', 'Datum', 'Data', 'Data', 'Datum', '日付'],
+  'rf.by': ['By', 'Par', 'Por', 'Von', 'Por', 'Da', 'Door', '担当'],
+  'rf.change': ['Change', 'Modification', 'Cambio', 'Änderung', 'Alteração', 'Modifica', 'Wijziging', '変更'],
+  'rf.summary': ['Summary', 'Résumé', 'Resumen', 'Zusammenfassung', 'Resumo', 'Riepilogo', 'Samenvatting', '概要'],
+  'rf.notRevertable': ['Not revertable', 'Non réversible', 'No reversible', 'Nicht widerrufbar', 'Não reversível', 'Non ripristinabile', 'Niet omkeerbaar', '復元不可'],
+
+  // ── project / portfolio ──
+  'rf.status': ['Status', 'État', 'Estado', 'Status', 'Status', 'Stato', 'Status', 'ステータス'],
+  'rf.type': ['Type', 'Type', 'Tipo', 'Typ', 'Tipo', 'Tipo', 'Type', '種別'],
+  'rf.lastActivity': ['Last activity', 'Dernière activité', 'Última actividad', 'Letzte Aktivität', 'Última atividade', 'Ultima attività', 'Laatste activiteit', '最終アクティビティ'],
+  'rf.document': ['Document', 'Document', 'Documento', 'Dokument', 'Documento', 'Documento', 'Document', '文書'],
+  'rf.uploaded': ['Uploaded', 'Téléversé', 'Subido', 'Hochgeladen', 'Enviado', 'Caricato', 'Geüpload', 'アップロード'],
+  'rf.size': ['Size', 'Taille', 'Tamaño', 'Größe', 'Tamanho', 'Dimensione', 'Grootte', 'サイズ'],
+  'rf.system': ['System', 'Système', 'Sistema', 'System', 'Sistema', 'Sistema', 'Systeem', 'システム'],
+  'rf.decisionCol': ['Decision', 'Décision', 'Decisión', 'Entscheidung', 'Decisão', 'Decisione', 'Besluit', '決定'],
+  'rf.poamCol': ['POA&M', 'PA&J', 'PA&H', 'PA&M', 'PA&M', 'PA&T', 'PA&M', '対応計画'],
+  'rf.meanScore': ['Mean score', 'Score moyen', 'Puntuación media', 'Durchschnittspunktzahl', 'Pontuação média', 'Punteggio medio', 'Gemiddelde score', '平均スコア'],
+  'rf.authorized': ['Authorized', 'Autorisé', 'Autorizado', 'Autorisiert', 'Autorizado', 'Autorizzato', 'Geautoriseerd', '承認済み'],
+  'rf.inAssessmentCount': ['In assessment', 'En évaluation', 'En evaluación', 'In Bewertung', 'Em avaliação', 'In valutazione', 'In beoordeling', '評価中'],
+  'rf.noAttachmentsNote': ['Attachments are listed, not embedded.', 'Les pièces jointes sont répertoriées, pas intégrées.', 'Los adjuntos se enumeran, no se incrustan.', 'Anhänge werden aufgelistet, nicht eingebettet.', 'Os anexos são listados, não incorporados.', 'Gli allegati sono elencati, non incorporati.', 'Bijlagen worden vermeld, niet ingesloten.', '添付ファイルは埋め込まず一覧表示します。'],
+  'rf.excludedFromScore': ['excluded from score', 'exclu du score', 'excluido de la puntuación', 'nicht in Punktzahl', 'excluído da pontuação', 'escluso dal punteggio', 'buiten de score', 'スコア対象外'],
+
+  // ── hub / picker / branding UI ──
+  'rf.reportsHubTitle': ['Reports', 'Rapports', 'Informes', 'Berichte', 'Relatórios', 'Rapporti', 'Rapporten', 'レポート'],
+  'rf.reportsHubIntro': ['Generate assessment, decision-package, POA&M, project and portfolio reports in HTML, PDF, Word or Markdown. CSV exports are unchanged.',
+    'Générez des rapports d\'évaluation, de dossier de décision, de PA&J, de projet et de portefeuille en HTML, PDF, Word ou Markdown. Les exports CSV sont inchangés.',
+    'Genere informes de evaluación, paquete de decisión, PA&H, proyecto y cartera en HTML, PDF, Word o Markdown. Las exportaciones CSV no cambian.',
+    'Erstellen Sie Berichte zu Bewertung, Entscheidungspaket, PA&M, Projekt und Portfolio in HTML, PDF, Word oder Markdown. CSV-Exporte bleiben unverändert.',
+    'Gere relatórios de avaliação, pacote de decisão, PA&M, projeto e portfólio em HTML, PDF, Word ou Markdown. As exportações CSV permanecem inalteradas.',
+    'Genera rapporti di valutazione, pacchetto decisionale, PA&T, progetto e portfolio in HTML, PDF, Word o Markdown. Le esportazioni CSV sono invariate.',
+    'Genereer beoordelings-, besluitpakket-, PA&M-, project- en portfoliorapporten in HTML, PDF, Word of Markdown. CSV-exports zijn ongewijzigd.',
+    '評価・決定パッケージ・対応計画・プロジェクト・ポートフォリオのレポートを HTML／PDF／Word／Markdown で生成します。CSV エクスポートは変更ありません。'],
+  'rf.reportsHubEmpty': ['No projects are available to report on yet.', 'Aucun projet disponible pour un rapport.', 'Aún no hay proyectos disponibles para informar.', 'Es sind noch keine Projekte für Berichte verfügbar.', 'Ainda não há projetos disponíveis para relatório.', 'Nessun progetto disponibile per il rapporto.', 'Er zijn nog geen projecten om over te rapporteren.', 'レポート対象のプロジェクトがまだありません。'],
+  'rf.portfolioTitle': ['Organization portfolio', 'Portefeuille de l\'organisation', 'Cartera de la organización', 'Organisationsportfolio', 'Portfólio da organização', 'Portfolio dell\'organizzazione', 'Organisatieportfolio', '組織ポートフォリオ'],
+  'rf.portfolioIntro': ['Every system in your tenant — scores, decisions, expiry watchlist and open conditions.', 'Tous les systèmes de votre organisation — scores, décisions, échéances et conditions ouvertes.', 'Todos los sistemas de su organización: puntuaciones, decisiones, vencimientos y condiciones abiertas.', 'Alle Systeme Ihres Mandanten — Punktzahlen, Entscheidungen, Ablauffristen und offene Bedingungen.', 'Todos os sistemas do seu tenant — pontuações, decisões, expirações e condições abertas.', 'Tutti i sistemi del tuo tenant: punteggi, decisioni, scadenze e condizioni aperte.', 'Elk systeem in je tenant — scores, besluiten, vervaldata en open voorwaarden.', 'テナント内の全システム — スコア、決定、期限、未解決条件。'],
+  'rf.openReport': ['Open report', 'Ouvrir le rapport', 'Abrir informe', 'Bericht öffnen', 'Abrir relatório', 'Apri rapporto', 'Rapport openen', 'レポートを開く'],
+  'rf.projectRollup': ['Project rollup', 'Synthèse du projet', 'Resumen del proyecto', 'Projektübersicht', 'Consolidado do projeto', 'Riepilogo progetto', 'Projectoverzicht', 'プロジェクト集計'],
+  'rf.brandingProject': ['Project branding', 'Image de marque du projet', 'Marca del proyecto', 'Projekt-Branding', 'Marca do projeto', 'Branding del progetto', 'Projectbranding', 'プロジェクトのブランド'],
+  'rf.brandingOrg': ['Organization branding', 'Image de marque de l\'organisation', 'Marca de la organización', 'Organisations-Branding', 'Marca da organização', 'Branding dell\'organizzazione', 'Organisatiebranding', '組織のブランド'],
+  'rf.brandingDefault': ['Default branding', 'Image de marque par défaut', 'Marca predeterminada', 'Standard-Branding', 'Marca padrão', 'Branding predefinito', 'Standaardbranding', '既定のブランド'],
+  'rf.primaryColor': ['Primary colour', 'Couleur principale', 'Color primario', 'Primärfarbe', 'Cor primária', 'Colore primario', 'Primaire kleur', 'メインカラー'],
+  'rf.accentColor': ['Accent colour', 'Couleur d\'accent', 'Color de acento', 'Akzentfarbe', 'Cor de destaque', 'Colore d\'accento', 'Accentkleur', 'アクセントカラー'],
+  'rf.headerText': ['Header text', 'Texte d\'en-tête', 'Texto de encabezado', 'Kopfzeilentext', 'Texto do cabeçalho', 'Testo dell\'intestazione', 'Koptekst', 'ヘッダーテキスト'],
+  'rf.footerText': ['Footer text', 'Texte de pied de page', 'Texto de pie de página', 'Fußzeilentext', 'Texto do rodapé', 'Testo del piè di pagina', 'Voettekst', 'フッターテキスト'],
+  'rf.brandingInheritHint': ['Blank fields inherit from your organization defaults, then the platform default.', 'Les champs vides héritent des valeurs par défaut de l\'organisation, puis de la plateforme.', 'Los campos en blanco heredan los valores de la organización y luego los de la plataforma.', 'Leere Felder erben von den Organisationsvorgaben, dann von der Plattform.', 'Campos em branco herdam os padrões da organização e depois da plataforma.', 'I campi vuoti ereditano dai valori dell\'organizzazione, poi dalla piattaforma.', 'Lege velden erven van de organisatiestandaard, daarna de platformstandaard.', '空欄は組織の既定、次にプラットフォームの既定を継承します。'],
+  'rf.brandingClearConfirm': ['Remove this branding and revert to inherited defaults?', 'Supprimer cette image de marque et revenir aux valeurs héritées ?', '¿Eliminar esta marca y volver a los valores heredados?', 'Dieses Branding entfernen und zu geerbten Vorgaben zurückkehren?', 'Remover esta marca e reverter para os padrões herdados?', 'Rimuovere questo branding e tornare ai valori ereditati?', 'Deze branding verwijderen en terugvallen op overgenomen standaarden?', 'このブランドを削除して継承した既定に戻しますか？'],
+  'rf.clearBranding': ['Clear branding', 'Effacer l\'image de marque', 'Borrar marca', 'Branding löschen', 'Limpar marca', 'Cancella branding', 'Branding wissen', 'ブランドを消去'],
+  'rf.brandingSaved': ['Report branding saved.', 'Image de marque du rapport enregistrée.', 'Marca del informe guardada.', 'Bericht-Branding gespeichert.', 'Marca do relatório salva.', 'Branding del rapporto salvato.', 'Rapportbranding opgeslagen.', 'レポートのブランドを保存しました。'],
+  'rf.brandingCleared': ['Report branding cleared.', 'Image de marque du rapport effacée.', 'Marca del informe borrada.', 'Bericht-Branding gelöscht.', 'Marca do relatório removida.', 'Branding del rapporto cancellato.', 'Rapportbranding gewist.', 'レポートのブランドを消去しました。'],
+  'rf.orgBrandingTitle': ['Report branding', 'Image de marque des rapports', 'Marca de los informes', 'Bericht-Branding', 'Marca dos relatórios', 'Branding dei rapporti', 'Rapportbranding', 'レポートのブランド'],
+  'rf.orgBrandingIntro': ['Set the logo, colours and footer every report in your organization uses by default. A project can override these.', 'Définissez le logo, les couleurs et le pied de page utilisés par défaut par tous les rapports de votre organisation. Un projet peut les remplacer.', 'Defina el logotipo, los colores y el pie de página que usan por defecto todos los informes de su organización. Un proyecto puede anularlos.', 'Legen Sie Logo, Farben und Fußzeile fest, die alle Berichte Ihrer Organisation standardmäßig verwenden. Ein Projekt kann diese überschreiben.', 'Defina o logotipo, as cores e o rodapé que todos os relatórios da sua organização usam por padrão. Um projeto pode substituí-los.', 'Imposta logo, colori e piè di pagina che tutti i rapporti della tua organizzazione usano per impostazione predefinita. Un progetto può sovrascriverli.', 'Stel het logo, de kleuren en de voettekst in die elk rapport in je organisatie standaard gebruikt. Een project kan deze overschrijven.', '組織のすべてのレポートが既定で使うロゴ・色・フッターを設定します。プロジェクトごとに上書きできます。'],
+  'rf.currentLogo': ['Current logo', 'Logo actuel', 'Logotipo actual', 'Aktuelles Logo', 'Logotipo atual', 'Logo attuale', 'Huidig logo', '現在のロゴ']
+};
+
+const files = {};
+LANGS.forEach(l => { files[l] = JSON.parse(fs.readFileSync(path.join(LOCALES, l + '.json'), 'utf8')); });
+Object.entries(T).forEach(([key, vals]) => {
+  LANGS.forEach((l, i) => { files[l][key] = vals[i]; });
+});
+LANGS.forEach(l => {
+  // Preserve existing key order; new rf.* keys are appended by assignment above.
+  fs.writeFileSync(path.join(LOCALES, l + '.json'), JSON.stringify(files[l], null, 2) + '\n');
+});
+console.log(`added/updated ${Object.keys(T).length} rf.* keys in ${LANGS.length} locales`);

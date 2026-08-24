@@ -1,0 +1,270 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI cost controls — UI mockup</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap');
+*,*::before,*::after{box-sizing:border-box}
+:root{--nav:#0a1626;--ink:#143453;--accent:#4d9fe0;--accent-dk:#2f80cf;--light:#f4f9fd;
+  --border:#dce7f2;--muted:#5f7185;--text:#17273a;--ok:#2fa06d;--warn:#e0a53d;--bad:#d64550;
+  --grad:linear-gradient(90deg,#6d7fca 0%,#4d9fe0 50%,#7cc9ee 100%)}
+body{margin:0;background:#e7edf3;font-family:'Lato',-apple-system,'Segoe UI',sans-serif;color:var(--text);
+  font-size:14px;line-height:1.55}
+h1,h2,h3,h4{font-family:'Lato',sans-serif;color:var(--ink);margin:0;line-height:1.2}
+.wrap{max-width:1000px;margin:0 auto;padding:28px 20px 60px}
+.pagehead{margin-bottom:22px}
+.pagehead h1{font-size:26px;font-weight:900}
+.pagehead .rule{height:3px;width:56px;background:var(--grad);border-radius:2px;margin-top:8px}
+.pagehead p{color:var(--muted);margin:10px 0 0;max-width:70ch}
+.stagelbl{display:flex;align-items:center;gap:10px;margin:34px 0 12px}
+.stagelbl .n{width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;
+  font-weight:900;display:grid;place-items:center;flex:0 0 auto}
+.stagelbl h2{font-size:16px}
+.stagelbl .cap{color:var(--muted);font-size:13px}
+.stage{background:#eef2f6;border:1px solid #d9e2ea;border-radius:12px;padding:26px;position:relative}
+.stage.dim{background:linear-gradient(#0a1626cc,#0a1626cc),#eef2f6}
+
+/* modal */
+.modal{max-width:560px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;
+  box-shadow:0 18px 44px rgba(10,22,38,.34);border:1px solid var(--border)}
+.modal.wide{max-width:660px}
+.modal-h{background:var(--nav);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;
+  align-items:center;gap:12px}
+.modal-h h3{color:#fff;font-size:15px;display:flex;align-items:center;gap:9px}
+.modal-h .x{opacity:.6;font-size:18px;line-height:1}
+.helpbtn{width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(255,255,255,.55);
+  background:none;color:#fff;font-weight:900;font-size:12px;cursor:pointer;flex:0 0 auto;
+  display:grid;place-items:center;padding:0}
+.helpbtn:hover{background:rgba(255,255,255,.16)}
+.modal-b{padding:20px}
+.modal-f{padding:14px 20px;background:var(--light);border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;gap:12px}
+.btn{border:1px solid transparent;border-radius:7px;padding:8px 16px;font-weight:700;font-size:13.5px;
+  cursor:pointer;font-family:inherit}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-ghost{background:#fff;border-color:var(--border);color:var(--ink)}
+.btn-link{background:none;border:none;color:var(--accent-dk);font-weight:700;font-size:13px;
+  text-decoration:underline;cursor:pointer;padding:0;font-family:inherit}
+
+.est{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:4px 0 16px}
+.est div{border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:var(--light)}
+.est .n{font-size:20px;font-weight:900;color:var(--ink);font-variant-numeric:tabular-nums}
+.est .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);font-weight:700}
+.est .s{font-size:11.5px;color:var(--muted)}
+.plan{border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;
+  background:#fbfdff;padding:12px 14px;font-size:13px}
+.plan ul{margin:6px 0 0;padding-left:18px}.plan li{margin-bottom:3px}
+.bar{height:10px;border-radius:5px;background:#e3eaf1;overflow:hidden;display:flex;border:1px solid var(--border)}
+.bar i{display:block;height:100%}
+.formats{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+.fmt{border:1px solid var(--border);border-radius:7px;padding:7px 13px;font-size:12.5px;font-weight:700;
+  color:var(--ink);background:#fff}
+.fmt.sel{border-color:var(--accent);background:#eef6fd;box-shadow:0 0 0 2px #4d9fe033}
+.chk{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--muted)}
+.chk input{margin-top:3px}
+.note{font-size:12.5px;color:var(--muted)}
+.warnbox{border:1px solid #e8c98a;background:#fdf5e6;border-radius:8px;padding:11px 13px;font-size:13px;
+  color:#7a5205;margin-top:14px}
+.badbox{border:1px solid #e5a8ad;background:#fdeef0;border-radius:8px;padding:11px 13px;font-size:13px;
+  color:#8f242e}
+h4.sub{font-size:13px;margin:16px 0 6px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+
+/* settings card */
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;
+  box-shadow:0 2px 10px rgba(15,32,54,.06);max-width:760px;margin:0 auto}
+.card-h{background:var(--nav);color:#fff;padding:12px 18px;font-weight:700;font-size:14px}
+.card-b{padding:20px}
+.field{padding:15px 0;border-bottom:1px solid var(--border)}
+.field:last-child{border-bottom:none}
+.field .lab{font-weight:700;color:var(--ink);font-size:14px}
+.field .hint{font-size:12.5px;color:var(--muted);margin-top:2px;max-width:62ch}
+.row{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}
+.switch{width:44px;height:24px;border-radius:12px;background:var(--accent);position:relative;flex:0 0 auto;
+  margin-top:2px}
+.switch.off{background:#c3ced9}
+.switch::after{content:'';position:absolute;top:3px;left:23px;width:18px;height:18px;border-radius:50%;background:#fff}
+.switch.off::after{left:3px}
+input[type=number],select{border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-family:inherit;
+  font-size:13.5px;color:var(--text);width:150px;font-variant-numeric:tabular-nums}
+table.mini{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+table.mini th{background:var(--light);text-align:left;padding:7px 10px;font-size:11px;text-transform:uppercase;
+  letter-spacing:.8px;color:var(--ink);border-bottom:1px solid var(--border)}
+table.mini td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+table.mini td.num{text-align:right;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.4px;padding:2px 8px;
+  border-radius:9px;border:1px solid;text-transform:uppercase}
+.p-ok{color:#1c6f4a;border-color:#8fd0b3;background:#eaf7f1}
+.p-warn{color:#8a5a05;border-color:#e8c98a;background:#fdf5e6}
+.p-bad{color:#8f242e;border-color:#e5a8ad;background:#fdeef0}
+</style></head><body><div class="wrap">
+
+<div class="pagehead">
+  <h1>AI cost controls</h1><div class="rule"></div>
+  <p>Answering Q4 — how the token estimate, the per-report approval, the standing threshold and the
+  per-user caps fit together. These are screen mockups, not printed reports.</p>
+</div>
+
+<!-- 1 -->
+<div class="stagelbl"><span class="n">1</span><div><h2>The default — approve each report</h2>
+  <div class="cap">What every user sees until an admin changes it. Note the <b>?</b> in the header.</div></div></div>
+<div class="stage">
+<div class="modal">
+  <div class="modal-h"><h3>⚡ This report will use AI tokens</h3>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="helpbtn" title="Why am I seeing this?">?</button><span class="x">✕</span></div></div>
+  <div class="modal-b">
+    <p style="margin-top:0">Aegis SA will build <b>“Controls failed in the last quarter, grouped by family,
+    across systems with a Protected B profile”</b> as a dynamic report.</p>
+    <div class="est">
+      <div><div class="l">Estimated</div><div class="n">18,400</div><div class="s">tokens</div></div>
+      <div><div class="l">Your remaining</div><div class="n">61,200</div><div class="s">of 80,000 this month</div></div>
+      <div><div class="l">Charged to</div><div class="n">Plan</div><div class="s">Platform AI (metered)</div></div>
+    </div>
+    <div class="bar" title="monthly allowance"><i style="width:23.5%;background:#4d9fe0"></i>
+      <i style="width:23%;background:#9dc9ea"></i></div>
+    <div class="note" style="margin-top:5px">Used 18,800 · this report ≈18,400 · remaining after 42,800</div>
+
+    <h4 class="sub">What will be queried</h4>
+    <div class="plan">The assistant generates a <b>query plan against the report model</b> — never raw SQL,
+      and never outside your organization.
+      <ul>
+        <li>Assessments where <span style="font-family:monospace">profile = PBMM</span> and audit completed in 2026-Q2</li>
+        <li>Their controls where <span style="font-family:monospace">audit_result = failed</span>, grouped by family</li>
+        <li>Aggregate counts only — no evidence text, no comments, no user records, no chat history</li>
+      </ul></div>
+
+    <h4 class="sub">Output format</h4>
+    <div class="formats"><span class="fmt sel">PDF</span><span class="fmt">HTML</span>
+      <span class="fmt">DOCX</span><span class="fmt">Markdown</span><span class="fmt">CSV</span></div>
+  </div>
+  <div class="modal-f">
+    <button class="btn-link">Estimate again with a narrower question</button>
+    <div style="display:flex;gap:8px"><button class="btn btn-ghost">Cancel</button>
+      <button class="btn btn-primary">Approve &amp; generate</button></div>
+  </div>
+</div>
+</div>
+
+<!-- 2 -->
+<div class="stagelbl"><span class="n">2</span><div><h2>The <b>?</b> explainer</h2>
+  <div class="cap">Opens over the approval dialog. Tells the user the setting exists and who can change it.</div></div></div>
+<div class="stage dim">
+<div class="modal wide">
+  <div class="modal-h"><h3>Why am I being asked to approve this?</h3><span class="x">✕</span></div>
+  <div class="modal-b">
+    <p style="margin-top:0">Your organization asks for approval <b>before every AI-generated report</b>, so
+    nobody spends the shared token allowance without seeing the cost first.</p>
+    <h4 class="sub">The alternative — a standing threshold</h4>
+    <p style="margin:0">An administrator can switch this off in favour of a <b>standing threshold</b>: reports
+    estimated under the threshold generate immediately with no dialog, and only the expensive ones stop to ask.
+    You keep a running total either way, and you are always told what a report actually cost afterwards.</p>
+    <table class="mini">
+      <tr><th style="width:44%">Setting</th><th>What you would see</th></tr>
+      <tr><td><b>Approve every report</b> <span class="pill p-ok">current</span></td>
+        <td>This dialog, every time.</td></tr>
+      <tr><td><b>Standing threshold</b> — e.g. 25,000 tokens</td>
+        <td>Nothing under 25,000. This dialog only above it.</td></tr>
+    </table>
+    <div class="warnbox"><b>Your personal cap is separate and always applies.</b> A standing threshold changes
+      when you are <i>asked</i>; it never lets you exceed your own monthly token cap, and it never removes the
+      organization's allowance limit.</div>
+    <p class="note" style="margin-top:14px">Only the organization's primary administrator can change this
+    (Settings → AI &amp; automation → Cost controls). You are signed in as a project user.</p>
+  </div>
+  <div class="modal-f"><span class="note">Nothing has been generated yet.</span>
+    <button class="btn btn-primary">Back to approval</button></div>
+</div>
+</div>
+
+<!-- 3 -->
+<div class="stagelbl"><span class="n">3</span><div><h2>Admin setting — cost controls</h2>
+  <div class="cap">Organization settings → AI &amp; automation. Root admin only.</div></div></div>
+<div class="stage">
+<div class="card">
+  <div class="card-h">AI cost controls</div>
+  <div class="card-b">
+    <div class="field"><div class="row"><div>
+      <div class="lab">Require approval for every AI report</div>
+      <div class="hint">Default. Every user sees the estimate and must approve before any tokens are spent.
+        Turn this off to use a standing threshold instead.</div></div>
+      <div class="switch"></div></div></div>
+
+    <div class="field" style="opacity:.55"><div class="row"><div>
+      <div class="lab">Standing threshold</div>
+      <div class="hint">When per-report approval is off, reports estimated below this generate silently.
+        Anything above still stops for approval — the dialog can never be disabled entirely.</div></div>
+      <div><input type="number" value="25000" disabled> <span class="note">tokens</span></div></div></div>
+
+    <div class="field"><div class="row" style="align-items:center"><div>
+      <div class="lab">Monthly token cap per user</div>
+      <div class="hint">Applies to <b>every</b> AI feature that spends tokens — the assistant, evidence
+        drafting, dynamic reports — not only reports. A user who reaches the cap can still use the app;
+        AI features pause until the next period or until an admin raises the cap.</div></div></div>
+      <table class="mini">
+        <tr><th>Role</th><th class="num" style="width:150px">Cap / month</th><th style="width:130px">Highest use</th><th style="width:110px">Status</th></tr>
+        <tr><td>Project user</td><td class="num"><input type="number" value="80000"></td>
+          <td class="num">71,900 (D. Okonkwo)</td><td><span class="pill p-warn">90% used</span></td></tr>
+        <tr><td>Assessor</td><td class="num"><input type="number" value="150000"></td>
+          <td class="num">64,100 (K. Rahman)</td><td><span class="pill p-ok">43% used</span></td></tr>
+        <tr><td>Organization admin</td><td class="num"><input type="number" value="400000"></td>
+          <td class="num">88,400 (M. Lindqvist)</td><td><span class="pill p-ok">22% used</span></td></tr>
+      </table>
+      <div class="note" style="margin-top:8px">Defaults: project user 80,000 · assessor 150,000 ·
+        admin 400,000. A per-person override can be set from the member's profile.</div>
+    </div>
+
+    <div class="field"><div class="row"><div>
+      <div class="lab">Also enforce caps when using our own AI provider</div>
+      <div class="hint">You are on a bring-your-own key (Anthropic). Platform tokens are not consumed, but you
+        are still billed by your provider — keep this on to apply the same per-user caps to that spend.</div></div>
+      <div class="switch"></div></div></div>
+  </div>
+</div>
+</div>
+
+<!-- 4 -->
+<div class="stagelbl"><span class="n">4</span><div><h2>Threshold on, report under it</h2>
+  <div class="cap">No dialog. A quiet inline receipt after the fact, so cost stays visible.</div></div></div>
+<div class="stage">
+<div class="modal" style="max-width:600px">
+  <div class="modal-h"><h3>✓ Report ready — Failed controls, 2026-Q2</h3><span class="x">✕</span></div>
+  <div class="modal-b" style="padding-bottom:14px">
+    <div class="est" style="margin-bottom:10px">
+      <div><div class="l">Actual cost</div><div class="n">16,720</div><div class="s">tokens (est. 18,400)</div></div>
+      <div><div class="l">Your remaining</div><div class="n">44,480</div><div class="s">of 80,000 this month</div></div>
+      <div><div class="l">Generated in</div><div class="n">9.4s</div><div class="s">PDF · 6 pages</div></div>
+    </div>
+    <div class="note">Generated without asking because it fell under your organization's standing threshold of
+      25,000 tokens. <button class="btn-link">See all AI spend</button></div>
+  </div>
+  <div class="modal-f"><span class="note">Saved to Reports · retained 90 days</span>
+    <div style="display:flex;gap:8px"><button class="btn btn-ghost">Open</button>
+      <button class="btn btn-primary">Download PDF</button></div></div>
+</div>
+</div>
+
+<!-- 5 -->
+<div class="stagelbl"><span class="n">5</span><div><h2>User has hit their cap</h2>
+  <div class="cap">The hard stop. A threshold never bypasses this.</div></div></div>
+<div class="stage">
+<div class="modal">
+  <div class="modal-h" style="background:#8f242e"><h3>Monthly AI limit reached</h3>
+    <div style="display:flex;gap:10px;align-items:center"><button class="helpbtn">?</button><span class="x">✕</span></div></div>
+  <div class="modal-b">
+    <div class="badbox"><b>You have used 80,000 of your 80,000 tokens for August.</b>
+      AI features are paused for your account until 1 September.</div>
+    <table class="mini">
+      <tr><th>Where your tokens went</th><th class="num" style="width:120px">Tokens</th><th class="num" style="width:90px">Share</th></tr>
+      <tr><td>Aegis SA assistant (control tailoring)</td><td class="num">41,300</td><td class="num">52%</td></tr>
+      <tr><td>Evidence drafting suggestions</td><td class="num">24,900</td><td class="num">31%</td></tr>
+      <tr><td>Dynamic reports (4)</td><td class="num">13,800</td><td class="num">17%</td></tr>
+    </table>
+    <p class="note" style="margin-top:12px">Everything else in Aegis SA works normally — assessments, evidence,
+      POA&amp;M and all <b>standard</b> reports are unaffected. Only AI-generated content is paused.</p>
+  </div>
+  <div class="modal-f"><span class="note">Cap set by your organization admin</span>
+    <div style="display:flex;gap:8px"><button class="btn btn-ghost">Close</button>
+      <button class="btn btn-primary">Request a higher cap</button></div></div>
+</div>
+</div>
+
+</div></body></html>

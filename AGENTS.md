@@ -45,6 +45,19 @@ Write all user-facing copy to be internationally neutral. The product is not Can
   `href="{{t 'key'}}"`, and verify each resolves (HTTP 200). Fall back to English only where no
   localized version exists.
 
+## Reporting — keep the report model in sync with the data model
+Unified reporting engine (see `docs/REPORTING.md`): one format-agnostic model
+(`config/report-model.js`) → four renderers (`utils/report-render/`: HTML, PDF via pdfkit,
+DOCX, Markdown). CSV is intentionally untouched and keeps its own per-object routes.
+- When you add a user-facing field or a reportable object, update the report model AND every
+  renderer — a field visible on screen but absent from the export is a bug.
+- Report labels use `rf.*` keys defined in `utils/report-render/labels.js` (English fallback)
+  and present in all 8 `locales/*.json` (`scripts/add-report-locales.js` bulk-adds them).
+  Report content (control text, names) is data and passes through untranslated.
+- Branding resolves project → org → platform (`config/report-branding.js`); never hardcode
+  colours/logo/footer in a renderer.
+- The PDF (pdfkit) is a deliberate second layout kept visually close to the HTML; change both.
+
 ## Testing
 - Run `npm run test:e2e` before committing app changes. Note the suite currently expects
   `MFA_ENABLED=true` (MFA defaults off), so run it as `MFA_ENABLED=true npm run test:e2e`.

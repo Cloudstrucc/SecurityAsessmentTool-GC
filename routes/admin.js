@@ -21,6 +21,7 @@ const {
 const { countryNames, govLevelNames, sensitivityNames } = require('../config/framework-map');
 const emailService = require('../utils/emailService');
 const pdfExport = require('../utils/pdfExport');
+const reportBranding = require('../config/report-branding');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
@@ -1329,34 +1330,35 @@ router.post('/projects/:id/branding', ensureAuthenticated, brandingUpload.single
   try {
     const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
     if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
-    const existing = getProjectBranding(project.id);
-    const logoFilename = req.file?.filename || existing.logo_filename || '';
-    const logoOriginalName = req.file?.originalname || existing.logo_original_name || '';
-    const logoMimeType = req.file?.mimetype || existing.logo_mime_type || '';
-
-    if (existing.id) {
-      run(`UPDATE report_branding SET organization_name = ?, logo_filename = ?, logo_original_name = ?,
-        logo_mime_type = ?, report_subtitle = ?, classification_label = ?, assessor_company_name = ?,
-        updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-        [req.body.organization_name || '', logoFilename, logoOriginalName, logoMimeType,
-          req.body.report_subtitle || '', req.body.classification_label || '', req.body.assessor_company_name || '',
-          existing.id]);
-    } else {
-      run(`INSERT INTO report_branding
-        (scope_type, project_id, organization_name, logo_filename, logo_original_name, logo_mime_type,
-          report_subtitle, classification_label, assessor_company_name, created_by)
-        VALUES ('project', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [project.id, req.body.organization_name || '', logoFilename, logoOriginalName, logoMimeType,
-          req.body.report_subtitle || '', req.body.classification_label || '', req.body.assessor_company_name || '', req.user.id]);
-    }
-
-    req.flash('success', 'Report branding saved.');
+    reportBranding.save('project', project.id, {
+      organization_name: req.body.organization_name,
+      report_subtitle: req.body.report_subtitle,
+      classification_label: req.body.classification_label,
+      assessor_company_name: req.body.assessor_company_name,
+      primary_color: req.body.primary_color,
+      accent_color: req.body.accent_color,
+      header_text: req.body.header_text,
+      footer_text: req.body.footer_text,
+      logo_filename: req.file && req.file.filename,
+      logo_original_name: req.file && req.file.originalname,
+      logo_mime_type: req.file && req.file.mimetype
+    }, req.user.id);
+    req.flash('success', req.t ? req.t('rf.brandingSaved') : 'Report branding saved.');
     res.redirect(`/admin/projects/${project.id}#reporting`);
   } catch (err) {
     console.error('Branding save error:', err);
     req.flash('error', 'Failed to save branding: ' + err.message);
     res.redirect(`/admin/projects/${req.params.id}`);
   }
+});
+
+// Remove project-level branding entirely (revert to org / platform default).
+router.post('/projects/:id/branding/clear', ensureAuthenticated, (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+  if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+  reportBranding.clear('project', project.id);
+  req.flash('success', req.t ? req.t('rf.brandingCleared') : 'Report branding cleared.');
+  res.redirect(`/admin/projects/${project.id}#reporting`);
 });
 
 router.get('/projects/:id/controls.csv', ensureAuthenticated, (req, res) => {

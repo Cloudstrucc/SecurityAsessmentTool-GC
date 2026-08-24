@@ -1030,6 +1030,16 @@ async function initDatabase() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       expires_at DATETIME
     )`],
+
+    // ── Reporting (Phase A/B): org-level branding + colour/header/footer ──
+    // report_branding gains an organization_id so a tenant can set defaults that
+    // apply to every project, plus colour and header/footer fields. Resolution at
+    // render time is project row → org row → platform default.
+    ['report_branding', 'organization_id', 'ALTER TABLE report_branding ADD COLUMN organization_id INTEGER'],
+    ['report_branding', 'primary_color', 'ALTER TABLE report_branding ADD COLUMN primary_color TEXT'],
+    ['report_branding', 'accent_color', 'ALTER TABLE report_branding ADD COLUMN accent_color TEXT'],
+    ['report_branding', 'header_text', 'ALTER TABLE report_branding ADD COLUMN header_text TEXT'],
+    ['report_branding', 'footer_text', 'ALTER TABLE report_branding ADD COLUMN footer_text TEXT'],
   ];
 
   migrations.forEach(([table, column, sql]) => {

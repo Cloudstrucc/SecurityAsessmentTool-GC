@@ -1,0 +1,562 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Assessment report — Member Services Portal</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap');
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#143453; --nav:#0a1626; --accent:#4d9fe0; --accent-dk:#2f80cf;
+  --light:#f4f9fd; --border:#dce7f2; --muted:#5f7185; --text:#17273a;
+  --grad:linear-gradient(90deg,#6d7fca 0%,#4d9fe0 50%,#7cc9ee 100%);
+  --ok:#2fa06d; --warn:#c98617; --bad:#c23b46; --info:#3d7fb8;
+}
+html{background:#e7edf3}
+body{margin:0;font-family:'Lato','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  color:var(--text);font-size:10.5pt;line-height:1.5;-webkit-font-smoothing:antialiased;
+  font-variant-numeric:tabular-nums}
+h1,h2,h3,h4{font-family:'Lato','Inter',sans-serif;color:var(--ink);line-height:1.2;margin:0}
+
+/* ── the sheet = one printed page ───────────────────────────────────── */
+.sheet{width:210mm;min-height:297mm;margin:10mm auto;background:#fff;position:relative;
+  padding:16mm 15mm 22mm;box-shadow:0 3px 18px rgba(15,32,54,.16);overflow:hidden}
+.sheet.cover{padding-top:0}
+
+/* ── masthead ───────────────────────────────────────────────────────── */
+.classbar{margin:0 -15mm 0;background:var(--nav);color:#fff;text-align:center;
+  font-size:8pt;font-weight:700;letter-spacing:2.6px;padding:5px 0;text-transform:uppercase}
+.masthead{display:flex;justify-content:space-between;align-items:flex-end;
+  padding:9mm 0 5mm;border-bottom:1px solid var(--border)}
+.masthead .rule,.hairline{height:3px;background:var(--grad);margin:0 -15mm}
+.logo-img{height:34px;width:auto;display:block}
+.logo-svg{height:38px;width:auto;display:block}
+.prodtag{text-align:right;font-size:8pt;color:var(--muted);letter-spacing:.6px;line-height:1.5}
+.prodtag b{display:block;color:var(--ink);font-size:11pt;letter-spacing:.2px}
+
+/* running header on continuation pages */
+.runhead{display:flex;justify-content:space-between;align-items:center;font-size:8pt;
+  color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:5px;margin-bottom:9mm;
+  letter-spacing:.4px}
+.runhead b{color:var(--ink);font-weight:700}
+
+/* ── cover ──────────────────────────────────────────────────────────── */
+.cover-body{padding-top:26mm}
+.eyebrow{font-size:8.5pt;letter-spacing:3.4px;text-transform:uppercase;color:var(--accent-dk);
+  font-weight:700;margin-bottom:10px}
+.cover-title{font-size:29pt;font-weight:900;letter-spacing:-.5px;margin-bottom:6px}
+.cover-sub{font-size:13pt;color:var(--muted);font-weight:400;margin-bottom:26px}
+.cover-accent{height:4px;width:74px;background:var(--grad);border-radius:2px;margin:0 0 26px}
+.docctl{width:100%;border-collapse:collapse;margin-top:8mm;font-size:9.5pt}
+.docctl th{text-align:left;width:44mm;font-weight:700;color:var(--ink);padding:6px 10px 6px 0;
+  vertical-align:top;border-bottom:1px solid var(--border);font-size:8.5pt;letter-spacing:.6px;
+  text-transform:uppercase}
+.docctl td{padding:6px 0;border-bottom:1px solid var(--border);vertical-align:top}
+.stamp{margin-top:10mm;border:1px solid var(--border);border-left:4px solid var(--accent);
+  background:var(--light);padding:11px 14px;font-size:9pt;border-radius:0 6px 6px 0}
+.stamp b{color:var(--ink)}
+.stamp.warnbox{border-left-color:var(--warn)}
+
+/* ── sections ───────────────────────────────────────────────────────── */
+section{margin-top:9mm;page-break-inside:avoid}
+.sec-h{display:flex;align-items:baseline;gap:9px;border-bottom:2px solid var(--ink);
+  padding-bottom:5px;margin-bottom:9px}
+.sec-h .num{font-size:9pt;font-weight:900;color:var(--accent-dk);letter-spacing:1px}
+.sec-h h2{font-size:13.5pt;font-weight:700}
+h3{font-size:10.5pt;margin:6mm 0 4px;color:var(--ink)}
+p{margin:0 0 8px}
+.lede{color:var(--muted);font-size:9.5pt;margin-bottom:10px}
+
+/* ── data tables ────────────────────────────────────────────────────── */
+table.data{width:100%;border-collapse:collapse;font-size:9pt;margin-top:4px}
+table.data thead th{background:var(--ink);color:#fff;text-align:left;padding:6px 8px;
+  font-size:8pt;letter-spacing:.7px;text-transform:uppercase;font-weight:700;
+  border-right:1px solid rgba(255,255,255,.12)}
+table.data thead th:last-child{border-right:none}
+table.data td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+table.data tbody tr:nth-child(even) td{background:#fafcfe}
+table.data td.num,table.data th.num{text-align:right}
+table.data tfoot td{font-weight:700;background:var(--light);border-top:2px solid var(--ink);
+  border-bottom:none;color:var(--ink)}
+.kv{width:100%;border-collapse:collapse;font-size:9.5pt}
+.kv th{text-align:left;font-weight:700;color:var(--ink);width:46mm;padding:5px 10px 5px 0;
+  border-bottom:1px solid var(--border);vertical-align:top}
+.kv td{padding:5px 0;border-bottom:1px solid var(--border)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 12mm}
+.kv4 th{width:34mm}
+.kv4 td{width:auto;padding-right:9mm}
+.kv4 th:nth-child(3){padding-left:7mm;border-left:1px solid var(--border)}
+
+/* ── pills — readable in greyscale: border + weight, never colour alone ── */
+.pill{display:inline-block;font-size:7.6pt;font-weight:700;letter-spacing:.5px;
+  padding:1.5px 7px;border-radius:9px;border:1px solid;text-transform:uppercase;white-space:nowrap}
+.p-ok{color:#1c6f4a;border-color:#8fd0b3;background:#eaf7f1}
+.p-warn{color:#8a5a05;border-color:#e8c98a;background:#fdf5e6}
+.p-bad{color:#8f242e;border-color:#e5a8ad;background:#fdeef0}
+.p-info{color:#1f5580;border-color:#a9cbe6;background:#eef5fb}
+.p-mute{color:#4a5b6d;border-color:#c8d4e0;background:#f2f5f8}
+
+/* ── bars & meters ──────────────────────────────────────────────────── */
+.meter{height:9px;background:#e9eff5;border-radius:5px;overflow:hidden;display:flex;
+  border:1px solid var(--border)}
+.meter i{display:block;height:100%}
+.seg-ok{background:#3aa876}.seg-warn{background:#e0a53d}.seg-bad{background:#d1505b}
+.seg-na{background:#c3ced9}
+.legend{display:flex;gap:14px;font-size:8pt;color:var(--muted);margin-top:7px;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend i{width:9px;height:9px;border-radius:2px;display:block}
+
+/* KPI tiles */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+.kpi{border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:5px;
+  padding:9px 11px;background:#fff}
+.kpi .n{font-size:20pt;font-weight:900;color:var(--ink);line-height:1.05}
+.kpi .l{font-size:7.8pt;text-transform:uppercase;letter-spacing:1px;color:var(--muted);
+  margin-top:2px;font-weight:700}
+.kpi .d{font-size:8pt;color:var(--muted);margin-top:3px}
+.kpi.bad{border-top-color:var(--bad)}.kpi.warn{border-top-color:var(--warn)}
+.kpi.ok{border-top-color:var(--ok)}
+
+/* score dial */
+.score-wrap{display:flex;gap:14px;align-items:center}
+.dial{flex:0 0 auto}
+.dial .track{fill:none;stroke:#e9eff5;stroke-width:11}
+.dial .val{fill:none;stroke:var(--accent);stroke-width:11;stroke-linecap:round;
+  transform:rotate(-90deg);transform-origin:50% 50%}
+.dial text{font-family:'Lato',sans-serif;font-weight:900;fill:var(--ink)}
+
+/* chevron process flow */
+.flow{display:flex;gap:3px;margin-top:5px}
+.chev{position:relative;flex:1;background:var(--light);border:1px solid var(--border);
+  padding:8px 12px 8px 20px;font-size:8.4pt;clip-path:polygon(0 0,calc(100% - 11px) 0,100% 50%,calc(100% - 11px) 100%,0 100%,11px 50%)}
+.chev:first-child{clip-path:polygon(0 0,calc(100% - 11px) 0,100% 50%,calc(100% - 11px) 100%,0 100%)}
+.chev.done{background:var(--ink);border-color:var(--ink);color:#fff}
+.chev.now{background:var(--accent);border-color:var(--accent);color:#fff}
+.chev .s{display:block;font-size:7.2pt;letter-spacing:1.1px;text-transform:uppercase;opacity:.8}
+.chev .t{font-weight:700}
+
+/* finding block */
+.finding{border:1px solid var(--border);border-left:4px solid var(--bad);border-radius:0 5px 5px 0;
+  padding:9px 12px;margin-bottom:8px;background:#fff;page-break-inside:avoid}
+.finding.warn{border-left-color:var(--warn)}
+.finding h4{font-size:10pt;display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.finding .body{font-size:9pt;margin-top:5px;color:var(--text)}
+.finding .lbl{font-size:7.8pt;text-transform:uppercase;letter-spacing:1px;color:var(--muted);
+  font-weight:700;margin-top:6px}
+
+/* signatures */
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:9mm 12mm;margin-top:6mm}
+.sig{border-top:1px solid var(--ink);padding-top:5px}
+.sig .role{font-size:8pt;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);
+  font-weight:700}
+.sig .who{font-weight:700;color:var(--ink);margin-top:2px}
+.sig .when{font-size:8.5pt;color:var(--muted)}
+.sigline{height:13mm;border-bottom:1px dashed #97a7b6;margin-bottom:4px}
+
+/* footer */
+.pfoot{position:absolute;left:15mm;right:15mm;bottom:11mm;display:flex;justify-content:space-between;
+  align-items:center;font-size:7.6pt;color:var(--muted);border-top:1px solid var(--border);
+  padding-top:5px;letter-spacing:.3px}
+.pfoot .cls{font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--ink)}
+
+.note{font-size:8.4pt;color:var(--muted);font-style:italic;margin-top:6px}
+.mono{font-family:'SFMono-Regular',Consolas,'Liberation Mono',monospace;font-size:8.6pt}
+.ctlid{font-family:'SFMono-Regular',Consolas,monospace;font-weight:700;color:var(--ink);white-space:nowrap}
+
+@media print{
+  html{background:#fff}
+  .sheet{margin:0;box-shadow:none;page-break-after:always;width:auto;min-height:auto}
+  .sheet:last-child{page-break-after:auto}
+  @page{size:A4;margin:0}
+}
+</style></head><body><div class="sheet cover">
+    <div class="masthead"><img src="data:image/png;base64,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" alt="Vanguard Cloud Services" class="logo-img">
+      <div class="prodtag"><b>Aegis SA</b>Security assessment &amp; authorization</div>
+    </div><div class="hairline"></div>
+    <div class="cover-body">
+      <div class="eyebrow">Security assessment report</div>
+      <h1 class="cover-title">Member Services Portal</h1>
+      <div class="cover-sub">ITSG-33 · PBMM baseline · initial assessment</div>
+      <div class="cover-accent"></div>
+      <table class="docctl">
+        <tr><th>Report ID</th><td class="mono">ASR-2026-0118-v7</td></tr>
+        <tr><th>Source record</th><td>Assessment #118 — <b>version 7</b> (immutable snapshot)</td></tr>
+        <tr><th>Assessment status</th><td>audit-complete · result <b>conditional</b> · score <b>82.4%</b></td></tr>
+        <tr><th>Prepared for</th><td>Northstar Digital Services</td></tr>
+        <tr><th>Generated</th><td>2026-08-24 14:07 UTC by K. Rahman (Lead Security Assessor)</td></tr>
+        <tr><th>Language</th><td>English (en) — this report renders identically in fr, es, de, pt, it, nl, ja</td></tr>
+        <tr><th>Distribution</th><td>Authorizing official, system owner, assessment team</td></tr>
+      </table>
+      <div class="stamp"><b>Rendered from a pinned snapshot.</b> Every figure in this report is drawn from
+      assessment version 7 (record #441), not from live data. Regenerating this report at any future
+      date reproduces it byte for byte. Later edits appear only in a later version.</div>
+      <div class="note">Contents — 1 System profile · 2 Assessment summary · 3 Control posture by family
+      · 4 Control detail · 5 Findings requiring action · 6 Authorization signatures · Appendix A Version history</div>
+    </div>
+    <div class="pfoot"><span class="cls">&nbsp;</span><span>Vanguard Cloud Services · Aegis SA</span>
+      <span>ASR-2026-0118-v7 · Page 1 of 9</span></div></div><div class="sheet"><div class="runhead"><span><b>Assessment report</b> — Member Services Portal</span><span></span></div>
+    <section><div class="sec-h"><span class="num">1</span><h2>System profile</h2></div>
+      <p class="lede">Public-facing self-service portal for benefit enrolment, claims status and secure messaging.</p>
+      <table class="kv kv4">
+        <tr><th>Security framework</th><td>ITSG-33</td>
+            <th>High-value asset</th><td>Yes</td></tr>
+        <tr><th>Control profile</th><td>PBMM (moderate)</td>
+            <th>Personal information</th><td>Yes — applicable privacy laws</td></tr>
+        <tr><th>Classification</th><td>Protected B</td>
+            <th>Hosting</th><td>Public cloud (IaaS/PaaS)</td></tr>
+        <tr><th>Confidentiality</th><td>Protected B</td>
+            <th>System type</th><td>Web application + REST API</td></tr>
+        <tr><th>Integrity</th><td>Medium</td>
+            <th>Lifecycle status</th><td>active</td></tr>
+        <tr><th>Availability</th><td>Medium</td>
+            <th>Technologies</th><td>Node.js 20, PostgreSQL 16, Azure App Service, Entra ID, Azure Front Door</td></tr>
+      </table>
+      <h3>Accountability</h3>
+      <table class="data"><thead><tr><th>Role</th><th>Name</th><th>Contact</th></tr></thead><tbody>
+        <tr><td>System owner</td><td>D. Okonkwo</td><td class="mono">d.okonkwo@northstar-digital.example</td></tr>
+        <tr><td>Authorizing official</td><td>M. Lindqvist</td><td class="mono">m.lindqvist@northstar-digital.example</td></tr>
+        <tr><td>Chief information officer</td><td>R. Advani</td><td class="mono">r.advani@northstar-digital.example</td></tr>
+      </tbody></table>
+    </section>
+
+<div class="pfoot"><span class="cls">&nbsp;</span>
+    <span>Vanguard Cloud Services · Aegis SA</span>
+    <span>ASR-2026-0118-v7 · Page 2 of 9</span></div></div><div class="sheet"><div class="runhead"><span><b>Assessment report</b> — Member Services Portal</span><span></span></div><section><div class="sec-h"><span class="num">2</span><h2>Assessment summary</h2></div>
+      <div class="score-wrap"><svg class="dial" width="96" height="96" viewBox="0 0 96 96">
+      <circle class="track" cx="48" cy="48" r="34"/>
+      <circle class="val" cx="48" cy="48" r="34" stroke-dasharray="213.62830044410595"
+        stroke-dashoffset="37.59858087816263"/>
+      <text x="48" y="52" text-anchor="middle" font-size="19">82.4<tspan font-size="10">%</tspan></text>
+    </svg>
+        <div style="flex:1">
+          <div class="meter">
+            <i class="seg-ok" style="width:85.21739130434783%"></i>
+            <i class="seg-warn" style="width:10.434782608695652%"></i>
+            <i class="seg-bad" style="width:4.3478260869565215%"></i>
+          </div>
+          <div class="legend">
+            <span><i class="seg-ok"></i>Satisfied 196</span>
+            <span><i class="seg-warn"></i>Partially satisfied 24</span>
+            <span><i class="seg-bad"></i>Not satisfied 10</span>
+            <span><i class="seg-na"></i>Not applicable 39 (excluded from score)</span>
+          </div>
+          <p class="note" style="margin-top:9px">Overall score is the proportion of applicable controls fully
+          satisfied, with partially satisfied controls counted at half weight. 230 controls applicable
+          of 269 in the PBMM profile.</p>
+        </div>
+      </div>
+      <div class="kpis" style="margin-top:8mm">
+        <div class="kpi ok"><div class="n">196</div><div class="l">Satisfied</div><div class="d">85.2% of applicable</div></div>
+        <div class="kpi warn"><div class="n">24</div><div class="l">Partial</div><div class="d">Evidence incomplete</div></div>
+        <div class="kpi bad"><div class="n">10</div><div class="l">Not satisfied</div><div class="d">6 raised as POA&amp;M items</div></div>
+        <div class="kpi"><div class="n">18</div><div class="l">Inherited</div><div class="d">From hosting provider</div></div>
+      </div>
+      <h3>Milestones</h3>
+      <table class="data"><thead><tr><th>Milestone</th><th>Date</th><th>Actor</th></tr></thead><tbody>
+        <tr><td>Evidence submitted for audit</td><td>2026-06-02</td><td>D. Okonkwo (system owner)</td></tr>
+        <tr><td>Audit started</td><td>2026-06-09</td><td>K. Rahman (assessor)</td></tr>
+        <tr><td>Audit completed</td><td>2026-07-24</td><td>K. Rahman (assessor)</td></tr>
+        <tr><td>Authorization decision issued</td><td>2026-08-05</td><td>M. Lindqvist (authorizing official)</td></tr>
+        <tr><td>Authorization expires</td><td><b>2027-08-04</b></td><td>—</td></tr>
+      </tbody></table>
+    </section><div class="pfoot"><span class="cls">&nbsp;</span>
+    <span>Vanguard Cloud Services · Aegis SA</span>
+    <span>ASR-2026-0118-v7 · Page 3 of 9</span></div></div><div class="sheet"><div class="runhead"><span><b>Assessment report</b> — Member Services Portal</span><span></span></div>
+    <section><div class="sec-h"><span class="num">3</span><h2>Control posture by family</h2></div>
+      <p class="lede">Every applicable control in the PBMM profile, grouped by ITSG-33
+      family. Bars are proportional to the applicable count in that family, so a short bar means a small family,
+      not a weak one — read the score column for posture.</p>
+      <table class="data">
+        <thead><tr><th style="width:16mm">Family</th><th>Name</th><th class="num">Appl.</th>
+          <th class="num">Sat.</th><th class="num">Part.</th><th class="num">Not sat.</th>
+          <th class="num">N/A</th><th>Distribution</th><th class="num">Score</th></tr></thead>
+        <tbody><tr>
+      <td><span class="ctlid">AC</span></td><td>Access control</td>
+      <td class="num">31</td><td class="num">26</td><td class="num">3</td>
+      <td class="num">2</td><td class="num">4</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:83.87096774193549%"></i>
+        <i class="seg-warn" style="width:9.67741935483871%"></i>
+        <i class="seg-bad" style="width:6.451612903225806%"></i></div></td>
+      <td class="num"><b>89%</b></td></tr><tr>
+      <td><span class="ctlid">AT</span></td><td>Awareness and training</td>
+      <td class="num">5</td><td class="num">5</td><td class="num">—</td>
+      <td class="num">—</td><td class="num">—</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:100%"></i>
+        <i class="seg-warn" style="width:0%"></i>
+        <i class="seg-bad" style="width:0%"></i></div></td>
+      <td class="num"><b>100%</b></td></tr><tr>
+      <td><span class="ctlid">AU</span></td><td>Audit and accountability</td>
+      <td class="num">16</td><td class="num">13</td><td class="num">2</td>
+      <td class="num">1</td><td class="num">2</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:81.25%"></i>
+        <i class="seg-warn" style="width:12.5%"></i>
+        <i class="seg-bad" style="width:6.25%"></i></div></td>
+      <td class="num"><b>88%</b></td></tr><tr>
+      <td><span class="ctlid">CA</span></td><td>Assessment, authorization and monitoring</td>
+      <td class="num">9</td><td class="num">8</td><td class="num">1</td>
+      <td class="num">—</td><td class="num">1</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:88.88888888888889%"></i>
+        <i class="seg-warn" style="width:11.11111111111111%"></i>
+        <i class="seg-bad" style="width:0%"></i></div></td>
+      <td class="num"><b>94%</b></td></tr><tr>
+      <td><span class="ctlid">CM</span></td><td>Configuration management</td>
+      <td class="num">18</td><td class="num">14</td><td class="num">3</td>
+      <td class="num">1</td><td class="num">3</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:77.77777777777779%"></i>
+        <i class="seg-warn" style="width:16.666666666666664%"></i>
+        <i class="seg-bad" style="width:5.555555555555555%"></i></div></td>
+      <td class="num"><b>86%</b></td></tr><tr>
+      <td><span class="ctlid">CP</span></td><td>Contingency planning</td>
+      <td class="num">13</td><td class="num">10</td><td class="num">2</td>
+      <td class="num">1</td><td class="num">2</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:76.92307692307693%"></i>
+        <i class="seg-warn" style="width:15.384615384615385%"></i>
+        <i class="seg-bad" style="width:7.6923076923076925%"></i></div></td>
+      <td class="num"><b>85%</b></td></tr><tr>
+      <td><span class="ctlid">IA</span></td><td>Identification and authentication</td>
+      <td class="num">17</td><td class="num">16</td><td class="num">1</td>
+      <td class="num">—</td><td class="num">1</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:94.11764705882352%"></i>
+        <i class="seg-warn" style="width:5.88235294117647%"></i>
+        <i class="seg-bad" style="width:0%"></i></div></td>
+      <td class="num"><b>97%</b></td></tr><tr>
+      <td><span class="ctlid">IR</span></td><td>Incident response</td>
+      <td class="num">10</td><td class="num">9</td><td class="num">1</td>
+      <td class="num">—</td><td class="num">—</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:90%"></i>
+        <i class="seg-warn" style="width:10%"></i>
+        <i class="seg-bad" style="width:0%"></i></div></td>
+      <td class="num"><b>95%</b></td></tr><tr>
+      <td><span class="ctlid">MA</span></td><td>Maintenance</td>
+      <td class="num">6</td><td class="num">6</td><td class="num">—</td>
+      <td class="num">—</td><td class="num">1</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:100%"></i>
+        <i class="seg-warn" style="width:0%"></i>
+        <i class="seg-bad" style="width:0%"></i></div></td>
+      <td class="num"><b>100%</b></td></tr><tr>
+      <td><span class="ctlid">MP</span></td><td>Media protection</td>
+      <td class="num">8</td><td class="num">7</td><td class="num">—</td>
+      <td class="num">1</td><td class="num">2</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:87.5%"></i>
+        <i class="seg-warn" style="width:0%"></i>
+        <i class="seg-bad" style="width:12.5%"></i></div></td>
+      <td class="num"><b>88%</b></td></tr><tr>
+      <td><span class="ctlid">PE</span></td><td>Physical and environmental protection</td>
+      <td class="num">7</td><td class="num">7</td><td class="num">—</td>
+      <td class="num">—</td><td class="num">12</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:100%"></i>
+        <i class="seg-warn" style="width:0%"></i>
+        <i class="seg-bad" style="width:0%"></i></div></td>
+      <td class="num"><b>100%</b></td></tr><tr>
+      <td><span class="ctlid">PL</span></td><td>Planning</td>
+      <td class="num">6</td><td class="num">5</td><td class="num">1</td>
+      <td class="num">—</td><td class="num">—</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:83.33333333333334%"></i>
+        <i class="seg-warn" style="width:16.666666666666664%"></i>
+        <i class="seg-bad" style="width:0%"></i></div></td>
+      <td class="num"><b>92%</b></td></tr><tr>
+      <td><span class="ctlid">PS</span></td><td>Personnel security</td>
+      <td class="num">8</td><td class="num">8</td><td class="num">—</td>
+      <td class="num">—</td><td class="num">—</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:100%"></i>
+        <i class="seg-warn" style="width:0%"></i>
+        <i class="seg-bad" style="width:0%"></i></div></td>
+      <td class="num"><b>100%</b></td></tr><tr>
+      <td><span class="ctlid">RA</span></td><td>Risk assessment</td>
+      <td class="num">9</td><td class="num">7</td><td class="num">1</td>
+      <td class="num">1</td><td class="num">1</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:77.77777777777779%"></i>
+        <i class="seg-warn" style="width:11.11111111111111%"></i>
+        <i class="seg-bad" style="width:11.11111111111111%"></i></div></td>
+      <td class="num"><b>83%</b></td></tr><tr>
+      <td><span class="ctlid">SA</span></td><td>System and services acquisition</td>
+      <td class="num">19</td><td class="num">15</td><td class="num">3</td>
+      <td class="num">1</td><td class="num">3</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:78.94736842105263%"></i>
+        <i class="seg-warn" style="width:15.789473684210526%"></i>
+        <i class="seg-bad" style="width:5.263157894736842%"></i></div></td>
+      <td class="num"><b>87%</b></td></tr><tr>
+      <td><span class="ctlid">SC</span></td><td>System and communications protection</td>
+      <td class="num">26</td><td class="num">22</td><td class="num">3</td>
+      <td class="num">1</td><td class="num">5</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:84.61538461538461%"></i>
+        <i class="seg-warn" style="width:11.538461538461538%"></i>
+        <i class="seg-bad" style="width:3.8461538461538463%"></i></div></td>
+      <td class="num"><b>90%</b></td></tr><tr>
+      <td><span class="ctlid">SI</span></td><td>System and information integrity</td>
+      <td class="num">22</td><td class="num">18</td><td class="num">3</td>
+      <td class="num">1</td><td class="num">2</td>
+      <td style="width:32mm"><div class="meter">
+        <i class="seg-ok" style="width:81.81818181818183%"></i>
+        <i class="seg-warn" style="width:13.636363636363635%"></i>
+        <i class="seg-bad" style="width:4.545454545454546%"></i></div></td>
+      <td class="num"><b>89%</b></td></tr></tbody>
+        <tfoot><tr><td colspan="2">All families</td><td class="num">230</td><td class="num">196</td>
+          <td class="num">24</td><td class="num">10</td><td class="num">39</td>
+          <td></td><td class="num">82.4%</td></tr></tfoot>
+      </table>
+      <div class="stamp warnbox" style="margin-top:7mm"><b>Weakest families.</b>
+        RA (risk assessment) at 83% and CP (contingency planning) at 85% are the lowest-scoring families;
+        SI (system and information integrity) at 89% carries the second high-risk finding. Both are addressed by POA&amp;M items 2 and 3 in the attached decision package
+        <span class="mono">DP-2026-0118</span>.</div>
+    </section><div class="pfoot"><span class="cls">&nbsp;</span>
+    <span>Vanguard Cloud Services · Aegis SA</span>
+    <span>ASR-2026-0118-v7 · Page 4 of 9</span></div></div><div class="sheet"><div class="runhead"><span><b>Assessment report</b> — Member Services Portal</span><span></span></div>
+    <section><div class="sec-h"><span class="num">4</span><h2>Control detail</h2></div>
+      <p class="lede">Extract — 6 of 230 applicable controls shown. The full control set, with every
+      evidence attachment and comment thread, is included in the complete export and in the CSV extract.</p>
+      <table class="data"><thead><tr><th style="width:22mm">Control</th><th>Title, evidence and assessor finding</th>
+        <th style="width:26mm">Result</th></tr></thead><tbody>
+    <tr><td><span class="ctlid">AC-2(3)</span></td>
+      <td><b>Account management — disable inactive accounts</b><div style="font-size:8.4pt;color:var(--muted);margin-top:2px">
+        Priority P1 · direct implementation</div></td>
+      <td><span class="pill p-bad">Not satisfied</span></td></tr>
+    <tr><td></td><td colspan="2" style="padding-top:0">
+      <div style="font-size:8.6pt"><span style="font-weight:700;color:var(--ink)">Evidence.</span>
+        Inactive accounts are reviewed quarterly by the service desk using an exported CSV.</div>
+      <div style="font-size:8.6pt;margin-top:3px"><span style="font-weight:700;color:var(--ink)">Assessor.</span>
+        Automated disablement is not enforced. Sampling of 40 accounts found 6 with no sign-in for 118–204 days still enabled. Quarterly manual review does not satisfy the 90-day requirement.</div></td></tr>
+    <tr><td><span class="ctlid">AU-6(1)</span></td>
+      <td><b>Audit record review — automated process integration</b><div style="font-size:8.4pt;color:var(--muted);margin-top:2px">
+        Priority P1 · direct implementation</div></td>
+      <td><span class="pill p-warn">Partial</span></td></tr>
+    <tr><td></td><td colspan="2" style="padding-top:0">
+      <div style="font-size:8.6pt"><span style="font-weight:700;color:var(--ink)">Evidence.</span>
+        Application and platform logs ship to a central workspace; three detection rules are active.</div>
+      <div style="font-size:8.6pt;margin-top:3px"><span style="font-weight:700;color:var(--ink)">Assessor.</span>
+        Correlation is in place for authentication events only. No rules cover privileged configuration change or data-export events.</div></td></tr>
+    <tr><td><span class="ctlid">CM-6</span></td>
+      <td><b>Configuration settings</b><div style="font-size:8.4pt;color:var(--muted);margin-top:2px">
+        Priority P1 · direct implementation</div></td>
+      <td><span class="pill p-ok">Satisfied</span></td></tr>
+    <tr><td></td><td colspan="2" style="padding-top:0">
+      <div style="font-size:8.6pt"><span style="font-weight:700;color:var(--ink)">Evidence.</span>
+        Infrastructure defined in Terraform; drift detection runs nightly and opens a ticket on deviation. Baseline documented in CONF-STD-004 rev 3.</div>
+      <div style="font-size:8.6pt;margin-top:3px"><span style="font-weight:700;color:var(--ink)">Assessor.</span>
+        Verified against pipeline run 2026-07-18 and three prior drift reports. No exceptions.</div></td></tr>
+    <tr><td><span class="ctlid">CP-9</span></td>
+      <td><b>System backup</b><div style="font-size:8.4pt;color:var(--muted);margin-top:2px">
+        Priority P1 · direct implementation</div></td>
+      <td><span class="pill p-warn">Partial</span></td></tr>
+    <tr><td></td><td colspan="2" style="padding-top:0">
+      <div style="font-size:8.6pt"><span style="font-weight:700;color:var(--ink)">Evidence.</span>
+        Nightly database backup with 35-day retention; geo-redundant storage enabled.</div>
+      <div style="font-size:8.6pt;margin-top:3px"><span style="font-weight:700;color:var(--ink)">Assessor.</span>
+        Backups exist and are monitored, but no restoration test has been performed in the current authorization period. Last documented restore: 2025-11-12.</div></td></tr>
+    <tr><td><span class="ctlid">IA-2(1)</span></td>
+      <td><b>Multi-factor authentication to privileged accounts</b><div style="font-size:8.4pt;color:var(--muted);margin-top:2px">
+        Priority P1 · direct implementation</div></td>
+      <td><span class="pill p-ok">Satisfied</span></td></tr>
+    <tr><td></td><td colspan="2" style="padding-top:0">
+      <div style="font-size:8.6pt"><span style="font-weight:700;color:var(--ink)">Evidence.</span>
+        Conditional Access policy CA-014 enforces phishing-resistant MFA for all privileged roles; report-only mode disabled 2026-04-02.</div>
+      <div style="font-size:8.6pt;margin-top:3px"><span style="font-weight:700;color:var(--ink)">Assessor.</span>
+        Policy export and 30-day sign-in log sample reviewed. No bypass observed.</div></td></tr>
+    <tr><td><span class="ctlid">PE-3</span></td>
+      <td><b>Physical access control</b><div style="font-size:8.4pt;color:var(--muted);margin-top:2px">
+        Inherited — Cloud service provider (SOC 2 Type II, 2026)</div></td>
+      <td><span class="pill p-ok">Satisfied</span></td></tr>
+    <tr><td></td><td colspan="2" style="padding-top:0">
+      <div style="font-size:8.6pt"><span style="font-weight:700;color:var(--ink)">Evidence.</span>
+        Inherited from the hosting provider. Provider attestation reviewed and accepted.</div>
+      <div style="font-size:8.6pt;margin-top:3px"><span style="font-weight:700;color:var(--ink)">Assessor.</span>
+        Inheritance accepted. Provider report covers the period 2025-10-01 to 2026-09-30.</div></td></tr></tbody></table>
+    </section><div class="pfoot"><span class="cls">&nbsp;</span>
+    <span>Vanguard Cloud Services · Aegis SA</span>
+    <span>ASR-2026-0118-v7 · Page 5 of 9</span></div></div><div class="sheet"><div class="runhead"><span><b>Assessment report</b> — Member Services Portal</span><span></span></div>
+    <section><div class="sec-h"><span class="num">5</span><h2>Findings requiring action</h2></div>
+      <p class="lede">Every control not fully satisfied, with the assessor's finding and where the remediation
+      is tracked. These become the conditions on the authorization decision.</p>
+      
+    <div class="finding ">
+      <h4><span><span class="ctlid">AC-2(3)</span> — Account management — disable inactive accounts</span><span class="pill p-bad">Not satisfied</span></h4>
+      <div class="lbl">Finding</div><div class="body">Automated disablement is not enforced. Sampling of 40 accounts found 6 with no sign-in for 118–204 days still enabled. Quarterly manual review does not satisfy the 90-day requirement.</div>
+      <div class="lbl">Evidence provided</div><div class="body">Inactive accounts are reviewed quarterly by the service desk using an exported CSV.</div>
+      <div class="lbl">Tracked as</div><div class="body">POA&amp;M item in decision package
+        <span class="mono">DP-2026-0118</span> · risk
+        <b>HIGH</b></div>
+    </div>
+    <div class="finding warn">
+      <h4><span><span class="ctlid">AU-6(1)</span> — Audit record review — automated process integration</span><span class="pill p-warn">Partial</span></h4>
+      <div class="lbl">Finding</div><div class="body">Correlation is in place for authentication events only. No rules cover privileged configuration change or data-export events.</div>
+      <div class="lbl">Evidence provided</div><div class="body">Application and platform logs ship to a central workspace; three detection rules are active.</div>
+      <div class="lbl">Tracked as</div><div class="body">POA&amp;M item in decision package
+        <span class="mono">DP-2026-0118</span> · risk
+        <b>MEDIUM</b></div>
+    </div>
+    </section><div class="pfoot"><span class="cls">&nbsp;</span>
+    <span>Vanguard Cloud Services · Aegis SA</span>
+    <span>ASR-2026-0118-v7 · Page 6 of 9</span></div></div><div class="sheet"><div class="runhead"><span><b>Assessment report</b> — Member Services Portal</span><span></span></div>
+    <section><div class="sec-h"><span class="num">5</span><h2>Findings requiring action <span
+      style="font-weight:400;color:var(--muted);font-size:10pt">(continued)</span></h2></div>
+      
+    <div class="finding warn">
+      <h4><span><span class="ctlid">CP-9</span> — System backup</span><span class="pill p-warn">Partial</span></h4>
+      <div class="lbl">Finding</div><div class="body">Backups exist and are monitored, but no restoration test has been performed in the current authorization period. Last documented restore: 2025-11-12.</div>
+      <div class="lbl">Evidence provided</div><div class="body">Nightly database backup with 35-day retention; geo-redundant storage enabled.</div>
+      <div class="lbl">Tracked as</div><div class="body">POA&amp;M item in decision package
+        <span class="mono">DP-2026-0118</span> · risk
+        <b>MEDIUM</b></div>
+    </div>
+    <div class="finding ">
+      <h4><span><span class="ctlid">SI-2</span> — Flaw remediation</span><span class="pill p-bad">Not satisfied</span></h4>
+      <div class="lbl">Finding</div><div class="body">Build-time scanning is effective, but there is no runtime patch SLA for the container base image. Two images in production carry high-severity CVEs first published 71 and 96 days ago.</div>
+      <div class="lbl">Evidence provided</div><div class="body">Dependency scanning runs on every pull request; critical findings block the merge.</div>
+      <div class="lbl">Tracked as</div><div class="body">POA&amp;M item in decision package
+        <span class="mono">DP-2026-0118</span> · risk
+        <b>HIGH</b></div>
+    </div>
+      <div class="stamp" style="margin-top:8mm"><b>4 findings, 2 at high risk.</b>
+        All four are carried as conditions on decision package <span class="mono">DP-2026-0118</span> with a
+        named owner and a committed date. None of them exposes personal information to unauthenticated access.</div>
+    </section><div class="pfoot"><span class="cls">&nbsp;</span>
+    <span>Vanguard Cloud Services · Aegis SA</span>
+    <span>ASR-2026-0118-v7 · Page 7 of 9</span></div></div><div class="sheet"><div class="runhead"><span><b>Assessment report</b> — Member Services Portal</span><span></span></div>
+    <section><div class="sec-h"><span class="num">6</span><h2>Authorization signatures</h2></div>
+      <p class="lede">This report was reviewed and signed in Aegis SA. Digital signature timestamps are
+      recorded against the immutable assessment version and cannot be altered after the fact.</p>
+      <div class="sigs">
+        <div><div class="sigline"></div><div class="sig"><div class="role">Lead security assessor</div>
+          <div class="who">K. Rahman</div><div class="when">Signed 2026-07-24 · verified in-app</div></div></div>
+        <div><div class="sigline"></div><div class="sig"><div class="role">Authorizing official</div>
+          <div class="who">M. Lindqvist</div><div class="when">Signed 2026-08-01 · verified in-app</div></div></div>
+        <div><div class="sigline"></div><div class="sig"><div class="role">Chief information officer</div>
+          <div class="who">R. Advani</div><div class="when">Signed 2026-08-05 · verified in-app</div></div></div>
+        <div><div class="sigline"></div><div class="sig"><div class="role">System owner</div>
+          <div class="who">D. Okonkwo</div><div class="when">Evidence attested 2026-06-02</div></div></div>
+      </div>
+      <div class="stamp" style="margin-top:9mm"><b>Decision.</b> iATO issued 2026-08-05,
+      expiring 2027-08-04, subject to the six conditions recorded in decision package
+      <span class="mono">DP-2026-0118</span>. Full authorization is withheld until all conditions are accepted.</div>
+    </section><div class="pfoot"><span class="cls">&nbsp;</span>
+    <span>Vanguard Cloud Services · Aegis SA</span>
+    <span>ASR-2026-0118-v7 · Page 8 of 9</span></div></div><div class="sheet"><div class="runhead"><span><b>Assessment report</b> — Member Services Portal</span><span></span></div>
+    <section><div class="sec-h"><span class="num">A</span><h2>Appendix A — version history</h2></div>
+      <p class="lede">Assessment versions are append-only. Version 7 is the snapshot this report
+      renders; earlier versions remain readable and any of them can be reverted to, which creates a new
+      version rather than overwriting one.</p>
+      <table class="data"><thead><tr><th class="num" style="width:16mm">Ver.</th><th style="width:38mm">Label</th>
+        <th style="width:24mm">Date</th><th style="width:32mm">By</th><th>Summary</th></tr></thead>
+        <tbody><tr><td class="num"><b>7</b></td><td>Audit complete</td><td>2026-07-24</td><td>K. Rahman</td><td>Audit results recorded for 34 controls; 2 controls moved to not satisfied.</td></tr><tr><td class="num"><b>6</b></td><td>Second evidence pass</td><td>2026-07-11</td><td>D. Okonkwo</td><td>Evidence updated for 19 controls across CM, SC and SI.</td></tr><tr><td class="num"><b>5</b></td><td>Assessor feedback</td><td>2026-06-27</td><td>K. Rahman</td><td>12 controls returned for additional evidence.</td></tr><tr><td class="num"><b>4</b></td><td>Evidence submitted</td><td>2026-06-02</td><td>D. Okonkwo</td><td>Full evidence set submitted for audit.</td></tr><tr><td class="num"><b>3</b></td><td>Tailoring finalised</td><td>2026-05-19</td><td>K. Rahman</td><td>9 controls marked not applicable with justification; 18 marked inherited.</td></tr><tr><td class="num"><b>2</b></td><td>Profile applied</td><td>2026-05-06</td><td>System</td><td>PBMM control set generated — 268 controls.</td></tr><tr><td class="num"><b>1</b></td><td>Created from intake</td><td>2026-04-28</td><td>D. Okonkwo</td><td>Assessment created from intake submission INT-2026-0231.</td></tr></tbody></table>
+      <h3>Report reproducibility</h3>
+      <p style="font-size:9pt">Report <span class="mono">ASR-2026-0118-v7</span> was generated from assessment version
+      7 (snapshot record #441, SHA-256
+      <span class="mono">a91f…3c7d</span>). Requesting the same report ID at any future date returns the same
+      document. A report generated from a later version carries a different ID and a different snapshot hash.</p>
+      <div class="note">End of report.</div>
+    </section><div class="pfoot"><span class="cls">&nbsp;</span>
+    <span>Vanguard Cloud Services · Aegis SA</span>
+    <span>ASR-2026-0118-v7 · Page 9 of 9</span></div></div></body></html>

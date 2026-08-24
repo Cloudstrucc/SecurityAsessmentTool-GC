@@ -31,3 +31,7 @@ npm-debug.log*
 # Session files
 cookies.txt.env
 .env
+
+# Reporting design-mockup build artifacts (sources are tracked; outputs are not)
+docs/report-mockups/pdf/
+docs/report-mockups/.logo.b64

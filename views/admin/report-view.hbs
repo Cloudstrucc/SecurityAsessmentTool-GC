@@ -1,0 +1,40 @@
+<div class="container">
+  <div class="d-flex align-items-center mb-3 flex-wrap gap-2">
+    <a href="/admin/reports" class="btn btn-outline-primary me-2" aria-label="{{t 'rf.reportView'}}"><i class="bi bi-arrow-left"></i></a>
+    <div class="flex-grow-1">
+      <h1 class="mb-0 h3">{{model.title}}</h1>
+      <p class="text-muted mb-0">{{model.subject}}
+        <span class="mono small ms-1">{{reportId}}</span></p>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-body py-3">
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <span class="fw-semibold me-1">{{t 'rf.download'}}:</span>
+        <a class="btn btn-primary btn-sm" href="/admin/reports/{{type}}/{{id}}.pdf"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
+        <a class="btn btn-outline-primary btn-sm" href="/admin/reports/{{type}}/{{id}}.docx"><i class="bi bi-file-earmark-word me-1"></i>Word (DOCX)</a>
+        <a class="btn btn-outline-primary btn-sm" href="/admin/reports/{{type}}/{{id}}.html" target="_blank" rel="noopener"><i class="bi bi-filetype-html me-1"></i>HTML</a>
+        <a class="btn btn-outline-primary btn-sm" href="/admin/reports/{{type}}/{{id}}.md"><i class="bi bi-markdown me-1"></i>Markdown</a>
+        {{#if csvHref}}<a class="btn btn-outline-secondary btn-sm" href="{{csvHref}}"><i class="bi bi-filetype-csv me-1"></i>CSV</a>{{/if}}
+        <span class="ms-auto small text-muted">
+          <i class="bi bi-palette me-1"></i>
+          {{#if (eq brandingResolvedFrom 'project')}}{{t 'rf.brandingProject'}}
+          {{else if (eq brandingResolvedFrom 'org')}}{{t 'rf.brandingOrg'}}
+          {{else}}{{t 'rf.brandingDefault'}}{{/if}}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header bg-light d-flex align-items-center">
+      <span class="fw-semibold">{{t 'rf.reportView'}}</span>
+      <span class="ms-2 small text-muted">{{model.meta.generatedAt}} · {{model.meta.language}}</span>
+    </div>
+    <div class="card-body p-0" style="background:#e7edf3;">
+      <iframe src="{{previewHref}}" title="{{model.title}}"
+        style="width:100%; height:80vh; border:0; display:block;"></iframe>
+    </div>
+  </div>
+</div>

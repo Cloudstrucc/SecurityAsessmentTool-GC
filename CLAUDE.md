@@ -17,6 +17,26 @@
 - Deploys carry config: `deploy-azure.sh` with `AZURE_ENV_FILE=<file>` syncs that env file's keys to Azure App Settings.
 - Run `npm run test:e2e` before committing app changes.
 
+## Reporting — keep the report model in sync with the data model
+The app has a unified reporting engine (see `docs/REPORTING.md`): one **format-agnostic
+report model** (`config/report-model.js`) feeds four **renderers**
+(`utils/report-render/` — HTML, PDF via pdfkit, DOCX, Markdown). **CSV is deliberately
+untouched** — it keeps its existing per-object routes; never fold CSV into the render engine.
+- **When you add a user-facing field or a new object that belongs in a report, update the
+  report model AND every renderer, not just one.** A field added to an assessment/decision/
+  POA&M/project that an assessor would expect on the printed record must appear in the model
+  assembler and be drawn by the HTML, PDF and DOCX renderers (Markdown where it fits). A field
+  that shows on screen but is missing from the export is a bug.
+- **Report labels are localized like everything else.** Every heading, column title and status
+  word a renderer emits goes through a `rf.*` key defined in `utils/report-render/labels.js`
+  (English fallback) AND present in all 8 locale files. Report *content* (control titles,
+  evidence, names) is data and is passed through untranslated. Adding a new label = add the
+  `rf.*` key to `labels.js` and to all 8 `locales/*.json` (see `scripts/add-report-locales.js`).
+- **Branding resolves project → org → platform default** (`config/report-branding.js`). Don't
+  hardcode colours, logos or footer text in a renderer — read them from the resolved branding.
+- **The PDF is a second, hand-maintained layout** (pdfkit), kept visually close to the HTML on
+  purpose (we chose not to add a headless browser). If you change one layout, change the other.
+
 ## Content & internationalization — the app is worldwide, not Canada-only
 This product is used by organizations around the world. When writing or changing any
 user-facing content or building new features, keep the copy internationally neutral:
