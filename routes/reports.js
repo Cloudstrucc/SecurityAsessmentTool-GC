@@ -25,10 +25,11 @@ const { ensureAuthenticated } = require('../config/passport');
 const access = require('../config/access');
 const reportModel = require('../config/report-model');
 const branding = require('../config/report-branding');
+const catalog = require('../config/report-catalog');
 const render = require('../utils/report-render');
 const { BRANDING_UPLOAD_DIR } = require('../config/storage');
 
-const TYPES = ['assessment', 'decision-package', 'poam', 'project', 'portfolio'];
+const TYPES = catalog.TYPES.map(t => t.id); // intake, assessment, decision-package, poam, project, portfolio
 
 function assignedToAssessment(userId, assessmentId) {
   if (!userId || !assessmentId) return false;
@@ -77,6 +78,19 @@ function authorize(req, type, id) {
     if (!sameTenant(user, project)) return { ok: false, code: 404 };
     if (admin) return { ok: true, project };
     return assignedToAssessment(user.id, id) ? { ok: true, project } : { ok: false, code: 403 };
+  }
+  if (type === 'intake') {
+    const it = get('SELECT * FROM intake_submissions WHERE id = ?', [id]);
+    if (!it) return { ok: false, code: 404 };
+    // An intake may not be linked to a project yet; scope by project when it is.
+    const project = it.project_id ? get('SELECT * FROM projects WHERE id = ?', [it.project_id]) : null;
+    if (project && !sameTenant(user, project)) return { ok: false, code: 404 };
+    if (admin) return { ok: true, project };
+    // Non-admins: assigned to the intake, or to its project.
+    const viaIntake = all(`SELECT 1 FROM assessment_assignments
+      WHERE entity_type = 'intake' AND entity_id = ? AND assigned_to = ? AND status != 'revoked'`, [id, user.id]).length > 0;
+    const viaProject = it.project_id && assignedToProject(user.id, it.project_id);
+    return (viaIntake || viaProject) ? { ok: true, project } : { ok: false, code: 403 };
   }
   if (type === 'decision-package' || type === 'poam') {
     const dp = get('SELECT * FROM decision_packages WHERE id = ?', [id]);
@@ -140,9 +154,25 @@ router.get('/', ensureAuthenticated, (req, res) => {
     const decisions = all('SELECT id, reference, decision_type, state FROM decision_packages WHERE project_id = ? ORDER BY created_at DESC', [p.id]);
     return { project: p, assessments, decisions };
   });
+  // Intakes the user can report on.
+  let intakes;
+  if (admin) {
+    intakes = orgId
+      ? all(`SELECT i.id, i.ref_code, i.project_name, i.status FROM intake_submissions i
+             LEFT JOIN projects p ON p.id = i.project_id
+             WHERE i.archived_at IS NULL AND (p.organization_id = ? OR i.project_id IS NULL)
+             ORDER BY i.created_at DESC`, [orgId])
+      : all('SELECT id, ref_code, project_name, status FROM intake_submissions WHERE archived_at IS NULL ORDER BY created_at DESC');
+  } else {
+    intakes = all(`SELECT DISTINCT i.id, i.ref_code, i.project_name, i.status FROM intake_submissions i
+      WHERE i.archived_at IS NULL AND i.id IN (
+        SELECT entity_id FROM assessment_assignments WHERE entity_type='intake' AND assigned_to=? AND status!='revoked')
+      ORDER BY i.created_at DESC`, [req.user.id]);
+  }
   res.render('admin/reports-hub', {
     title: req.t ? req.t('rf.reportView') : 'Reports',
-    isAdmin: true, admin: req.user, canPortfolio: admin, rows
+    isAdmin: true, isReports: true, admin: req.user, canPortfolio: admin,
+    rows, intakes, catalog: catalog.byEntity()
   });
 });
 
@@ -192,10 +222,10 @@ router.get('/:type/:id', ensureAuthenticated, (req, res, next) => {
   if (type === 'assessment' && auth.project) csvHref = `/admin/projects/${auth.project.id}/controls.csv?assessment=${id}`;
   else if (type === 'project') csvHref = `/admin/projects/${id}/controls.csv`;
   res.render('admin/report-view', {
-    title: `${model.title} — ${model.subject}`, isAdmin: true, admin: req.user,
+    title: `${model.title} — ${model.subject}`, isAdmin: true, isReports: true, admin: req.user,
     model, type, id, reportId: model.reportId, csvHref,
     previewHref: `/admin/reports/${type}/${id}.html`,
-    formats: render.PICKER_FORMATS, brandingResolvedFrom: b.resolved_from
+    formats: catalog.formatsFor(type), brandingResolvedFrom: b.resolved_from
   });
 });
 

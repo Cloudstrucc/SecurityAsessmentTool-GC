@@ -48,7 +48,8 @@ Write all user-facing copy to be internationally neutral. The product is not Can
 ## Reporting — keep the report model in sync with the data model
 Unified reporting engine (see `docs/REPORTING.md`): one format-agnostic model
 (`config/report-model.js`) → four renderers (`utils/report-render/`: HTML, PDF via pdfkit,
-DOCX, Markdown). CSV is intentionally untouched and keeps its own per-object routes.
+DOCX, Markdown), with the report types registered in `config/report-catalog.js`.
+CSV is intentionally untouched and keeps its own per-object routes.
 - When you add a user-facing field or a reportable object, update the report model AND every
   renderer — a field visible on screen but absent from the export is a bug.
 - Report labels use `rf.*` keys defined in `utils/report-render/labels.js` (English fallback)

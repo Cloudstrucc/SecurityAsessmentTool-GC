@@ -21,11 +21,21 @@ it keeps its existing per-object routes and byte-for-byte output.
 
 | type              | id is…                | notes |
 |-------------------|-----------------------|-------|
+| `intake`          | intake id             | the submitted pre-project profile (single record) |
 | `assessment`      | assessment id         | full SA&A record; scored posture by family |
 | `decision-package`| decision package id   | reads the **pinned** assessment version — reproducible |
 | `poam`            | decision package id   | landscape POA&M register |
 | `project`         | project id            | management rollup (live state) |
 | `portfolio`       | (ignored — `all`)     | org-wide summary; admin only |
+
+## Report catalog (`config/report-catalog.js`)
+
+`config/report-catalog.js` is the single registry of the built-in report types —
+one deterministic, **no-AI** report per entity set. It drives the hub's "Report
+templates" list, the viewer's format buttons, and route validation. When you add a
+report type, add it here (id, entity, label/desc keys, formats) so it appears
+everywhere at once. The future report-designer will hang off this registry (the
+hub already shows a disabled "Design" action per template).
 
 ## Formats
 

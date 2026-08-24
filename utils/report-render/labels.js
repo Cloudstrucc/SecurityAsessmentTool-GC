@@ -115,7 +115,15 @@ const EN = {
   'rf.excludedFromScore': 'excluded from score',
   'rf.reportView': 'Report',
   'rf.download': 'Download',
-  'rf.format': 'Format'
+  'rf.format': 'Format',
+  // intake report fields
+  'rf.submitted': 'Submitted',
+  'rf.intakeUsers': 'Users',
+  'rf.intakeExternalUsers': 'External users',
+  'rf.intakeDepartment': 'Department',
+  'rf.intakeTargetDate': 'Target date',
+  'rf.intakeTechLead': 'Technical lead',
+  'rf.intakeNotes': 'Additional notes'
 };
 
 function makeT(req) {

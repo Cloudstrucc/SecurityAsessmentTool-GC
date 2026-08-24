@@ -591,6 +591,41 @@ test('reporting access: an unassigned client cannot download another tenant repo
   assert.notEqual(res.status, 200, 'unassigned client is refused the report');
 });
 
+test('intake has a per-record report in every format, and the hub shows the report catalog', async () => {
+  // Create an intake as a client, then report on it as an admin.
+  const client = await loginClientWithTotp();
+  const uniqueName = 'E2E Intake Report ' + Date.now();
+  await request(client, 'POST', '/intake', {
+    form: {
+      projectName: uniqueName,
+      projectDescription: 'A protected B system used to test the intake report export.',
+      department: 'E2E Department', branch: 'Security Testing', appType: 'internal',
+      confidentialityLevel: 'protected-b', integrityLevel: 'medium', availabilityLevel: 'medium',
+      hostingType: 'azure', ownerName: 'E2E Client', ownerEmail: USERS.client.email
+    }, redirect: 'follow'
+  });
+
+  const admin = await loginAdminWithTotp();
+  const intakeId = await findIntakeIdByName(admin, uniqueName);
+
+  // Viewer + all four formats.
+  const view = (await getText(admin, `/admin/reports/intake/${intakeId}`)).text;
+  assert.ok(view.includes(`/admin/reports/intake/${intakeId}.html`), 'intake viewer embeds the html preview');
+  await assertPdfDownload(admin, `/admin/reports/intake/${intakeId}.pdf`, 'intake PDF');
+  const docx = Buffer.from(await (await request(admin, 'GET', `/admin/reports/intake/${intakeId}.docx`, { redirect: 'manual' })).arrayBuffer());
+  assert.equal(docx.subarray(0, 2).toString('latin1'), 'PK', 'intake docx is OOXML');
+  const md = await (await request(admin, 'GET', `/admin/reports/intake/${intakeId}.md`, { redirect: 'manual' })).text();
+  assert.ok(md.includes('# '), 'intake markdown has a heading');
+  assert.ok(md.includes(uniqueName), 'intake markdown names the record');
+
+  // The hub shows the report catalog (all six built-in report types) and the intake.
+  const hub = (await getText(admin, '/admin/reports')).text;
+  assert.ok(hub.includes('Report templates'), 'hub shows the report catalog');
+  assert.ok(hub.includes('Intake submission'), 'catalog lists the intake report');
+  assert.ok(hub.includes('Portfolio summary'), 'catalog lists the portfolio report');
+  assert.ok(hub.includes(uniqueName), 'hub lists the intake record');
+});
+
 test('the retired legacy ATO editor is gone', async () => {
   const jar = await loginAdminWithTotp();
   const { projectId } = await createAdminProject(jar, 'E2E Retired ATO Editor Project');
