@@ -271,8 +271,17 @@ test('authenticated users can open the help guide', async () => {
   const adminJar = await loginAdminWithTotp();
   const adminHelp = await getText(adminJar, '/admin/help');
   assert.equal(adminHelp.response.status, 200);
-  assert.match(adminHelp.text, /Security Assessment &amp; Authorization Tool Guide/);
-  assert.match(adminHelp.text, /Guide Pages/);
+  // The help centre is now a rendered page (layout header/breadcrumb + a TOC),
+  // refreshed with the new features and the assistant how-to rolled in.
+  assert.match(adminHelp.text, /help-content/, 'renders the help centre view');
+  assert.match(adminHelp.text, /Reports &amp; exports/, 'covers the reporting feature');
+  assert.match(adminHelp.text, /id="assistant"/, 'the assistant how-to is a section');
+  // Deep link to a section works, and the old assistant-help URL redirects into it.
+  const deep = await request(adminJar, 'GET', '/admin/help?section=assistant', { redirect: 'manual' });
+  assert.equal(deep.status, 200, 'deep link to a section loads');
+  const redir = await request(adminJar, 'GET', '/assistant-help', { redirect: 'manual' });
+  assert.equal(redir.status, 302, 'the old assistant-help URL redirects');
+  assert.match(redir.headers.get('location') || '', /\/admin\/help\?section=assistant/);
 
   const clientJar = await loginClientWithTotp();
   const clientHelp = await getText(clientJar, '/help');
