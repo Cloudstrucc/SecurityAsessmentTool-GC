@@ -591,6 +591,25 @@ test('reporting access: an unassigned client cannot download another tenant repo
   assert.notEqual(res.status, 200, 'unassigned client is refused the report');
 });
 
+test('record pages show a quick Export dropdown with direct-download links', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, projectPath } = await createAdminProject(jar, 'E2E Export Menu Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+
+  // Assessment detail page offers the dropdown's per-format download links.
+  const a = (await getText(jar, `/admin/assessments/${assessmentId}`)).text;
+  assert.ok(a.includes(`/admin/reports/assessment/${assessmentId}.pdf`), 'assessment page links straight to the PDF');
+  assert.ok(a.includes(`/admin/reports/assessment/${assessmentId}.docx`), 'assessment page links straight to the DOCX');
+  assert.ok(!a.includes(`/admin/assessments/${assessmentId}/export-pdf`), 'the legacy assessment Export PDF button is gone');
+
+  // Project detail page too.
+  const p = (await getText(jar, projectPath)).text;
+  assert.ok(p.includes(`/admin/reports/project/${projectId}.pdf`), 'project page links straight to the PDF');
+
+  // And the direct-download links actually produce a file (the "Report not found" regression).
+  await assertPdfDownload(jar, `/admin/reports/project/${projectId}.pdf`, 'project quick-export PDF');
+});
+
 test('intake has a per-record report in every format, and the hub shows the report catalog', async () => {
   // Create an intake as a client, then report on it as an admin.
   const client = await loginClientWithTotp();

@@ -6,9 +6,7 @@
       <p class="text-muted mb-0">{{dp.reference}} — {{project.name}}
         <span class="badge bg-dark ms-1">{{t (dpStateKey dp.state)}}</span></p>
     </div>
-    <a href="/admin/reports/poam/{{dp.id}}" class="btn btn-primary">
-      <i class="bi bi-box-arrow-up me-1"></i>{{t 'rf.export'}}
-    </a>
+    {{> export-menu type="poam" id=dp.id}}
   </div>
 
   <div class="card mb-4">

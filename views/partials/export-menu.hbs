@@ -1,0 +1,26 @@
+{{!--
+  Quick report-export dropdown for a record page. Params:
+    type      — report type: intake | assessment | decision-package | poam | project
+    id        — the record id
+    projectId — (optional) the record's project id, used only for the CSV link
+
+  Each item links straight to a download (`.pdf`/`.docx`/`.md`) or opens the
+  format inline (`.html`); "Open full report" goes to the on-screen viewer.
+  CSV points at the existing per-object route (only where a tabular one exists).
+--}}
+<div class="dropdown d-inline-block">
+  <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <i class="bi bi-box-arrow-up me-1"></i>{{t 'rf.export'}}
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><h6 class="dropdown-header">{{t 'rf.download'}}</h6></li>
+    <li><a class="dropdown-item" href="/admin/reports/{{type}}/{{id}}.pdf"><i class="bi bi-file-earmark-pdf me-2 text-danger"></i>PDF</a></li>
+    <li><a class="dropdown-item" href="/admin/reports/{{type}}/{{id}}.docx"><i class="bi bi-file-earmark-word me-2 text-primary"></i>Word (DOCX)</a></li>
+    <li><a class="dropdown-item" href="/admin/reports/{{type}}/{{id}}.html" target="_blank" rel="noopener"><i class="bi bi-filetype-html me-2 text-info"></i>HTML</a></li>
+    <li><a class="dropdown-item" href="/admin/reports/{{type}}/{{id}}.md"><i class="bi bi-markdown me-2"></i>Markdown</a></li>
+    {{#if (eq type 'assessment')}}<li><a class="dropdown-item" href="/admin/projects/{{projectId}}/controls.csv?assessment={{id}}"><i class="bi bi-filetype-csv me-2 text-success"></i>CSV</a></li>{{/if}}
+    {{#if (eq type 'project')}}<li><a class="dropdown-item" href="/admin/projects/{{id}}/controls.csv"><i class="bi bi-filetype-csv me-2 text-success"></i>CSV</a></li>{{/if}}
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="/admin/reports/{{type}}/{{id}}"><i class="bi bi-eye me-2"></i>{{t 'rf.openFullReport'}}</a></li>
+  </ul>
+</div>

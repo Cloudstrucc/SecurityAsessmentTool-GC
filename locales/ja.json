@@ -3648,5 +3648,6 @@
   "rf.entity_project": "プロジェクト",
   "rf.entity_organization": "組織",
   "navbar.reports": "レポート",
-  "rf.export": "エクスポート"
+  "rf.export": "エクスポート",
+  "rf.openFullReport": "完全なレポートを開く"
 }
