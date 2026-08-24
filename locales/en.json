@@ -3628,5 +3628,19 @@
   "rf.entity_organization": "Organization",
   "navbar.reports": "Reports",
   "rf.export": "Export",
-  "rf.openFullReport": "Open full report"
+  "rf.openFullReport": "Open full report",
+  "navd.controls": "Menu controls",
+  "navd.position": "Position",
+  "navd.display": "Display",
+  "navd.top": "Top",
+  "navd.left": "Left",
+  "navd.right": "Right",
+  "navd.pin": "Pin",
+  "navd.setDefault": "Set default",
+  "navd.default": "Default",
+  "navd.savedDefault": "Saved as your default menu.",
+  "navbar.orgSettings": "Organization settings",
+  "navbar.licensing": "Licensing",
+  "navbar.compCodes": "Comp codes",
+  "navbar.notifications": "Notifications"
 }

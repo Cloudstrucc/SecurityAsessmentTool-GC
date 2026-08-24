@@ -3649,5 +3649,19 @@
   "rf.entity_organization": "Organização",
   "navbar.reports": "Relatórios",
   "rf.export": "Exportar",
-  "rf.openFullReport": "Abrir relatório completo"
+  "rf.openFullReport": "Abrir relatório completo",
+  "navd.controls": "Controles do menu",
+  "navd.position": "Posição",
+  "navd.display": "Exibição",
+  "navd.top": "Topo",
+  "navd.left": "Esquerda",
+  "navd.right": "Direita",
+  "navd.pin": "Fixar",
+  "navd.setDefault": "Padrão",
+  "navd.default": "Padrão",
+  "navd.savedDefault": "Salvo como seu menu padrão.",
+  "navbar.orgSettings": "Configurações da organização",
+  "navbar.licensing": "Licenciamento",
+  "navbar.compCodes": "Códigos de cortesia",
+  "navbar.notifications": "Notificações"
 }

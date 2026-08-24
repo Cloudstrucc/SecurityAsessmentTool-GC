@@ -20,6 +20,8 @@
 
   <!-- Vanguard design system (shared visual language — layered on top of Bootstrap) -->
   <link href="/css/vanguard-design.css" rel="stylesheet">
+  <!-- Dockable navigation + breadcrumb -->
+  <link href="/css/nav-dock.css" rel="stylesheet">
 
   <style>
     /* ═══ Vanguard Cloud Services Design System — Aegis SA Platform ════════════ */
@@ -237,7 +239,14 @@
   </style>
   {{#if extraStyles}}{{{extraStyles}}}{{/if}}
 </head>
-<body vocab="http://schema.org/" typeof="WebPage">
+<body vocab="http://schema.org/" typeof="WebPage"{{#if user}} class="nav-dock nav-pos-{{navPosition}}{{#if navPinned}} nav-pinned{{/if}}" data-nav-default-pos="{{navPosition}}" data-nav-default-pinned="{{navPinned}}"{{/if}}>
+
+  {{#if user}}
+  <!-- Edge-reveal hotzones (shown only when the menu is unpinned) -->
+  <div class="nav-hotzone top" aria-hidden="true"></div>
+  <div class="nav-hotzone left" aria-hidden="true"></div>
+  <div class="nav-hotzone right" aria-hidden="true"></div>
+  {{/if}}
 
   <!-- Skip links (WCAG 2.4.1) -->
   <a class="gc-skip" href="#main-content">{{t 'layout.main.link.skip_to_main_content'}}</a>
@@ -275,12 +284,8 @@
       </div>
     </div>
 
-    <nav class="gc-app-bar" aria-label="Application navigation">
+    <nav class="gc-app-bar" id="gcAppBar" aria-label="Application navigation">
       <div class="container gc-edge gc-app-inner">
-        <a class="gc-app-title" href="{{#if isAdmin}}/admin/dashboard{{else}}/{{/if}}">
-          <i class="bi bi-cloud-check-fill brand-icon" aria-hidden="true"></i>
-          {{t 'nav.appTitle'}}
-        </a>
         <button class="gc-menu-btn" onclick="document.getElementById('gcNav').classList.toggle('show')" aria-label="Toggle navigation">
           <i class="bi bi-list" aria-hidden="true"></i> {{t 'nav.menu'}}
         </button>
@@ -360,9 +365,51 @@
             {{/if}}
           {{/if}}
         </ul>
+
+        {{#if user}}
+        {{!-- Rail cluster (left/right mode); the top-mode expander lives in the breadcrumb bar --}}
+        <div class="nav-dock-ctl nav-rail-ctl">
+          <div class="crow">
+            <button type="button" class="nav-cbtn" data-nav-act="pin" title="{{t 'navd.pin'}}"><i class="bi bi-pin-angle"></i></button>
+            <div class="nav-posseg">
+              <button type="button" class="nav-segbtn" data-nav-pos="top" title="{{t 'navd.top'}}"><i class="bi bi-window"></i></button>
+              <button type="button" class="nav-segbtn" data-nav-pos="left" title="{{t 'navd.left'}}"><i class="bi bi-layout-sidebar"></i></button>
+              <button type="button" class="nav-segbtn" data-nav-pos="right" title="{{t 'navd.right'}}"><i class="bi bi-layout-sidebar-reverse"></i></button>
+            </div>
+            <button type="button" class="nav-cbtn" data-nav-act="star" title="{{t 'navd.setDefault'}}"><i class="bi bi-star"></i></button>
+          </div>
+          <div class="crow-labels"><span>{{t 'navd.pin'}}</span><span>{{t 'navd.position'}}</span><span>{{t 'navd.default'}}</span></div>
+        </div>
+        {{/if}}
       </div>
     </nav>
   </header>
+
+  <div class="gc-shell">
+  {{#if user}}
+  <div class="gc-breadcrumb-wrap">
+    <div class="gc-breadcrumb-row container gc-edge">
+      {{{breadcrumbHtml}}}
+      <div class="nav-dock-ctl nav-expander">
+        <button class="nav-cbtn" id="navExpander" type="button" title="{{t 'navd.controls'}}" aria-label="{{t 'navd.controls'}}"><i class="bi bi-sliders" aria-hidden="true"></i></button>
+        <div class="nav-pop" id="navPop">
+          <div class="ph">{{t 'navd.position'}}</div>
+          <div class="prow">
+            <button type="button" class="pbtn" data-nav-pos="top"><i class="bi bi-window"></i>{{t 'navd.top'}}</button>
+            <button type="button" class="pbtn" data-nav-pos="left"><i class="bi bi-layout-sidebar"></i>{{t 'navd.left'}}</button>
+            <button type="button" class="pbtn" data-nav-pos="right"><i class="bi bi-layout-sidebar-reverse"></i>{{t 'navd.right'}}</button>
+          </div>
+          <div class="ph">{{t 'navd.display'}}</div>
+          <div class="prow">
+            <button type="button" class="pbtn" data-nav-act="pin"><i class="bi bi-pin-angle"></i>{{t 'navd.pin'}}</button>
+            <button type="button" class="pbtn" data-nav-act="star"><i class="bi bi-star"></i>{{t 'navd.setDefault'}}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{/if}}
+  {{!-- /breadcrumb bar (moved into .gc-shell below) --}}
 
   {{#if messages.success}}<div class="container mt-3" role="alert"><div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2" aria-hidden="true"></i>{{messages.success}}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div></div>{{/if}}
   {{#if messages.error}}<div class="container mt-3" role="alert"><div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-circle me-2" aria-hidden="true"></i>{{messages.error}}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div></div>{{/if}}
@@ -381,6 +428,9 @@
   <main class="gc-main" id="main-content" role="main" property="mainContentOfPage">
     {{{body}}}
   </main>
+  </div>{{!-- /.gc-shell --}}
+
+  {{#if user}}<div class="toast-nav" id="navToast"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> {{t 'navd.savedDefault'}}</div>{{/if}}
 
   <footer id="gc-footer" role="contentinfo">
     <div class="gc-footer-main">
@@ -409,6 +459,7 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  {{#if user}}<script src="/js/nav-dock.js" defer></script>{{/if}}
   {{#if extraScripts}}{{{extraScripts}}}{{/if}}
 </body>
 </html>

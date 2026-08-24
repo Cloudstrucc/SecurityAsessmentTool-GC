@@ -1040,6 +1040,12 @@ async function initDatabase() {
     ['report_branding', 'accent_color', 'ALTER TABLE report_branding ADD COLUMN accent_color TEXT'],
     ['report_branding', 'header_text', 'ALTER TABLE report_branding ADD COLUMN header_text TEXT'],
     ['report_branding', 'footer_text', 'ALTER TABLE report_branding ADD COLUMN footer_text TEXT'],
+
+    // ── Per-user navigation preference (dockable menu) ──
+    // Where the app menu docks (top | left | right) and whether it stays pinned
+    // open (1) or auto-hides when unpinned (0). Default matches today's UI.
+    ['users', 'nav_position', "ALTER TABLE users ADD COLUMN nav_position TEXT DEFAULT 'top'"],
+    ['users', 'nav_pinned', 'ALTER TABLE users ADD COLUMN nav_pinned INTEGER DEFAULT 1'],
   ];
 
   migrations.forEach(([table, column, sql]) => {

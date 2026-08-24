@@ -3649,5 +3649,19 @@
   "rf.entity_organization": "組織",
   "navbar.reports": "レポート",
   "rf.export": "エクスポート",
-  "rf.openFullReport": "完全なレポートを開く"
+  "rf.openFullReport": "完全なレポートを開く",
+  "navd.controls": "メニュー設定",
+  "navd.position": "位置",
+  "navd.display": "表示",
+  "navd.top": "上",
+  "navd.left": "左",
+  "navd.right": "右",
+  "navd.pin": "固定",
+  "navd.setDefault": "既定に設定",
+  "navd.default": "既定",
+  "navd.savedDefault": "既定のメニューとして保存しました。",
+  "navbar.orgSettings": "組織設定",
+  "navbar.licensing": "ライセンス",
+  "navbar.compCodes": "コンプコード",
+  "navbar.notifications": "通知"
 }

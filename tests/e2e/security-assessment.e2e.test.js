@@ -648,6 +648,33 @@ test('intake has a per-record report in every format, and the hub shows the repo
   assert.ok(hub.includes(uniqueName), 'hub lists the intake record');
 });
 
+test('dockable nav: breadcrumb replaces the title link, and the menu position persists', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, projectPath } = await createAdminProject(jar, 'E2E Nav Dock Project');
+
+  const dash = (await getText(jar, '/admin/dashboard')).text;
+  // Default menu state is rendered server-side.
+  assert.match(dash, /class="nav-dock nav-pos-top nav-pinned"/, 'body carries the default nav state');
+  assert.ok(dash.includes('data-nav-act="star"'), 'the dock controls (set-default star) are present');
+  assert.ok(!dash.includes('>Security Assessment &amp; Authorization<') && !/nav\.appTitle/.test(dash),
+    'the old app-title link is gone');
+
+  // Breadcrumb on a detail page: Home › Projects › <project name>.
+  const proj = (await getText(jar, projectPath)).text;
+  assert.ok(proj.includes('gc-breadcrumb'), 'the breadcrumb is rendered');
+  assert.ok(proj.includes('E2E Nav Dock Project'), 'the breadcrumb leaf is the record name');
+
+  // Saving a preference persists and is applied on the next render.
+  const res = await request(jar, 'POST', '/admin/nav-prefs', { form: { position: 'left', pinned: '0' } });
+  assert.equal(res.status, 200, 'nav-prefs saves');
+  const after = (await getText(jar, '/admin/dashboard')).text;
+  assert.match(after, /class="nav-dock nav-pos-left"/, 'the saved position is applied');
+  assert.ok(!/nav-pinned/.test(after.match(/class="nav-dock[^"]*"/)[0]), 'unpinned state is applied');
+
+  // Reset to the default so other tests see the normal chrome.
+  await request(jar, 'POST', '/admin/nav-prefs', { form: { position: 'top', pinned: '1' } });
+});
+
 test('the retired legacy ATO editor is gone', async () => {
   const jar = await loginAdminWithTotp();
   const { projectId } = await createAdminProject(jar, 'E2E Retired ATO Editor Project');

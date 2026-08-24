@@ -265,6 +265,16 @@ app.use((req, res, next) => {
     warning: req.flash('warning'),
     info: req.flash('info')
   };
+  // Breadcrumb for signed-in /admin pages: computed at render time (so the page
+  // title is available for the leaf) and exposed as a plain local {{{breadcrumbHtml}}}.
+  if (req.user) {    const origRender = res.render.bind(res);
+    res.render = function(view, locals, cb) {
+      if (typeof locals === 'function') { cb = locals; locals = {}; }
+      locals = locals || {};
+      try { locals.breadcrumbHtml = require('./config/breadcrumb').render(req, locals.title); }
+      catch (e) { locals.breadcrumbHtml = ''; }      return origRender(view, locals, cb);
+    };
+  }
   // Passport user (admin/assessor)
   res.locals.user = req.user;
   // AI availability (for the licensing banner). Computed for signed-in users only.
@@ -275,6 +285,11 @@ app.use((req, res, next) => {
       // Practitioners (invited members/collaborators) get a slimmed, scoped UI.
       res.locals.isPractitioner = !access.isAdmin(req.user);
       res.locals.isRootAdmin = access.isRootAdmin(req.user);
+      // Dockable-menu preference (the user's saved default). Applied server-side so
+      // the menu renders in place with no flash; a session override may change it client-side.
+      const navPos = ['top', 'left', 'right'].includes(req.user.nav_position) ? req.user.nav_position : 'top';
+      res.locals.navPosition = navPos;
+      res.locals.navPinned = req.user.nav_pinned == null ? 1 : Number(req.user.nav_pinned);
       const { get: dbGet } = require('./models/database');
       res.locals.unreadNotifications = dbGet('SELECT COUNT(*) c FROM notifications WHERE user_id = ? AND read_at IS NULL', [req.user.id])?.c || 0;
     } catch (e) { res.locals.aiStatus = null; }
