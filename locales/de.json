@@ -3616,5 +3616,6 @@
   "rf.brandingCleared": "Bericht-Branding gelöscht.",
   "rf.orgBrandingTitle": "Bericht-Branding",
   "rf.orgBrandingIntro": "Legen Sie Logo, Farben und Fußzeile fest, die alle Berichte Ihrer Organisation standardmäßig verwenden. Ein Projekt kann diese überschreiben.",
-  "rf.currentLogo": "Aktuelles Logo"
+  "rf.currentLogo": "Aktuelles Logo",
+  "navbar.reports": "Berichte"
 }

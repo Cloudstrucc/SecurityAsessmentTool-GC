@@ -3616,5 +3616,6 @@
   "rf.brandingCleared": "Branding del rapporto cancellato.",
   "rf.orgBrandingTitle": "Branding dei rapporti",
   "rf.orgBrandingIntro": "Imposta logo, colori e piè di pagina che tutti i rapporti della tua organizzazione usano per impostazione predefinita. Un progetto può sovrascriverli.",
-  "rf.currentLogo": "Logo attuale"
+  "rf.currentLogo": "Logo attuale",
+  "navbar.reports": "Rapporti"
 }

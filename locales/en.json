@@ -3595,5 +3595,6 @@
   "rf.brandingCleared": "Report branding cleared.",
   "rf.orgBrandingTitle": "Report branding",
   "rf.orgBrandingIntro": "Set the logo, colours and footer every report in your organization uses by default. A project can override these.",
-  "rf.currentLogo": "Current logo"
+  "rf.currentLogo": "Current logo",
+  "navbar.reports": "Reports"
 }

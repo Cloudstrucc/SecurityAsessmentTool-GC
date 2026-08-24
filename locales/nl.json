@@ -3616,5 +3616,6 @@
   "rf.brandingCleared": "Rapportbranding gewist.",
   "rf.orgBrandingTitle": "Rapportbranding",
   "rf.orgBrandingIntro": "Stel het logo, de kleuren en de voettekst in die elk rapport in je organisatie standaard gebruikt. Een project kan deze overschrijven.",
-  "rf.currentLogo": "Huidig logo"
+  "rf.currentLogo": "Huidig logo",
+  "navbar.reports": "Rapporten"
 }

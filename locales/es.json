@@ -3638,5 +3638,6 @@
   "rf.brandingCleared": "Marca del informe borrada.",
   "rf.orgBrandingTitle": "Marca de los informes",
   "rf.orgBrandingIntro": "Defina el logotipo, los colores y el pie de página que usan por defecto todos los informes de su organización. Un proyecto puede anularlos.",
-  "rf.currentLogo": "Logotipo actual"
+  "rf.currentLogo": "Logotipo actual",
+  "navbar.reports": "Informes"
 }

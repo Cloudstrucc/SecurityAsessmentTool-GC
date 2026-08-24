@@ -3616,5 +3616,6 @@
   "rf.brandingCleared": "Marca do relatório removida.",
   "rf.orgBrandingTitle": "Marca dos relatórios",
   "rf.orgBrandingIntro": "Defina o logotipo, as cores e o rodapé que todos os relatórios da sua organização usam por padrão. Um projeto pode substituí-los.",
-  "rf.currentLogo": "Logotipo atual"
+  "rf.currentLogo": "Logotipo atual",
+  "navbar.reports": "Relatórios"
 }

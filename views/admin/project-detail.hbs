@@ -130,7 +130,12 @@
       </div>
 
       <div class="card mt-3" id="reporting">
-        <div class="card-header bg-light"><i class="bi bi-palette me-2"></i>{{t 'ui.reportBranding'}}</div>
+        <div class="card-header bg-light d-flex align-items-center">
+          <span><i class="bi bi-palette me-2"></i>{{t 'ui.reportBranding'}}</span>
+          <a href="/admin/reports/project/{{project.id}}" class="btn btn-primary btn-sm ms-auto">
+            <i class="bi bi-file-earmark-bar-graph me-1"></i>{{t 'rf.openReport'}}
+          </a>
+        </div>
         <div class="card-body">
           <form method="POST" action="/admin/projects/{{project.id}}/branding" enctype="multipart/form-data">
             <div class="mb-2">

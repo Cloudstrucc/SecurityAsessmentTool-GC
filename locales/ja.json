@@ -3616,5 +3616,6 @@
   "rf.brandingCleared": "レポートのブランドを消去しました。",
   "rf.orgBrandingTitle": "レポートのブランド",
   "rf.orgBrandingIntro": "組織のすべてのレポートが既定で使うロゴ・色・フッターを設定します。プロジェクトごとに上書きできます。",
-  "rf.currentLogo": "現在のロゴ"
+  "rf.currentLogo": "現在のロゴ",
+  "navbar.reports": "レポート"
 }

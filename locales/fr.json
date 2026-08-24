@@ -3638,5 +3638,6 @@
   "rf.brandingCleared": "Image de marque du rapport effacée.",
   "rf.orgBrandingTitle": "Image de marque des rapports",
   "rf.orgBrandingIntro": "Définissez le logo, les couleurs et le pied de page utilisés par défaut par tous les rapports de votre organisation. Un projet peut les remplacer.",
-  "rf.currentLogo": "Logo actuel"
+  "rf.currentLogo": "Logo actuel",
+  "navbar.reports": "Rapports"
 }

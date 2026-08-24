@@ -142,7 +142,7 @@ router.get('/', ensureAuthenticated, (req, res) => {
   });
   res.render('admin/reports-hub', {
     title: req.t ? req.t('rf.reportView') : 'Reports',
-    isAdmin: true, admin: req.user, canPortfolio: admin, rows
+    isAdmin: true, isReports: true, admin: req.user, canPortfolio: admin, rows
   });
 });
 
@@ -192,7 +192,7 @@ router.get('/:type/:id', ensureAuthenticated, (req, res, next) => {
   if (type === 'assessment' && auth.project) csvHref = `/admin/projects/${auth.project.id}/controls.csv?assessment=${id}`;
   else if (type === 'project') csvHref = `/admin/projects/${id}/controls.csv`;
   res.render('admin/report-view', {
-    title: `${model.title} — ${model.subject}`, isAdmin: true, admin: req.user,
+    title: `${model.title} — ${model.subject}`, isAdmin: true, isReports: true, admin: req.user,
     model, type, id, reportId: model.reportId, csvHref,
     previewHref: `/admin/reports/${type}/${id}.html`,
     formats: render.PICKER_FORMATS, brandingResolvedFrom: b.resolved_from
