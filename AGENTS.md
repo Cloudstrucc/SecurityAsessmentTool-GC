@@ -62,3 +62,13 @@ CSV is intentionally untouched and keeps its own per-object routes.
 ## Testing
 - Run `npm run test:e2e` before committing app changes. Note the suite currently expects
   `MFA_ENABLED=true` (MFA defaults off), so run it as `MFA_ENABLED=true npm run test:e2e`.
+
+## Navigation (dockable menu + breadcrumb)
+The app menu is dockable per user (top | left | right, pinned or auto-hide) — saved on
+`users.nav_position`/`nav_pinned`, applied server-side in the layout, controlled client-side
+by `public/js/nav-dock.js` (+ `public/css/nav-dock.css`). The breadcrumb under the menu is
+computed server-side (`config/breadcrumb.js`) via a `res.render` override in `app.js` (so it
+sees the page title) and emitted as `{{{breadcrumbHtml}}}`. Breadcrumb section labels reuse
+the existing `nav.*` / `navbar.*` keys; dock-control labels are `navd.*` (all 8 locales).
+Note: inside the mounted `/admin` router `req.path` is stripped — use `req.originalUrl`.
+

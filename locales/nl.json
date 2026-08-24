@@ -3649,5 +3649,19 @@
   "rf.entity_organization": "Organisatie",
   "navbar.reports": "Rapporten",
   "rf.export": "Exporteren",
-  "rf.openFullReport": "Volledig rapport openen"
+  "rf.openFullReport": "Volledig rapport openen",
+  "navd.controls": "Menubediening",
+  "navd.position": "Positie",
+  "navd.display": "Weergave",
+  "navd.top": "Boven",
+  "navd.left": "Links",
+  "navd.right": "Rechts",
+  "navd.pin": "Vastzetten",
+  "navd.setDefault": "Standaard",
+  "navd.default": "Standaard",
+  "navd.savedDefault": "Opgeslagen als je standaardmenu.",
+  "navbar.orgSettings": "Organisatie-instellingen",
+  "navbar.licensing": "Licenties",
+  "navbar.compCodes": "Compcodes",
+  "navbar.notifications": "Meldingen"
 }

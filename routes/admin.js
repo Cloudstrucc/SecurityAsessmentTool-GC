@@ -1018,6 +1018,19 @@ router.post('/register', (req, res) => {
 });
 
 // ── DASHBOARD ──
+// Save the user's dockable-menu default (position + pinned). Called by the
+// "set as default" star in the nav; returns JSON so the page doesn't reload.
+router.post('/nav-prefs', ensureAuthenticated, (req, res) => {
+  const position = ['top', 'left', 'right'].includes(req.body.position) ? req.body.position : 'top';
+  const pinned = (req.body.pinned === '1' || req.body.pinned === 1 || req.body.pinned === true) ? 1 : 0;
+  try {
+    run('UPDATE users SET nav_position = ?, nav_pinned = ? WHERE id = ?', [position, pinned, req.user.id]);
+    res.json({ ok: true, position, pinned });
+  } catch (e) {
+    res.status(500).json({ ok: false });
+  }
+});
+
 router.get('/dashboard', ensureAuthenticated, (req, res) => {
   const projects = all('SELECT * FROM projects WHERE archived_at IS NULL ORDER BY updated_at DESC LIMIT 10');
   const assessments = all(`
