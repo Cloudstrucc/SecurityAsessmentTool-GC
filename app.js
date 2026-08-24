@@ -22,6 +22,7 @@ const publicRoutes = require('./routes/public');
 const apiRoutes = require('./routes/api');
 const billingRoutes = require('./routes/billing');
 const orgAdminRoutes = require('./routes/org-admin');
+const reportRoutes = require('./routes/reports');
 const emailService = require('./utils/emailService');
 const { UPLOAD_DIR, ensureUploadDirs } = require('./config/storage');
 const { initI18n, i18nMiddleware, i18nLocals, DEFAULT_LANG } = require('./config/i18n');
@@ -327,6 +328,7 @@ app.use((req, res, next) => {
 app.use('/', billingRoutes.router);
 app.use('/', publicRoutes);
 app.use('/admin', orgAdminRoutes);
+app.use('/admin/reports', reportRoutes);
 app.use('/admin', adminRoutes);
 app.use('/api', apiRoutes);
 

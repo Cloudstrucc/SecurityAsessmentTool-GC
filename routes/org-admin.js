@@ -11,6 +11,10 @@ const orgSettings = require('../config/org-settings');
 const emailService = require('../utils/emailService');
 const smsService = require('../utils/smsService');
 const checks = require('../config/integration-checks');
+const reportBranding = require('../config/report-branding');
+const { BRANDING_UPLOAD_DIR } = require('../config/storage');
+const multer = require('multer');
+const brandingUpload = multer({ dest: BRANDING_UPLOAD_DIR, limits: { fileSize: 2 * 1024 * 1024 } });
 
 const router = express.Router();
 
@@ -26,7 +30,9 @@ function renderConsole(req, res, extra = {}) {
     org, settings, host: req.get('host'),
     // Last 24h of validation history per integration, for the log panels.
     checkHistory: org ? checks.historyAll(org.id) : {},
-    domainToken: org ? checks.domainVerificationToken(org.id) : ''
+    domainToken: org ? checks.domainVerificationToken(org.id) : '',
+    // Org-level report branding (defaults every project inherits).
+    orgBranding: org ? (reportBranding.getOrgRow(org.id) || {}) : {}
   }, extra));
 }
 
@@ -48,6 +54,40 @@ router.post('/organization/:feature/validate', access.ensureRootAdmin, async (re
 
 // Console
 router.get('/organization', access.ensureRootAdmin, (req, res) => renderConsole(req, res));
+
+// ── Report branding (org-level defaults) ──
+router.post('/organization/branding', access.ensureRootAdmin, brandingUpload.single('logo'), (req, res) => {
+  const org = currentOrg(req);
+  if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
+  try {
+    reportBranding.save('org', org.id, {
+      organization_name: req.body.organization_name,
+      report_subtitle: req.body.report_subtitle,
+      classification_label: req.body.classification_label,
+      assessor_company_name: req.body.assessor_company_name,
+      primary_color: req.body.primary_color,
+      accent_color: req.body.accent_color,
+      header_text: req.body.header_text,
+      footer_text: req.body.footer_text,
+      logo_filename: req.file && req.file.filename,
+      logo_original_name: req.file && req.file.originalname,
+      logo_mime_type: req.file && req.file.mimetype
+    }, req.user.id);
+    req.flash('success', req.t ? req.t('rf.brandingSaved') : 'Report branding saved.');
+  } catch (err) {
+    console.error('org branding save error:', err);
+    req.flash('error', 'Failed to save branding: ' + err.message);
+  }
+  res.redirect('/admin/organization#branding');
+});
+
+router.post('/organization/branding/clear', access.ensureRootAdmin, (req, res) => {
+  const org = currentOrg(req);
+  if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
+  reportBranding.clear('org', org.id);
+  req.flash('success', req.t ? req.t('rf.brandingCleared') : 'Report branding cleared.');
+  res.redirect('/admin/organization#branding');
+});
 
 // ── SMTP ──
 router.post('/organization/smtp', access.ensureRootAdmin, (req, res) => {

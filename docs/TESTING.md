@@ -58,7 +58,7 @@ generated artifacts — they are not committed.
 
 ---
 
-## The suite at a glance (71 checks)
+## The suite at a glance (73 checks)
 
 ### Authentication, MFA & accounts
 | Check | What it proves |
@@ -124,6 +124,12 @@ generated artifacts — they are not committed.
 | Status badges are localized, not hardcoded English | `statusBadge` renders per language and never falls back to English |
 | A decision package exports a PDF from the pinned version | The document reflects what was authorized, not live data |
 | The retired assessment ATO route no longer exists | Authorization lives only in decision packages (404) |
+
+### Reporting engine (Phases A & B)
+| Check | What it proves |
+|---|---|
+| Unified reporting: hub, per-format downloads and branding | The report hub lists projects; assessment reports download as HTML, PDF, DOCX and Markdown; project-level branding (accent colour + footer) flows into the rendered report |
+| Reporting access: an unassigned client cannot download another tenant report | A user with no assignment to the assessment is refused (not a 200 PDF) |
 
 ### Intake acceptance
 | Check | What it proves |

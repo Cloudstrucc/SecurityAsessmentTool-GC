@@ -532,6 +532,65 @@ test('admin can export assessment, controls and full project PDFs', async () => 
   await assertPdfDownload(jar, `/admin/projects/${projectId}/report.pdf`, 'full project PDF');
 });
 
+test('unified reporting: hub, per-format downloads and branding all work', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Reporting Engine Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+
+  // Report hub lists the project.
+  const hub = (await getText(jar, '/admin/reports')).text;
+  assert.ok(hub.includes('E2E Reporting Engine Project'), 'hub lists the project');
+
+  // On-screen view renders and points its iframe at the .html route.
+  const view = (await getText(jar, `/admin/reports/assessment/${assessmentId}`)).text;
+  assert.ok(view.includes(`/admin/reports/assessment/${assessmentId}.html`), 'view embeds the html preview');
+
+  // HTML download.
+  const htmlRes = await request(jar, 'GET', `/admin/reports/assessment/${assessmentId}.html`, { redirect: 'manual' });
+  assert.equal(htmlRes.status, 200, 'html report downloads');
+  assert.ok((htmlRes.headers.get('content-type') || '').includes('text/html'));
+  const htmlBody = await htmlRes.text();
+  assert.ok(/<!doctype html>/i.test(htmlBody), 'html report is a full document');
+
+  // PDF download.
+  await assertPdfDownload(jar, `/admin/reports/assessment/${assessmentId}.pdf`, 'reporting assessment PDF');
+
+  // DOCX download — a .docx is a ZIP, so it starts with the PK signature.
+  const docxRes = await request(jar, 'GET', `/admin/reports/assessment/${assessmentId}.docx`, { redirect: 'manual' });
+  assert.equal(docxRes.status, 200, 'docx downloads');
+  const docxBuf = Buffer.from(await docxRes.arrayBuffer());
+  assert.equal(docxBuf.subarray(0, 2).toString('latin1'), 'PK', 'docx is a zip/OOXML file');
+
+  // Markdown download.
+  const mdRes = await request(jar, 'GET', `/admin/reports/assessment/${assessmentId}.md`, { redirect: 'manual' });
+  assert.equal(mdRes.status, 200, 'markdown downloads');
+  const mdBody = await mdRes.text();
+  assert.ok(mdBody.includes('# '), 'markdown has a heading');
+
+  // Portfolio (admin-only) renders as PDF.
+  await assertPdfDownload(jar, '/admin/reports/portfolio/all.pdf', 'portfolio PDF');
+
+  // Project-level branding: set an accent colour + footer, then the HTML report
+  // must carry them (exercises the project → org → platform resolution chain).
+  await request(jar, 'POST', `/admin/projects/${projectId}/branding`, {
+    form: { organization_name: 'E2E Health Group', primary_color: '#1f4d4a', accent_color: '#2f8f86', footer_text: 'E2E footer' }
+  });
+  const branded = (await getText(jar, `/admin/reports/assessment/${assessmentId}.html`)).text;
+  assert.ok(branded.includes('#2f8f86'), 'report picks up project accent colour');
+  assert.ok(branded.includes('E2E footer'), 'report picks up project footer text');
+});
+
+test('reporting access: an unassigned client cannot download another tenant report', async () => {
+  const admin = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(admin, 'E2E Reporting Access Project');
+  const { assessmentId } = await createSingleControlAssessment(admin, projectId);
+
+  const client = await loginClientWithTotp();
+  const res = await request(client, 'GET', `/admin/reports/assessment/${assessmentId}.pdf`, { redirect: 'manual' });
+  // Not a 200 PDF: unassigned users are redirected away.
+  assert.notEqual(res.status, 200, 'unassigned client is refused the report');
+});
+
 test('the retired legacy ATO editor is gone', async () => {
   const jar = await loginAdminWithTotp();
   const { projectId } = await createAdminProject(jar, 'E2E Retired ATO Editor Project');

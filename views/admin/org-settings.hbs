@@ -147,6 +147,56 @@
     </div>
   </div>
 
+  <!-- ── Report branding (org-level defaults) ── -->
+  <div class="card mb-4" id="branding">
+    <div class="card-header"><i class="bi bi-palette me-2"></i>{{t 'rf.orgBrandingTitle'}}</div>
+    <div class="card-body">
+      <p class="text-muted small">{{t 'rf.orgBrandingIntro'}}</p>
+      <form method="POST" action="/admin/organization/branding" enctype="multipart/form-data">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold" for="ob_org_name">{{t 'ui.organizationName'}}</label>
+            <input type="text" class="form-control form-control-sm" id="ob_org_name" name="organization_name" value="{{orgBranding.organization_name}}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold" for="ob_logo">{{t 'ui.organizationLogo'}}</label>
+            <input type="file" class="form-control form-control-sm" id="ob_logo" name="logo" accept=".png,.jpg,.jpeg">
+            {{#if orgBranding.logo_original_name}}<div class="form-text">{{t 'rf.currentLogo'}}: {{orgBranding.logo_original_name}}</div>{{/if}}
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small fw-semibold" for="ob_primary">{{t 'rf.primaryColor'}}</label>
+            <input type="color" class="form-control form-control-sm form-control-color" id="ob_primary" name="primary_color" value="{{#if orgBranding.primary_color}}{{orgBranding.primary_color}}{{else}}#143453{{/if}}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small fw-semibold" for="ob_accent">{{t 'rf.accentColor'}}</label>
+            <input type="color" class="form-control form-control-sm form-control-color" id="ob_accent" name="accent_color" value="{{#if orgBranding.accent_color}}{{orgBranding.accent_color}}{{else}}#4d9fe0{{/if}}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold" for="ob_footer">{{t 'rf.footerText'}}</label>
+            <input type="text" class="form-control form-control-sm" id="ob_footer" name="footer_text" value="{{orgBranding.footer_text}}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold" for="ob_header">{{t 'rf.headerText'}}</label>
+            <input type="text" class="form-control form-control-sm" id="ob_header" name="header_text" value="{{orgBranding.header_text}}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold" for="ob_class">{{t 'ui.classificationLabel'}}</label>
+            <input type="text" class="form-control form-control-sm" id="ob_class" name="classification_label" value="{{orgBranding.classification_label}}">
+          </div>
+        </div>
+        <div class="d-flex gap-2 mt-3">
+          <button class="btn btn-primary"><i class="bi bi-save me-1"></i>{{t 'dp.save'}}</button>
+        </div>
+      </form>
+      {{#if orgBranding.id}}
+      <form method="POST" action="/admin/organization/branding/clear" class="mt-2"
+        onsubmit="return confirm('{{t 'rf.brandingClearConfirm'}}');">
+        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle me-1"></i>{{t 'rf.clearBranding'}}</button>
+      </form>
+      {{/if}}
+    </div>
+  </div>
+
   <!-- ── Custom domain ── -->
   <div class="card mb-4" id="domain">
     <div class="card-header"><i class="bi bi-globe2 me-2"></i>Custom domain

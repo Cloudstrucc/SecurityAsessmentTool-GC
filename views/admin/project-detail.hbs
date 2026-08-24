@@ -156,8 +156,35 @@
                 <input type="text" class="form-control form-control-sm" id="assessor_company_name" name="assessor_company_name" value="{{branding.assessor_company_name}}" placeholder="{{t 'ui.vanguardcsCa'}}">
               </div>
             </div>
-            <button type="submit" class="btn btn-sm btn-primary mt-3"><i class="bi bi-save me-1"></i>{{t 'ui.saveBranding'}}</button>
+            <div class="row g-2 mt-1">
+              <div class="col-md-3">
+                <label class="form-label small fw-semibold" for="primary_color">{{t 'rf.primaryColor'}}</label>
+                <input type="color" class="form-control form-control-sm form-control-color" id="primary_color" name="primary_color" value="{{#if branding.primary_color}}{{branding.primary_color}}{{else}}#143453{{/if}}">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small fw-semibold" for="accent_color">{{t 'rf.accentColor'}}</label>
+                <input type="color" class="form-control form-control-sm form-control-color" id="accent_color" name="accent_color" value="{{#if branding.accent_color}}{{branding.accent_color}}{{else}}#4d9fe0{{/if}}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold" for="footer_text">{{t 'rf.footerText'}}</label>
+                <input type="text" class="form-control form-control-sm" id="footer_text" name="footer_text" value="{{branding.footer_text}}">
+              </div>
+            </div>
+            <div class="mt-2">
+              <label class="form-label small fw-semibold" for="header_text">{{t 'rf.headerText'}}</label>
+              <input type="text" class="form-control form-control-sm" id="header_text" name="header_text" value="{{branding.header_text}}">
+            </div>
+            <p class="form-text mb-2">{{t 'rf.brandingInheritHint'}}</p>
+            <div class="d-flex gap-2 mt-2">
+              <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-save me-1"></i>{{t 'ui.saveBranding'}}</button>
+            </div>
           </form>
+          {{#if branding.id}}
+          <form method="POST" action="/admin/projects/{{project.id}}/branding/clear" class="mt-2"
+            onsubmit="return confirm('{{t 'rf.brandingClearConfirm'}}');">
+            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle me-1"></i>{{t 'rf.clearBranding'}}</button>
+          </form>
+          {{/if}}
         </div>
       </div>
 
