@@ -3668,5 +3668,7 @@
   "rf.entity_assessment": "Évaluation",
   "rf.entity_decisionPackage": "Dossier de décision",
   "rf.entity_project": "Projet",
-  "rf.entity_organization": "Organisation"
+  "rf.entity_organization": "Organisation",
+  "navbar.reports": "Rapports",
+  "rf.export": "Exporter"
 }

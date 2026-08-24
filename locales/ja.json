@@ -3646,5 +3646,7 @@
   "rf.entity_assessment": "評価",
   "rf.entity_decisionPackage": "決定パッケージ",
   "rf.entity_project": "プロジェクト",
-  "rf.entity_organization": "組織"
+  "rf.entity_organization": "組織",
+  "navbar.reports": "レポート",
+  "rf.export": "エクスポート"
 }

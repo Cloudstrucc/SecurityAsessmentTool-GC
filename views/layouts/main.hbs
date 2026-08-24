@@ -295,6 +295,7 @@
             <li><a class="{{#if isDashboard}}active{{/if}}" href="/admin/dashboard"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>My Dashboard</a></li>
             <li><a href="/intake"><i class="bi bi-inbox me-1" aria-hidden="true"></i>New Intake</a></li>
             <li><a href="/self-assessment"><i class="bi bi-clipboard2-pulse me-1" aria-hidden="true"></i>Pre-Assessment</a></li>
+            <li><a class="{{#if isReports}}active{{/if}}" href="/admin/reports"><i class="bi bi-file-earmark-bar-graph me-1" aria-hidden="true"></i>{{t 'navbar.reports'}}</a></li>
             <li><a class="{{#if isHelp}}active{{/if}}" href="/admin/help"><i class="bi bi-question-circle me-1" aria-hidden="true"></i>Help</a></li>
             <li class="nav-item dropdown">
               <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{user.name}}</a>
@@ -314,6 +315,7 @@
             <li><a class="{{#if isSelfAssessments}}active{{/if}}" href="/admin/self-assessments"><i class="bi bi-clipboard2-pulse me-1" aria-hidden="true"></i>{{t 'nav.preAssessments'}}</a></li>
             <li><a class="{{#if isTeams}}active{{/if}}" href="/admin/teams"><i class="bi bi-people me-1" aria-hidden="true"></i>{{t 'nav.team'}}</a></li>
             <li><a class="{{#if isControls}}active{{/if}}" href="/admin/security-controls"><i class="bi bi-shield-check me-1" aria-hidden="true"></i>{{t 'nav.controls'}}</a></li>
+            <li><a class="{{#if isReports}}active{{/if}}" href="/admin/reports"><i class="bi bi-file-earmark-bar-graph me-1" aria-hidden="true"></i>{{t 'navbar.reports'}}</a></li>
             <li><a class="{{#if isHelp}}active{{/if}}" href="/admin/help"><i class="bi bi-question-circle me-1" aria-hidden="true"></i>{{t 'nav.help'}}</a></li>
             <li><a class="{{#if isSettings}}active{{/if}}" href="/admin/settings"><i class="bi bi-gear me-1" aria-hidden="true"></i>{{t 'nav.settings'}}</a></li>
             {{#if user.is_root_admin}}
