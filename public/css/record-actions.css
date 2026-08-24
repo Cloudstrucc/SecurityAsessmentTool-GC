@@ -1,0 +1,50 @@
+/* ═══ Record action toolbar ═══════════════════════════════════════════════════
+   Enhances a record page's action-button cluster (.record-actions) into one tidy
+   toolbar: icons + tooltip by default (Ctrl/⌘ + \ expands to icon + text), a drag
+   grip so it can be moved anywhere on the page and re-docked, wrap-to-its-own-row
+   so it never overlaps the title, and a single Menu button on phones. Colours and
+   click behaviour of the underlying buttons are untouched. ────────────────────── */
+
+/* The header row wraps so the toolbar drops below the title instead of crushing it. */
+.ra-head { flex-wrap: wrap; row-gap: .6rem; }
+.ra-head > :first-child { min-width: 0; }
+
+.record-actions.ra-toolbar { align-items: center; flex-wrap: nowrap; }
+
+/* Drag grip */
+.ra-grip {
+  flex: 0 0 auto; width: 20px; height: 34px; display: grid; place-items: center;
+  color: var(--cs-muted, #5f7185); cursor: grab; border-radius: 6px; font-size: 15px; touch-action: none;
+}
+.ra-grip:hover { background: #f1f5f9; color: var(--cs-blue, #143453); }
+.ra-toolbar.ra-dragging .ra-grip { cursor: grabbing; }
+
+/* Icon-only mode: hide the button labels; the native title is the tooltip. */
+.record-actions.ra-icons .ra-txt { display: none; }
+.record-actions.ra-icons .btn { display: inline-flex; align-items: center; justify-content: center; }
+.record-actions.ra-icons .btn i { margin: 0 !important; }
+/* keep dropdown carets from the export menu tidy in icon mode */
+.record-actions.ra-icons .dropdown-toggle::after { margin-left: .2rem; }
+
+/* Dragging: the toolbar floats over the whole page, clamped to the viewport. */
+.record-actions.ra-floating {
+  position: fixed; z-index: 1150; margin: 0 !important; background: #fff;
+  border: 1px solid var(--cs-border, #dce7f2); border-radius: 12px; padding: 6px 8px;
+  box-shadow: 0 16px 38px rgba(15,32,54,.26); transition: none !important;
+}
+.record-actions.ra-near-dock { outline: 2px solid var(--cs-accent, #4d9fe0); outline-offset: 2px; box-shadow: 0 16px 38px rgba(77,159,224,.45); }
+
+/* Dashed "home" target shown while dragging the toolbar back */
+.ra-dock-ghost {
+  position: fixed; display: none; z-index: 1140; border: 2px dashed var(--cs-accent, #4d9fe0);
+  background: rgba(77,159,224,.10); border-radius: 12px; align-items: center; justify-content: center;
+  pointer-events: none; font-size: 10.5px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase;
+  color: var(--cs-accent-dk, #2f80cf);
+}
+.ra-dock-ghost.show { display: flex; }
+
+/* Mobile: collapse the whole toolbar into a single icon-only Menu button. */
+.record-actions .ra-menu { position: relative; }
+.record-actions:not(.ra-collapsed) .ra-menu { display: none; }
+.record-actions.ra-collapsed > *:not(.ra-grip):not(.ra-menu) { display: none !important; }
+.ra-menu .dropdown-menu .dropdown-item { display: flex; align-items: center; gap: .55rem; }

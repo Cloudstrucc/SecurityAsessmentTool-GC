@@ -1,0 +1,34 @@
+/* ═══ Floating action buttons — round, icon-only, draggable & dockable ════════
+   The Assistant (.aia-launch) and Collaboration (.cb-launch) launchers become
+   clean round icon buttons (label shown as a native tooltip). fab-dock.js lets
+   the user drag them anywhere on the page — over the header or footer — clamped
+   so they stay fully visible; drag one back near its home corner to re-dock. ── */
+.aia-launch, .cb-launch {
+  width: 54px !important; height: 54px !important; padding: 0 !important;
+  border-radius: 50% !important; justify-content: center !important; gap: 0 !important;
+  touch-action: none;
+}
+.aia-launch > span { display: none !important; }
+.cb-launch > span:not(.cb-badge) { display: none !important; }
+.cb-launch .cb-badge {
+  position: absolute; top: -3px; right: -3px; padding: 0 5px; min-width: 18px;
+  height: 18px; display: grid; place-items: center; font-size: .66rem;
+}
+.aia-launch .bi, .cb-launch .bi { font-size: 20px !important; }
+
+.fab-dockable { cursor: grab; }
+.fab-dockable.fab-dragging { cursor: grabbing; transition: none !important; box-shadow: 0 18px 40px rgba(15,32,54,.42) !important; }
+.fab-dockable.fab-dragging:hover { filter: none !important; }
+.fab-dockable.fab-near-dock { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 4px var(--cs-accent, #4d9fe0), 0 18px 40px rgba(15,32,54,.42) !important; }
+
+/* Dashed "home" ring shown near a FAB's original spot while dragging */
+.fab-dock-ghost {
+  position: fixed; display: none; width: 54px; height: 54px; border-radius: 50%;
+  border: 2px dashed var(--cs-accent, #4d9fe0); background: rgba(77,159,224,.12);
+  z-index: 1199; pointer-events: none; align-items: center; justify-content: center;
+}
+.fab-dock-ghost.show { display: flex; }
+.fab-dock-ghost i { color: var(--cs-accent-dk, #2f80cf); font-size: 18px; }
+
+/* suppress text selection anywhere while a FAB (or toolbar) is being dragged */
+body.ra-dragging-active, body.ra-dragging-active * { user-select: none !important; -webkit-user-select: none !important; }

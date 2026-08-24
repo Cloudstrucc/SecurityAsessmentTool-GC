@@ -163,7 +163,12 @@
     labels = v; railExpanded = false; writeOverride(); applyLabels();
     persist({ navLabels: v });
   }
-  function toggleLabels() { setLabels(labels === 'icons' ? 'text' : 'icons'); }
+  function toggleLabels() {
+    var next = labels === 'icons' ? 'text' : 'icons';
+    setLabels(next);
+    // keep the record action toolbar in sync (one shortcut compacts/expands both)
+    try { document.dispatchEvent(new CustomEvent('aegis:labels-toggle', { detail: { mode: next } })); } catch (e) {}
+  }
   function setRailExpanded(v) { railExpanded = v; writeOverride(); applyLabels(); }
 
   function persist(obj) {

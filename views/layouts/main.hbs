@@ -22,6 +22,9 @@
   <link href="/css/vanguard-design.css" rel="stylesheet">
   <!-- Dockable navigation + breadcrumb -->
   <link href="/css/nav-dock.css" rel="stylesheet">
+  <!-- Record action toolbar + draggable floating buttons -->
+  <link href="/css/record-actions.css" rel="stylesheet">
+  <link href="/css/fab-dock.css" rel="stylesheet">
 
   <style>
     /* ═══ Vanguard Cloud Services Design System — Aegis SA Platform ════════════ */
@@ -241,7 +244,7 @@
   </style>
   {{#if extraStyles}}{{{extraStyles}}}{{/if}}
 </head>
-<body vocab="http://schema.org/" typeof="WebPage"{{#if user}} class="nav-dock nav-pos-{{navPosition}}{{#if navPinned}} nav-pinned{{/if}} nav-labels-{{navLabels}}" data-nav-default-pos="{{navPosition}}" data-nav-default-pinned="{{navPinned}}" data-nav-default-labels="{{navLabels}}" data-action-labels="{{actionLabels}}" data-more-label="{{t 'navd.more'}}"{{/if}}>
+<body vocab="http://schema.org/" typeof="WebPage"{{#if user}} class="nav-dock nav-pos-{{navPosition}}{{#if navPinned}} nav-pinned{{/if}} nav-labels-{{navLabels}}" data-nav-default-pos="{{navPosition}}" data-nav-default-pinned="{{navPinned}}" data-nav-default-labels="{{navLabels}}" data-action-labels="{{actionLabels}}" data-more-label="{{t 'navd.more'}}" data-ra-more="{{t 'ra.menu'}}" data-ra-move="{{t 'ra.dragToMove'}}" data-ra-dock="{{t 'ra.dockHere'}}"{{/if}}>
 
   {{#if user}}
   <!-- Edge-reveal hotzones (shown only when the menu is unpinned) -->
@@ -467,7 +470,9 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  {{#if user}}<script src="/js/nav-dock.js" defer></script>{{/if}}
+  {{#if user}}<script src="/js/nav-dock.js" defer></script>
+  <script src="/js/record-actions.js" defer></script>
+  <script src="/js/fab-dock.js" defer></script>{{/if}}
   {{#if extraScripts}}{{{extraScripts}}}{{/if}}
 </body>
 </html>
