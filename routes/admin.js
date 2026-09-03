@@ -1055,22 +1055,28 @@ router.post('/ui-prefs', ensureAuthenticated, (req, res) => {
 });
 
 router.get('/dashboard', ensureAuthenticated, (req, res) => {
-  const projects = all('SELECT * FROM projects WHERE archived_at IS NULL ORDER BY updated_at DESC LIMIT 10');
+  // Tenant isolation: an admin sees only their own workspace's projects and the
+  // assessments / intakes that hang off them. Root admins (sp.clause '1=1') see all.
+  const sp = access.projectScope(req.user, 'organization_id');   // projects table
+  const spj = access.projectScope(req.user, 'p.organization_id'); // joined as p
+  const sa = access.assessmentScope(req.user);                   // assessments via project_id
+  const si = access.intakeScope(req.user);                       // intake_submissions
+  const projects = all(`SELECT * FROM projects WHERE archived_at IS NULL AND ${sp.clause} ORDER BY updated_at DESC LIMIT 10`, sp.params);
   const assessments = all(`
     SELECT a.*, p.name as project_name
     FROM assessments a JOIN projects p ON a.project_id = p.id
-    WHERE a.archived_at IS NULL AND p.archived_at IS NULL
+    WHERE a.archived_at IS NULL AND p.archived_at IS NULL AND ${spj.clause}
     ORDER BY a.updated_at DESC LIMIT 10
-  `);
-  const recentIntakes = all(`SELECT * FROM intake_submissions WHERE archived_at IS NULL ORDER BY created_at DESC LIMIT 5`);
+  `, spj.params);
+  const recentIntakes = all(`SELECT * FROM intake_submissions WHERE archived_at IS NULL AND ${si.clause} ORDER BY created_at DESC LIMIT 5`, si.params);
 
   const stats = {
-    totalProjects: get('SELECT COUNT(*) as c FROM projects WHERE archived_at IS NULL')?.c || 0,
-    activeAssessments: get("SELECT COUNT(*) as c FROM assessments WHERE archived_at IS NULL AND status NOT IN ('completed','closed')")?.c || 0,
-    pendingAudits: get("SELECT COUNT(*) as c FROM assessments WHERE archived_at IS NULL AND status = 'submitted'")?.c || 0,
-    activeATOs: get("SELECT COUNT(*) as c FROM assessments WHERE archived_at IS NULL AND ato_type = 'ato' AND result = 'ato'")?.c || 0,
-    activeIATOs: get("SELECT COUNT(*) as c FROM assessments WHERE archived_at IS NULL AND ato_type = 'iato' AND result = 'iato'")?.c || 0,
-    pendingIntakes: get("SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status IN ('pending','in-review')")?.c || 0,
+    totalProjects: get(`SELECT COUNT(*) as c FROM projects WHERE archived_at IS NULL AND ${sp.clause}`, sp.params)?.c || 0,
+    activeAssessments: get(`SELECT COUNT(*) as c FROM assessments WHERE archived_at IS NULL AND status NOT IN ('completed','closed') AND ${sa.clause}`, sa.params)?.c || 0,
+    pendingAudits: get(`SELECT COUNT(*) as c FROM assessments WHERE archived_at IS NULL AND status = 'submitted' AND ${sa.clause}`, sa.params)?.c || 0,
+    activeATOs: get(`SELECT COUNT(*) as c FROM assessments WHERE archived_at IS NULL AND ato_type = 'ato' AND result = 'ato' AND ${sa.clause}`, sa.params)?.c || 0,
+    activeIATOs: get(`SELECT COUNT(*) as c FROM assessments WHERE archived_at IS NULL AND ato_type = 'iato' AND result = 'iato' AND ${sa.clause}`, sa.params)?.c || 0,
+    pendingIntakes: get(`SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status IN ('pending','in-review') AND ${si.clause}`, si.params)?.c || 0,
     pendingSelfAssessments: (get("SELECT COUNT(*) as c FROM self_assessments WHERE status = 'submitted'")?.c || 0) +
       (get("SELECT COUNT(*) as c FROM sa_access_requests WHERE status = 'pending'")?.c || 0)
   };
@@ -1116,10 +1122,11 @@ router.get('/dashboard', ensureAuthenticated, (req, res) => {
 // ── PROJECTS ──
 router.get('/projects', ensureAuthenticated, (req, res) => {
   const showArchived = req.query.archived === '1';
+  const s = access.projectScope(req.user);   // tenant isolation: only this workspace's projects
   const projects = showArchived
-    ? all('SELECT * FROM projects WHERE archived_at IS NOT NULL ORDER BY archived_at DESC')
-    : all('SELECT * FROM projects WHERE archived_at IS NULL ORDER BY updated_at DESC');
-  const archivedCount = get('SELECT COUNT(*) as c FROM projects WHERE archived_at IS NOT NULL')?.c || 0;
+    ? all(`SELECT * FROM projects WHERE archived_at IS NOT NULL AND ${s.clause} ORDER BY archived_at DESC`, s.params)
+    : all(`SELECT * FROM projects WHERE archived_at IS NULL AND ${s.clause} ORDER BY updated_at DESC`, s.params);
+  const archivedCount = get(`SELECT COUNT(*) as c FROM projects WHERE archived_at IS NOT NULL AND ${s.clause}`, s.params)?.c || 0;
   res.render('admin/projects', {
     title: 'Projects', isAdmin: true, isProjects: true,
     admin: req.user, projects, showArchived, archivedCount
@@ -1286,6 +1293,8 @@ router.post('/projects/new', ensureAuthenticated, intakeUpload.fields([{ name: '
 router.get('/projects/:id', ensureAuthenticated, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
   if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
+  // Tenant isolation: don't reveal another workspace's project via a direct URL.
+  if (!access.canAccessProject(req.user, project)) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
 
   const assessments = all(`
     SELECT a.*, i.ref_code AS intake_ref_code
@@ -2189,6 +2198,8 @@ router.get('/decision-packages/:id', ensureAuthenticated, (req, res) => {
   const dp = get('SELECT * FROM decision_packages WHERE id = ?', [req.params.id]);
   if (!dp) { req.flash('error', 'Decision package not found'); return res.redirect('/admin/projects'); }
   const project = get('SELECT * FROM projects WHERE id = ?', [dp.project_id]);
+  // Tenant isolation: the package's project must belong to the user's workspace.
+  if (!access.canAccessProject(req.user, project)) { req.flash('error', 'Decision package not found'); return res.redirect('/admin/projects'); }
   const assessment = dp.assessment_id ? get('SELECT * FROM assessments WHERE id = ?', [dp.assessment_id]) : null;
   let extra = { poam: [], documents: [] };
   try { extra = JSON.parse(dp.snapshot_extra || '{}'); } catch (e) { /* ignore */ }
@@ -2378,13 +2389,14 @@ router.get('/assessments', ensureAuthenticated, (req, res) => {
     heading = 'Active ATOs / iATOs';
     blurb = 'Assessments that have been granted an Authority to Operate (ATO) or interim ATO (iATO).';
   }
+  const spj = access.projectScope(req.user, 'p.organization_id');   // tenant isolation
   const assessments = all(`
     SELECT a.*, p.name as project_name, i.ref_code as intake_ref_code
     FROM assessments a JOIN projects p ON a.project_id = p.id
     LEFT JOIN intake_submissions i ON i.id = a.intake_id
-    WHERE ${where}
+    WHERE ${where} AND ${spj.clause}
     ORDER BY a.updated_at DESC
-  `);
+  `, spj.params);
   res.render('admin/assessments', {
     title: heading || 'Assessments', isAdmin: true, isAssessments: true,
     admin: req.user, assessments, heading, blurb, filter
@@ -2399,13 +2411,18 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
       p.integrity_level, p.availability_level, p.security_profile,
       p.security_framework as project_security_framework, p.framework_baseline as project_framework_baseline,
       p.framework_category as project_framework_category, p.framework_applicability as project_framework_applicability,
-      i.ref_code as intake_ref_code, i.status as intake_status
+      i.ref_code as intake_ref_code, i.status as intake_status,
+      p.organization_id as project_organization_id
     FROM assessments a
     JOIN projects p ON a.project_id = p.id
     LEFT JOIN intake_submissions i ON i.id = a.intake_id
     WHERE a.id = ?
   `, [req.params.id]);
   if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+  // Tenant isolation: the assessment's project must belong to the user's workspace.
+  if (!access.canAccessProject(req.user, { organization_id: assessment.project_organization_id })) {
+    req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments');
+  }
 
   let controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessment.id]);
 
@@ -3383,10 +3400,11 @@ const ACTIVITY_LABELS = {
 
 // List all intakes
 router.get('/intakes', ensureAuthenticated, (req, res) => {
-  const intakes = all('SELECT * FROM intake_submissions WHERE archived_at IS NULL ORDER BY created_at DESC');
-  const pending = all("SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status = 'pending'")[0]?.c || 0;
-  const accepted = all("SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status = 'accepted'")[0]?.c || 0;
-  const inReview = all("SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status = 'in-review'")[0]?.c || 0;
+  const si = access.intakeScope(req.user);   // tenant isolation
+  const intakes = all(`SELECT * FROM intake_submissions WHERE archived_at IS NULL AND ${si.clause} ORDER BY created_at DESC`, si.params);
+  const pending = all(`SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status = 'pending' AND ${si.clause}`, si.params)[0]?.c || 0;
+  const accepted = all(`SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status = 'accepted' AND ${si.clause}`, si.params)[0]?.c || 0;
+  const inReview = all(`SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status = 'in-review' AND ${si.clause}`, si.params)[0]?.c || 0;
 
   res.render('admin/intakes', {
     title: 'Intake Submissions', isAdmin: true, isIntakes: true,
@@ -3399,6 +3417,11 @@ router.get('/intakes', ensureAuthenticated, (req, res) => {
 router.get('/intakes/:id', ensureAuthenticated, (req, res) => {
   const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
   if (!intake) { req.flash('error', 'Intake not found'); return res.redirect('/admin/intakes'); }
+  // Tenant isolation: only this workspace's intakes (by project org or org-member submitter).
+  { const si = access.intakeScope(req.user);
+    if (!get(`SELECT 1 AS ok FROM intake_submissions WHERE id = ? AND ${si.clause}`, [req.params.id, ...si.params])) {
+      req.flash('error', 'Intake not found'); return res.redirect('/admin/intakes');
+    } }
 
   const piiTypes = JSON.parse(intake.pii_types || '[]');
   const technologies = JSON.parse(intake.technologies || '[]');
@@ -3597,6 +3620,8 @@ router.post('/intakes/:id/accept', ensureAuthenticated, (req, res) => {
         intake.authority_name || '', intake.authority_email || '',
         intake.department || '', intake.branch || '', 'active', req.user.id]
     );
+    // Scope the new project to the accepting user's workspace (tenant isolation).
+    { const _org = access.orgId(req.user); if (_org) run('UPDATE projects SET organization_id = ? WHERE id = ?', [_org, projectId]); }
 
     // Check if SA&A is required
     const saaCheck = assessSAARequirement({

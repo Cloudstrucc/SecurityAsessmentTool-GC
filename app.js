@@ -285,6 +285,8 @@ app.use((req, res, next) => {
       // Practitioners (invited members/collaborators) get a slimmed, scoped UI.
       res.locals.isPractitioner = !access.isAdmin(req.user);
       res.locals.isRootAdmin = access.isRootAdmin(req.user);
+      // Org owners/admins manage their own workspace console (settings, licensing).
+      res.locals.canManageOrg = access.isAdmin(req.user) && !!(req.user.organization_id || req.user.is_root_admin);
       // Dockable-menu preference (the user's saved default). Applied server-side so
       // the menu renders in place with no flash; a session override may change it client-side.
       const navPos = ['top', 'left', 'right'].includes(req.user.nav_position) ? req.user.nav_position : 'top';

@@ -40,7 +40,7 @@ function renderConsole(req, res, extra = {}) {
  * Re-run a real validation for one integration (the reload icon next to
  * "Last valid check"). Works for smtp | sms | domain | ai.
  */
-router.post('/organization/:feature/validate', access.ensureRootAdmin, async (req, res) => {
+router.post('/organization/:feature/validate', access.ensureOrgAdmin, async (req, res) => {
   const org = currentOrg(req);
   const feature = String(req.params.feature || '');
   if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
@@ -53,10 +53,10 @@ router.post('/organization/:feature/validate', access.ensureRootAdmin, async (re
 });
 
 // Console
-router.get('/organization', access.ensureRootAdmin, (req, res) => renderConsole(req, res));
+router.get('/organization', access.ensureOrgAdmin, (req, res) => renderConsole(req, res));
 
 // ── Report branding (org-level defaults) ──
-router.post('/organization/branding', access.ensureRootAdmin, brandingUpload.single('logo'), (req, res) => {
+router.post('/organization/branding', access.ensureOrgAdmin, brandingUpload.single('logo'), (req, res) => {
   const org = currentOrg(req);
   if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
   try {
@@ -81,7 +81,7 @@ router.post('/organization/branding', access.ensureRootAdmin, brandingUpload.sin
   res.redirect('/admin/organization#branding');
 });
 
-router.post('/organization/branding/clear', access.ensureRootAdmin, (req, res) => {
+router.post('/organization/branding/clear', access.ensureOrgAdmin, (req, res) => {
   const org = currentOrg(req);
   if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
   reportBranding.clear('org', org.id);
@@ -90,7 +90,7 @@ router.post('/organization/branding/clear', access.ensureRootAdmin, (req, res) =
 });
 
 // ── SMTP ──
-router.post('/organization/smtp', access.ensureRootAdmin, (req, res) => {
+router.post('/organization/smtp', access.ensureOrgAdmin, (req, res) => {
   const org = currentOrg(req);
   if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
   orgSettings.updateSmtp(org.id, req.body);
@@ -98,7 +98,7 @@ router.post('/organization/smtp', access.ensureRootAdmin, (req, res) => {
   res.redirect('/admin/organization#smtp');
 });
 
-router.post('/organization/smtp/test', access.ensureRootAdmin, async (req, res) => {
+router.post('/organization/smtp/test', access.ensureOrgAdmin, async (req, res) => {
   const org = currentOrg(req);
   const cfg = orgSettings.smtpConfig(orgSettings.getSettings(org && org.id));
   if (!cfg) { req.flash('error', 'Save and enable SMTP settings before testing.'); return res.redirect('/admin/organization#smtp'); }
@@ -114,7 +114,7 @@ router.post('/organization/smtp/test', access.ensureRootAdmin, async (req, res) 
   res.redirect('/admin/organization#smtp');
 });
 
-router.post('/organization/smtp/delete', access.ensureRootAdmin, (req, res) => {
+router.post('/organization/smtp/delete', access.ensureOrgAdmin, (req, res) => {
   const org = currentOrg(req);
   if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
   orgSettings.clearSmtp(org.id);
@@ -123,7 +123,7 @@ router.post('/organization/smtp/delete', access.ensureRootAdmin, (req, res) => {
 });
 
 // ── SMS ──
-router.post('/organization/sms', access.ensureRootAdmin, (req, res) => {
+router.post('/organization/sms', access.ensureOrgAdmin, (req, res) => {
   const org = currentOrg(req);
   if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
   orgSettings.updateSms(org.id, req.body);
@@ -131,7 +131,7 @@ router.post('/organization/sms', access.ensureRootAdmin, (req, res) => {
   res.redirect('/admin/organization#sms');
 });
 
-router.post('/organization/sms/test', access.ensureRootAdmin, async (req, res) => {
+router.post('/organization/sms/test', access.ensureOrgAdmin, async (req, res) => {
   const org = currentOrg(req);
   const settings = orgSettings.getSettings(org && org.id);
   const to = (req.body.test_to || '').trim();
@@ -147,7 +147,7 @@ router.post('/organization/sms/test', access.ensureRootAdmin, async (req, res) =
   res.redirect('/admin/organization#sms');
 });
 
-router.post('/organization/sms/delete', access.ensureRootAdmin, (req, res) => {
+router.post('/organization/sms/delete', access.ensureOrgAdmin, (req, res) => {
   const org = currentOrg(req);
   if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
   orgSettings.clearSms(org.id);
@@ -156,7 +156,7 @@ router.post('/organization/sms/delete', access.ensureRootAdmin, (req, res) => {
 });
 
 // ── AI provider (bring-your-own LLM / MCP) ──
-router.post('/organization/ai', access.ensureRootAdmin, (req, res) => {
+router.post('/organization/ai', access.ensureOrgAdmin, (req, res) => {
   const org = currentOrg(req);
   if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
   orgSettings.updateAi(org.id, req.body);
@@ -164,7 +164,7 @@ router.post('/organization/ai', access.ensureRootAdmin, (req, res) => {
   res.redirect('/admin/organization#ai');
 });
 
-router.post('/organization/ai/test', access.ensureRootAdmin, async (req, res) => {
+router.post('/organization/ai/test', access.ensureOrgAdmin, async (req, res) => {
   const org = currentOrg(req);
   if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
   const result = await checks.runCheck('ai', { orgId: org.id, user: req.user, kind: 'test' });
@@ -172,7 +172,7 @@ router.post('/organization/ai/test', access.ensureRootAdmin, async (req, res) =>
   res.redirect('/admin/organization#ai');
 });
 
-router.post('/organization/ai/delete', access.ensureRootAdmin, (req, res) => {
+router.post('/organization/ai/delete', access.ensureOrgAdmin, (req, res) => {
   const org = currentOrg(req);
   if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
   orgSettings.clearAi(org.id);
@@ -181,7 +181,7 @@ router.post('/organization/ai/delete', access.ensureRootAdmin, (req, res) => {
 });
 
 // ── Mention notifications (tenant policy) ──
-router.post('/organization/notifications', access.ensureRootAdmin, (req, res) => {
+router.post('/organization/notifications', access.ensureOrgAdmin, (req, res) => {
   const org = currentOrg(req);
   if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
   orgSettings.updateNotifications(org.id, {
@@ -193,7 +193,7 @@ router.post('/organization/notifications', access.ensureRootAdmin, (req, res) =>
 });
 
 // ── Custom domain ──
-router.post('/organization/domain', access.ensureRootAdmin, (req, res) => {
+router.post('/organization/domain', access.ensureOrgAdmin, (req, res) => {
   const org = currentOrg(req);
   if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
   orgSettings.updateDomain(org.id, (req.body.custom_domain || '').trim().toLowerCase());
@@ -206,7 +206,7 @@ router.post('/organization/domain', access.ensureRootAdmin, (req, res) => {
  * only marked verified when the ownership TXT record and the routing CNAME (or an
  * apex A record) genuinely resolve — self-attestation is not accepted.
  */
-router.post('/organization/domain/verify', access.ensureRootAdmin, async (req, res) => {
+router.post('/organization/domain/verify', access.ensureOrgAdmin, async (req, res) => {
   const org = currentOrg(req);
   if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
   const result = await checks.runCheck('domain', {
@@ -218,7 +218,7 @@ router.post('/organization/domain/verify', access.ensureRootAdmin, async (req, r
   res.redirect('/admin/organization#domain');
 });
 
-router.post('/organization/domain/delete', access.ensureRootAdmin, (req, res) => {
+router.post('/organization/domain/delete', access.ensureOrgAdmin, (req, res) => {
   const org = currentOrg(req);
   if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
   orgSettings.clearDomain(org.id);
@@ -242,7 +242,7 @@ function seatSummary(org) {
   };
 }
 
-router.get('/licensing', access.ensureRootAdmin, (req, res) => {
+router.get('/licensing', access.ensureOrgAdmin, (req, res) => {
   const org = currentOrg(req);
   if (!org) { req.flash('error', 'No organization found.'); return res.redirect('/admin/dashboard'); }
   const members = all(`SELECT id, name, email, account_type, is_licensed, is_root_admin, is_break_glass, is_active, last_login
@@ -255,7 +255,7 @@ router.get('/licensing', access.ensureRootAdmin, (req, res) => {
 });
 
 // Grant / revoke a license for a member.
-router.post('/licensing/user/:id/license', access.ensureRootAdmin, (req, res) => {
+router.post('/licensing/user/:id/license', access.ensureOrgAdmin, (req, res) => {
   const org = currentOrg(req);
   const u = get('SELECT * FROM users WHERE id = ? AND organization_id = ?', [req.params.id, org.id]);
   if (!u) { req.flash('error', 'User not found in your organization.'); return res.redirect('/admin/licensing'); }
@@ -274,7 +274,7 @@ router.post('/licensing/user/:id/license', access.ensureRootAdmin, (req, res) =>
 });
 
 // Promote / demote admin.
-router.post('/licensing/user/:id/admin', access.ensureRootAdmin, (req, res) => {
+router.post('/licensing/user/:id/admin', access.ensureOrgAdmin, (req, res) => {
   const org = currentOrg(req);
   const u = get('SELECT * FROM users WHERE id = ? AND organization_id = ?', [req.params.id, org.id]);
   if (!u) { req.flash('error', 'User not found.'); return res.redirect('/admin/licensing'); }
@@ -297,7 +297,7 @@ router.post('/licensing/user/:id/admin', access.ensureRootAdmin, (req, res) => {
 });
 
 // Deactivate a member (frees the seat). Never the root admin or break-glass.
-router.post('/licensing/user/:id/remove', access.ensureRootAdmin, (req, res) => {
+router.post('/licensing/user/:id/remove', access.ensureOrgAdmin, (req, res) => {
   const org = currentOrg(req);
   const u = get('SELECT * FROM users WHERE id = ? AND organization_id = ?', [req.params.id, org.id]);
   if (!u) { req.flash('error', 'User not found.'); return res.redirect('/admin/licensing'); }
@@ -308,7 +308,7 @@ router.post('/licensing/user/:id/remove', access.ensureRootAdmin, (req, res) => 
 });
 
 // Invite a user to fill a licensed seat (redeem flow lands in Increment 5).
-router.post('/licensing/invite', access.ensureRootAdmin, (req, res) => {
+router.post('/licensing/invite', access.ensureOrgAdmin, (req, res) => {
   const org = currentOrg(req);
   const email = (req.body.email || '').toLowerCase().trim();
   const name = (req.body.name || '').trim();
@@ -336,7 +336,7 @@ router.post('/licensing/invite', access.ensureRootAdmin, (req, res) => {
   res.redirect('/admin/licensing');
 });
 
-router.post('/licensing/invite/:id/revoke', access.ensureRootAdmin, (req, res) => {
+router.post('/licensing/invite/:id/revoke', access.ensureOrgAdmin, (req, res) => {
   const org = currentOrg(req);
   run("UPDATE invitations SET status = 'revoked' WHERE id = ? AND organization_id = ?", [req.params.id, org.id]);
   req.flash('success', 'Invitation revoked.');
@@ -345,7 +345,7 @@ router.post('/licensing/invite/:id/revoke', access.ensureRootAdmin, (req, res) =
 
 // Add seats: paid orgs self-serve in the Stripe portal; comped orgs set a count;
 // trial orgs are prompted to upgrade.
-router.post('/licensing/seats', access.ensureRootAdmin, async (req, res) => {
+router.post('/licensing/seats', access.ensureOrgAdmin, async (req, res) => {
   const org = currentOrg(req);
   if (org.status === 'comped') {
     const n = Math.max(access.countLicensed(org.id), parseInt(req.body.seats, 10) || org.seats_limit || 1);

@@ -61,24 +61,34 @@ function authorize(req, type, id) {
   if (type === 'portfolio') {
     return admin ? { ok: true, project: null } : { ok: false, code: 403 };
   }
+  // Tenant isolation: an admin may export only records in their own workspace
+  // (root admins export any). Non-admins still need an explicit assignment.
   if (type === 'project') {
     const project = get('SELECT * FROM projects WHERE id = ?', [id]);
     if (!project) return { ok: false, code: 404 };
-    if (admin) return { ok: true, project };
+    if (admin) return access.canAccessProject(user, project) ? { ok: true, project } : { ok: false, code: 404 };
     return assignedToProject(user.id, id) ? { ok: true, project } : { ok: false, code: 403 };
   }
   if (type === 'assessment') {
     const a = get('SELECT * FROM assessments WHERE id = ?', [id]);
     if (!a) return { ok: false, code: 404 };
     const project = get('SELECT * FROM projects WHERE id = ?', [a.project_id]);
-    if (admin) return { ok: true, project };
+    if (admin) return access.canAccessProject(user, project) ? { ok: true, project } : { ok: false, code: 404 };
     return assignedToAssessment(user.id, id) ? { ok: true, project } : { ok: false, code: 403 };
   }
   if (type === 'intake') {
     const it = get('SELECT * FROM intake_submissions WHERE id = ?', [id]);
     if (!it) return { ok: false, code: 404 };
     const project = it.project_id ? get('SELECT * FROM projects WHERE id = ?', [it.project_id]) : null;
-    if (admin) return { ok: true, project };
+    if (admin) {
+      if (access.isRootAdmin(user)) return { ok: true, project };
+      if (project && access.canAccessProject(user, project)) return { ok: true, project };
+      // Unlinked intake — allow if it falls within the user's workspace scope
+      // (org members, or the legacy un-orged pool for no-org admins).
+      const si = access.intakeScope(user);
+      const owned = get(`SELECT 1 AS ok FROM intake_submissions WHERE id = ? AND ${si.clause}`, [id, ...si.params]);
+      return owned ? { ok: true, project } : { ok: false, code: 404 };
+    }
     const viaIntake = all(`SELECT 1 FROM assessment_assignments
       WHERE entity_type = 'intake' AND entity_id = ? AND assigned_to = ? AND status != 'revoked'`, [id, user.id]).length > 0;
     const viaProject = it.project_id && assignedToProject(user.id, it.project_id);
@@ -88,7 +98,7 @@ function authorize(req, type, id) {
     const dp = get('SELECT * FROM decision_packages WHERE id = ?', [id]);
     if (!dp) return { ok: false, code: 404 };
     const project = get('SELECT * FROM projects WHERE id = ?', [dp.project_id]);
-    if (admin) return { ok: true, project };
+    if (admin) return access.canAccessProject(user, project) ? { ok: true, project } : { ok: false, code: 404 };
     const viaAssessment = dp.assessment_id && assignedToAssessment(user.id, dp.assessment_id);
     const viaProject = assignedToProject(user.id, dp.project_id);
     return (viaAssessment || viaProject) ? { ok: true, project } : { ok: false, code: 403 };

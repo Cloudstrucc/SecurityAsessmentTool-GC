@@ -80,8 +80,11 @@ router.post('/register', async (req, res) => {
 
   // Create the owner user — the tenant's ROOT admin, licensed by default.
   const userId = run(
+    // A self-service registrant is the OWNER of their own workspace (account_type
+    // 'owner' — an admin of their org), NOT a platform root admin. is_root_admin
+    // stays 0 so they can only see their own organization's data.
     `INSERT INTO users (email, password, name, role, organization, account_type, is_root_admin, is_licensed, totp_secret, mfa_enabled, is_active)
-     VALUES (?, ?, ?, 'assessor', ?, 'owner', 1, 1, ?, 0, 1)`,
+     VALUES (?, ?, ?, 'assessor', ?, 'owner', 0, 1, ?, 0, 1)`,
     [normalizeEmail(email), bcrypt.hashSync(effectivePassword, 12), fullName, organization, otpGenerateSecret()]
   );
 
@@ -279,11 +282,11 @@ router.get('/billing/portal', ensureAuthenticated, async (req, res) => {
 });
 
 // ── Admin: comp code management (assessor) ────────────────────────────────────
-router.get('/admin/comp-codes', ensureAuthenticated, (req, res) => {
+router.get('/admin/comp-codes', ensureAuthenticated, access.ensureRootAdmin, (req, res) => {
   const codes = all('SELECT * FROM comp_codes ORDER BY created_at DESC');
   res.render('admin/comp-codes', { title: 'Comp Codes', layout: 'main', isAdmin: true, admin: req.user, codes, plans: billing.planList() });
 });
-router.post('/admin/comp-codes', ensureAuthenticated, (req, res) => {
+router.post('/admin/comp-codes', ensureAuthenticated, access.ensureRootAdmin, (req, res) => {
   const { code, plan, max_redemptions, expires_at, note } = req.body;
   if (!code || !code.trim()) { req.flash('error', 'A code is required.'); return res.redirect('/admin/comp-codes'); }
   if (get('SELECT id FROM comp_codes WHERE code = ?', [code.trim()])) { req.flash('error', 'That code already exists.'); return res.redirect('/admin/comp-codes'); }
@@ -294,7 +297,7 @@ router.post('/admin/comp-codes', ensureAuthenticated, (req, res) => {
   req.flash('success', `Comp code "${code.trim()}" created.`);
   res.redirect('/admin/comp-codes');
 });
-router.post('/admin/comp-codes/:id/toggle', ensureAuthenticated, (req, res) => {
+router.post('/admin/comp-codes/:id/toggle', ensureAuthenticated, access.ensureRootAdmin, (req, res) => {
   run('UPDATE comp_codes SET active = CASE active WHEN 1 THEN 0 ELSE 1 END WHERE id = ?', [req.params.id]);
   res.redirect('/admin/comp-codes');
 });

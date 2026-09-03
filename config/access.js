@@ -132,9 +132,69 @@ function createBreakGlassForOrg(org, ownerEmail) {
   return { email, password };
 }
 
+// Managing your OWN workspace (org settings, licensing/seats) is an org-owner
+// function, not a platform-operator one. Requires an admin who belongs to an org.
+function ensureOrgAdmin(req, res, next) {
+  if (req.isAuthenticated && req.isAuthenticated() && isAdmin(req.user) &&
+      (req.user.organization_id || req.user.is_root_admin)) return next();
+  if (req.flash) req.flash('error', 'You do not have permission to manage a workspace.');
+  return res.redirect('/admin/dashboard');
+}
+
+// ── Tenant data scoping ───────────────────────────────────────────────────
+// Every workspace (organization) may see only its OWN projects and the data that
+// hangs off them (assessments, intakes, decision packages, POA&M, reports).
+// Root admins (platform operators) see everything. Projects carry organization_id;
+// child records inherit scope through their project.
+function orgId(user) { return user && user.organization_id ? Number(user.organization_id) : null; }
+
+/**
+ * SQL WHERE fragment scoping a query to the projects the user may see.
+ * @param {object} user
+ * @param {string} col - fully-qualified organization_id column (e.g. 'p.organization_id')
+ * @returns {{clause:string, params:Array}} — always safe to AND into a WHERE.
+ */
+function projectScope(user, col = 'organization_id') {
+  if (isRootAdmin(user)) return { clause: '1=1', params: [] };
+  const id = orgId(user);
+  // Legacy / single-tenant admins have no organization — they see the un-orged
+  // (NULL) pool, preserving prior behaviour, while org users stay isolated.
+  if (!id) return { clause: `${col} IS NULL`, params: [] };
+  return { clause: `${col} = ?`, params: [id] };
+}
+
+/** Whether `user` may access a specific project row (already fetched). */
+function canAccessProject(user, project) {
+  if (!project) return false;
+  if (isRootAdmin(user)) return true;
+  const id = orgId(user);
+  if (!id) return project.organization_id == null;   // legacy admin → un-orged pool
+  return Number(project.organization_id) === id;
+}
+
+/** WHERE fragment scoping an `assessments` query to the user's workspace (via its project). */
+function assessmentScope(user, col = 'project_id') {
+  if (isRootAdmin(user)) return { clause: '1=1', params: [] };
+  const id = orgId(user);
+  if (!id) return { clause: `${col} IN (SELECT id FROM projects WHERE organization_id IS NULL)`, params: [] };
+  return { clause: `${col} IN (SELECT id FROM projects WHERE organization_id = ?)`, params: [id] };
+}
+
+/** WHERE fragment scoping an `intake_submissions` query: its project is in the org, or an org member submitted/created it. */
+function intakeScope(user) {
+  if (isRootAdmin(user)) return { clause: '1=1', params: [] };
+  const id = orgId(user);
+  if (!id) return { clause: '(project_id IN (SELECT id FROM projects WHERE organization_id IS NULL) OR project_id IS NULL)', params: [] };
+  return {
+    clause: '(project_id IN (SELECT id FROM projects WHERE organization_id = ?) OR submitted_by_user_id IN (SELECT id FROM users WHERE organization_id = ?) OR created_by_assessor_id IN (SELECT id FROM users WHERE organization_id = ?))',
+    params: [id, id, id]
+  };
+}
+
 module.exports = {
   isRootAdmin, isAdmin, isCollaborator, ensureRootAdmin, ensureAdmin,
   AI_BANNER, canUseAI, recordAiUse, aiStatus, getAiUse,
   adminSeatsForPlan, countAdmins, countLicensed, canAddAdmin, canAddLicense,
-  generatePassword, createBreakGlassForOrg
+  generatePassword, createBreakGlassForOrg, ensureOrgAdmin,
+  orgId, projectScope, canAccessProject, assessmentScope, intakeScope
 };

@@ -1070,6 +1070,17 @@ async function initDatabase() {
     }
   });
 
+  // Tenant isolation backfill: older projects predate organization_id. Adopt each
+  // project into its creator's organization so workspace scoping has something to
+  // filter on. Idempotent — only touches rows still missing an org.
+  try {
+    db.run(`UPDATE projects
+              SET organization_id = (SELECT u.organization_id FROM users u WHERE u.id = projects.created_by)
+            WHERE organization_id IS NULL
+              AND created_by IS NOT NULL
+              AND (SELECT u.organization_id FROM users u WHERE u.id = projects.created_by) IS NOT NULL`);
+  } catch (e) { /* projects table may not exist on a fresh DB yet */ }
+
   // Custom domains used to be "verified" by self-attestation: the root admin
   // clicked a button and the flag flipped without any DNS lookup. Verification now
   // performs a real DNS check and stamps `domain_checked_at` on success, so
@@ -1155,10 +1166,22 @@ async function initDatabase() {
   const existingAdmin = db.exec(`SELECT id FROM users WHERE email = '${adminEmail}'`);
   if (!existingAdmin.length || !existingAdmin[0].values.length) {
     const hashedPassword = bcrypt.hashSync(adminPassword, 10);
-    db.run(`INSERT INTO users (email, password, name, role, title, organization) VALUES (?, ?, ?, ?, ?, ?)`,
+    // The seeded ADMIN_EMAIL account is the platform operator (root admin).
+    db.run(`INSERT INTO users (email, password, name, role, title, organization, account_type, is_root_admin) VALUES (?, ?, ?, ?, ?, ?, 'platform', 1)`,
       [adminEmail, hashedPassword, process.env.ADMIN_NAME || 'Administrator', 'assessor', 'IT Security Assessor', 'Your Agency']);
     console.log('Default assessor account created:', adminEmail);
   }
+
+  // ── Tenant-isolation corrective backfill ──────────────────────────────────
+  // A bug created every self-service registrant as a platform root admin, so they
+  // could see ALL organizations' data. Demote workspace owners to org-scoped admins
+  // (account_type 'owner' keeps them an admin of their OWN org), and make sure the
+  // real platform operator (ADMIN_EMAIL) is the root admin. Idempotent.
+  try {
+    db.run(`UPDATE users SET is_root_admin = 0 WHERE is_root_admin = 1 AND account_type = 'owner' AND organization_id IS NOT NULL`);
+    const esc = String(adminEmail).replace(/'/g, "''");
+    db.run(`UPDATE users SET is_root_admin = 1 WHERE LOWER(email) = LOWER('${esc}')`);
+  } catch (e) { /* users table shape may differ on a brand-new DB */ }
 
   try {
     const { CONTROLS, CONTROL_FAMILIES } = require('../config/itsg33-controls');

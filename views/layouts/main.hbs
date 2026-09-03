@@ -328,7 +328,7 @@
             <li><a class="{{#if isReports}}active{{/if}}" href="/admin/reports"><i class="bi bi-file-earmark-bar-graph me-1" aria-hidden="true"></i>{{t 'navbar.reports'}}</a></li>
             <li><a class="{{#if isHelp}}active{{/if}}" href="/admin/help"><i class="bi bi-question-circle me-1" aria-hidden="true"></i>{{t 'nav.help'}}</a></li>
             <li><a class="{{#if isSettings}}active{{/if}}" href="/admin/settings"><i class="bi bi-gear me-1" aria-hidden="true"></i>{{t 'nav.settings'}}</a></li>
-            {{#if user.is_root_admin}}
+            {{#if canManageOrg}}
             <li class="nav-item dropdown">
               <a class="dropdown-toggle {{#if isRootAdmin}}active{{/if}}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-shield-lock me-1" aria-hidden="true"></i>Admin
@@ -336,7 +336,7 @@
               <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" href="/admin/licensing"><i class="bi bi-person-badge me-2"></i>Licensing &amp; seats</a></li>
                 <li><a class="dropdown-item" href="/admin/organization"><i class="bi bi-sliders me-2"></i>Organization settings</a></li>
-                <li><a class="dropdown-item" href="/admin/comp-codes"><i class="bi bi-ticket-perforated me-2"></i>Comp codes</a></li>
+                {{#if user.is_root_admin}}<li><a class="dropdown-item" href="/admin/comp-codes"><i class="bi bi-ticket-perforated me-2"></i>Comp codes</a></li>{{/if}}
               </ul>
             </li>
             {{/if}}

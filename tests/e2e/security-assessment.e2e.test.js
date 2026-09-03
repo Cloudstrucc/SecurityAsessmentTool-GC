@@ -2004,3 +2004,54 @@ test('viewing a past version renders a read-only snapshot without the assistant'
   assert.match(view.text, /read-only snapshot of version 1/);
   assert.doesNotMatch(view.text, /AIAssistConfig/, 'the assistant must not load on a read-only version view');
 });
+
+test('tenant isolation: a workspace sees only its own projects and cannot reach another workspace', async () => {
+  // Two self-registered workspaces. Each owner is an org admin — NOT a platform root.
+  async function registerOrg(tag) {
+    const jar = new CookieJar();
+    const email = `tenant.${tag}.${Date.now()}@example.test`;
+    const reg = await request(jar, 'POST', '/register', {
+      form: { plan: 'trial', first_name: tag, last_name: 'Owner',
+        organization: `E2E Tenant ${tag}`, email, password: 'TenantPass123!', agree: '1' }
+    });
+    assert.equal(reg.status, 302, `${tag} registration succeeds`);
+    return jar;
+  }
+  async function newProject(jar, name) {
+    const r = await request(jar, 'POST', '/admin/projects/new', { form: { name, data_classification: 'protected-b' } });
+    assert.equal(r.status, 302);
+    const list = await getText(jar, '/admin/projects');
+    const m = list.text.match(new RegExp(`/admin/projects/(\\d+)"[^>]*>[\\s\\S]{0,200}${name}`)) ||
+              list.text.match(/\/admin\/projects\/(\d+)/);
+    return m ? m[1] : null;
+  }
+
+  const alpha = await registerOrg('Alpha');
+  const beta = await registerOrg('Beta');
+  const alphaName = `Alpha Only ${Date.now()}`;
+  const betaName = `Beta Only ${Date.now()}`;
+  const alphaId = await newProject(alpha, alphaName);
+  const betaId = await newProject(beta, betaName);
+  assert.ok(alphaId && betaId, 'both projects were created');
+
+  // Listings are scoped: each workspace sees only its own project.
+  const alphaList = (await getText(alpha, '/admin/projects')).text;
+  assert.match(alphaList, new RegExp(alphaName), 'Alpha sees its own project');
+  assert.doesNotMatch(alphaList, new RegExp(betaName), 'Alpha does NOT see Beta\'s project');
+  const betaList = (await getText(beta, '/admin/projects')).text;
+  assert.doesNotMatch(betaList, new RegExp(alphaName), 'Beta does NOT see Alpha\'s project');
+
+  // Direct URL to another workspace's project is denied (redirected away, not shown).
+  const cross = await request(alpha, 'GET', `/admin/projects/${betaId}`, { redirect: 'manual' });
+  assert.equal(cross.status, 302, 'cross-tenant project detail is redirected');
+  const crossFollow = await getText(alpha, `/admin/projects/${betaId}`);
+  assert.doesNotMatch(crossFollow.text, new RegExp(betaName), 'cross-tenant project content is never rendered');
+
+  // Cross-tenant report export is refused too.
+  const rpt = await request(alpha, 'GET', `/admin/reports/project/${betaId}.pdf`, { redirect: 'manual' });
+  assert.notEqual(rpt.status, 200, 'cross-tenant report export does not return a document');
+
+  // A self-registered owner is an org admin, not a platform root: no comp-codes console.
+  const comp = await request(alpha, 'GET', '/admin/comp-codes', { redirect: 'manual' });
+  assert.notEqual(comp.status, 200, 'a workspace owner is not a platform root admin');
+});
