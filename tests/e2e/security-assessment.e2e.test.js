@@ -2051,6 +2051,12 @@ test('tenant isolation: a workspace sees only its own projects and cannot reach 
   const rpt = await request(alpha, 'GET', `/admin/reports/project/${betaId}.pdf`, { redirect: 'manual' });
   assert.notEqual(rpt.status, 200, 'cross-tenant report export does not return a document');
 
+  // Cross-tenant MUTATION is refused (Alpha cannot archive Beta's project).
+  const mut = await request(alpha, 'POST', `/admin/projects/${betaId}/archive`, { redirect: 'manual' });
+  assert.ok(mut.status === 404 || mut.status === 302, 'cross-tenant mutation is denied');
+  const betaStillThere = (await getText(beta, '/admin/projects')).text;
+  assert.match(betaStillThere, new RegExp(betaName), 'Beta\'s project was NOT archived by Alpha');
+
   // A self-registered owner is an org admin, not a platform root: no comp-codes console.
   const comp = await request(alpha, 'GET', '/admin/comp-codes', { redirect: 'manual' });
   assert.notEqual(comp.status, 200, 'a workspace owner is not a platform root admin');

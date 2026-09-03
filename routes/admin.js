@@ -80,6 +80,36 @@ router.use((req, res, next) => {
   next();
 });
 
+// ── Tenant isolation (detail + mutation hardening) ──────────────────────────
+// Any by-id path for a project / assessment / decision package / intake — GET or
+// POST — must belong to the caller's workspace. Root admins (platform operators)
+// bypass. This guards every mutation route without per-route edits.
+router.use((req, res, next) => {
+  if (!req.isAuthenticated || !req.isAuthenticated()) return next();
+  if (access.isRootAdmin(req.user)) return next();
+  const p = req.path;
+  const deny = () => {
+    if (req.method === 'GET') { req.flash('error', 'Not found.'); return res.redirect('/admin/dashboard'); }
+    return (res.status(404).json ? res.status(404).json({ error: 'Not found' }) : res.status(404).send('Not found'));
+  };
+  const projOk = (oid) => access.canAccessProject(req.user, { organization_id: oid });
+  let m;
+  if ((m = p.match(/^\/projects\/(\d+)(\/|$)/))) {
+    const r = get('SELECT organization_id FROM projects WHERE id = ?', [m[1]]);
+    if (!r || !projOk(r.organization_id)) return deny();
+  } else if ((m = p.match(/^\/assessments\/(\d+)(\/|$)/))) {
+    const r = get('SELECT p.organization_id AS oid FROM assessments a JOIN projects p ON p.id = a.project_id WHERE a.id = ?', [m[1]]);
+    if (!r || !projOk(r.oid)) return deny();
+  } else if ((m = p.match(/^\/decision-packages\/(\d+)(\/|$)/))) {
+    const r = get('SELECT p.organization_id AS oid FROM decision_packages dp JOIN projects p ON p.id = dp.project_id WHERE dp.id = ?', [m[1]]);
+    if (!r || !projOk(r.oid)) return deny();
+  } else if ((m = p.match(/^\/intakes\/(\d+)(\/|$)/))) {
+    const si = access.intakeScope(req.user);
+    if (!get(`SELECT 1 AS ok FROM intake_submissions WHERE id = ? AND ${si.clause}`, [m[1], ...si.params])) return deny();
+  }
+  next();
+});
+
 const intakeUpload = multer({
   dest: intakeUploadDir,
   limits: { fileSize: 25 * 1024 * 1024 }
