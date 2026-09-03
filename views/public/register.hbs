@@ -1,10 +1,8 @@
 <div class="container py-5" style="max-width:520px;">
   <div class="text-center mb-4">
-    <div style="width:56px;height:56px;border-radius:14px;background:var(--gc-accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
-      <i class="bi bi-person-plus text-white" style="font-size:1.5rem;"></i>
-    </div>
-    <h3>Create an Account</h3>
-    <p class="text-muted">Register to submit a security assessment intake. You will be required to set up multi-factor authentication (MFA).</p>
+    <i class="bi bi-person-plus" style="font-size:3rem;color:var(--gc-red)"></i>
+    <h2 class="mt-2" style="color:var(--gc-nav)">{{t 'crf.title'}}</h2>
+    <p class="text-muted">{{t 'crf.intro'}}</p>
   </div>
 
   <div class="card">
@@ -12,42 +10,42 @@
       <form method="POST" action="/client/register">
         {{#if inviteCode}}<input type="hidden" name="invite_code" value="{{inviteCode}}">{{/if}}
         <div class="mb-3">
-          <label class="form-label" for="name">Full Name <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" id="name" name="name" required placeholder="e.g. Jane Doe" value="{{formData.name}}">
+          <label class="form-label" for="name">{{t 'crf.fullName'}} <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="name" name="name" required placeholder="{{t 'crf.fullNamePh'}}" value="{{formData.name}}">
         </div>
         <div class="mb-3">
-          <label class="form-label" for="email">Government Email <span class="text-danger">*</span></label>
-          <input type="email" class="form-control" id="email" name="email" required placeholder="e.g. jane.doe@agency.gc.ca" value="{{formData.email}}">
-          <small class="text-muted">Use your department or agency email address.</small>
+          <label class="form-label" for="email">{{t 'auth.email'}} <span class="text-danger">*</span></label>
+          <input type="email" class="form-control" id="email" name="email" required placeholder="jane.doe@agency.example" value="{{formData.email}}">
+          <small class="text-muted">{{t 'crf.emailHint'}}</small>
         </div>
         <div class="mb-3">
-          <label class="form-label" for="organization">Department / Organization <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" id="organization" name="organization" required placeholder="e.g. Employment and Social Development Canada" value="{{formData.organization}}">
+          <label class="form-label" for="organization">{{t 'crf.org'}} <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="organization" name="organization" required value="{{formData.organization}}">
         </div>
         <div class="mb-3">
-          <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
-          <input type="password" class="form-control" id="password" name="password" required minlength="10" placeholder="Minimum 10 characters">
-          <small class="text-muted">At least 10 characters with a mix of upper/lowercase, numbers, and symbols.</small>
+          <label class="form-label" for="password">{{t 'auth.password'}} <span class="text-danger">*</span></label>
+          <input type="password" class="form-control" id="password" name="password" required minlength="10" placeholder="{{t 'crf.passwordPh'}}">
+          <small class="text-muted">{{t 'crf.passwordHint'}}</small>
         </div>
         <div class="mb-4">
-          <label class="form-label" for="confirmPassword">Confirm Password <span class="text-danger">*</span></label>
+          <label class="form-label" for="confirmPassword">{{t 'crf.confirmPassword'}} <span class="text-danger">*</span></label>
           <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required minlength="10">
         </div>
         {{#unless inviteCode}}
         <div class="mb-4">
-          <label class="form-label" for="invite_code">Invitation Code (optional)</label>
+          <label class="form-label" for="invite_code">{{t 'crf.inviteCode'}}</label>
           <input type="text" class="form-control text-uppercase" id="invite_code" name="invite_code">
         </div>
         {{/unless}}
         <button type="submit" class="btn btn-primary w-100 py-2">
-          <i class="bi bi-arrow-right me-2"></i>Continue to MFA Setup
+          <i class="bi bi-arrow-right me-2"></i>{{t 'crf.continue'}}
         </button>
       </form>
     </div>
   </div>
 
   <div class="text-center mt-3">
-    <span class="text-muted">Already have an account?</span>
-    <a href="/client/login">Sign in</a>
+    <span class="text-muted">{{t 'crf.haveAccount'}}</span>
+    <a href="/client/login">{{t 'auth.signIn'}}</a>
   </div>
 </div>

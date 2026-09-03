@@ -227,11 +227,18 @@ router.post('/webauthn/login-verify', express.json(), async (req, res) => {
     delete req.session.webauthnLoginChallenge;
 
     // A verified passkey is a strong, phishing-resistant factor — establish the
-    // session and mark MFA satisfied.
+    // session and mark MFA satisfied. Clients use the portal session model
+    // (req.session.clientId), assessors/admins use the passport session.
+    if (user.role === 'client') {
+      req.session.clientId = user.id;
+      const pendingInvite = req.session.pendingInviteCode;
+      delete req.session.pendingInviteCode;
+      return res.json({ success: true, redirect: pendingInvite ? `/respond/${pendingInvite}` : '/intake' });
+    }
     req.login(user, (err) => {
       if (err) { console.error('[WebAuthn] login req.login:', err); return res.status(500).json({ error: 'Sign-in failed.' }); }
       req.session.adminMfaVerified = true;
-      res.json({ success: true, redirect: user.role === 'client' ? '/client/dashboard' : '/admin/dashboard' });
+      res.json({ success: true, redirect: '/admin/dashboard' });
     });
   } catch (err) {
     console.error('[WebAuthn] login-verify:', err);

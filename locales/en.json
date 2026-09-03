@@ -3683,5 +3683,17 @@
   "pl.basicF2": "Every feature included",
   "pl.basicF3": "Generous monthly AI allowance",
   "ui.editEvidence": "Edit evidence",
-  "ui.viewEvidence": "View evidence"
+  "ui.viewEvidence": "View evidence",
+  "crf.title": "Create your account",
+  "crf.intro": "Register to submit a security assessment intake. You'll set up multi-factor authentication (MFA) next.",
+  "crf.fullName": "Full name",
+  "crf.fullNamePh": "e.g. Jane Doe",
+  "crf.emailHint": "Use your department or agency email address.",
+  "crf.org": "Department / organization",
+  "crf.passwordPh": "At least 10 characters",
+  "crf.passwordHint": "At least 10 characters, mixing upper/lowercase, numbers and symbols.",
+  "crf.confirmPassword": "Confirm password",
+  "crf.inviteCode": "Invitation code (optional)",
+  "crf.continue": "Continue to MFA setup",
+  "crf.haveAccount": "Already have an account?"
 }

@@ -3726,5 +3726,17 @@
   "pl.basicF2": "Toutes les fonctionnalités incluses",
   "pl.basicF3": "Allocation IA mensuelle généreuse",
   "ui.editEvidence": "Modifier les preuves",
-  "ui.viewEvidence": "Voir les preuves"
+  "ui.viewEvidence": "Voir les preuves",
+  "crf.title": "Créer votre compte",
+  "crf.intro": "Inscrivez-vous pour soumettre une admission d'évaluation de sécurité. Vous configurerez ensuite l'authentification multifacteur (MFA).",
+  "crf.fullName": "Nom complet",
+  "crf.fullNamePh": "p. ex. Jean Dupont",
+  "crf.emailHint": "Utilisez l'adresse courriel de votre ministère ou organisme.",
+  "crf.org": "Ministère / organisation",
+  "crf.passwordPh": "Au moins 10 caractères",
+  "crf.passwordHint": "Au moins 10 caractères, avec majuscules/minuscules, chiffres et symboles.",
+  "crf.confirmPassword": "Confirmer le mot de passe",
+  "crf.inviteCode": "Code d'invitation (facultatif)",
+  "crf.continue": "Continuer vers la configuration MFA",
+  "crf.haveAccount": "Vous avez déjà un compte ?"
 }

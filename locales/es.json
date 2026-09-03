@@ -3726,5 +3726,17 @@
   "pl.basicF2": "Todas las funciones incluidas",
   "pl.basicF3": "Asignación mensual de IA generosa",
   "ui.editEvidence": "Editar evidencia",
-  "ui.viewEvidence": "Ver evidencia"
+  "ui.viewEvidence": "Ver evidencia",
+  "crf.title": "Cree su cuenta",
+  "crf.intro": "Regístrese para enviar una admisión de evaluación de seguridad. Luego configurará la autenticación multifactor (MFA).",
+  "crf.fullName": "Nombre completo",
+  "crf.fullNamePh": "p. ej. Juan Pérez",
+  "crf.emailHint": "Use el correo de su departamento u organismo.",
+  "crf.org": "Departamento / organización",
+  "crf.passwordPh": "Al menos 10 caracteres",
+  "crf.passwordHint": "Al menos 10 caracteres, con mayúsculas/minúsculas, números y símbolos.",
+  "crf.confirmPassword": "Confirmar contraseña",
+  "crf.inviteCode": "Código de invitación (opcional)",
+  "crf.continue": "Continuar a la configuración de MFA",
+  "crf.haveAccount": "¿Ya tiene una cuenta?"
 }

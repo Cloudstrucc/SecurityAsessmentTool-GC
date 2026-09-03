@@ -3704,5 +3704,17 @@
   "pl.basicF2": "Tutte le funzionalità incluse",
   "pl.basicF3": "Ampia quota IA mensile",
   "ui.editEvidence": "Modifica prove",
-  "ui.viewEvidence": "Visualizza prove"
+  "ui.viewEvidence": "Visualizza prove",
+  "crf.title": "Crea il tuo account",
+  "crf.intro": "Registrati per inviare un'ammissione di valutazione della sicurezza. Successivamente configurerai l'autenticazione a più fattori (MFA).",
+  "crf.fullName": "Nome completo",
+  "crf.fullNamePh": "es. Mario Rossi",
+  "crf.emailHint": "Usa l'indirizzo email del tuo dipartimento o ente.",
+  "crf.org": "Dipartimento / organizzazione",
+  "crf.passwordPh": "Almeno 10 caratteri",
+  "crf.passwordHint": "Almeno 10 caratteri, con maiuscole/minuscole, numeri e simboli.",
+  "crf.confirmPassword": "Conferma password",
+  "crf.inviteCode": "Codice d'invito (facoltativo)",
+  "crf.continue": "Continua alla configurazione MFA",
+  "crf.haveAccount": "Hai già un account?"
 }

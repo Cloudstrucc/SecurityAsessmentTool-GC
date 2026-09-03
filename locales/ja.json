@@ -3704,5 +3704,17 @@
   "pl.basicF2": "全機能を含む",
   "pl.basicF3": "充実した月間 AI 利用枠",
   "ui.editEvidence": "証跡を編集",
-  "ui.viewEvidence": "証跡を表示"
+  "ui.viewEvidence": "証跡を表示",
+  "crf.title": "アカウントを作成",
+  "crf.intro": "セキュリティ評価のインテークを送信するには登録してください。次に多要素認証（MFA）を設定します。",
+  "crf.fullName": "氏名",
+  "crf.fullNamePh": "例：山田 太郎",
+  "crf.emailHint": "所属部署または機関のメールアドレスを使用してください。",
+  "crf.org": "部署 / 組織",
+  "crf.passwordPh": "10文字以上",
+  "crf.passwordHint": "大文字・小文字・数字・記号を含む10文字以上。",
+  "crf.confirmPassword": "パスワードの確認",
+  "crf.inviteCode": "招待コード（任意）",
+  "crf.continue": "MFA設定へ進む",
+  "crf.haveAccount": "すでにアカウントをお持ちですか？"
 }

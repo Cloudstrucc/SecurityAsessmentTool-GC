@@ -3704,5 +3704,17 @@
   "pl.basicF2": "Alle Funktionen enthalten",
   "pl.basicF3": "Großzügiges monatliches KI-Kontingent",
   "ui.editEvidence": "Nachweise bearbeiten",
-  "ui.viewEvidence": "Nachweise ansehen"
+  "ui.viewEvidence": "Nachweise ansehen",
+  "crf.title": "Konto erstellen",
+  "crf.intro": "Registrieren Sie sich, um eine Sicherheitsbewertung einzureichen. Anschließend richten Sie die Multi-Faktor-Authentifizierung (MFA) ein.",
+  "crf.fullName": "Vollständiger Name",
+  "crf.fullNamePh": "z. B. Max Mustermann",
+  "crf.emailHint": "Verwenden Sie die E-Mail-Adresse Ihrer Abteilung oder Behörde.",
+  "crf.org": "Abteilung / Organisation",
+  "crf.passwordPh": "Mindestens 10 Zeichen",
+  "crf.passwordHint": "Mindestens 10 Zeichen mit Groß-/Kleinschreibung, Zahlen und Symbolen.",
+  "crf.confirmPassword": "Passwort bestätigen",
+  "crf.inviteCode": "Einladungscode (optional)",
+  "crf.continue": "Weiter zur MFA-Einrichtung",
+  "crf.haveAccount": "Sie haben bereits ein Konto?"
 }

@@ -1,9 +1,7 @@
 <div class="container py-5" style="max-width:520px;">
   <div class="text-center mb-4">
-    <div style="width:56px;height:56px;border-radius:14px;background:var(--gc-accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
-      <i class="bi bi-box-arrow-in-right text-white" style="font-size:1.5rem;"></i>
-    </div>
-    <h3>{{t 'auth.clientSignIn'}}</h3>
+    <i class="bi bi-box-arrow-in-right" style="font-size:3rem;color:var(--gc-red)"></i>
+    <h2 class="mt-2" style="color:var(--gc-nav)">{{t 'auth.clientSignIn'}}</h2>
     <p class="text-muted">{{t 'auth.clientSignInD'}}</p>
   </div>
 
@@ -25,6 +23,13 @@
           <i class="bi bi-arrow-right me-2"></i>{{t 'common.continue'}}
         </button>
       </form>
+      <div class="d-flex align-items-center my-3 text-muted small">
+        <span class="flex-grow-1 border-top"></span><span class="px-2">{{t 'auth.or'}}</span><span class="flex-grow-1 border-top"></span>
+      </div>
+      <button type="button" id="clientPasskeyLoginBtn" class="btn btn-outline-primary w-100 py-2">
+        <i class="bi bi-fingerprint me-2"></i>{{t 'ui.signInWithAPasskey'}}
+      </button>
+      <div id="clientPasskeyLoginError" class="text-danger small mt-2 d-none"></div>
       {{else}}
       <!-- Step 2: MFA -->
       {{#if hasWebAuthn}}
@@ -76,6 +81,36 @@
     <a href="/client/register">{{t 'auth.registerHere'}}</a>
   </div>
 </div>
+
+{{#unless mfaStep}}
+<script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@11/dist/bundle/index.umd.min.js"></script>
+<script>
+(function(){
+  var btn = document.getElementById('clientPasskeyLoginBtn');
+  if (!btn || !window.SimpleWebAuthnBrowser) return;
+  var errEl = document.getElementById('clientPasskeyLoginError');
+  btn.addEventListener('click', async function(){
+    errEl.classList.add('d-none');
+    var original = btn.innerHTML; btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>' + {{{tjs 'auth.waitingPasskey'}}};
+    try {
+      var optResp = await fetch('/api/webauthn/login-options', { method:'POST', headers:{'Content-Type':'application/json'} });
+      var opts = await optResp.json();
+      if (!optResp.ok) throw new Error(opts.error || 'Could not start passkey sign-in.');
+      var assertion = await SimpleWebAuthnBrowser.startAuthentication({ optionsJSON: opts });
+      var vResp = await fetch('/api/webauthn/login-verify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(assertion) });
+      var data = await vResp.json();
+      if (!vResp.ok || !data.success) throw new Error(data.error || 'Passkey sign-in failed.');
+      window.location = data.redirect || '/intake';
+    } catch (e) {
+      errEl.textContent = (e && e.name === 'NotAllowedError') ? {{{tjs 'auth.cancelledUseTotp'}}} : ((e && e.message) ? e.message : 'Passkey sign-in failed. Try your password.');
+      errEl.classList.remove('d-none');
+      btn.disabled = false; btn.innerHTML = original;
+    }
+  });
+})();
+</script>
+{{/unless}}
 
 {{#if mfaStep}}
 <script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@11/dist/bundle/index.umd.min.js"></script>

@@ -3704,5 +3704,17 @@
   "pl.basicF2": "Alle functies inbegrepen",
   "pl.basicF3": "Royaal maandelijks AI-tegoed",
   "ui.editEvidence": "Bewijs bewerken",
-  "ui.viewEvidence": "Bewijs bekijken"
+  "ui.viewEvidence": "Bewijs bekijken",
+  "crf.title": "Maak je account",
+  "crf.intro": "Registreer je om een beveiligingsbeoordeling in te dienen. Daarna stel je multifactorauthenticatie (MFA) in.",
+  "crf.fullName": "Volledige naam",
+  "crf.fullNamePh": "bijv. Jan Jansen",
+  "crf.emailHint": "Gebruik het e-mailadres van je afdeling of organisatie.",
+  "crf.org": "Afdeling / organisatie",
+  "crf.passwordPh": "Minimaal 10 tekens",
+  "crf.passwordHint": "Minimaal 10 tekens met hoofd-/kleine letters, cijfers en symbolen.",
+  "crf.confirmPassword": "Bevestig wachtwoord",
+  "crf.inviteCode": "Uitnodigingscode (optioneel)",
+  "crf.continue": "Doorgaan naar MFA-instelling",
+  "crf.haveAccount": "Heb je al een account?"
 }
