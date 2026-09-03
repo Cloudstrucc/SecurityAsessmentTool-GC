@@ -30,7 +30,7 @@
       <div class="vg-callout warn" style="margin-bottom:24px"><b>{{t 'pl.testModeB'}}</b> {{t 'pl.testModeT'}}</div>
     {{/unless}}
 
-    <div class="vg-price-grid">
+    <div class="vg-price-grid vg-price-grid-3">
       <div class="vg-plan">
         <div class="vg-plan-name">{{t 'pl.trial'}}</div>
         <div class="vg-plan-price">{{t 'pl.free'}}</div>
@@ -46,33 +46,18 @@
         </ul>
       </div>
 
-      <div class="vg-plan">
-        <div class="vg-plan-name">{{t 'pl.team'}}</div>
-        <div class="vg-plan-price">$149<span class="per">{{t 'pl.perMo'}}</span></div>
-        <div class="vg-plan-tag">{{t 'pl.teamTag'}}</div>
-        <div class="vg-plan-cta"><a href="/register?plan=team" class="vg-btn vg-btn-ghost vg-btn-block">{{t 'pl.teamCta'}}</a></div>
-        <ul class="vg-plan-features">
-          <li><span class="vg-plan-highlight">{{t 'pl.teamF1'}}</span></li>
-          <li><span class="vg-plan-highlight">{{t 'pl.teamF2'}}</span></li>
-          <li>{{t 'pl.allFrameworks'}}</li>
-            <li><span class="vg-plan-highlight">{{t 'pl.teamTokens'}}</span></li>
-          <li>{{t 'pl.teamF4'}}</li>
-          <li>{{t 'pl.controlInheritance'}}</li>
-        </ul>
-      </div>
-
       <div class="vg-plan featured">
         <div class="vg-plan-flag"><span class="vg-badge vg-badge-grad">{{t 'pl.mostPopular'}}</span></div>
-        <div class="vg-plan-name">{{t 'pl.business'}}</div>
-        <div class="vg-plan-price">$449<span class="per">{{t 'pl.perMo'}}</span></div>
-        <div class="vg-plan-tag">{{t 'pl.businessTag'}}</div>
-        <div class="vg-plan-cta"><a href="/register?plan=business" class="vg-btn vg-btn-primary vg-btn-block">{{t 'pl.businessCta'}}</a></div>
+        <div class="vg-plan-name">{{t 'pl.basic'}}</div>
+        <div class="vg-plan-price">$49.99<span class="per">{{t 'pl.perUser'}}</span></div>
+        <div class="vg-plan-tag">{{t 'pl.basicTag'}}</div>
+        <div class="vg-plan-cta"><a href="/register?plan=basic" class="vg-btn vg-btn-primary vg-btn-block">{{t 'pl.basicCta'}}</a></div>
         <ul class="vg-plan-features">
-          <li><span class="vg-plan-highlight">{{t 'pl.bizF1'}}</span></li>
-          <li><span class="vg-plan-highlight">{{t 'pl.bizF2'}}</span></li>
+          <li><span class="vg-plan-highlight">{{t 'pl.basicF1'}}</span></li>
+          <li><span class="vg-plan-highlight">{{t 'pl.basicF2'}}</span></li>
           <li>{{t 'pl.allFrameworks'}}</li>
-            <li><span class="vg-plan-highlight">{{t 'pl.bizTokens'}}</span></li>
-          <li>{{t 'pl.bizF4'}}</li>
+          <li>{{t 'pl.controlInheritance'}}</li>
+            <li><span class="vg-plan-highlight">{{t 'pl.basicF3'}}</span></li>
           <li>{{t 'pl.prioritySupport'}}</li>
         </ul>
       </div>
@@ -90,19 +75,6 @@
           <li>{{t 'pl.entF5'}}</li>
           <li>{{t 'pl.entF6'}}</li>
         </ul>
-      </div>
-    </div>
-
-    <div class="vg-payg" style="margin-top:10px">
-      <div>
-        <span class="vg-badge vg-badge-grad" style="margin-bottom:12px">{{t 'pl.paygBadge'}}</span>
-        <h3>{{t 'pl.paygH3'}}</h3>
-        <p>{{t 'pl.paygP'}}</p>
-        <div style="margin-top:16px"><a href="/register?plan=payg" class="vg-btn vg-btn-primary">{{t 'pl.paygCta'}}</a></div>
-      </div>
-      <div class="meter">
-        <div class="row"><span>{{t 'pl.perUserMo'}}<div class="u">{{t 'pl.adminsProjectUsers'}}</div></span><b>$19</b></div>
-        <div class="row"><span>{{t 'pl.perProject'}}<div class="u">{{t 'pl.chargedCreated'}}</div></span><b>$99</b></div>
       </div>
     </div>
 

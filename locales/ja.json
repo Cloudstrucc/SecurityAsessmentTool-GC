@@ -3695,5 +3695,14 @@
   "ra.dragToMove": "ドラッグして移動",
   "ra.dockHere": "ここに固定",
   "ra.labelsHint": "Ctrl / ⌘ + \\ でラベルを切り替え",
-  "ra.collaboration": "コラボレーション"
+  "ra.collaboration": "コラボレーション",
+  "pl.basic": "ベーシック",
+  "pl.perUser": "ユーザーあたり / 月",
+  "pl.basicTag": "全機能、ユーザー単位の課金。",
+  "pl.basicCta": "ベーシックで始める",
+  "pl.basicF1": "ユーザー・プロジェクト無制限",
+  "pl.basicF2": "全機能を含む",
+  "pl.basicF3": "充実した月間 AI 利用枠",
+  "ui.editEvidence": "証跡を編集",
+  "ui.viewEvidence": "証跡を表示"
 }

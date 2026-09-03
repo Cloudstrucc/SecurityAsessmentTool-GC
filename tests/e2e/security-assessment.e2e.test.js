@@ -994,12 +994,15 @@ test('public can view the pricing and registration pages', async () => {
   const pricing = await getText(jar, '/pricing');
   assert.equal(pricing.response.status, 200);
   assert.match(pricing.text, /Pick a plan/);
-  assert.match(pricing.text, /Pay as you go/);
+  // Per-user Basic tier: $49.99 per user; the retired Team/Business/PAYG tiers are gone.
+  assert.match(pricing.text, /\$49\.99/);
+  assert.match(pricing.text, /per user/);
+  assert.ok(!/Pay as you go/.test(pricing.text), 'the pay-as-you-go tier is retired');
 
-  const register = await getText(jar, '/register?plan=business');
+  const register = await getText(jar, '/register?plan=basic');
   assert.equal(register.response.status, 200);
   assert.match(register.text, /Create your account/);
-  assert.match(register.text, /Business/);
+  assert.match(register.text, /Basic/);
 });
 
 test('public registration on the trial plan creates a workspace and signs in', async () => {

@@ -3717,5 +3717,14 @@
   "ra.dragToMove": "Glisser pour déplacer",
   "ra.dockHere": "Ancrer ici",
   "ra.labelsHint": "Ctrl / ⌘ + \\ bascule les étiquettes",
-  "ra.collaboration": "Collaboration"
+  "ra.collaboration": "Collaboration",
+  "pl.basic": "Essentiel",
+  "pl.perUser": "par utilisateur / mois",
+  "pl.basicTag": "Toutes les fonctionnalités, facturé par utilisateur.",
+  "pl.basicCta": "Choisir Essentiel",
+  "pl.basicF1": "Utilisateurs et projets illimités",
+  "pl.basicF2": "Toutes les fonctionnalités incluses",
+  "pl.basicF3": "Allocation IA mensuelle généreuse",
+  "ui.editEvidence": "Modifier les preuves",
+  "ui.viewEvidence": "Voir les preuves"
 }

@@ -3695,5 +3695,14 @@
   "ra.dragToMove": "Arraste para mover",
   "ra.dockHere": "Encaixar aqui",
   "ra.labelsHint": "Ctrl / ⌘ + \\ alterna rótulos",
-  "ra.collaboration": "Colaboração"
+  "ra.collaboration": "Colaboração",
+  "pl.basic": "Básico",
+  "pl.perUser": "por usuário / mês",
+  "pl.basicTag": "Todos os recursos, cobrado por usuário.",
+  "pl.basicCta": "Começar com Básico",
+  "pl.basicF1": "Usuários e projetos ilimitados",
+  "pl.basicF2": "Todos os recursos incluídos",
+  "pl.basicF3": "Cota mensal de IA generosa",
+  "ui.editEvidence": "Editar evidências",
+  "ui.viewEvidence": "Ver evidências"
 }

@@ -3674,5 +3674,14 @@
   "ra.dragToMove": "Drag to move",
   "ra.dockHere": "Dock here",
   "ra.labelsHint": "Ctrl / ⌘ + \\ toggles labels",
-  "ra.collaboration": "Collaboration"
+  "ra.collaboration": "Collaboration",
+  "pl.basic": "Basic",
+  "pl.perUser": "per user / month",
+  "pl.basicTag": "Every feature, billed per user.",
+  "pl.basicCta": "Start with Basic",
+  "pl.basicF1": "Unlimited users & projects",
+  "pl.basicF2": "Every feature included",
+  "pl.basicF3": "Generous monthly AI allowance",
+  "ui.editEvidence": "Edit evidence",
+  "ui.viewEvidence": "View evidence"
 }

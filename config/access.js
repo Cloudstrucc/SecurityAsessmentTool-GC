@@ -90,7 +90,7 @@ function aiStatus(user) {
 // ── Licensing / seats ─────────────────────────────────────────────────────────
 // Admin caps per plan (licenses cost the same for admins and users; caps limit
 // how many licensed users may be admins).
-const ADMIN_SEATS = { trial: 1, team: 2, business: 5, enterprise: 999, payg: 5 };
+const ADMIN_SEATS = { trial: 1, basic: 999, team: 2, business: 5, enterprise: 999, payg: 5 };
 
 function adminSeatsForPlan(plan) { return ADMIN_SEATS[plan] ?? 2; }
 function countAdmins(orgId) {

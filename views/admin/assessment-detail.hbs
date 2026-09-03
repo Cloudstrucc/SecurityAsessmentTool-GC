@@ -120,12 +120,15 @@
               <form method="POST" action="/admin/assessments/{{assessment.id}}/send-invite" class="d-inline">
                 <button class="btn btn-outline-primary btn-sm"><i class="bi bi-send me-1"></i>{{t 'ui.resendInvite'}}</button>
               </form>
-              <a href="/respond/{{assessment.invite_code}}" target="_blank" class="btn btn-outline-success btn-sm" title="{{t 'ui.openThePublicEvidenceSubmission'}}">
-                <i class="bi bi-box-arrow-up-right me-1"></i>{{t 'ui.openPortal'}}
+              <a href="/respond/{{assessment.invite_code}}" class="btn btn-success btn-sm" title="{{t 'ui.openThePublicEvidenceSubmission'}}">
+                <i class="bi bi-pencil-square me-1"></i>{{t 'ui.editEvidence'}}
               </a>
             {{/eq}}
 
             {{#eq assessment.status "submitted"}}
+              <a href="/respond/{{assessment.invite_code}}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-eye me-1"></i>{{t 'ui.viewEvidence'}}
+              </a>
               <form method="POST" action="/admin/assessments/{{assessment.id}}/start-audit" class="d-inline">
                 <button class="btn btn-warning"><i class="bi bi-search me-1"></i>{{t 'ui.startAudit'}}</button>
               </form>
@@ -135,11 +138,19 @@
             {{/eq}}
 
             {{#eq assessment.status "audit"}}
+              <a href="/respond/{{assessment.invite_code}}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-eye me-1"></i>{{t 'ui.viewEvidence'}}
+              </a>
               <button class="btn btn-success" data-bs-toggle="collapse" data-bs-target="#completeAuditForm">
                 <i class="bi bi-check-circle me-1"></i>{{t 'ui.completeAudit'}}
               </button>
             {{/eq}}
 
+            {{#eq assessment.status "completed"}}
+              <a href="/respond/{{assessment.invite_code}}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-eye me-1"></i>{{t 'ui.viewEvidence'}}
+              </a>
+            {{/eq}}
 
             {{> export-menu type="assessment" id=assessment.id projectId=assessment.project_id}}
             {{/unless}}

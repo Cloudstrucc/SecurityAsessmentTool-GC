@@ -33,12 +33,17 @@ function webhookConfigured() {
  */
 // `tokens` = monthly built-in (OOB) AI token allowance. null = unlimited.
 // Bringing your own AI provider bypasses this entirely.
+// `perSeat` plans bill per active user (Stripe quantity = seat count). $49.99/user
+// Basic includes every feature with unlimited users & projects. Trial and Enterprise
+// are unchanged. `team`/`business`/`payg` are retained (unadvertised) so existing
+// subscriptions keep resolving; new sign-ups use `basic`.
 const PLANS = {
   trial:      { key: 'trial',      label: 'Trial',          seats: 3,    projects: 1,    tokens: 250000,    mode: 'trial',        trialDays: 14 },
-  team:       { key: 'team',       label: 'Team',           seats: 5,    projects: 5,    tokens: 3000000,   mode: 'subscription', priceEnv: 'STRIPE_PRICE_TEAM' },
-  business:   { key: 'business',   label: 'Business',       seats: 20,   projects: 25,   tokens: 15000000,  mode: 'subscription', priceEnv: 'STRIPE_PRICE_BUSINESS' },
+  basic:      { key: 'basic',      label: 'Basic',          seats: null, projects: null, tokens: 15000000,  mode: 'subscription', perSeat: true, priceEnv: 'STRIPE_PRICE_BASIC' },
   enterprise: { key: 'enterprise', label: 'Enterprise',     seats: null, projects: null, tokens: null,      mode: 'contact' },
-  payg:       { key: 'payg',       label: 'Pay as you go',  seats: null, projects: null, tokens: 500000,    mode: 'metered',
+  team:       { key: 'team',       label: 'Team',           seats: 5,    projects: 5,    tokens: 3000000,   mode: 'subscription', priceEnv: 'STRIPE_PRICE_TEAM',     legacy: true },
+  business:   { key: 'business',   label: 'Business',       seats: 20,   projects: 25,   tokens: 15000000,  mode: 'subscription', priceEnv: 'STRIPE_PRICE_BUSINESS', legacy: true },
+  payg:       { key: 'payg',       label: 'Pay as you go',  seats: null, projects: null, tokens: 500000,    mode: 'metered', legacy: true,
                 priceEnvUser: 'STRIPE_PRICE_PAYG_USER', priceEnvProject: 'STRIPE_PRICE_PAYG_PROJECT' }
 };
 
@@ -220,7 +225,10 @@ async function createCheckoutSession({ org, plan, customerEmail, baseUrl }) {
   } else {
     const price = priceIdForPlan(plan);
     if (!price) return { ok: false, error: `Price ID for the ${p.label} plan is not configured.` };
-    lineItems = [{ price, quantity: 1 }];
+    // Per-user plans bill one unit per active seat (min 1). Stripe's price must be
+    // a recurring per-unit price so the total scales with the team size.
+    const qty = p.perSeat ? Math.max(1, seatCount(org.id)) : 1;
+    lineItems = [{ price, quantity: qty }];
   }
 
   try {

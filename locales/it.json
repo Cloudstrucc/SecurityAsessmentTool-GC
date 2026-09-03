@@ -3695,5 +3695,14 @@
   "ra.dragToMove": "Trascina per spostare",
   "ra.dockHere": "Ancora qui",
   "ra.labelsHint": "Ctrl / ⌘ + \\ attiva/disattiva le etichette",
-  "ra.collaboration": "Collaborazione"
+  "ra.collaboration": "Collaborazione",
+  "pl.basic": "Base",
+  "pl.perUser": "per utente / mese",
+  "pl.basicTag": "Tutte le funzionalità, fatturato per utente.",
+  "pl.basicCta": "Inizia con Base",
+  "pl.basicF1": "Utenti e progetti illimitati",
+  "pl.basicF2": "Tutte le funzionalità incluse",
+  "pl.basicF3": "Ampia quota IA mensile",
+  "ui.editEvidence": "Modifica prove",
+  "ui.viewEvidence": "Visualizza prove"
 }

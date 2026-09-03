@@ -3695,5 +3695,14 @@
   "ra.dragToMove": "Sleep om te verplaatsen",
   "ra.dockHere": "Hier vastzetten",
   "ra.labelsHint": "Ctrl / ⌘ + \\ wisselt labels",
-  "ra.collaboration": "Samenwerking"
+  "ra.collaboration": "Samenwerking",
+  "pl.basic": "Basis",
+  "pl.perUser": "per gebruiker / maand",
+  "pl.basicTag": "Alle functies, gefactureerd per gebruiker.",
+  "pl.basicCta": "Begin met Basis",
+  "pl.basicF1": "Onbeperkte gebruikers & projecten",
+  "pl.basicF2": "Alle functies inbegrepen",
+  "pl.basicF3": "Royaal maandelijks AI-tegoed",
+  "ui.editEvidence": "Bewijs bewerken",
+  "ui.viewEvidence": "Bewijs bekijken"
 }

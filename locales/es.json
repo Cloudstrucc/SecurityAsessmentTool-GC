@@ -3717,5 +3717,14 @@
   "ra.dragToMove": "Arrastrar para mover",
   "ra.dockHere": "Anclar aquí",
   "ra.labelsHint": "Ctrl / ⌘ + \\ alterna etiquetas",
-  "ra.collaboration": "Colaboración"
+  "ra.collaboration": "Colaboración",
+  "pl.basic": "Básico",
+  "pl.perUser": "por usuario / mes",
+  "pl.basicTag": "Todas las funciones, facturado por usuario.",
+  "pl.basicCta": "Empezar con Básico",
+  "pl.basicF1": "Usuarios y proyectos ilimitados",
+  "pl.basicF2": "Todas las funciones incluidas",
+  "pl.basicF3": "Asignación mensual de IA generosa",
+  "ui.editEvidence": "Editar evidencia",
+  "ui.viewEvidence": "Ver evidencia"
 }

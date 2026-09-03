@@ -3695,5 +3695,14 @@
   "ra.dragToMove": "Zum Verschieben ziehen",
   "ra.dockHere": "Hier andocken",
   "ra.labelsHint": "Strg / ⌘ + \\ schaltet Beschriftungen um",
-  "ra.collaboration": "Zusammenarbeit"
+  "ra.collaboration": "Zusammenarbeit",
+  "pl.basic": "Basic",
+  "pl.perUser": "pro Benutzer / Monat",
+  "pl.basicTag": "Alle Funktionen, Abrechnung pro Benutzer.",
+  "pl.basicCta": "Mit Basic starten",
+  "pl.basicF1": "Unbegrenzte Benutzer & Projekte",
+  "pl.basicF2": "Alle Funktionen enthalten",
+  "pl.basicF3": "Großzügiges monatliches KI-Kontingent",
+  "ui.editEvidence": "Nachweise bearbeiten",
+  "ui.viewEvidence": "Nachweise ansehen"
 }
