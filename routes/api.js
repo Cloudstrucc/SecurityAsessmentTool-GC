@@ -436,15 +436,38 @@ router.post('/ai/parse-document', aiUpload.single('document'), async (req, res) 
     const securityFramework = req.body.securityFramework || req.body.security_framework || 'ITSG-33';
     let result;
 
-    if (['.pdf', '.png', '.jpg', '.jpeg'].includes(ext)) {
-      // Send as base64 document/image
+    // Keep the model input well under the provider context limit (Anthropic caps
+    // at ~1M tokens). ~4 chars/token, so 1.5M chars ≈ 375k tokens — plenty to
+    // pre-fill an intake, with headroom for the system prompt. Configurable.
+    const MAX_DOC_CHARS = parseInt(process.env.AI_DOC_TEXT_MAX_CHARS || '1500000', 10);
+    const PDF_RAW_MAX_BYTES = parseInt(process.env.AI_DOC_PDF_MAX_BYTES || String(4 * 1024 * 1024), 10);
+
+    if (ext === '.pdf') {
+      // Extract the PDF's text and send THAT (bounded) rather than the raw file —
+      // large/scanned PDFs sent whole can blow past the model's context window.
       const fileBuffer = fs.readFileSync(filePath);
-      const base64 = fileBuffer.toString('base64');
-      const mimeMap = { '.pdf': 'application/pdf', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg' };
-      result = await ai.parseDocumentForIntake({ base64, mediaType: mimeMap[ext], filename, securityFramework });
+      let text = '';
+      try {
+        const pdfParse = require('pdf-parse/lib/pdf-parse.js');
+        const data = await pdfParse(fileBuffer);
+        text = (data && data.text ? data.text : '').trim();
+      } catch (e) { text = ''; }
+
+      if (text.length > 200) {
+        result = await ai.parseDocumentForIntake({ text: text.slice(0, MAX_DOC_CHARS), filename, securityFramework });
+      } else if (fileBuffer.length <= PDF_RAW_MAX_BYTES) {
+        // No extractable text (likely a scanned/image PDF) and small enough to send whole.
+        result = await ai.parseDocumentForIntake({ base64: fileBuffer.toString('base64'), mediaType: 'application/pdf', filename, securityFramework });
+      } else {
+        return res.status(413).json({ error: 'This PDF is too large to analyze (it looks scanned/image-based with no selectable text). Please upload a smaller PDF, a text/Word version, or split it into sections.' });
+      }
+    } else if (['.png', '.jpg', '.jpeg'].includes(ext)) {
+      const fileBuffer = fs.readFileSync(filePath);
+      const mimeMap = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg' };
+      result = await ai.parseDocumentForIntake({ base64: fileBuffer.toString('base64'), mediaType: mimeMap[ext], filename, securityFramework });
     } else {
-      // Send as text
-      const text = fs.readFileSync(filePath, 'utf-8');
+      // Plain text/markdown/etc — read and cap.
+      const text = fs.readFileSync(filePath, 'utf-8').slice(0, MAX_DOC_CHARS);
       result = await ai.parseDocumentForIntake({ text, filename, securityFramework });
     }
 

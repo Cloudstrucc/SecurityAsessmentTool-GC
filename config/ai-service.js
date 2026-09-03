@@ -252,7 +252,10 @@ For piiTypes and technologies, only include values that apply. For completedActi
     }
     contentBlocks.push({ type: 'text', text: `Extract SA&A intake form fields from this document (${filename}).` });
   } else if (text) {
-    contentBlocks.push({ type: 'text', text: `Extract SA&A intake form fields from this document (${filename}):\n\n${text}` });
+    // Defensive cap so an oversized document can't exceed the provider context limit.
+    const MAX = parseInt(process.env.AI_DOC_TEXT_MAX_CHARS || '1500000', 10);
+    const capped = text.length > MAX ? text.slice(0, MAX) : text;
+    contentBlocks.push({ type: 'text', text: `Extract SA&A intake form fields from this document (${filename}):\n\n${capped}` });
   } else {
     throw new Error('No document content provided');
   }
