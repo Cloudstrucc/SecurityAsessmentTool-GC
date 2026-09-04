@@ -146,28 +146,35 @@ function slugBase(name) {
   return (name || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'untitled';
 }
 
-function findProjectForIntake(body) {
+// Match an existing project to update instead of creating a duplicate — but ONLY
+// within the caller's own workspace. Matching across organizations was both a
+// tenant-isolation hole (one org could overwrite another's project by name) and
+// the cause of the "Not found" on create: a name collision returned a project the
+// caller could not access, so the post-create redirect hit the tenant guard.
+function findProjectForIntake(body, user) {
   const name = (body.name || body.projectName || '').trim();
   if (!name) return null;
 
+  const scope = access.projectScope(user, 'organization_id');
   const slug = slugBase(name);
   const existingProject = get(
     `SELECT * FROM projects
-     WHERE slug = ? OR LOWER(name) = LOWER(?)
+     WHERE (slug = ? OR LOWER(name) = LOWER(?)) AND ${scope.clause}
      ORDER BY updated_at DESC
      LIMIT 1`,
-    [slug, name]
+    [slug, name, ...scope.params]
   );
   if (existingProject) return existingProject;
 
+  const scopeP = access.projectScope(user, 'p.organization_id');
   return get(
     `SELECT p.*
      FROM intake_submissions i
      JOIN projects p ON p.id = i.project_id
-     WHERE LOWER(i.project_name) = LOWER(?)
+     WHERE LOWER(i.project_name) = LOWER(?) AND ${scopeP.clause}
      ORDER BY i.updated_at DESC
      LIMIT 1`,
-    [name]
+    [name, ...scopeP.params]
   );
 }
 
@@ -618,13 +625,51 @@ function orgSettingsFor(req) {
   } catch (e) { return null; }
 }
 
-function getAssignableUsers() {
+// Users an admin may assign work to — scoped to their workspace. Previously this
+// returned EVERY active client/assessor across all organizations (a tenant leak).
+// A user belongs to the workspace if they are a seat (organization_id = org), were
+// invited by a member, or are already assigned to one of the org's records — the
+// latter two cover invited clients who may not carry organization_id yet.
+function getAssignableUsers(user) {
+  if (access.isRootAdmin(user)) {
+    return all(`
+      SELECT id, name, email, role, organization
+      FROM users
+      WHERE is_active = 1 AND role IN ('client','assessor')
+      ORDER BY role, name, email
+    `);
+  }
+  const id = access.orgId(user);
+  if (!id) {
+    // Legacy single-tenant admin (no organization) → the un-orged pool.
+    return all(`
+      SELECT id, name, email, role, organization
+      FROM users
+      WHERE is_active = 1 AND role IN ('client','assessor') AND organization_id IS NULL
+      ORDER BY role, name, email
+    `);
+  }
   return all(`
-    SELECT id, name, email, role, organization
-    FROM users
-    WHERE is_active = 1 AND role IN ('client','assessor')
-    ORDER BY role, name, email
-  `);
+    SELECT DISTINCT u.id, u.name, u.email, u.role, u.organization
+    FROM users u
+    WHERE u.is_active = 1 AND u.role IN ('client','assessor') AND (
+      u.organization_id = ?
+      OR u.id IN (
+        SELECT accepted_by_user_id FROM invitations
+        WHERE accepted_by_user_id IS NOT NULL
+          AND invited_by IN (SELECT id FROM users WHERE organization_id = ?)
+      )
+      OR EXISTS (
+        SELECT 1 FROM assessment_assignments aa
+        LEFT JOIN assessments a ON aa.entity_type = 'assessment' AND a.id = aa.entity_id
+        LEFT JOIN intake_submissions i ON aa.entity_type = 'intake' AND i.id = aa.entity_id
+        LEFT JOIN projects pa ON pa.id = a.project_id
+        LEFT JOIN projects pi ON pi.id = i.project_id
+        WHERE aa.assigned_to = u.id AND (pa.organization_id = ? OR pi.organization_id = ?)
+      )
+    )
+    ORDER BY u.role, u.name, u.email
+  `, [id, id, id, id]);
 }
 
 function getEntityAssignments(entityType, ids) {
@@ -719,6 +764,10 @@ function assignEntityFromRequest({ req, entityType, entityId, entityName }) {
       [req.body.assignee_user_id]
     );
     if (!user) throw new Error('Selected user was not found.');
+    // Tenant guard: only assign users who belong to the caller's workspace.
+    if (!getAssignableUsers(req.user).some(u => u.id === user.id)) {
+      throw new Error('That user is not part of your workspace.');
+    }
 
     upsertEntityAssignment({ entityType, entityId, user, assigneeRole: user.role, assignedBy: req.user.id, notes });
     updateAssignmentColumns(entityType, entityId, user, user.email, user.role);
@@ -1216,7 +1265,7 @@ router.get('/projects/new', ensureAuthenticated, (req, res) => {
     title: 'New Project', isAdmin: true, isProjects: true,
     admin: req.user,
     technologies: COMMON_TECHNOLOGIES,
-    users: getAssignableUsers(),
+    users: getAssignableUsers(req.user),
     frameworkOptions: getAvailableFrameworkOptions(),
     frameworkOptionsJSON: JSON.stringify(getAvailableFrameworkOptions())
   });
@@ -1240,7 +1289,7 @@ router.post('/projects/new', ensureAuthenticated, intakeUpload.fields([{ name: '
     const profile = isItsgFramework(frameworkFields.securityFramework)
       ? (security_profile || getSecurityProfileFromBody(req.body, hasPII))
       : (frameworkFields.frameworkBaseline || security_profile || 'custom');
-    const existingProject = findProjectForIntake(req.body);
+    const existingProject = findProjectForIntake(req.body, req.user);
     let projectId;
 
     // Enforce per-plan project limits for orgs that have one (legacy/no-org users are unlimited).
@@ -1283,7 +1332,11 @@ router.post('/projects/new', ensureAuthenticated, intakeUpload.fields([{ name: '
           hosting_type || '', app_type || '', hasPII, JSON.stringify(techArray), specifications || '',
           project_owner_name || '', normalizeEmail(project_owner_email), project_authority_name || '', normalizeEmail(project_authority_email),
           cio_name || '', normalizeEmail(cio_email), department || '', branch || '', req.user.id]);
-      if (userOrg) run('UPDATE projects SET organization_id = ? WHERE id = ?', [userOrg.id, projectId]);
+      // Stamp the SAME org id the tenant guard checks (access.orgId), so a freshly
+      // created project is always visible to its creator. Using billing.orgForUser
+      // here could diverge from the guard and produce a phantom "Not found".
+      const stampOrg = access.orgId(req.user);
+      if (stampOrg) run('UPDATE projects SET organization_id = ? WHERE id = ?', [stampOrg, projectId]);
     }
 
     // req.files is now an object: { attachments: [...], reference_document: [...] }.
@@ -1370,7 +1423,7 @@ router.get('/projects/:id', ensureAuthenticated, (req, res) => {
     nonDraftAssessments,
     hasNonDraftAssessments: nonDraftAssessments.length > 0,
     isArchived: !!project.archived_at,
-    users: getAssignableUsers(),
+    users: getAssignableUsers(req.user),
     techNames: techs.map(t => COMMON_TECHNOLOGIES[t]?.name || t)
   });
 });
@@ -2516,7 +2569,7 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
   res.render('admin/assessment-detail', {
     title: viewingVersion ? `Assessment v${viewingVersion}: ${assessment.project_name}` : `Assessment: ${assessment.project_name}`,
     isAdmin: true, isAssessments: true,
-    admin: req.user, assessment, assignments, users: getAssignableUsers(), versions, viewingVersion,
+    admin: req.user, assessment, assignments, users: getAssignableUsers(req.user), versions, viewingVersion,
     assessmentFlow: processFlows.assessmentFlow(assessment),
     assessmentLock: decisionPackages.assessmentLock(assessment.id),
     collabEnabled: collaboration.isEnabled(get('SELECT * FROM projects WHERE id = ?', [assessment.project_id]), orgSettingsFor(req)),
@@ -3508,7 +3561,7 @@ router.get('/intakes/:id', ensureAuthenticated, (req, res) => {
   res.render('admin/intake-review', {
     title: 'Review: ' + intake.project_name, isAdmin: true,
     user: req.user, intake, attachments, assignments, linkedAssessments, intakeFlow,
-    users: getAssignableUsers(),
+    users: getAssignableUsers(req.user),
     piiList: piiTypes.filter(p => p !== 'none').map(p => PII_LABELS[p] || p),
     techList: technologies.map(t => COMMON_TECHNOLOGIES[t]?.name || t),
     activityList: activities.map(a => ACTIVITY_LABELS[a] || a),

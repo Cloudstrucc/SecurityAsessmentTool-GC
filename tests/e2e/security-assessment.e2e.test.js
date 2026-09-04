@@ -2061,3 +2061,42 @@ test('tenant isolation: a workspace sees only its own projects and cannot reach 
   const comp = await request(alpha, 'GET', '/admin/comp-codes', { redirect: 'manual' });
   assert.notEqual(comp.status, 200, 'a workspace owner is not a platform root admin');
 });
+
+test('tenant isolation: duplicate project names across workspaces do not collide, and assignable users are org-scoped', async () => {
+  async function registerOrg(tag) {
+    const jar = new CookieJar();
+    const email = `dup.${tag}.${Date.now()}@example.test`;
+    const reg = await request(jar, 'POST', '/register', {
+      form: { plan: 'trial', first_name: tag, last_name: 'Owner',
+        organization: `Dup Tenant ${tag}`, email, password: 'TenantPass123!', agree: '1' }
+    });
+    assert.equal(reg.status, 302, `${tag} registration succeeds`);
+    return { jar, email };
+  }
+  const alpha = await registerOrg('AlphaDup');
+  const beta = await registerOrg('BetaDup');
+
+  const sharedName = `Shared Name ${Date.now()}`;
+  async function create(jar, name) {
+    const r = await request(jar, 'POST', '/admin/projects/new', { form: { name, data_classification: 'protected-b' } });
+    assert.equal(r.status, 302, 'create redirects');
+    const loc = r.headers.get('location') || '';
+    // Regression: create used to redirect to the new project, then the tenant guard
+    // bounced it to the dashboard with "Not found." (a cross-org name match updated a
+    // project the creator could not access). Assert we land on the project detail.
+    assert.match(loc, /\/admin\/projects\/\d+$/, `create lands on the new project detail (got ${loc})`);
+    const id = loc.match(/(\d+)$/)[1];
+    const detail = await getText(jar, `/admin/projects/${id}`);
+    assert.match(detail.text, new RegExp(name), 'creator can open their own new project (no phantom Not found)');
+    return id;
+  }
+  const alphaId = await create(alpha.jar, sharedName);
+  const betaId = await create(beta.jar, sharedName);
+  assert.notEqual(alphaId, betaId, 'same-named projects in two workspaces are distinct records');
+
+  // Assignable-user lists are org-scoped: Alpha's assign dropdown must not expose
+  // Beta's owner (an assessor in another workspace).
+  const alphaDetail = (await getText(alpha.jar, `/admin/projects/${alphaId}`)).text;
+  assert.doesNotMatch(alphaDetail, new RegExp(beta.email.replace(/[.+]/g, '\\$&')),
+    'Alpha cannot see Beta owner as an assignable user');
+});

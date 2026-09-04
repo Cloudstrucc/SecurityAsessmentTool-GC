@@ -458,6 +458,12 @@ router.post('/client/register', (req, res) => {
     );
 
     if (invite) {
+      // Attach the new client to the inviting workspace so tenant scoping treats
+      // them as a member of that org (not a floating, org-less account).
+      const inviter = get('SELECT organization_id FROM users WHERE id = ?', [invite.invited_by]);
+      if (inviter && inviter.organization_id) {
+        run('UPDATE users SET organization_id = ? WHERE id = ?', [inviter.organization_id, userId]);
+      }
       run("UPDATE invitations SET status = 'accepted', accepted_at = CURRENT_TIMESTAMP, accepted_by_user_id = ? WHERE id = ?", [userId, invite.id]);
       run("UPDATE assessment_assignments SET assigned_to = ?, status = 'active', accepted_at = CURRENT_TIMESTAMP WHERE invitation_id = ?", [userId, invite.id]);
       run("UPDATE assessments SET assigned_to_user_id = ? WHERE LOWER(assigned_to_email) = ?", [userId, email.toLowerCase().trim()]);
