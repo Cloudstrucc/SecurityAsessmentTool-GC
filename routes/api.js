@@ -231,9 +231,11 @@ router.post('/webauthn/login-verify', express.json(), async (req, res) => {
     // (req.session.clientId), assessors/admins use the passport session.
     if (user.role === 'client') {
       req.session.clientId = user.id;
+      const redeem = req.session.pendingRedeemCode;
       const pendingInvite = req.session.pendingInviteCode;
+      delete req.session.pendingRedeemCode;
       delete req.session.pendingInviteCode;
-      return res.json({ success: true, redirect: pendingInvite ? `/respond/${pendingInvite}` : '/intake' });
+      return res.json({ success: true, redirect: redeem ? `/redeem?code=${redeem}` : (pendingInvite ? `/respond/${pendingInvite}` : '/intake') });
     }
     req.login(user, (err) => {
       if (err) { console.error('[WebAuthn] login req.login:', err); return res.status(500).json({ error: 'Sign-in failed.' }); }

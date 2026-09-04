@@ -3695,5 +3695,20 @@
   "crf.confirmPassword": "Confirm password",
   "crf.inviteCode": "Invitation code (optional)",
   "crf.continue": "Continue to MFA setup",
-  "crf.haveAccount": "Already have an account?"
+  "crf.haveAccount": "Already have an account?",
+  "inv.bannerSent": "Invitation sent to",
+  "inv.bannerShareLink": "Share this link to redeem:",
+  "inv.openRedeem": "Open the redeem page in a new tab",
+  "inv.codeRequired": "Please enter an access code.",
+  "inv.codeNotRecognized": "That code was not recognized. Check it and try again.",
+  "inv.codeExpired": "This invitation has expired.",
+  "inv.signInToRedeem": "Please sign in to redeem this invitation.",
+  "inv.wrongAccount": "This invitation was sent to a different email address.",
+  "inv.redeemedOk": "Invitation redeemed.",
+  "inv.redeemBtn": "Redeem a code",
+  "inv.redeemTitle": "Redeem an invitation code",
+  "inv.redeemHelp": "Enter the invitation or access code you received. We'll take you straight to the record.",
+  "inv.codeLabel": "Invitation / access code",
+  "inv.redeemSubmit": "Redeem & open",
+  "inv.redeemCancel": "Cancel"
 }

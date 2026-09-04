@@ -132,6 +132,17 @@ function normalizeEmail(email) {
   return (email || '').trim().toLowerCase();
 }
 
+// Stash a structured "invite sent" banner so the layout can render the code as a
+// real hyperlink to /redeem (opens in a new tab) instead of as escaped flash text.
+function setInviteBanner(req, { code, recipient, entityLabel } = {}) {
+  if (!code || !req.session) return;
+  req.session.inviteBanner = {
+    code: String(code).toUpperCase().trim(),
+    recipient: recipient || '',
+    entityLabel: entityLabel || ''
+  };
+}
+
 function makeSlug(name) {
   const base = slugBase(name);
   let slug = base;
@@ -1634,7 +1645,8 @@ router.post('/projects/:id/assign', ensureAuthenticated, (req, res) => {
       });
     });
 
-    req.flash('success', `${target === 'all' ? 'Project intake and assessments' : 'Selected item'} assigned to ${result.name || result.email}${result.pending ? ` (invitation code ${result.inviteCode})` : ''}.`);
+    if (result.pending && result.inviteCode) setInviteBanner(req, { code: result.inviteCode, recipient: result.name || result.email, entityLabel: project.name });
+    req.flash('success', `${target === 'all' ? 'Project intake and assessments' : 'Selected item'} assigned to ${result.name || result.email}.`);
     res.redirect(`/admin/projects/${project.id}`);
   } catch (err) {
     console.error('Project assignment error:', err);
@@ -2797,10 +2809,11 @@ router.post('/assessments/:id/send-invite', ensureAuthenticated, async (req, res
       smtpConfig: orgSettings.orgSmtp(req.user.organization_id)
     });
 
+    setInviteBanner(req, { code: assessment.invite_code, recipient: recipientEmail, entityLabel: assessment.project_name || '' });
     if (emailResult.sent) {
-      req.flash('success', `Invite emailed to ${recipientEmail} with code: ${assessment.invite_code}`);
+      req.flash('success', `Invite emailed to ${recipientEmail}.`);
     } else {
-      req.flash('success', `Assessment activated with code: ${assessment.invite_code}. Email could not be sent (${emailResult.error || 'not configured'}) — share the code manually.`);
+      req.flash('success', `Assessment activated. Email could not be sent (${emailResult.error || 'not configured'}) — share the code link below.`);
     }
     res.redirect(`/admin/assessments/${assessment.id}`);
   } catch (err) {
@@ -2835,7 +2848,8 @@ router.post('/assessments/:id/assign', ensureAuthenticated, (req, res) => {
       });
     }
 
-    req.flash('success', `Assessment${assessment.intake_id ? ' and linked intake' : ''} assigned to ${result.name || result.email}${result.pending ? ` (invitation code ${result.inviteCode})` : ''}.`);
+    if (result.pending && result.inviteCode) setInviteBanner(req, { code: result.inviteCode, recipient: result.name || result.email, entityLabel: assessment.project_name });
+    req.flash('success', `Assessment${assessment.intake_id ? ' and linked intake' : ''} assigned to ${result.name || result.email}.`);
     res.redirect(`/admin/assessments/${assessment.id}`);
   } catch (err) {
     console.error('Assessment assignment error:', err);
@@ -3256,7 +3270,8 @@ router.post('/self-assessments/:id/invite-client', ensureAuthenticated, (req, re
       entityType: 'self-assessment',
       entityId: sa.id
     });
-    req.flash('success', `Client invitation created for ${email}. Code: ${created.inviteCode}`);
+    setInviteBanner(req, { code: created.inviteCode, recipient: email });
+    req.flash('success', `Client invitation created for ${email}.`);
     res.redirect(`/admin/self-assessments/${sa.id}`);
   } catch (err) {
     console.error('Self-assessment client invite error:', err);
@@ -3343,7 +3358,8 @@ router.post(['/teams/client', '/invitations/client'], ensureAuthenticated, (req,
       invitedBy: req.user.id,
       req
     });
-    req.flash('success', `Client invitation created for ${email}. Code: ${created.inviteCode}`);
+    setInviteBanner(req, { code: created.inviteCode, recipient: email });
+    req.flash('success', `Client invitation created for ${email}.`);
   } catch (err) {
     req.flash('error', err.message);
   }
@@ -3365,7 +3381,8 @@ router.post(['/teams/assessor', '/invitations/assessor'], ensureAuthenticated, (
       invitedBy: req.user.id,
       req
     });
-    req.flash('success', `Assessor invitation created for ${email}. Code: ${created.inviteCode}`);
+    setInviteBanner(req, { code: created.inviteCode, recipient: email });
+    req.flash('success', `Assessor invitation created for ${email}.`);
   } catch (err) {
     req.flash('error', err.message);
   }
@@ -3606,7 +3623,8 @@ router.post('/intakes/:id/assign', ensureAuthenticated, (req, res) => {
       }));
     }
 
-    req.flash('success', `Intake assigned to ${result.name || result.email}${result.pending ? ` (invitation code ${result.inviteCode})` : ''}.`);
+    if (result.pending && result.inviteCode) setInviteBanner(req, { code: result.inviteCode, recipient: result.name || result.email });
+    req.flash('success', `Intake assigned to ${result.name || result.email}.`);
     res.redirect(`/admin/intakes/${intake.id}`);
   } catch (err) {
     console.error('Intake assignment error:', err);

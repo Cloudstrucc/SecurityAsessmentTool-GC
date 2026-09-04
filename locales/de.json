@@ -3716,5 +3716,20 @@
   "crf.confirmPassword": "Passwort bestätigen",
   "crf.inviteCode": "Einladungscode (optional)",
   "crf.continue": "Weiter zur MFA-Einrichtung",
-  "crf.haveAccount": "Sie haben bereits ein Konto?"
+  "crf.haveAccount": "Sie haben bereits ein Konto?",
+  "inv.bannerSent": "Einladung gesendet an",
+  "inv.bannerShareLink": "Diesen Link zum Einlösen teilen:",
+  "inv.openRedeem": "Einlöseseite in neuem Tab öffnen",
+  "inv.codeRequired": "Bitte geben Sie einen Zugangscode ein.",
+  "inv.codeNotRecognized": "Code nicht erkannt. Bitte prüfen und erneut versuchen.",
+  "inv.codeExpired": "Diese Einladung ist abgelaufen.",
+  "inv.signInToRedeem": "Bitte melden Sie sich an, um diese Einladung einzulösen.",
+  "inv.wrongAccount": "Diese Einladung wurde an eine andere E-Mail-Adresse gesendet.",
+  "inv.redeemedOk": "Einladung eingelöst.",
+  "inv.redeemBtn": "Code einlösen",
+  "inv.redeemTitle": "Einladungscode einlösen",
+  "inv.redeemHelp": "Geben Sie den erhaltenen Einladungs- oder Zugangscode ein. Wir leiten Sie direkt zum Datensatz.",
+  "inv.codeLabel": "Einladungs-/Zugangscode",
+  "inv.redeemSubmit": "Einlösen und öffnen",
+  "inv.redeemCancel": "Abbrechen"
 }

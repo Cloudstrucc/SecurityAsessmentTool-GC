@@ -5,7 +5,10 @@
       <p class="text-muted mb-0">{{#if blurb}}{{blurb}}{{else}}All security assessment packages — the SA&amp;A record for each system, from tailoring through evidence, audit and authorization.{{/if}}</p>
       <div class="rule"></div>
     </div>
-    {{#if filter}}<a href="/admin/assessments" class="btn btn-outline-secondary"><i class="bi bi-list me-1"></i>{{t 'ui.allAssessments'}}</a>{{/if}}
+    <div class="d-flex gap-2 flex-wrap">
+      {{#if filter}}<a href="/admin/assessments" class="btn btn-outline-secondary"><i class="bi bi-list me-1"></i>{{t 'ui.allAssessments'}}</a>{{/if}}
+      {{> redeem-modal}}
+    </div>
   </div>
 
   <div class="card">

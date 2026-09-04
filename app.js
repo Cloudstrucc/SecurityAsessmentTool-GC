@@ -265,6 +265,13 @@ app.use((req, res, next) => {
     warning: req.flash('warning'),
     info: req.flash('info')
   };
+  // One-shot invite banner: an assign/invite action stashes a structured record so
+  // the layout can render the code as a real hyperlink to the redeem page (rather
+  // than as escaped text). Consumed once, then cleared.
+  if (req.session && req.session.inviteBanner) {
+    res.locals.inviteBanner = req.session.inviteBanner;
+    delete req.session.inviteBanner;
+  }
   // Breadcrumb for signed-in /admin pages: computed at render time (so the page
   // title is available for the leaf) and exposed as a plain local {{{breadcrumbHtml}}}.
   if (req.user) {    const origRender = res.render.bind(res);

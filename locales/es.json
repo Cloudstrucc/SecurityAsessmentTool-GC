@@ -3738,5 +3738,20 @@
   "crf.confirmPassword": "Confirmar contraseña",
   "crf.inviteCode": "Código de invitación (opcional)",
   "crf.continue": "Continuar a la configuración de MFA",
-  "crf.haveAccount": "¿Ya tiene una cuenta?"
+  "crf.haveAccount": "¿Ya tiene una cuenta?",
+  "inv.bannerSent": "Invitación enviada a",
+  "inv.bannerShareLink": "Comparte este enlace para canjearla:",
+  "inv.openRedeem": "Abrir la página de canje en una pestaña nueva",
+  "inv.codeRequired": "Introduce un código de acceso.",
+  "inv.codeNotRecognized": "Código no reconocido. Compruébalo e inténtalo de nuevo.",
+  "inv.codeExpired": "Esta invitación ha caducado.",
+  "inv.signInToRedeem": "Inicia sesión para canjear esta invitación.",
+  "inv.wrongAccount": "Esta invitación se envió a otra dirección de correo.",
+  "inv.redeemedOk": "Invitación canjeada.",
+  "inv.redeemBtn": "Canjear un código",
+  "inv.redeemTitle": "Canjear un código de invitación",
+  "inv.redeemHelp": "Introduce el código de invitación o de acceso que recibiste. Te llevaremos directamente al registro.",
+  "inv.codeLabel": "Código de invitación / acceso",
+  "inv.redeemSubmit": "Canjear y abrir",
+  "inv.redeemCancel": "Cancelar"
 }

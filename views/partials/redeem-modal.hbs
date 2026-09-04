@@ -1,0 +1,30 @@
+{{!-- Universal "Redeem a code" button + modal. Drop {{> redeem-modal}} on any
+      landing page for an assignable record type (intakes, assessments, POA&M).
+      Posts to /redeem, which resolves the code and forwards to the record. --}}
+<button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#redeemModal">
+  <i class="bi bi-ticket-perforated me-1" aria-hidden="true"></i>{{t 'inv.redeemBtn'}}
+</button>
+
+<div class="modal fade" id="redeemModal" tabindex="-1" aria-labelledby="redeemModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="POST" action="/redeem" autocomplete="off">
+        <div class="modal-header">
+          <h5 class="modal-title" id="redeemModalLabel"><i class="bi bi-ticket-perforated me-2" aria-hidden="true"></i>{{t 'inv.redeemTitle'}}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted small mb-3">{{t 'inv.redeemHelp'}}</p>
+          <label class="form-label fw-semibold" for="redeemCode">{{t 'inv.codeLabel'}}</label>
+          <input type="text" class="form-control form-control-lg text-uppercase text-center" id="redeemCode" name="code"
+            required maxlength="16" autocomplete="off" spellcheck="false"
+            style="letter-spacing:3px;font-family:'Courier New',monospace;" placeholder="XXXXXXXX">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{t 'inv.redeemCancel'}}</button>
+          <button type="submit" class="btn btn-primary"><i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i>{{t 'inv.redeemSubmit'}}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

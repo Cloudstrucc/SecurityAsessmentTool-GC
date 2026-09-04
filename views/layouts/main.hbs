@@ -426,6 +426,17 @@
   {{#if messages.error}}<div class="container mt-3" role="alert"><div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-circle me-2" aria-hidden="true"></i>{{messages.error}}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div></div>{{/if}}
   {{#if messages.warning}}<div class="container mt-3" role="alert"><div class="alert alert-warning alert-dismissible fade show"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>{{messages.warning}}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div></div>{{/if}}
 
+  {{#if inviteBanner}}<div class="container mt-3" role="alert"><div class="alert alert-success alert-dismissible fade show d-flex align-items-start flex-wrap gap-2">
+    <i class="bi bi-send-check me-1 mt-1" aria-hidden="true"></i>
+    <div class="flex-grow-1">
+      {{t 'inv.bannerSent'}} <strong>{{inviteBanner.recipient}}</strong>{{#if inviteBanner.entityLabel}} · {{inviteBanner.entityLabel}}{{/if}}.
+      <div class="mt-1">{{t 'inv.bannerShareLink'}}
+        <a href="/redeem?code={{inviteBanner.code}}" target="_blank" rel="noopener" class="alert-link fw-semibold" title="{{t 'inv.openRedeem'}}"><i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>{{inviteBanner.code}}</a>
+      </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div></div>{{/if}}
+
   {{#if aiStatus.needsLicense}}
     <div class="container mt-3">
       <div class="alert alert-info d-flex align-items-center flex-wrap gap-2" style="border-left:4px solid var(--cs-accent)">

@@ -160,6 +160,94 @@ router.post('/respond/access', (req, res) => {
   res.redirect('/respond/' + code.toUpperCase().trim());
 });
 
+// ── UNIVERSAL INVITE REDEMPTION ──────────────────────────────────────────────
+// One entry point for any invite/access code. It resolves the code to the record
+// it grants, accepts the invitation for the signed-in invitee, and forwards them
+// to the right place (an assessment → its evidence flow). Signed-out visitors are
+// routed to sign in / register carrying the code. Used by the "invite sent" banner
+// hyperlink and by the "Redeem a code" modal on the intake/assessment/POA&M pages.
+function tr(req, key, fallback) { return (req.t && req.t(key) !== key) ? req.t(key) : fallback; }
+
+function redeemActor(req) {
+  if (req.isAuthenticated && req.isAuthenticated()) return { id: req.user.id, email: req.user.email };
+  if (req.session && req.session.clientId) {
+    const c = get('SELECT id, email FROM users WHERE id = ?', [req.session.clientId]);
+    if (c) return { id: c.id, email: c.email };
+  }
+  return null;
+}
+
+function acceptInvitation(inv, actor) {
+  run("UPDATE invitations SET status = 'accepted', accepted_at = CURRENT_TIMESTAMP, accepted_by_user_id = ? WHERE id = ?", [actor.id, inv.id]);
+  run("UPDATE assessment_assignments SET assigned_to = ?, status = 'active', accepted_at = CURRENT_TIMESTAMP WHERE invitation_id = ?", [actor.id, inv.id]);
+  if (inv.entity_type === 'assessment' && inv.entity_id) {
+    run("UPDATE assessments SET assigned_to_user_id = ?, assigned_to_email = ?, assigned_to_role = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+      [actor.id, actor.email, inv.type || 'client', inv.entity_id]);
+  } else if (inv.entity_type === 'intake' && inv.entity_id) {
+    run("UPDATE intake_submissions SET assigned_to_user_id = ?, assigned_to_email = ?, assigned_to_role = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+      [actor.id, actor.email, inv.type || 'client', inv.entity_id]);
+  }
+}
+
+function redeemDest(req, inv) {
+  if (inv.entity_type === 'assessment' && inv.entity_id) {
+    const a = get('SELECT invite_code FROM assessments WHERE id = ?', [inv.entity_id]);
+    if (a && a.invite_code) return '/respond/' + a.invite_code;
+  }
+  if (inv.entity_type === 'intake' && inv.entity_id) {
+    // Assessors/admins review an intake in the console; clients land in their portal.
+    return (req.isAuthenticated && req.isAuthenticated()) ? '/admin/intakes/' + inv.entity_id : '/intake';
+  }
+  return (req.isAuthenticated && req.isAuthenticated()) ? '/admin/dashboard' : '/portal';
+}
+
+function redeemHandler(req, res) {
+  const raw = String(req.params.code || (req.body && req.body.code) || req.query.code || '').toUpperCase().trim();
+  const back = req.get('referer') || '/';
+  if (!raw) { req.flash('error', tr(req, 'inv.codeRequired', 'Please enter an access code.')); return res.redirect(back); }
+
+  // 1) The code IS an assessment's own evidence code → hand off to the evidence flow,
+  //    which already enforces sign-in and the assigned-account check.
+  const directAssessment = get('SELECT invite_code FROM assessments WHERE UPPER(TRIM(invite_code)) = ?', [raw]);
+  if (directAssessment) return res.redirect('/respond/' + directAssessment.invite_code);
+
+  // 2) The code is an invitation → resolve, accept, and forward.
+  const inv = get('SELECT * FROM invitations WHERE UPPER(TRIM(invite_code)) = ?', [raw]);
+  if (!inv) { req.flash('error', tr(req, 'inv.codeNotRecognized', 'That code was not recognized. Check it and try again.')); return res.redirect(back); }
+  if (inv.expires_at && new Date(inv.expires_at) < new Date()) {
+    req.flash('error', tr(req, 'inv.codeExpired', 'This invitation has expired.'));
+    return res.redirect(back);
+  }
+
+  const actor = redeemActor(req);
+  if (!actor) {
+    // Route the invitee to sign in (existing account) or register (new), carrying the code.
+    req.session.pendingRedeemCode = raw;
+    const existing = inv.email ? get('SELECT id FROM users WHERE LOWER(email) = ? AND is_active = 1', [inv.email.toLowerCase().trim()]) : null;
+    if (existing) {
+      req.flash('info', tr(req, 'inv.signInToRedeem', 'Please sign in to redeem this invitation.'));
+      return res.redirect('/client/login?email=' + encodeURIComponent(inv.email || ''));
+    }
+    return res.redirect('/client/register?invite=' + encodeURIComponent(raw));
+  }
+
+  // The evidence provider must be the explicitly invited person.
+  if (inv.email && actor.email && actor.email.toLowerCase().trim() !== inv.email.toLowerCase().trim()) {
+    req.flash('error', tr(req, 'inv.wrongAccount', 'This invitation was sent to a different email address.') + ' (' + inv.email + ')');
+    return res.redirect(back);
+  }
+
+  if (inv.status === 'pending') acceptInvitation(inv, actor);
+  req.flash('success', tr(req, 'inv.redeemedOk', 'Invitation redeemed.'));
+  return res.redirect(redeemDest(req, inv));
+}
+
+// NOTE: the path is intentionally the bare /redeem (code in the query/body). The
+// param form /redeem/:code is already owned by the billing org-member join flow;
+// this universal entity-assignment redemption must not shadow it.
+router.get('/redeem', redeemHandler);
+router.post('/redeem', redeemHandler);
+
 // Evidence submission portal dashboard
 router.get('/respond/:code', ensureEvidenceUser, (req, res) => {
   const code = req.params.code.toUpperCase().trim();
@@ -590,9 +678,11 @@ router.post('/client/login/mfa', (req, res) => {
   run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
 
   req.flash('success', 'Welcome back, ' + user.name + '!');
+  const redeem = req.session.pendingRedeemCode;
   const pendingInvite = req.session.pendingInviteCode;
+  delete req.session.pendingRedeemCode;
   delete req.session.pendingInviteCode;
-  res.redirect(pendingInvite ? `/respond/${pendingInvite}` : '/intake');
+  res.redirect(redeem ? `/redeem?code=${redeem}` : (pendingInvite ? `/respond/${pendingInvite}` : '/intake'));
 });
 
 router.post('/client/login/webauthn', (req, res) => {
@@ -615,9 +705,11 @@ router.post('/client/login/webauthn', (req, res) => {
   run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
 
   req.flash('success', 'Welcome back, ' + user.name + '!');
+  const redeem = req.session.pendingRedeemCode;
   const pendingInvite = req.session.pendingInviteCode;
+  delete req.session.pendingRedeemCode;
   delete req.session.pendingInviteCode;
-  res.redirect(pendingInvite ? `/respond/${pendingInvite}` : '/intake');
+  res.redirect(redeem ? `/redeem?code=${redeem}` : (pendingInvite ? `/respond/${pendingInvite}` : '/intake'));
 });
 
 router.get('/client/passkey-setup', (req, res) => {

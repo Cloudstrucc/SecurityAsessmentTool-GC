@@ -3716,5 +3716,20 @@
   "crf.confirmPassword": "パスワードの確認",
   "crf.inviteCode": "招待コード（任意）",
   "crf.continue": "MFA設定へ進む",
-  "crf.haveAccount": "すでにアカウントをお持ちですか？"
+  "crf.haveAccount": "すでにアカウントをお持ちですか？",
+  "inv.bannerSent": "招待の送信先:",
+  "inv.bannerShareLink": "引き換え用のこのリンクを共有してください:",
+  "inv.openRedeem": "引き換えページを新しいタブで開く",
+  "inv.codeRequired": "アクセスコードを入力してください。",
+  "inv.codeNotRecognized": "コードが認識されませんでした。確認して再度お試しください。",
+  "inv.codeExpired": "この招待は有効期限が切れています。",
+  "inv.signInToRedeem": "この招待を引き換えるにはサインインしてください。",
+  "inv.wrongAccount": "この招待は別のメールアドレス宛に送信されました。",
+  "inv.redeemedOk": "招待を引き換えました。",
+  "inv.redeemBtn": "コードを引き換える",
+  "inv.redeemTitle": "招待コードを引き換える",
+  "inv.redeemHelp": "受け取った招待コードまたはアクセスコードを入力してください。該当のレコードへ直接ご案内します。",
+  "inv.codeLabel": "招待 / アクセスコード",
+  "inv.redeemSubmit": "引き換えて開く",
+  "inv.redeemCancel": "キャンセル"
 }

@@ -3716,5 +3716,20 @@
   "crf.confirmPassword": "Conferma password",
   "crf.inviteCode": "Codice d'invito (facoltativo)",
   "crf.continue": "Continua alla configurazione MFA",
-  "crf.haveAccount": "Hai già un account?"
+  "crf.haveAccount": "Hai già un account?",
+  "inv.bannerSent": "Invito inviato a",
+  "inv.bannerShareLink": "Condividi questo link per riscattarlo:",
+  "inv.openRedeem": "Apri la pagina di riscatto in una nuova scheda",
+  "inv.codeRequired": "Inserisci un codice di accesso.",
+  "inv.codeNotRecognized": "Codice non riconosciuto. Controllalo e riprova.",
+  "inv.codeExpired": "Questo invito è scaduto.",
+  "inv.signInToRedeem": "Accedi per riscattare questo invito.",
+  "inv.wrongAccount": "Questo invito è stato inviato a un altro indirizzo email.",
+  "inv.redeemedOk": "Invito riscattato.",
+  "inv.redeemBtn": "Riscatta un codice",
+  "inv.redeemTitle": "Riscatta un codice di invito",
+  "inv.redeemHelp": "Inserisci il codice di invito o di accesso ricevuto. Ti porteremo direttamente al record.",
+  "inv.codeLabel": "Codice di invito / accesso",
+  "inv.redeemSubmit": "Riscatta e apri",
+  "inv.redeemCancel": "Annulla"
 }

@@ -3738,5 +3738,20 @@
   "crf.confirmPassword": "Confirmer le mot de passe",
   "crf.inviteCode": "Code d'invitation (facultatif)",
   "crf.continue": "Continuer vers la configuration MFA",
-  "crf.haveAccount": "Vous avez déjà un compte ?"
+  "crf.haveAccount": "Vous avez déjà un compte ?",
+  "inv.bannerSent": "Invitation envoyée à",
+  "inv.bannerShareLink": "Partagez ce lien pour l’activer :",
+  "inv.openRedeem": "Ouvrir la page d’activation dans un nouvel onglet",
+  "inv.codeRequired": "Veuillez saisir un code d’accès.",
+  "inv.codeNotRecognized": "Code non reconnu. Vérifiez-le et réessayez.",
+  "inv.codeExpired": "Cette invitation a expiré.",
+  "inv.signInToRedeem": "Veuillez vous connecter pour activer cette invitation.",
+  "inv.wrongAccount": "Cette invitation a été envoyée à une autre adresse courriel.",
+  "inv.redeemedOk": "Invitation activée.",
+  "inv.redeemBtn": "Utiliser un code",
+  "inv.redeemTitle": "Activer un code d’invitation",
+  "inv.redeemHelp": "Saisissez le code d’invitation ou d’accès reçu. Nous vous dirigeons directement vers l’enregistrement.",
+  "inv.codeLabel": "Code d’invitation / d’accès",
+  "inv.redeemSubmit": "Activer et ouvrir",
+  "inv.redeemCancel": "Annuler"
 }

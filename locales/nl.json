@@ -3716,5 +3716,20 @@
   "crf.confirmPassword": "Bevestig wachtwoord",
   "crf.inviteCode": "Uitnodigingscode (optioneel)",
   "crf.continue": "Doorgaan naar MFA-instelling",
-  "crf.haveAccount": "Heb je al een account?"
+  "crf.haveAccount": "Heb je al een account?",
+  "inv.bannerSent": "Uitnodiging verzonden naar",
+  "inv.bannerShareLink": "Deel deze link om in te wisselen:",
+  "inv.openRedeem": "Open de inwisselpagina in een nieuw tabblad",
+  "inv.codeRequired": "Voer een toegangscode in.",
+  "inv.codeNotRecognized": "Code niet herkend. Controleer de code en probeer het opnieuw.",
+  "inv.codeExpired": "Deze uitnodiging is verlopen.",
+  "inv.signInToRedeem": "Meld je aan om deze uitnodiging in te wisselen.",
+  "inv.wrongAccount": "Deze uitnodiging is naar een ander e-mailadres verzonden.",
+  "inv.redeemedOk": "Uitnodiging ingewisseld.",
+  "inv.redeemBtn": "Een code inwisselen",
+  "inv.redeemTitle": "Een uitnodigingscode inwisselen",
+  "inv.redeemHelp": "Voer de ontvangen uitnodigings- of toegangscode in. We brengen je rechtstreeks naar het record.",
+  "inv.codeLabel": "Uitnodigings-/toegangscode",
+  "inv.redeemSubmit": "Inwisselen en openen",
+  "inv.redeemCancel": "Annuleren"
 }

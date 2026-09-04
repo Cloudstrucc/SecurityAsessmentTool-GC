@@ -2100,3 +2100,33 @@ test('tenant isolation: duplicate project names across workspaces do not collide
   assert.doesNotMatch(alphaDetail, new RegExp(beta.email.replace(/[.+]/g, '\\$&')),
     'Alpha cannot see Beta owner as an assignable user');
 });
+
+test('invite banner exposes a redeem hyperlink and /redeem resolves an assessment code to the evidence flow', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Redeem Project ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+
+  const invite = await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  assert.equal(invite.status, 302);
+
+  // The "invite sent" banner renders on the next page with the code as a
+  // target=_blank hyperlink to the universal redeem page.
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  const m = detail.text.match(/\/redeem\?code=([A-Z0-9]+)"[\s\S]*?target="_blank"/);
+  assert.ok(m, 'invite banner shows the code as a target=_blank redeem hyperlink');
+  const code = m[1];
+
+  // The universal redeem endpoint resolves an assessment's own code to its evidence flow.
+  const redeem = await request(jar, 'GET', `/redeem?code=${code}`, { redirect: 'manual' });
+  assert.equal(redeem.status, 302);
+  assert.equal(redeem.headers.get('location'), `/respond/${code}`, 'redeem forwards to the evidence flow');
+
+  // An unrecognized code is rejected (redirected back), never silently accepted.
+  const bad = await request(jar, 'GET', '/redeem?code=NOSUCHCODE', { redirect: 'manual' });
+  assert.equal(bad.status, 302);
+  assert.notEqual(bad.headers.get('location'), '/respond/NOSUCHCODE');
+
+  // The redeem modal is present on the assessments landing page.
+  const list = await getText(jar, '/admin/assessments');
+  assert.match(list.text, /id="redeemModal"/, 'assessments landing offers the Redeem-a-code modal');
+});

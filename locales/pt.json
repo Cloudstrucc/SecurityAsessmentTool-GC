@@ -3716,5 +3716,20 @@
   "crf.confirmPassword": "Confirmar senha",
   "crf.inviteCode": "Código de convite (opcional)",
   "crf.continue": "Continuar para a configuração de MFA",
-  "crf.haveAccount": "Já tem uma conta?"
+  "crf.haveAccount": "Já tem uma conta?",
+  "inv.bannerSent": "Convite enviado para",
+  "inv.bannerShareLink": "Compartilhe este link para resgatar:",
+  "inv.openRedeem": "Abrir a página de resgate em uma nova aba",
+  "inv.codeRequired": "Insira um código de acesso.",
+  "inv.codeNotRecognized": "Código não reconhecido. Verifique e tente novamente.",
+  "inv.codeExpired": "Este convite expirou.",
+  "inv.signInToRedeem": "Faça login para resgatar este convite.",
+  "inv.wrongAccount": "Este convite foi enviado para outro endereço de e-mail.",
+  "inv.redeemedOk": "Convite resgatado.",
+  "inv.redeemBtn": "Resgatar um código",
+  "inv.redeemTitle": "Resgatar um código de convite",
+  "inv.redeemHelp": "Insira o código de convite ou de acesso que você recebeu. Levaremos você diretamente ao registro.",
+  "inv.codeLabel": "Código de convite / acesso",
+  "inv.redeemSubmit": "Resgatar e abrir",
+  "inv.redeemCancel": "Cancelar"
 }
