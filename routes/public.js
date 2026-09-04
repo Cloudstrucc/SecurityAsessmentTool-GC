@@ -46,9 +46,35 @@ router.get('/', (req, res) => {
 });
 
 router.get('/portal', (req, res) => {
+  // Signed-in project users see everything they have ever been assigned. An item
+  // they no longer own stays visible but read-only (is_current = 0).
+  let myAssessments = [];
+  let myIntakes = [];
+  if (req.session && req.session.clientId) {
+    const cid = req.session.clientId;
+    myAssessments = all(`
+      SELECT DISTINCT a.id, a.invite_code, a.status, p.name AS project_name,
+        CASE WHEN a.assigned_to_user_id = ? THEN 1 ELSE 0 END AS is_current
+      FROM assessments a
+      JOIN projects p ON p.id = a.project_id
+      WHERE a.assigned_to_user_id = ?
+         OR a.id IN (SELECT entity_id FROM assessment_assignments WHERE entity_type = 'assessment' AND assigned_to = ?)
+      ORDER BY a.updated_at DESC
+    `, [cid, cid, cid]);
+    myIntakes = all(`
+      SELECT DISTINCT i.id, i.ref_code, i.status, i.project_name,
+        CASE WHEN i.assigned_to_user_id = ? THEN 1 ELSE 0 END AS is_current
+      FROM intake_submissions i
+      WHERE i.assigned_to_user_id = ?
+         OR i.id IN (SELECT entity_id FROM assessment_assignments WHERE entity_type = 'intake' AND assigned_to = ?)
+      ORDER BY i.updated_at DESC
+    `, [cid, cid, cid]);
+  }
   res.render('portal', {
     title: 'Client Portal - Vanguard Cloud Services',
-    layout: 'home'
+    layout: 'home',
+    myAssessments, myIntakes,
+    hasMyWork: myAssessments.length > 0 || myIntakes.length > 0
   });
 });
 
@@ -248,29 +274,66 @@ function redeemHandler(req, res) {
 router.get('/redeem', redeemHandler);
 router.post('/redeem', redeemHandler);
 
+// Who may open an assessment's evidence flow, and whether they may edit it.
+//   • The CURRENT assignee (client or assessor) edits — while the assessment is
+//     still in evidence-gathering (draft/submitted/audit/completed are locked).
+//   • The owning workspace's assessor/admin may VIEW progress read-only. To make
+//     changes they "take ownership" (which reassigns the assessment to them).
+//   • A PAST assignee keeps read-only visibility after being unassigned.
+// Returns null when the signed-in actor has no relationship to the assessment.
+function evidenceAccess(req, assessment) {
+  const access = require('../config/access');
+  const locked = ['draft', 'submitted', 'audit', 'completed'].includes(assessment.status);
+  const isAssignee = (id) => assessment.assigned_to_user_id && Number(assessment.assigned_to_user_id) === Number(id);
+  const wasAssignee = (id) => !!get("SELECT 1 FROM assessment_assignments WHERE entity_type='assessment' AND entity_id=? AND assigned_to=?", [assessment.id, id]);
+
+  const myEmail = req.user ? String(req.user.email || '').toLowerCase().trim() : '';
+  const assignedEmail = String(assessment.assigned_to_email || '').toLowerCase().trim();
+  if (req.user) {
+    const proj = get('SELECT organization_id FROM projects WHERE id = ?', [assessment.project_id]) || {};
+    const inOrg = access.isRootAdmin(req.user) || access.canAccessProject(req.user, proj);
+    if (inOrg) {
+      // Editable when there is no OTHER assignee — i.e. unassigned, or assigned to
+      // this assessor (by id or email). A pending invite (email set, not yet
+      // accepted) still counts as "assigned to someone else".
+      const mine = isAssignee(req.user.id) || (assignedEmail && assignedEmail === myEmail);
+      const other = !mine && (assessment.assigned_to_user_id || assignedEmail);
+      return { canView: true, canEdit: !locked && !other, mode: other ? 'owner-view' : 'owner-editing' };
+    }
+    if (isAssignee(req.user.id) || (assignedEmail && assignedEmail === myEmail)) return { canView: true, canEdit: !locked, mode: 'assignee' };
+    if (wasAssignee(req.user.id)) return { canView: true, canEdit: false, mode: 'past' };
+    return null;
+  }
+  if (req.session && req.session.clientId) {
+    const cid = req.session.clientId;
+    if (isAssignee(cid)) return { canView: true, canEdit: !locked, mode: 'assignee' };
+    const client = get('SELECT email FROM users WHERE id = ?', [cid]);
+    if (client && assessment.assigned_to_email && client.email.toLowerCase().trim() === assessment.assigned_to_email.toLowerCase().trim()) {
+      return { canView: true, canEdit: !locked, mode: 'assignee' };
+    }
+    if (wasAssignee(cid)) return { canView: true, canEdit: false, mode: 'past' };
+    return null;
+  }
+  return null;
+}
+
+function loadAssessmentByCode(code) {
+  return get(`
+    SELECT a.*, p.name as project_name, p.description as project_description,
+      p.project_owner_name, p.data_classification
+    FROM assessments a JOIN projects p ON a.project_id = p.id
+    WHERE UPPER(TRIM(a.invite_code)) = ?
+  `, [String(code || '').toUpperCase().trim()]);
+}
+
 // Evidence submission portal dashboard
 router.get('/respond/:code', ensureEvidenceUser, (req, res) => {
   const code = req.params.code.toUpperCase().trim();
-  console.log('[Public] Looking up invite code:', code);
-  
-  const assessment = get(`
-    SELECT a.*, p.name as project_name, p.description as project_description,
-      p.project_owner_name, p.data_classification
-    FROM assessments a JOIN projects p ON a.project_id = p.id 
-    WHERE UPPER(TRIM(a.invite_code)) = ?
-  `, [code]);
+  const assessment = loadAssessmentByCode(code);
 
   if (!assessment) {
-    console.log('[Public] No assessment found for code:', code);
-    // Debug: check if any assessment has this code at all
-    const raw = get('SELECT id, status, invite_code FROM assessments WHERE invite_code = ?', [code]);
-    if (raw) {
-      console.log('[Public] Found raw match:', raw);
-    }
     return res.render('error', { title: 'Invalid Code', message: 'The access code is not valid. Please check the code and try again.', showAccessForm: true });
   }
-  
-  console.log('[Public] Found assessment ID:', assessment.id, 'status:', assessment.status);
   if (assessment.status === 'draft') {
     return res.render('error', { title: 'Not Ready', message: 'This assessment has not been activated yet.', showAccessForm: false });
   }
@@ -278,21 +341,21 @@ router.get('/respond/:code', ensureEvidenceUser, (req, res) => {
     return res.render('error', { title: 'Expired', message: 'This invitation has expired.', showAccessForm: false });
   }
 
-  if (assessment.assigned_to_email && assessment.assigned_to_role === 'client') {
-    if (!req.session.clientId) {
+  const acc = evidenceAccess(req, assessment);
+  if (!acc || !acc.canView) {
+    // Signed in, but this assessment is not theirs. If a specific client account
+    // was invited, point them at it; otherwise it is simply not accessible.
+    if (assessment.assigned_to_email && !req.session.clientId) {
       req.session.pendingInviteCode = code;
-      req.flash('info', 'Please sign in with the assigned client account to access this assessment.');
+      req.flash('info', 'Please sign in with the assigned account to access this assessment.');
       return res.redirect('/client/login?email=' + encodeURIComponent(assessment.assigned_to_email));
     }
-    const client = get('SELECT email FROM users WHERE id = ?', [req.session.clientId]);
-    if (!client || client.email.toLowerCase().trim() !== assessment.assigned_to_email.toLowerCase().trim()) {
-      req.flash('error', 'This assessment is assigned to a different client account.');
-      return res.redirect('/client/login?email=' + encodeURIComponent(assessment.assigned_to_email));
-    }
+    req.flash('error', 'This assessment is assigned to a different account.');
+    return res.render('error', { title: 'Not Available', message: 'This assessment is not assigned to your account.', showAccessForm: true });
   }
 
   const controls = all(`
-    SELECT * FROM assessment_controls 
+    SELECT * FROM assessment_controls
     WHERE assessment_id = ? AND is_applicable = 1
     ORDER BY family, control_id
   `, [assessment.id]);
@@ -306,7 +369,9 @@ router.get('/respond/:code', ensureEvidenceUser, (req, res) => {
   const total = controls.length;
   const provided = controls.filter(c => c.evidence_status === 'provided').length;
   const isSubmitted = assessment.status === 'submitted' || assessment.status === 'audit' || assessment.status === 'completed';
-  const isReadOnly = isSubmitted;
+  // Read-only whenever the assessment is locked by status OR the viewer is not the
+  // current assignee (owner viewing progress, or a past assignee).
+  const isReadOnly = isSubmitted || !acc.canEdit;
 
   res.render('public/respond', {
     title: `Evidence Submission – ${assessment.project_name}`,
@@ -315,7 +380,11 @@ router.get('/respond/:code', ensureEvidenceUser, (req, res) => {
     families: Object.values(families),
     controls, total, provided,
     progress: total > 0 ? Math.round(provided / total * 100) : 0,
-    isSubmitted, isReadOnly
+    isSubmitted, isReadOnly,
+    viewMode: acc.mode,
+    readOnlyReason: isReadOnly && !isSubmitted ? (acc.mode === 'owner-view'
+      ? tr(req, 'ev.roOwner', 'Read-only: this assessment is assigned to someone else. Take ownership from the assessment page to make changes.')
+      : (acc.mode === 'past' ? tr(req, 'ev.roPast', 'Read-only: you are no longer assigned to this assessment.') : '')) : ''
   });
 });
 
@@ -326,6 +395,8 @@ router.post('/respond/:code/save/:controlId', ensureEvidenceUser, express.json({
   if (!assessment || assessment.status === 'submitted' || assessment.status === 'audit' || assessment.status === 'completed') {
     return res.json({ success: false, message: 'Cannot save - assessment is locked' });
   }
+  const acc = evidenceAccess(req, assessment);
+  if (!acc || !acc.canEdit) return res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
 
   const { evidence_text, evidence_html } = req.body;
   run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?, 
@@ -342,6 +413,8 @@ router.post('/respond/:code/upload/:controlId', ensureEvidenceUser, upload.singl
   const code = req.params.code.toUpperCase();
   const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
   if (!assessment || !req.file) return res.json({ success: false });
+  const accU = evidenceAccess(req, assessment);
+  if (!accU || !accU.canEdit) return res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
 
   run(`INSERT INTO attachments (assessment_control_id, filename, original_name, mime_type, size, uploaded_by)
     VALUES (?, ?, ?, ?, ?, ?)`,
@@ -364,6 +437,8 @@ router.post('/respond/:code/comment/:controlId', ensureEvidenceUser, express.jso
     WHERE a.invite_code = ?
   `, [code]);
   if (!assessment) return res.json({ success: false });
+  const accC = evidenceAccess(req, assessment);
+  if (!accC || !accC.canEdit) return res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
 
   const { content } = req.body;
   run(`INSERT INTO comments (assessment_control_id, user_name, user_role, content)
@@ -435,8 +510,13 @@ router.post('/respond/:code/submit', ensureEvidenceUser, (req, res) => {
   `, [code]);
 
   if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/'); }
+  const accS = evidenceAccess(req, assessment);
+  if (!accS || !accS.canEdit) {
+    req.flash('error', tr(req, 'ev.roSubmit', 'Only the current owner of this assessment can submit it.'));
+    return res.redirect('/respond/' + code);
+  }
 
-  run(`UPDATE assessments SET status = 'submitted', submitted_at = CURRENT_TIMESTAMP, 
+  run(`UPDATE assessments SET status = 'submitted', submitted_at = CURRENT_TIMESTAMP,
     updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [assessment.id]);
 
   // Notify assessor

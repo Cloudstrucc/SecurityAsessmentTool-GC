@@ -3710,5 +3710,19 @@
   "inv.redeemHelp": "Enter the invitation or access code you received. We'll take you straight to the record.",
   "inv.codeLabel": "Invitation / access code",
   "inv.redeemSubmit": "Redeem & open",
-  "inv.redeemCancel": "Cancel"
+  "inv.redeemCancel": "Cancel",
+  "ev.openEvidenceFlow": "Open evidence flow",
+  "ev.openReadOnly": "Open the evidence flow (read-only — assigned to someone else)",
+  "ev.takeOwnership": "Take ownership",
+  "ev.takeOwnershipConfirm": "Take ownership of this assessment's evidence? It will be reassigned to you so you can edit it, and the current assignee keeps read-only access until you re-assign it.",
+  "ev.roOwner": "Read-only: this assessment is assigned to someone else. Take ownership from the assessment page to make changes.",
+  "ev.roPast": "Read-only: you are no longer assigned to this assessment.",
+  "ev.roSave": "Read-only: you are not the current owner of this assessment.",
+  "ev.roSubmit": "Only the current owner of this assessment can submit it.",
+  "portal.myWork": "My work",
+  "portal.myAssessments": "Assessments",
+  "portal.myIntakes": "Intakes",
+  "portal.readOnly": "Read-only",
+  "portal.openWork": "Open",
+  "portal.viewWork": "View"
 }

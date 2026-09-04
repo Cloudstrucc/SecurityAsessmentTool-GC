@@ -3731,5 +3731,19 @@
   "inv.redeemHelp": "Inserisci il codice di invito o di accesso ricevuto. Ti porteremo direttamente al record.",
   "inv.codeLabel": "Codice di invito / accesso",
   "inv.redeemSubmit": "Riscatta e apri",
-  "inv.redeemCancel": "Annulla"
+  "inv.redeemCancel": "Annulla",
+  "ev.openEvidenceFlow": "Apri il flusso delle prove",
+  "ev.openReadOnly": "Apri il flusso delle prove (sola lettura — assegnato a un'altra persona)",
+  "ev.takeOwnership": "Assumi la titolarità",
+  "ev.takeOwnershipConfirm": "Assumere la titolarità delle prove di questa valutazione? Verrà riassegnata a te per poterla modificare e la persona attualmente assegnata manterrà l'accesso in sola lettura finché non la riassegni.",
+  "ev.roOwner": "Sola lettura: questa valutazione è assegnata a un'altra persona. Assumine la titolarità dalla pagina della valutazione per apportare modifiche.",
+  "ev.roPast": "Sola lettura: non sei più assegnato a questa valutazione.",
+  "ev.roSave": "Sola lettura: non sei il titolare attuale di questa valutazione.",
+  "ev.roSubmit": "Solo il titolare attuale di questa valutazione può inviarla.",
+  "portal.myWork": "Il mio lavoro",
+  "portal.myAssessments": "Valutazioni",
+  "portal.myIntakes": "Richieste",
+  "portal.readOnly": "Sola lettura",
+  "portal.openWork": "Apri",
+  "portal.viewWork": "Visualizza"
 }

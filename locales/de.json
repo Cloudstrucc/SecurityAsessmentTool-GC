@@ -3731,5 +3731,19 @@
   "inv.redeemHelp": "Geben Sie den erhaltenen Einladungs- oder Zugangscode ein. Wir leiten Sie direkt zum Datensatz.",
   "inv.codeLabel": "Einladungs-/Zugangscode",
   "inv.redeemSubmit": "Einlösen und öffnen",
-  "inv.redeemCancel": "Abbrechen"
+  "inv.redeemCancel": "Abbrechen",
+  "ev.openEvidenceFlow": "Nachweis-Workflow öffnen",
+  "ev.openReadOnly": "Nachweis-Workflow öffnen (schreibgeschützt – jemand anderem zugewiesen)",
+  "ev.takeOwnership": "Verantwortung übernehmen",
+  "ev.takeOwnershipConfirm": "Die Verantwortung für die Nachweise dieser Bewertung übernehmen? Sie wird Ihnen neu zugewiesen, damit Sie sie bearbeiten können; die aktuell zugewiesene Person behält schreibgeschützten Zugriff, bis Sie sie neu zuweisen.",
+  "ev.roOwner": "Schreibgeschützt: Diese Bewertung ist jemand anderem zugewiesen. Übernehmen Sie die Verantwortung auf der Bewertungsseite, um Änderungen vorzunehmen.",
+  "ev.roPast": "Schreibgeschützt: Sie sind dieser Bewertung nicht mehr zugewiesen.",
+  "ev.roSave": "Schreibgeschützt: Sie sind nicht der aktuelle Verantwortliche dieser Bewertung.",
+  "ev.roSubmit": "Nur der aktuelle Verantwortliche dieser Bewertung kann sie einreichen.",
+  "portal.myWork": "Meine Aufgaben",
+  "portal.myAssessments": "Bewertungen",
+  "portal.myIntakes": "Anfragen",
+  "portal.readOnly": "Schreibgeschützt",
+  "portal.openWork": "Öffnen",
+  "portal.viewWork": "Ansehen"
 }

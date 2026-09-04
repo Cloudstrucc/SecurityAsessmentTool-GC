@@ -3731,5 +3731,19 @@
   "inv.redeemHelp": "Insira o código de convite ou de acesso que você recebeu. Levaremos você diretamente ao registro.",
   "inv.codeLabel": "Código de convite / acesso",
   "inv.redeemSubmit": "Resgatar e abrir",
-  "inv.redeemCancel": "Cancelar"
+  "inv.redeemCancel": "Cancelar",
+  "ev.openEvidenceFlow": "Abrir o fluxo de evidências",
+  "ev.openReadOnly": "Abrir o fluxo de evidências (somente leitura — atribuído a outra pessoa)",
+  "ev.takeOwnership": "Assumir a propriedade",
+  "ev.takeOwnershipConfirm": "Assumir a propriedade das evidências desta avaliação? Ela será reatribuída a você para que possa editá-la, e a pessoa atualmente atribuída manterá acesso somente leitura até você reatribuí-la.",
+  "ev.roOwner": "Somente leitura: esta avaliação está atribuída a outra pessoa. Assuma a propriedade na página da avaliação para fazer alterações.",
+  "ev.roPast": "Somente leitura: você não está mais atribuído a esta avaliação.",
+  "ev.roSave": "Somente leitura: você não é o proprietário atual desta avaliação.",
+  "ev.roSubmit": "Somente o proprietário atual desta avaliação pode enviá-la.",
+  "portal.myWork": "Meu trabalho",
+  "portal.myAssessments": "Avaliações",
+  "portal.myIntakes": "Solicitações",
+  "portal.readOnly": "Somente leitura",
+  "portal.openWork": "Abrir",
+  "portal.viewWork": "Ver"
 }

@@ -63,7 +63,7 @@ router.use((req, res, next) => {
   if (p === '/assessments' || p === '/intakes') return res.redirect('/admin/dashboard');
   // Per-action RBAC on an assessment: assessor-only actions are blocked even for
   // the assigned practitioner. They keep view, report downloads and comments.
-  if (/^\/assessments\/\d+\/(tailoring|send-invite|assign|start-audit|audit-control|complete-audit|checklist|poam|reactivate|delete|manage-controls|add-controls|remove-control|update-control|ai\/)/.test(p)) {
+  if (/^\/assessments\/\d+\/(tailoring|send-invite|assign|take-ownership|start-audit|audit-control|complete-audit|checklist|poam|reactivate|delete|manage-controls|add-controls|remove-control|update-control|ai\/)/.test(p)) {
     return deny('Only an assessor can perform that action.');
   }
   // Scope assessment/intake detail to the practitioner's own assignments.
@@ -2582,6 +2582,17 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     title: viewingVersion ? `Assessment v${viewingVersion}: ${assessment.project_name}` : `Assessment: ${assessment.project_name}`,
     isAdmin: true, isAssessments: true,
     admin: req.user, assessment, assignments, users: getAssignableUsers(req.user), versions, viewingVersion,
+    // Evidence ownership state for the action menu: is the assessment assigned to
+    // someone other than the current assessor (so they'd open the flow read-only
+    // and can "take ownership"), or to themselves / no one (they can edit)? A
+    // pending invite (email set, not yet accepted) counts as assigned-to-other.
+    assignedToOther: (() => {
+      const mine = (assessment.assigned_to_user_id && Number(assessment.assigned_to_user_id) === Number(req.user.id)) ||
+        (assessment.assigned_to_email && assessment.assigned_to_email.toLowerCase().trim() === String(req.user.email || '').toLowerCase().trim());
+      return !mine && !!(assessment.assigned_to_user_id || assessment.assigned_to_email);
+    })(),
+    assignedToMe: !!((assessment.assigned_to_user_id && Number(assessment.assigned_to_user_id) === Number(req.user.id)) ||
+      (assessment.assigned_to_email && assessment.assigned_to_email.toLowerCase().trim() === String(req.user.email || '').toLowerCase().trim())),
     assessmentFlow: processFlows.assessmentFlow(assessment),
     assessmentLock: decisionPackages.assessmentLock(assessment.id),
     collabEnabled: collaboration.isEnabled(get('SELECT * FROM projects WHERE id = ?', [assessment.project_id]), orgSettingsFor(req)),
@@ -2854,6 +2865,32 @@ router.post('/assessments/:id/assign', ensureAuthenticated, (req, res) => {
   } catch (err) {
     console.error('Assessment assignment error:', err);
     req.flash('error', 'Assignment failed: ' + err.message);
+    res.redirect(`/admin/assessments/${req.params.id}`);
+  }
+});
+
+// Reclaim editing control of an assessment's evidence. When an assessment is
+// assigned to a project user, the assessor/admin can only VIEW the evidence flow
+// (read-only). Taking ownership reassigns the assessment to the assessor so they
+// can edit; the prior assignee keeps read-only visibility (their assignment row
+// stays), and the assessor re-assigns it to hand editing back.
+router.post('/assessments/:id/take-ownership', ensureAuthenticated, (req, res) => {
+  try {
+    const assessment = get(`
+      SELECT a.*, p.name AS project_name
+      FROM assessments a JOIN projects p ON p.id = a.project_id
+      WHERE a.id = ?
+    `, [req.params.id]);
+    if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+
+    upsertEntityAssignment({ entityType: 'assessment', entityId: assessment.id, user: req.user, assigneeRole: 'assessor', assignedBy: req.user.id, notes: 'Ownership taken' });
+    updateAssignmentColumns('assessment', assessment.id, req.user, req.user.email, 'assessor');
+
+    req.flash('success', `You now own the evidence for “${assessment.project_name}”. Re-assign it when you’re ready to hand it back.`);
+    res.redirect(`/admin/assessments/${assessment.id}`);
+  } catch (err) {
+    console.error('take-ownership error:', err);
+    req.flash('error', 'Could not take ownership: ' + err.message);
     res.redirect(`/admin/assessments/${req.params.id}`);
   }
 });

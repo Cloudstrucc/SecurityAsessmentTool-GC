@@ -3731,5 +3731,19 @@
   "inv.redeemHelp": "Voer de ontvangen uitnodigings- of toegangscode in. We brengen je rechtstreeks naar het record.",
   "inv.codeLabel": "Uitnodigings-/toegangscode",
   "inv.redeemSubmit": "Inwisselen en openen",
-  "inv.redeemCancel": "Annuleren"
+  "inv.redeemCancel": "Annuleren",
+  "ev.openEvidenceFlow": "Bewijsstroom openen",
+  "ev.openReadOnly": "Bewijsstroom openen (alleen-lezen — aan iemand anders toegewezen)",
+  "ev.takeOwnership": "Eigenaarschap overnemen",
+  "ev.takeOwnershipConfirm": "Het eigenaarschap van het bewijs van deze beoordeling overnemen? De beoordeling wordt aan jou toegewezen zodat je deze kunt bewerken, en de huidige toegewezen persoon behoudt alleen-lezentoegang totdat je deze opnieuw toewijst.",
+  "ev.roOwner": "Alleen-lezen: deze beoordeling is aan iemand anders toegewezen. Neem het eigenaarschap over via de beoordelingspagina om wijzigingen aan te brengen.",
+  "ev.roPast": "Alleen-lezen: je bent niet langer aan deze beoordeling toegewezen.",
+  "ev.roSave": "Alleen-lezen: je bent niet de huidige eigenaar van deze beoordeling.",
+  "ev.roSubmit": "Alleen de huidige eigenaar van deze beoordeling kan deze indienen.",
+  "portal.myWork": "Mijn werk",
+  "portal.myAssessments": "Beoordelingen",
+  "portal.myIntakes": "Aanvragen",
+  "portal.readOnly": "Alleen-lezen",
+  "portal.openWork": "Openen",
+  "portal.viewWork": "Bekijken"
 }

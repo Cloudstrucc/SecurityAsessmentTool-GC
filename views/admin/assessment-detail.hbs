@@ -120,9 +120,21 @@
               <form method="POST" action="/admin/assessments/{{assessment.id}}/send-invite" class="d-inline">
                 <button class="btn btn-outline-primary btn-sm"><i class="bi bi-send me-1"></i>{{t 'ui.resendInvite'}}</button>
               </form>
-              <a href="/respond/{{assessment.invite_code}}" class="btn btn-success btn-sm" title="{{t 'ui.openThePublicEvidenceSubmission'}}">
-                <i class="bi bi-pencil-square me-1"></i>{{t 'ui.editEvidence'}}
-              </a>
+              {{#if assignedToOther}}
+                {{!-- Assigned to a project user: the assessor opens the flow read-only to
+                      watch progress, and must take ownership to edit. --}}
+                <a href="/respond/{{assessment.invite_code}}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm" title="{{t 'ev.openReadOnly'}}">
+                  <i class="bi bi-box-arrow-up-right me-1"></i>{{t 'ev.openEvidenceFlow'}}
+                </a>
+                <form method="POST" action="/admin/assessments/{{assessment.id}}/take-ownership" class="d-inline"
+                  onsubmit="return confirm('{{t 'ev.takeOwnershipConfirm'}}')">
+                  <button class="btn btn-warning btn-sm"><i class="bi bi-person-fill-check me-1"></i>{{t 'ev.takeOwnership'}}</button>
+                </form>
+              {{else}}
+                <a href="/respond/{{assessment.invite_code}}" target="_blank" rel="noopener" class="btn btn-success btn-sm" title="{{t 'ui.openThePublicEvidenceSubmission'}}">
+                  <i class="bi bi-pencil-square me-1"></i>{{t 'ui.editEvidence'}}
+                </a>
+              {{/if}}
             {{/eq}}
 
             {{#eq assessment.status "submitted"}}

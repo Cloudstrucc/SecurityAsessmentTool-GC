@@ -11,11 +11,17 @@
   </div>
 
   {{#if isReadOnly}}
-    <div class="alert alert-info">
-      <i class="bi bi-info-circle me-2"></i>
-      This assessment has been submitted and is now <strong>read-only</strong>. Your assessor will review the evidence and
-      may reactivate it if updates are needed.
-    </div>
+    {{#if readOnlyReason}}
+      <div class="alert alert-warning">
+        <i class="bi bi-lock me-2"></i>{{readOnlyReason}}
+      </div>
+    {{else}}
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        This assessment has been submitted and is now <strong>read-only</strong>. Your assessor will review the evidence and
+        may reactivate it if updates are needed.
+      </div>
+    {{/if}}
   {{/if}}
 
   <!-- Progress bar (sticky) -->

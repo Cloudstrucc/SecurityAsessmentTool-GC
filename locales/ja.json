@@ -3731,5 +3731,19 @@
   "inv.redeemHelp": "受け取った招待コードまたはアクセスコードを入力してください。該当のレコードへ直接ご案内します。",
   "inv.codeLabel": "招待 / アクセスコード",
   "inv.redeemSubmit": "引き換えて開く",
-  "inv.redeemCancel": "キャンセル"
+  "inv.redeemCancel": "キャンセル",
+  "ev.openEvidenceFlow": "証跡フローを開く",
+  "ev.openReadOnly": "証跡フローを開く（読み取り専用 — 他の担当者に割り当て済み）",
+  "ev.takeOwnership": "担当を引き継ぐ",
+  "ev.takeOwnershipConfirm": "この評価の証跡の担当を引き継ぎますか？編集できるようにあなたに再割り当てされ、現在の担当者は再割り当てするまで読み取り専用アクセスを保持します。",
+  "ev.roOwner": "読み取り専用: この評価は他の担当者に割り当てられています。変更するには評価ページで担当を引き継いでください。",
+  "ev.roPast": "読み取り専用: あなたはこの評価の担当ではなくなりました。",
+  "ev.roSave": "読み取り専用: あなたはこの評価の現在の担当者ではありません。",
+  "ev.roSubmit": "この評価を提出できるのは現在の担当者のみです。",
+  "portal.myWork": "マイタスク",
+  "portal.myAssessments": "評価",
+  "portal.myIntakes": "受付申請",
+  "portal.readOnly": "読み取り専用",
+  "portal.openWork": "開く",
+  "portal.viewWork": "表示"
 }

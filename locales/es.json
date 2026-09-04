@@ -3753,5 +3753,19 @@
   "inv.redeemHelp": "Introduce el código de invitación o de acceso que recibiste. Te llevaremos directamente al registro.",
   "inv.codeLabel": "Código de invitación / acceso",
   "inv.redeemSubmit": "Canjear y abrir",
-  "inv.redeemCancel": "Cancelar"
+  "inv.redeemCancel": "Cancelar",
+  "ev.openEvidenceFlow": "Abrir el flujo de evidencias",
+  "ev.openReadOnly": "Abrir el flujo de evidencias (solo lectura: asignado a otra persona)",
+  "ev.takeOwnership": "Tomar propiedad",
+  "ev.takeOwnershipConfirm": "¿Tomar propiedad de las evidencias de esta evaluación? Se te reasignará para que puedas editarla, y la persona asignada actualmente conservará acceso de solo lectura hasta que la reasignes.",
+  "ev.roOwner": "Solo lectura: esta evaluación está asignada a otra persona. Toma su propiedad desde la página de la evaluación para hacer cambios.",
+  "ev.roPast": "Solo lectura: ya no estás asignado a esta evaluación.",
+  "ev.roSave": "Solo lectura: no eres el propietario actual de esta evaluación.",
+  "ev.roSubmit": "Solo el propietario actual de esta evaluación puede enviarla.",
+  "portal.myWork": "Mi trabajo",
+  "portal.myAssessments": "Evaluaciones",
+  "portal.myIntakes": "Solicitudes",
+  "portal.readOnly": "Solo lectura",
+  "portal.openWork": "Abrir",
+  "portal.viewWork": "Ver"
 }

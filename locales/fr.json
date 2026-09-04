@@ -3753,5 +3753,19 @@
   "inv.redeemHelp": "Saisissez le code d’invitation ou d’accès reçu. Nous vous dirigeons directement vers l’enregistrement.",
   "inv.codeLabel": "Code d’invitation / d’accès",
   "inv.redeemSubmit": "Activer et ouvrir",
-  "inv.redeemCancel": "Annuler"
+  "inv.redeemCancel": "Annuler",
+  "ev.openEvidenceFlow": "Ouvrir le flux de preuves",
+  "ev.openReadOnly": "Ouvrir le flux de preuves (lecture seule — attribué à une autre personne)",
+  "ev.takeOwnership": "Prendre en charge",
+  "ev.takeOwnershipConfirm": "Prendre en charge les preuves de cette évaluation ? Elle vous sera réattribuée pour que vous puissiez la modifier, et la personne actuellement attribuée conservera un accès en lecture seule jusqu’à ce que vous la réattribuiez.",
+  "ev.roOwner": "Lecture seule : cette évaluation est attribuée à une autre personne. Prenez-la en charge depuis la page de l’évaluation pour la modifier.",
+  "ev.roPast": "Lecture seule : vous n’êtes plus attribué à cette évaluation.",
+  "ev.roSave": "Lecture seule : vous n’êtes pas le responsable actuel de cette évaluation.",
+  "ev.roSubmit": "Seul le responsable actuel de cette évaluation peut la soumettre.",
+  "portal.myWork": "Mes dossiers",
+  "portal.myAssessments": "Évaluations",
+  "portal.myIntakes": "Demandes d’admission",
+  "portal.readOnly": "Lecture seule",
+  "portal.openWork": "Ouvrir",
+  "portal.viewWork": "Consulter"
 }

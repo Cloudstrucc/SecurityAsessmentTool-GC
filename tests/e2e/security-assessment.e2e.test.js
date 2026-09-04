@@ -2130,3 +2130,40 @@ test('invite banner exposes a redeem hyperlink and /redeem resolves an assessmen
   const list = await getText(jar, '/admin/assessments');
   assert.match(list.text, /id="redeemModal"/, 'assessments landing offers the Redeem-a-code modal');
 });
+
+test('evidence ownership: an assigned assessment is read-only for the owner until they take ownership', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Ownership Project ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+
+  // Move to evidence-gathering, then assign to a DIFFERENT person (pending invite:
+  // assigned_to_email is set to someone other than the admin).
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const other = `evidence.person.${Date.now()}@example.test`;
+  const assign = await request(jar, 'POST', `/admin/assessments/${assessmentId}/assign`, {
+    form: { assignment_mode: 'invite', invite_email: other, assignee_role: 'client' }
+  });
+  assert.equal(assign.status, 302);
+
+  // The detail now offers "Take ownership" (assigned to someone else).
+  const detail1 = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(detail1.text, /take-ownership/, 'assigned-to-other shows the Take ownership action');
+  const codeM = detail1.text.match(/\/respond\/([A-Z0-9]+)/);
+  assert.ok(codeM, 'assessment has an evidence-flow code');
+  const code = codeM[1];
+
+  // The owner opens the evidence flow read-only, and saving is refused.
+  const respond = await getText(jar, `/respond/${code}`);
+  assert.match(respond.text, /Read-only/i, 'owner opens the assigned flow read-only');
+  const save = await request(jar, 'POST', `/respond/${code}/save/1`, { json: { evidence_text: 'x', evidence_html: '<p>x</p>' } });
+  const saveBody = await save.json();
+  assert.equal(saveBody.success, false, 'a read-only owner cannot save evidence');
+
+  // Taking ownership reassigns the assessment to the admin, who can then edit.
+  const take = await request(jar, 'POST', `/admin/assessments/${assessmentId}/take-ownership`);
+  assert.equal(take.status, 302);
+  const detail2 = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(detail2.text, /Edit evidence/i, 'after taking ownership the owner can edit');
+  const respond2 = await getText(jar, `/respond/${code}`);
+  assert.doesNotMatch(respond2.text, /assigned to someone else/i, 'no owner read-only banner after taking ownership');
+});

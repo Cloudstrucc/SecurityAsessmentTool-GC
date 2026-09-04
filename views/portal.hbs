@@ -87,6 +87,45 @@
 </div>
 
 <div class="container portal-wrap">
+  {{#if hasMyWork}}
+  <div class="portal-card card mb-4">
+    <div class="card-header"><i class="bi bi-folder2-open me-2"></i>{{t 'portal.myWork'}}</div>
+    <div class="card-body">
+      {{#if myAssessments.length}}
+        <h6 class="text-muted text-uppercase small fw-bold mb-2">{{t 'portal.myAssessments'}}</h6>
+        <div class="list-group mb-3">
+          {{#each myAssessments}}
+          <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <span class="fw-semibold">{{this.project_name}}</span>
+              <span class="badge bg-light text-dark ms-1">{{this.status}}</span>
+              {{#unless this.is_current}}<span class="badge bg-secondary ms-1"><i class="bi bi-eye me-1"></i>{{t 'portal.readOnly'}}</span>{{/unless}}
+            </div>
+            <a href="/respond/{{this.invite_code}}" class="btn btn-sm {{#if this.is_current}}btn-primary{{else}}btn-outline-secondary{{/if}}">
+              {{#if this.is_current}}<i class="bi bi-pencil-square me-1"></i>{{t 'portal.openWork'}}{{else}}<i class="bi bi-eye me-1"></i>{{t 'portal.viewWork'}}{{/if}}
+            </a>
+          </div>
+          {{/each}}
+        </div>
+      {{/if}}
+      {{#if myIntakes.length}}
+        <h6 class="text-muted text-uppercase small fw-bold mb-2">{{t 'portal.myIntakes'}}</h6>
+        <div class="list-group">
+          {{#each myIntakes}}
+          <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <span class="fw-semibold">{{this.project_name}}</span>
+              <span class="text-muted small ms-1">{{this.ref_code}}</span>
+              <span class="badge bg-light text-dark ms-1">{{this.status}}</span>
+              {{#unless this.is_current}}<span class="badge bg-secondary ms-1"><i class="bi bi-eye me-1"></i>{{t 'portal.readOnly'}}</span>{{/unless}}
+            </div>
+          </div>
+          {{/each}}
+        </div>
+      {{/if}}
+    </div>
+  </div>
+  {{/if}}
   <div class="row justify-content-center g-4">
     <div class="col-lg-4">
       <div class="portal-card card">
