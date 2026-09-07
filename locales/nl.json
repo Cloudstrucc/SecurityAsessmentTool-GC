@@ -3745,5 +3745,7 @@
   "portal.myIntakes": "Aanvragen",
   "portal.readOnly": "Alleen-lezen",
   "portal.openWork": "Openen",
-  "portal.viewWork": "Bekijken"
+  "portal.viewWork": "Bekijken",
+  "ui.assignAndSend": "Toewijzen en verzenden",
+  "ui.assignAndSendHelp": "Wijs deze beoordeling toe aan een bestaande gebruiker of nodig een nieuwe uit. Toewijzen activeert ook de beoordeling en verstuurt de uitnodiging zodat men meteen kan beginnen."
 }

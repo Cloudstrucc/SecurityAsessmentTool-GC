@@ -3745,5 +3745,7 @@
   "portal.myIntakes": "Anfragen",
   "portal.readOnly": "Schreibgeschützt",
   "portal.openWork": "Öffnen",
-  "portal.viewWork": "Ansehen"
+  "portal.viewWork": "Ansehen",
+  "ui.assignAndSend": "Zuweisen & senden",
+  "ui.assignAndSendHelp": "Weisen Sie diese Bewertung einem bestehenden Benutzer zu oder laden Sie einen neuen ein. Das Zuweisen aktiviert auch die Bewertung und sendet die Einladung, damit sofort begonnen werden kann."
 }

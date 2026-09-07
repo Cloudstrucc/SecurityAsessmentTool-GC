@@ -3767,5 +3767,7 @@
   "portal.myIntakes": "Solicitudes",
   "portal.readOnly": "Solo lectura",
   "portal.openWork": "Abrir",
-  "portal.viewWork": "Ver"
+  "portal.viewWork": "Ver",
+  "ui.assignAndSend": "Asignar y enviar",
+  "ui.assignAndSendHelp": "Asigna esta evaluación a un usuario existente o invita a uno nuevo. Asignar también activa la evaluación y envía la invitación para empezar de inmediato."
 }

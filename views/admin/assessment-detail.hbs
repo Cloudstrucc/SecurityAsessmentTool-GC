@@ -103,9 +103,9 @@
                   <i class="bi bi-gear me-1"></i>{{t 'ui.manageControls'}}
                 </a>
               {{/if}}
-              <form method="POST" action="/admin/assessments/{{assessment.id}}/send-invite" class="d-inline">
-                <button class="btn btn-primary"><i class="bi bi-send me-1"></i>{{t 'ui.sendInvite'}}</button>
-              </form>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#assignSendModal" title="{{t 'ui.assignAndSend'}}">
+                <i class="bi bi-person-plus me-1"></i>{{t 'ui.assignAndSend'}}
+              </button>
               <form method="POST" action="/admin/assessments/{{assessment.id}}/delete" class="d-inline"
                 onsubmit="return confirm('Delete this draft assessment? This cannot be undone.')">
                 <input type="hidden" name="return_to" value="/admin/projects/{{assessment.project_id}}">
@@ -117,9 +117,9 @@
               <a href="/admin/assessments/{{assessment.id}}/manage-controls" class="btn btn-outline-primary btn-sm">
                 <i class="bi bi-gear me-1"></i>{{t 'ui.manageControls'}}
               </a>
-              <form method="POST" action="/admin/assessments/{{assessment.id}}/send-invite" class="d-inline">
-                <button class="btn btn-outline-primary btn-sm"><i class="bi bi-send me-1"></i>{{t 'ui.resendInvite'}}</button>
-              </form>
+              <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#assignSendModal" title="{{t 'ui.assignAndSend'}}">
+                <i class="bi bi-person-plus me-1"></i>{{t 'ui.assignAndSend'}}
+              </button>
               {{#if assignedToOther}}
                 {{!-- Assigned to a project user: the assessor opens the flow read-only to
                       watch progress, and must take ownership to edit. --}}
@@ -185,10 +185,17 @@
   {{/unless}}
 
   <div class="card mb-4">
-    <div class="card-header bg-light"><i class="bi bi-person-check me-2"></i>{{t 'ui.assignment'}}</div>
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-person-check me-2"></i>{{t 'ui.assignment'}}</span>
+      {{#unless viewingVersion}}
+      <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#assignSendModal">
+        <i class="bi bi-person-plus me-1"></i>{{t 'ui.assignAndSend'}}
+      </button>
+      {{/unless}}
+    </div>
     <div class="card-body">
       {{#if assignments.length}}
-        <div class="row g-2 mb-3">
+        <div class="row g-2">
           {{#each assignments}}
             <div class="col-md-6">
               <div class="border rounded p-2 small">
@@ -200,49 +207,72 @@
           {{/each}}
         </div>
       {{else}}
-        <p class="text-muted small">{{t 'ui.noOneHasBeenAssigned'}}</p>
+        <p class="text-muted small mb-0">{{t 'ui.noOneHasBeenAssigned'}}</p>
       {{/if}}
-      <form method="POST" action="/admin/assessments/{{assessment.id}}/assign" class="row g-2 align-items-end">
-        <div class="col-md-3">
-          <label class="form-label small fw-semibold" for="assessment_assignment_mode">{{t 'ui.user'}}</label>
-          <select class="form-select form-select-sm assignment-mode" id="assessment_assignment_mode" name="assignment_mode" data-scope="assessment">
-            <option value="existing">{{t 'ui.existingUser'}}</option>
-            <option value="invite">{{t 'ui.inviteNewUser'}}</option>
-          </select>
-        </div>
-        <div class="col-md-5 assignment-existing-assessment">
-          <label class="form-label small fw-semibold" for="assignee_user_id">{{t 'ui.existingUser2'}}</label>
-          <select class="form-select form-select-sm" id="assignee_user_id" name="assignee_user_id">
-            <option value="">{{t 'ui.chooseAUser'}}</option>
-            {{#each users}}
-              <option value="{{this.id}}">{{this.name}} — {{this.email}} ({{this.role}})</option>
-            {{/each}}
-          </select>
-        </div>
-        <div class="col-md-4 assignment-existing-assessment">
-          <label class="form-label small fw-semibold" for="assignment_notes_existing">{{t 'ui.notes'}}</label>
-          <input type="text" class="form-control form-control-sm" id="assignment_notes_existing" name="assignment_notes">
-        </div>
-        <div class="col-12 assignment-invite-assessment d-none">
-          <div class="row g-2">
-            <div class="col-md-2">
-              <select class="form-select form-select-sm" name="assignee_role">
-                <option value="client">{{t 'ui.client'}}</option>
-                <option value="assessor">{{t 'ui.assessor'}}</option>
-              </select>
-            </div>
-            <div class="col-md-3"><input type="text" class="form-control form-control-sm" name="invite_name" placeholder="{{t 'ui.name'}}"></div>
-            <div class="col-md-3"><input type="email" class="form-control form-control-sm" name="invite_email" placeholder="{{t 'ui.email'}}"></div>
-            <div class="col-md-2"><input type="text" class="form-control form-control-sm" name="invite_organization" placeholder="{{t 'ui.organization'}}"></div>
-            <div class="col-md-2"><input type="text" class="form-control form-control-sm" name="invite_message" placeholder="{{t 'ui.inviteMessage'}}"></div>
-          </div>
-        </div>
-        <div class="col-12">
-          <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-person-plus me-1"></i>{{t 'ui.assignAssessmentIntake'}}</button>
-        </div>
-      </form>
     </div>
   </div>
+
+  {{!-- Assign & send modal: assigning also activates the assessment and sends the
+        invite in one step. Invoked from the header "Assign & send" action and the
+        Assignment card button. --}}
+  {{#unless viewingVersion}}
+  <div class="modal fade" id="assignSendModal" tabindex="-1" aria-labelledby="assignSendModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <form method="POST" action="/admin/assessments/{{assessment.id}}/assign">
+          <div class="modal-header">
+            <h5 class="modal-title" id="assignSendModalLabel"><i class="bi bi-person-plus me-2"></i>{{t 'ui.assignAndSend'}}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p class="text-muted small">{{t 'ui.assignAndSendHelp'}}</p>
+            <div class="row g-2 align-items-end">
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold" for="assessment_assignment_mode">{{t 'ui.user'}}</label>
+                <select class="form-select form-select-sm assignment-mode" id="assessment_assignment_mode" name="assignment_mode" data-scope="assessment">
+                  <option value="existing">{{t 'ui.existingUser'}}</option>
+                  <option value="invite">{{t 'ui.inviteNewUser'}}</option>
+                </select>
+              </div>
+              <div class="col-md-8 assignment-existing-assessment">
+                <label class="form-label small fw-semibold" for="assignee_user_id">{{t 'ui.existingUser2'}}</label>
+                <select class="form-select form-select-sm" id="assignee_user_id" name="assignee_user_id">
+                  <option value="">{{t 'ui.chooseAUser'}}</option>
+                  {{#each users}}
+                    <option value="{{this.id}}">{{this.name}} — {{this.email}} ({{this.role}})</option>
+                  {{/each}}
+                </select>
+              </div>
+              <div class="col-12 assignment-existing-assessment">
+                <label class="form-label small fw-semibold" for="assignment_notes_existing">{{t 'ui.notes'}}</label>
+                <input type="text" class="form-control form-control-sm" id="assignment_notes_existing" name="assignment_notes">
+              </div>
+              <div class="col-12 assignment-invite-assessment d-none">
+                <div class="row g-2">
+                  <div class="col-md-3">
+                    <label class="form-label small fw-semibold">{{t 'ui.role'}}</label>
+                    <select class="form-select form-select-sm" name="assignee_role">
+                      <option value="client">{{t 'ui.client'}}</option>
+                      <option value="assessor">{{t 'ui.assessor'}}</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4"><label class="form-label small fw-semibold">{{t 'ui.name'}}</label><input type="text" class="form-control form-control-sm" name="invite_name" placeholder="{{t 'ui.name'}}"></div>
+                  <div class="col-md-5"><label class="form-label small fw-semibold">{{t 'ui.email'}}</label><input type="email" class="form-control form-control-sm" name="invite_email" placeholder="{{t 'ui.email'}}"></div>
+                  <div class="col-md-6"><input type="text" class="form-control form-control-sm" name="invite_organization" placeholder="{{t 'ui.organization'}}"></div>
+                  <div class="col-md-6"><input type="text" class="form-control form-control-sm" name="invite_message" placeholder="{{t 'ui.inviteMessage'}}"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{t 'ui.cancel'}}</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-send-check me-1"></i>{{t 'ui.assignAndSend'}}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {{/unless}}
 
   {{#if documents.length}}
   <div class="card mb-4" id="ai-doc-guidance">

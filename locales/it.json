@@ -3745,5 +3745,7 @@
   "portal.myIntakes": "Richieste",
   "portal.readOnly": "Sola lettura",
   "portal.openWork": "Apri",
-  "portal.viewWork": "Visualizza"
+  "portal.viewWork": "Visualizza",
+  "ui.assignAndSend": "Assegna e invia",
+  "ui.assignAndSendHelp": "Assegna questa valutazione a un utente esistente o invitane uno nuovo. L’assegnazione attiva anche la valutazione e invia l’invito per iniziare subito."
 }

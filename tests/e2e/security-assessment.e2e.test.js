@@ -2167,3 +2167,25 @@ test('evidence ownership: an assigned assessment is read-only for the owner unti
   const respond2 = await getText(jar, `/respond/${code}`);
   assert.doesNotMatch(respond2.text, /assigned to someone else/i, 'no owner read-only banner after taking ownership');
 });
+
+test('assigning an assessment also activates it and sends the invite (no separate send-invite needed)', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Assign-Activate ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+
+  // The detail exposes the "Assign & send" modal instead of an inline form.
+  const before = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(before.text, /assignSendModal/, 'assessment detail exposes the Assign & send modal');
+
+  // Assign to a brand-new invitee with NO prior send-invite click.
+  const other = `assignee.${Date.now()}@example.test`;
+  const assign = await request(jar, 'POST', `/admin/assessments/${assessmentId}/assign`, {
+    form: { assignment_mode: 'invite', invite_email: other, assignee_role: 'client', invite_name: 'Assignee' }
+  });
+  assert.equal(assign.status, 302);
+
+  // Assigning activated the assessment (draft -> evidence-gathering) and recorded the assignee.
+  const after = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(after.text, /Evidence Gathering|evidence-gathering/i, 'assigning activated the assessment');
+  assert.match(after.text, new RegExp(other), 'the assignee is shown on the assessment');
+});

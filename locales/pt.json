@@ -3745,5 +3745,7 @@
   "portal.myIntakes": "Solicitações",
   "portal.readOnly": "Somente leitura",
   "portal.openWork": "Abrir",
-  "portal.viewWork": "Ver"
+  "portal.viewWork": "Ver",
+  "ui.assignAndSend": "Atribuir e enviar",
+  "ui.assignAndSendHelp": "Atribua esta avaliação a um usuário existente ou convide um novo. Atribuir também ativa a avaliação e envia o convite para começar imediatamente."
 }

@@ -764,6 +764,44 @@ function entityLink(entityType, entityId) {
   if (entityType === 'project') return `/admin/projects/${entityId}`;
   return '/admin/dashboard';
 }
+
+// Activate an assessment (draft → evidence-gathering) and optionally email the
+// invite. Assignment and activation go hand in hand: assigning a user should make
+// the assessment immediately accessible, not leave it inert until a separate
+// "send invite" click. Sets the redeem banner to the code that fits the recipient.
+async function activateAndSendInvite(req, assessmentId, { sendEmail = true } = {}) {
+  const assessment = get(`
+    SELECT a.*, p.project_owner_name, p.project_owner_email, p.name as project_name
+    FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?
+  `, [assessmentId]);
+  if (!assessment) return { ok: false, error: 'Assessment not found' };
+
+  const recipientEmail = assessment.assigned_to_email || assessment.project_owner_email;
+  if (!recipientEmail) return { ok: false, error: 'No assigned user or project owner email is available for this assessment.' };
+
+  // Activate on first send (draft → evidence-gathering); always refresh the window.
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 30);
+  run(`UPDATE assessments SET status = CASE WHEN status = 'draft' THEN 'evidence-gathering' ELSE status END,
+       invite_sent_at = CURRENT_TIMESTAMP, invite_expires_at = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+    [expiresAt.toISOString(), assessment.id]);
+
+  let emailResult = { sent: false, error: 'not sent' };
+  if (sendEmail) {
+    const recipientName = assessment.assigned_to_user_id
+      ? (get('SELECT name FROM users WHERE id = ?', [assessment.assigned_to_user_id])?.name || assessment.project_owner_name)
+      : assessment.project_owner_name;
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    emailResult = await emailService.sendInvite({
+      to: recipientEmail, recipientName, projectName: assessment.project_name,
+      inviteCode: assessment.invite_code, expiresAt: expiresAt.toISOString(),
+      assessorName: req.user.name, baseUrl,
+      smtpConfig: orgSettings.orgSmtp(req.user.organization_id)
+    }).catch(err => ({ sent: false, error: err.message }));
+    setInviteBanner(req, { code: assessment.invite_code, recipient: recipientEmail, entityLabel: assessment.project_name || '' });
+  }
+  return { ok: true, emailResult, recipientEmail };
+}
 function assignEntityFromRequest({ req, entityType, entityId, entityName }) {
   const mode = req.body.assignment_mode || 'existing';
   const assigneeRole = req.body.assignee_role || 'client';
@@ -2785,48 +2823,12 @@ router.post('/assessments/:id/ai/document-guidance/save', ensureAuthenticated, e
 // ── SEND INVITE ──
 router.post('/assessments/:id/send-invite', ensureAuthenticated, async (req, res) => {
   try {
-    const assessment = get(`
-      SELECT a.*, p.project_owner_name, p.project_owner_email, p.name as project_name
-      FROM assessments a JOIN projects p ON a.project_id = p.id WHERE a.id = ?
-    `, [req.params.id]);
-
-    if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
-
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 30);
-
-    run(`UPDATE assessments SET status = 'evidence-gathering', invite_sent_at = CURRENT_TIMESTAMP, 
-      invite_expires_at = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-      [expiresAt.toISOString(), assessment.id]);
-
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const recipientEmail = assessment.assigned_to_email || assessment.project_owner_email;
-    const recipientName = assessment.assigned_to_user_id
-      ? (get('SELECT name FROM users WHERE id = ?', [assessment.assigned_to_user_id])?.name || assessment.project_owner_name)
-      : assessment.project_owner_name;
-    if (!recipientEmail) {
-      req.flash('error', 'No assigned user or project owner email is available for this assessment.');
-      return res.redirect(`/admin/assessments/${assessment.id}`);
-    }
-    const emailResult = await emailService.sendInvite({
-      to: recipientEmail,
-      recipientName,
-      projectName: assessment.project_name,
-      inviteCode: assessment.invite_code,
-      expiresAt: expiresAt.toISOString(),
-      assessorName: req.user.name,
-      baseUrl,
-      // Use the tenant's own SMTP when configured, otherwise the platform default.
-      smtpConfig: orgSettings.orgSmtp(req.user.organization_id)
-    });
-
-    setInviteBanner(req, { code: assessment.invite_code, recipient: recipientEmail, entityLabel: assessment.project_name || '' });
-    if (emailResult.sent) {
-      req.flash('success', `Invite emailed to ${recipientEmail}.`);
-    } else {
-      req.flash('success', `Assessment activated. Email could not be sent (${emailResult.error || 'not configured'}) — share the code link below.`);
-    }
-    res.redirect(`/admin/assessments/${assessment.id}`);
+    const r = await activateAndSendInvite(req, req.params.id);
+    if (!r.ok) { req.flash('error', r.error); return res.redirect(`/admin/assessments/${req.params.id}`); }
+    req.flash('success', r.emailResult.sent
+      ? `Invite emailed to ${r.recipientEmail}.`
+      : `Assessment activated. Email could not be sent (${r.emailResult.error || 'not configured'}) — share the code link below.`);
+    res.redirect(`/admin/assessments/${req.params.id}`);
   } catch (err) {
     console.error(err);
     req.flash('error', 'Failed to send invite: ' + err.message);
@@ -2834,7 +2836,7 @@ router.post('/assessments/:id/send-invite', ensureAuthenticated, async (req, res
   }
 });
 
-router.post('/assessments/:id/assign', ensureAuthenticated, (req, res) => {
+router.post('/assessments/:id/assign', ensureAuthenticated, async (req, res) => {
   try {
     const assessment = get(`
       SELECT a.*, p.name AS project_name
@@ -2859,8 +2861,18 @@ router.post('/assessments/:id/assign', ensureAuthenticated, (req, res) => {
       });
     }
 
-    if (result.pending && result.inviteCode) setInviteBanner(req, { code: result.inviteCode, recipient: result.name || result.email, entityLabel: assessment.project_name });
-    req.flash('success', `Assessment${assessment.intake_id ? ' and linked intake' : ''} assigned to ${result.name || result.email}.`);
+    // Assigning ALSO activates the assessment and sends the invite, so the assignee
+    // can access it immediately (no separate "send invite" step). A brand-new
+    // invitee (pending) gets the register link in the banner + their invitation
+    // email; an existing user gets the assessment's evidence-flow invite email.
+    const inv = await activateAndSendInvite(req, assessment.id, { sendEmail: !result.pending });
+    if (!inv.ok) { req.flash('error', inv.error); return res.redirect(`/admin/assessments/${assessment.id}`); }
+
+    if (result.pending && result.inviteCode) {
+      // New invitee → the register link is the useful one to share.
+      setInviteBanner(req, { code: result.inviteCode, recipient: result.name || result.email, entityLabel: assessment.project_name });
+    }
+    req.flash('success', `Assessment${assessment.intake_id ? ' and linked intake' : ''} assigned to ${result.name || result.email} and activated.`);
     res.redirect(`/admin/assessments/${assessment.id}`);
   } catch (err) {
     console.error('Assessment assignment error:', err);
