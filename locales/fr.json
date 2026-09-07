@@ -3769,5 +3769,10 @@
   "portal.openWork": "Ouvrir",
   "portal.viewWork": "Consulter",
   "ui.assignAndSend": "Attribuer et envoyer",
-  "ui.assignAndSendHelp": "Attribuez cette évaluation à un utilisateur existant ou invitez-en un nouveau. L’attribution active aussi l’évaluation et envoie l’invitation pour un démarrage immédiat."
+  "ui.assignAndSendHelp": "Attribuez cette évaluation à un utilisateur existant ou invitez-en un nouveau. L’attribution active aussi l’évaluation et envoie l’invitation pour un démarrage immédiat.",
+  "ev.save": "Enregistrer",
+  "ev.saving": "Enregistrement…",
+  "ev.saved": "Enregistré",
+  "ev.unsaved": "Modifications non enregistrées",
+  "ev.saveError": "Échec de l’enregistrement — nouvelle tentative"
 }

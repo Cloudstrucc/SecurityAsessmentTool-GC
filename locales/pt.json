@@ -3747,5 +3747,10 @@
   "portal.openWork": "Abrir",
   "portal.viewWork": "Ver",
   "ui.assignAndSend": "Atribuir e enviar",
-  "ui.assignAndSendHelp": "Atribua esta avaliação a um usuário existente ou convide um novo. Atribuir também ativa a avaliação e envia o convite para começar imediatamente."
+  "ui.assignAndSendHelp": "Atribua esta avaliação a um usuário existente ou convide um novo. Atribuir também ativa a avaliação e envia o convite para começar imediatamente.",
+  "ev.save": "Salvar",
+  "ev.saving": "Salvando…",
+  "ev.saved": "Salvo",
+  "ev.unsaved": "Alterações não salvas",
+  "ev.saveError": "Não foi possível salvar — tentaremos novamente"
 }

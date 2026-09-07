@@ -2189,3 +2189,18 @@ test('assigning an assessment also activates it and sends the invite (no separat
   assert.match(after.text, /Evidence Gathering|evidence-gathering/i, 'assigning activated the assessment');
   assert.match(after.text, new RegExp(other), 'the assignee is shown on the assessment');
 });
+
+test('evidence editor shows a Save button, periodic autosave, and a saved indicator', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Evidence Save ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+
+  const page = await getText(jar, `/respond/${code}`);
+  assert.match(page.text, /bi-save/, 'the evidence editor shows a Save button');
+  assert.match(page.text, /markDirty\(/, 'typing marks the control dirty for autosave');
+  assert.match(page.text, /setInterval[\s\S]{0,120}10000\)/, 'a periodic autosave runs on a ~10s interval');
+  assert.match(page.text, /id="saveStatus-/, 'a per-control saved indicator is present');
+});

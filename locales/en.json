@@ -3726,5 +3726,10 @@
   "portal.openWork": "Open",
   "portal.viewWork": "View",
   "ui.assignAndSend": "Assign & send",
-  "ui.assignAndSendHelp": "Assign this assessment to an existing user or invite a new one. Assigning also activates the assessment and sends the invite so they can start right away."
+  "ui.assignAndSendHelp": "Assign this assessment to an existing user or invite a new one. Assigning also activates the assessment and sends the invite so they can start right away.",
+  "ev.save": "Save",
+  "ev.saving": "Saving…",
+  "ev.saved": "Saved",
+  "ev.unsaved": "Unsaved changes",
+  "ev.saveError": "Couldn’t save — will retry"
 }

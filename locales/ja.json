@@ -3747,5 +3747,10 @@
   "portal.openWork": "開く",
   "portal.viewWork": "表示",
   "ui.assignAndSend": "割り当てて送信",
-  "ui.assignAndSendHelp": "この評価を既存のユーザーに割り当てるか、新しいユーザーを招待します。割り当てると評価が有効化され、招待が送信されてすぐに開始できます。"
+  "ui.assignAndSendHelp": "この評価を既存のユーザーに割り当てるか、新しいユーザーを招待します。割り当てると評価が有効化され、招待が送信されてすぐに開始できます。",
+  "ev.save": "保存",
+  "ev.saving": "保存中…",
+  "ev.saved": "保存済み",
+  "ev.unsaved": "未保存の変更",
+  "ev.saveError": "保存できませんでした — 再試行します"
 }

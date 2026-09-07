@@ -3747,5 +3747,10 @@
   "portal.openWork": "Apri",
   "portal.viewWork": "Visualizza",
   "ui.assignAndSend": "Assegna e invia",
-  "ui.assignAndSendHelp": "Assegna questa valutazione a un utente esistente o invitane uno nuovo. L’assegnazione attiva anche la valutazione e invia l’invito per iniziare subito."
+  "ui.assignAndSendHelp": "Assegna questa valutazione a un utente esistente o invitane uno nuovo. L’assegnazione attiva anche la valutazione e invia l’invito per iniziare subito.",
+  "ev.save": "Salva",
+  "ev.saving": "Salvataggio…",
+  "ev.saved": "Salvato",
+  "ev.unsaved": "Modifiche non salvate",
+  "ev.saveError": "Impossibile salvare — nuovo tentativo"
 }

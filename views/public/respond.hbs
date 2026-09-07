@@ -110,19 +110,24 @@
             {{else}}
               <div class="evidence-editor" contenteditable="true" id="editor-{{this.id}}"
                 data-control-id="{{this.id}}"
-                oninput="autoSave({{this.id}})"
+                oninput="markDirty({{this.id}})" onblur="saveEvidence({{this.id}})"
                 placeholder="Enter your evidence here...">{{{this.evidence_html}}}</div>
-              <div class="d-flex justify-content-between mt-1">
+              <div class="d-flex justify-content-between align-items-center mt-1 flex-wrap gap-2">
                 <div class="btn-group btn-group-sm">
                   <button type="button" class="btn btn-outline-secondary" onclick="execCmd('bold')" title="Bold"><i class="bi bi-type-bold"></i></button>
                   <button type="button" class="btn btn-outline-secondary" onclick="execCmd('italic')" title="Italic"><i class="bi bi-type-italic"></i></button>
                   <button type="button" class="btn btn-outline-secondary" onclick="execCmd('insertUnorderedList')" title="Bullet List"><i class="bi bi-list-ul"></i></button>
                   <button type="button" class="btn btn-outline-secondary" onclick="execCmd('insertOrderedList')" title="Numbered List"><i class="bi bi-list-ol"></i></button>
                 </div>
-                <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" style="font-size:12px;color:#6d28d9"
-                  data-cid="{{this.id}}" data-control="{{this.control_id}}" data-title="{{this.title}}" data-guidance="{{this.evidence_guidance}}"
-                  onclick="aiRefineEvidence(this)"><i class="bi bi-stars me-1"></i>Refine with AI</button>
-                <small class="text-muted" id="saveStatus-{{this.id}}"></small>
+                <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
+                  <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" style="font-size:12px;color:#6d28d9"
+                    data-cid="{{this.id}}" data-control="{{this.control_id}}" data-title="{{this.title}}" data-guidance="{{this.evidence_guidance}}"
+                    onclick="aiRefineEvidence(this)"><i class="bi bi-stars me-1"></i>Refine with AI</button>
+                  <small class="evidence-save-status" id="saveStatus-{{this.id}}"></small>
+                  <button type="button" class="btn btn-sm btn-outline-success" onclick="saveEvidence({{this.id}}, true)">
+                    <i class="bi bi-save me-1"></i>{{t 'ev.save'}}
+                  </button>
+                </div>
               </div>
             {{/if}}
           </div>
@@ -181,40 +186,92 @@
 
 <script>
 const INVITE_CODE = '{{inviteCode}}';
+const EV_I18N = {
+  saving: {{{tjs 'ev.saving'}}},
+  saved: {{{tjs 'ev.saved'}}},
+  unsaved: {{{tjs 'ev.unsaved'}}},
+  error: {{{tjs 'ev.saveError'}}}
+};
 let saveTimers = {};
+let dirty = {};      // controlId -> unsaved edits pending
+let lastSaved = {};  // controlId -> Date of last successful save
 
 function execCmd(command) {
   document.execCommand(command, false, null);
 }
 
-function autoSave(controlId) {
-  clearTimeout(saveTimers[controlId]);
-  const status = document.getElementById('saveStatus-' + controlId);
-  if (status) status.textContent = 'Saving...';
-  saveTimers[controlId] = setTimeout(() => saveEvidence(controlId), 1500);
+function fmtTime(d) {
+  try { return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; }
 }
 
-async function saveEvidence(controlId) {
+// Render the per-control save indicator so the provider always knows the state:
+// unsaved edits, saving, saved (with time), or a save error.
+function setStatus(controlId, kind) {
+  const el = document.getElementById('saveStatus-' + controlId);
+  if (!el) return;
+  el.classList.remove('text-muted', 'text-success', 'text-danger', 'text-warning');
+  if (kind === 'saving') { el.textContent = EV_I18N.saving; el.classList.add('text-muted'); }
+  else if (kind === 'saved') { el.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>' + EV_I18N.saved + (lastSaved[controlId] ? (' · ' + fmtTime(lastSaved[controlId])) : ''); el.classList.add('text-success'); }
+  else if (kind === 'unsaved') { el.innerHTML = '<i class="bi bi-pencil-fill me-1"></i>' + EV_I18N.unsaved; el.classList.add('text-warning'); }
+  else if (kind === 'error') { el.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i>' + EV_I18N.error; el.classList.add('text-danger'); }
+  else { el.textContent = ''; }
+}
+
+// Typing marks the control dirty and schedules a debounced save shortly after the
+// user pauses. A separate 10s timer is the safety net for continuous typing.
+function markDirty(controlId) {
+  dirty[controlId] = true;
+  setStatus(controlId, 'unsaved');
+  clearTimeout(saveTimers[controlId]);
+  saveTimers[controlId] = setTimeout(() => saveEvidence(controlId), 1200);
+}
+
+async function saveEvidence(controlId, manual) {
   const editor = document.getElementById('editor-' + controlId);
   if (!editor) return;
-  const status = document.getElementById('saveStatus-' + controlId);
+  if (!manual && !dirty[controlId]) return; // nothing new to save
+  clearTimeout(saveTimers[controlId]);
+  setStatus(controlId, 'saving');
   try {
     const res = await fetch('/respond/' + INVITE_CODE + '/save/' + controlId, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        evidence_text: editor.innerText,
-        evidence_html: editor.innerHTML
-      })
+      body: JSON.stringify({ evidence_text: editor.innerText, evidence_html: editor.innerHTML })
     });
     const data = await res.json();
-    if (status) status.textContent = data.success ? 'Saved ✓' : 'Error saving';
-    if (data.success) updateProgress();
-    setTimeout(() => { if (status) status.textContent = ''; }, 3000);
-  } catch(e) {
-    if (status) status.textContent = 'Error saving';
+    if (data.success) { dirty[controlId] = false; lastSaved[controlId] = new Date(); setStatus(controlId, 'saved'); updateProgress(); }
+    else { setStatus(controlId, 'error'); }
+  } catch (e) {
+    setStatus(controlId, 'error');
   }
 }
+
+// Periodic autosave: every 10s, flush any control with unsaved edits.
+setInterval(function () {
+  Object.keys(dirty).forEach(function (cid) { if (dirty[cid]) saveEvidence(cid); });
+}, 10000);
+
+// Best-effort flush of pending edits when leaving the page.
+window.addEventListener('beforeunload', function () {
+  Object.keys(dirty).forEach(function (cid) {
+    if (!dirty[cid]) return;
+    const editor = document.getElementById('editor-' + cid);
+    if (editor && navigator.sendBeacon) {
+      navigator.sendBeacon('/respond/' + INVITE_CODE + '/save/' + cid,
+        new Blob([JSON.stringify({ evidence_text: editor.innerText, evidence_html: editor.innerHTML })], { type: 'application/json' }));
+    }
+  });
+});
+
+// On load, controls that already have evidence show as saved (editable until submit).
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('[id^="editor-"]').forEach(function (ed) {
+    if (ed.innerText.trim().length > 0) {
+      const cid = ed.getAttribute('data-control-id');
+      if (cid) setStatus(cid, 'saved');
+    }
+  });
+});
 
 function updateProgress() {
   const editors = document.querySelectorAll('[id^="editor-"]');

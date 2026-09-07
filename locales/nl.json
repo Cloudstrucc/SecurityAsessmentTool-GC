@@ -3747,5 +3747,10 @@
   "portal.openWork": "Openen",
   "portal.viewWork": "Bekijken",
   "ui.assignAndSend": "Toewijzen en verzenden",
-  "ui.assignAndSendHelp": "Wijs deze beoordeling toe aan een bestaande gebruiker of nodig een nieuwe uit. Toewijzen activeert ook de beoordeling en verstuurt de uitnodiging zodat men meteen kan beginnen."
+  "ui.assignAndSendHelp": "Wijs deze beoordeling toe aan een bestaande gebruiker of nodig een nieuwe uit. Toewijzen activeert ook de beoordeling en verstuurt de uitnodiging zodat men meteen kan beginnen.",
+  "ev.save": "Opslaan",
+  "ev.saving": "Bezig met opslaan…",
+  "ev.saved": "Opgeslagen",
+  "ev.unsaved": "Niet-opgeslagen wijzigingen",
+  "ev.saveError": "Opslaan mislukt — opnieuw proberen"
 }
