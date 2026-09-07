@@ -3790,5 +3790,9 @@
   "ev.bulkBtn": "Proposer des brouillons (tous)",
   "ev.bulkHelp": "Générer des brouillons de preuves à compléter pour chaque contrôle sans preuve",
   "ev.bulkConfirm": "Générer des brouillons de preuves suggérés par l’IA pour tous les contrôles sans preuve ? Les preuves existantes ne sont pas modifiées.",
-  "ev.bulkDone": "{n} brouillon(s) de preuves suggéré(s) généré(s)."
+  "ev.bulkDone": "{n} brouillon(s) de preuves suggéré(s) généré(s).",
+  "ev.approve": "Approuver",
+  "ev.decline": "Refuser",
+  "ev.approveAll": "Tout approuver",
+  "ev.proposeHeading": "Preuves suggérées — approuvez pour remplir les champs"
 }

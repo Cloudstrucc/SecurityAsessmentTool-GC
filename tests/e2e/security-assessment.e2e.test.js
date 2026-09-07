@@ -2252,3 +2252,31 @@ test('bulk suggested evidence generates drafts for empty controls and skips real
   assert.doesNotMatch(respondAfter.text, /id="draftBadge-\d/, 'no draft badge over real evidence');
   assert.match(respondAfter.text, /id="progressCount">1</, 'the real evidence still counts as provided');
 });
+
+test('assistant evidence proposals: apply-suggestions writes drafts and never overwrites real evidence', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Apply Suggest ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const respond = await getText(jar, `/respond/${code}`);
+  const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
+
+  // Approve a proposal → persisted as an ai-suggested draft (uncounted).
+  const apply = await request(jar, 'POST', `/respond/${code}/apply-suggestions`, { json: { items: [{ controlDbId: cid, text: 'Draft with [[VALUE: owner]] and [[ATTACH: policy]].' }] } });
+  const body = await apply.json();
+  assert.equal(body.success, true);
+  assert.equal(body.applied.length, 1, 'one draft applied');
+  const respond2 = await getText(jar, `/respond/${code}`);
+  assert.match(respond2.text, new RegExp('id="draftBadge-' + cid), 'the applied proposal shows as a draft');
+  assert.match(respond2.text, /id="progressCount">0</, 'an approved draft does not count as provided');
+
+  // Real evidence must never be overwritten by a later proposal.
+  await request(jar, 'POST', `/respond/${code}/save/${cid}`, { json: { evidence_text: 'Real evidence here.', evidence_html: '<p>Real evidence here.</p>' } });
+  const apply2 = await request(jar, 'POST', `/respond/${code}/apply-suggestions`, { json: { items: [{ controlDbId: cid, text: 'Should NOT overwrite [[VALUE:x]].' }] } });
+  const body2 = await apply2.json();
+  assert.equal(body2.applied.length, 0, 'real evidence is not overwritten');
+  const respond3 = await getText(jar, `/respond/${code}`);
+  assert.match(respond3.text, /Real evidence here\./, 'real evidence preserved');
+});

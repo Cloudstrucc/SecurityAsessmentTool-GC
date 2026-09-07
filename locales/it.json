@@ -3768,5 +3768,9 @@
   "ev.bulkBtn": "Suggerisci bozze (tutte)",
   "ev.bulkHelp": "Genera bozze di prova con segnaposto per ogni controllo senza prove",
   "ev.bulkConfirm": "Generare bozze di prova suggerite dall’IA per tutti i controlli senza prove? Le prove esistenti non vengono modificate.",
-  "ev.bulkDone": "Generate {n} bozze di prova suggerite."
+  "ev.bulkDone": "Generate {n} bozze di prova suggerite.",
+  "ev.approve": "Approva",
+  "ev.decline": "Rifiuta",
+  "ev.approveAll": "Approva tutto",
+  "ev.proposeHeading": "Prove suggerite — approva per compilare i campi"
 }

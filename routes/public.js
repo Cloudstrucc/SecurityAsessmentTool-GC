@@ -507,10 +507,50 @@ router.post('/respond/:code/ai-chat', ensureEvidenceUser, express.json(), async 
         [assessment.project_id, assessment.id, 'evidence', null, assessment.assigned_to_email || 'evidence-provider', 'evidence',
          String(message), result.reply || '', '[]']);
     } catch (e) { /* non-fatal */ }
-    // Evidence mode is guidance-only — never expose scope CRUD to the evidence provider.
-    res.json({ success: true, reply: result.reply, actions: [] });
+    // Evidence mode exposes NO scope CRUD — only "populate_evidence" proposals, each
+    // mapped to a control that belongs to this assessment. The user approves them
+    // (Approve / Approve all) to write drafts into the fields.
+    const byControlId = new Map(all('SELECT id, control_id FROM assessment_controls WHERE assessment_id = ? AND is_applicable = 1', [assessment.id]).map(c => [String(c.control_id).toUpperCase(), c.id]));
+    const proposals = (Array.isArray(result.actions) ? result.actions : [])
+      .filter(a => a && a.op === 'populate_evidence' && a.controlId && a.text)
+      .map(a => ({ controlDbId: byControlId.get(String(a.controlId).toUpperCase()), controlId: a.controlId, text: String(a.text) }))
+      .filter(a => a.controlDbId);
+    res.json({ success: true, reply: result.reply, proposals });
   } catch (err) {
     console.error('respond ai-chat error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Apply approved AI evidence proposals (Approve / Approve all). Writes each as an
+// 'ai-suggested' draft; replaces empty controls and prior drafts, but never a
+// control that already holds real (user) evidence.
+router.post('/respond/:code/apply-suggestions', ensureEvidenceUser, express.json({ limit: '2mb' }), (req, res) => {
+  try {
+    const code = req.params.code.toUpperCase();
+    const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
+    if (!assessment) return res.json({ success: false, message: 'Assessment not found.' });
+    const acc = evidenceAccess(req, assessment);
+    if (!acc || !acc.canEdit) return res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
+
+    const es = require('../config/evidence-suggest');
+    const items = Array.isArray(req.body.items) ? req.body.items : [];
+    const applied = [];
+    for (const it of items) {
+      if (!it || !it.controlDbId || !it.text) continue;
+      const control = get('SELECT id, evidence_source, evidence_text FROM assessment_controls WHERE id = ? AND assessment_id = ?', [it.controlDbId, assessment.id]);
+      if (!control) continue;
+      if (control.evidence_source === 'user') continue; // never overwrite real evidence
+      const text = String(it.text);
+      const html = es.suggestToHtml(text);
+      run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?, evidence_source = 'ai-suggested',
+           evidence_status = 'pending', evidence_suggested_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        [text, html, control.id]);
+      applied.push({ controlDbId: control.id, text, html });
+    }
+    res.json({ success: true, applied });
+  } catch (err) {
+    console.error('respond apply-suggestions error:', err);
     res.status(500).json({ error: err.message });
   }
 });

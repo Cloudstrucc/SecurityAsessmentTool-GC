@@ -3768,5 +3768,9 @@
   "ev.bulkBtn": "Concepten voorstellen (alle)",
   "ev.bulkHelp": "Genereer bewijsconcepten met tijdelijke aanduidingen voor elk control zonder bewijs",
   "ev.bulkConfirm": "AI-voorgestelde bewijsconcepten genereren voor alle controls zonder bewijs? Bestaand bewijs blijft ongewijzigd.",
-  "ev.bulkDone": "{n} voorgestelde bewijsconcept(en) gegenereerd."
+  "ev.bulkDone": "{n} voorgestelde bewijsconcept(en) gegenereerd.",
+  "ev.approve": "Goedkeuren",
+  "ev.decline": "Afwijzen",
+  "ev.approveAll": "Alles goedkeuren",
+  "ev.proposeHeading": "Voorgesteld bewijs — keur goed om de velden te vullen"
 }

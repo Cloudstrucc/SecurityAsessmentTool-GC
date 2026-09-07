@@ -195,6 +195,12 @@ window.AIAssist = (function(){
     if(kind==='bot'){ d.innerHTML=mdToHtml(cleanReply(text)); } else { d.textContent=text; }
     msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight; return d;
   }
+  // Append a bot bubble whose content is caller-supplied HTML (e.g. approve/decline
+  // proposal cards). Used by the evidence page via cfg().onResponse.
+  function addCard(html){
+    var d=document.createElement('div'); d.className='aia-msg bot'; d.innerHTML=html;
+    msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight; return d;
+  }
   function typing(on){
     var t=document.getElementById('aiaTyping');
     if(on){ if(!t){ t=document.createElement('div'); t.id='aiaTyping'; t.className='aia-typing'; t.textContent='Assistant is thinking…'; msgs.appendChild(t);} }
@@ -282,6 +288,7 @@ window.AIAssist = (function(){
       if(!r.ok||!data.success) throw new Error(data.error||'The assistant could not respond.');
       add('bot', data.reply||'(no reply)'); history.push({role:'assistant',content:data.reply||''});
       renderActions(data.actions);
+      if(typeof c.onResponse==='function'){ try{ c.onResponse(data, { addCard: addCard, escapeHtml: escapeHtml }); }catch(e){ console.error(e); } }
     }catch(e){ typing(false); add('sys', e.message||'Something went wrong.'); }
     sendBtn.disabled=false; input.focus();
   }

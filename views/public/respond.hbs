@@ -211,6 +211,48 @@ function updatePhHint(controlId) {
   if (n > 0) { hint.hidden = false; hint.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>' + EV_I18N.phRemain.replace('{n}', n); }
   else { hint.hidden = true; hint.textContent = ''; }
 }
+const DRAFT_BADGE_LABEL = {{{tjs 'ev.draftBadge'}}};
+const EV_LBL = {
+  approve: {{{tjs 'ev.approve'}}},
+  decline: {{{tjs 'ev.decline'}}},
+  approveAll: {{{tjs 'ev.approveAll'}}},
+  propose: {{{tjs 'ev.proposeHeading'}}}
+};
+// Approve one or more assistant evidence proposals: persist as drafts, reflect in
+// the editors, and remove the card(s) once applied.
+async function aiApplyProposals(items, node) {
+  if (!items || !items.length) return;
+  try {
+    const r = await fetch('/respond/' + INVITE_CODE + '/apply-suggestions', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: items })
+    });
+    const data = await r.json();
+    if (!data.success) { alert(data.message || EV_I18N.suggestFail); return; }
+    (data.applied || []).forEach(function (a) { applyDraftToEditor(a.controlDbId, a.html); });
+    if (node) node.remove();
+  } catch (e) { alert(EV_I18N.suggestFail); }
+}
+// Reflect a server-saved AI draft into a control's editor (shared by the per-control
+// "Suggest a draft" button and the assistant's Approve / Approve all). The server
+// has already persisted it as an 'ai-suggested' draft, so we do NOT mark it dirty.
+function applyDraftToEditor(cid, html) {
+  const editor = document.getElementById('editor-' + cid);
+  if (!editor) return;
+  editor.innerHTML = html || '';
+  dirty[cid] = false;
+  updatePhHint(cid);
+  setStatus(cid, 'saved'); lastSaved[cid] = new Date();
+  const wrap = editor.closest('.mb-2');
+  const label = wrap && wrap.querySelector('label');
+  if (label && !document.getElementById('draftBadge-' + cid)) {
+    const b = document.createElement('span');
+    b.id = 'draftBadge-' + cid; b.className = 'badge text-bg-warning ms-1';
+    b.innerHTML = '<i class="bi bi-magic me-1"></i>' + DRAFT_BADGE_LABEL;
+    label.appendChild(b);
+  }
+  updateProgress();
+}
+
 // Soft warning at submit: if any evidence still contains unfilled placeholders,
 // warn (but allow) before the normal submit confirmation.
 function evConfirmSubmit(msg) {
@@ -295,19 +337,7 @@ async function aiSuggestEvidence(btn) {
     });
     const data = await res.json();
     if (data && data.success) {
-      editor.innerHTML = data.html || '';
-      dirty[cid] = false;                       // server already saved it as a draft
-      updatePhHint(cid);
-      setStatus(cid, 'saved'); lastSaved[cid] = new Date();
-      // Ensure the "AI-suggested" badge is present.
-      const label = editor.closest('.mb-2').querySelector('label');
-      if (label && !document.getElementById('draftBadge-' + cid)) {
-        const b = document.createElement('span');
-        b.id = 'draftBadge-' + cid; b.className = 'badge text-bg-warning ms-1';
-        b.innerHTML = '<i class="bi bi-magic me-1"></i>' + {{{tjs 'ev.draftBadge'}}};
-        label.appendChild(b);
-      }
-      updateProgress();
+      applyDraftToEditor(cid, data.html);
     } else {
       alert((data && data.message) || EV_I18N.suggestFail);
     }
@@ -421,7 +451,38 @@ window.AIAssistConfig = {
   subtitle: 'Evidence help · ask anything',
   greeting: 'Hi — I can explain what each control is asking for and help you write clear evidence. Ask me anything, or use “Refine with AI” on a control to expand a quick note.',
   getSelected: function(){ return []; },   // the server loads the control set for context
-  applyActions: function(){}                // evidence mode is guidance-only
+  applyActions: function(){},               // evidence mode exposes no scope CRUD
+  // Render the assistant's evidence proposals as Approve / Approve all cards.
+  onResponse: function(data, tools){
+    var props = (data && data.proposals) || [];
+    if(!props.length) return;
+    var esc = tools.escapeHtml;
+    var head = props.length > 1
+      ? '<div class="mb-2"><button type="button" class="btn btn-sm btn-success py-0" data-role="approve-all">'+esc(EV_LBL.approveAll)+'</button></div>'
+      : '';
+    var rows = props.map(function(p){
+      var t = p.text || '';
+      var preview = esc(t.slice(0,220)) + (t.length>220 ? '…' : '');
+      return '<div class="ai-prop border rounded p-2 mb-2">' +
+        '<div class="fw-semibold small mb-1">'+esc(p.controlId||'')+'</div>' +
+        '<div class="small text-muted" style="white-space:pre-wrap;max-height:120px;overflow:auto">'+preview+'</div>' +
+        '<div class="d-flex gap-2 mt-2">' +
+          '<button type="button" class="btn btn-sm btn-primary py-0" data-role="approve">'+esc(EV_LBL.approve)+'</button>' +
+          '<button type="button" class="btn btn-sm btn-outline-secondary py-0" data-role="decline">'+esc(EV_LBL.decline)+'</button>' +
+        '</div></div>';
+    }).join('');
+    var card = tools.addCard('<div class="fw-semibold mb-2" style="color:#6d28d9"><i class="bi bi-magic me-1"></i>'+esc(EV_LBL.propose)+'</div>'+head+rows);
+    var nodes = card.querySelectorAll('.ai-prop');
+    nodes.forEach(function(node, i){
+      node.querySelector('[data-role="approve"]').onclick = function(){ aiApplyProposals([{ controlDbId: props[i].controlDbId, text: props[i].text }], node); };
+      node.querySelector('[data-role="decline"]').onclick = function(){ node.remove(); };
+    });
+    var allBtn = card.querySelector('[data-role="approve-all"]');
+    if(allBtn) allBtn.onclick = function(){
+      var items = props.map(function(p){ return { controlDbId: p.controlDbId, text: p.text }; });
+      aiApplyProposals(items, card);
+    };
+  }
 };
 async function aiRefineEvidence(btn){
   var id=btn.getAttribute('data-cid');

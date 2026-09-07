@@ -3768,5 +3768,9 @@
   "ev.bulkBtn": "Sugerir rascunhos (todos)",
   "ev.bulkHelp": "Gerar rascunhos de evidência com espaços reservados para cada controle sem evidência",
   "ev.bulkConfirm": "Gerar rascunhos de evidência sugeridos por IA para todos os controles sem evidência? As evidências existentes não são alteradas.",
-  "ev.bulkDone": "{n} rascunho(s) de evidência sugerido(s) gerado(s)."
+  "ev.bulkDone": "{n} rascunho(s) de evidência sugerido(s) gerado(s).",
+  "ev.approve": "Aprovar",
+  "ev.decline": "Recusar",
+  "ev.approveAll": "Aprovar tudo",
+  "ev.proposeHeading": "Evidência sugerida — aprove para preencher os campos"
 }

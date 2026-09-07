@@ -3768,5 +3768,9 @@
   "ev.bulkBtn": "Entwürfe vorschlagen (alle)",
   "ev.bulkHelp": "Platzhalter-Nachweisentwürfe für jedes Control ohne Nachweis erzeugen",
   "ev.bulkConfirm": "KI-vorgeschlagene Nachweisentwürfe für alle Controls ohne Nachweis erzeugen? Vorhandene Nachweise bleiben unverändert.",
-  "ev.bulkDone": "{n} vorgeschlagene Nachweisentwürfe erzeugt."
+  "ev.bulkDone": "{n} vorgeschlagene Nachweisentwürfe erzeugt.",
+  "ev.approve": "Übernehmen",
+  "ev.decline": "Ablehnen",
+  "ev.approveAll": "Alle übernehmen",
+  "ev.proposeHeading": "Vorgeschlagene Nachweise – zum Ausfüllen der Felder übernehmen"
 }

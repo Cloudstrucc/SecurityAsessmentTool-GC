@@ -3790,5 +3790,9 @@
   "ev.bulkBtn": "Sugerir borradores (todos)",
   "ev.bulkHelp": "Generar borradores de evidencia con marcadores para cada control sin evidencia",
   "ev.bulkConfirm": "¿Generar borradores de evidencia sugeridos por IA para todos los controles sin evidencia? La evidencia existente no se modifica.",
-  "ev.bulkDone": "Se generaron {n} borrador(es) de evidencia sugerido(s)."
+  "ev.bulkDone": "Se generaron {n} borrador(es) de evidencia sugerido(s).",
+  "ev.approve": "Aprobar",
+  "ev.decline": "Rechazar",
+  "ev.approveAll": "Aprobar todo",
+  "ev.proposeHeading": "Evidencia sugerida: aprueba para rellenar los campos"
 }

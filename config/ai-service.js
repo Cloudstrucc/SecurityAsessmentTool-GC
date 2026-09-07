@@ -569,7 +569,7 @@ async function assessmentChat({ mode = 'create', frameworkLabel = 'ITSG-33', pro
   const modeDesc = {
     create: 'The assessor is CREATING an assessment and tailoring which controls are in scope. You may propose adding, removing, or tailoring controls.',
     review: 'The assessor is REVIEWING/auditing a submitted assessment. Answer questions and suggest tailoring; do not propose bulk scope changes unless explicitly asked.',
-    evidence: 'A project team member is providing EVIDENCE for controls. Help them understand what each control requires and how to answer clearly; do not change scope.'
+    evidence: 'A project team member is providing EVIDENCE for controls. Help them understand what each control requires and how to answer clearly; do not change scope. When they ask you to draft, fill, write, or populate the evidence for one or more controls, PROPOSE the drafts as populate_evidence actions (the user gets Approve / Approve all buttons that write them into the fields).'
   }[mode] || '';
   const selectedList = (selectedControls || []).slice(0, 400).map(c => `${c.id} — ${c.title || ''}`).join('\n');
   const system = `You are the "Aegis SA Assistant", an expert Security Assessment & Authorization (SA&A) helper embedded in the Aegis SA platform. You help assessors and project teams tailor and understand security control sets for ${frameworkLabel}.
@@ -590,7 +590,11 @@ Respond with ONLY a JSON object (no prose outside it):
   "reply": "your conversational answer — keep it to at most ~4 short sentences; put detailed per-control instructions in each action's 'tailoring' field, NOT here (markdown ok: **bold**, - bullets)",
   "actions": [ { "op": "remove" | "add" | "tailor", "controlIds": ["AC-2"], "reason": "short reason", "tailoring": "for op=tailor only: suggested tailoring note" } ]
 }
-If no scope change is warranted, return "actions": [].`;
+If no scope change is warranted, return "actions": [].${mode === 'evidence' ? `
+
+EVIDENCE MODE — populating evidence: when the user asks you to draft/fill/write/populate evidence for one or more controls, return ONE action per control shaped EXACTLY like:
+  { "op": "populate_evidence", "controlId": "AC-11", "text": "draft evidence text..." }
+In each "text": write a realistic 2-4 paragraph/bulleted draft, but NEVER invent specific values, dates, names or versions — use placeholder tokens [[VALUE: short hint]] for values the team must supply and [[ATTACH: description]] for artifacts to attach. Use only control IDs from the in-scope list. Keep "reply" short and tell them they can Approve each draft or Approve all.` : ''}`;
   const convo = (history || []).slice(-8).map(h => `${h.role === 'assistant' ? 'Assistant' : 'User'}: ${h.content}`).join('\n');
   const userContent = `${projectContext ? 'Project context: ' + projectContext + '\n\n' : ''}${convo ? 'Conversation so far:\n' + convo + '\n\n' : ''}User: ${message}`;
   const text = await callClaude(system, userContent, { maxTokens: 3800 });
