@@ -3742,5 +3742,10 @@
   "ev.suggestReplace": "Replace the current text with a fresh AI-suggested draft?",
   "ev.suggestHasEvidence": "You already have evidence here — clear it first to generate a draft.",
   "ev.phRemain": "{n} placeholder(s) still to fill in",
-  "ev.submitPlaceholders": "Some evidence still has {n} unfilled placeholder(s). Submit anyway?"
+  "ev.submitPlaceholders": "Some evidence still has {n} unfilled placeholder(s). Submit anyway?",
+  "ev.assignSuggest": "Also generate suggested evidence drafts for each control",
+  "ev.bulkBtn": "Suggest drafts (all)",
+  "ev.bulkHelp": "Generate placeholder evidence drafts for every control without evidence yet",
+  "ev.bulkConfirm": "Generate AI-suggested evidence drafts for all controls without evidence? Existing evidence is left untouched.",
+  "ev.bulkDone": "Generated {n} suggested evidence draft(s)."
 }

@@ -527,8 +527,8 @@ function suggestedEvidenceFallback(control) {
   ].join('\n\n');
 }
 
-async function generateSuggestedEvidence(control, projectContext = {}) {
-  if (!isConfigured()) return suggestedEvidenceFallback(control);
+async function generateSuggestedEvidence(control, projectContext = {}, { allowAI = true } = {}) {
+  if (!allowAI || !isConfigured()) return suggestedEvidenceFallback(control);
   const system = `You are a GC IT security practitioner drafting a STARTER "control implementation / evidence" response that the system team will edit and complete.
 Rules:
 - Write 2-4 short paragraphs or bullet points in the project's context.

@@ -117,6 +117,10 @@
               <a href="/admin/assessments/{{assessment.id}}/manage-controls" class="btn btn-outline-primary btn-sm">
                 <i class="bi bi-gear me-1"></i>{{t 'ui.manageControls'}}
               </a>
+              <form method="POST" action="/admin/assessments/{{assessment.id}}/suggest-evidence-all" class="d-inline"
+                onsubmit="return confirm('{{t 'ev.bulkConfirm'}}')">
+                <button class="btn btn-outline-primary btn-sm" title="{{t 'ev.bulkHelp'}}"><i class="bi bi-magic me-1"></i>{{t 'ev.bulkBtn'}}</button>
+              </form>
               <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#assignSendModal" title="{{t 'ui.assignAndSend'}}">
                 <i class="bi bi-person-plus me-1"></i>{{t 'ui.assignAndSend'}}
               </button>
@@ -262,6 +266,12 @@
                   <div class="col-md-6"><input type="text" class="form-control form-control-sm" name="invite_message" placeholder="{{t 'ui.inviteMessage'}}"></div>
                 </div>
               </div>
+            </div>
+            <div class="form-check mt-3">
+              <input class="form-check-input" type="checkbox" value="1" name="suggest_evidence" id="suggest_evidence">
+              <label class="form-check-label small" for="suggest_evidence">
+                <i class="bi bi-magic me-1"></i>{{t 'ev.assignSuggest'}}
+              </label>
             </div>
           </div>
           <div class="modal-footer">

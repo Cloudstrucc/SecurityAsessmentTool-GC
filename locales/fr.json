@@ -3785,5 +3785,10 @@
   "ev.suggestReplace": "Remplacer le texte actuel par un nouveau brouillon suggéré par l’IA ?",
   "ev.suggestHasEvidence": "Vous avez déjà des preuves ici — effacez-les d’abord pour générer un brouillon.",
   "ev.phRemain": "{n} espace(s) réservé(s) encore à compléter",
-  "ev.submitPlaceholders": "Certaines preuves contiennent encore {n} espace(s) réservé(s) non complété(s). Soumettre quand même ?"
+  "ev.submitPlaceholders": "Certaines preuves contiennent encore {n} espace(s) réservé(s) non complété(s). Soumettre quand même ?",
+  "ev.assignSuggest": "Générer aussi des brouillons de preuves suggérés pour chaque contrôle",
+  "ev.bulkBtn": "Proposer des brouillons (tous)",
+  "ev.bulkHelp": "Générer des brouillons de preuves à compléter pour chaque contrôle sans preuve",
+  "ev.bulkConfirm": "Générer des brouillons de preuves suggérés par l’IA pour tous les contrôles sans preuve ? Les preuves existantes ne sont pas modifiées.",
+  "ev.bulkDone": "{n} brouillon(s) de preuves suggéré(s) généré(s)."
 }

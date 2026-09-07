@@ -2225,6 +2225,30 @@ test('suggested evidence: a placeholder draft is generated (offline fallback) an
 
   // Stored as an AI-suggested draft that does NOT count toward provided progress.
   const respond2 = await getText(jar, `/respond/${code}`);
-  assert.match(respond2.text, /AI-suggested draft/, 'the control shows the AI-suggested draft badge');
+  assert.match(respond2.text, new RegExp('id="draftBadge-' + cid), 'the control shows the server-rendered AI-suggested draft badge');
   assert.match(respond2.text, /id="progressCount">0</, 'a suggested draft is not counted as provided');
+});
+
+test('bulk suggested evidence generates drafts for empty controls and skips real evidence', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Bulk Suggest ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const respond = await getText(jar, `/respond/${code}`);
+  const cid = respond.text.match(/editor-(\d+)/)[1];
+
+  // Put REAL evidence on the single control (flips evidence_source to 'user').
+  const save = await request(jar, 'POST', `/respond/${code}/save/${cid}`, { json: { evidence_text: 'Real user evidence.', evidence_html: '<p>Real user evidence.</p>' } });
+  assert.equal((await save.json()).success, true);
+
+  // Bulk generate: the control with real evidence must be left untouched.
+  const bulk = await request(jar, 'POST', `/admin/assessments/${assessmentId}/suggest-evidence-all`);
+  assert.equal(bulk.status, 302);
+  const respondAfter = await getText(jar, `/respond/${code}`);
+  assert.match(respondAfter.text, /Real user evidence\./, 'real evidence is preserved by bulk generation');
+  assert.doesNotMatch(respondAfter.text, /id="draftBadge-\d/, 'no draft badge over real evidence');
+  assert.match(respondAfter.text, /id="progressCount">1</, 'the real evidence still counts as provided');
 });

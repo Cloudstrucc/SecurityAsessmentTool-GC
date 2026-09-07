@@ -3785,5 +3785,10 @@
   "ev.suggestReplace": "¿Reemplazar el texto actual por un nuevo borrador sugerido por IA?",
   "ev.suggestHasEvidence": "Ya tienes evidencia aquí; bórrala primero para generar un borrador.",
   "ev.phRemain": "{n} marcador(es) aún por completar",
-  "ev.submitPlaceholders": "Algunas evidencias aún tienen {n} marcador(es) sin completar. ¿Enviar de todos modos?"
+  "ev.submitPlaceholders": "Algunas evidencias aún tienen {n} marcador(es) sin completar. ¿Enviar de todos modos?",
+  "ev.assignSuggest": "Generar también borradores de evidencia sugeridos para cada control",
+  "ev.bulkBtn": "Sugerir borradores (todos)",
+  "ev.bulkHelp": "Generar borradores de evidencia con marcadores para cada control sin evidencia",
+  "ev.bulkConfirm": "¿Generar borradores de evidencia sugeridos por IA para todos los controles sin evidencia? La evidencia existente no se modifica.",
+  "ev.bulkDone": "Se generaron {n} borrador(es) de evidencia sugerido(s)."
 }

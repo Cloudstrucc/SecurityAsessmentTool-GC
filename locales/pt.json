@@ -3763,5 +3763,10 @@
   "ev.suggestReplace": "Substituir o texto atual por um novo rascunho sugerido por IA?",
   "ev.suggestHasEvidence": "Você já tem evidências aqui — limpe-as primeiro para gerar um rascunho.",
   "ev.phRemain": "{n} espaço(s) reservado(s) ainda a preencher",
-  "ev.submitPlaceholders": "Algumas evidências ainda têm {n} espaço(s) reservado(s) não preenchido(s). Enviar mesmo assim?"
+  "ev.submitPlaceholders": "Algumas evidências ainda têm {n} espaço(s) reservado(s) não preenchido(s). Enviar mesmo assim?",
+  "ev.assignSuggest": "Também gerar rascunhos de evidência sugeridos para cada controle",
+  "ev.bulkBtn": "Sugerir rascunhos (todos)",
+  "ev.bulkHelp": "Gerar rascunhos de evidência com espaços reservados para cada controle sem evidência",
+  "ev.bulkConfirm": "Gerar rascunhos de evidência sugeridos por IA para todos os controles sem evidência? As evidências existentes não são alteradas.",
+  "ev.bulkDone": "{n} rascunho(s) de evidência sugerido(s) gerado(s)."
 }

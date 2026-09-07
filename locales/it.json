@@ -3763,5 +3763,10 @@
   "ev.suggestReplace": "Sostituire il testo attuale con una nuova bozza suggerita dall’IA?",
   "ev.suggestHasEvidence": "Hai già delle prove qui — cancellale prima per generare una bozza.",
   "ev.phRemain": "{n} segnaposto ancora da compilare",
-  "ev.submitPlaceholders": "Alcune prove contengono ancora {n} segnaposto non compilati. Inviare comunque?"
+  "ev.submitPlaceholders": "Alcune prove contengono ancora {n} segnaposto non compilati. Inviare comunque?",
+  "ev.assignSuggest": "Genera anche bozze di prova suggerite per ogni controllo",
+  "ev.bulkBtn": "Suggerisci bozze (tutte)",
+  "ev.bulkHelp": "Genera bozze di prova con segnaposto per ogni controllo senza prove",
+  "ev.bulkConfirm": "Generare bozze di prova suggerite dall’IA per tutti i controlli senza prove? Le prove esistenti non vengono modificate.",
+  "ev.bulkDone": "Generate {n} bozze di prova suggerite."
 }

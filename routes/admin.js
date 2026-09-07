@@ -63,7 +63,7 @@ router.use((req, res, next) => {
   if (p === '/assessments' || p === '/intakes') return res.redirect('/admin/dashboard');
   // Per-action RBAC on an assessment: assessor-only actions are blocked even for
   // the assigned practitioner. They keep view, report downloads and comments.
-  if (/^\/assessments\/\d+\/(tailoring|send-invite|assign|take-ownership|start-audit|audit-control|complete-audit|checklist|poam|reactivate|delete|manage-controls|add-controls|remove-control|update-control|ai\/)/.test(p)) {
+  if (/^\/assessments\/\d+\/(tailoring|send-invite|assign|take-ownership|suggest-evidence-all|start-audit|audit-control|complete-audit|checklist|poam|reactivate|delete|manage-controls|add-controls|remove-control|update-control|ai\/)/.test(p)) {
     return deny('Only an assessor can perform that action.');
   }
   // Scope assessment/intake detail to the practitioner's own assignments.
@@ -2868,6 +2868,9 @@ router.post('/assessments/:id/assign', ensureAuthenticated, async (req, res) => 
     const inv = await activateAndSendInvite(req, assessment.id, { sendEmail: !result.pending });
     if (!inv.ok) { req.flash('error', inv.error); return res.redirect(`/admin/assessments/${assessment.id}`); }
 
+    // Optional: scaffold suggested evidence drafts for the assignee at assign time.
+    if (req.body.suggest_evidence) { try { await bulkSuggestEvidence(req, assessment.id); } catch (e) { console.error('assign suggest-evidence:', e.message); } }
+
     if (result.pending && result.inviteCode) {
       // New invitee → the register link is the useful one to share.
       setInviteBanner(req, { code: result.inviteCode, recipient: result.name || result.email, entityLabel: assessment.project_name });
@@ -2903,6 +2906,57 @@ router.post('/assessments/:id/take-ownership', ensureAuthenticated, (req, res) =
   } catch (err) {
     console.error('take-ownership error:', err);
     req.flash('error', 'Could not take ownership: ' + err.message);
+    res.redirect(`/admin/assessments/${req.params.id}`);
+  }
+});
+
+// Generate AI-suggested placeholder drafts for every applicable control that has
+// no real provider evidence yet. Uses AI when configured and the plan allows it,
+// otherwise the free deterministic fallback — so it always produces drafts and a
+// trial that runs out of budget mid-run still scaffolds the rest.
+async function bulkSuggestEvidence(req, assessmentId) {
+  const es = require('../config/evidence-suggest');
+  const a = get(`
+    SELECT a.id, p.name p_name, p.description p_desc, p.technologies, p.hosting_type,
+      p.confidentiality_level, p.integrity_level, p.availability_level, p.security_profile
+    FROM assessments a JOIN projects p ON p.id = a.project_id WHERE a.id = ?`, [assessmentId]);
+  if (!a) return 0;
+  const ctx = { name: a.p_name, description: a.p_desc, technologies: a.technologies, hosting_type: a.hosting_type,
+    confidentiality_level: a.confidentiality_level, integrity_level: a.integrity_level,
+    availability_level: a.availability_level, security_profile: a.security_profile };
+  const controls = all(`SELECT * FROM assessment_controls WHERE assessment_id = ? AND is_applicable = 1
+    AND (evidence_source IS NULL OR evidence_source = 'ai-suggested')`, [assessmentId]);
+  let n = 0;
+  for (const c of controls) {
+    // Skip controls that already hold real (user) evidence.
+    if ((c.evidence_text && c.evidence_text.trim()) && c.evidence_source !== 'ai-suggested') continue;
+    const useAI = ai.isConfigured() && access.canUseAI(req.user, 'evidence-suggest').ok;
+    let text;
+    try {
+      text = await ai.generateSuggestedEvidence(
+        { control_id: c.control_id, title: c.title, description: c.description, tailored_description: c.tailored_description, evidence_guidance: c.evidence_guidance },
+        ctx, { allowAI: useAI });
+    } catch (e) { text = null; }
+    if (!text) continue;
+    run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?, evidence_source = 'ai-suggested',
+         evidence_status = 'pending', evidence_suggested_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [text, es.suggestToHtml(text), c.id]);
+    if (useAI) access.recordAiUse(req.user, 'evidence-suggest');
+    n++;
+  }
+  return n;
+}
+
+router.post('/assessments/:id/suggest-evidence-all', ensureAuthenticated, async (req, res) => {
+  try {
+    const assessment = get('SELECT id FROM assessments WHERE id = ?', [req.params.id]);
+    if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+    const n = await bulkSuggestEvidence(req, assessment.id);
+    req.flash('success', req.t ? req.t('ev.bulkDone').replace('{n}', n) : `Generated ${n} suggested evidence draft(s).`);
+    res.redirect(`/admin/assessments/${assessment.id}`);
+  } catch (err) {
+    console.error('suggest-evidence-all error:', err);
+    req.flash('error', 'Could not generate drafts: ' + err.message);
     res.redirect(`/admin/assessments/${req.params.id}`);
   }
 });
