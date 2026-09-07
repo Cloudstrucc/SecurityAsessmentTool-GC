@@ -3772,5 +3772,6 @@
   "ev.approve": "Übernehmen",
   "ev.decline": "Ablehnen",
   "ev.approveAll": "Alle übernehmen",
-  "ev.proposeHeading": "Vorgeschlagene Nachweise – zum Ausfüllen der Felder übernehmen"
+  "ev.proposeHeading": "Vorgeschlagene Nachweise – zum Ausfüllen der Felder übernehmen",
+  "ev.tailorSuggest": "Vorgeschlagene Nachweisentwürfe hinzufügen"
 }

@@ -3772,5 +3772,6 @@
   "ev.approve": "Goedkeuren",
   "ev.decline": "Afwijzen",
   "ev.approveAll": "Alles goedkeuren",
-  "ev.proposeHeading": "Voorgesteld bewijs — keur goed om de velden te vullen"
+  "ev.proposeHeading": "Voorgesteld bewijs — keur goed om de velden te vullen",
+  "ev.tailorSuggest": "Voorgestelde bewijsconcepten toevoegen"
 }

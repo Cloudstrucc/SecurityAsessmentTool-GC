@@ -94,13 +94,16 @@ function assessmentReport(assessmentId, { orgId, req } = {}) {
   if (!project) return null;
   const controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessmentId]);
   const stats = familyStats(controls);
+  // An untouched AI-suggested draft is NOT real evidence — never print it as such in
+  // the official record. It shows as pending (no evidence) until the provider edits it.
+  const realEvidence = (c) => c.evidence_source === 'ai-suggested' ? '' : stripHtml(c.evidence_text || c.evidence_html);
   const versions = all(`SELECT version, label, summary, created_by_name, created_at
                         FROM assessment_versions WHERE assessment_id = ? ORDER BY version DESC`, [assessmentId]);
   const findings = controls.filter(c => ['partial', 'failed'].includes(normResult(c.audit_result)))
     .map(c => ({
       control_id: c.control_id, family: c.family, title: c.title,
       result: normResult(c.audit_result),
-      evidence: stripHtml(c.evidence_text || c.evidence_html), finding: stripHtml(c.audit_comments)
+      evidence: realEvidence(c), finding: stripHtml(c.audit_comments)
     }));
 
   return {
@@ -122,7 +125,8 @@ function assessmentReport(assessmentId, { orgId, req } = {}) {
       control_id: c.control_id, family: c.family, title: c.title, priority: c.priority,
       is_inherited: !!c.is_inherited, inherited_from: c.inherited_from,
       result: normResult(c.audit_result), evidence_status: c.evidence_status,
-      evidence: stripHtml(c.evidence_text || c.evidence_html), finding: stripHtml(c.audit_comments)
+      is_draft: c.evidence_source === 'ai-suggested',
+      evidence: realEvidence(c), finding: stripHtml(c.audit_comments)
     })),
     findings, versions
   };

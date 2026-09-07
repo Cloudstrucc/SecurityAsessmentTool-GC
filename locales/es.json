@@ -3794,5 +3794,6 @@
   "ev.approve": "Aprobar",
   "ev.decline": "Rechazar",
   "ev.approveAll": "Aprobar todo",
-  "ev.proposeHeading": "Evidencia sugerida: aprueba para rellenar los campos"
+  "ev.proposeHeading": "Evidencia sugerida: aprueba para rellenar los campos",
+  "ev.tailorSuggest": "Añadir borradores de evidencia sugeridos"
 }

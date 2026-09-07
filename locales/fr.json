@@ -3794,5 +3794,6 @@
   "ev.approve": "Approuver",
   "ev.decline": "Refuser",
   "ev.approveAll": "Tout approuver",
-  "ev.proposeHeading": "Preuves suggérées — approuvez pour remplir les champs"
+  "ev.proposeHeading": "Preuves suggérées — approuvez pour remplir les champs",
+  "ev.tailorSuggest": "Ajouter des brouillons de preuves suggérés"
 }

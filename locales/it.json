@@ -3772,5 +3772,6 @@
   "ev.approve": "Approva",
   "ev.decline": "Rifiuta",
   "ev.approveAll": "Approva tutto",
-  "ev.proposeHeading": "Prove suggerite — approva per compilare i campi"
+  "ev.proposeHeading": "Prove suggerite — approva per compilare i campi",
+  "ev.tailorSuggest": "Aggiungi bozze di prova suggerite"
 }

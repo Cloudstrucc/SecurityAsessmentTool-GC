@@ -2660,7 +2660,7 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
   });
 });
 
-router.post('/assessments/:id/tailoring', ensureAuthenticated, (req, res) => {
+router.post('/assessments/:id/tailoring', ensureAuthenticated, async (req, res) => {
   try {
     const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
     if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
@@ -2707,7 +2707,13 @@ router.post('/assessments/:id/tailoring', ensureAuthenticated, (req, res) => {
         ]);
     });
 
-    req.flash('success', 'Tailoring changes saved.');
+    // Optional: generate AI-suggested placeholder evidence drafts as part of tailoring.
+    let suffix = '';
+    if (req.body.suggest_evidence) {
+      try { const n = await bulkSuggestEvidence(req, assessment.id); suffix = ' ' + (req.t ? req.t('ev.bulkDone').replace('{n}', n) : `Generated ${n} suggested evidence draft(s).`); }
+      catch (e) { console.error('tailoring suggest-evidence:', e.message); }
+    }
+    req.flash('success', 'Tailoring changes saved.' + suffix);
     res.redirect(`/admin/assessments/${assessment.id}`);
   } catch (err) {
     console.error('Tailoring save error:', err);

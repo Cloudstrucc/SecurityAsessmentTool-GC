@@ -2280,3 +2280,21 @@ test('assistant evidence proposals: apply-suggestions writes drafts and never ov
   const respond3 = await getText(jar, `/respond/${code}`);
   assert.match(respond3.text, /Real evidence here\./, 'real evidence preserved');
 });
+
+test('reports never present an untouched AI-suggested draft as real evidence', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Report Draft ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const respond = await getText(jar, `/respond/${code}`);
+  const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
+
+  // Apply an AI draft carrying a distinctive marker + placeholder tokens.
+  await request(jar, 'POST', `/respond/${code}/apply-suggestions`, { json: { items: [{ controlDbId: cid, text: 'ZZDRAFTMARKER [[VALUE: secret]] [[ATTACH: nope]]' }] } });
+
+  const html = (await getText(jar, `/admin/reports/assessment/${assessmentId}.html`)).text;
+  assert.doesNotMatch(html, /ZZDRAFTMARKER/, 'the draft text does not appear in the report');
+  assert.doesNotMatch(html, /\[\[VALUE:/, 'no placeholder tokens leak into the report');
+});

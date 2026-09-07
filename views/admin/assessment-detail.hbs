@@ -89,6 +89,10 @@
             {{#unless viewingVersion}}
             {{#eq assessment.status "draft"}}
               {{#if tailorMode}}
+                <div class="form-check d-inline-flex align-items-center me-2" title="{{t 'ev.bulkHelp'}}">
+                  <input class="form-check-input me-1" type="checkbox" value="1" name="suggest_evidence" id="tailor_suggest_evidence" form="tailoringForm">
+                  <label class="form-check-label small" for="tailor_suggest_evidence"><i class="bi bi-magic me-1"></i>{{t 'ev.tailorSuggest'}}</label>
+                </div>
                 <button type="submit" form="tailoringForm" class="btn btn-success">
                   <i class="bi bi-save me-1"></i>{{t 'ui.saveTailoring'}}
                 </button>
