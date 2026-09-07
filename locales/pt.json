@@ -3752,5 +3752,8 @@
   "ev.saving": "Salvando…",
   "ev.saved": "Salvo",
   "ev.unsaved": "Alterações não salvas",
-  "ev.saveError": "Não foi possível salvar — tentaremos novamente"
+  "ev.saveError": "Não foi possível salvar — tentaremos novamente",
+  "auth.registerWithPasskey": "Registrar com uma chave de acesso",
+  "auth.cancelledPasskey": "O registro da chave de acesso foi cancelado.",
+  "auth.passkeyNeedNameEmail": "Insira primeiro seu nome e e-mail."
 }

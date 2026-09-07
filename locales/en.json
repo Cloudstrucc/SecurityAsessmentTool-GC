@@ -3731,5 +3731,8 @@
   "ev.saving": "Saving…",
   "ev.saved": "Saved",
   "ev.unsaved": "Unsaved changes",
-  "ev.saveError": "Couldn’t save — will retry"
+  "ev.saveError": "Couldn’t save — will retry",
+  "auth.registerWithPasskey": "Register with a passkey",
+  "auth.cancelledPasskey": "Passkey registration was cancelled.",
+  "auth.passkeyNeedNameEmail": "Enter your name and email first."
 }

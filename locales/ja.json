@@ -3752,5 +3752,8 @@
   "ev.saving": "保存中…",
   "ev.saved": "保存済み",
   "ev.unsaved": "未保存の変更",
-  "ev.saveError": "保存できませんでした — 再試行します"
+  "ev.saveError": "保存できませんでした — 再試行します",
+  "auth.registerWithPasskey": "パスキーで登録",
+  "auth.cancelledPasskey": "パスキーの登録がキャンセルされました。",
+  "auth.passkeyNeedNameEmail": "先に名前とメールアドレスを入力してください。"
 }

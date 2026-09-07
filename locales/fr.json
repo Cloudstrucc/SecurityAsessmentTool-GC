@@ -3774,5 +3774,8 @@
   "ev.saving": "Enregistrement…",
   "ev.saved": "Enregistré",
   "ev.unsaved": "Modifications non enregistrées",
-  "ev.saveError": "Échec de l’enregistrement — nouvelle tentative"
+  "ev.saveError": "Échec de l’enregistrement — nouvelle tentative",
+  "auth.registerWithPasskey": "S’inscrire avec une clé d’accès",
+  "auth.cancelledPasskey": "L’enregistrement de la clé d’accès a été annulé.",
+  "auth.passkeyNeedNameEmail": "Saisissez d’abord votre nom et votre courriel."
 }

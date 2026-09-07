@@ -3752,5 +3752,8 @@
   "ev.saving": "Wird gespeichert…",
   "ev.saved": "Gespeichert",
   "ev.unsaved": "Nicht gespeicherte Änderungen",
-  "ev.saveError": "Speichern fehlgeschlagen — wird erneut versucht"
+  "ev.saveError": "Speichern fehlgeschlagen — wird erneut versucht",
+  "auth.registerWithPasskey": "Mit Passkey registrieren",
+  "auth.cancelledPasskey": "Die Passkey-Registrierung wurde abgebrochen.",
+  "auth.passkeyNeedNameEmail": "Geben Sie zuerst Ihren Namen und Ihre E-Mail-Adresse ein."
 }

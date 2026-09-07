@@ -3774,5 +3774,8 @@
   "ev.saving": "Guardando…",
   "ev.saved": "Guardado",
   "ev.unsaved": "Cambios sin guardar",
-  "ev.saveError": "No se pudo guardar — se reintentará"
+  "ev.saveError": "No se pudo guardar — se reintentará",
+  "auth.registerWithPasskey": "Registrarse con una clave de acceso",
+  "auth.cancelledPasskey": "Se canceló el registro de la clave de acceso.",
+  "auth.passkeyNeedNameEmail": "Introduce primero tu nombre y correo."
 }

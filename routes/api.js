@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const { generateSecret: otpGenerateSecret } = require('otplib');
 const { run, all, get } = require('../models/database');
 const { ensureAuthenticated } = require('../config/passport');
 const emailService = require('../utils/emailService');
@@ -245,6 +248,147 @@ router.post('/webauthn/login-verify', express.json(), async (req, res) => {
   } catch (err) {
     console.error('[WebAuthn] login-verify:', err);
     res.status(400).json({ error: err.message || 'Passkey verification failed.' });
+  }
+});
+
+// ── PASSWORDLESS REGISTRATION (passkey-first signup) ─────────────────────────
+// Lets any registration page create an account with a passkey instead of a
+// password. The account is created ONLY once the passkey is confirmed (at
+// signup-verify), so an abandoned attempt never leaves a dangling account.
+function findSignupInvite(code, type) {
+  if (!code) return null;
+  const inv = get("SELECT * FROM invitations WHERE UPPER(TRIM(invite_code)) = ? AND status = 'pending'", [String(code).toUpperCase().trim()]);
+  if (!inv) return null;
+  if (inv.expires_at && new Date(inv.expires_at) < new Date()) return null;
+  if (type && inv.type !== type) return null;
+  return inv;
+}
+
+router.post('/webauthn/signup-options', express.json(), async (req, res) => {
+  if (!requireWebAuthn(res)) return;
+  try {
+    const role = req.body.role === 'assessor' ? 'assessor' : 'client';
+    const name = String(req.body.name || '').trim();
+    const email = String(req.body.email || '').toLowerCase().trim();
+    const organization = String(req.body.organization || '').trim();
+    const inviteCode = String(req.body.invite_code || '').trim();
+    if (!name || !email) return res.status(400).json({ error: 'Name and email are required.' });
+    if (get('SELECT id FROM users WHERE email = ?', [email])) {
+      return res.status(409).json({ error: 'An account with this email already exists. Please sign in.' });
+    }
+
+    // Look up the invitation by code (any type: client, assessor, org 'member').
+    // Assessors/org members always need one; clients may register openly or by invite.
+    const invite = inviteCode ? findSignupInvite(inviteCode, null) : null;
+    if (inviteCode && !invite) return res.status(400).json({ error: 'Invalid or expired invitation code.' });
+    if (role === 'assessor' && !invite) return res.status(400).json({ error: 'A valid invitation code is required.' });
+    if (invite && email !== String(invite.email || '').toLowerCase().trim()) {
+      return res.status(400).json({ error: `Please register with the invited email address (${invite.email}).` });
+    }
+
+    const options = await simpleWebAuthn.generateRegistrationOptions({
+      rpName: RP_NAME, rpID: RP_ID,
+      userName: email, userDisplayName: name,
+      authenticatorSelection: { residentKey: 'preferred', userVerification: 'required' },
+      attestationType: 'none'
+    });
+    req.session.pwlSignup = {
+      role, name, email, organization,
+      inviteId: invite ? invite.id : null,
+      challenge: options.challenge
+    };
+    res.json(options);
+  } catch (err) {
+    console.error('[WebAuthn] signup-options:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/webauthn/signup-verify', express.json(), async (req, res) => {
+  if (!requireWebAuthn(res)) return;
+  const s = req.session.pwlSignup;
+  if (!s) return res.status(400).json({ error: 'Sign-up session expired. Please try again.' });
+  try {
+    const verification = await simpleWebAuthn.verifyRegistrationResponse({
+      response: req.body, expectedChallenge: s.challenge,
+      expectedOrigin: ORIGIN, expectedRPID: RP_ID, requireUserVerification: true
+    });
+    if (!verification.verified || !verification.registrationInfo) {
+      return res.status(400).json({ error: 'Passkey registration failed.' });
+    }
+    if (get('SELECT id FROM users WHERE email = ?', [s.email])) {
+      delete req.session.pwlSignup;
+      return res.status(409).json({ error: 'An account already exists for this email.' });
+    }
+
+    // Resolve the workspace: the invitation's org, else the inviter's org.
+    let orgId = null;
+    let invite = null;
+    if (s.inviteId) {
+      invite = get('SELECT * FROM invitations WHERE id = ?', [s.inviteId]);
+      if (invite) {
+        orgId = invite.organization_id
+          || (invite.invited_by ? get('SELECT organization_id FROM users WHERE id = ?', [invite.invited_by])?.organization_id : null)
+          || null;
+      }
+    }
+
+    // An org-member invitation (grant_admin / grant_license) creates a licensed
+    // workspace member — enforce seat capacity and set the account type, exactly
+    // like the password-based billing redeem flow.
+    const isOrgMember = !!(invite && (invite.grant_admin || invite.grant_license));
+    let accountType = null;
+    let licensed = 0;
+    let role = s.role;
+    if (isOrgMember) {
+      const access = require('../config/access');
+      const billing = require('../config/billing');
+      const org = orgId ? billing.getOrg(orgId) : null;
+      if (org && invite.grant_license) { const l = access.canAddLicense(org); if (!l.ok) return res.status(400).json({ error: l.reason }); }
+      if (org && invite.grant_admin) { const a = access.canAddAdmin(org); if (!a.ok) return res.status(400).json({ error: a.reason }); }
+      accountType = invite.grant_admin ? 'admin' : (invite.grant_license ? 'member' : 'collaborator');
+      licensed = (invite.grant_admin || invite.grant_license) ? 1 : 0;
+      role = 'assessor';
+    }
+
+    const { credential } = verification.registrationInfo;
+    const publicKey = isoBase64URL.fromBuffer(credential.publicKey);
+    const randomPw = bcrypt.hashSync(crypto.randomBytes(24).toString('hex'), 12);
+    const userId = run(
+      `INSERT INTO users (email, password, name, role, organization, organization_id, account_type, is_licensed, totp_secret, mfa_enabled, mfa_mode, webauthn_credential_id, webauthn_public_key, webauthn_counter, is_active)
+       VALUES (?,?,?,?,?,?,?,?,?,1,'push',?,?,?,1)`,
+      [s.email, randomPw, s.name, role, s.organization || (invite && invite.organization) || '', orgId, accountType, licensed, otpGenerateSecret(),
+       credential.id, publicKey, credential.counter || 0]
+    );
+
+    // Accept the invitation and wire up any assignments addressed to this email.
+    if (invite) {
+      run("UPDATE invitations SET status = 'accepted', accepted_at = CURRENT_TIMESTAMP, accepted_by_user_id = ? WHERE id = ?", [userId, invite.id]);
+      run("UPDATE assessment_assignments SET assigned_to = ?, status = 'active', accepted_at = CURRENT_TIMESTAMP WHERE invitation_id = ?", [userId, invite.id]);
+    }
+    run("UPDATE assessments SET assigned_to_user_id = ? WHERE LOWER(assigned_to_email) = ?", [userId, s.email]);
+    run("UPDATE intake_submissions SET assigned_to_user_id = ? WHERE LOWER(assigned_to_email) = ?", [userId, s.email]);
+
+    delete req.session.pwlSignup;
+    const redeem = req.session.pendingRedeemCode;
+    const pendingInvite = req.session.pendingInviteCode;
+    delete req.session.pendingRedeemCode;
+    delete req.session.pendingInviteCode;
+
+    if (isOrgMember || s.role === 'assessor') {
+      const user = get('SELECT * FROM users WHERE id = ?', [userId]);
+      return req.login(user, (err) => {
+        if (err) { console.error('[WebAuthn] signup req.login:', err); return res.status(500).json({ error: 'Account created — please sign in.' }); }
+        req.session.adminMfaVerified = true;
+        res.json({ success: true, redirect: '/admin/dashboard' });
+      });
+    }
+    // Client: portal session model.
+    req.session.clientId = userId;
+    res.json({ success: true, redirect: redeem ? `/redeem?code=${redeem}` : (pendingInvite ? `/respond/${pendingInvite}` : '/intake') });
+  } catch (err) {
+    console.error('[WebAuthn] signup-verify:', err);
+    res.status(400).json({ error: err.message || 'Passkey registration failed.' });
   }
 });
 

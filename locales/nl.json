@@ -3752,5 +3752,8 @@
   "ev.saving": "Bezig met opslaan…",
   "ev.saved": "Opgeslagen",
   "ev.unsaved": "Niet-opgeslagen wijzigingen",
-  "ev.saveError": "Opslaan mislukt — opnieuw proberen"
+  "ev.saveError": "Opslaan mislukt — opnieuw proberen",
+  "auth.registerWithPasskey": "Registreren met een passkey",
+  "auth.cancelledPasskey": "Passkey-registratie is geannuleerd.",
+  "auth.passkeyNeedNameEmail": "Voer eerst je naam en e-mailadres in."
 }
