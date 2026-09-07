@@ -3755,5 +3755,13 @@
   "ev.saveError": "Opslaan mislukt — opnieuw proberen",
   "auth.registerWithPasskey": "Registreren met een passkey",
   "auth.cancelledPasskey": "Passkey-registratie is geannuleerd.",
-  "auth.passkeyNeedNameEmail": "Voer eerst je naam en e-mailadres in."
+  "auth.passkeyNeedNameEmail": "Voer eerst je naam en e-mailadres in.",
+  "ev.draftBadge": "AI-conceptvoorstel",
+  "ev.suggestBtn": "Concept voorstellen",
+  "ev.suggestHelp": "Genereer een beginconcept met in te vullen tijdelijke aanduidingen",
+  "ev.suggestFail": "Kon geen conceptvoorstel genereren. Probeer het opnieuw.",
+  "ev.suggestReplace": "De huidige tekst vervangen door een nieuw AI-conceptvoorstel?",
+  "ev.suggestHasEvidence": "Je hebt hier al bewijs — wis het eerst om een concept te genereren.",
+  "ev.phRemain": "Nog {n} tijdelijke aanduiding(en) in te vullen",
+  "ev.submitPlaceholders": "Sommige bewijzen bevatten nog {n} niet-ingevulde tijdelijke aanduiding(en). Toch indienen?"
 }

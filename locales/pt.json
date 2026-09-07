@@ -3755,5 +3755,13 @@
   "ev.saveError": "Não foi possível salvar — tentaremos novamente",
   "auth.registerWithPasskey": "Registrar com uma chave de acesso",
   "auth.cancelledPasskey": "O registro da chave de acesso foi cancelado.",
-  "auth.passkeyNeedNameEmail": "Insira primeiro seu nome e e-mail."
+  "auth.passkeyNeedNameEmail": "Insira primeiro seu nome e e-mail.",
+  "ev.draftBadge": "Rascunho sugerido por IA",
+  "ev.suggestBtn": "Sugerir um rascunho",
+  "ev.suggestHelp": "Gerar um rascunho inicial com espaços reservados para preencher",
+  "ev.suggestFail": "Não foi possível gerar um rascunho sugerido. Tente novamente.",
+  "ev.suggestReplace": "Substituir o texto atual por um novo rascunho sugerido por IA?",
+  "ev.suggestHasEvidence": "Você já tem evidências aqui — limpe-as primeiro para gerar um rascunho.",
+  "ev.phRemain": "{n} espaço(s) reservado(s) ainda a preencher",
+  "ev.submitPlaceholders": "Algumas evidências ainda têm {n} espaço(s) reservado(s) não preenchido(s). Enviar mesmo assim?"
 }

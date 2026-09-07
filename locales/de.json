@@ -3755,5 +3755,13 @@
   "ev.saveError": "Speichern fehlgeschlagen — wird erneut versucht",
   "auth.registerWithPasskey": "Mit Passkey registrieren",
   "auth.cancelledPasskey": "Die Passkey-Registrierung wurde abgebrochen.",
-  "auth.passkeyNeedNameEmail": "Geben Sie zuerst Ihren Namen und Ihre E-Mail-Adresse ein."
+  "auth.passkeyNeedNameEmail": "Geben Sie zuerst Ihren Namen und Ihre E-Mail-Adresse ein.",
+  "ev.draftBadge": "KI-Vorschlagsentwurf",
+  "ev.suggestBtn": "Entwurf vorschlagen",
+  "ev.suggestHelp": "Einen Ausgangsentwurf mit auszufüllenden Platzhaltern erzeugen",
+  "ev.suggestFail": "Vorgeschlagener Entwurf konnte nicht erstellt werden. Bitte erneut versuchen.",
+  "ev.suggestReplace": "Den aktuellen Text durch einen neuen KI-Entwurf ersetzen?",
+  "ev.suggestHasEvidence": "Hier sind bereits Nachweise vorhanden – löschen Sie sie zuerst, um einen Entwurf zu erzeugen.",
+  "ev.phRemain": "{n} Platzhalter noch auszufüllen",
+  "ev.submitPlaceholders": "Einige Nachweise enthalten noch {n} nicht ausgefüllte Platzhalter. Trotzdem einreichen?"
 }

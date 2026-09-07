@@ -760,6 +760,49 @@ router.post('/ai/save-guidance/:controlDbId', ensureAuthenticated, express.json(
   }
 });
 
+// ── AI-suggested placeholder evidence (assessor generates a DRAFT answer) ─────
+// Writes a fill-in-the-blank draft into the control's evidence field, marked
+// evidence_source='ai-suggested' so it stays "pending" (uncounted) until the
+// provider edits it. Never clobbers real provider evidence. Works offline (a
+// deterministic template) so it is always available.
+router.post('/ai/suggested-evidence/:controlDbId', ensureAuthenticated, express.json(), async (req, res) => {
+  try {
+    const { get, run } = require('../models/database');
+    const es = require('../config/evidence-suggest');
+    const row = get(`
+      SELECT ac.*, a.id AS a_id, a.status AS a_status, p.organization_id, p.name AS p_name,
+        p.description AS p_desc, p.technologies, p.hosting_type,
+        p.confidentiality_level, p.integrity_level, p.availability_level, p.security_profile
+      FROM assessment_controls ac
+      JOIN assessments a ON a.id = ac.assessment_id
+      JOIN projects p ON p.id = a.project_id
+      WHERE ac.id = ?`, [req.params.controlDbId]);
+    if (!row) return res.status(404).json({ error: 'Control not found' });
+    if (!(access.isRootAdmin(req.user) || access.canAccessProject(req.user, { organization_id: row.organization_id }))) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    // Don't overwrite real provider evidence.
+    if (row.evidence_source === 'user') return res.status(409).json({ error: 'This control already has provider evidence.' });
+    // Token budget applies only when a real model call will happen.
+    if (ai.isConfigured() && !aiAllowed(req, res, 'evidence-suggest')) return;
+
+    const text = await ai.generateSuggestedEvidence(
+      { control_id: row.control_id, title: row.title, description: row.description, tailored_description: row.tailored_description, evidence_guidance: row.evidence_guidance },
+      { name: row.p_name, description: row.p_desc, technologies: row.technologies, hosting_type: row.hosting_type,
+        confidentiality_level: row.confidentiality_level, integrity_level: row.integrity_level, availability_level: row.availability_level, security_profile: row.security_profile }
+    );
+    const html = es.suggestToHtml(text);
+    run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?, evidence_source = 'ai-suggested',
+         evidence_status = 'pending', evidence_suggested_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [text, html, row.id]);
+    if (ai.isConfigured()) access.recordAiUse(req.user, 'evidence-suggest');
+    res.json({ success: true, text, html, source: 'ai-suggested', aiConfigured: ai.isConfigured() });
+  } catch (err) {
+    console.error('AI suggested-evidence error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Self-assessment wizard ──────────────────────────────────────────────────
 router.post('/self-assessment/questions', express.json(), async (req, res) => {
   try {

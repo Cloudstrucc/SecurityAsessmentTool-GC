@@ -36,7 +36,7 @@
     {{#unless isReadOnly}}
       <div class="text-end mt-2">
         <form method="POST" action="/respond/{{inviteCode}}/submit" class="d-inline"
-          onsubmit="return confirm('Submit all evidence? This will lock the form and notify your assessor. You will not be able to make changes unless the assessor reactivates your submission.')">
+          onsubmit="return evConfirmSubmit('Submit all evidence? This will lock the form and notify your assessor. You will not be able to make changes unless the assessor reactivates your submission.')">
           <button class="btn btn-primary" id="submitBtn" {{#ifCond progress '<' 1}}disabled{{/ifCond}}>
             <i class="bi bi-send me-1"></i>Submit All Evidence
           </button>
@@ -101,7 +101,9 @@
 
           <!-- Evidence Editor -->
           <div class="mb-2">
-            <label class="form-label small fw-semibold">Your Evidence</label>
+            <label class="form-label small fw-semibold">Your Evidence
+              {{#if (eq this.evidence_source 'ai-suggested')}}<span class="badge text-bg-warning ms-1" id="draftBadge-{{this.id}}"><i class="bi bi-magic me-1"></i>{{t 'ev.draftBadge'}}</span>{{/if}}
+            </label>
             {{#if ../../isReadOnly}}
               <div class="evidence-editor" style="background:#f8f9fa;min-height:80px">
                 {{{this.evidence_html}}}
@@ -120,6 +122,8 @@
                   <button type="button" class="btn btn-outline-secondary" onclick="execCmd('insertOrderedList')" title="Numbered List"><i class="bi bi-list-ol"></i></button>
                 </div>
                 <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
+                  <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" style="font-size:12px;color:#0d6efd"
+                    data-cid="{{this.id}}" onclick="aiSuggestEvidence(this)" title="{{t 'ev.suggestHelp'}}"><i class="bi bi-magic me-1"></i>{{t 'ev.suggestBtn'}}</button>
                   <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" style="font-size:12px;color:#6d28d9"
                     data-cid="{{this.id}}" data-control="{{this.control_id}}" data-title="{{this.title}}" data-guidance="{{this.evidence_guidance}}"
                     onclick="aiRefineEvidence(this)"><i class="bi bi-stars me-1"></i>Refine with AI</button>
@@ -129,6 +133,7 @@
                   </button>
                 </div>
               </div>
+              <div class="small text-warning-emphasis mt-1 ev-ph-hint" id="phHint-{{this.id}}" hidden></div>
             {{/if}}
           </div>
 
@@ -177,7 +182,7 @@
   {{#unless isReadOnly}}
     <div class="text-center mb-5 mt-4">
       <form method="POST" action="/respond/{{inviteCode}}/submit"
-        onsubmit="return confirm('Submit all evidence? This will lock the form and notify your assessor.')">
+        onsubmit="return evConfirmSubmit('Submit all evidence? This will lock the form and notify your assessor.')">
         <button class="btn btn-primary btn-lg"><i class="bi bi-send me-2"></i>Submit All Evidence</button>
       </form>
     </div>
@@ -190,8 +195,30 @@ const EV_I18N = {
   saving: {{{tjs 'ev.saving'}}},
   saved: {{{tjs 'ev.saved'}}},
   unsaved: {{{tjs 'ev.unsaved'}}},
-  error: {{{tjs 'ev.saveError'}}}
+  error: {{{tjs 'ev.saveError'}}},
+  suggestFail: {{{tjs 'ev.suggestFail'}}},
+  phRemain: {{{tjs 'ev.phRemain'}}},
+  submitPh: {{{tjs 'ev.submitPlaceholders'}}}
 };
+// Placeholder tokens the provider must replace: [[VALUE: …]] and [[ATTACH: …]].
+const EV_PH_RE = /\[\[(?:VALUE|ATTACH):/gi;
+function evCountPlaceholders(s) { const m = String(s || '').match(EV_PH_RE); return m ? m.length : 0; }
+function updatePhHint(controlId) {
+  const editor = document.getElementById('editor-' + controlId);
+  const hint = document.getElementById('phHint-' + controlId);
+  if (!editor || !hint) return;
+  const n = evCountPlaceholders(editor.innerText);
+  if (n > 0) { hint.hidden = false; hint.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>' + EV_I18N.phRemain.replace('{n}', n); }
+  else { hint.hidden = true; hint.textContent = ''; }
+}
+// Soft warning at submit: if any evidence still contains unfilled placeholders,
+// warn (but allow) before the normal submit confirmation.
+function evConfirmSubmit(msg) {
+  let ph = 0;
+  document.querySelectorAll('[id^="editor-"]').forEach(function (ed) { ph += evCountPlaceholders(ed.innerText); });
+  if (ph > 0 && !confirm(EV_I18N.submitPh.replace('{n}', ph))) return false;
+  return confirm(msg);
+}
 let saveTimers = {};
 let dirty = {};      // controlId -> unsaved edits pending
 let lastSaved = {};  // controlId -> Date of last successful save
@@ -222,6 +249,10 @@ function setStatus(controlId, kind) {
 function markDirty(controlId) {
   dirty[controlId] = true;
   setStatus(controlId, 'unsaved');
+  // Editing turns a suggested draft into real evidence — drop the draft badge.
+  const badge = document.getElementById('draftBadge-' + controlId);
+  if (badge) badge.remove();
+  updatePhHint(controlId);
   clearTimeout(saveTimers[controlId]);
   saveTimers[controlId] = setTimeout(() => saveEvidence(controlId), 1200);
 }
@@ -246,6 +277,44 @@ async function saveEvidence(controlId, manual) {
   }
 }
 
+// Generate an AI-suggested placeholder draft into a control's evidence editor.
+// The server persists it as an 'ai-suggested' draft; we reflect it in the editor
+// WITHOUT marking it dirty (setting innerHTML doesn't fire input), so it isn't
+// re-saved as user evidence until the provider actually edits it.
+async function aiSuggestEvidence(btn) {
+  const cid = btn.getAttribute('data-cid');
+  const editor = document.getElementById('editor-' + cid);
+  if (!editor) return;
+  const existing = editor.innerText.trim();
+  if (existing.length > 0 && !confirm({{{tjs 'ev.suggestReplace'}}})) return;
+  const original = btn.innerHTML; btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+  try {
+    const res = await fetch('/respond/' + INVITE_CODE + '/suggest/' + cid, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}'
+    });
+    const data = await res.json();
+    if (data && data.success) {
+      editor.innerHTML = data.html || '';
+      dirty[cid] = false;                       // server already saved it as a draft
+      updatePhHint(cid);
+      setStatus(cid, 'saved'); lastSaved[cid] = new Date();
+      // Ensure the "AI-suggested" badge is present.
+      const label = editor.closest('.mb-2').querySelector('label');
+      if (label && !document.getElementById('draftBadge-' + cid)) {
+        const b = document.createElement('span');
+        b.id = 'draftBadge-' + cid; b.className = 'badge text-bg-warning ms-1';
+        b.innerHTML = '<i class="bi bi-magic me-1"></i>' + {{{tjs 'ev.draftBadge'}}};
+        label.appendChild(b);
+      }
+      updateProgress();
+    } else {
+      alert((data && data.message) || EV_I18N.suggestFail);
+    }
+  } catch (e) { alert(EV_I18N.suggestFail); }
+  finally { btn.disabled = false; btn.innerHTML = original; }
+}
+
 // Periodic autosave: every 10s, flush any control with unsaved edits.
 setInterval(function () {
   Object.keys(dirty).forEach(function (cid) { if (dirty[cid]) saveEvidence(cid); });
@@ -266,10 +335,9 @@ window.addEventListener('beforeunload', function () {
 // On load, controls that already have evidence show as saved (editable until submit).
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('[id^="editor-"]').forEach(function (ed) {
-    if (ed.innerText.trim().length > 0) {
-      const cid = ed.getAttribute('data-control-id');
-      if (cid) setStatus(cid, 'saved');
-    }
+    const cid = ed.getAttribute('data-control-id');
+    if (ed.innerText.trim().length > 0 && cid) setStatus(cid, 'saved');
+    if (cid) updatePhHint(cid);
   });
 });
 

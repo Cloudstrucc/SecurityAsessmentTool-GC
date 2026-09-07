@@ -3777,5 +3777,13 @@
   "ev.saveError": "Échec de l’enregistrement — nouvelle tentative",
   "auth.registerWithPasskey": "S’inscrire avec une clé d’accès",
   "auth.cancelledPasskey": "L’enregistrement de la clé d’accès a été annulé.",
-  "auth.passkeyNeedNameEmail": "Saisissez d’abord votre nom et votre courriel."
+  "auth.passkeyNeedNameEmail": "Saisissez d’abord votre nom et votre courriel.",
+  "ev.draftBadge": "Brouillon suggéré par l’IA",
+  "ev.suggestBtn": "Proposer un brouillon",
+  "ev.suggestHelp": "Générer un brouillon de départ avec des espaces réservés à compléter",
+  "ev.suggestFail": "Impossible de générer un brouillon suggéré. Veuillez réessayer.",
+  "ev.suggestReplace": "Remplacer le texte actuel par un nouveau brouillon suggéré par l’IA ?",
+  "ev.suggestHasEvidence": "Vous avez déjà des preuves ici — effacez-les d’abord pour générer un brouillon.",
+  "ev.phRemain": "{n} espace(s) réservé(s) encore à compléter",
+  "ev.submitPlaceholders": "Certaines preuves contiennent encore {n} espace(s) réservé(s) non complété(s). Soumettre quand même ?"
 }

@@ -2204,3 +2204,27 @@ test('evidence editor shows a Save button, periodic autosave, and a saved indica
   assert.match(page.text, /setInterval[\s\S]{0,120}10000\)/, 'a periodic autosave runs on a ~10s interval');
   assert.match(page.text, /id="saveStatus-/, 'a per-control saved indicator is present');
 });
+
+test('suggested evidence: a placeholder draft is generated (offline fallback) and stays an uncounted draft until edited', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Suggest ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`); // -> evidence-gathering, owner can edit
+
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const respond = await getText(jar, `/respond/${code}`);
+  const cid = respond.text.match(/editor-(\d+)/)[1];
+
+  // Generate a suggested draft — AI is not configured in tests, so the deterministic
+  // fallback template is used. It must carry placeholder tokens.
+  const gen = await request(jar, 'POST', `/respond/${code}/suggest/${cid}`, { json: {} });
+  const body = await gen.json();
+  assert.equal(body.success, true, 'a draft is generated even with no AI key (offline fallback)');
+  assert.match(body.text, /\[\[(VALUE|ATTACH):/, 'draft contains [[VALUE]]/[[ATTACH]] placeholders');
+
+  // Stored as an AI-suggested draft that does NOT count toward provided progress.
+  const respond2 = await getText(jar, `/respond/${code}`);
+  assert.match(respond2.text, /AI-suggested draft/, 'the control shows the AI-suggested draft badge');
+  assert.match(respond2.text, /id="progressCount">0</, 'a suggested draft is not counted as provided');
+});

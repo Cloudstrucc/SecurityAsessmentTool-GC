@@ -3755,5 +3755,13 @@
   "ev.saveError": "Impossibile salvare — nuovo tentativo",
   "auth.registerWithPasskey": "Registrati con una passkey",
   "auth.cancelledPasskey": "La registrazione della passkey è stata annullata.",
-  "auth.passkeyNeedNameEmail": "Inserisci prima nome ed email."
+  "auth.passkeyNeedNameEmail": "Inserisci prima nome ed email.",
+  "ev.draftBadge": "Bozza suggerita dall’IA",
+  "ev.suggestBtn": "Suggerisci una bozza",
+  "ev.suggestHelp": "Genera una bozza iniziale con segnaposto da compilare",
+  "ev.suggestFail": "Impossibile generare una bozza suggerita. Riprova.",
+  "ev.suggestReplace": "Sostituire il testo attuale con una nuova bozza suggerita dall’IA?",
+  "ev.suggestHasEvidence": "Hai già delle prove qui — cancellale prima per generare una bozza.",
+  "ev.phRemain": "{n} segnaposto ancora da compilare",
+  "ev.submitPlaceholders": "Alcune prove contengono ancora {n} segnaposto non compilati. Inviare comunque?"
 }

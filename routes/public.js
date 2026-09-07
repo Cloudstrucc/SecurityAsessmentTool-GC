@@ -399,13 +399,47 @@ router.post('/respond/:code/save/:controlId', ensureEvidenceUser, express.json({
   if (!acc || !acc.canEdit) return res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
 
   const { evidence_text, evidence_html } = req.body;
-  run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?, 
+  // A provider save is real evidence — flip provenance off 'ai-suggested'.
+  run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?,
     evidence_status = CASE WHEN ? != '' THEN 'provided' ELSE 'pending' END,
+    evidence_source = 'user',
     updated_at = CURRENT_TIMESTAMP
     WHERE id = ? AND assessment_id = ?`,
     [evidence_text, evidence_html, evidence_text || '', req.params.controlId, assessment.id]);
 
   res.json({ success: true });
+});
+
+// Generate an AI-suggested placeholder evidence DRAFT for one control (provider).
+// Same model as the assessor endpoint: written as an 'ai-suggested' draft that
+// stays pending until the provider edits it. Gated by the ownership model.
+router.post('/respond/:code/suggest/:controlId', ensureEvidenceUser, express.json(), async (req, res) => {
+  try {
+    const code = req.params.code.toUpperCase();
+    const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
+    if (!assessment) return res.json({ success: false, message: 'Assessment not found.' });
+    const acc = evidenceAccess(req, assessment);
+    if (!acc || !acc.canEdit) return res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
+
+    const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?', [req.params.controlId, assessment.id]);
+    if (!control) return res.json({ success: false, message: 'Control not found.' });
+    if (control.evidence_source === 'user') return res.json({ success: false, message: tr(req, 'ev.suggestHasEvidence', 'You already have evidence here — clear it first to generate a draft.') });
+
+    const project = get('SELECT name, description, technologies, hosting_type, confidentiality_level, integrity_level, availability_level, security_profile FROM projects WHERE id = ?', [assessment.project_id]) || {};
+    const text = await ai.generateSuggestedEvidence(
+      { control_id: control.control_id, title: control.title, description: control.description, tailored_description: control.tailored_description, evidence_guidance: control.evidence_guidance },
+      project
+    );
+    const es = require('../config/evidence-suggest');
+    const html = es.suggestToHtml(text);
+    run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?, evidence_source = 'ai-suggested',
+         evidence_status = 'pending', evidence_suggested_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [text, html, control.id]);
+    res.json({ success: true, text, html });
+  } catch (err) {
+    console.error('respond suggest error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Upload attachment

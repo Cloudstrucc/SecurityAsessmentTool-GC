@@ -3755,5 +3755,13 @@
   "ev.saveError": "保存できませんでした — 再試行します",
   "auth.registerWithPasskey": "パスキーで登録",
   "auth.cancelledPasskey": "パスキーの登録がキャンセルされました。",
-  "auth.passkeyNeedNameEmail": "先に名前とメールアドレスを入力してください。"
+  "auth.passkeyNeedNameEmail": "先に名前とメールアドレスを入力してください。",
+  "ev.draftBadge": "AI提案のドラフト",
+  "ev.suggestBtn": "ドラフトを提案",
+  "ev.suggestHelp": "入力用のプレースホルダー付きのたたき台を生成します",
+  "ev.suggestFail": "提案ドラフトを生成できませんでした。もう一度お試しください。",
+  "ev.suggestReplace": "現在のテキストを新しいAI提案ドラフトに置き換えますか？",
+  "ev.suggestHasEvidence": "ここには既に証跡があります。ドラフトを生成するにはまず消去してください。",
+  "ev.phRemain": "未入力のプレースホルダーが{n}件あります",
+  "ev.submitPlaceholders": "一部の証跡に未入力のプレースホルダーが{n}件あります。このまま提出しますか？"
 }

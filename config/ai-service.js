@@ -506,6 +506,51 @@ Write evidence guidance for this control:`;
   return await callClaude(system, userContent, { maxTokens: 800 });
 }
 
+/**
+ * A DRAFT "your evidence" response with fill-in placeholders — distinct from
+ * guidance (what to provide) and a finished narrative. It gives the provider a
+ * starting point: realistic scaffolding with [[VALUE: hint]] wherever a real value
+ * is needed and [[ATTACH: description]] wherever an artifact must be uploaded.
+ * Works offline: with no AI provider it returns a deterministic template so the
+ * feature is always available.
+ */
+function suggestedEvidenceFallback(control) {
+  const title = control.title || control.control_id || 'this control';
+  const firstGuidance = String(control.evidence_guidance || '')
+    .split(/\n|•|•|(?:^|\s)-\s/).map(s => s.trim()).filter(Boolean)[0];
+  const attach = firstGuidance || 'the relevant policy, configuration export, or screenshot';
+  return [
+    `Implementation summary: [[VALUE: describe how ${control.control_id} — ${title} is implemented for this system]].`,
+    `Responsible party: [[VALUE: team or role accountable for this control]]. Last reviewed/approved: [[VALUE: date and approver]].`,
+    `How compliance is demonstrated: [[VALUE: the specific mechanism, tool, or configuration that satisfies this control]].`,
+    `Supporting evidence attached: [[ATTACH: ${attach}]].`
+  ].join('\n\n');
+}
+
+async function generateSuggestedEvidence(control, projectContext = {}) {
+  if (!isConfigured()) return suggestedEvidenceFallback(control);
+  const system = `You are a GC IT security practitioner drafting a STARTER "control implementation / evidence" response that the system team will edit and complete.
+Rules:
+- Write 2-4 short paragraphs or bullet points in the project's context.
+- NEVER invent specific values, dates, names, IPs, or tool versions. Wherever a real value is needed, insert a placeholder token EXACTLY like [[VALUE: short hint]].
+- Wherever an artifact, screenshot, or export must be attached, insert [[ATTACH: short description]].
+- Be specific to the control and the listed technologies, but leave every concrete fact as a placeholder.
+Respond with ONLY the draft text (no JSON, no markdown headers).`;
+  const userContent = `CONTROL: ${control.control_id} — ${control.title}
+Description: ${control.description || control.tailored_description || ''}
+Evidence guidance: ${control.evidence_guidance || ''}
+
+PROJECT CONTEXT:
+- Name: ${projectContext.name || 'N/A'}
+- Technologies: ${projectContext.technologies || 'N/A'}
+- Hosting: ${projectContext.hosting_type || 'N/A'}
+- Classification: ${projectContext.confidentiality_level || 'Protected B'} / ${projectContext.integrity_level || 'Medium'} / ${projectContext.availability_level || 'Medium'}
+
+Write the draft evidence response with placeholders:`;
+  const text = await callClaude(system, userContent, { maxTokens: 1024 });
+  return (text || '').trim() || suggestedEvidenceFallback(control);
+}
+
 /** Round-trip test of the currently-bound provider (used by the admin console). */
 async function testConnection() {
   const text = await callClaude('You are a connectivity test.', 'Reply with the single word: OK', { maxTokens: 16 });
@@ -603,6 +648,7 @@ module.exports = {
   suggestAdditionalControls,
   generateEvidenceNarrative,
   generateEvidenceGuidance,
+  generateSuggestedEvidence,
   assessmentChat,
   refineControlAnswer
 };

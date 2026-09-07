@@ -3734,5 +3734,13 @@
   "ev.saveError": "Couldn’t save — will retry",
   "auth.registerWithPasskey": "Register with a passkey",
   "auth.cancelledPasskey": "Passkey registration was cancelled.",
-  "auth.passkeyNeedNameEmail": "Enter your name and email first."
+  "auth.passkeyNeedNameEmail": "Enter your name and email first.",
+  "ev.draftBadge": "AI-suggested draft",
+  "ev.suggestBtn": "Suggest a draft",
+  "ev.suggestHelp": "Generate a starting-point draft with placeholders you fill in",
+  "ev.suggestFail": "Could not generate a suggested draft. Please try again.",
+  "ev.suggestReplace": "Replace the current text with a fresh AI-suggested draft?",
+  "ev.suggestHasEvidence": "You already have evidence here — clear it first to generate a draft.",
+  "ev.phRemain": "{n} placeholder(s) still to fill in",
+  "ev.submitPlaceholders": "Some evidence still has {n} unfilled placeholder(s). Submit anyway?"
 }

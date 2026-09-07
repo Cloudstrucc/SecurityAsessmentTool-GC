@@ -984,6 +984,11 @@ async function initDatabase() {
     ['assessment_controls', 'ai_generated_at', 'ALTER TABLE assessment_controls ADD COLUMN ai_generated_at DATETIME'],
     ['assessment_controls', 'guidance_edited_at', 'ALTER TABLE assessment_controls ADD COLUMN guidance_edited_at DATETIME'],
     ['assessment_controls', 'framework', "ALTER TABLE assessment_controls ADD COLUMN framework TEXT DEFAULT 'ITSG-33'"],
+    // Provenance of the current evidence_text: NULL/'' = none, 'ai-suggested' = an
+    // untouched AI/placeholder draft (does not count as provided), 'user' = real
+    // evidence the provider wrote or edited. Set 'user' the moment they edit.
+    ['assessment_controls', 'evidence_source', 'ALTER TABLE assessment_controls ADD COLUMN evidence_source TEXT'],
+    ['assessment_controls', 'evidence_suggested_at', 'ALTER TABLE assessment_controls ADD COLUMN evidence_suggested_at DATETIME'],
     ['iato_checklist', 'project_id', 'ALTER TABLE iato_checklist ADD COLUMN project_id INTEGER'],
     ['iato_checklist', 'ato_record_id', 'ALTER TABLE iato_checklist ADD COLUMN ato_record_id INTEGER'],
     ['iato_checklist', 'residual_risk', 'ALTER TABLE iato_checklist ADD COLUMN residual_risk TEXT'],
