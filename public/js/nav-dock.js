@@ -274,7 +274,17 @@
     var ex = document.getElementById('navExpander');
     if (ex) ex.addEventListener('click', function (e) {
       e.preventDefault(); e.stopPropagation();
-      var pop = document.getElementById('navPop'); if (pop) pop.classList.toggle('show'); ex.classList.toggle('on');
+      var pop = document.getElementById('navPop'); if (!pop) return;
+      pop.classList.toggle('show'); ex.classList.toggle('on');
+      // Keep the popover inside the viewport: it defaults to right:0 (opens left),
+      // which runs off-screen when the button sits near the left edge (e.g. a page
+      // with no breadcrumb). Measure and flip to open rightward if needed.
+      if (pop.classList.contains('show')) {
+        pop.style.left = ''; pop.style.right = '';
+        var r = pop.getBoundingClientRect();
+        if (r.left < 8) { pop.style.left = '0'; pop.style.right = 'auto'; }
+        else if (r.right > (window.innerWidth || document.documentElement.clientWidth) - 8) { pop.style.right = '0'; pop.style.left = 'auto'; }
+      }
     });
     document.addEventListener('click', function () { closePop(); });
     var pop = document.getElementById('navPop'); if (pop) pop.addEventListener('click', function (e) { e.stopPropagation(); });

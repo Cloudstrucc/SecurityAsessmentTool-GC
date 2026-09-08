@@ -69,9 +69,12 @@
 
 /* The rail cluster (left/right) lives at the bottom of the rail — icon + tooltip only. */
 .nav-rail-ctl { display:none; }
-.nav-rail-ctl .crow { display:flex; align-items:center; justify-content:center; gap:5px; }
-.nav-rail-ctl .nav-cbtn { width:30px; height:28px; font-size:13px; }
-.nav-rail-ctl .nav-segbtn { width:28px; height:28px; font-size:12px; }
+/* Stack the bottom cluster vertically so it fits the narrow (68px) icon rail
+   instead of squishing a wide row; the position segment stays a compact row. */
+.nav-rail-ctl .crow { display:flex; flex-direction:column; align-items:center; gap:8px; }
+.nav-rail-ctl .nav-cbtn { width:34px; height:30px; font-size:14px; }
+.nav-rail-ctl .nav-posseg { display:inline-flex; }
+.nav-rail-ctl .nav-segbtn { width:20px; height:28px; font-size:11px; }
 
 /* By default (top) show the expander, hide the rail cluster */
 .nav-expander { display:inline-flex; position:relative; }
@@ -99,16 +102,20 @@
   body.nav-dock.nav-pos-right .gc-app-nav > li { width:100%; }
   body.nav-dock.nav-pos-left .gc-app-nav li a,
   body.nav-dock.nav-pos-right .gc-app-nav li a {
-    border-bottom:none; border-left:3px solid transparent; border-radius:6px; padding:.55rem .7rem;
+    border-bottom:none; border-left:none; border-radius:9px; padding:.55rem .7rem; margin:1px 8px;
   }
+  /* Active item: a filled highlight pill spanning the item (with side margins),
+     instead of a thin vertical border that looked detached in the narrow rail. */
   body.nav-dock.nav-pos-left .gc-app-nav li a.active,
-  body.nav-dock.nav-pos-right .gc-app-nav li a.active { border-left-color:var(--cs-brand); background:#eef6fd; }
+  body.nav-dock.nav-pos-right .gc-app-nav li a.active {
+    background:#eef6fd; color:var(--cs-nav); box-shadow:inset 0 0 0 1px rgba(77,159,224,.4);
+  }
   body.nav-dock.nav-pos-left .gc-app-nav .dropdown-menu,
   body.nav-dock.nav-pos-right .gc-app-nav .dropdown-menu { position:static !important; transform:none !important; box-shadow:none; border:none; padding-left:1rem; }
 
   /* rail cluster shows at the bottom; expander hides */
   body.nav-dock.nav-pos-left .nav-rail-ctl,
-  body.nav-dock.nav-pos-right .nav-rail-ctl { display:block; margin-top:auto; padding-top:10px; border-top:1px solid var(--cs-border); }
+  body.nav-dock.nav-pos-right .nav-rail-ctl { display:block; margin-top:auto; padding:12px 6px 18px; border-top:1px solid var(--cs-border); }
   body.nav-dock.nav-pos-left .nav-expander,
   body.nav-dock.nav-pos-right .nav-expander { display:none; }
 
