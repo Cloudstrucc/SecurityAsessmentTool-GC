@@ -72,6 +72,22 @@
   </div>
   {{/unless}}
 
+  {{!-- FEATURE 4: status filter + bulk selection --}}
+  {{#unless isReadOnly}}
+  <div class="card mb-3">
+    <div class="card-body py-2 d-flex align-items-center gap-2 flex-wrap">
+      <span class="small fw-semibold text-muted"><i class="bi bi-funnel me-1"></i>{{t 'ev.filterBy'}}</span>
+      <span class="ev-fchip badge rounded-pill text-bg-primary" data-f="pending" onclick="toggleFilter(this)">{{t 'ev.stPending'}}</span>
+      <span class="ev-fchip badge rounded-pill text-bg-warning" data-f="draft" onclick="toggleFilter(this)">{{t 'ev.stDraft'}}</span>
+      <span class="ev-fchip badge rounded-pill text-bg-success" data-f="provided" onclick="toggleFilter(this)">{{t 'ev.stProvided'}}</span>
+      <span class="ev-fchip badge rounded-pill text-bg-secondary" data-f="ready" onclick="toggleFilter(this)"><i class="bi bi-lock me-1"></i>{{t 'ev.readyBadge'}}</span>
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <label class="small text-muted mb-0"><input type="checkbox" class="form-check-input me-1" id="evSelectAll" onchange="toggleSelectAll(this)">{{t 'ev.selectAll'}}</label>
+      </div>
+    </div>
+  </div>
+  {{/unless}}
+
   <!-- Family navigation -->
   <div class="mb-4">
     <div class="d-flex flex-wrap gap-2">
@@ -95,13 +111,17 @@
       </div>
 
       {{#each this.controls}}
-        <div class="control-card {{#if this.is_inherited}}inherited{{/if}} {{#eq this.evidence_status 'provided'}}border-success{{/eq}}"
-          id="control-{{this.id}}">
+        <div class="control-card ev-ctrl {{#if this.is_inherited}}inherited{{/if}} {{#eq this.evidence_status 'provided'}}border-success{{/eq}}"
+          id="control-{{this.id}}"
+          data-evstatus="{{#if this.evidence_ready}}ready{{else}}{{#if (eq this.evidence_status 'provided')}}provided{{else}}{{#if (eq this.evidence_source 'ai-suggested')}}draft{{else}}pending{{/if}}{{/if}}{{/if}}">
 
           <div class="d-flex justify-content-between align-items-start mb-2">
-            <div>
-              <span class="control-id">{{this.control_id}}</span>
-              <span class="control-title ms-2">{{this.title}}</span>
+            <div class="d-flex align-items-start gap-2">
+              {{#unless ../../isReadOnly}}<input type="checkbox" class="form-check-input ev-select mt-1" data-cid="{{this.id}}" onchange="updateBulkBar()">{{/unless}}
+              <div>
+                <span class="control-id">{{this.control_id}}</span>
+                <span class="control-title ms-2">{{this.title}}</span>
+              </div>
             </div>
             <div class="d-flex gap-1">
               {{#if this.is_inherited}}
@@ -595,6 +615,60 @@ async function addComment(controlId) {
   } catch(e) { console.error(e); }
 }
 </script>
+
+{{#unless isReadOnly}}
+{{!-- FEATURE 4: floating bulk-actions bar + right-click menu --}}
+<div id="evBulkBar" class="shadow" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:1050;background:#0a1626;color:#fff;border-radius:12px;padding:8px 12px;align-items:center;gap:10px">
+  <span class="fw-semibold"><span id="evSelCount">0</span> {{t 'ev.selected'}}</span>
+  <button type="button" class="btn btn-sm btn-outline-light" onclick="doBulk('ready')"><i class="bi bi-check2-circle me-1"></i>{{t 'ev.markReady'}}</button>
+  <button type="button" class="btn btn-sm btn-outline-light" onclick="doBulk('reactivate')"><i class="bi bi-unlock me-1"></i>{{t 'ev.reactivate'}}</button>
+  <button type="button" class="btn btn-sm btn-outline-light" onclick="doBulk('suggest')"><i class="bi bi-magic me-1"></i>{{t 'ev.suggestBtn'}}</button>
+  <button type="button" class="btn btn-sm btn-link text-light text-decoration-none" onclick="clearSelection()">{{t 'ev.clear'}}</button>
+</div>
+<div id="evCtxMenu" class="shadow-sm border bg-white rounded" style="display:none;position:fixed;z-index:1060;min-width:190px;font-size:13px;padding:4px 0">
+  <button type="button" class="dropdown-item py-1" onclick="ctxBulk('ready')"><i class="bi bi-check2-circle me-2"></i>{{t 'ev.markReady'}}</button>
+  <button type="button" class="dropdown-item py-1" onclick="ctxBulk('reactivate')"><i class="bi bi-unlock me-2"></i>{{t 'ev.reactivate'}}</button>
+  <button type="button" class="dropdown-item py-1" onclick="ctxBulk('suggest')"><i class="bi bi-magic me-2"></i>{{t 'ev.suggestBtn'}}</button>
+</div>
+<script>
+// FEATURE 4: multi-select, status filter, bulk actions, right-click menu.
+const EV_FILTERS = new Set();
+function toggleFilter(el){ const f=el.getAttribute('data-f'); if(EV_FILTERS.has(f)){EV_FILTERS.delete(f);el.style.opacity='';el.style.outline='';}else{EV_FILTERS.add(f);el.style.opacity='1';el.style.outline='2px solid rgba(0,0,0,.25)';} applyEvFilter(); }
+function applyEvFilter(){
+  document.querySelectorAll('.ev-ctrl').forEach(function(c){
+    const show = EV_FILTERS.size===0 || EV_FILTERS.has(c.getAttribute('data-evstatus'));
+    c.style.display = show ? '' : 'none';
+    if(!show){ const cb=c.querySelector('.ev-select'); if(cb) cb.checked=false; }
+  });
+  updateBulkBar();
+}
+function toggleSelectAll(cb){ document.querySelectorAll('.ev-ctrl').forEach(function(c){ if(c.style.display!=='none'){ const b=c.querySelector('.ev-select'); if(b) b.checked=cb.checked; } }); updateBulkBar(); }
+function selectedIds(){ return [].slice.call(document.querySelectorAll('.ev-select:checked')).map(function(b){return Number(b.getAttribute('data-cid'));}); }
+function updateBulkBar(){ const ids=selectedIds(); const bar=document.getElementById('evBulkBar'); document.getElementById('evSelCount').textContent=ids.length; bar.style.display=ids.length?'flex':'none'; }
+function clearSelection(){ document.querySelectorAll('.ev-select:checked').forEach(function(b){b.checked=false;}); const sa=document.getElementById('evSelectAll'); if(sa) sa.checked=false; updateBulkBar(); }
+async function doBulk(action){
+  const ids=selectedIds(); if(!ids.length) return;
+  const bar=document.getElementById('evBulkBar'); bar.style.pointerEvents='none';
+  try{
+    const r=await fetch('/respond/'+INVITE_CODE+'/bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:action,controlIds:ids})});
+    const d=await r.json();
+    if(!d.success){ alert(d.message||EV_I18N.suggestFail); bar.style.pointerEvents=''; return; }
+    location.reload();
+  }catch(e){ alert(EV_I18N.suggestFail); bar.style.pointerEvents=''; }
+}
+// Right-click a control to act on the current selection (or just that control).
+let ctxTargetId=null;
+document.addEventListener('contextmenu',function(e){
+  const card=e.target.closest && e.target.closest('.ev-ctrl'); if(!card) return;
+  e.preventDefault();
+  const cb=card.querySelector('.ev-select'); if(cb && !cb.checked && selectedIds().length===0){ cb.checked=true; updateBulkBar(); }
+  ctxTargetId=Number(card.querySelector('.ev-select')&&card.querySelector('.ev-select').getAttribute('data-cid'));
+  const m=document.getElementById('evCtxMenu'); m.style.left=Math.min(e.clientX,window.innerWidth-200)+'px'; m.style.top=e.clientY+'px'; m.style.display='block';
+});
+document.addEventListener('click',function(){ const m=document.getElementById('evCtxMenu'); if(m) m.style.display='none'; });
+function ctxBulk(action){ document.getElementById('evCtxMenu').style.display='none'; if(selectedIds().length===0 && ctxTargetId){ const b=document.querySelector('.ev-select[data-cid="'+ctxTargetId+'"]'); if(b) b.checked=true; updateBulkBar(); } doBulk(action); }
+</script>
+{{/unless}}
 
 {{#unless isReadOnly}}
 {{> ai-assess-helper }}

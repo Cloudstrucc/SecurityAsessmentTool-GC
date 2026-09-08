@@ -3818,5 +3818,13 @@
   "ev.bulkDoneN": "Fatto — {n} bozze create",
   "ev.bulkErrorsN": "{n} saltati (errori)",
   "ev.bulkFailed": "Impossibile completare — riprova.",
-  "ev.bulkReload": "Ricarica per vederle"
+  "ev.bulkReload": "Ricarica per vederle",
+  "ev.filterBy": "Filtra",
+  "ev.stPending": "In sospeso",
+  "ev.stDraft": "Bozza",
+  "ev.stProvided": "Fornita",
+  "ev.selectAll": "Seleziona tutto",
+  "ev.selected": "selezionati",
+  "ev.clear": "Cancella",
+  "ev.bulkNone": "Nessun controllo selezionato."
 }

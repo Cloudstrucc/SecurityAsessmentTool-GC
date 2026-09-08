@@ -3818,5 +3818,13 @@
   "ev.bulkDoneN": "Klaar — {n} concepten gemaakt",
   "ev.bulkErrorsN": "{n} overgeslagen (fouten)",
   "ev.bulkFailed": "Kon niet voltooien — probeer opnieuw.",
-  "ev.bulkReload": "Herladen om ze te zien"
+  "ev.bulkReload": "Herladen om ze te zien",
+  "ev.filterBy": "Filteren",
+  "ev.stPending": "In behandeling",
+  "ev.stDraft": "Concept",
+  "ev.stProvided": "Verstrekt",
+  "ev.selectAll": "Alles selecteren",
+  "ev.selected": "geselecteerd",
+  "ev.clear": "Wissen",
+  "ev.bulkNone": "Geen controls geselecteerd."
 }

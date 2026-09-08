@@ -3818,5 +3818,13 @@
   "ev.bulkDoneN": "Concluído — {n} rascunhos criados",
   "ev.bulkErrorsN": "{n} ignorados (erros)",
   "ev.bulkFailed": "Não foi possível concluir — tente novamente.",
-  "ev.bulkReload": "Recarregar para ver"
+  "ev.bulkReload": "Recarregar para ver",
+  "ev.filterBy": "Filtrar",
+  "ev.stPending": "Pendente",
+  "ev.stDraft": "Rascunho",
+  "ev.stProvided": "Fornecida",
+  "ev.selectAll": "Selecionar tudo",
+  "ev.selected": "selecionado(s)",
+  "ev.clear": "Limpar",
+  "ev.bulkNone": "Nenhum controle selecionado."
 }

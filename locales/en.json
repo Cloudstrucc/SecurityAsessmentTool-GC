@@ -3797,5 +3797,13 @@
   "ev.bulkDoneN": "Done — {n} drafts created",
   "ev.bulkErrorsN": "{n} skipped (errors)",
   "ev.bulkFailed": "Couldn't finish — please try again.",
-  "ev.bulkReload": "Reload to see them"
+  "ev.bulkReload": "Reload to see them",
+  "ev.filterBy": "Filter",
+  "ev.stPending": "Pending",
+  "ev.stDraft": "Draft",
+  "ev.stProvided": "Provided",
+  "ev.selectAll": "Select all",
+  "ev.selected": "selected",
+  "ev.clear": "Clear",
+  "ev.bulkNone": "No controls selected."
 }

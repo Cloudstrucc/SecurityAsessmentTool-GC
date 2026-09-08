@@ -3840,5 +3840,13 @@
   "ev.bulkDoneN": "Terminé — {n} brouillons créés",
   "ev.bulkErrorsN": "{n} ignorés (erreurs)",
   "ev.bulkFailed": "Impossible de terminer — veuillez réessayer.",
-  "ev.bulkReload": "Recharger pour les voir"
+  "ev.bulkReload": "Recharger pour les voir",
+  "ev.filterBy": "Filtrer",
+  "ev.stPending": "En attente",
+  "ev.stDraft": "Brouillon",
+  "ev.stProvided": "Fournie",
+  "ev.selectAll": "Tout sélectionner",
+  "ev.selected": "sélectionné(s)",
+  "ev.clear": "Effacer",
+  "ev.bulkNone": "Aucun contrôle sélectionné."
 }

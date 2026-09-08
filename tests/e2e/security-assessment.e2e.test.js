@@ -2371,3 +2371,21 @@ test('bulk suggest runs as a background job with pollable status that fills empt
   const cid = respond.text.match(/editor-(\d+)/)[1];
   assert.match(respond.text, new RegExp('id="draftBadge-' + cid), 'the empty control was filled by the background job');
 });
+
+test('provider bulk actions mark selected controls Ready', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Bulk Ready ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const respond = await getText(jar, `/respond/${code}`);
+  const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
+
+  const bulk = await (await request(jar, 'POST', `/respond/${code}/bulk`, { json: { action: 'ready', controlIds: [cid] } })).json();
+  assert.equal(bulk.success, true);
+  assert.equal(bulk.updated, 1, 'one control marked ready');
+  const after = await getText(jar, `/respond/${code}`);
+  // The Ready badge for that control is no longer hidden.
+  assert.match(after.text, new RegExp('id="readyBadge-' + cid + '"(?![^>]*hidden)'), 'the control shows Ready after bulk');
+});

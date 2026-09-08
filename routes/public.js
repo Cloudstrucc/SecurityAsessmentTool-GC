@@ -457,6 +457,45 @@ router.get('/respond/:code/suggest-status', ensureEvidenceUser, (req, res) => {
   res.json({ success: true, job: suggestWorker.statusFor(assessment.id) || null });
 });
 
+// FEATURE 4: bulk actions on selected controls (provider side): mark ready,
+// reactivate, or suggest a draft for each. Gated by the ownership model.
+router.post('/respond/:code/bulk', ensureEvidenceUser, express.json(), async (req, res) => {
+  try {
+    const code = req.params.code.toUpperCase();
+    const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
+    if (!assessment) return res.json({ success: false });
+    const acc = evidenceAccess(req, assessment);
+    if (!acc || !acc.canEdit) return res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
+    const action = req.body.action;
+    const ids = (Array.isArray(req.body.controlIds) ? req.body.controlIds : []).map(Number).filter(Boolean);
+    if (!ids.length) return res.json({ success: false, message: tr(req, 'ev.bulkNone', 'No controls selected.') });
+    const who = history.actor(req);
+    const es = require('../config/evidence-suggest');
+    const project = action === 'suggest' ? (get('SELECT name, description, technologies, hosting_type, confidentiality_level, integrity_level, availability_level, security_profile FROM projects WHERE id = ?', [assessment.project_id]) || {}) : null;
+    let n = 0;
+    for (const id of ids) {
+      const c = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?', [id, assessment.id]);
+      if (!c) continue;
+      if (action === 'ready' && !c.evidence_ready) {
+        run('UPDATE assessment_controls SET evidence_ready = 1, evidence_edited_by = ?, evidence_edited_at = CURRENT_TIMESTAMP WHERE id = ?', [who.name, id]);
+        history.record({ controlDbId: id, assessmentId: assessment.id, action: 'ready', actorName: who.name, actorType: who.type, control: c }); n++;
+      } else if (action === 'reactivate' && c.evidence_ready) {
+        run('UPDATE assessment_controls SET evidence_ready = 0, evidence_edited_by = ?, evidence_edited_at = CURRENT_TIMESTAMP WHERE id = ?', [who.name, id]);
+        history.record({ controlDbId: id, assessmentId: assessment.id, action: 'reactivate', actorName: who.name, actorType: who.type, control: c }); n++;
+      } else if (action === 'suggest' && c.evidence_source !== 'user' && !c.evidence_ready) {
+        const text = await ai.generateSuggestedEvidence({ control_id: c.control_id, title: c.title, description: c.description, tailored_description: c.tailored_description, evidence_guidance: c.evidence_guidance }, project);
+        run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?, evidence_source = 'ai-suggested', evidence_status = 'pending',
+             evidence_suggested_at = CURRENT_TIMESTAMP, evidence_edited_by = 'Aegis AI', evidence_edited_at = CURRENT_TIMESTAMP WHERE id = ?`, [text, es.suggestToHtml(text), id]);
+        history.record({ controlDbId: id, assessmentId: assessment.id, action: 'ai-draft', actorName: 'Aegis AI', actorType: 'ai', control: get('SELECT * FROM assessment_controls WHERE id = ?', [id]) }); n++;
+      }
+    }
+    res.json({ success: true, updated: n });
+  } catch (err) {
+    console.error('respond bulk error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Mark a control Ready (locked) / reactivate it. Records history.
 router.post('/respond/:code/ready/:controlId', ensureEvidenceUser, express.json(), (req, res) => {
   const code = req.params.code.toUpperCase();

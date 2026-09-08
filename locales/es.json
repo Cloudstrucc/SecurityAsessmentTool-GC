@@ -3840,5 +3840,13 @@
   "ev.bulkDoneN": "Listo — {n} borradores creados",
   "ev.bulkErrorsN": "{n} omitidos (errores)",
   "ev.bulkFailed": "No se pudo terminar — inténtalo de nuevo.",
-  "ev.bulkReload": "Recargar para verlos"
+  "ev.bulkReload": "Recargar para verlos",
+  "ev.filterBy": "Filtrar",
+  "ev.stPending": "Pendiente",
+  "ev.stDraft": "Borrador",
+  "ev.stProvided": "Proporcionada",
+  "ev.selectAll": "Seleccionar todo",
+  "ev.selected": "seleccionado(s)",
+  "ev.clear": "Borrar",
+  "ev.bulkNone": "Ningún control seleccionado."
 }

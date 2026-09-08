@@ -3818,5 +3818,13 @@
   "ev.bulkDoneN": "Fertig — {n} Entwürfe erstellt",
   "ev.bulkErrorsN": "{n} übersprungen (Fehler)",
   "ev.bulkFailed": "Konnte nicht abgeschlossen werden — bitte erneut versuchen.",
-  "ev.bulkReload": "Neu laden, um sie zu sehen"
+  "ev.bulkReload": "Neu laden, um sie zu sehen",
+  "ev.filterBy": "Filtern",
+  "ev.stPending": "Ausstehend",
+  "ev.stDraft": "Entwurf",
+  "ev.stProvided": "Bereitgestellt",
+  "ev.selectAll": "Alle auswählen",
+  "ev.selected": "ausgewählt",
+  "ev.clear": "Löschen",
+  "ev.bulkNone": "Keine Controls ausgewählt."
 }

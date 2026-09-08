@@ -3818,5 +3818,13 @@
   "ev.bulkDoneN": "完了 — {n}件のドラフトを作成",
   "ev.bulkErrorsN": "{n}件をスキップ（エラー）",
   "ev.bulkFailed": "完了できませんでした。もう一度お試しください。",
-  "ev.bulkReload": "再読み込みして表示"
+  "ev.bulkReload": "再読み込みして表示",
+  "ev.filterBy": "フィルター",
+  "ev.stPending": "保留中",
+  "ev.stDraft": "ドラフト",
+  "ev.stProvided": "提供済み",
+  "ev.selectAll": "すべて選択",
+  "ev.selected": "件選択",
+  "ev.clear": "クリア",
+  "ev.bulkNone": "コントロールが選択されていません。"
 }
