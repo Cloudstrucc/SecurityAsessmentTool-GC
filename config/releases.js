@@ -28,6 +28,22 @@ function md(body) {
 // ── Curated backfill (last ~3 months). Four majors: 1.0.0, 2.0.0, 3.0.0, 4.0.0 ──
 // commit = the tag anchor for the backfill script. body = the GitHub release body.
 const CURATED = [
+  { version: '5.0.0', date: '2026-09-08', commit: 'b87f345',
+    name: 'Evidence & review, reimagined', prs: [],
+    body: `AI-drafted evidence with fill-in placeholders, a background bulk drafter, an ownership + Ready/history model for providers, and a full assessor review workflow with evidence-strength scoring — plus the in-app release notes page.
+
+### ✨ Features
+- **Contextual assistant** + per-control **"Suggest a draft"** (placeholders for values and attachments), and the assistant can **populate fields directly** with Approve / Approve all
+- **Bulk "suggest drafts" as a background job** — drafts only the empty controls, survives navigation/reload, live progress + error reporting
+- **Mark Ready / Reactivate**, per-control **edit history & revert**, and an **"edited by X (incl. AI)"** banner
+- **Multi-select bulk actions + status filter** (with a right-click menu) on both the evidence and review pages
+- **Assessor review**: evidence-strength **scoring** (reliability × sufficiency × impact weight) with a weighted scorecard and weak-evidence flag, review **statuses** and feedback
+- **Return for revision & re-assign** — reopens an assessment showing only the controls flagged for re-submission
+- **Release notes page** that reads live GitHub Releases (curated fallback)
+
+### 📚 Docs
+- Help centre updated with the new evidence-gathering and assessor-review procedures` },
+
   { version: '4.0.0', date: '2026-09-07', commit: 'c1b74d8',
     name: 'AI-assisted evidence & one-click assignment', prs: [],
     body: `Draft evidence with placeholders, generated per-control, in bulk, or by the assistant — plus assignment that activates in one step.
