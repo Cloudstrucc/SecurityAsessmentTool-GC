@@ -28,6 +28,25 @@ function md(body) {
 // ── Curated backfill (last ~3 months). Four majors: 1.0.0, 2.0.0, 3.0.0, 4.0.0 ──
 // commit = the tag anchor for the backfill script. body = the GitHub release body.
 const CURATED = [
+  { version: '5.1.0', date: '2026-09-08', commit: 'b0de88d',
+    name: 'Read-only evidence, ownership gate & a filterable control list', prs: [],
+    body: `A safer, clearer assessor record — evidence always visible read-only, editing gated behind assignment, a filter/search/CSV toolbar over the control list — plus a comprehensive click-by-click tutorial and polished toolbars.
+
+### ✨ Features
+- **Read-only evidence on the assessment record** — every control shows its evidence, even when blank and even before the assessment is submitted
+- **View / edit evidence ownership gate** — editing is gated behind assignment; a dialog offers *View read-only* or *Assign to me & edit* (take ownership), per control and for the record
+- **Filter / fuzzy-search / Export CSV** over the control list, in every phase — by state, by text, exporting exactly the filtered controls
+- **Record Tools panel** — overflowing actions collect under a labeled panel, and **Export** expands in place into report formats (PDF / Word / HTML / Markdown, CSV where tabular)
+- **Evidence drafts render richly** — **bold** guidance and colour-coded \`[[VALUE]]\`/\`[[ATTACH]]\` placeholders, in both the provider flow and the assessor view
+- **Dockable navigation** polish — icon rail with active highlight and an on-screen preferences popover
+
+### 🛠 Fixes
+- Bulk "suggest drafts" no longer crashes for assessors (routed through the background worker) and no longer double-escapes \`&\`
+- Toolbar dropdowns no longer clipped by their card
+
+### 📚 Docs
+- Comprehensive **six-phase, click-by-click end-to-end tutorial** (intake → decision-package close-out), and help sections refreshed for all the above` },
+
   { version: '5.0.0', date: '2026-09-08', commit: 'b87f345',
     name: 'Evidence & review, reimagined', prs: [],
     body: `AI-drafted evidence with fill-in placeholders, a background bulk drafter, an ownership + Ready/history model for providers, and a full assessor review workflow with evidence-strength scoring — plus the in-app release notes page.
