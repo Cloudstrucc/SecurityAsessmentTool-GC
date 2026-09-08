@@ -71,7 +71,16 @@
       wrapLabel(visible);
       var icon = visible.querySelector('i');
       var label = (visible.querySelector('.ra-txt') || {}).textContent || visible.textContent.trim();
-      items.push({ el: child, trigger: trigger, icon: icon ? icon.className : '', label: label, href: href, isDropdown: isDropdown });
+      // For a dropdown (e.g. Export), capture its menu links so the labeled panel
+      // can list the actual options directly instead of a dead "Export" row.
+      var subItems = [];
+      if (isDropdown) {
+        Array.prototype.forEach.call(child.querySelectorAll('.dropdown-menu a.dropdown-item, .dropdown-menu a[href]'), function (a) {
+          var si = a.querySelector('i');
+          subItems.push({ el: a, label: (a.querySelector('.ra-txt') || a).textContent.trim(), href: a.getAttribute('href'), target: a.getAttribute('target'), icon: si ? si.className : '' });
+        });
+      }
+      items.push({ el: child, trigger: trigger, icon: icon ? icon.className : '', label: label, href: href, isDropdown: isDropdown, subItems: subItems });
     });
     return items;
   }
@@ -89,8 +98,26 @@
       grip.innerHTML = '<i class="bi bi-grip-vertical"></i>';
       box.insertBefore(grip, box.firstChild);
 
-      // One labeled row (icon + title) that re-fires the original control.
-      function buildItem(it) {
+      // Append an item to a labeled list. A dropdown (e.g. Export) is expanded into
+      // a small header + its actual options, so the user picks a report format
+      // directly rather than clicking a dead "Export" row.
+      function appendItem(list, it) {
+        if (it.isDropdown && it.subItems && it.subItems.length) {
+          var hd = document.createElement('li');
+          hd.innerHTML = '<h6 class="dropdown-header">' + (it.icon ? '<i class="' + it.icon + '"></i> ' : '') + it.label + '</h6>';
+          list.appendChild(hd);
+          it.subItems.forEach(function (sub) {
+            var li = document.createElement('li');
+            var a = document.createElement('a');
+            a.className = 'dropdown-item';
+            a.href = sub.href || '#';
+            if (sub.target) a.setAttribute('target', sub.target);
+            a.innerHTML = (sub.icon ? '<i class="' + sub.icon + '"></i>' : '') + '<span>' + sub.label + '</span>';
+            if (!sub.href || sub.href === '#') a.addEventListener('click', function (e) { e.preventDefault(); if (sub.el) sub.el.click(); });
+            li.appendChild(a); list.appendChild(li);
+          });
+          return;
+        }
         var li = document.createElement('li');
         var a = document.createElement('a');
         a.className = 'dropdown-item';
@@ -99,7 +126,8 @@
         if (!(it.href && !it.isDropdown)) {
           a.addEventListener('click', function (e) { e.preventDefault(); if (it.trigger) it.trigger.click(); });
         }
-        li.appendChild(a); return li;
+        li.appendChild(a);
+        list.appendChild(li);
       }
 
       // "More" overflow menu (shown only when the toolbar collapses, e.g. mobile).
@@ -117,7 +145,7 @@
       box.appendChild(tools);
       var toolsList = tools.querySelector('.dropdown-menu');
 
-      items.forEach(function (it) { menuList.appendChild(buildItem(it)); toolsList.appendChild(buildItem(it)); });
+      items.forEach(function (it) { appendItem(menuList, it); appendItem(toolsList, it); });
 
       var tb = { box: box, grip: grip, menu: menu, tools: tools };
       toolbars.push(tb);
