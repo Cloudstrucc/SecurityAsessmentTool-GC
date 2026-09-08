@@ -51,46 +51,117 @@
           area that performs it — the sections below the walkthrough describe what you can do, what you should
           do, and when, in each area.</p>
 
-        <h3><i class="bi bi-list-ol me-1"></i> The full journey, step by step</h3>
+        <h3><i class="bi bi-list-ol me-1"></i> The full journey, click by click</h3>
+        <p class="text-muted">Follow these numbered steps in order — each names the exact page, button or menu to
+          use. Where an action is done by the <b>project user (provider)</b> rather than the assessor, it says so.
+          The numbering runs continuously across all six phases so you always know where you are.</p>
+
+        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">Phase 1</span>Intake</h4>
         <ol>
-          <li><b>Capture the intake.</b> A requester submits an <b>Intake</b> (or you
-            create one on their behalf). Attach any supporting documentation; the Aegis SA Assistant can
-            <i>pre-fill</i> the intake from an uploaded document to save typing.</li>
-          <li><b>Triage &amp; accept the intake.</b> On <b>Intakes</b>, review the request and <b>Accept</b> it.
-            Accepting attaches it to a project <i>in place</i> — it never creates a duplicate assessment.</li>
-          <li><b>Create / confirm the project.</b> The <a href="?section=projects">project</a> holds the
-            system's ITSG-33 categorization (Confidentiality / Integrity / Availability), security profile and
-            branding. Set or confirm the classification here.</li>
-          <li><b>Start an assessment.</b> From the project, create an
-            <a href="?section=assessments">assessment</a> and choose the framework and profile (e.g. ITSG-33
-            PBMM). This generates the tailored control baseline.</li>
-          <li><b>Tailor the controls.</b> Mark applicability, inheritance and priority. Optionally tick
-            <i>"Add suggested evidence drafts"</i> so every control starts with a fill-in-the-blank draft.</li>
-          <li><b>Assign &amp; send.</b> Use <b>Assign &amp; send</b> to assign the assessment to the project
-            user — this <i>activates</i> it and emails the invite in one step. The assignee becomes the current
+          <li><b>Open Intakes.</b> In the left navigation dock click <b>Intakes</b>. This is the queue of incoming
+            requests.</li>
+          <li><b>Create the intake</b> (or receive one). Click <b>New intake</b> and complete the form: system
+            name, purpose, business owner and the classification drivers. To save typing, click
+            <b>Pre-fill with AI</b> and upload a description document — the Aegis SA Assistant fills the fields,
+            which you then review. Click <b>Save</b>.</li>
+          <li><b>Triage and accept.</b> Back on <b>Intakes</b>, open the request, review it, and click
+            <b>Accept</b>. Accepting attaches it to a project <i>in place</i> — it never creates a duplicate
+            assessment. (Use <b>Decline</b> with a reason to reject one.)</li>
+        </ol>
+
+        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">Phase 2</span>Project setup</h4>
+        <ol start="4">
+          <li><b>Open the project.</b> Accepting the intake lands you on its <a href="?section=projects">project</a>.
+            You can also reach it later from <b>Projects</b> in the nav dock.</li>
+          <li><b>Confirm the categorization.</b> In the project's <b>Classification</b> card set or confirm the
+            ITSG-33 <b>Confidentiality / Integrity / Availability</b> levels and the security profile. This drives
+            the control baseline, so get it right before you start the assessment.</li>
+          <li><b>Set branding &amp; add documents</b> (optional). Use the <b>Branding</b> card for the project logo
+            and colours (these flow into exported reports), and the <b>Documents</b> card to upload supporting
+            material the assessor and provider will need.</li>
+        </ol>
+
+        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">Phase 3</span>Assessment &amp; tailoring</h4>
+        <ol start="7">
+          <li><b>Create the assessment.</b> On the project click <b>New assessment</b>, choose the framework and
+            profile (e.g. <i>ITSG-33 PBMM</i>) and click <b>Create</b>. Aegis SA generates the tailored control
+            baseline and opens the <a href="?section=assessments">assessment record</a>.</li>
+          <li><b>Enter tailoring mode.</b> On the assessment record click <b>Tailor controls</b>. Each control now
+            shows editable applicability, inheritance, priority and risk.</li>
+          <li><b>Tailor each control.</b> Set <b>Applicability</b> (Applicable / Not applicable), tick
+            <b>Inherited</b> and name the source where a control is provided by an underlying platform, and adjust
+            priority/risk. Tick <b>Remove from assessment</b> for controls that don't apply at all.</li>
+          <li><b>Add suggested evidence drafts</b> (optional but recommended). When creating or tailoring, tick
+            <i>"Add suggested evidence drafts"</i> so every control starts with a fill-in-the-blank draft —
+            <code>[[VALUE: …]]</code> placeholders (amber) and <code>[[ATTACH: …]]</code> placeholders (blue) show
+            the provider exactly what to supply. Click <b>Save tailoring</b>.</li>
+          <li><b>Assign &amp; send.</b> Click <b>Assign &amp; send</b>, pick the project user, and confirm. This
+            <i>activates</i> the assessment and emails the invite in one step. The assignee becomes the current
             <b>evidence owner</b>.</li>
-          <li><b>Gather evidence</b> (project user). The assignee opens the
-            <a href="?section=evidence">evidence flow</a>, writes evidence for each control — typing it, using
-            <b>Suggest a draft</b>, asking the assistant to draft and <b>Approve</b> it, or running
-            <b>Suggest drafts in bulk</b> — attaches artifacts, replaces every <code>[[VALUE]]</code>/
-            <code>[[ATTACH]]</code> placeholder, marks each control <b>Ready</b>, then <b>Submits</b>.</li>
-          <li><b>Start the audit.</b> Back on the assessment, <b>Start audit</b> locks the evidence for review.</li>
-          <li><b>Review &amp; score.</b> For each control, record the determination (satisfied / partial / not
-            satisfied) and rate the evidence's <b>reliability</b>, <b>sufficiency</b> and <b>impact weight</b>;
-            leave feedback and set <b>Reviewed</b>, <b>Requires re-submission</b>, or <b>Removed</b>. A
-            <b>weighted evidence score</b> and a weak-evidence flag guide (never replace) your judgement.</li>
-          <li><b>Return for revision</b> (if needed). <b>Return for revision &amp; re-assign</b> sends the
-            assessment back showing <i>only</i> the controls flagged <i>Requires re-submission</i>; the provider
-            fixes those and re-submits.</li>
-          <li><b>Complete the audit.</b> <b>Complete audit</b> computes the result and proposes
-            <b>ATO / iATO / denied</b> — a single unmet <i>high-risk</i> control blocks a full ATO — which you
-            can override with justification.</li>
-          <li><b>Create the decision package.</b> From the project, create a
-            <a href="?section=decisions">Decision Package</a> that pins that assessment version (immutable). For
-            an iATO, <a href="?section=poam">POA&amp;M</a> items become its conditions.</li>
-          <li><b>Authorize (ATO/iATO).</b> Record the decision, signatures and expiry, and export the
-            authorization report (PDF/DOCX). The project's process flow now shows the system as
-            <b>Authorized</b>.</li>
+        </ol>
+
+        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">Phase 4</span>Evidence gathering <span class="text-muted fw-normal">(project user)</span></h4>
+        <ol start="12">
+          <li><b>Open the evidence flow.</b> The provider clicks the link in the invite email (or opens the
+            assessment and clicks <b>Provide evidence</b>) to reach the <a href="?section=evidence">evidence
+            flow</a>.</li>
+          <li><b>Answer each control.</b> For every control, write the evidence in the editor. To move faster,
+            click <b>Suggest a draft</b> for that control, or ask the assistant in the side panel to draft it and
+            click <b>Approve</b> to drop the draft into the editor.</li>
+          <li><b>Suggest drafts in bulk</b> (optional). Click <b>Suggest drafts in bulk</b> to generate drafts for
+            every empty control at once. This runs in the background — a progress bar keeps you posted and real
+            (already-written) evidence is never overwritten.</li>
+          <li><b>Fill the placeholders.</b> Replace every amber <code>[[VALUE]]</code> and blue
+            <code>[[ATTACH]]</code> placeholder with the real value or a real attachment. Use the paperclip to
+            upload artifacts.</li>
+          <li><b>Mark each control Ready.</b> When a control is complete click <b>Ready</b>. Use the status filter
+            and the multi-select bar to mark several at once. If you need an earlier version, use
+            <b>History</b> → <b>Revert</b>.</li>
+          <li><b>Submit.</b> When all controls are Ready click <b>Submit evidence</b>. The assessment moves to the
+            assessor for audit.</li>
+        </ol>
+
+        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">Phase 5</span>Audit &amp; review <span class="text-muted fw-normal">(assessor)</span></h4>
+        <ol start="18">
+          <li><b>Review the submitted evidence.</b> Open the assessment record. Every control shows its evidence
+            <b>read-only</b> — even blank ones — so you can see the whole picture at a glance. Use the
+            <b>Filter</b> bar at the top of the control list to show a single state (Pending / Met / Partially met
+            / Not met / Not applicable) or to <b>fuzzy-search</b> by control ID, title or wording; click
+            <b>Export CSV</b> to download exactly the filtered list.</li>
+          <li><b>Start the audit.</b> Click <b>Start audit</b>. This locks the evidence for review.</li>
+          <li><b>Edit evidence only if it's yours.</b> To change evidence or a control you must be the assignee.
+            Click <b>View / edit evidence</b>; if the assessment is assigned to someone else a dialog offers
+            <b>View read-only</b> or <b>Assign to me &amp; edit</b> (taking ownership). Taking ownership lets you
+            override values while auditing or tailoring; re-assign to hand it back.</li>
+          <li><b>Score each control.</b> Record the determination (<b>satisfied / partially satisfied / not
+            satisfied</b>) and rate the evidence's <b>reliability</b>, <b>sufficiency</b> and <b>impact weight</b>.
+            A <b>weighted evidence score</b> and a weak-evidence flag guide — never replace — your judgement.</li>
+          <li><b>Set review status &amp; leave feedback.</b> For each control set <b>Reviewed</b>, <b>Requires
+            re-submission</b>, or <b>Removed</b>, and add feedback. Use the review filter chips and the
+            multi-select bar to act in bulk.</li>
+          <li><b>Return for revision</b> (if needed). Click <b>Return for revision &amp; re-assign</b> to send the
+            assessment back showing <i>only</i> the controls flagged <i>Requires re-submission</i>. The provider
+            fixes those and re-submits (repeat Phase 4 for those controls).</li>
+          <li><b>Complete the audit.</b> Click <b>Complete audit</b>. Aegis SA computes the result and proposes
+            <b>ATO / iATO / denied</b> — a single unmet <i>high-risk</i> control blocks a full ATO. You can
+            override the proposal with a written justification.</li>
+        </ol>
+
+        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">Phase 6</span>Decision package &amp; authorization</h4>
+        <ol start="25">
+          <li><b>Create the decision package.</b> From the project click <b>New decision package</b> and pin the
+            audited <a href="?section=decisions">assessment version</a> — the pinned version is immutable, so the
+            decision always reflects exactly what was reviewed.</li>
+          <li><b>Capture POA&amp;M conditions</b> (for an iATO). Add <a href="?section=poam">POA&amp;M</a> items for
+            any residual risk; on an iATO these become the conditions of the authorization, each with an owner and
+            a due date.</li>
+          <li><b>Record the decision.</b> Set the authorization type (ATO / iATO / denied), the authorizing
+            official, signatures and the <b>expiry date</b>. Set a realistic expiry — the platform tracks it.</li>
+          <li><b>Export the authorization.</b> Use the record's <b>Tools</b> panel → <b>Export</b> and choose a
+            format (PDF / DOCX / HTML / Markdown) to produce the signed authorization report. The project's
+            process flow now shows the system as <b>Authorized</b>.</li>
+          <li><b>Close out.</b> Monitor POA&amp;M items to completion and watch the expiry; when the authorization
+            lapses or the system changes materially, start the cycle again from the relevant phase.</li>
         </ol>
 
         <h3><i class="bi bi-inbox me-1"></i> Intake — what, and when</h3>
@@ -164,9 +235,25 @@
             evidence; the assessor can <b>Take ownership</b> to edit and must re-assign to hand it back.</li>
         </ul>
 
+        <h3 class="mt-3">Filtering &amp; exporting the control list</h3>
+        <p>At the top of the control list on the assessment record is a <b>Filter</b> bar, available in every
+          phase:</p>
+        <ul>
+          <li><b>By state</b> — pick a single state (Pending / Met / Partially met / Not met / Not applicable) to
+            narrow the list; families with no matching controls collapse automatically.</li>
+          <li><b>Fuzzy search</b> — type any text to match control IDs, titles and wording (each word is matched
+            as an in-order subsequence, so partial terms still find their control).</li>
+          <li><b>Export CSV</b> — downloads exactly the currently-filtered controls (ID, title, family,
+            applicability, evidence status, assessment status, risk) — a fast way to hand off a slice of the
+            assessment.</li>
+        </ul>
+
         <h3 class="mt-3">Reviewing evidence (audit)</h3>
-        <p>When the assessment is in the <b>audit</b> phase, each control shows the submitted evidence plus a
-          review panel:</p>
+        <p>On the assessment record every control shows its submitted evidence <b>read-only</b> — even when blank,
+          and even before the whole assessment is submitted — so you always see the full picture. To change
+          evidence or a control, click <b>View / edit evidence</b>; because only the assignee may edit, if the
+          assessment belongs to someone else a dialog lets you <b>View read-only</b> or <b>Assign to me &amp;
+          edit</b> (take ownership). In the <b>audit</b> phase each control also gets a review panel:</p>
         <ul>
           <li><b>Evidence scoring</b> — rate the evidence's <b>reliability</b> (self-attested → assessor-tested),
             its <b>sufficiency</b>, and the control's <b>impact weight</b>. These roll up to a weighted
@@ -193,9 +280,11 @@
             token usage is metered against your plan unless you bring your own AI provider.</li>
           <li><b>Suggest a draft</b> — on any control, "Suggest a draft" pre-fills a starting-point answer with
             <code>[[VALUE: …]]</code> placeholders for the specifics you supply and <code>[[ATTACH: …]]</code>
-            for artifacts to upload. A draft is clearly marked and does <i>not</i> count as provided evidence
-            until you edit it. The evidence assistant can also propose drafts you <b>Approve</b> / <b>Approve
-            all</b> straight into the fields.</li>
+            for artifacts to upload. Placeholders are <b>colour-coded</b> (amber for values, blue for attachments)
+            and <code>**bold**</code> guidance renders as real bold so drafts are easy to scan; a draft is clearly
+            marked and does <i>not</i> count as provided evidence until you edit it. The evidence assistant can also
+            propose drafts you <b>Approve</b> / <b>Approve all</b> straight into the fields, and
+            <b>Refine with AI</b> rewrites an existing answer while keeping the same placeholder styling.</li>
           <li><b>Suggest drafts in bulk</b> — the bar at the top runs a background job that drafts every control
             with <i>no evidence yet</i> (it never touches ones you've filled). It keeps running if you leave the
             page, shows live progress, and reports any that were skipped.</li>
@@ -286,7 +375,15 @@
           <li><b>Set as default</b> (the star) — save your current position + pin as your default for every
             sign-in. The star lights up when the current view matches your saved default.</li>
         </ul>
+        <p>When docked to the side the menu is an <b>icon rail</b> you can expand to full labels; the active item
+          is highlighted and user/preferences controls sit in a tidy cluster at the bottom.</p>
         <p>The <b>breadcrumb</b> under the menu always shows where you are (Home › Section › Record).</p>
+
+        <h3 class="mt-3">Record toolbar &amp; Tools panel</h3>
+        <p>Every record page (assessment, project, decision package, POA&amp;M, intake) has an <b>actions
+          toolbar</b>. Overflowing actions collect under a labeled <b>Tools</b> panel so nothing is hidden behind
+          a nameless icon, and the <b>Export</b> action expands in place into the record's report formats
+          (PDF / Word / HTML / Markdown, plus CSV where tabular) — one click straight to the format you want.</p>
       </section>
 
       <section id="assistant" class="help-sec">

@@ -2417,3 +2417,26 @@ test('assessor review: per-control status/scoring, return-for-revision, and bulk
   const bulk = await (await request(jar, 'POST', `/admin/assessments/${assessmentId}/controls/bulk-review`, { json: { action: 'accept', controlIds: [cid] } })).json();
   assert.equal(bulk.success, true); assert.equal(bulk.updated, 1, 'bulk-review updated the control');
 });
+
+test('assessment detail: read-only evidence, view/edit gate, and filter/CSV toolbar', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Filter ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+
+  // Filter / fuzzy-search / CSV toolbar is present with export.
+  assert.match(detail.text, /id="ctrlFilterBar"/, 'filter toolbar rendered');
+  assert.match(detail.text, /id="ctrlFilterState"/, 'state filter present');
+  assert.match(detail.text, /id="ctrlFilterSearch"/, 'search box present');
+  assert.match(detail.text, /onclick="ctrlExportCsv\(\)"/, 'CSV export button present');
+
+  // Control cards carry the filter/CSV data attributes.
+  assert.match(detail.text, /data-astatus=/, 'controls expose audit-state for filtering');
+  assert.match(detail.text, /data-search=/, 'controls expose searchable text');
+
+  // Read-only evidence block is always shown, with a per-control view/edit button
+  // and the ownership gate modal.
+  assert.match(detail.text, /onclick="evEditGate\('#control-\d+'\)"/, 'per-control view/edit button');
+  assert.match(detail.text, /id="evGateModal"/, 'ownership gate modal present');
+  assert.match(detail.text, /No evidence provided yet\.|rv\.noEvidenceYet/, 'blank evidence shows a read-only placeholder');
+});

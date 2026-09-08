@@ -146,6 +146,13 @@
        following sections instead of being clipped / painted over. */
     .card:has(.dropdown-menu.show) { overflow:visible; position:relative; z-index:1080; }
     .dropdown-menu.show { z-index:1080; }
+    /* Colour-coded placeholders in AI-drafted evidence (shared across the evidence
+       page and the assessor's read-only view). */
+    .ev-ph { border-radius:5px; padding:0 5px; font-weight:600; font-size:.93em; }
+    .ev-ph-value  { background:#fff3cd; color:#7a5a08; border:1px solid #f2d692; }
+    .ev-ph-attach { background:#e0f2fe; color:#075985; border:1px solid #bae6fd; }
+    .ev-ph-value::before  { content:"\270E\FE0E"; margin-right:4px; opacity:.75; }
+    .ev-ph-attach::before { content:"\1F4CE\FE0E"; margin-right:4px; opacity:.85; }
     .card-header { background:var(--cs-nav); color:#fff; font-weight:600; padding:.9rem 1.25rem; border-bottom:none; border-radius:0; }
     .card-header.bg-light { background:var(--cs-light)!important; color:var(--cs-text); }
     /* Bootstrap's pale "-subtle" backgrounds need dark text — the default white above

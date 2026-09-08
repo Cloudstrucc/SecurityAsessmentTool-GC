@@ -128,21 +128,9 @@
               <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#assignSendModal" title="{{t 'ui.assignAndSend'}}">
                 <i class="bi bi-person-plus me-1"></i>{{t 'ui.assignAndSend'}}
               </button>
-              {{#if assignedToOther}}
-                {{!-- Assigned to a project user: the assessor opens the flow read-only to
-                      watch progress, and must take ownership to edit. --}}
-                <a href="/respond/{{assessment.invite_code}}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm" title="{{t 'ev.openReadOnly'}}">
-                  <i class="bi bi-box-arrow-up-right me-1"></i>{{t 'ev.openEvidenceFlow'}}
-                </a>
-                <form method="POST" action="/admin/assessments/{{assessment.id}}/take-ownership" class="d-inline"
-                  onsubmit="return confirm('{{t 'ev.takeOwnershipConfirm'}}')">
-                  <button class="btn btn-warning btn-sm"><i class="bi bi-person-fill-check me-1"></i>{{t 'ev.takeOwnership'}}</button>
-                </form>
-              {{else}}
-                <a href="/respond/{{assessment.invite_code}}" target="_blank" rel="noopener" class="btn btn-success btn-sm" title="{{t 'ui.openThePublicEvidenceSubmission'}}">
-                  <i class="bi bi-pencil-square me-1"></i>{{t 'ui.editEvidence'}}
-                </a>
-              {{/if}}
+              <button type="button" class="btn {{#if assignedToOther}}btn-outline-secondary{{else}}btn-success{{/if}} btn-sm" onclick="evEditGate('')">
+                <i class="bi bi-pencil-square me-1"></i>{{t 'ev.viewEdit'}}
+              </button>
             {{/eq}}
 
             {{#eq assessment.status "submitted"}}
@@ -512,8 +500,30 @@
   </div></div>
   {{/eq}}
 
+  <!-- Control filter / fuzzy search / CSV export (all phases) -->
+  <div class="card mb-3" id="ctrlFilterBar"><div class="card-body py-2">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="small fw-semibold text-muted"><i class="bi bi-funnel me-1"></i>{{t 'af.filter'}}</span>
+      <select class="form-select form-select-sm" id="ctrlFilterState" style="max-width:210px" onchange="ctrlApplyFilter()">
+        <option value="">{{t 'af.allStates'}}</option>
+        <option value="pending">{{t 'ui.pending'}}</option>
+        <option value="met">{{t 'ui.met'}}</option>
+        <option value="partially-met">{{t 'ui.partiallyMet'}}</option>
+        <option value="not-met">{{t 'ui.notMet'}}</option>
+        <option value="not-applicable">{{t 'ui.notApplicable'}}</option>
+      </select>
+      <div class="input-group input-group-sm" style="max-width:300px">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="text" class="form-control" id="ctrlFilterSearch" placeholder="{{t 'af.searchPlaceholder'}}" oninput="ctrlApplyFilter()" autocomplete="off">
+      </div>
+      <span class="small text-muted" id="ctrlFilterCount"></span>
+      <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" onclick="ctrlClearFilter()"><i class="bi bi-x-circle me-1"></i>{{t 'af.clear'}}</button>
+      <button type="button" class="btn btn-sm btn-success" onclick="ctrlExportCsv()"><i class="bi bi-filetype-csv me-1"></i>{{t 'af.exportCsv'}}</button>
+    </div>
+  </div></div>
+
   {{#each families}}
-    <div class="form-section" id="family-{{this.code}}">
+    <div class="form-section" id="family-{{this.code}}" data-familysection="{{this.code}}">
       <div class="section-header">
         <h3 class="section-title">
           <span class="section-number">{{this.code}}</span>
@@ -524,7 +534,15 @@
 
       {{#each this.controls}}
         <div class="control-card rv-ctrl {{#if this.is_inherited}}inherited{{/if}}" id="control-{{this.id}}"
-          data-rvstatus="{{#if this.review_status}}{{this.review_status}}{{else}}pending{{/if}}">
+          data-rvstatus="{{#if this.review_status}}{{this.review_status}}{{else}}pending{{/if}}"
+          data-astatus="{{#if this.audit_result}}{{this.audit_result}}{{else}}pending{{/if}}"
+          data-applicable="{{#if this.is_applicable}}1{{else}}0{{/if}}"
+          data-evstatus="{{this.evidence_status}}"
+          data-family="{{this.family}}"
+          data-ctrlid="{{this.control_id}}"
+          data-risk="{{this.risk_level}}"
+          data-title="{{this.title}}"
+          data-search="{{this.control_id}} {{this.title}} {{this.description}}">
           <div class="d-flex justify-content-between align-items-start">
             <div>
               <div class="d-flex align-items-center gap-2 mb-1">
@@ -688,24 +706,23 @@
           <div id="ai-ev-result-{{this.id}}" style="display:none;" class="mt-2 p-2 rounded border" style="background:#f5f3ff;">
           </div>
 
-          <!-- Evidence (if provided) -->
-          {{#eq this.evidence_status "provided"}}
-            <div class="mt-2 p-2 rounded border" style="background:#f0fff0">
-              <small class="text-success fw-semibold d-block mb-1"><i class="bi bi-check-circle me-1"></i>{{t 'ui.evidenceSubmitted'}}</small>
-              <div class="small">{{{this.evidence_html}}}</div>
-              {{#if this.evidence_text}}
-                {{#unless this.evidence_html}}
-                  <div class="small">{{this.evidence_text}}</div>
-                {{/unless}}
-              {{/if}}
+          <!-- Evidence (read-only) — visible even if blank or not yet submitted -->
+          <div class="mt-2 p-2 rounded border" style="background:#f8fafc">
+            <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+              <small class="fw-semibold text-muted"><i class="bi bi-paperclip me-1"></i>{{t 'rv.evidenceProvided'}}
+                {{#if (eq this.evidence_source 'ai-suggested')}}<span class="badge text-bg-warning ms-1">{{t 'ev.draftBadge'}}</span>{{/if}}
+                {{#if this.evidence_edited_by}}<span class="text-muted fw-normal ms-1">· {{t 'ev.editedBy'}} {{this.evidence_edited_by}}</span>{{/if}}
+              </small>
+              {{#unless ../../viewingVersion}}
+              <button type="button" class="btn btn-sm btn-outline-primary" onclick="evEditGate('#control-{{this.id}}')"><i class="bi bi-pencil-square me-1"></i>{{t 'ev.viewEdit'}}</button>
+              {{/unless}}
             </div>
-          {{/eq}}
-          {{#unless this.evidence_text}}
-            <div class="mt-2 p-2 rounded border" style="background:#fff">
-              <small class="text-muted fw-semibold d-block mb-1">{{t 'ui.evidenceCollected'}}</small>
-              <small class="text-muted">{{t 'ui.noEvidenceCollectedYet'}}</small>
-            </div>
-          {{/unless}}
+            {{#if this.evidence_text}}
+              <div class="small ev-readonly">{{{this.evidence_html}}}{{#unless this.evidence_html}}{{this.evidence_text}}{{/unless}}</div>
+            {{else}}
+              <div class="small text-muted fst-italic">{{t 'rv.noEvidenceYet'}}</div>
+            {{/if}}
+          </div>
 
           <div class="mt-2 d-flex flex-wrap gap-2 small">
             <span class="badge {{#if this.is_applicable}}bg-success{{else}}bg-secondary{{/if}}">Applicability: {{#if this.is_applicable}}Applicable{{else}}Not Applicable{{/if}}</span>
@@ -1502,6 +1519,121 @@ window.AIAssistConfig = {
 };
 </script>
 {{/unless}}
+
+{{!-- View/edit evidence gate: an assessor must be the current assignee to edit; if
+      not, warn and offer to assign to self (take ownership) or view read-only. --}}
+<div class="modal fade" id="evGateModal" tabindex="-1" aria-labelledby="evGateLbl" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="evGateLbl"><i class="bi bi-shield-lock me-2"></i>{{t 'ev.gateTitle'}}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+      <div class="modal-body">
+        <p>{{t 'ev.gateBody'}}</p>
+        <p class="small text-muted mb-0"><i class="bi bi-info-circle me-1"></i>{{t 'ev.gateReadOnlyNote'}}</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{t 'ui.cancel'}}</button>
+        <button type="button" class="btn btn-outline-secondary" id="evGateRead"><i class="bi bi-eye me-1"></i>{{t 'ev.gateReadOnly'}}</button>
+        <button type="button" class="btn btn-warning" id="evGateAssign"><i class="bi bi-person-fill-check me-1"></i>{{t 'ev.gateAssignEdit'}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var FLOW='/respond/{{assessment.invite_code}}', AID='{{assessment.id}}';
+  var MINE={{#if assignedToMe}}true{{else}}false{{/if}}, OTHER={{#if assignedToOther}}true{{else}}false{{/if}};
+  var ERR={{{tjs 'ev.gateError'}}};
+  var anchor='';
+  function openFlow(){ window.open(FLOW+anchor,'_blank','noopener'); }
+  window.evEditGate=function(a){
+    anchor=a||'';
+    if (MINE || !OTHER) { openFlow(); return; }   // owner or unassigned → editable
+    try { new bootstrap.Modal(document.getElementById('evGateModal')).show(); } catch(e){ openFlow(); }
+  };
+  var rd=document.getElementById('evGateRead'); if(rd) rd.addEventListener('click', function(){ try{ bootstrap.Modal.getInstance(document.getElementById('evGateModal')).hide(); }catch(e){} openFlow(); });
+  var as=document.getElementById('evGateAssign'); if(as) as.addEventListener('click', async function(){
+    this.disabled=true;
+    try{
+      await fetch('/admin/assessments/'+AID+'/take-ownership',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:''});
+      openFlow();
+      location.reload();
+    }catch(e){ this.disabled=false; alert(ERR); }
+  });
+})();
+</script>
+
+<!-- Control filter / fuzzy search / CSV export -->
+<script>
+(function(){
+  var AID='{{assessment.id}}';
+  var COLS={ id:{{{tjs 'af.colId'}}}, title:{{{tjs 'af.colTitle'}}}, family:{{{tjs 'af.colFamily'}}}, applicable:{{{tjs 'af.colApplicable'}}}, evidence:{{{tjs 'af.colEvidence'}}}, status:{{{tjs 'af.colStatus'}}}, risk:{{{tjs 'af.colRisk'}}} };
+  var SHOWING={{{tjs 'af.showing'}}};
+  var YES={{{tjs 'ui.applicable'}}}, NO={{{tjs 'ui.notApplicable'}}};
+  function norm(s){ return (s||'').toString().toLowerCase(); }
+  // Fuzzy: every whitespace token must appear as an in-order subsequence of the haystack.
+  function fuzzy(hay, q){
+    if(!q) return true;
+    hay=norm(hay);
+    var toks=norm(q).split(/\s+/).filter(Boolean);
+    return toks.every(function(t){
+      if(hay.indexOf(t)!==-1) return true;
+      var i=0; for(var c=0;c<hay.length && i<t.length;c++){ if(hay[c]===t[i]) i++; } return i===t.length;
+    });
+  }
+  function cards(){ return Array.prototype.slice.call(document.querySelectorAll('.control-card[data-ctrlid]')); }
+  function match(card, state, q){
+    if(state){
+      if(state==='not-applicable'){ if(card.getAttribute('data-applicable')!=='0') return false; }
+      else if((card.getAttribute('data-astatus')||'pending')!==state) return false;
+    }
+    return fuzzy(card.getAttribute('data-search'), q);
+  }
+  window.ctrlApplyFilter=function(){
+    var state=(document.getElementById('ctrlFilterState')||{}).value||'';
+    var q=(document.getElementById('ctrlFilterSearch')||{}).value||'';
+    var all=cards(), shown=0;
+    all.forEach(function(c){ var ok=match(c,state,q); c.style.display=ok?'':'none'; if(ok) shown++; });
+    // Hide family sections with no visible controls.
+    document.querySelectorAll('[data-familysection]').forEach(function(sec){
+      var vis=sec.querySelectorAll('.control-card[data-ctrlid]:not([style*="display: none"])').length;
+      sec.style.display=vis?'':'none';
+    });
+    var cnt=document.getElementById('ctrlFilterCount');
+    if(cnt) cnt.textContent=SHOWING.replace('{shown}',shown).replace('{total}',all.length);
+  };
+  window.ctrlClearFilter=function(){
+    var s=document.getElementById('ctrlFilterState'); if(s) s.value='';
+    var q=document.getElementById('ctrlFilterSearch'); if(q) q.value='';
+    ctrlApplyFilter();
+  };
+  function csvCell(v){ v=(v==null?'':String(v)); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+  window.ctrlExportCsv=function(){
+    var visible=cards().filter(function(c){ return c.style.display!=='none'; });
+    var rows=[[COLS.id,COLS.title,COLS.family,COLS.applicable,COLS.evidence,COLS.status,COLS.risk]];
+    visible.forEach(function(c){
+      rows.push([
+        c.getAttribute('data-ctrlid'),
+        c.getAttribute('data-title'),
+        c.getAttribute('data-family'),
+        c.getAttribute('data-applicable')==='1'?YES:NO,
+        c.getAttribute('data-evstatus'),
+        c.getAttribute('data-astatus'),
+        c.getAttribute('data-risk')
+      ]);
+    });
+    var csv='﻿'+rows.map(function(r){ return r.map(csvCell).join(','); }).join('\r\n');
+    var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url; a.download='assessment-'+AID+'-controls.csv';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },0);
+  };
+  if(document.readyState!=='loading') ctrlApplyFilter();
+  else document.addEventListener('DOMContentLoaded', ctrlApplyFilter);
+})();
+</script>
 
 {{#if collabEnabled}}
   {{> collab-panel }}
