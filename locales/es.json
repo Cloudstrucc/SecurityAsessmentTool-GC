@@ -506,7 +506,7 @@
         "print": "Imprimir",
         "resend_invite": "Reenviar Invitación",
         "send_invite_to_owner": "Enviar Invitación al Propietario",
-        "validate_amp_approve": "Validar &amp; Aprobar",
+        "validate_amp_approve": "Validar & Aprobar",
         "return_for_revision": "Devolver para Revisión",
         "save_notes": "Guardar Notas"
       },
@@ -531,7 +531,7 @@
         "no_pii": "Sin PII"
       },
       "card": {
-        "review_amp_validate": "Revisar &amp; Validar",
+        "review_amp_validate": "Revisar & Validar",
         "additional_considerations": "Consideraciones Adicionales",
         "assessor_notes": "Notas del Evaluador"
       },
@@ -746,7 +746,7 @@
       "p": {
         "scan_the_qr_code_with": "Escanee el código QR con su aplicación de autenticación para habilitar MFA.",
         "confirm_your_identity_to_continue": "Confirme su identidad para continuar.",
-        "security_assessment_amp_authorization_portal": "Portal de Evaluación de Seguridad &amp; Autorización",
+        "security_assessment_amp_authorization_portal": "Portal de Evaluación de Seguridad & Autorización",
         "approve_with_your_passkey_face": "Apruebe con su passkey (Face ID, Touch ID o Windows Hello)."
       },
       "link": {
@@ -757,9 +757,9 @@
         "back_to_portal_home": "Volver al Inicio del Portal"
       },
       "btn": {
-        "verify_amp_enable_mfa": "Verificar &amp; Habilitar MFA",
+        "verify_amp_enable_mfa": "Verificar & Habilitar MFA",
         "sign_in_with_passkey": "Iniciar Sesión con Passkey",
-        "verify_amp_sign_in": "Verificar &amp; Iniciar Sesión",
+        "verify_amp_sign_in": "Verificar & Iniciar Sesión",
         "sign_in": "Iniciar Sesión"
       },
       "ph": {
@@ -1194,7 +1194,7 @@
       "btn": {
         "cancel": "Cancelar",
         "menu": "Menú",
-        "verify_amp_sign": "Verificar &amp; Firmar"
+        "verify_amp_sign": "Verificar & Firmar"
       },
       "span": {
         "vanguard_cloud_services": "Vanguard Cloud Services",
@@ -1687,9 +1687,9 @@
       "creating_resource_group": "Creando grupo de recursos",
       "creating_app_service_plan": "Creando plan de App Service",
       "creating_web_application": "Creando aplicación web",
-      "configuring_environment_amp_credentials": "Configurando entorno &amp; credenciales",
+      "configuring_environment_amp_credentials": "Configurando entorno & credenciales",
       "deploying_application_code": "Desplegando código de aplicación",
-      "health_check_amp_finalization": "Verificación de estado &amp; finalización",
+      "health_check_amp_finalization": "Verificación de estado & finalización",
       "instance_url": "URL de la instancia",
       "login_email": "Correo de inicio de sesión",
       "role": "Rol",
@@ -3227,8 +3227,8 @@
   "ui.nameOrContactInfo": "Nombre o datos de contacto",
   "ui.smtpYourdomainCom": "smtp.sudominio.com",
   "ui.nameAgencyGcCa": "nombre@agencia.gc.ca",
-  "ui.saAmpARequired": "SA&amp;A requerida",
-  "ui.noSaAmpARequired": "No se requiere SA&amp;A",
+  "ui.saAmpARequired": "SA&A requerida",
+  "ui.noSaAmpARequired": "No se requiere SA&A",
   "ui.mobileByodAccess": "Acceso móvil / BYOD",
   "ui.createClientInvite": "Crear invitación de cliente",
   "ui.confirmNewPassword": "Confirmar la nueva contraseña",
@@ -3385,7 +3385,7 @@
   "ui.noAssessmentsYetForThis": "Aún no hay evaluaciones para este proyecto.",
   "ui.canadaPrimaryWithLimitedFailover": "Canadá como principal con conmutación limitada",
   "ui.listTechnologiesNotCoveredAbove": "Enumere las tecnologías no cubiertas arriba.",
-  "ui.whenAFullSaAmp": "Cuándo se requiere una SA&amp;A completa",
+  "ui.whenAFullSaAmp": "Cuándo se requiere una SA&A completa",
   "ui.platformDefaultAnthropicMetered": "Valor predeterminado de la plataforma (Anthropic, medido)",
   "ui.useForAiAssistedControl": "Usar para la selección de controles asistida por IA",
   "ui.aiGuidanceFromProjectDocumentation": "Orientación por IA a partir de la documentación del proyecto",
@@ -3473,7 +3473,7 @@
   "ui.documentsAreRetainedForAi": "Los documentos se conservan para la orientación por IA, la adaptación de controles, los informes y la trazabilidad.",
   "ui.selectTheFrameworkFirstItsg": "Seleccione primero el marco. ITSG-33 usa C/I/D; otros marcos usan campos de línea base/categoría.",
   "ui.noNotificationsYetWhenYou": "Aún no hay notificaciones. Cuando se le asigne un archivo o se le invite a un proyecto, aparecerá aquí con un enlace directo.",
-  "ui.theFollowingAssessmentSAnd": "las siguientes evaluaciones y su evidencia, comentarios, adjuntos y elementos POA&amp;M. Esta acción no se puede deshacer.",
+  "ui.theFollowingAssessmentSAnd": "las siguientes evaluaciones y su evidencia, comentarios, adjuntos y elementos POA&M. Esta acción no se puede deshacer.",
   "ui.signaturesAndTheInviteCode": "Las firmas y el código de invitación no se ven afectados: solo se restauran el conjunto de controles adaptado y el perfil de seguridad.",
   "ui.thisWillPermanentlyDeleteThe": "Esto eliminará permanentemente el proyecto junto con todas sus evaluaciones, solicitudes, documentos y registros relacionados.",
   "ui.selectControlsFromTheFull": "Seleccione controles del catálogo ITSG-33 completo para añadir a esta evaluación. Los ya incluidos aparecen desactivados.",
@@ -3491,7 +3491,7 @@
   "ux.readOnlyBanner": "Está viendo una instantánea de solo lectura de la versión {{version}}. La edición está desactivada aquí.",
   "ux.archivedBanner": "Este proyecto está archivado. Está oculto del panel y de las listas. Use «Restaurar» para recuperarlo o elimínelo permanentemente.",
   "ux.orgSettingsIntro": "Esta configuración se aplica a todo su inquilino y está restringida al administrador principal. Use su propio servidor de correo, proveedor de SMS y dominio en lugar de los valores predeterminados de la plataforma.",
-  "ui.anAssessmentIsTheSa": "Una evaluación es el registro SA&amp;A de un sistema: controles adaptados, evidencia, resultados de auditoría y la decisión ATO/iATO. Cree primero un proyecto y luego inicie una evaluación desde su página.",
+  "ui.anAssessmentIsTheSa": "Una evaluación es el registro SA&A de un sistema: controles adaptados, evidencia, resultados de auditoría y la decisión ATO/iATO. Cree primero un proyecto y luego inicie una evaluación desde su página.",
   "ux.dnsVerifyExplain": "Tras la propagación de los registros, el certificado TLS se emite en la capa de alojamiento. La verificación realiza una consulta DNS real: el dominio solo se marca como verificado cuando ambos registros resuelven. Los cambios de DNS pueden tardar hasta 48 horas.",
   "ux.revertExplain": "Revertir crea una nueva versión a partir de esa instantánea y la convierte en el estado activo. La versión activa actual dejará de serlo: se conserva en el historial para auditoría, pero el conjunto de controles vigente se reemplazará por la versión seleccionada.",
   "ui.useThePlatformSBuilt": "Use la IA integrada de la plataforma (descontada de la asignación de tokens de su plan), o su propia API de modelo de frontera — Anthropic, OpenAI, xAI (Grok), Google Gemini — o un endpoint personalizado / local compatible con OpenAI. Con su propio proveedor, usted le paga directamente y no se consumen tokens de la plataforma.",
@@ -3879,5 +3879,17 @@
   "rv.noFlagged": "No hay controles marcados para reenvío.",
   "rv.returned": "{n} control(es) devuelto(s) para reenvío e invitación reenviada.",
   "rv.scoreLabel": "Puntuación ponderada de evidencia",
-  "rv.weakEvidence": "controles con evidencia débil"
+  "rv.weakEvidence": "controles con evidencia débil",
+  "bf.mayTake": "Esto puede tardar unos minutos.",
+  "bf.ok": "OK",
+  "bf.updated": "{n} control(es) actualizado(s).",
+  "bf.errorAdmin": "Algo salió mal. Contacta a tu administrador.",
+  "ev.pReady": "Marcando controles como Listos…",
+  "ev.pReactivate": "Reactivando controles…",
+  "ev.pSuggest": "Generando borradores sugeridos…",
+  "rv.pReviewed": "Marcando controles como revisados…",
+  "rv.pResub": "Marcando controles para reenvío…",
+  "rv.pAccept": "Aceptando controles…",
+  "rv.pRemoved": "Eliminando controles…",
+  "ev.bulkStarted": "Generando borradores sugeridos en segundo plano: puede tardar unos minutos. Actualiza para verlos."
 }

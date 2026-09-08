@@ -1,0 +1,22 @@
+{{!-- Shared, non-blocking feedback for bulk actions: a top progress banner while a
+      bulk action runs, and a dismissible flash when it finishes (or errors). --}}
+<div id="bulkProgress" style="display:none;position:fixed;top:0;left:0;right:0;z-index:2000;background:#0a1626;color:#fff;padding:11px 16px;box-shadow:0 2px 10px rgba(0,0,0,.25)">
+  <div class="container d-flex align-items-center gap-2">
+    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+    <span id="bulkProgressMsg" class="fw-semibold"></span>
+    <span class="ms-2 small" style="opacity:.8">{{t 'bf.mayTake'}}</span>
+  </div>
+</div>
+<div id="bulkFlash" role="alert" style="display:none;position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:2010;min-width:320px;max-width:92vw;background:#fff;border-radius:12px;border-left:5px solid #2fa06d;box-shadow:0 8px 28px rgba(15,23,42,.22);padding:12px 16px">
+  <div class="d-flex align-items-center gap-2">
+    <i id="bulkFlashIcon" class="bi bi-check-circle-fill" style="color:#2fa06d;font-size:20px"></i>
+    <span id="bulkFlashMsg" class="fw-semibold"></span>
+    <button type="button" class="btn btn-sm btn-primary ms-auto" onclick="document.getElementById('bulkFlash').style.display='none'">{{t 'bf.ok'}}</button>
+  </div>
+</div>
+<script>
+window.BF_I18N = { updated: {{{tjs 'bf.updated'}}}, error: {{{tjs 'bf.errorAdmin'}}} };
+function showBulkProgress(msg){ var b=document.getElementById('bulkProgress'); if(!b) return; document.getElementById('bulkProgressMsg').textContent=msg||''; b.style.display='block'; try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); } }
+function hideBulkProgress(){ var b=document.getElementById('bulkProgress'); if(b) b.style.display='none'; }
+function showBulkFlash(msg,isError){ var f=document.getElementById('bulkFlash'); if(!f) return; document.getElementById('bulkFlashMsg').textContent=msg||''; var icon=document.getElementById('bulkFlashIcon'); f.style.borderLeftColor=isError?'#d64550':'#2fa06d'; if(icon){ icon.className=isError?'bi bi-exclamation-triangle-fill':'bi bi-check-circle-fill'; icon.style.color=isError?'#d64550':'#2fa06d'; } f.style.display='block'; try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); } }
+</script>

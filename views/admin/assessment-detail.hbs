@@ -1514,6 +1514,7 @@ window.AIAssistConfig = {
   .rv-badge-removed{background:#6b7c90} .rv-badge-accepted{background:#1c7a4e} .rv-badge-pending{background:#4d9fe0}
 </style>
 {{#eq assessment.status "audit"}}
+{{> bulk-feedback}}
 <div id="rvBulkBar" class="shadow" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:1050;background:#0a1626;color:#fff;border-radius:12px;padding:8px 12px;align-items:center;gap:10px">
   <span class="fw-semibold"><span id="rvSelCount">0</span> {{t 'ev.selected'}}</span>
   <button type="button" class="btn btn-sm btn-outline-light" onclick="rvBulk('reviewed')"><i class="bi bi-check2-circle me-1"></i>{{t 'rv.markReviewed'}}</button>
@@ -1543,11 +1544,37 @@ async function rvSaveField(el, aid){
   try{ await fetch('/admin/assessments/'+aid+'/controls/'+cid+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }catch(e){}
 }
 async function rvSetStatus(cid, aid, status){
-  try{ const r=await fetch('/admin/assessments/'+aid+'/controls/'+cid+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_status:status})}); const d=await r.json(); if(d.success) location.reload(); }catch(e){}
+  showBulkProgress(RV_PROG[status] || '');
+  try{
+    const r=await fetch('/admin/assessments/'+aid+'/controls/'+cid+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_status:status})});
+    const d=await r.json(); hideBulkProgress();
+    if(!d.success){ showBulkFlash(d.message||BF_I18N.error, true); return; }
+    rvApplyStatus(cid, status);
+    showBulkFlash(BF_I18N.updated.replace('{n}', 1));
+  }catch(e){ hideBulkProgress(); showBulkFlash(BF_I18N.error, true); }
 }
+const RV_PROG = { reviewed: {{{tjs 'rv.pReviewed'}}}, 'needs-resubmission': {{{tjs 'rv.pResub'}}}, accept: {{{tjs 'rv.pAccept'}}}, removed: {{{tjs 'rv.pRemoved'}}} };
+const RV_STLABEL = { reviewed: {{{tjs 'rv.st_reviewed'}}}, 'needs-resubmission': {{{tjs 'rv.st_needs-resubmission'}}}, removed: {{{tjs 'rv.st_removed'}}}, accepted: {{{tjs 'rv.st_accepted'}}} };
 async function rvBulk(action){
   const ids=rvSelectedIds(); if(!ids.length) return;
-  try{ const r=await fetch('/admin/assessments/'+RV_AID+'/controls/bulk-review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:action,controlIds:ids})}); const d=await r.json(); if(d.success) location.reload(); else alert(d.message||'Failed'); }catch(e){ alert('Failed'); }
+  showBulkProgress(RV_PROG[action] || '');
+  try{
+    const r=await fetch('/admin/assessments/'+RV_AID+'/controls/bulk-review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:action,controlIds:ids})});
+    const d=await r.json();
+    hideBulkProgress();
+    if(!d.success){ showBulkFlash(d.message||BF_I18N.error, true); return; }
+    ids.forEach(function(id){ rvApplyStatus(id, d.status); });
+    rvClear();
+    showBulkFlash(BF_I18N.updated.replace('{n}', d.updated));
+  }catch(e){ hideBulkProgress(); showBulkFlash(BF_I18N.error, true); }
+}
+function rvApplyStatus(cid, status){
+  const card=document.getElementById('control-'+cid); if(!card) return;
+  card.setAttribute('data-rvstatus', status);
+  var badge=document.getElementById('rvBadge-'+cid);
+  if(!badge){ var host=card.querySelector('.d-flex.gap-1'); if(host){ badge=document.createElement('span'); badge.id='rvBadge-'+cid; badge.className='badge'; host.appendChild(badge); } }
+  if(badge){ badge.className='badge rv-badge rv-badge-'+status; badge.textContent=RV_STLABEL[status]||status; }
+  if(status==='removed') card.style.opacity='.6';
 }
 let rvCtxId=null;
 document.addEventListener('contextmenu',function(e){ const card=e.target.closest && e.target.closest('.rv-ctrl'); if(!card||card.style.display==='none') return; if(!document.querySelector('.rv-select')) return; e.preventDefault(); const cb=card.querySelector('.rv-select'); if(cb && rvSelectedIds().length===0){ cb.checked=true; rvUpdateBar(); } rvCtxId=cb?Number(cb.getAttribute('data-cid')):null; const m=document.getElementById('rvCtxMenu'); m.style.left=Math.min(e.clientX,window.innerWidth-210)+'px'; m.style.top=e.clientY+'px'; m.style.display='block'; });

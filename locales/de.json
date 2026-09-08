@@ -1673,7 +1673,7 @@
       },
       "btn": {
         "cancel": "Abbrechen",
-        "verify_amp_sign": "Verifizieren &amp; Signieren"
+        "verify_amp_sign": "Verifizieren & Signieren"
       },
       "span": {
         "waiting_for_biometric": "Warten auf Biometrie..."
@@ -3205,8 +3205,8 @@
   "ui.nameOrContactInfo": "Name oder Kontaktdaten",
   "ui.smtpYourdomainCom": "smtp.ihredomain.com",
   "ui.nameAgencyGcCa": "name@behoerde.gc.ca",
-  "ui.saAmpARequired": "SA&amp;A erforderlich",
-  "ui.noSaAmpARequired": "Keine SA&amp;A erforderlich",
+  "ui.saAmpARequired": "SA&A erforderlich",
+  "ui.noSaAmpARequired": "Keine SA&A erforderlich",
   "ui.mobileByodAccess": "Mobiler / BYOD-Zugriff",
   "ui.createClientInvite": "Kundeneinladung erstellen",
   "ui.confirmNewPassword": "Neues Passwort bestätigen",
@@ -3363,7 +3363,7 @@
   "ui.noAssessmentsYetForThis": "Noch keine Bewertungen für dieses Projekt.",
   "ui.canadaPrimaryWithLimitedFailover": "Kanada primär mit begrenztem Failover",
   "ui.listTechnologiesNotCoveredAbove": "Nennen Sie Technologien, die oben nicht abgedeckt sind.",
-  "ui.whenAFullSaAmp": "Wann eine vollständige SA&amp;A erforderlich wird",
+  "ui.whenAFullSaAmp": "Wann eine vollständige SA&A erforderlich wird",
   "ui.platformDefaultAnthropicMetered": "Plattformstandard (Anthropic, abgerechnet)",
   "ui.useForAiAssistedControl": "Für die KI-gestützte Kontrollauswahl verwenden",
   "ui.aiGuidanceFromProjectDocumentation": "KI-Leitfaden aus der Projektdokumentation",
@@ -3451,7 +3451,7 @@
   "ui.documentsAreRetainedForAi": "Dokumente werden für KI-Leitfäden, Kontrollanpassung, Berichte und Audit-Nachvollziehbarkeit aufbewahrt.",
   "ui.selectTheFrameworkFirstItsg": "Wählen Sie zuerst das Rahmenwerk. ITSG-33 nutzt C/I/V; andere nutzen Baseline-/Kategoriefelder.",
   "ui.noNotificationsYetWhenYou": "Noch keine Benachrichtigungen. Wenn Ihnen eine Akte zugewiesen oder Sie zu einem Projekt eingeladen werden, erscheint es hier mit Direktlink.",
-  "ui.theFollowingAssessmentSAnd": "die folgenden Bewertungen sowie deren Nachweise, Kommentare, Anhänge und POA&amp;M-Einträge. Dies kann nicht rückgängig gemacht werden.",
+  "ui.theFollowingAssessmentSAnd": "die folgenden Bewertungen sowie deren Nachweise, Kommentare, Anhänge und POA&M-Einträge. Dies kann nicht rückgängig gemacht werden.",
   "ui.signaturesAndTheInviteCode": "Signaturen und Einladungscode bleiben unberührt — nur der angepasste Kontrollsatz und das Sicherheitsprofil werden wiederhergestellt.",
   "ui.thisWillPermanentlyDeleteThe": "Dies löscht das Projekt dauerhaft samt allen Bewertungen, Erfassungen, Dokumenten und zugehörigen Datensätzen.",
   "ui.selectControlsFromTheFull": "Wählen Sie Kontrollen aus dem vollständigen ITSG-33-Katalog. Bereits enthaltene Kontrollen sind deaktiviert.",
@@ -3469,7 +3469,7 @@
   "ux.readOnlyBanner": "Sie sehen eine schreibgeschützte Momentaufnahme der Version {{version}}. Bearbeiten ist hier deaktiviert.",
   "ux.archivedBanner": "Dieses Projekt ist archiviert. Es ist im Dashboard und in Listen ausgeblendet. Nutzen Sie „Wiederherstellen“ oder löschen Sie es dauerhaft.",
   "ux.orgSettingsIntro": "Diese Einstellungen gelten für Ihren gesamten Mandanten und sind dem Hauptadministrator vorbehalten. Verwenden Sie Ihren eigenen Mailserver, SMS-Anbieter und Ihre eigene Domain statt der Plattformstandards.",
-  "ui.anAssessmentIsTheSa": "Eine Bewertung ist der SA&amp;A-Datensatz eines Systems — angepasste Kontrollen, Nachweise, Auditergebnisse und die ATO/iATO-Entscheidung. Erstellen Sie zuerst ein Projekt und starten Sie dann die Bewertung von der Projektseite aus.",
+  "ui.anAssessmentIsTheSa": "Eine Bewertung ist der SA&A-Datensatz eines Systems — angepasste Kontrollen, Nachweise, Auditergebnisse und die ATO/iATO-Entscheidung. Erstellen Sie zuerst ein Projekt und starten Sie dann die Bewertung von der Projektseite aus.",
   "ux.dnsVerifyExplain": "Nach der Verbreitung der Einträge wird das TLS-Zertifikat auf Hosting-Ebene ausgestellt. Die Prüfung führt eine echte DNS-Abfrage durch — die Domain gilt erst als verifiziert, wenn beide Einträge tatsächlich auflösen. DNS-Änderungen können bis zu 48 Stunden dauern.",
   "ux.revertExplain": "Das Zurücksetzen erstellt aus dieser Momentaufnahme eine neue Version und macht sie zum aktiven Stand. Die bisher aktive Version ist dann nicht mehr aktiv — sie bleibt für die Auditierung im Verlauf, der aktive Kontrollsatz wird jedoch durch die gewählte Version ersetzt.",
   "ui.useThePlatformSBuilt": "Nutzen Sie die integrierte KI der Plattform (auf Ihr Token-Kontingent angerechnet) oder Ihre eigene Frontier-Modell-API — Anthropic, OpenAI, xAI (Grok), Google Gemini — oder einen benutzerdefinierten / on-premises OpenAI-kompatiblen Endpunkt. Bei eigenem Anbieter zahlen Sie diesem direkt, und es werden keine Plattform-Tokens verbraucht.",
@@ -3857,5 +3857,17 @@
   "rv.noFlagged": "Keine Controls zur erneuten Einreichung markiert.",
   "rv.returned": "{n} Control(s) zur erneuten Einreichung zurückgegeben und Einladung erneut gesendet.",
   "rv.scoreLabel": "Gewichteter Nachweis-Score",
-  "rv.weakEvidence": "Controls mit schwachem Nachweis"
+  "rv.weakEvidence": "Controls mit schwachem Nachweis",
+  "bf.mayTake": "Dies kann einige Minuten dauern.",
+  "bf.ok": "OK",
+  "bf.updated": "{n} Control(s) aktualisiert.",
+  "bf.errorAdmin": "Etwas ist schiefgelaufen. Bitte wenden Sie sich an Ihren Administrator.",
+  "ev.pReady": "Controls werden als Bereit markiert…",
+  "ev.pReactivate": "Controls werden reaktiviert…",
+  "ev.pSuggest": "Vorgeschlagene Entwürfe werden erzeugt…",
+  "rv.pReviewed": "Controls werden als geprüft markiert…",
+  "rv.pResub": "Controls werden zur erneuten Einreichung markiert…",
+  "rv.pAccept": "Controls werden akzeptiert…",
+  "rv.pRemoved": "Controls werden entfernt…",
+  "ev.bulkStarted": "Vorgeschlagene Entwürfe werden im Hintergrund erzeugt – das kann einige Minuten dauern. Zum Anzeigen aktualisieren."
 }

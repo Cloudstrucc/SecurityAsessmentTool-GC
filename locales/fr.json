@@ -498,7 +498,7 @@
         "print": "Imprimer",
         "resend_invite": "Renvoyer l'invitation",
         "send_invite_to_owner": "Envoyer l'invitation au propriétaire",
-        "validate_amp_approve": "Valider &amp; Approuver",
+        "validate_amp_approve": "Valider & Approuver",
         "return_for_revision": "Retourner pour révision",
         "save_notes": "Enregistrer les notes"
       },
@@ -523,7 +523,7 @@
         "no_pii": "Aucun PII"
       },
       "card": {
-        "review_amp_validate": "Réviser &amp; Valider",
+        "review_amp_validate": "Réviser & Valider",
         "additional_considerations": "Considérations supplémentaires",
         "assessor_notes": "Notes de l'évaluateur"
       },
@@ -738,7 +738,7 @@
       "p": {
         "scan_the_qr_code_with": "Scannez le code QR avec votre application d'authentification pour activer MFA.",
         "confirm_your_identity_to_continue": "Confirmez votre identité pour continuer.",
-        "security_assessment_amp_authorization_portal": "Portail d'évaluation de sécurité &amp; d'autorisation",
+        "security_assessment_amp_authorization_portal": "Portail d'évaluation de sécurité & d'autorisation",
         "approve_with_your_passkey_face": "Approuvez avec votre clé d'accès (Face ID, Touch ID ou Windows Hello)."
       },
       "link": {
@@ -749,9 +749,9 @@
         "back_to_portal_home": "Retour à l'accueil du portail"
       },
       "btn": {
-        "verify_amp_enable_mfa": "Vérifier &amp; activer MFA",
+        "verify_amp_enable_mfa": "Vérifier & activer MFA",
         "sign_in_with_passkey": "Se connecter avec une clé d'accès",
-        "verify_amp_sign_in": "Vérifier &amp; se connecter",
+        "verify_amp_sign_in": "Vérifier & se connecter",
         "sign_in": "Se connecter"
       },
       "ph": {
@@ -1186,7 +1186,7 @@
       "btn": {
         "cancel": "Annuler",
         "menu": "Menu",
-        "verify_amp_sign": "Vérifier &amp; Signer"
+        "verify_amp_sign": "Vérifier & Signer"
       },
       "span": {
         "vanguard_cloud_services": "Vanguard Cloud Services",
@@ -1687,9 +1687,9 @@
       "creating_resource_group": "Création du groupe de ressources",
       "creating_app_service_plan": "Création du plan App Service",
       "creating_web_application": "Création de l'application web",
-      "configuring_environment_amp_credentials": "Configuration de l'environnement &amp; des identifiants",
+      "configuring_environment_amp_credentials": "Configuration de l'environnement & des identifiants",
       "deploying_application_code": "Déploiement du code de l'application",
-      "health_check_amp_finalization": "Vérification de l'état &amp; finalisation",
+      "health_check_amp_finalization": "Vérification de l'état & finalisation",
       "instance_url": "URL de l'instance",
       "login_email": "Courriel de connexion",
       "role": "Rôle",
@@ -3227,8 +3227,8 @@
   "ui.nameOrContactInfo": "Nom ou coordonnées",
   "ui.smtpYourdomainCom": "smtp.votredomaine.com",
   "ui.nameAgencyGcCa": "nom@organisme.gc.ca",
-  "ui.saAmpARequired": "SA&amp;A requise",
-  "ui.noSaAmpARequired": "Aucune SA&amp;A requise",
+  "ui.saAmpARequired": "SA&A requise",
+  "ui.noSaAmpARequired": "Aucune SA&A requise",
   "ui.mobileByodAccess": "Accès mobile / PAP",
   "ui.createClientInvite": "Créer une invitation client",
   "ui.confirmNewPassword": "Confirmer le nouveau mot de passe",
@@ -3385,7 +3385,7 @@
   "ui.noAssessmentsYetForThis": "Aucune évaluation pour ce projet.",
   "ui.canadaPrimaryWithLimitedFailover": "Canada en principal avec basculement limité",
   "ui.listTechnologiesNotCoveredAbove": "Indiquez les technologies non couvertes ci-dessus.",
-  "ui.whenAFullSaAmp": "Quand une SA&amp;A complète devient obligatoire",
+  "ui.whenAFullSaAmp": "Quand une SA&A complète devient obligatoire",
   "ui.platformDefaultAnthropicMetered": "Valeur par défaut de la plateforme (Anthropic, mesurée)",
   "ui.useForAiAssistedControl": "Utiliser pour la sélection des contrôles assistée par IA",
   "ui.aiGuidanceFromProjectDocumentation": "Orientation par IA à partir de la documentation du projet",
@@ -3491,7 +3491,7 @@
   "ux.readOnlyBanner": "Vous consultez un instantané en lecture seule de la version {{version}}. Les modifications sont désactivées ici.",
   "ux.archivedBanner": "Ce projet est archivé. Il est masqué du tableau de bord et des listes. Utilisez « Restaurer » pour le rétablir, ou supprimez-le définitivement.",
   "ux.orgSettingsIntro": "Ces paramètres s'appliquent à l'ensemble de votre organisation et sont réservés à l'administrateur principal. Utilisez votre propre serveur de messagerie, fournisseur SMS et domaine au lieu des valeurs par défaut de la plateforme.",
-  "ui.anAssessmentIsTheSa": "Une évaluation est le dossier SA&amp;A d'un système : contrôles adaptés, preuves, résultats d'audit et décision ATO/iATO. Créez d'abord un projet, puis lancez une évaluation depuis la page du projet.",
+  "ui.anAssessmentIsTheSa": "Une évaluation est le dossier SA&A d'un système : contrôles adaptés, preuves, résultats d'audit et décision ATO/iATO. Créez d'abord un projet, puis lancez une évaluation depuis la page du projet.",
   "ux.dnsVerifyExplain": "Une fois les enregistrements propagés, le certificat TLS est émis au niveau de l'hébergement. La vérification effectue une véritable résolution DNS — le domaine n'est marqué vérifié que lorsque les deux enregistrements résolvent réellement. La propagation DNS peut prendre jusqu'à 48 heures.",
   "ux.revertExplain": "Le retour en arrière crée une nouvelle version à partir de cet instantané et en fait l'état actif. La version active actuelle cessera de l'être — elle est conservée dans l'historique pour l'audit, mais l'ensemble de contrôles en vigueur sera remplacé par la version sélectionnée.",
   "ui.useThePlatformSBuilt": "Utilisez l'IA intégrée de la plateforme (décomptée de l'allocation de jetons de votre plan), ou votre propre API de modèle de pointe — Anthropic, OpenAI, xAI (Grok), Google Gemini — ou un point de terminaison personnalisé / sur site compatible OpenAI. Avec votre propre fournisseur, vous le payez directement et aucun jeton de la plateforme n'est consommé.",
@@ -3879,5 +3879,17 @@
   "rv.noFlagged": "Aucun contrôle n’est signalé pour une nouvelle soumission.",
   "rv.returned": "{n} contrôle(s) renvoyé(s) pour nouvelle soumission et invitation renvoyée.",
   "rv.scoreLabel": "Score des preuves pondéré",
-  "rv.weakEvidence": "contrôles à preuves faibles"
+  "rv.weakEvidence": "contrôles à preuves faibles",
+  "bf.mayTake": "Cela peut prendre quelques minutes.",
+  "bf.ok": "OK",
+  "bf.updated": "{n} contrôle(s) mis à jour.",
+  "bf.errorAdmin": "Une erreur s’est produite. Veuillez contacter votre administrateur.",
+  "ev.pReady": "Marquage des contrôles comme Prêts…",
+  "ev.pReactivate": "Réactivation des contrôles…",
+  "ev.pSuggest": "Génération des brouillons suggérés…",
+  "rv.pReviewed": "Marquage des contrôles comme examinés…",
+  "rv.pResub": "Signalement des contrôles pour nouvelle soumission…",
+  "rv.pAccept": "Acceptation des contrôles…",
+  "rv.pRemoved": "Retrait des contrôles…",
+  "ev.bulkStarted": "Génération des brouillons suggérés en arrière-plan — cela peut prendre quelques minutes. Actualisez pour les voir."
 }

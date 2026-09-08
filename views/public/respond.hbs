@@ -617,6 +617,7 @@ async function addComment(controlId) {
 </script>
 
 {{#unless isReadOnly}}
+{{> bulk-feedback}}
 {{!-- FEATURE 4: floating bulk-actions bar + right-click menu --}}
 <div id="evBulkBar" class="shadow" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:1050;background:#0a1626;color:#fff;border-radius:12px;padding:8px 12px;align-items:center;gap:10px">
   <span class="fw-semibold"><span id="evSelCount">0</span> {{t 'ev.selected'}}</span>
@@ -646,15 +647,22 @@ function toggleSelectAll(cb){ document.querySelectorAll('.ev-ctrl').forEach(func
 function selectedIds(){ return [].slice.call(document.querySelectorAll('.ev-select:checked')).map(function(b){return Number(b.getAttribute('data-cid'));}); }
 function updateBulkBar(){ const ids=selectedIds(); const bar=document.getElementById('evBulkBar'); document.getElementById('evSelCount').textContent=ids.length; bar.style.display=ids.length?'flex':'none'; }
 function clearSelection(){ document.querySelectorAll('.ev-select:checked').forEach(function(b){b.checked=false;}); const sa=document.getElementById('evSelectAll'); if(sa) sa.checked=false; updateBulkBar(); }
+const EV_PROG = { ready: {{{tjs 'ev.pReady'}}}, reactivate: {{{tjs 'ev.pReactivate'}}}, suggest: {{{tjs 'ev.pSuggest'}}} };
 async function doBulk(action){
   const ids=selectedIds(); if(!ids.length) return;
-  const bar=document.getElementById('evBulkBar'); bar.style.pointerEvents='none';
+  showBulkProgress(EV_PROG[action] || '');
   try{
     const r=await fetch('/respond/'+INVITE_CODE+'/bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:action,controlIds:ids})});
     const d=await r.json();
-    if(!d.success){ alert(d.message||EV_I18N.suggestFail); bar.style.pointerEvents=''; return; }
-    location.reload();
-  }catch(e){ alert(EV_I18N.suggestFail); bar.style.pointerEvents=''; }
+    hideBulkProgress();
+    if(!d.success){ showBulkFlash(d.message||BF_I18N.error, true); return; }
+    (d.results||[]).forEach(function(res){
+      if(res.html!=null) applyDraftToEditor(res.id, res.html);
+      else if(res.ready!=null) setReadyUI(res.id, res.ready);
+    });
+    clearSelection();
+    showBulkFlash(BF_I18N.updated.replace('{n}', d.updated));
+  }catch(e){ hideBulkProgress(); showBulkFlash(BF_I18N.error, true); }
 }
 // Right-click a control to act on the current selection (or just that control).
 let ctxTargetId=null;

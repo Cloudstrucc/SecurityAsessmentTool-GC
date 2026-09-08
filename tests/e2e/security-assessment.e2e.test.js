@@ -2303,10 +2303,10 @@ test('release notes page renders (curated fallback) with major releases and GitH
   const { text, response } = await getText(new CookieJar(), '/releases');
   assert.equal(response.status, 200, '/releases is public and returns 200');
   assert.match(text, /Release notes/, 'has the page title');
-  // Four major milestones in the backfill.
+  // Major milestones in the backfill (>= 4; v5.0.0 added the evidence/review release).
   const majors = (text.match(/rn-rel major/g) || []).length;
-  assert.equal(majors, 4, 'shows exactly four major releases');
-  assert.match(text, /v4\.0\.0/, 'shows the latest version');
+  assert.ok(majors >= 4, 'shows at least four major releases');
+  assert.match(text, /v5\.0\.0/, 'shows the latest version');
   assert.match(text, /SecurityAsessmentTool-GC\/releases\/tag\/v/, 'links to GitHub release tags');
   assert.match(text, /SecurityAsessmentTool-GC\/compare\/v/, 'has GitHub compare links');
 });

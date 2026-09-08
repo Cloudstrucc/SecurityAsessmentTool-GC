@@ -1673,7 +1673,7 @@
       },
       "btn": {
         "cancel": "キャンセル",
-        "verify_amp_sign": "認証 &amp; 署名"
+        "verify_amp_sign": "認証 & 署名"
       },
       "span": {
         "waiting_for_biometric": "生体認証を待機中..."
@@ -3205,8 +3205,8 @@
   "ui.nameOrContactInfo": "氏名または連絡先",
   "ui.smtpYourdomainCom": "smtp.yourdomain.com",
   "ui.nameAgencyGcCa": "name@agency.gc.ca",
-  "ui.saAmpARequired": "SA&amp;A が必要",
-  "ui.noSaAmpARequired": "SA&amp;A は不要",
+  "ui.saAmpARequired": "SA&A が必要",
+  "ui.noSaAmpARequired": "SA&A は不要",
   "ui.mobileByodAccess": "モバイル / BYOD アクセス",
   "ui.createClientInvite": "クライアント招待を作成",
   "ui.confirmNewPassword": "新しいパスワードを確認",
@@ -3363,7 +3363,7 @@
   "ui.noAssessmentsYetForThis": "このプロジェクトの評価はまだありません。",
   "ui.canadaPrimaryWithLimitedFailover": "カナダ主体（限定的フェイルオーバー）",
   "ui.listTechnologiesNotCoveredAbove": "上記に含まれない技術を記載してください。",
-  "ui.whenAFullSaAmp": "完全な SA&amp;A が必要になる場合",
+  "ui.whenAFullSaAmp": "完全な SA&A が必要になる場合",
   "ui.platformDefaultAnthropicMetered": "プラットフォーム既定（Anthropic、従量制）",
   "ui.useForAiAssistedControl": "AI 支援コントロール選択に使用",
   "ui.aiGuidanceFromProjectDocumentation": "プロジェクト文書に基づく AI ガイダンス",
@@ -3451,7 +3451,7 @@
   "ui.documentsAreRetainedForAi": "文書は AI ガイダンス、コントロール調整、レポート参照、監査追跡のため保管されます。",
   "ui.selectTheFrameworkFirstItsg": "まずフレームワークを選択します。ITSG-33 は C/I/A を使用し、他はベースライン/カテゴリ項目を使用します。",
   "ui.noNotificationsYetWhenYou": "通知はまだありません。ファイルが割り当てられたり、プロジェクトに招待されると、直接リンク付きでここに表示されます。",
-  "ui.theFollowingAssessmentSAnd": "以下の評価とその証跡、コメント、添付、POA&amp;M 項目。この操作は取り消せません。",
+  "ui.theFollowingAssessmentSAnd": "以下の評価とその証跡、コメント、添付、POA&M 項目。この操作は取り消せません。",
   "ui.signaturesAndTheInviteCode": "署名と招待コードは影響を受けません。復元されるのは調整済みコントロールセットとセキュリティプロファイルのみです。",
   "ui.thisWillPermanentlyDeleteThe": "プロジェクトと、そのすべての評価・受付・文書・関連レコードを完全に削除します。",
   "ui.selectControlsFromTheFull": "完全な ITSG-33 カタログから、この評価に追加するコントロールを選択します。既に含まれるものは無効表示です。",
@@ -3469,7 +3469,7 @@
   "ux.readOnlyBanner": "バージョン {{version}} の読み取り専用スナップショットを表示しています。ここでは編集できません。",
   "ux.archivedBanner": "このプロジェクトはアーカイブ済みです。ダッシュボードや一覧には表示されません。「復元」で戻すか、完全に削除できます。",
   "ux.orgSettingsIntro": "これらの設定はテナント全体に適用され、主管理者のみが変更できます。プラットフォーム既定の代わりに、独自のメールサーバー・SMS プロバイダー・ドメインを利用できます。",
-  "ui.anAssessmentIsTheSa": "評価とは、システムの SA&amp;A 記録です（調整済みコントロール、証跡、監査結果、ATO/iATO 決定）。まずプロジェクトを作成し、プロジェクトページから評価を開始してください。",
+  "ui.anAssessmentIsTheSa": "評価とは、システムの SA&A 記録です（調整済みコントロール、証跡、監査結果、ATO/iATO 決定）。まずプロジェクトを作成し、プロジェクトページから評価を開始してください。",
   "ux.dnsVerifyExplain": "レコードが伝播すると、TLS 証明書がホスティング層で発行されます。検証では実際に DNS を照会し、両方のレコードが解決できた場合にのみ検証済みとなります。DNS の変更は最大 48 時間かかることがあります。",
   "ux.revertExplain": "元に戻すと、そのスナップショットから新しいバージョンが作成され、それが有効な状態になります。現在の有効バージョンは有効ではなくなりますが、監査用に履歴として保持されます。ただし稼働中のコントロールセットは選択したバージョンに置き換わります。",
   "ui.useThePlatformSBuilt": "プラットフォーム内蔵の AI（プランのトークン枠から消費）を使うか、独自のフロンティアモデル API（Anthropic、OpenAI、xAI (Grok)、Google Gemini）またはカスタム / オンプレミスの OpenAI 互換エンドポイントを利用できます。独自プロバイダーの場合は各社に直接支払い、プラットフォームのトークンは消費されません。",
@@ -3857,5 +3857,17 @@
   "rv.noFlagged": "再提出のフラグが付いたコントロールはありません。",
   "rv.returned": "{n}件のコントロールを再提出のため差し戻し、招待を再送しました。",
   "rv.scoreLabel": "加重証跡スコア",
-  "rv.weakEvidence": "証跡が弱いコントロール"
+  "rv.weakEvidence": "証跡が弱いコントロール",
+  "bf.mayTake": "数分かかる場合があります。",
+  "bf.ok": "OK",
+  "bf.updated": "{n}件のコントロールを更新しました。",
+  "bf.errorAdmin": "問題が発生しました。管理者にお問い合わせください。",
+  "ev.pReady": "コントロールを完了に設定中…",
+  "ev.pReactivate": "コントロールを再開中…",
+  "ev.pSuggest": "提案ドラフトを生成中…",
+  "rv.pReviewed": "コントロールをレビュー済みに設定中…",
+  "rv.pResub": "コントロールを再提出対象に設定中…",
+  "rv.pAccept": "コントロールを承認中…",
+  "rv.pRemoved": "コントロールを削除中…",
+  "ev.bulkStarted": "提案ドラフトをバックグラウンドで生成中 — 数分かかる場合があります。更新して表示してください。"
 }

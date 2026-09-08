@@ -1673,7 +1673,7 @@
       },
       "btn": {
         "cancel": "Cancelar",
-        "verify_amp_sign": "Verificar &amp; Assinar"
+        "verify_amp_sign": "Verificar & Assinar"
       },
       "span": {
         "waiting_for_biometric": "A aguardar biometria..."
@@ -3205,8 +3205,8 @@
   "ui.nameOrContactInfo": "Nome ou informações de contato",
   "ui.smtpYourdomainCom": "smtp.seudominio.com",
   "ui.nameAgencyGcCa": "nome@agencia.gc.ca",
-  "ui.saAmpARequired": "SA&amp;A necessária",
-  "ui.noSaAmpARequired": "Nenhuma SA&amp;A necessária",
+  "ui.saAmpARequired": "SA&A necessária",
+  "ui.noSaAmpARequired": "Nenhuma SA&A necessária",
   "ui.mobileByodAccess": "Acesso móvel / BYOD",
   "ui.createClientInvite": "Criar convite de cliente",
   "ui.confirmNewPassword": "Confirmar a nova senha",
@@ -3363,7 +3363,7 @@
   "ui.noAssessmentsYetForThis": "Ainda não há avaliações para este projeto.",
   "ui.canadaPrimaryWithLimitedFailover": "Canadá primário com failover limitado",
   "ui.listTechnologiesNotCoveredAbove": "Liste as tecnologias não abrangidas acima.",
-  "ui.whenAFullSaAmp": "Quando uma SA&amp;A completa se torna necessária",
+  "ui.whenAFullSaAmp": "Quando uma SA&A completa se torna necessária",
   "ui.platformDefaultAnthropicMetered": "Padrão da plataforma (Anthropic, medido)",
   "ui.useForAiAssistedControl": "Usar para seleção de controles assistida por IA",
   "ui.aiGuidanceFromProjectDocumentation": "Orientação por IA a partir da documentação do projeto",
@@ -3451,7 +3451,7 @@
   "ui.documentsAreRetainedForAi": "Os documentos são mantidos para orientação por IA, adaptação de controles, relatórios e rastreabilidade.",
   "ui.selectTheFrameworkFirstItsg": "Selecione primeiro a estrutura. ITSG-33 usa C/I/D; outras usam campos de linha de base/categoria.",
   "ui.noNotificationsYetWhenYou": "Ainda não há notificações. Quando um arquivo for atribuído a você ou você for convidado a um projeto, aparecerá aqui com um link direto.",
-  "ui.theFollowingAssessmentSAnd": "as seguintes avaliações e suas evidências, comentários, anexos e itens POA&amp;M. Esta ação não pode ser desfeita.",
+  "ui.theFollowingAssessmentSAnd": "as seguintes avaliações e suas evidências, comentários, anexos e itens POA&M. Esta ação não pode ser desfeita.",
   "ui.signaturesAndTheInviteCode": "As assinaturas e o código de convite não são afetados — apenas o conjunto de controles adaptado e o perfil de segurança são restaurados.",
   "ui.thisWillPermanentlyDeleteThe": "Isso excluirá permanentemente o projeto junto com todas as avaliações, solicitações, documentos e registros relacionados.",
   "ui.selectControlsFromTheFull": "Selecione controles do catálogo ITSG-33 completo para adicionar a esta avaliação. Os já incluídos aparecem desativados.",
@@ -3469,7 +3469,7 @@
   "ux.readOnlyBanner": "Você está vendo um instantâneo somente leitura da versão {{version}}. A edição está desativada aqui.",
   "ux.archivedBanner": "Este projeto está arquivado. Ele fica oculto do painel e das listas. Use “Restaurar” para trazê-lo de volta ou exclua-o permanentemente.",
   "ux.orgSettingsIntro": "Estas configurações se aplicam a todo o seu tenant e são restritas ao administrador principal. Use seu próprio servidor de e-mail, provedor de SMS e domínio em vez dos padrões da plataforma.",
-  "ui.anAssessmentIsTheSa": "Uma avaliação é o registro SA&amp;A de um sistema — controles adaptados, evidências, resultados de auditoria e a decisão ATO/iATO. Crie primeiro um projeto e depois inicie a avaliação na página do projeto.",
+  "ui.anAssessmentIsTheSa": "Uma avaliação é o registro SA&A de um sistema — controles adaptados, evidências, resultados de auditoria e a decisão ATO/iATO. Crie primeiro um projeto e depois inicie a avaliação na página do projeto.",
   "ux.dnsVerifyExplain": "Após a propagação dos registros, o certificado TLS é emitido na camada de hospedagem. A verificação faz uma consulta DNS real — o domínio só é marcado como verificado quando ambos os registros resolvem. Alterações de DNS podem levar até 48 horas.",
   "ux.revertExplain": "Reverter cria uma nova versão a partir desse instantâneo e a torna o estado ativo. A versão ativa atual deixará de ser a ativa — ela é mantida no histórico para auditoria, mas o conjunto de controles em vigor será substituído pela versão selecionada.",
   "ui.useThePlatformSBuilt": "Use a IA integrada da plataforma (descontada da cota de tokens do seu plano) ou sua própria API de modelo de fronteira — Anthropic, OpenAI, xAI (Grok), Google Gemini — ou um endpoint personalizado / local compatível com OpenAI. Com seu próprio provedor, você paga diretamente a ele e nenhum token da plataforma é consumido.",
@@ -3857,5 +3857,17 @@
   "rv.noFlagged": "Nenhum controle sinalizado para reenvio.",
   "rv.returned": "{n} controle(s) devolvido(s) para reenvio e convite reenviado.",
   "rv.scoreLabel": "Pontuação ponderada de evidência",
-  "rv.weakEvidence": "controles com evidência fraca"
+  "rv.weakEvidence": "controles com evidência fraca",
+  "bf.mayTake": "Isso pode levar alguns minutos.",
+  "bf.ok": "OK",
+  "bf.updated": "{n} controle(s) atualizado(s).",
+  "bf.errorAdmin": "Algo deu errado. Contate seu administrador.",
+  "ev.pReady": "Marcando controles como Prontos…",
+  "ev.pReactivate": "Reativando controles…",
+  "ev.pSuggest": "Gerando rascunhos sugeridos…",
+  "rv.pReviewed": "Marcando controles como revisados…",
+  "rv.pResub": "Sinalizando controles para reenvio…",
+  "rv.pAccept": "Aceitando controles…",
+  "rv.pRemoved": "Removendo controles…",
+  "ev.bulkStarted": "Gerando rascunhos sugeridos em segundo plano — pode levar alguns minutos. Atualize para vê-los."
 }

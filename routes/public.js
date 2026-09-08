@@ -473,23 +473,28 @@ router.post('/respond/:code/bulk', ensureEvidenceUser, express.json(), async (re
     const es = require('../config/evidence-suggest');
     const project = action === 'suggest' ? (get('SELECT name, description, technologies, hosting_type, confidentiality_level, integrity_level, availability_level, security_profile FROM projects WHERE id = ?', [assessment.project_id]) || {}) : null;
     let n = 0;
+    const results = [];
     for (const id of ids) {
       const c = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?', [id, assessment.id]);
       if (!c) continue;
       if (action === 'ready' && !c.evidence_ready) {
         run('UPDATE assessment_controls SET evidence_ready = 1, evidence_edited_by = ?, evidence_edited_at = CURRENT_TIMESTAMP WHERE id = ?', [who.name, id]);
         history.record({ controlDbId: id, assessmentId: assessment.id, action: 'ready', actorName: who.name, actorType: who.type, control: c }); n++;
+        results.push({ id, ready: true });
       } else if (action === 'reactivate' && c.evidence_ready) {
         run('UPDATE assessment_controls SET evidence_ready = 0, evidence_edited_by = ?, evidence_edited_at = CURRENT_TIMESTAMP WHERE id = ?', [who.name, id]);
         history.record({ controlDbId: id, assessmentId: assessment.id, action: 'reactivate', actorName: who.name, actorType: who.type, control: c }); n++;
+        results.push({ id, ready: false });
       } else if (action === 'suggest' && c.evidence_source !== 'user' && !c.evidence_ready) {
         const text = await ai.generateSuggestedEvidence({ control_id: c.control_id, title: c.title, description: c.description, tailored_description: c.tailored_description, evidence_guidance: c.evidence_guidance }, project);
+        const html = es.suggestToHtml(text);
         run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?, evidence_source = 'ai-suggested', evidence_status = 'pending',
-             evidence_suggested_at = CURRENT_TIMESTAMP, evidence_edited_by = 'Aegis AI', evidence_edited_at = CURRENT_TIMESTAMP WHERE id = ?`, [text, es.suggestToHtml(text), id]);
+             evidence_suggested_at = CURRENT_TIMESTAMP, evidence_edited_by = 'Aegis AI', evidence_edited_at = CURRENT_TIMESTAMP WHERE id = ?`, [text, html, id]);
         history.record({ controlDbId: id, assessmentId: assessment.id, action: 'ai-draft', actorName: 'Aegis AI', actorType: 'ai', control: get('SELECT * FROM assessment_controls WHERE id = ?', [id]) }); n++;
+        results.push({ id, html });
       }
     }
-    res.json({ success: true, updated: n });
+    res.json({ success: true, updated: n, action, results });
   } catch (err) {
     console.error('respond bulk error:', err);
     res.status(500).json({ error: err.message });

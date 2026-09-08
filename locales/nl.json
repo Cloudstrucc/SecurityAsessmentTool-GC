@@ -1673,7 +1673,7 @@
       },
       "btn": {
         "cancel": "Annuleren",
-        "verify_amp_sign": "Verifiëren &amp; Ondertekenen"
+        "verify_amp_sign": "Verifiëren & Ondertekenen"
       },
       "span": {
         "waiting_for_biometric": "Wachten op biometrie..."
@@ -3205,8 +3205,8 @@
   "ui.nameOrContactInfo": "Naam of contactgegevens",
   "ui.smtpYourdomainCom": "smtp.uwdomein.com",
   "ui.nameAgencyGcCa": "naam@agentschap.gc.ca",
-  "ui.saAmpARequired": "SA&amp;A vereist",
-  "ui.noSaAmpARequired": "Geen SA&amp;A vereist",
+  "ui.saAmpARequired": "SA&A vereist",
+  "ui.noSaAmpARequired": "Geen SA&A vereist",
   "ui.mobileByodAccess": "Mobiele / BYOD-toegang",
   "ui.createClientInvite": "Klantuitnodiging maken",
   "ui.confirmNewPassword": "Nieuw wachtwoord bevestigen",
@@ -3363,7 +3363,7 @@
   "ui.noAssessmentsYetForThis": "Nog geen beoordelingen voor dit project.",
   "ui.canadaPrimaryWithLimitedFailover": "Canada primair met beperkte failover",
   "ui.listTechnologiesNotCoveredAbove": "Noem technologieën die hierboven niet zijn genoemd.",
-  "ui.whenAFullSaAmp": "Wanneer een volledige SA&amp;A vereist wordt",
+  "ui.whenAFullSaAmp": "Wanneer een volledige SA&A vereist wordt",
   "ui.platformDefaultAnthropicMetered": "Platformstandaard (Anthropic, gemeten)",
   "ui.useForAiAssistedControl": "Gebruiken voor AI-ondersteunde controlselectie",
   "ui.aiGuidanceFromProjectDocumentation": "AI-richtlijn op basis van projectdocumentatie",
@@ -3451,7 +3451,7 @@
   "ui.documentsAreRetainedForAi": "Documenten worden bewaard voor AI-richtlijnen, controlafstemming, rapportage en auditsporen.",
   "ui.selectTheFrameworkFirstItsg": "Kies eerst het framework. ITSG-33 gebruikt C/I/B; andere gebruiken basislijn-/categorievelden.",
   "ui.noNotificationsYetWhenYou": "Nog geen meldingen. Als je een dossier krijgt toegewezen of wordt uitgenodigd voor een project, verschijnt dat hier met een directe link.",
-  "ui.theFollowingAssessmentSAnd": "de volgende beoordelingen en hun bewijs, opmerkingen, bijlagen en POA&amp;M-items. Dit kan niet ongedaan worden gemaakt.",
+  "ui.theFollowingAssessmentSAnd": "de volgende beoordelingen en hun bewijs, opmerkingen, bijlagen en POA&M-items. Dit kan niet ongedaan worden gemaakt.",
   "ui.signaturesAndTheInviteCode": "Handtekeningen en de uitnodigingscode blijven ongewijzigd — alleen de afgestemde controlset en het beveiligingsprofiel worden hersteld.",
   "ui.thisWillPermanentlyDeleteThe": "Dit verwijdert het project permanent, samen met alle beoordelingen, aanvragen, documenten en gerelateerde records.",
   "ui.selectControlsFromTheFull": "Selecteer controls uit de volledige ITSG-33-catalogus. Reeds opgenomen controls zijn uitgeschakeld.",
@@ -3469,7 +3469,7 @@
   "ux.readOnlyBanner": "Je bekijkt een alleen-lezen momentopname van versie {{version}}. Bewerken is hier uitgeschakeld.",
   "ux.archivedBanner": "Dit project is gearchiveerd. Het is verborgen op het dashboard en in lijsten. Gebruik 'Herstellen' om het terug te halen, of verwijder het permanent.",
   "ux.orgSettingsIntro": "Deze instellingen gelden voor je hele tenant en zijn voorbehouden aan de hoofdbeheerder. Gebruik je eigen mailserver, sms-provider en domein in plaats van de platformstandaarden.",
-  "ui.anAssessmentIsTheSa": "Een beoordeling is het SA&amp;A-record van een systeem — afgestemde controls, bewijs, auditresultaten en het ATO/iATO-besluit. Maak eerst een project en start daarna een beoordeling vanaf de projectpagina.",
+  "ui.anAssessmentIsTheSa": "Een beoordeling is het SA&A-record van een systeem — afgestemde controls, bewijs, auditresultaten en het ATO/iATO-besluit. Maak eerst een project en start daarna een beoordeling vanaf de projectpagina.",
   "ux.dnsVerifyExplain": "Nadat de records zijn doorgevoerd, wordt het TLS-certificaat op hostingniveau uitgegeven. De verificatie doet een echte DNS-lookup — het domein geldt pas als geverifieerd als beide records daadwerkelijk resolven. DNS-wijzigingen kunnen tot 48 uur duren.",
   "ux.revertExplain": "Terugdraaien maakt een nieuwe versie op basis van die momentopname en stelt die actief. De huidige actieve versie is dan niet langer actief — ze blijft in de geschiedenis voor audit, maar de actieve controlset wordt vervangen door de gekozen versie.",
   "ui.useThePlatformSBuilt": "Gebruik de ingebouwde AI van het platform (verrekend met het tokentegoed van je plan), of je eigen frontier-model-API — Anthropic, OpenAI, xAI (Grok), Google Gemini — of een aangepast / on-premises OpenAI-compatibel endpoint. Met je eigen provider betaal je die rechtstreeks en worden er geen platformtokens verbruikt.",
@@ -3857,5 +3857,17 @@
   "rv.noFlagged": "Geen controls gemarkeerd voor herindiening.",
   "rv.returned": "{n} control(s) teruggestuurd voor herindiening en uitnodiging opnieuw verzonden.",
   "rv.scoreLabel": "Gewogen bewijsscore",
-  "rv.weakEvidence": "controls met zwak bewijs"
+  "rv.weakEvidence": "controls met zwak bewijs",
+  "bf.mayTake": "Dit kan enkele minuten duren.",
+  "bf.ok": "OK",
+  "bf.updated": "{n} control(s) bijgewerkt.",
+  "bf.errorAdmin": "Er ging iets mis. Neem contact op met je beheerder.",
+  "ev.pReady": "Controls markeren als Gereed…",
+  "ev.pReactivate": "Controls heractiveren…",
+  "ev.pSuggest": "Voorgestelde concepten genereren…",
+  "rv.pReviewed": "Controls markeren als beoordeeld…",
+  "rv.pResub": "Controls markeren voor herindiening…",
+  "rv.pAccept": "Controls accepteren…",
+  "rv.pRemoved": "Controls verwijderen…",
+  "ev.bulkStarted": "Voorgestelde concepten worden op de achtergrond gegenereerd — dit kan enkele minuten duren. Vernieuw om ze te zien."
 }

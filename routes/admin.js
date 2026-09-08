@@ -28,6 +28,8 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const billing = require('../config/billing');
 const access = require('../config/access');
+const ai = require('../config/ai-service');
+const suggestWorker = require('../config/suggest-worker');
 const orgSettings = require('../config/org-settings');
 const { createNotification } = require('../config/notify');
 const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
@@ -2709,10 +2711,11 @@ router.post('/assessments/:id/tailoring', ensureAuthenticated, async (req, res) 
         ]);
     });
 
-    // Optional: generate AI-suggested placeholder evidence drafts as part of tailoring.
+    // Optional: generate AI-suggested placeholder evidence drafts as part of tailoring
+    // — in the background so it never blocks saving.
     let suffix = '';
     if (req.body.suggest_evidence) {
-      try { const n = await bulkSuggestEvidence(req, assessment.id); suffix = ' ' + (req.t ? req.t('ev.bulkDone').replace('{n}', n) : `Generated ${n} suggested evidence draft(s).`); }
+      try { await suggestWorker.startJob({ assessmentId: assessment.id, startedBy: req.user.name, aiUser: req.user }); suffix = ' ' + (req.t ? req.t('ev.bulkStarted') : 'Generating suggested drafts in the background.'); }
       catch (e) { console.error('tailoring suggest-evidence:', e.message); }
     }
     req.flash('success', 'Tailoring changes saved.' + suffix);
@@ -2877,7 +2880,7 @@ router.post('/assessments/:id/assign', ensureAuthenticated, async (req, res) => 
     if (!inv.ok) { req.flash('error', inv.error); return res.redirect(`/admin/assessments/${assessment.id}`); }
 
     // Optional: scaffold suggested evidence drafts for the assignee at assign time.
-    if (req.body.suggest_evidence) { try { await bulkSuggestEvidence(req, assessment.id); } catch (e) { console.error('assign suggest-evidence:', e.message); } }
+    if (req.body.suggest_evidence) { try { await suggestWorker.startJob({ assessmentId: assessment.id, startedBy: req.user.name, aiUser: req.user }); } catch (e) { console.error('assign suggest-evidence:', e.message); } }
 
     if (result.pending && result.inviteCode) {
       // New invitee → the register link is the useful one to share.
@@ -2959,12 +2962,14 @@ router.post('/assessments/:id/suggest-evidence-all', ensureAuthenticated, async 
   try {
     const assessment = get('SELECT id FROM assessments WHERE id = ?', [req.params.id]);
     if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
-    const n = await bulkSuggestEvidence(req, assessment.id);
-    req.flash('success', req.t ? req.t('ev.bulkDone').replace('{n}', n) : `Generated ${n} suggested evidence draft(s).`);
+    // Run in the background so a large control set (or a slow model) never blocks
+    // the request / times out. Only empty controls are drafted.
+    await suggestWorker.startJob({ assessmentId: assessment.id, startedBy: req.user.name, aiUser: req.user });
+    req.flash('success', req.t ? req.t('ev.bulkStarted') : 'Generating suggested drafts in the background — this may take a few minutes. Refresh to see them.');
     res.redirect(`/admin/assessments/${assessment.id}`);
   } catch (err) {
     console.error('suggest-evidence-all error:', err);
-    req.flash('error', 'Could not generate drafts: ' + err.message);
+    req.flash('error', 'Could not start draft generation. Please contact your administrator.');
     res.redirect(`/admin/assessments/${req.params.id}`);
   }
 });
@@ -3015,7 +3020,7 @@ router.post('/assessments/:id/controls/bulk-review', ensureAuthenticated, expres
     recordCtrlHistory(id, assessment.id, 'review', req.user.name, 'status: ' + rs);
     n++;
   }
-  res.json({ success: true, updated: n });
+  res.json({ success: true, updated: n, status: rs });
 });
 
 // Return the assessment for revision: reopen it and re-assign, so the provider
