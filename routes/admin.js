@@ -63,7 +63,7 @@ router.use((req, res, next) => {
   if (p === '/assessments' || p === '/intakes') return res.redirect('/admin/dashboard');
   // Per-action RBAC on an assessment: assessor-only actions are blocked even for
   // the assigned practitioner. They keep view, report downloads and comments.
-  if (/^\/assessments\/\d+\/(tailoring|send-invite|assign|take-ownership|suggest-evidence-all|start-audit|audit-control|complete-audit|checklist|poam|reactivate|delete|manage-controls|add-controls|remove-control|update-control|ai\/)/.test(p)) {
+  if (/^\/assessments\/\d+\/(tailoring|send-invite|assign|take-ownership|suggest-evidence-all|controls\/|return-for-revision|start-audit|audit-control|complete-audit|checklist|poam|reactivate|delete|manage-controls|add-controls|remove-control|update-control|ai\/)/.test(p)) {
     return deny('Only an assessor can perform that action.');
   }
   // Scope assessment/intake detail to the practitioner's own assignments.
@@ -2620,6 +2620,8 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     title: viewingVersion ? `Assessment v${viewingVersion}: ${assessment.project_name}` : `Assessment: ${assessment.project_name}`,
     isAdmin: true, isAssessments: true,
     admin: req.user, assessment, assignments, users: getAssignableUsers(req.user), versions, viewingVersion,
+    // Evidence-strength weighted score (assessor review aid, audit phase).
+    reviewScore: require('../config/scoring').weightedScore(controls),
     // Evidence ownership state for the action menu: is the assessment assigned to
     // someone other than the current assessor (so they'd open the flow read-only
     // and can "take ownership"), or to themselves / no one (they can edit)? A
@@ -2963,6 +2965,80 @@ router.post('/assessments/:id/suggest-evidence-all', ensureAuthenticated, async 
   } catch (err) {
     console.error('suggest-evidence-all error:', err);
     req.flash('error', 'Could not generate drafts: ' + err.message);
+    res.redirect(`/admin/assessments/${req.params.id}`);
+  }
+});
+
+// ── ASSESSOR REVIEW (Phase 4): per-control review status, feedback & scoring ──
+const REVIEW_STATUSES = ['reviewed', 'needs-resubmission', 'removed', 'accepted', 'pending'];
+function recordCtrlHistory(controlDbId, assessmentId, action, actorName, note) {
+  try {
+    const c = get('SELECT evidence_text, evidence_html, evidence_status FROM assessment_controls WHERE id = ?', [controlDbId]);
+    run(`INSERT INTO assessment_control_history (control_db_id, assessment_id, action, actor_name, actor_type, evidence_text, evidence_html, evidence_status, note)
+         VALUES (?,?,?,?, 'assessor', ?,?,?,?)`,
+      [controlDbId, assessmentId, action, actorName || '', (c && c.evidence_text) || '', (c && c.evidence_html) || '', (c && c.evidence_status) || '', note || '']);
+  } catch (e) { /* non-fatal */ }
+}
+
+router.post('/assessments/:id/controls/:cid/review', ensureAuthenticated, express.json(), (req, res) => {
+  const assessment = get('SELECT id FROM assessments WHERE id = ?', [req.params.id]);
+  if (!assessment) return res.json({ success: false });
+  const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?', [req.params.cid, assessment.id]);
+  if (!control) return res.json({ success: false });
+  const b = req.body || {};
+  const rs = REVIEW_STATUSES.includes(b.review_status) ? b.review_status : control.review_status;
+  run(`UPDATE assessment_controls SET review_status = ?, assessor_feedback = ?, evidence_reliability = ?,
+       evidence_sufficiency = ?, control_weight = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+    [rs, b.assessor_feedback != null ? b.assessor_feedback : control.assessor_feedback,
+      b.evidence_reliability != null ? b.evidence_reliability : control.evidence_reliability,
+      b.evidence_sufficiency != null ? b.evidence_sufficiency : control.evidence_sufficiency,
+      b.control_weight != null ? b.control_weight : control.control_weight, control.id]);
+  recordCtrlHistory(control.id, assessment.id, 'review', req.user.name, 'status: ' + rs);
+  res.json({ success: true });
+});
+
+router.post('/assessments/:id/controls/bulk-review', ensureAuthenticated, express.json(), (req, res) => {
+  const assessment = get('SELECT id FROM assessments WHERE id = ?', [req.params.id]);
+  if (!assessment) return res.json({ success: false });
+  const action = req.body.action;
+  const map = { accept: 'accepted', reviewed: 'reviewed', 'needs-resubmission': 'needs-resubmission', removed: 'removed' };
+  const rs = map[action];
+  if (!rs) return res.json({ success: false, message: 'Unknown action.' });
+  const ids = (Array.isArray(req.body.controlIds) ? req.body.controlIds : []).map(Number).filter(Boolean);
+  if (!ids.length) return res.json({ success: false, message: 'No controls selected.' });
+  let n = 0;
+  for (const id of ids) {
+    const c = get('SELECT id FROM assessment_controls WHERE id = ? AND assessment_id = ?', [id, assessment.id]);
+    if (!c) continue;
+    run('UPDATE assessment_controls SET review_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [rs, id]);
+    if (action === 'removed') run('UPDATE assessment_controls SET is_applicable = 0 WHERE id = ?', [id]);
+    recordCtrlHistory(id, assessment.id, 'review', req.user.name, 'status: ' + rs);
+    n++;
+  }
+  res.json({ success: true, updated: n });
+});
+
+// Return the assessment for revision: reopen it and re-assign, so the provider
+// sees only the controls flagged "needs-resubmission" (reset to editable).
+router.post('/assessments/:id/return-for-revision', ensureAuthenticated, async (req, res) => {
+  try {
+    const assessment = get('SELECT a.*, p.name AS project_name FROM assessments a JOIN projects p ON p.id = a.project_id WHERE a.id = ?', [req.params.id]);
+    if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+    const flagged = all("SELECT id FROM assessment_controls WHERE assessment_id = ? AND review_status = 'needs-resubmission'", [assessment.id]);
+    if (!flagged.length) {
+      req.flash('error', req.t ? req.t('rv.noFlagged') : 'No controls are flagged for re-submission.');
+      return res.redirect(`/admin/assessments/${assessment.id}`);
+    }
+    // Reopen for evidence gathering; unlock the flagged controls so they can be edited.
+    run("UPDATE assessments SET status = 'evidence-gathering', updated_at = CURRENT_TIMESTAMP WHERE id = ?", [assessment.id]);
+    flagged.forEach(f => run('UPDATE assessment_controls SET evidence_ready = 0 WHERE id = ?', [f.id]));
+    const inv = await activateAndSendInvite(req, assessment.id);
+    if (!inv.ok) { req.flash('error', inv.error); return res.redirect(`/admin/assessments/${assessment.id}`); }
+    req.flash('success', (req.t ? req.t('rv.returned') : 'Returned {n} control(s) for re-submission and re-sent the invite.').replace('{n}', flagged.length));
+    res.redirect(`/admin/assessments/${assessment.id}`);
+  } catch (err) {
+    console.error('return-for-revision error:', err);
+    req.flash('error', 'Could not return for revision: ' + err.message);
     res.redirect(`/admin/assessments/${req.params.id}`);
   }
 });

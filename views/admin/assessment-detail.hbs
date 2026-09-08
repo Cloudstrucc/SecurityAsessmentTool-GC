@@ -490,6 +490,28 @@
   </div>
 
   <!-- Control Families -->
+  {{#eq assessment.status "audit"}}
+  {{#if reviewScore}}
+  <div class="card mb-3" style="border-left:4px solid var(--gc-accent,#2f80cf)"><div class="card-body py-2 d-flex align-items-center gap-3 flex-wrap">
+    <span class="fs-4 fw-bold" style="color:var(--gc-nav,#26374a)">{{reviewScore.score}}%</span>
+    <span class="small text-muted">{{t 'rv.scoreLabel'}}</span>
+    {{#if reviewScore.weak.length}}<span class="badge text-bg-warning ms-auto"><i class="bi bi-exclamation-triangle me-1"></i>{{reviewScore.weak.length}} {{t 'rv.weakEvidence'}}</span>{{/if}}
+  </div></div>
+  {{/if}}
+  <div class="card mb-3"><div class="card-body py-2 d-flex align-items-center gap-2 flex-wrap">
+    <span class="small fw-semibold text-muted"><i class="bi bi-funnel me-1"></i>{{t 'ev.filterBy'}}</span>
+    <span class="rv-fchip badge rounded-pill text-bg-primary" data-f="pending" onclick="rvToggleFilter(this)">{{t 'rv.st_pending'}}</span>
+    <span class="rv-fchip badge rounded-pill text-bg-success" data-f="reviewed" onclick="rvToggleFilter(this)">{{t 'rv.st_reviewed'}}</span>
+    <span class="rv-fchip badge rounded-pill text-bg-warning" data-f="needs-resubmission" onclick="rvToggleFilter(this)">{{t 'rv.st_needs-resubmission'}}</span>
+    <span class="rv-fchip badge rounded-pill text-bg-secondary" data-f="removed" onclick="rvToggleFilter(this)">{{t 'rv.st_removed'}}</span>
+    <span class="rv-fchip badge rounded-pill text-bg-info" data-f="accepted" onclick="rvToggleFilter(this)">{{t 'rv.st_accepted'}}</span>
+    <label class="small text-muted mb-0 ms-2"><input type="checkbox" class="form-check-input me-1" id="rvSelectAll" onchange="rvToggleSelectAll(this)">{{t 'ev.selectAll'}}</label>
+    <form method="POST" action="/admin/assessments/{{assessment.id}}/return-for-revision" class="ms-auto" onsubmit="return confirm('{{t 'rv.returnConfirm'}}')">
+      <button class="btn btn-sm btn-primary"><i class="bi bi-send-check me-1"></i>{{t 'rv.returnBtn'}}</button>
+    </form>
+  </div></div>
+  {{/eq}}
+
   {{#each families}}
     <div class="form-section" id="family-{{this.code}}">
       <div class="section-header">
@@ -501,7 +523,8 @@
       </div>
 
       {{#each this.controls}}
-        <div class="control-card {{#if this.is_inherited}}inherited{{/if}}" id="control-{{this.id}}">
+        <div class="control-card rv-ctrl {{#if this.is_inherited}}inherited{{/if}}" id="control-{{this.id}}"
+          data-rvstatus="{{#if this.review_status}}{{this.review_status}}{{else}}pending{{/if}}">
           <div class="d-flex justify-content-between align-items-start">
             <div>
               <div class="d-flex align-items-center gap-2 mb-1">
@@ -511,6 +534,7 @@
                 {{else}}
                   <input type="checkbox" class="form-check-input ai-control-checkbox" value="{{this.id}}" style="display:none;">
                 {{/if}}
+                {{#eq ../../assessment.status "audit"}}<input type="checkbox" class="form-check-input rv-select" data-cid="{{this.id}}" onchange="rvUpdateBar()">{{/eq}}
                 {{{controlResultIcon this.audit_result}}}
                 <span class="control-id">{{this.control_id}}</span>
                 <span class="control-title">{{this.title}}</span>
@@ -519,12 +543,13 @@
                 <span class="badge bg-info mb-1"><i class="bi bi-arrow-left-right me-1"></i>Inherited: {{this.inherited_from}}</span>
               {{/if}}
             </div>
-            <div class="d-flex gap-1">
+            <div class="d-flex gap-1 flex-wrap justify-content-end">
               <span class="badge bg-secondary">{{this.priority}}</span>
               {{#eq this.risk_level "high"}}<span class="badge bg-danger">{{t 'ui.highRisk'}}</span>{{/eq}}
               {{#eq this.risk_level "medium"}}<span class="badge bg-warning text-dark">{{t 'ui.medRisk'}}</span>{{/eq}}
               {{#eq this.risk_level "low"}}<span class="badge bg-info">{{t 'ui.lowRisk'}}</span>{{/eq}}
               {{#if this.audit_result}}{{{statusBadge this.audit_result}}}{{/if}}
+              {{#if this.review_status}}<span class="badge rv-badge rv-badge-{{this.review_status}}" id="rvBadge-{{this.id}}">{{#eq this.review_status 'reviewed'}}{{t 'rv.st_reviewed'}}{{/eq}}{{#eq this.review_status 'needs-resubmission'}}{{t 'rv.st_needs-resubmission'}}{{/eq}}{{#eq this.review_status 'removed'}}{{t 'rv.st_removed'}}{{/eq}}{{#eq this.review_status 'accepted'}}{{t 'rv.st_accepted'}}{{/eq}}</span>{{/if}}
             </div>
           </div>
 
@@ -716,6 +741,47 @@
                   id="audit-comment-{{this.id}}" placeholder="{{t 'ui.auditorComments2'}}"
                   value="{{this.audit_comments}}"
                   onchange="auditControl({{this.id}}, '{{../../assessment.id}}', null, null, this.value)">
+              </div>
+              {{!-- Phase 4: evidence-strength scoring + review status + feedback --}}
+              <div class="row g-2 mt-2">
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold mb-0">{{t 'rv.reliability'}}</label>
+                  <select class="form-select form-select-sm rv-input" data-cid="{{this.id}}" data-field="evidence_reliability" onchange="rvSaveField(this,'{{../../assessment.id}}')">
+                    <option value="" {{#unless this.evidence_reliability}}selected{{/unless}}>—</option>
+                    <option value="assessor-tested" {{#eq this.evidence_reliability 'assessor-tested'}}selected{{/eq}}>{{t 'rv.rel_assessorTested'}}</option>
+                    <option value="third-party" {{#eq this.evidence_reliability 'third-party'}}selected{{/eq}}>{{t 'rv.rel_thirdParty'}}</option>
+                    <option value="system-generated" {{#eq this.evidence_reliability 'system-generated'}}selected{{/eq}}>{{t 'rv.rel_systemGenerated'}}</option>
+                    <option value="internal-doc" {{#eq this.evidence_reliability 'internal-doc'}}selected{{/eq}}>{{t 'rv.rel_internalDoc'}}</option>
+                    <option value="self-attested" {{#eq this.evidence_reliability 'self-attested'}}selected{{/eq}}>{{t 'rv.rel_selfAttested'}}</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold mb-0">{{t 'rv.sufficiency'}}</label>
+                  <select class="form-select form-select-sm rv-input" data-cid="{{this.id}}" data-field="evidence_sufficiency" onchange="rvSaveField(this,'{{../../assessment.id}}')">
+                    <option value="" {{#unless this.evidence_sufficiency}}selected{{/unless}}>—</option>
+                    <option value="comprehensive" {{#eq this.evidence_sufficiency 'comprehensive'}}selected{{/eq}}>{{t 'rv.suf_comprehensive'}}</option>
+                    <option value="adequate" {{#eq this.evidence_sufficiency 'adequate'}}selected{{/eq}}>{{t 'rv.suf_adequate'}}</option>
+                    <option value="partial" {{#eq this.evidence_sufficiency 'partial'}}selected{{/eq}}>{{t 'rv.suf_partial'}}</option>
+                    <option value="none" {{#eq this.evidence_sufficiency 'none'}}selected{{/eq}}>{{t 'rv.suf_none'}}</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold mb-0">{{t 'rv.weight'}}</label>
+                  <select class="form-select form-select-sm rv-input" data-cid="{{this.id}}" data-field="control_weight" onchange="rvSaveField(this,'{{../../assessment.id}}')">
+                    <option value="high" {{#eq this.control_weight 'high'}}selected{{/eq}}>{{t 'rv.wt_high'}}</option>
+                    <option value="medium" {{#eq this.control_weight 'medium'}}selected{{/eq}}>{{t 'rv.wt_medium'}}</option>
+                    <option value="low" {{#eq this.control_weight 'low'}}selected{{/eq}}>{{t 'rv.wt_low'}}</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <textarea class="form-control form-control-sm rv-input" rows="1" data-cid="{{this.id}}" data-field="assessor_feedback"
+                    placeholder="{{t 'rv.feedbackPh'}}" onchange="rvSaveField(this,'{{../../assessment.id}}')">{{this.assessor_feedback}}</textarea>
+                </div>
+                <div class="col-12 d-flex gap-2 flex-wrap">
+                  <button type="button" class="btn btn-sm btn-outline-success" onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','reviewed')"><i class="bi bi-check2-circle me-1"></i>{{t 'rv.markReviewed'}}</button>
+                  <button type="button" class="btn btn-sm btn-outline-warning" onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','needs-resubmission')"><i class="bi bi-arrow-repeat me-1"></i>{{t 'rv.requestResub'}}</button>
+                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','removed')"><i class="bi bi-x-circle me-1"></i>{{t 'rv.remove'}}</button>
+                </div>
               </div>
             </div>
           {{/eq}}
@@ -1441,3 +1507,51 @@ window.AIAssistConfig = {
   {{> collab-panel }}
   <script>window.CollabConfig = { projectId: {{assessment.project_id}}, entityType: 'assessment', entityId: {{assessment.id}} };</script>
 {{/if}}
+
+{{!-- Phase 4: assessor review — status colours, filter, bulk actions, right-click --}}
+<style>
+  .rv-badge-reviewed{background:#2fa06d} .rv-badge-needs-resubmission{background:#e0a53d;color:#332600}
+  .rv-badge-removed{background:#6b7c90} .rv-badge-accepted{background:#1c7a4e} .rv-badge-pending{background:#4d9fe0}
+</style>
+{{#eq assessment.status "audit"}}
+<div id="rvBulkBar" class="shadow" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:1050;background:#0a1626;color:#fff;border-radius:12px;padding:8px 12px;align-items:center;gap:10px">
+  <span class="fw-semibold"><span id="rvSelCount">0</span> {{t 'ev.selected'}}</span>
+  <button type="button" class="btn btn-sm btn-outline-light" onclick="rvBulk('reviewed')"><i class="bi bi-check2-circle me-1"></i>{{t 'rv.markReviewed'}}</button>
+  <button type="button" class="btn btn-sm btn-outline-light" onclick="rvBulk('needs-resubmission')"><i class="bi bi-arrow-repeat me-1"></i>{{t 'rv.requestResub'}}</button>
+  <button type="button" class="btn btn-sm btn-outline-light" onclick="rvBulk('accept')"><i class="bi bi-patch-check me-1"></i>{{t 'rv.acceptAll'}}</button>
+  <button type="button" class="btn btn-sm btn-outline-light" onclick="rvBulk('removed')"><i class="bi bi-x-circle me-1"></i>{{t 'rv.remove'}}</button>
+  <button type="button" class="btn btn-sm btn-link text-light text-decoration-none" onclick="rvClear()">{{t 'ev.clear'}}</button>
+</div>
+<div id="rvCtxMenu" class="shadow-sm border bg-white rounded" style="display:none;position:fixed;z-index:1060;min-width:200px;font-size:13px;padding:4px 0">
+  <button type="button" class="dropdown-item py-1" onclick="rvCtx('reviewed')"><i class="bi bi-check2-circle me-2"></i>{{t 'rv.markReviewed'}}</button>
+  <button type="button" class="dropdown-item py-1" onclick="rvCtx('needs-resubmission')"><i class="bi bi-arrow-repeat me-2"></i>{{t 'rv.requestResub'}}</button>
+  <button type="button" class="dropdown-item py-1" onclick="rvCtx('accept')"><i class="bi bi-patch-check me-2"></i>{{t 'rv.acceptAll'}}</button>
+  <button type="button" class="dropdown-item py-1" onclick="rvCtx('removed')"><i class="bi bi-x-circle me-2"></i>{{t 'rv.remove'}}</button>
+</div>
+<script>
+const RV_AID = '{{assessment.id}}';
+const RV_FILTERS = new Set();
+function rvToggleFilter(el){ const f=el.getAttribute('data-f'); if(RV_FILTERS.has(f)){RV_FILTERS.delete(f);el.style.outline='';}else{RV_FILTERS.add(f);el.style.outline='2px solid rgba(0,0,0,.3)';} rvApplyFilter(); }
+function rvApplyFilter(){ document.querySelectorAll('.rv-ctrl').forEach(function(c){ const show=RV_FILTERS.size===0||RV_FILTERS.has(c.getAttribute('data-rvstatus')); c.style.display=show?'':'none'; if(!show){var b=c.querySelector('.rv-select'); if(b) b.checked=false;} }); rvUpdateBar(); }
+function rvSelectedIds(){ return [].slice.call(document.querySelectorAll('.rv-select:checked')).map(function(b){return Number(b.getAttribute('data-cid'));}); }
+function rvUpdateBar(){ const ids=rvSelectedIds(); const bar=document.getElementById('rvBulkBar'); if(!bar) return; document.getElementById('rvSelCount').textContent=ids.length; bar.style.display=ids.length?'flex':'none'; }
+function rvToggleSelectAll(cb){ document.querySelectorAll('.rv-ctrl').forEach(function(c){ if(c.style.display!=='none'){var b=c.querySelector('.rv-select'); if(b) b.checked=cb.checked;} }); rvUpdateBar(); }
+function rvClear(){ document.querySelectorAll('.rv-select:checked').forEach(function(b){b.checked=false;}); var sa=document.getElementById('rvSelectAll'); if(sa) sa.checked=false; rvUpdateBar(); }
+async function rvSaveField(el, aid){
+  const cid=el.getAttribute('data-cid'), field=el.getAttribute('data-field');
+  const body={}; body[field]=el.value;
+  try{ await fetch('/admin/assessments/'+aid+'/controls/'+cid+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }catch(e){}
+}
+async function rvSetStatus(cid, aid, status){
+  try{ const r=await fetch('/admin/assessments/'+aid+'/controls/'+cid+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_status:status})}); const d=await r.json(); if(d.success) location.reload(); }catch(e){}
+}
+async function rvBulk(action){
+  const ids=rvSelectedIds(); if(!ids.length) return;
+  try{ const r=await fetch('/admin/assessments/'+RV_AID+'/controls/bulk-review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:action,controlIds:ids})}); const d=await r.json(); if(d.success) location.reload(); else alert(d.message||'Failed'); }catch(e){ alert('Failed'); }
+}
+let rvCtxId=null;
+document.addEventListener('contextmenu',function(e){ const card=e.target.closest && e.target.closest('.rv-ctrl'); if(!card||card.style.display==='none') return; if(!document.querySelector('.rv-select')) return; e.preventDefault(); const cb=card.querySelector('.rv-select'); if(cb && rvSelectedIds().length===0){ cb.checked=true; rvUpdateBar(); } rvCtxId=cb?Number(cb.getAttribute('data-cid')):null; const m=document.getElementById('rvCtxMenu'); m.style.left=Math.min(e.clientX,window.innerWidth-210)+'px'; m.style.top=e.clientY+'px'; m.style.display='block'; });
+document.addEventListener('click',function(){ var m=document.getElementById('rvCtxMenu'); if(m) m.style.display='none'; });
+function rvCtx(action){ document.getElementById('rvCtxMenu').style.display='none'; rvBulk(action); }
+</script>
+{{/eq}}

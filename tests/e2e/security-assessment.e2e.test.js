@@ -2389,3 +2389,29 @@ test('provider bulk actions mark selected controls Ready', async () => {
   // The Ready badge for that control is no longer hidden.
   assert.match(after.text, new RegExp('id="readyBadge-' + cid + '"(?![^>]*hidden)'), 'the control shows Ready after bulk');
 });
+
+test('assessor review: per-control status/scoring, return-for-revision, and bulk-review', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Review ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const respond = await getText(jar, `/respond/${code}`);
+  const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
+
+  // Single review: flag for re-submission + record scoring inputs.
+  const rev = await (await request(jar, 'POST', `/admin/assessments/${assessmentId}/controls/${cid}/review`,
+    { json: { review_status: 'needs-resubmission', assessor_feedback: 'add the export', evidence_reliability: 'self-attested', evidence_sufficiency: 'partial', control_weight: 'high' } })).json();
+  assert.equal(rev.success, true, 'review saved');
+
+  // Return for revision → the assessment reopens for evidence gathering.
+  const ret = await request(jar, 'POST', `/admin/assessments/${assessmentId}/return-for-revision`, { redirect: 'manual' });
+  assert.equal(ret.status, 302);
+  const after = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(after.text, /Evidence Gathering|evidence-gathering/i, 'assessment reopened for revision');
+
+  // Bulk-review: accept the control.
+  const bulk = await (await request(jar, 'POST', `/admin/assessments/${assessmentId}/controls/bulk-review`, { json: { action: 'accept', controlIds: [cid] } })).json();
+  assert.equal(bulk.success, true); assert.equal(bulk.updated, 1, 'bulk-review updated the control');
+});
