@@ -3808,5 +3808,15 @@
   "ev.actReactivate": "再開",
   "ev.actRevert": "元に戻した",
   "ev.actReview": "レビュー",
-  "ev.placeholderEvidence": "例：コントロールの証跡を作成、またはコントロールが求める内容を質問"
+  "ev.placeholderEvidence": "例：コントロールの証跡を作成、またはコントロールが求める内容を質問",
+  "ev.bulkTitle": "証跡のドラフトを一括提案",
+  "ev.bulkTip": "証跡が未入力の各コントロールに、入力用プレースホルダー付きのAIドラフトを生成します。バックグラウンドで実行され、作業を続けてもページを離れても、戻れば状態が残っています。入力済みのコントロールは変更されません。",
+  "ev.bulkSub": "空のコントロールのみを埋めます。バックグラウンドで実行され、数分かかる場合があります。",
+  "ev.bulkStart": "空のコントロールにドラフトを提案",
+  "ev.bulkRunning": "ドラフトを生成中… {total}件中{done}件",
+  "ev.bulkBackground": "バックグラウンドで実行中",
+  "ev.bulkDoneN": "完了 — {n}件のドラフトを作成",
+  "ev.bulkErrorsN": "{n}件をスキップ（エラー）",
+  "ev.bulkFailed": "完了できませんでした。もう一度お試しください。",
+  "ev.bulkReload": "再読み込みして表示"
 }

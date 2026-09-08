@@ -3808,5 +3808,15 @@
   "ev.actReactivate": "heeft geheractiveerd",
   "ev.actRevert": "heeft teruggezet",
   "ev.actReview": "heeft beoordeeld",
-  "ev.placeholderEvidence": "bijv. Bewijs opstellen voor een control, of vragen wat een control vereist"
+  "ev.placeholderEvidence": "bijv. Bewijs opstellen voor een control, of vragen wat een control vereist",
+  "ev.bulkTitle": "Bewijsconcepten in bulk voorstellen",
+  "ev.bulkTip": "Genereert voor elk control zonder bewijs een AI-concept met in te vullen tijdelijke aanduidingen. Draait op de achtergrond — blijf werken of verlaat de pagina; het staat er nog als je terugkomt. Reeds ingevulde controls worden nooit aangeraakt.",
+  "ev.bulkSub": "Vult alleen de lege controls. Draait op de achtergrond — kan enkele minuten duren.",
+  "ev.bulkStart": "Concepten voorstellen voor lege controls",
+  "ev.bulkRunning": "Concepten genereren… {done} van {total}",
+  "ev.bulkBackground": "draait op de achtergrond",
+  "ev.bulkDoneN": "Klaar — {n} concepten gemaakt",
+  "ev.bulkErrorsN": "{n} overgeslagen (fouten)",
+  "ev.bulkFailed": "Kon niet voltooien — probeer opnieuw.",
+  "ev.bulkReload": "Herladen om ze te zien"
 }

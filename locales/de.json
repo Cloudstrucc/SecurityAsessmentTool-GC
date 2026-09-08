@@ -3808,5 +3808,15 @@
   "ev.actReactivate": "hat reaktiviert",
   "ev.actRevert": "hat zurückgesetzt",
   "ev.actReview": "hat geprüft",
-  "ev.placeholderEvidence": "z. B. Nachweis für ein Control entwerfen oder fragen, was ein Control verlangt"
+  "ev.placeholderEvidence": "z. B. Nachweis für ein Control entwerfen oder fragen, was ein Control verlangt",
+  "ev.bulkTitle": "Nachweisentwürfe im Stapel vorschlagen",
+  "ev.bulkTip": "Erzeugt für jedes Control ohne Nachweis einen KI-Entwurf mit auszufüllenden Platzhaltern. Läuft im Hintergrund — arbeiten Sie weiter oder verlassen Sie die Seite; der Stand ist bei Ihrer Rückkehr noch da. Bereits ausgefüllte Controls werden nie verändert.",
+  "ev.bulkSub": "Füllt nur die leeren Controls. Läuft im Hintergrund — kann einige Minuten dauern.",
+  "ev.bulkStart": "Entwürfe für leere Controls vorschlagen",
+  "ev.bulkRunning": "Entwürfe werden erzeugt… {done} von {total}",
+  "ev.bulkBackground": "läuft im Hintergrund",
+  "ev.bulkDoneN": "Fertig — {n} Entwürfe erstellt",
+  "ev.bulkErrorsN": "{n} übersprungen (Fehler)",
+  "ev.bulkFailed": "Konnte nicht abgeschlossen werden — bitte erneut versuchen.",
+  "ev.bulkReload": "Neu laden, um sie zu sehen"
 }

@@ -3808,5 +3808,15 @@
   "ev.actReactivate": "ha riattivato",
   "ev.actRevert": "ha ripristinato",
   "ev.actReview": "ha esaminato",
-  "ev.placeholderEvidence": "es. Redigere prove per un controllo, o chiedere cosa richiede un controllo"
+  "ev.placeholderEvidence": "es. Redigere prove per un controllo, o chiedere cosa richiede un controllo",
+  "ev.bulkTitle": "Suggerisci bozze di prova in blocco",
+  "ev.bulkTip": "Genera una bozza IA con segnaposto da compilare per ogni controllo senza prove. Viene eseguito in background — continua a lavorare o lascia la pagina; sarà ancora qui al tuo ritorno. I controlli già compilati non vengono mai toccati.",
+  "ev.bulkSub": "Riempie solo i controlli vuoti. Viene eseguito in background — può richiedere alcuni minuti.",
+  "ev.bulkStart": "Suggerisci bozze per i controlli vuoti",
+  "ev.bulkRunning": "Generazione bozze… {done} di {total}",
+  "ev.bulkBackground": "in esecuzione in background",
+  "ev.bulkDoneN": "Fatto — {n} bozze create",
+  "ev.bulkErrorsN": "{n} saltati (errori)",
+  "ev.bulkFailed": "Impossibile completare — riprova.",
+  "ev.bulkReload": "Ricarica per vederle"
 }

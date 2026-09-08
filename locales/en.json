@@ -3787,5 +3787,15 @@
   "ev.actReactivate": "reactivated",
   "ev.actRevert": "reverted",
   "ev.actReview": "reviewed",
-  "ev.placeholderEvidence": "e.g. Draft evidence for a control, or ask what a control needs"
+  "ev.placeholderEvidence": "e.g. Draft evidence for a control, or ask what a control needs",
+  "ev.bulkTitle": "Suggest draft evidence in bulk",
+  "ev.bulkTip": "Generates an AI starter draft with fill-in placeholders for every control that has no evidence yet. Runs in the background — keep working or leave the page; it'll still be here when you return. Controls you've already filled are never touched.",
+  "ev.bulkSub": "Only fills the empty controls. Runs in the background — may take a few minutes.",
+  "ev.bulkStart": "Suggest drafts for empty controls",
+  "ev.bulkRunning": "Generating suggested drafts… {done} of {total}",
+  "ev.bulkBackground": "running in the background",
+  "ev.bulkDoneN": "Done — {n} drafts created",
+  "ev.bulkErrorsN": "{n} skipped (errors)",
+  "ev.bulkFailed": "Couldn't finish — please try again.",
+  "ev.bulkReload": "Reload to see them"
 }

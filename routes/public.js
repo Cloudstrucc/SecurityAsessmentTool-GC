@@ -20,6 +20,7 @@ const {
 } = require('../config/security-frameworks');
 const { frameworkMap, getFrameworks } = require('../config/framework-map');
 const history = require('../config/control-history');
+const suggestWorker = require('../config/suggest-worker');
 
 ensureUploadDirs();
 const upload = multer({
@@ -429,6 +430,31 @@ router.post('/respond/:code/save/:controlId', ensureEvidenceUser, express.json({
   history.record({ controlDbId: Number(req.params.controlId), assessmentId: assessment.id, action: 'save', actorName: who.name, actorType: who.type, control: saved });
 
   res.json({ success: true });
+});
+
+// FEATURE 2: start (or resume) a background "suggest drafts in bulk" job.
+router.post('/respond/:code/suggest-bulk', ensureEvidenceUser, express.json(), async (req, res) => {
+  try {
+    const code = req.params.code.toUpperCase();
+    const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
+    if (!assessment) return res.json({ success: false });
+    const acc = evidenceAccess(req, assessment);
+    if (!acc || !acc.canEdit) return res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
+    const who = history.actor(req);
+    const job = await suggestWorker.startJob({ assessmentId: assessment.id, startedBy: who.name, aiUser: req.user || null });
+    res.json({ success: true, job });
+  } catch (err) {
+    console.error('suggest-bulk error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Poll the current bulk-suggest job status (persists across reloads).
+router.get('/respond/:code/suggest-status', ensureEvidenceUser, (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const assessment = get('SELECT id FROM assessments WHERE invite_code = ?', [code]);
+  if (!assessment) return res.json({ success: false, job: null });
+  res.json({ success: true, job: suggestWorker.statusFor(assessment.id) || null });
 });
 
 // Mark a control Ready (locked) / reactivate it. Records history.

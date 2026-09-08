@@ -2343,3 +2343,31 @@ test('evidence Ready lock, edit history, and revert work per control', async () 
   assert.equal(rev.success, true);
   assert.match(rev.text || '', /Version ONE/, 'revert restored the earlier evidence');
 });
+
+test('bulk suggest runs as a background job with pollable status that fills empty controls', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Bulk Job ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+
+  // Start the background job.
+  const start = await (await request(jar, 'POST', `/respond/${code}/suggest-bulk`, { json: {} })).json();
+  assert.equal(start.success, true, 'job starts');
+  assert.ok(start.job && ['running', 'queued', 'done'].includes(start.job.status));
+
+  // Poll until it finishes (offline fallback is fast).
+  let job = start.job, tries = 0;
+  while (job && (job.status === 'running' || job.status === 'queued') && tries++ < 40) {
+    await new Promise(r => setTimeout(r, 150));
+    job = (await (await request(jar, 'GET', `/respond/${code}/suggest-status`)).json()).job;
+  }
+  assert.equal(job.status, 'done', 'job completes');
+  assert.ok(job.done >= 1, 'at least one control processed');
+
+  // The control now carries an AI-suggested draft.
+  const respond = await getText(jar, `/respond/${code}`);
+  const cid = respond.text.match(/editor-(\d+)/)[1];
+  assert.match(respond.text, new RegExp('id="draftBadge-' + cid), 'the empty control was filled by the background job');
+});

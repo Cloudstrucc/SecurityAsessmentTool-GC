@@ -3830,5 +3830,15 @@
   "ev.actReactivate": "a réactivé",
   "ev.actRevert": "a rétabli",
   "ev.actReview": "a examiné",
-  "ev.placeholderEvidence": "ex. Rédiger des preuves pour un contrôle, ou demander ce qu’un contrôle exige"
+  "ev.placeholderEvidence": "ex. Rédiger des preuves pour un contrôle, ou demander ce qu’un contrôle exige",
+  "ev.bulkTitle": "Proposer des brouillons de preuves en lot",
+  "ev.bulkTip": "Génère un brouillon IA avec des espaces réservés à compléter pour chaque contrôle sans preuve. S’exécute en arrière-plan — continuez à travailler ou quittez la page ; le suivi sera toujours là à votre retour. Les contrôles déjà remplis ne sont jamais modifiés.",
+  "ev.bulkSub": "Ne remplit que les contrôles vides. S’exécute en arrière-plan — peut prendre quelques minutes.",
+  "ev.bulkStart": "Proposer des brouillons pour les contrôles vides",
+  "ev.bulkRunning": "Génération des brouillons… {done} sur {total}",
+  "ev.bulkBackground": "en cours en arrière-plan",
+  "ev.bulkDoneN": "Terminé — {n} brouillons créés",
+  "ev.bulkErrorsN": "{n} ignorés (erreurs)",
+  "ev.bulkFailed": "Impossible de terminer — veuillez réessayer.",
+  "ev.bulkReload": "Recharger pour les voir"
 }

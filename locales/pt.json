@@ -3808,5 +3808,15 @@
   "ev.actReactivate": "reativou",
   "ev.actRevert": "reverteu",
   "ev.actReview": "revisou",
-  "ev.placeholderEvidence": "ex.: Redigir evidência para um controle, ou perguntar o que um controle exige"
+  "ev.placeholderEvidence": "ex.: Redigir evidência para um controle, ou perguntar o que um controle exige",
+  "ev.bulkTitle": "Sugerir rascunhos de evidência em lote",
+  "ev.bulkTip": "Gera um rascunho de IA com espaços reservados para preencher em cada controle sem evidência. Executa em segundo plano — continue trabalhando ou saia da página; estará aqui quando você voltar. Controles já preenchidos nunca são alterados.",
+  "ev.bulkSub": "Preenche apenas os controles vazios. Executa em segundo plano — pode levar alguns minutos.",
+  "ev.bulkStart": "Sugerir rascunhos para controles vazios",
+  "ev.bulkRunning": "Gerando rascunhos… {done} de {total}",
+  "ev.bulkBackground": "executando em segundo plano",
+  "ev.bulkDoneN": "Concluído — {n} rascunhos criados",
+  "ev.bulkErrorsN": "{n} ignorados (erros)",
+  "ev.bulkFailed": "Não foi possível concluir — tente novamente.",
+  "ev.bulkReload": "Recarregar para ver"
 }

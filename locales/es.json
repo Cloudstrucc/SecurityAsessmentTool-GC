@@ -3830,5 +3830,15 @@
   "ev.actReactivate": "reactivó",
   "ev.actRevert": "revirtió",
   "ev.actReview": "revisó",
-  "ev.placeholderEvidence": "p. ej. Redactar evidencia para un control, o preguntar qué requiere un control"
+  "ev.placeholderEvidence": "p. ej. Redactar evidencia para un control, o preguntar qué requiere un control",
+  "ev.bulkTitle": "Sugerir borradores de evidencia en lote",
+  "ev.bulkTip": "Genera un borrador de IA con marcadores para completar en cada control sin evidencia. Se ejecuta en segundo plano: sigue trabajando o sal de la página; seguirá aquí al volver. Los controles ya rellenados nunca se tocan.",
+  "ev.bulkSub": "Solo rellena los controles vacíos. Se ejecuta en segundo plano — puede tardar unos minutos.",
+  "ev.bulkStart": "Sugerir borradores para controles vacíos",
+  "ev.bulkRunning": "Generando borradores… {done} de {total}",
+  "ev.bulkBackground": "ejecutándose en segundo plano",
+  "ev.bulkDoneN": "Listo — {n} borradores creados",
+  "ev.bulkErrorsN": "{n} omitidos (errores)",
+  "ev.bulkFailed": "No se pudo terminar — inténtalo de nuevo.",
+  "ev.bulkReload": "Recargar para verlos"
 }

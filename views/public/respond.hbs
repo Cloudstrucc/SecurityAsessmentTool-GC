@@ -45,6 +45,33 @@
     {{/unless}}
   </div>
 
+  {{!-- FEATURE 2: bulk "suggest drafts" background job --}}
+  {{#unless isReadOnly}}
+  <div class="card mb-3" style="border-color:#ddd6fe;background:linear-gradient(90deg,#f7f5ff,#f0f7ff)">
+    <div class="card-body d-flex align-items-center gap-2 flex-wrap py-2">
+      <i class="bi bi-magic" style="font-size:20px;color:#6d28d9"></i>
+      <div class="flex-grow-1" style="min-width:200px">
+        <div class="fw-bold" style="color:#26374a">{{t 'ev.bulkTitle'}}
+          <span tabindex="0" role="button" data-bs-toggle="tooltip" title="{{t 'ev.bulkTip'}}"><i class="bi bi-question-circle text-primary"></i></span>
+        </div>
+        <div class="small text-muted">{{t 'ev.bulkSub'}}</div>
+      </div>
+      <button type="button" class="btn btn-sm" style="background:#f3efff;border:1px solid #ddd6fe;color:#6d28d9" id="bulkStartBtn" onclick="startBulkSuggest()">
+        <i class="bi bi-magic me-1"></i>{{t 'ev.bulkStart'}}
+      </button>
+    </div>
+    <div class="card-body py-2 border-top" id="bulkStatusBar" hidden>
+      <div class="d-flex align-items-center gap-2">
+        <span class="spinner-border spinner-border-sm text-primary" id="bulkSpin"></span>
+        <div class="flex-grow-1">
+          <div class="small fw-semibold" id="bulkStatusLabel"></div>
+          <div class="progress mt-1" style="height:5px"><div class="progress-bar bg-primary" id="bulkStatusBarInner" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{/unless}}
+
   <!-- Family navigation -->
   <div class="mb-4">
     <div class="d-flex flex-wrap gap-2">
@@ -298,6 +325,50 @@ async function revertTo(cid,historyId){
     loadCtrlHistory(cid); updateProgress();
   }catch(e){ alert(HIST_LBL.err); }
 }
+
+// FEATURE 2: bulk background "suggest drafts" — start, poll, resume across reloads.
+const BULK_LBL = {
+  running: {{{tjs 'ev.bulkRunning'}}}, background: {{{tjs 'ev.bulkBackground'}}},
+  done: {{{tjs 'ev.bulkDoneN'}}}, errors: {{{tjs 'ev.bulkErrorsN'}}},
+  failed: {{{tjs 'ev.bulkFailed'}}}, reload: {{{tjs 'ev.bulkReload'}}}
+};
+let bulkPollTimer=null;
+async function startBulkSuggest(){
+  const btn=document.getElementById('bulkStartBtn'); if(btn) btn.disabled=true;
+  try{
+    const r=await fetch('/respond/'+INVITE_CODE+'/suggest-bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    const d=await r.json();
+    if(!d.success){ alert(d.message||EV_I18N.suggestFail); if(btn) btn.disabled=false; return; }
+    renderBulk(d.job); pollBulk();
+  }catch(e){ alert(EV_I18N.suggestFail); if(btn) btn.disabled=false; }
+}
+function renderBulk(job){
+  const bar=document.getElementById('bulkStatusBar'),lbl=document.getElementById('bulkStatusLabel'),inner=document.getElementById('bulkStatusBarInner'),spin=document.getElementById('bulkSpin'),btn=document.getElementById('bulkStartBtn');
+  if(!bar) return;
+  if(!job){ bar.hidden=true; if(btn) btn.disabled=false; return; }
+  bar.hidden=false;
+  const pct=job.total>0?Math.round(job.done/job.total*100):100;
+  inner.style.width=pct+'%';
+  if(job.status==='running'||job.status==='queued'){
+    if(spin) spin.style.display=''; if(btn) btn.disabled=true;
+    lbl.innerHTML=BULK_LBL.running.replace('{done}',job.done).replace('{total}',job.total)+' · <span class="text-muted">'+BULK_LBL.background+'</span>';
+  } else if(job.status==='done'){
+    if(spin) spin.style.display='none'; if(btn) btn.disabled=false;
+    const errs=job.errors>0?(' · <span class="text-danger">'+BULK_LBL.errors.replace('{n}',job.errors)+'</span>'):'';
+    lbl.innerHTML='<i class="bi bi-check-circle-fill text-success me-1"></i>'+BULK_LBL.done.replace('{n}',(job.done-job.errors))+errs+' <button type="button" class="btn btn-sm btn-link p-0 ms-2" onclick="location.reload()">'+BULK_LBL.reload+'</button>';
+  } else {
+    if(spin) spin.style.display='none'; if(btn) btn.disabled=false;
+    lbl.innerHTML='<i class="bi bi-exclamation-triangle text-danger me-1"></i>'+BULK_LBL.failed;
+  }
+}
+async function pollBulk(){
+  clearTimeout(bulkPollTimer);
+  try{
+    const r=await fetch('/respond/'+INVITE_CODE+'/suggest-status');const d=await r.json();
+    renderBulk(d.job);
+    if(d.job&&(d.job.status==='running'||d.job.status==='queued')) bulkPollTimer=setTimeout(pollBulk,2500);
+  }catch(e){ bulkPollTimer=setTimeout(pollBulk,5000); }
+}
 // Approve one or more assistant evidence proposals: persist as drafts, reflect in
 // the editors, and remove the card(s) once applied.
 async function aiApplyProposals(items, node) {
@@ -449,6 +520,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (ed.innerText.trim().length > 0 && cid) setStatus(cid, 'saved');
     if (cid) updatePhHint(cid);
   });
+  // Resume any in-progress bulk-suggest job (survives navigation/reload).
+  if (typeof pollBulk === 'function' && document.getElementById('bulkStatusBar')) pollBulk();
+  // Init Bootstrap tooltips (the bulk "?" help icon).
+  try { if (window.bootstrap && bootstrap.Tooltip) document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) { new bootstrap.Tooltip(el); }); } catch (e) {}
 });
 
 function updateProgress() {
