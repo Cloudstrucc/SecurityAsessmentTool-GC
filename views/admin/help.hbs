@@ -70,6 +70,27 @@
             a full audit trail.</li>
           <li><b>Control families</b> — the assessment groups controls by family; the assessment report scores
             posture per family.</li>
+          <li><b>Assign &amp; send</b> — assigning an assessment to a project user activates it and sends the
+            invite in one step (the "Assign &amp; send" action). The assignee is the current owner of the
+            evidence; the assessor can <b>Take ownership</b> to edit and must re-assign to hand it back.</li>
+        </ul>
+
+        <h3 class="mt-3">Reviewing evidence (audit)</h3>
+        <p>When the assessment is in the <b>audit</b> phase, each control shows the submitted evidence plus a
+          review panel:</p>
+        <ul>
+          <li><b>Evidence scoring</b> — rate the evidence's <b>reliability</b> (self-attested → assessor-tested),
+            its <b>sufficiency</b>, and the control's <b>impact weight</b>. These roll up to a weighted
+            evidence-strength score with a weak-evidence flag. The score <i>supports</i> your determination
+            (satisfied / partial / not satisfied) and the ATO/iATO decision — it never replaces your judgement.</li>
+          <li><b>Review status</b> — mark each control <b>Reviewed</b>, <b>Requires re-submission</b>, or
+            <b>Removed</b>, and leave feedback for the provider.</li>
+          <li><b>Filter &amp; bulk</b> — filter the control list by status (choose several at once), select
+            controls (or Select all), and apply a bulk action from the floating bar or the right-click menu
+            (Accept / Requires re-submission / Remove).</li>
+          <li><b>Return for revision</b> — "Return for revision &amp; re-assign" reopens the assessment and
+            re-sends the invite so the provider fixes only the controls flagged <i>Requires re-submission</i>;
+            those unlock for editing and are re-set to Ready once new evidence is provided.</li>
         </ul>
       </section>
 
@@ -81,6 +102,21 @@
           <li><b>AI evidence guidance</b> — from an assessment you can ask the Aegis SA Assistant to draft
             evidence guidance from the uploaded documentation. You review a preview before anything is saved;
             token usage is metered against your plan unless you bring your own AI provider.</li>
+          <li><b>Suggest a draft</b> — on any control, "Suggest a draft" pre-fills a starting-point answer with
+            <code>[[VALUE: …]]</code> placeholders for the specifics you supply and <code>[[ATTACH: …]]</code>
+            for artifacts to upload. A draft is clearly marked and does <i>not</i> count as provided evidence
+            until you edit it. The evidence assistant can also propose drafts you <b>Approve</b> / <b>Approve
+            all</b> straight into the fields.</li>
+          <li><b>Suggest drafts in bulk</b> — the bar at the top runs a background job that drafts every control
+            with <i>no evidence yet</i> (it never touches ones you've filled). It keeps running if you leave the
+            page, shows live progress, and reports any that were skipped.</li>
+          <li><b>Mark Ready</b> — lock a control once its evidence is complete; <b>Reactivate</b> to edit again.
+            Ready controls are protected from bulk/AI overwrites.</li>
+          <li><b>Edited by &amp; history</b> — each control shows who last edited it (including <i>Aegis AI</i>),
+            and a per-control <b>History</b> keeps every save, draft, Ready and reactivate so you can <b>Revert</b>
+            to an earlier version.</li>
+          <li><b>Filter &amp; bulk</b> — filter controls by status (Pending / Draft / Provided / Ready) and act on
+            a selection in bulk (Mark Ready / Reactivate / Suggest a draft) from the floating bar or right-click.</li>
         </ul>
       </section>
 
