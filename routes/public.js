@@ -94,6 +94,21 @@ function renderProductBrief(req, res) {
 router.get('/sa-tool-overview', renderProductBrief);
 router.get('/sa-tool-overview.html', renderProductBrief);
 
+// Release notes — reads the repo's live GitHub Releases (cached), falling back to
+// the curated list when none are published or the API is unreachable.
+const releasesConfig = require('../config/releases');
+router.get('/releases', async (req, res) => {
+  let releases = [];
+  try { releases = await releasesConfig.getReleases(); } catch (e) { releases = []; }
+  res.render('releases', {
+    title: req.t ? req.t('rn.title') : 'Release notes',
+    layout: 'home',
+    releases,
+    repoUrl: releasesConfig.REPO_URL,
+    repo: releasesConfig.REPO
+  });
+});
+
 // ── SECURITY SELF-ASSESSMENT (access-code gated) ──
 function signedInUser(req) {
   if (req.isAuthenticated && req.isAuthenticated()) return req.user;

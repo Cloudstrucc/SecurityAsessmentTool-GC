@@ -3752,5 +3752,21 @@
   "ev.decline": "Decline",
   "ev.approveAll": "Approve all",
   "ev.proposeHeading": "Suggested evidence — approve to fill the fields",
-  "ev.tailorSuggest": "Add suggested evidence drafts"
+  "ev.tailorSuggest": "Add suggested evidence drafts",
+  "rn.title": "Release notes",
+  "rn.subtitle": "What's new in Aegis SA — major and minor releases, with the fixes and improvements in each. Every release links to its pull requests and commit range on GitHub.",
+  "rn.viewOnGitHub": "View on GitHub Releases",
+  "rn.repository": "Repository",
+  "rn.commitHistory": "Commit history",
+  "rn.legendMajor": "milestone / platform-level change",
+  "rn.legendMinor": "new features, backward-compatible",
+  "rn.legendPatch": "fixes & small improvements",
+  "rn.major": "MAJOR",
+  "rn.minor": "MINOR",
+  "rn.patch": "PATCH",
+  "rn.majorMilestone": "MAJOR MILESTONE",
+  "rn.viewRelease": "View release",
+  "rn.compare": "compare",
+  "rn.sourceLabel": "Source:",
+  "rn.backToApp": "Back to app"
 }

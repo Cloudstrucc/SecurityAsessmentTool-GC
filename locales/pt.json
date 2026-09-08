@@ -3773,5 +3773,21 @@
   "ev.decline": "Recusar",
   "ev.approveAll": "Aprovar tudo",
   "ev.proposeHeading": "Evidência sugerida — aprove para preencher os campos",
-  "ev.tailorSuggest": "Adicionar rascunhos de evidência sugeridos"
+  "ev.tailorSuggest": "Adicionar rascunhos de evidência sugeridos",
+  "rn.title": "Notas de versão",
+  "rn.subtitle": "Novidades do Aegis SA — versões maiores e menores, com as correções e melhorias de cada uma. Cada versão remete às suas pull requests e ao intervalo de commits no GitHub.",
+  "rn.viewOnGitHub": "Ver no GitHub Releases",
+  "rn.repository": "Repositório",
+  "rn.commitHistory": "Histórico de commits",
+  "rn.legendMajor": "marco / mudança a nível de plataforma",
+  "rn.legendMinor": "novos recursos, compatíveis com versões anteriores",
+  "rn.legendPatch": "correções e pequenas melhorias",
+  "rn.major": "MAIOR",
+  "rn.minor": "MENOR",
+  "rn.patch": "CORREÇÃO",
+  "rn.majorMilestone": "MARCO IMPORTANTE",
+  "rn.viewRelease": "Ver versão",
+  "rn.compare": "comparar",
+  "rn.sourceLabel": "Fonte:",
+  "rn.backToApp": "Voltar ao app"
 }

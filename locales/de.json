@@ -3773,5 +3773,21 @@
   "ev.decline": "Ablehnen",
   "ev.approveAll": "Alle übernehmen",
   "ev.proposeHeading": "Vorgeschlagene Nachweise – zum Ausfüllen der Felder übernehmen",
-  "ev.tailorSuggest": "Vorgeschlagene Nachweisentwürfe hinzufügen"
+  "ev.tailorSuggest": "Vorgeschlagene Nachweisentwürfe hinzufügen",
+  "rn.title": "Versionshinweise",
+  "rn.subtitle": "Neuerungen in Aegis SA – Haupt- und Nebenversionen mit den jeweiligen Korrekturen und Verbesserungen. Jede Version verlinkt auf ihre Pull Requests und den Commit-Bereich auf GitHub.",
+  "rn.viewOnGitHub": "Auf GitHub Releases ansehen",
+  "rn.repository": "Repository",
+  "rn.commitHistory": "Commit-Verlauf",
+  "rn.legendMajor": "Meilenstein / plattformweite Änderung",
+  "rn.legendMinor": "neue Funktionen, abwärtskompatibel",
+  "rn.legendPatch": "Korrekturen & kleine Verbesserungen",
+  "rn.major": "MAJOR",
+  "rn.minor": "MINOR",
+  "rn.patch": "PATCH",
+  "rn.majorMilestone": "GROSSER MEILENSTEIN",
+  "rn.viewRelease": "Version ansehen",
+  "rn.compare": "vergleichen",
+  "rn.sourceLabel": "Quelle:",
+  "rn.backToApp": "Zurück zur App"
 }

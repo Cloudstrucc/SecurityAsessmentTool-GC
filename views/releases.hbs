@@ -1,0 +1,116 @@
+<style>
+  .rn-wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+  .rn-fip{background:var(--cs-nav,#0a1626);color:#fff}
+  .rn-fip .rn-wrap{display:flex;align-items:center;gap:14px;height:52px}
+  .rn-brand{display:flex;align-items:center;gap:10px;color:#fff;font-family:'Lato',sans-serif;font-weight:700;text-decoration:none}
+  .rn-brand:hover{color:#fff;text-decoration:none}
+  .rn-brand .rn-logo{width:26px;height:26px;border-radius:6px;background:linear-gradient(90deg,#6d7fca,#4d9fe0,#7cc9ee);display:inline-block}
+  .rn-brand small{color:#9db4cc;font-weight:500;font-size:12px}
+  .rn-appbar{background:#fff;border-bottom:3px solid transparent;border-image:linear-gradient(90deg,#6d7fca,#4d9fe0,#7cc9ee) 1}
+  .rn-appbar .rn-wrap{display:flex;align-items:center;gap:6px;height:52px}
+  .rn-navlink{color:#41566d;font-weight:600;font-size:14px;padding:8px 11px;border-radius:8px;text-decoration:none}
+  .rn-navlink:hover{background:#eef5fb;text-decoration:none;color:var(--cs-blue,#143453)}
+  .rn-navlink.active{color:var(--cs-accent-dk,#2f80cf)}
+
+  .rn-hero{background:linear-gradient(180deg,#fff 0%,#f4f9fd 100%);border-bottom:1px solid var(--cs-border,#dce7f2)}
+  .rn-hero .rn-wrap{padding:34px 20px 26px}
+  .rn-hero h1{font-size:34px;letter-spacing:-.5px;color:var(--cs-blue,#143453);margin:0}
+  .rn-hero p{color:var(--cs-muted,#5f7185);margin:.5rem 0 0;max-width:640px}
+  .rn-btnrow{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+  .rn-btn{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:14px;border-radius:9px;padding:9px 15px;border:1px solid transparent;text-decoration:none}
+  .rn-btn.p{background:var(--cs-accent-dk,#2f80cf);color:#fff}
+  .rn-btn.p:hover{background:#256bb0;color:#fff;text-decoration:none}
+  .rn-btn.g{background:#fff;border-color:var(--cs-border,#dce7f2);color:var(--cs-blue,#143453)}
+  .rn-btn.g:hover{background:#eef5fb;text-decoration:none}
+  .rn-legend{display:flex;gap:16px;flex-wrap:wrap;margin:18px 0 4px;font-size:13px;color:var(--cs-muted,#5f7185)}
+  .rn-legend .rn-chip{display:inline-flex;align-items:center;gap:7px}
+  .rn-vbadge{font-weight:700;font-size:12px;letter-spacing:.3px;border-radius:6px;padding:3px 9px;color:#fff;font-family:'Lato',sans-serif;text-decoration:none}
+  .rn-vbadge:hover{color:#fff;text-decoration:none;filter:brightness(1.08)}
+  .rn-major{background:linear-gradient(90deg,#d64550,#b5341f)}
+  .rn-minor{background:var(--cs-accent-dk,#2f80cf)}
+  .rn-patch{background:#6b7c90}
+
+  .rn-timeline{margin:26px 0 60px}
+  .rn-rel{display:grid;grid-template-columns:150px 1fr;gap:22px;position:relative;padding-bottom:30px}
+  .rn-rel::before{content:"";position:absolute;left:169px;top:8px;bottom:-8px;width:2px;background:var(--cs-border,#dce7f2)}
+  .rn-rel:last-child::before{display:none}
+  .rn-rail{text-align:right;position:relative}
+  .rn-rail .rn-dot{position:absolute;right:-20px;top:6px;width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--cs-accent,#4d9fe0)}
+  .rn-rel.major .rn-rail .rn-dot{border-color:#d64550;width:18px;height:18px;right:-22px}
+  .rn-rail .rn-date{color:var(--cs-muted,#5f7185);font-size:12.5px;margin-top:8px}
+  .rn-rail .rn-tag{display:inline-block;margin-top:6px;font-size:12px;color:var(--cs-muted,#5f7185)}
+  .rn-card{background:#fff;border:1px solid var(--cs-border,#dce7f2);border-radius:14px;padding:18px 22px;box-shadow:0 1px 2px rgba(20,52,83,.04)}
+  .rn-rel.major .rn-card{border-color:#f1c7c0;box-shadow:0 6px 20px rgba(214,69,80,.10)}
+  .rn-card h3{font-size:19px;color:var(--cs-blue,#143453);display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 2px}
+  .rn-ribbon{font-size:11px;font-weight:700;letter-spacing:.5px;color:#b5341f;background:#fdecea;border:1px solid #f5c9c4;border-radius:20px;padding:2px 9px}
+  .rn-body{font-size:14px;color:var(--cs-text,#17273a)}
+  .rn-body h3{font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--cs-muted,#5f7185);font-family:'Inter',sans-serif;margin:14px 0 5px}
+  .rn-body ul{margin:.2rem 0;padding-left:20px}
+  .rn-body li{margin:3px 0}
+  .rn-body p:first-child{color:var(--cs-muted,#5f7185);margin:.2rem 0 .2rem}
+  .rn-body code{background:#eef2f7;border-radius:4px;padding:0 4px;font-size:12.5px}
+  .rn-foot{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px dashed var(--cs-border,#dce7f2);align-items:center;font-size:12.5px}
+  .rn-foot a.rn-src{color:var(--cs-accent-dk,#2f80cf);background:#eef5fb;border:1px solid #d6e7f6;border-radius:20px;padding:2px 9px;font-weight:600;text-decoration:none}
+  .rn-foot a.rn-src:hover{background:#dcebf9;text-decoration:none}
+  .rn-cmp{margin-left:auto;color:var(--cs-muted,#5f7185)}
+  .rn-pagefoot{background:var(--cs-nav,#0a1626);color:#9db4cc;font-size:13px;padding:22px 0;margin-top:10px}
+  .rn-pagefoot .rn-wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .rn-pagefoot a{color:#bcd3ea}
+  @media(max-width:680px){
+    .rn-rel{grid-template-columns:1fr;gap:8px}
+    .rn-rel::before{display:none}.rn-rail{text-align:left}.rn-rail .rn-dot{display:none}
+    .rn-hero h1{font-size:27px}
+  }
+</style>
+
+<div class="rn-fip"><div class="rn-wrap">
+  <a class="rn-brand" href="{{homeHref}}"><span class="rn-logo"></span> Vanguard Cloud Services <small>| Aegis SA</small></a>
+</div></div>
+<div class="rn-appbar"><div class="rn-wrap">
+  <a class="rn-navlink" href="{{homeHref}}"><i class="bi bi-arrow-left me-1"></i>{{t 'rn.backToApp'}}</a>
+  <a class="rn-navlink active" href="/releases"><i class="bi bi-tag me-1"></i>{{t 'rn.title'}}</a>
+</div></div>
+
+<section class="rn-hero"><div class="rn-wrap">
+  <h1>{{t 'rn.title'}}</h1>
+  <p>{{t 'rn.subtitle'}}</p>
+  <div class="rn-btnrow">
+    <a class="rn-btn p" href="{{repoUrl}}/releases" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i>{{t 'rn.viewOnGitHub'}}</a>
+    <a class="rn-btn g" href="{{repoUrl}}" target="_blank" rel="noopener"><i class="bi bi-github"></i>{{t 'rn.repository'}}</a>
+    <a class="rn-btn g" href="{{repoUrl}}/commits/main" target="_blank" rel="noopener"><i class="bi bi-clock-history"></i>{{t 'rn.commitHistory'}}</a>
+  </div>
+  <div class="rn-legend">
+    <span class="rn-chip"><span class="rn-vbadge rn-major">{{t 'rn.major'}}</span> {{t 'rn.legendMajor'}}</span>
+    <span class="rn-chip"><span class="rn-vbadge rn-minor">{{t 'rn.minor'}}</span> {{t 'rn.legendMinor'}}</span>
+    <span class="rn-chip"><span class="rn-vbadge rn-patch">{{t 'rn.patch'}}</span> {{t 'rn.legendPatch'}}</span>
+  </div>
+</div></section>
+
+<div class="rn-wrap">
+  <div class="rn-timeline">
+    {{#each releases}}
+    <div class="rn-rel {{this.type}}">
+      <div class="rn-rail">
+        <span class="rn-dot"></span>
+        <a class="rn-vbadge rn-{{this.type}}" href="{{this.html_url}}" target="_blank" rel="noopener">v{{this.version}}</a>
+        <div class="rn-date">{{this.date}}</div>
+        <div class="rn-tag">{{#eq this.type 'major'}}{{t 'rn.major'}}{{/eq}}{{#eq this.type 'minor'}}{{t 'rn.minor'}}{{/eq}}{{#eq this.type 'patch'}}{{t 'rn.patch'}}{{/eq}}</div>
+      </div>
+      <div class="rn-card">
+        <h3>{{this.name}} {{#eq this.type 'major'}}<span class="rn-ribbon">{{t 'rn.majorMilestone'}}</span>{{/eq}}</h3>
+        <div class="rn-body">{{{this.bodyHtml}}}</div>
+        <div class="rn-foot">
+          <a class="rn-src" href="{{this.html_url}}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right me-1"></i>{{t 'rn.viewRelease'}}</a>
+          {{#if this.prs.length}}{{#each this.prs}}<a class="rn-src" href="{{../../repoUrl}}/pull/{{this}}" target="_blank" rel="noopener">#{{this}}</a>{{/each}}{{/if}}
+          {{#if this.prev}}<a class="rn-cmp" href="{{../repoUrl}}/compare/v{{this.prev}}...v{{this.version}}" target="_blank" rel="noopener">v{{this.prev}} → v{{this.version}} · {{t 'rn.compare'}} ↗</a>{{/if}}
+        </div>
+      </div>
+    </div>
+    {{/each}}
+  </div>
+</div>
+
+<footer class="rn-pagefoot"><div class="rn-wrap">
+  <span>Aegis SA · Vanguard Cloud Services</span>
+  <span>{{t 'rn.sourceLabel'}} <a href="{{repoUrl}}" target="_blank" rel="noopener">{{repo}}</a></span>
+</div></footer>

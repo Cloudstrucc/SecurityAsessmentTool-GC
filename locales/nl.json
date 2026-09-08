@@ -3773,5 +3773,21 @@
   "ev.decline": "Afwijzen",
   "ev.approveAll": "Alles goedkeuren",
   "ev.proposeHeading": "Voorgesteld bewijs — keur goed om de velden te vullen",
-  "ev.tailorSuggest": "Voorgestelde bewijsconcepten toevoegen"
+  "ev.tailorSuggest": "Voorgestelde bewijsconcepten toevoegen",
+  "rn.title": "Release-opmerkingen",
+  "rn.subtitle": "Wat is er nieuw in Aegis SA — grote en kleine releases, met de fixes en verbeteringen per release. Elke release linkt naar de pull requests en het commit-bereik op GitHub.",
+  "rn.viewOnGitHub": "Bekijk op GitHub Releases",
+  "rn.repository": "Repository",
+  "rn.commitHistory": "Commit-geschiedenis",
+  "rn.legendMajor": "mijlpaal / wijziging op platformniveau",
+  "rn.legendMinor": "nieuwe functies, achterwaarts compatibel",
+  "rn.legendPatch": "fixes en kleine verbeteringen",
+  "rn.major": "MAJOR",
+  "rn.minor": "MINOR",
+  "rn.patch": "PATCH",
+  "rn.majorMilestone": "BELANGRIJKE MIJLPAAL",
+  "rn.viewRelease": "Release bekijken",
+  "rn.compare": "vergelijken",
+  "rn.sourceLabel": "Bron:",
+  "rn.backToApp": "Terug naar app"
 }
