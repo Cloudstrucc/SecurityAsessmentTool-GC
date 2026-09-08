@@ -46,160 +46,81 @@
       <section id="tutorial" class="help-sec">
         <span class="new-badge">Tutorial</span>
         <h2><i class="bi bi-signpost-2"></i> {{t 'hf.sTutorial'}}</h2>
-        <p>This end-to-end walkthrough follows one system from its first <b>intake</b> request all the way to
-          an <b>authorization decision (ATO/iATO)</b>, and lists every sub-step in order. Each step links to the
-          area that performs it — the sections below the walkthrough describe what you can do, what you should
-          do, and when, in each area.</p>
+        <p>{{{t 'tut.intro'}}}</p>
 
-        <h3><i class="bi bi-list-ol me-1"></i> The full journey, click by click</h3>
-        <p class="text-muted">Follow these numbered steps in order — each names the exact page, button or menu to
-          use. Where an action is done by the <b>project user (provider)</b> rather than the assessor, it says so.
-          The numbering runs continuously across all six phases so you always know where you are.</p>
+        <h3><i class="bi bi-list-ol me-1"></i> {{t 'tut.journeyH'}}</h3>
+        <p class="text-muted">{{{t 'tut.journeyIntro'}}}</p>
 
-        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">Phase 1</span>Intake</h4>
+        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">{{t 'tut.phaseWord'}} 1</span>{{t 'tut.phase1'}}</h4>
         <ol>
-          <li><b>Open Intakes.</b> In the left navigation dock click <b>Intakes</b>. This is the queue of incoming
-            requests.</li>
-          <li><b>Create the intake</b> (or receive one). Click <b>New intake</b> and complete the form: system
-            name, purpose, business owner and the classification drivers. To save typing, click
-            <b>Pre-fill with AI</b> and upload a description document — the Aegis SA Assistant fills the fields,
-            which you then review. Click <b>Save</b>.</li>
-          <li><b>Triage and accept.</b> Back on <b>Intakes</b>, open the request, review it, and click
-            <b>Accept</b>. Accepting attaches it to a project <i>in place</i> — it never creates a duplicate
-            assessment. (Use <b>Decline</b> with a reason to reject one.)</li>
+          <li>{{{t 'tut.p1s1'}}}</li>
+          <li>{{{t 'tut.p1s2'}}}</li>
+          <li>{{{t 'tut.p1s3'}}}</li>
         </ol>
 
-        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">Phase 2</span>Project setup</h4>
+        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">{{t 'tut.phaseWord'}} 2</span>{{t 'tut.phase2'}}</h4>
         <ol start="4">
-          <li><b>Open the project.</b> Accepting the intake lands you on its <a href="?section=projects">project</a>.
-            You can also reach it later from <b>Projects</b> in the nav dock.</li>
-          <li><b>Confirm the categorization.</b> In the project's <b>Classification</b> card set or confirm the
-            ITSG-33 <b>Confidentiality / Integrity / Availability</b> levels and the security profile. This drives
-            the control baseline, so get it right before you start the assessment.</li>
-          <li><b>Set branding &amp; add documents</b> (optional). Use the <b>Branding</b> card for the project logo
-            and colours (these flow into exported reports), and the <b>Documents</b> card to upload supporting
-            material the assessor and provider will need.</li>
+          <li>{{{t 'tut.p2s4'}}}</li>
+          <li>{{{t 'tut.p2s5'}}}</li>
+          <li>{{{t 'tut.p2s6'}}}</li>
         </ol>
 
-        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">Phase 3</span>Assessment &amp; tailoring</h4>
+        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">{{t 'tut.phaseWord'}} 3</span>{{{t 'tut.phase3'}}}</h4>
         <ol start="7">
-          <li><b>Create the assessment.</b> On the project click <b>New assessment</b>, choose the framework and
-            profile (e.g. <i>ITSG-33 PBMM</i>) and click <b>Create</b>. Aegis SA generates the tailored control
-            baseline and opens the <a href="?section=assessments">assessment record</a>.</li>
-          <li><b>Enter tailoring mode.</b> On the assessment record click <b>Tailor controls</b>. Each control now
-            shows editable applicability, inheritance, priority and risk.</li>
-          <li><b>Tailor each control.</b> Set <b>Applicability</b> (Applicable / Not applicable), tick
-            <b>Inherited</b> and name the source where a control is provided by an underlying platform, and adjust
-            priority/risk. Tick <b>Remove from assessment</b> for controls that don't apply at all.</li>
-          <li><b>Add suggested evidence drafts</b> (optional but recommended). When creating or tailoring, tick
-            <i>"Add suggested evidence drafts"</i> so every control starts with a fill-in-the-blank draft —
-            <code>[[VALUE: …]]</code> placeholders (amber) and <code>[[ATTACH: …]]</code> placeholders (blue) show
-            the provider exactly what to supply. Click <b>Save tailoring</b>.</li>
-          <li><b>Assign &amp; send.</b> Click <b>Assign &amp; send</b>, pick the project user, and confirm. This
-            <i>activates</i> the assessment and emails the invite in one step. The assignee becomes the current
-            <b>evidence owner</b>.</li>
+          <li>{{{t 'tut.p3s7'}}}</li>
+          <li>{{{t 'tut.p3s8'}}}</li>
+          <li>{{{t 'tut.p3s9'}}}</li>
+          <li>{{{t 'tut.p3s10'}}}</li>
+          <li>{{{t 'tut.p3s11'}}}</li>
         </ol>
 
-        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">Phase 4</span>Evidence gathering <span class="text-muted fw-normal">(project user)</span></h4>
+        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">{{t 'tut.phaseWord'}} 4</span>{{t 'tut.phase4label'}} <span class="text-muted fw-normal">{{t 'tut.phase4who'}}</span></h4>
         <ol start="12">
-          <li><b>Open the evidence flow.</b> The provider clicks the link in the invite email (or opens the
-            assessment and clicks <b>Provide evidence</b>) to reach the <a href="?section=evidence">evidence
-            flow</a>.</li>
-          <li><b>Answer each control.</b> For every control, write the evidence in the editor. To move faster,
-            click <b>Suggest a draft</b> for that control, or ask the assistant in the side panel to draft it and
-            click <b>Approve</b> to drop the draft into the editor.</li>
-          <li><b>Suggest drafts in bulk</b> (optional). Click <b>Suggest drafts in bulk</b> to generate drafts for
-            every empty control at once. This runs in the background — a progress bar keeps you posted and real
-            (already-written) evidence is never overwritten.</li>
-          <li><b>Fill the placeholders.</b> Replace every amber <code>[[VALUE]]</code> and blue
-            <code>[[ATTACH]]</code> placeholder with the real value or a real attachment. Use the paperclip to
-            upload artifacts.</li>
-          <li><b>Mark each control Ready.</b> When a control is complete click <b>Ready</b>. Use the status filter
-            and the multi-select bar to mark several at once. If you need an earlier version, use
-            <b>History</b> → <b>Revert</b>.</li>
-          <li><b>Submit.</b> When all controls are Ready click <b>Submit evidence</b>. The assessment moves to the
-            assessor for audit.</li>
+          <li>{{{t 'tut.p4s12'}}}</li>
+          <li>{{{t 'tut.p4s13'}}}</li>
+          <li>{{{t 'tut.p4s14'}}}</li>
+          <li>{{{t 'tut.p4s15'}}}</li>
+          <li>{{{t 'tut.p4s16'}}}</li>
+          <li>{{{t 'tut.p4s17'}}}</li>
         </ol>
 
-        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">Phase 5</span>Audit &amp; review <span class="text-muted fw-normal">(assessor)</span></h4>
+        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">{{t 'tut.phaseWord'}} 5</span>{{{t 'tut.phase5label'}}} <span class="text-muted fw-normal">{{t 'tut.phase5who'}}</span></h4>
         <ol start="18">
-          <li><b>Review the submitted evidence.</b> Open the assessment record. Every control shows its evidence
-            <b>read-only</b> — even blank ones — so you can see the whole picture at a glance. Use the
-            <b>Filter</b> bar at the top of the control list to show a single state (Pending / Met / Partially met
-            / Not met / Not applicable) or to <b>fuzzy-search</b> by control ID, title or wording; click
-            <b>Export CSV</b> to download exactly the filtered list.</li>
-          <li><b>Start the audit.</b> Click <b>Start audit</b>. This locks the evidence for review.</li>
-          <li><b>Edit evidence only if it's yours.</b> To change evidence or a control you must be the assignee.
-            Click <b>View / edit evidence</b>; if the assessment is assigned to someone else a dialog offers
-            <b>View read-only</b> or <b>Assign to me &amp; edit</b> (taking ownership). Taking ownership lets you
-            override values while auditing or tailoring; re-assign to hand it back.</li>
-          <li><b>Score each control.</b> Record the determination (<b>satisfied / partially satisfied / not
-            satisfied</b>) and rate the evidence's <b>reliability</b>, <b>sufficiency</b> and <b>impact weight</b>.
-            A <b>weighted evidence score</b> and a weak-evidence flag guide — never replace — your judgement.</li>
-          <li><b>Set review status &amp; leave feedback.</b> For each control set <b>Reviewed</b>, <b>Requires
-            re-submission</b>, or <b>Removed</b>, and add feedback. Use the review filter chips and the
-            multi-select bar to act in bulk.</li>
-          <li><b>Return for revision</b> (if needed). Click <b>Return for revision &amp; re-assign</b> to send the
-            assessment back showing <i>only</i> the controls flagged <i>Requires re-submission</i>. The provider
-            fixes those and re-submits (repeat Phase 4 for those controls).</li>
-          <li><b>Complete the audit.</b> Click <b>Complete audit</b>. Aegis SA computes the result and proposes
-            <b>ATO / iATO / denied</b> — a single unmet <i>high-risk</i> control blocks a full ATO. You can
-            override the proposal with a written justification.</li>
+          <li>{{{t 'tut.p5s18'}}}</li>
+          <li>{{{t 'tut.p5s19'}}}</li>
+          <li>{{{t 'tut.p5s20'}}}</li>
+          <li>{{{t 'tut.p5s21'}}}</li>
+          <li>{{{t 'tut.p5s22'}}}</li>
+          <li>{{{t 'tut.p5s23'}}}</li>
+          <li>{{{t 'tut.p5s24'}}}</li>
         </ol>
 
-        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">Phase 6</span>Decision package &amp; authorization</h4>
+        <h4 class="mt-3 mb-2"><span class="badge bg-secondary me-2">{{t 'tut.phaseWord'}} 6</span>{{{t 'tut.phase6'}}}</h4>
         <ol start="25">
-          <li><b>Create the decision package.</b> From the project click <b>New decision package</b> and pin the
-            audited <a href="?section=decisions">assessment version</a> — the pinned version is immutable, so the
-            decision always reflects exactly what was reviewed.</li>
-          <li><b>Capture POA&amp;M conditions</b> (for an iATO). Add <a href="?section=poam">POA&amp;M</a> items for
-            any residual risk; on an iATO these become the conditions of the authorization, each with an owner and
-            a due date.</li>
-          <li><b>Record the decision.</b> Set the authorization type (ATO / iATO / denied), the authorizing
-            official, signatures and the <b>expiry date</b>. Set a realistic expiry — the platform tracks it.</li>
-          <li><b>Export the authorization.</b> Use the record's <b>Tools</b> panel → <b>Export</b> and choose a
-            format (PDF / DOCX / HTML / Markdown) to produce the signed authorization report. The project's
-            process flow now shows the system as <b>Authorized</b>.</li>
-          <li><b>Close out.</b> Monitor POA&amp;M items to completion and watch the expiry; when the authorization
-            lapses or the system changes materially, start the cycle again from the relevant phase.</li>
+          <li>{{{t 'tut.p6s25'}}}</li>
+          <li>{{{t 'tut.p6s26'}}}</li>
+          <li>{{{t 'tut.p6s27'}}}</li>
+          <li>{{{t 'tut.p6s28'}}}</li>
+          <li>{{{t 'tut.p6s29'}}}</li>
         </ol>
 
-        <h3><i class="bi bi-inbox me-1"></i> Intake — what, and when</h3>
-        <p><b>You can:</b> submit or create an intake, attach documents, and let AI pre-fill it.
-          <b>You should:</b> capture the system's purpose, classification drivers and contacts accurately —
-          this seeds the whole assessment. <b>When:</b> at the very start, before any project or assessment
-          exists. Accept the intake to move it into a project.</p>
+        <h3><i class="bi bi-inbox me-1"></i> {{{t 'tut.areaIntakeH'}}}</h3>
+        <p>{{{t 'tut.areaIntakeB'}}}</p>
 
-        <h3><i class="bi bi-folder2-open me-1"></i> Project — what, and when</h3>
-        <p><b>You can:</b> set the ITSG-33 categorization (C/I/A), security profile, project branding and
-          documents, and start assessments. <b>You should:</b> confirm the classification is right before
-          starting the assessment (it drives the control baseline). <b>When:</b> right after accepting the
-          intake, and whenever the system's scope changes.</p>
+        <h3><i class="bi bi-folder2-open me-1"></i> {{{t 'tut.areaProjectH'}}}</h3>
+        <p>{{{t 'tut.areaProjectB'}}}</p>
 
-        <h3><i class="bi bi-clipboard-check me-1"></i> Assessment &amp; tailoring — what, and when</h3>
-        <p><b>You can:</b> pick the framework/profile, tailor applicability / inheritance / priority, manage
-          controls, and generate suggested-evidence drafts. <b>You should:</b> remove controls that don't apply
-          and mark inherited ones, so the provider only answers what's relevant. <b>When:</b> before you assign
-          the assessment for evidence.</p>
+        <h3><i class="bi bi-clipboard-check me-1"></i> {{{t 'tut.areaAssessH'}}}</h3>
+        <p>{{{t 'tut.areaAssessB'}}}</p>
 
-        <h3><i class="bi bi-paperclip me-1"></i> Evidence gathering — what, and when</h3>
-        <p><b>You can (provider):</b> write evidence, generate/refine drafts with AI, attach artifacts, mark
-          controls Ready, revert from history, filter by status and act in bulk. <b>You should:</b> replace
-          every placeholder with real values and attach the requested artifacts before marking Ready, then
-          Submit. <b>When:</b> after you're assigned the assessment, until you submit. An assessor can
-          <b>Take ownership</b> to edit and must re-assign to hand it back.</p>
+        <h3><i class="bi bi-paperclip me-1"></i> {{{t 'tut.areaEvidenceH'}}}</h3>
+        <p>{{{t 'tut.areaEvidenceB'}}}</p>
 
-        <h3><i class="bi bi-search me-1"></i> Audit &amp; review — what, and when</h3>
-        <p><b>You can (assessor):</b> score each control's evidence strength, leave feedback, set review
-          statuses, filter/bulk-act, and return the assessment for revision. <b>You should:</b> base the
-          determination on evidence you can actually verify; flag thin evidence for re-submission rather than
-          passing it. <b>When:</b> after the provider submits and you Start audit, through to Complete audit.</p>
+        <h3><i class="bi bi-search me-1"></i> {{{t 'tut.areaAuditH'}}}</h3>
+        <p>{{{t 'tut.areaAuditB'}}}</p>
 
-        <h3><i class="bi bi-award me-1"></i> Decision &amp; authorization — what, and when</h3>
-        <p><b>You can:</b> create a decision package that pins an assessment version, capture POA&amp;M
-          conditions, record signatures/expiry, and export the authorization. <b>You should:</b> attach POA&amp;M
-          items for any residual risk on an iATO and set a realistic expiry. <b>When:</b> once the audit is
-          complete and a result is set.</p>
+        <h3><i class="bi bi-award me-1"></i> {{{t 'tut.areaDecisionH'}}}</h3>
+        <p>{{{t 'tut.areaDecisionB'}}}</p>
       </section>
 
       <section id="projects" class="help-sec">
