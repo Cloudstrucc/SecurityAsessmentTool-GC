@@ -3869,5 +3869,6 @@
   "rv.pResub": "Controls werden zur erneuten Einreichung markiert…",
   "rv.pAccept": "Controls werden akzeptiert…",
   "rv.pRemoved": "Controls werden entfernt…",
-  "ev.bulkStarted": "Vorgeschlagene Entwürfe werden im Hintergrund erzeugt – das kann einige Minuten dauern. Zum Anzeigen aktualisieren."
+  "ev.bulkStarted": "Vorgeschlagene Entwürfe werden im Hintergrund erzeugt – das kann einige Minuten dauern. Zum Anzeigen aktualisieren.",
+  "hf.sTutorial": "End-to-End-Tutorial"
 }

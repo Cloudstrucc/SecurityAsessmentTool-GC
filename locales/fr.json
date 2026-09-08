@@ -3891,5 +3891,6 @@
   "rv.pResub": "Signalement des contrôles pour nouvelle soumission…",
   "rv.pAccept": "Acceptation des contrôles…",
   "rv.pRemoved": "Retrait des contrôles…",
-  "ev.bulkStarted": "Génération des brouillons suggérés en arrière-plan — cela peut prendre quelques minutes. Actualisez pour les voir."
+  "ev.bulkStarted": "Génération des brouillons suggérés en arrière-plan — cela peut prendre quelques minutes. Actualisez pour les voir.",
+  "hf.sTutorial": "Tutoriel de bout en bout"
 }

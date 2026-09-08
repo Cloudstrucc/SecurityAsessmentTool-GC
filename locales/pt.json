@@ -3869,5 +3869,6 @@
   "rv.pResub": "Sinalizando controles para reenvio…",
   "rv.pAccept": "Aceitando controles…",
   "rv.pRemoved": "Removendo controles…",
-  "ev.bulkStarted": "Gerando rascunhos sugeridos em segundo plano — pode levar alguns minutos. Atualize para vê-los."
+  "ev.bulkStarted": "Gerando rascunhos sugeridos em segundo plano — pode levar alguns minutos. Atualize para vê-los.",
+  "hf.sTutorial": "Tutorial completo"
 }

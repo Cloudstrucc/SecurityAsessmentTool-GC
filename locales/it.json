@@ -3869,5 +3869,6 @@
   "rv.pResub": "Segnalazione dei controlli per nuovo invio…",
   "rv.pAccept": "Accettazione dei controlli…",
   "rv.pRemoved": "Rimozione dei controlli…",
-  "ev.bulkStarted": "Generazione delle bozze suggerite in background: può richiedere alcuni minuti. Aggiorna per vederle."
+  "ev.bulkStarted": "Generazione delle bozze suggerite in background: può richiedere alcuni minuti. Aggiorna per vederle.",
+  "hf.sTutorial": "Tutorial completo"
 }

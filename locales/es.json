@@ -3891,5 +3891,6 @@
   "rv.pResub": "Marcando controles para reenvío…",
   "rv.pAccept": "Aceptando controles…",
   "rv.pRemoved": "Eliminando controles…",
-  "ev.bulkStarted": "Generando borradores sugeridos en segundo plano: puede tardar unos minutos. Actualiza para verlos."
+  "ev.bulkStarted": "Generando borradores sugeridos en segundo plano: puede tardar unos minutos. Actualiza para verlos.",
+  "hf.sTutorial": "Tutorial de principio a fin"
 }

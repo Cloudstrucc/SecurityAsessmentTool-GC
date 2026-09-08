@@ -11,6 +11,7 @@
       <div class="help-toc-inner">
         <div class="toc-label">{{t 'hf.contents'}}</div>
         <a href="?section=getting-started" data-sec="getting-started"><i class="bi bi-compass"></i> {{t 'hf.sGettingStarted'}}</a>
+        <a href="?section=tutorial" data-sec="tutorial"><i class="bi bi-signpost-2"></i> {{t 'hf.sTutorial'}}</a>
         <a href="?section=projects" data-sec="projects"><i class="bi bi-folder2-open"></i> {{t 'hf.sProjects'}}</a>
         <a href="?section=assessments" data-sec="assessments"><i class="bi bi-clipboard-check"></i> {{t 'hf.sAssessments'}}</a>
         <a href="?section=evidence" data-sec="evidence"><i class="bi bi-paperclip"></i> {{t 'hf.sEvidence'}}</a>
@@ -40,6 +41,94 @@
           <li><b>Language</b> — switch anytime from the globe menu (top right); the whole UI is available in
             8 languages.</li>
         </ul>
+      </section>
+
+      <section id="tutorial" class="help-sec">
+        <span class="new-badge">Tutorial</span>
+        <h2><i class="bi bi-signpost-2"></i> {{t 'hf.sTutorial'}}</h2>
+        <p>This end-to-end walkthrough follows one system from its first <b>intake</b> request all the way to
+          an <b>authorization decision (ATO/iATO)</b>, and lists every sub-step in order. Each step links to the
+          area that performs it — the sections below the walkthrough describe what you can do, what you should
+          do, and when, in each area.</p>
+
+        <h3><i class="bi bi-list-ol me-1"></i> The full journey, step by step</h3>
+        <ol>
+          <li><b>Capture the intake.</b> A requester submits an <b>Intake</b> (or you
+            create one on their behalf). Attach any supporting documentation; the Aegis SA Assistant can
+            <i>pre-fill</i> the intake from an uploaded document to save typing.</li>
+          <li><b>Triage &amp; accept the intake.</b> On <b>Intakes</b>, review the request and <b>Accept</b> it.
+            Accepting attaches it to a project <i>in place</i> — it never creates a duplicate assessment.</li>
+          <li><b>Create / confirm the project.</b> The <a href="?section=projects">project</a> holds the
+            system's ITSG-33 categorization (Confidentiality / Integrity / Availability), security profile and
+            branding. Set or confirm the classification here.</li>
+          <li><b>Start an assessment.</b> From the project, create an
+            <a href="?section=assessments">assessment</a> and choose the framework and profile (e.g. ITSG-33
+            PBMM). This generates the tailored control baseline.</li>
+          <li><b>Tailor the controls.</b> Mark applicability, inheritance and priority. Optionally tick
+            <i>"Add suggested evidence drafts"</i> so every control starts with a fill-in-the-blank draft.</li>
+          <li><b>Assign &amp; send.</b> Use <b>Assign &amp; send</b> to assign the assessment to the project
+            user — this <i>activates</i> it and emails the invite in one step. The assignee becomes the current
+            <b>evidence owner</b>.</li>
+          <li><b>Gather evidence</b> (project user). The assignee opens the
+            <a href="?section=evidence">evidence flow</a>, writes evidence for each control — typing it, using
+            <b>Suggest a draft</b>, asking the assistant to draft and <b>Approve</b> it, or running
+            <b>Suggest drafts in bulk</b> — attaches artifacts, replaces every <code>[[VALUE]]</code>/
+            <code>[[ATTACH]]</code> placeholder, marks each control <b>Ready</b>, then <b>Submits</b>.</li>
+          <li><b>Start the audit.</b> Back on the assessment, <b>Start audit</b> locks the evidence for review.</li>
+          <li><b>Review &amp; score.</b> For each control, record the determination (satisfied / partial / not
+            satisfied) and rate the evidence's <b>reliability</b>, <b>sufficiency</b> and <b>impact weight</b>;
+            leave feedback and set <b>Reviewed</b>, <b>Requires re-submission</b>, or <b>Removed</b>. A
+            <b>weighted evidence score</b> and a weak-evidence flag guide (never replace) your judgement.</li>
+          <li><b>Return for revision</b> (if needed). <b>Return for revision &amp; re-assign</b> sends the
+            assessment back showing <i>only</i> the controls flagged <i>Requires re-submission</i>; the provider
+            fixes those and re-submits.</li>
+          <li><b>Complete the audit.</b> <b>Complete audit</b> computes the result and proposes
+            <b>ATO / iATO / denied</b> — a single unmet <i>high-risk</i> control blocks a full ATO — which you
+            can override with justification.</li>
+          <li><b>Create the decision package.</b> From the project, create a
+            <a href="?section=decisions">Decision Package</a> that pins that assessment version (immutable). For
+            an iATO, <a href="?section=poam">POA&amp;M</a> items become its conditions.</li>
+          <li><b>Authorize (ATO/iATO).</b> Record the decision, signatures and expiry, and export the
+            authorization report (PDF/DOCX). The project's process flow now shows the system as
+            <b>Authorized</b>.</li>
+        </ol>
+
+        <h3><i class="bi bi-inbox me-1"></i> Intake — what, and when</h3>
+        <p><b>You can:</b> submit or create an intake, attach documents, and let AI pre-fill it.
+          <b>You should:</b> capture the system's purpose, classification drivers and contacts accurately —
+          this seeds the whole assessment. <b>When:</b> at the very start, before any project or assessment
+          exists. Accept the intake to move it into a project.</p>
+
+        <h3><i class="bi bi-folder2-open me-1"></i> Project — what, and when</h3>
+        <p><b>You can:</b> set the ITSG-33 categorization (C/I/A), security profile, project branding and
+          documents, and start assessments. <b>You should:</b> confirm the classification is right before
+          starting the assessment (it drives the control baseline). <b>When:</b> right after accepting the
+          intake, and whenever the system's scope changes.</p>
+
+        <h3><i class="bi bi-clipboard-check me-1"></i> Assessment &amp; tailoring — what, and when</h3>
+        <p><b>You can:</b> pick the framework/profile, tailor applicability / inheritance / priority, manage
+          controls, and generate suggested-evidence drafts. <b>You should:</b> remove controls that don't apply
+          and mark inherited ones, so the provider only answers what's relevant. <b>When:</b> before you assign
+          the assessment for evidence.</p>
+
+        <h3><i class="bi bi-paperclip me-1"></i> Evidence gathering — what, and when</h3>
+        <p><b>You can (provider):</b> write evidence, generate/refine drafts with AI, attach artifacts, mark
+          controls Ready, revert from history, filter by status and act in bulk. <b>You should:</b> replace
+          every placeholder with real values and attach the requested artifacts before marking Ready, then
+          Submit. <b>When:</b> after you're assigned the assessment, until you submit. An assessor can
+          <b>Take ownership</b> to edit and must re-assign to hand it back.</p>
+
+        <h3><i class="bi bi-search me-1"></i> Audit &amp; review — what, and when</h3>
+        <p><b>You can (assessor):</b> score each control's evidence strength, leave feedback, set review
+          statuses, filter/bulk-act, and return the assessment for revision. <b>You should:</b> base the
+          determination on evidence you can actually verify; flag thin evidence for re-submission rather than
+          passing it. <b>When:</b> after the provider submits and you Start audit, through to Complete audit.</p>
+
+        <h3><i class="bi bi-award me-1"></i> Decision &amp; authorization — what, and when</h3>
+        <p><b>You can:</b> create a decision package that pins an assessment version, capture POA&amp;M
+          conditions, record signatures/expiry, and export the authorization. <b>You should:</b> attach POA&amp;M
+          items for any residual risk on an iATO and set a realistic expiry. <b>When:</b> once the audit is
+          complete and a result is set.</p>
       </section>
 
       <section id="projects" class="help-sec">

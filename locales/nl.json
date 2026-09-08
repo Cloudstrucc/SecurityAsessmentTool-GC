@@ -3869,5 +3869,6 @@
   "rv.pResub": "Controls markeren voor herindiening…",
   "rv.pAccept": "Controls accepteren…",
   "rv.pRemoved": "Controls verwijderen…",
-  "ev.bulkStarted": "Voorgestelde concepten worden op de achtergrond gegenereerd — dit kan enkele minuten duren. Vernieuw om ze te zien."
+  "ev.bulkStarted": "Voorgestelde concepten worden op de achtergrond gegenereerd — dit kan enkele minuten duren. Vernieuw om ze te zien.",
+  "hf.sTutorial": "End-to-end-tutorial"
 }

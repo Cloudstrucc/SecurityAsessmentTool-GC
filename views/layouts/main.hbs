@@ -141,6 +141,11 @@
 
     /* ═══ App components ════════════════════════════════════════════════════ */
     .card { border:1px solid var(--cs-border); border-radius:14px; box-shadow:0 2px 10px rgba(15,32,54,.06); overflow:hidden; }
+    /* A card clips its content (overflow:hidden for the rounded corners). When it
+       holds an OPEN dropdown, let the menu escape the card and float above the
+       following sections instead of being clipped / painted over. */
+    .card:has(.dropdown-menu.show) { overflow:visible; position:relative; z-index:1080; }
+    .dropdown-menu.show { z-index:1080; }
     .card-header { background:var(--cs-nav); color:#fff; font-weight:600; padding:.9rem 1.25rem; border-bottom:none; border-radius:0; }
     .card-header.bg-light { background:var(--cs-light)!important; color:var(--cs-text); }
     /* Bootstrap's pale "-subtle" backgrounds need dark text — the default white above
