@@ -46,5 +46,13 @@
 /* Mobile: collapse the whole toolbar into a single icon-only Menu button. */
 .record-actions .ra-menu { position: relative; }
 .record-actions:not(.ra-collapsed) .ra-menu { display: none; }
+/* Collapsed (mobile): hide everything except the grip and the "More" menu. The
+   Tools panel is a desktop affordance, so it is hidden here too. */
 .record-actions.ra-collapsed > *:not(.ra-grip):not(.ra-menu) { display: none !important; }
-.ra-menu .dropdown-menu .dropdown-item { display: flex; align-items: center; gap: .55rem; }
+.ra-menu .dropdown-menu .dropdown-item,
+.ra-tools .dropdown-menu .dropdown-item { display: flex; align-items: center; gap: .55rem; }
+/* "Tools" labeled panel — always available on desktop; its menu reads icon + title. */
+.record-actions .ra-tools { position: relative; }
+.record-actions.ra-collapsed .ra-tools { display: none; }
+.ra-tools .dropdown-menu { min-width: 210px; max-height: 70vh; overflow-y: auto; }
+.ra-tools .dropdown-menu .dropdown-item i { width: 18px; text-align: center; }

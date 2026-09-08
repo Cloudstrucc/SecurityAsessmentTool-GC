@@ -249,7 +249,7 @@
   </style>
   {{#if extraStyles}}{{{extraStyles}}}{{/if}}
 </head>
-<body vocab="http://schema.org/" typeof="WebPage"{{#if user}} class="nav-dock nav-pos-{{navPosition}}{{#if navPinned}} nav-pinned{{/if}} nav-labels-{{navLabels}}" data-nav-default-pos="{{navPosition}}" data-nav-default-pinned="{{navPinned}}" data-nav-default-labels="{{navLabels}}" data-action-labels="{{actionLabels}}" data-more-label="{{t 'navd.more'}}" data-ra-more="{{t 'ra.menu'}}" data-ra-move="{{t 'ra.dragToMove'}}" data-ra-dock="{{t 'ra.dockHere'}}"{{/if}}>
+<body vocab="http://schema.org/" typeof="WebPage"{{#if user}} class="nav-dock nav-pos-{{navPosition}}{{#if navPinned}} nav-pinned{{/if}} nav-labels-{{navLabels}}" data-nav-default-pos="{{navPosition}}" data-nav-default-pinned="{{navPinned}}" data-nav-default-labels="{{navLabels}}" data-action-labels="{{actionLabels}}" data-more-label="{{t 'navd.more'}}" data-ra-more="{{t 'ra.menu'}}" data-ra-tools="{{t 'ra.tools'}}" data-ra-move="{{t 'ra.dragToMove'}}" data-ra-dock="{{t 'ra.dockHere'}}"{{/if}}>
 
   {{#if user}}
   <!-- Edge-reveal hotzones (shown only when the menu is unpinned) -->
@@ -313,7 +313,7 @@
             <li><a class="{{#if isReports}}active{{/if}}" href="/admin/reports"><i class="bi bi-file-earmark-bar-graph me-1" aria-hidden="true"></i>{{t 'navbar.reports'}}</a></li>
             <li><a class="{{#if isHelp}}active{{/if}}" href="/admin/help"><i class="bi bi-question-circle me-1" aria-hidden="true"></i>Help</a></li>
             <li class="nav-item dropdown">
-              <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{user.name}}</a>
+              <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-person-circle me-1" aria-hidden="true"></i><span class="nav-txt">{{user.name}}</span></a>
               <ul class="dropdown-menu dropdown-menu-end">
                 <li><span class="dropdown-item-text small text-muted">{{user.email}}</span></li>
                 <li><hr class="dropdown-divider"></li>
@@ -362,7 +362,7 @@
               <li><a href="/help"><i class="bi bi-question-circle me-1" aria-hidden="true"></i>{{t 'nav.help'}}</a></li>
               <li class="nav-item dropdown">
                 <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{user.name}}
+                  <i class="bi bi-person-circle me-1" aria-hidden="true"></i><span class="nav-txt">{{user.name}}</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li><span class="dropdown-item-text small text-muted">{{user.email}}</span></li>

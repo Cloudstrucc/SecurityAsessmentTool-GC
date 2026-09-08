@@ -3892,5 +3892,6 @@
   "rv.pAccept": "Aceptando controles…",
   "rv.pRemoved": "Eliminando controles…",
   "ev.bulkStarted": "Generando borradores sugeridos en segundo plano: puede tardar unos minutos. Actualiza para verlos.",
-  "hf.sTutorial": "Tutorial de principio a fin"
+  "hf.sTutorial": "Tutorial de principio a fin",
+  "ra.tools": "Acciones"
 }

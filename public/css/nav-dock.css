@@ -73,8 +73,10 @@
    instead of squishing a wide row; the position segment stays a compact row. */
 .nav-rail-ctl .crow { display:flex; flex-direction:column; align-items:center; gap:8px; }
 .nav-rail-ctl .nav-cbtn { width:34px; height:30px; font-size:14px; }
-.nav-rail-ctl .nav-posseg { display:inline-flex; }
-.nav-rail-ctl .nav-segbtn { width:20px; height:28px; font-size:11px; }
+/* Stack the position options vertically too (pin / top / left / right / default all
+   sit one above the other) rather than a cramped horizontal segment. */
+.nav-rail-ctl .nav-posseg { display:flex; flex-direction:column; gap:8px; border:none; border-radius:0; overflow:visible; background:none; }
+.nav-rail-ctl .nav-segbtn { width:34px; height:30px; font-size:13px; border:1px solid var(--cs-border) !important; border-radius:8px; }
 
 /* By default (top) show the expander, hide the rail cluster */
 .nav-expander { display:inline-flex; position:relative; }

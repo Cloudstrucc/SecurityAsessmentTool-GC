@@ -3849,5 +3849,6 @@
   "rv.pAccept": "Accepting controls…",
   "rv.pRemoved": "Removing controls…",
   "ev.bulkStarted": "Generating suggested drafts in the background — this may take a few minutes. Refresh to see them.",
-  "hf.sTutorial": "End-to-end tutorial"
+  "hf.sTutorial": "End-to-end tutorial",
+  "ra.tools": "Actions"
 }

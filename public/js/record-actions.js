@@ -17,6 +17,7 @@
   var SS = 'aegisActionLabels';
   var mode = readMode();               // 'icons' | 'text'
   var MORE = body.getAttribute('data-ra-more') || 'Menu';
+  var TOOLS = body.getAttribute('data-ra-tools') || 'Actions';
   var toolbars = [];
 
   function readMode() {
@@ -59,7 +60,7 @@
   function collect(box) {
     var items = [];
     Array.prototype.forEach.call(box.children, function (child) {
-      if (child.classList && (child.classList.contains('ra-grip') || child.classList.contains('ra-menu'))) return;
+      if (child.classList && (child.classList.contains('ra-grip') || child.classList.contains('ra-menu') || child.classList.contains('ra-tools'))) return;
       var visible = null, trigger = null, href = null, isDropdown = false;
       if (child.matches('a.btn')) { visible = trigger = child; href = child.getAttribute('href'); }
       else if (child.matches('button')) { visible = trigger = child; }
@@ -88,12 +89,8 @@
       grip.innerHTML = '<i class="bi bi-grip-vertical"></i>';
       box.insertBefore(grip, box.firstChild);
 
-      var menu = document.createElement('div');
-      menu.className = 'ra-menu dropdown';
-      menu.innerHTML = '<button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="' + MORE + '"><i class="bi bi-list"></i></button><ul class="dropdown-menu dropdown-menu-end"></ul>';
-      box.appendChild(menu);
-      var menuList = menu.querySelector('.dropdown-menu');
-      items.forEach(function (it) {
+      // One labeled row (icon + title) that re-fires the original control.
+      function buildItem(it) {
         var li = document.createElement('li');
         var a = document.createElement('a');
         a.className = 'dropdown-item';
@@ -102,10 +99,27 @@
         if (!(it.href && !it.isDropdown)) {
           a.addEventListener('click', function (e) { e.preventDefault(); if (it.trigger) it.trigger.click(); });
         }
-        li.appendChild(a); menuList.appendChild(li);
-      });
+        li.appendChild(a); return li;
+      }
 
-      var tb = { box: box, grip: grip, menu: menu };
+      // "More" overflow menu (shown only when the toolbar collapses, e.g. mobile).
+      var menu = document.createElement('div');
+      menu.className = 'ra-menu dropdown';
+      menu.innerHTML = '<button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="' + MORE + '"><i class="bi bi-list"></i></button><ul class="dropdown-menu dropdown-menu-end"></ul>';
+      box.appendChild(menu);
+      var menuList = menu.querySelector('.dropdown-menu');
+
+      // "Tools" labeled panel (Style A): always available — reveals every toolbar
+      // action as icon + title, so users can read the labels without leaving icon mode.
+      var tools = document.createElement('div');
+      tools.className = 'ra-tools dropdown';
+      tools.innerHTML = '<button class="btn btn-outline-secondary dropdown-toggle ra-tools-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="' + TOOLS + '" aria-label="' + TOOLS + '"><i class="bi bi-ui-radios-grid"></i></button><ul class="dropdown-menu dropdown-menu-end ra-tools-menu"><li><h6 class="dropdown-header">' + TOOLS + '</h6></li></ul>';
+      box.appendChild(tools);
+      var toolsList = tools.querySelector('.dropdown-menu');
+
+      items.forEach(function (it) { menuList.appendChild(buildItem(it)); toolsList.appendChild(buildItem(it)); });
+
+      var tb = { box: box, grip: grip, menu: menu, tools: tools };
       toolbars.push(tb);
       applyMode(tb); layout(tb); wireDrag(tb);
     } catch (e) { /* leave buttons as-is on failure */ }
