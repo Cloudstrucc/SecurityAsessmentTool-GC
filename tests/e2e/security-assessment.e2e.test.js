@@ -2270,6 +2270,8 @@ test('assistant evidence proposals: apply-suggestions writes drafts and never ov
   assert.equal(body.applied.length, 1, 'one draft applied');
   const respond2 = await getText(jar, `/respond/${code}`);
   assert.match(respond2.text, new RegExp('id="draftBadge-' + cid), 'the applied proposal shows as a draft');
+  assert.match(respond2.text, /ev-ph-value/, 'the [[VALUE]] placeholder renders as a colour-coded chip');
+  assert.match(respond2.text, /ev-ph-attach/, 'the [[ATTACH]] placeholder renders as a colour-coded chip');
   assert.match(respond2.text, /id="progressCount">0</, 'an approved draft does not count as provided');
 
   // Real evidence must never be overwritten by a later proposal.

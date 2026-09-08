@@ -1,3 +1,14 @@
+<style>
+  /* Colour-coded placeholders in AI-drafted evidence, so the provider can see
+     exactly where their input / an attachment is needed. Rendered by suggestToHtml
+     (server) and evDecorate (client) inside the rich editor and the assistant. */
+  .ev-ph { border-radius:5px; padding:0 5px; font-weight:600; font-size:.93em; box-decoration-break:clone; -webkit-box-decoration-break:clone; }
+  .ev-ph-value  { background:#fff3cd; color:#7a5a08; border:1px solid #f2d692; }
+  .ev-ph-attach { background:#e0f2fe; color:#075985; border:1px solid #bae6fd; }
+  .ev-ph-value::before  { content:"\270E\FE0E"; margin-right:4px; opacity:.75; }   /* ✎ fill in */
+  .ev-ph-attach::before { content:"\1F4CE\FE0E"; margin-right:4px; opacity:.85; }  /* 📎 attach */
+  .evidence-editor strong { font-weight:700; }
+</style>
 <div class="container">
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-start mb-4">
@@ -288,6 +299,15 @@ const HIST_LBL = {
   actions: { 'save': {{{tjs 'ev.actSave'}}}, 'ai-draft': {{{tjs 'ev.actAiDraft'}}}, 'ready': {{{tjs 'ev.actReady'}}}, 'reactivate': {{{tjs 'ev.actReactivate'}}}, 'revert': {{{tjs 'ev.actRevert'}}}, 'review': {{{tjs 'ev.actReview'}}} }
 };
 function hEsc(s){return String(s==null?'':s).replace(/[&<>]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m];});}
+// Mirror of the server's suggestToHtml: escape, render **bold**, and colour-code
+// the [[VALUE:]] / [[ATTACH:]] placeholders (used for previews shown before save).
+function evDecorate(text){
+  return hEsc(text)
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/\[\[\s*VALUE\s*:([^\]]*)\]\]/gi,function(_m,h){return '<span class="ev-ph ev-ph-value">[[VALUE:'+h+']]</span>';})
+    .replace(/\[\[\s*ATTACH\s*:([^\]]*)\]\]/gi,function(_m,h){return '<span class="ev-ph ev-ph-attach">[[ATTACH:'+h+']]</span>';})
+    .replace(/\n/g,'<br>');
+}
 function hWhen(s){try{return new Date(String(s).replace(' ','T')+'Z').toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return s||'';}}
 
 // FEATURE 3: mark Ready / reactivate a control.
@@ -700,7 +720,7 @@ window.AIAssistConfig = {
       : '';
     var rows = props.map(function(p){
       var t = p.text || '';
-      var preview = esc(t.slice(0,220)) + (t.length>220 ? '…' : '');
+      var preview = evDecorate(t.slice(0,220)) + (t.length>220 ? '…' : '');
       return '<div class="ai-prop border rounded p-2 mb-2">' +
         '<div class="fw-semibold small mb-1">'+esc(p.controlId||'')+'</div>' +
         '<div class="small text-muted" style="white-space:pre-wrap;max-height:120px;overflow:auto">'+preview+'</div>' +
@@ -743,9 +763,9 @@ function aiEvidencePreview(editor, id, refined){
   var box=document.createElement('div'); box.className='ai-ev-preview';
   box.style.cssText='border:1px solid #ddd6fe;background:#faf7ff;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:13px';
   box.innerHTML='<div class="fw-semibold mb-1" style="color:#6d28d9"><i class="bi bi-stars me-1"></i>AI-refined draft — approve to use</div>'+
-    '<div style="white-space:pre-wrap;color:#22303a">'+esc(refined)+'</div>'+
+    '<div style="color:#22303a">'+evDecorate(refined)+'</div>'+
     '<div class="d-flex gap-2 mt-2"><button type="button" class="btn btn-sm btn-primary py-0 aiap">Approve &amp; use</button><button type="button" class="btn btn-sm btn-outline-secondary py-0 aidz">Discard</button></div>';
-  box.querySelector('.aiap').onclick=function(){ editor.innerText=refined; box.remove(); if(typeof autoSave==='function') autoSave(id); };
+  box.querySelector('.aiap').onclick=function(){ editor.innerHTML=evDecorate(refined); markDirty(id); saveEvidence(id, true); box.remove(); };
   box.querySelector('.aidz').onclick=function(){ box.remove(); };
   editor.parentNode.appendChild(box);
 }

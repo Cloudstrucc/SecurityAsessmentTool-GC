@@ -11,14 +11,25 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-// Plain draft text (tokens + newlines) → simple, safe HTML for the rich editor.
-// Tokens are left as literal text so the editor can decorate them and they survive
-// round-trips; no markup is injected around them here.
+// Turn already-escaped draft text into rich HTML: render **bold**, and wrap the
+// [[VALUE:…]] / [[ATTACH:…]] tokens in colour-coded chips so the reader can see at
+// a glance where their input is needed. The token TEXT stays inside the chip, so
+// placeholder detection (and the submit-time warning) still works, and the provider
+// can edit it in place. Shared by the server and mirrored client-side.
+function decorateEscaped(escaped) {
+  return String(escaped || '')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[\[\s*VALUE\s*:([^\]]*)\]\]/gi, function (_m, hint) { return '<span class="ev-ph ev-ph-value" data-ph="value">[[VALUE:' + hint + ']]</span>'; })
+    .replace(/\[\[\s*ATTACH\s*:([^\]]*)\]\]/gi, function (_m, hint) { return '<span class="ev-ph ev-ph-attach" data-ph="attach">[[ATTACH:' + hint + ']]</span>'; });
+}
+
+// Plain draft text (tokens + markdown + newlines) → safe, decorated HTML for the
+// rich editor: escaped, with **bold** rendered and placeholder tokens colour-coded.
 function suggestToHtml(text) {
   const parts = String(text || '').trim().split(/\n{2,}/);
-  return parts.map(p => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`).join('');
+  return parts.map(function (p) { return '<p>' + decorateEscaped(escapeHtml(p)).replace(/\n/g, '<br>') + '</p>'; }).join('');
 }
 
 function hasPlaceholders(s) { return PLACEHOLDER_RE.test(String(s || '')); }
 
-module.exports = { escapeHtml, suggestToHtml, hasPlaceholders, PLACEHOLDER_RE };
+module.exports = { escapeHtml, suggestToHtml, decorateEscaped, hasPlaceholders, PLACEHOLDER_RE };
