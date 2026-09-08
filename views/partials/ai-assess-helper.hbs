@@ -295,6 +295,7 @@ window.AIAssist = (function(){
   function boot(){
     if(booted) return; booted=true; el();
     if(cfg().subtitle){ document.getElementById('aiaSub').textContent=cfg().subtitle; }
+    if(cfg().placeholder && input){ input.setAttribute('placeholder', cfg().placeholder); }
     launch.addEventListener('click', open); closeBtn.addEventListener('click', close);
     if(scrim) scrim.addEventListener('click', close);
     // History button is only useful when there is an assessment/project context.

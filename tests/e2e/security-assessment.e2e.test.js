@@ -2310,3 +2310,36 @@ test('release notes page renders (curated fallback) with major releases and GitH
   assert.match(text, /SecurityAsessmentTool-GC\/releases\/tag\/v/, 'links to GitHub release tags');
   assert.match(text, /SecurityAsessmentTool-GC\/compare\/v/, 'has GitHub compare links');
 });
+
+test('evidence Ready lock, edit history, and revert work per control', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Ready History ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const respond = await getText(jar, `/respond/${code}`);
+  const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
+
+  // Save v1, then v2 (two history entries).
+  assert.equal((await (await request(jar, 'POST', `/respond/${code}/save/${cid}`, { json: { evidence_text: 'Version ONE', evidence_html: '<p>Version ONE</p>' } })).json()).success, true);
+  assert.equal((await (await request(jar, 'POST', `/respond/${code}/save/${cid}`, { json: { evidence_text: 'Version TWO', evidence_html: '<p>Version TWO</p>' } })).json()).success, true);
+
+  // Mark ready → further saves are refused until reactivated.
+  const ready = await (await request(jar, 'POST', `/respond/${code}/ready/${cid}`, { json: { ready: true } })).json();
+  assert.equal(ready.ready, true);
+  const blocked = await (await request(jar, 'POST', `/respond/${code}/save/${cid}`, { json: { evidence_text: 'nope', evidence_html: '<p>nope</p>' } })).json();
+  assert.equal(blocked.success, false, 'a Ready control cannot be saved');
+  await request(jar, 'POST', `/respond/${code}/ready/${cid}`, { json: { ready: false } }); // reactivate
+
+  // History has entries incl. save + ready.
+  const hist = await (await request(jar, 'GET', `/respond/${code}/history/${cid}`)).json();
+  assert.ok(hist.entries.length >= 3, 'history records saves and ready');
+  const v1 = hist.entries.find(e => (e.evidence_text || '').includes('Version ONE'));
+  assert.ok(v1, 'the first version is in history');
+
+  // Revert to Version ONE.
+  const rev = await (await request(jar, 'POST', `/respond/${code}/revert/${cid}`, { json: { historyId: v1.id } })).json();
+  assert.equal(rev.success, true);
+  assert.match(rev.text || '', /Version ONE/, 'revert restored the earlier evidence');
+});

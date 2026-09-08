@@ -101,17 +101,23 @@
 
           <!-- Evidence Editor -->
           <div class="mb-2">
-            <label class="form-label small fw-semibold">Your Evidence
+            <label class="form-label small fw-semibold d-flex align-items-center flex-wrap gap-1">Your Evidence
               {{#if (eq this.evidence_source 'ai-suggested')}}<span class="badge text-bg-warning ms-1" id="draftBadge-{{this.id}}"><i class="bi bi-magic me-1"></i>{{t 'ev.draftBadge'}}</span>{{/if}}
+              <span class="badge text-bg-success ms-1 ev-ready-badge" id="readyBadge-{{this.id}}" {{#unless this.evidence_ready}}hidden{{/unless}}><i class="bi bi-lock me-1"></i>{{t 'ev.readyBadge'}}</span>
             </label>
+            {{!-- FEATURE 3: who last edited this evidence (incl. AI) --}}
+            <div class="small mb-1 ev-edited-by" id="editedBy-{{this.id}}" {{#unless this.evidence_edited_by}}hidden{{/unless}}>
+              <span class="badge rounded-pill {{#if (eq this.evidence_source 'ai-suggested')}}text-bg-warning{{else}}text-bg-light border{{/if}}">
+                <i class="bi {{#if (eq this.evidence_source 'ai-suggested')}}bi-magic{{else}}bi-person-check{{/if}} me-1"></i>{{t 'ev.editedBy'}} {{this.evidence_edited_by}}</span>
+            </div>
             {{#if ../../isReadOnly}}
               <div class="evidence-editor" style="background:#f8f9fa;min-height:80px">
                 {{{this.evidence_html}}}
                 {{#unless this.evidence_html}}{{this.evidence_text}}{{/unless}}
               </div>
             {{else}}
-              <div class="evidence-editor" contenteditable="true" id="editor-{{this.id}}"
-                data-control-id="{{this.id}}"
+              <div class="evidence-editor" contenteditable="{{#if this.evidence_ready}}false{{else}}true{{/if}}" id="editor-{{this.id}}"
+                data-control-id="{{this.id}}" data-ready="{{#if this.evidence_ready}}1{{else}}0{{/if}}"
                 oninput="markDirty({{this.id}})" onblur="saveEvidence({{this.id}})"
                 placeholder="Enter your evidence here...">{{{this.evidence_html}}}</div>
               <div class="d-flex justify-content-between align-items-center mt-1 flex-wrap gap-2">
@@ -127,13 +133,23 @@
                   <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" style="font-size:12px;color:#6d28d9"
                     data-cid="{{this.id}}" data-control="{{this.control_id}}" data-title="{{this.title}}" data-guidance="{{this.evidence_guidance}}"
                     onclick="aiRefineEvidence(this)"><i class="bi bi-stars me-1"></i>Refine with AI</button>
+                  <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" style="font-size:12px;color:#5f7185"
+                    data-cid="{{this.id}}" onclick="toggleHistory(this)"><i class="bi bi-clock-history me-1"></i>{{t 'ev.history'}}</button>
                   <small class="evidence-save-status" id="saveStatus-{{this.id}}"></small>
-                  <button type="button" class="btn btn-sm btn-outline-success" onclick="saveEvidence({{this.id}}, true)">
+                  <button type="button" class="btn btn-sm btn-outline-success ev-ready-toggle" id="readyBtn-{{this.id}}"
+                    data-cid="{{this.id}}" data-ready="{{#if this.evidence_ready}}1{{else}}0{{/if}}" onclick="toggleReady(this)">
+                    {{#if this.evidence_ready}}<i class="bi bi-unlock me-1"></i>{{t 'ev.reactivate'}}{{else}}<i class="bi bi-check2-circle me-1"></i>{{t 'ev.markReady'}}{{/if}}
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary ev-save-btn" onclick="saveEvidence({{this.id}}, true)" {{#if this.evidence_ready}}hidden{{/if}}>
                     <i class="bi bi-save me-1"></i>{{t 'ev.save'}}
                   </button>
                 </div>
               </div>
               <div class="small text-warning-emphasis mt-1 ev-ph-hint" id="phHint-{{this.id}}" hidden></div>
+              <div class="border rounded mt-2 p-2 bg-light ev-history" id="history-{{this.id}}" hidden>
+                <div class="small fw-bold text-muted mb-1"><i class="bi bi-clock-history me-1"></i>{{t 'ev.editHistory'}}</div>
+                <div class="ev-history-body" id="historyBody-{{this.id}}"><div class="small text-muted">…</div></div>
+              </div>
             {{/if}}
           </div>
 
@@ -218,6 +234,70 @@ const EV_LBL = {
   approveAll: {{{tjs 'ev.approveAll'}}},
   propose: {{{tjs 'ev.proposeHeading'}}}
 };
+const READY_LBL = { markReady: {{{tjs 'ev.markReady'}}}, reactivate: {{{tjs 'ev.reactivate'}}} };
+const HIST_LBL = {
+  current: {{{tjs 'ev.current'}}}, revert: {{{tjs 'ev.revert'}}}, none: {{{tjs 'ev.histNone'}}},
+  err: {{{tjs 'ev.histErr'}}}, confirm: {{{tjs 'ev.revertConfirm'}}},
+  actions: { 'save': {{{tjs 'ev.actSave'}}}, 'ai-draft': {{{tjs 'ev.actAiDraft'}}}, 'ready': {{{tjs 'ev.actReady'}}}, 'reactivate': {{{tjs 'ev.actReactivate'}}}, 'revert': {{{tjs 'ev.actRevert'}}}, 'review': {{{tjs 'ev.actReview'}}} }
+};
+function hEsc(s){return String(s==null?'':s).replace(/[&<>]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m];});}
+function hWhen(s){try{return new Date(String(s).replace(' ','T')+'Z').toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return s||'';}}
+
+// FEATURE 3: mark Ready / reactivate a control.
+async function toggleReady(btn){
+  const cid=btn.getAttribute('data-cid');
+  const isReady=btn.getAttribute('data-ready')==='1';
+  if(!isReady && dirty[cid]){ await saveEvidence(cid,true); }
+  try{
+    const r=await fetch('/respond/'+INVITE_CODE+'/ready/'+cid,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ready:!isReady})});
+    const d=await r.json();
+    if(!d.success){ alert(d.message||EV_I18N.suggestFail); return; }
+    setReadyUI(cid,d.ready);
+  }catch(e){ alert(EV_I18N.suggestFail); }
+}
+function setReadyUI(cid,ready){
+  const editor=document.getElementById('editor-'+cid),btn=document.getElementById('readyBtn-'+cid),badge=document.getElementById('readyBadge-'+cid);
+  if(editor){ editor.setAttribute('contenteditable',ready?'false':'true'); editor.setAttribute('data-ready',ready?'1':'0'); }
+  if(btn){ btn.setAttribute('data-ready',ready?'1':'0'); btn.innerHTML=ready?'<i class="bi bi-unlock me-1"></i>'+READY_LBL.reactivate:'<i class="bi bi-check2-circle me-1"></i>'+READY_LBL.markReady;
+    const saveBtn=btn.parentNode.querySelector('.ev-save-btn'); if(saveBtn) saveBtn.hidden=ready; }
+  if(badge) badge.hidden=!ready;
+}
+// FEATURE 3: per-control edit history + revert.
+function toggleHistory(btn){
+  const cid=btn.getAttribute('data-cid');const panel=document.getElementById('history-'+cid);
+  if(!panel) return;
+  if(!panel.hidden){ panel.hidden=true; return; }
+  panel.hidden=false; loadCtrlHistory(cid);
+}
+async function loadCtrlHistory(cid){
+  const body=document.getElementById('historyBody-'+cid); if(!body) return;
+  body.innerHTML='<div class="small text-muted">…</div>';
+  try{
+    const r=await fetch('/respond/'+INVITE_CODE+'/history/'+cid); const d=await r.json();
+    if(!d.entries||!d.entries.length){ body.innerHTML='<div class="small text-muted">'+HIST_LBL.none+'</div>'; return; }
+    body.innerHTML=d.entries.map(function(e,i){
+      const icon=e.actor_type==='ai'?'bi-magic':(e.actor_type==='assessor'?'bi-shield-check':'bi-person');
+      const canRevert=i>0 && ['save','ai-draft','revert'].indexOf(e.action)>=0;
+      return '<div class="d-flex align-items-center gap-2 small py-1 border-bottom">'+
+        '<i class="bi '+icon+'"></i><span class="fw-semibold">'+hEsc(e.actor_name)+'</span>'+
+        '<span class="text-muted">'+(HIST_LBL.actions[e.action]||e.action)+'</span>'+
+        '<span class="text-muted ms-auto">'+hWhen(e.created_at)+'</span>'+
+        (i===0?'<span class="badge text-bg-light border">'+HIST_LBL.current+'</span>':
+          (canRevert?'<button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" onclick="revertTo('+cid+','+e.id+')"><i class="bi bi-arrow-counterclockwise me-1"></i>'+HIST_LBL.revert+'</button>':''))+
+      '</div>';
+    }).join('');
+  }catch(e){ body.innerHTML='<div class="small text-danger">'+HIST_LBL.err+'</div>'; }
+}
+async function revertTo(cid,historyId){
+  if(!confirm(HIST_LBL.confirm)) return;
+  try{
+    const r=await fetch('/respond/'+INVITE_CODE+'/revert/'+cid,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({historyId:historyId})});
+    const d=await r.json();
+    if(!d.success){ alert(d.message||HIST_LBL.err); return; }
+    const editor=document.getElementById('editor-'+cid); if(editor){ editor.innerHTML=d.html||''; dirty[cid]=false; updatePhHint(cid); setStatus(cid,'saved'); }
+    loadCtrlHistory(cid); updateProgress();
+  }catch(e){ alert(HIST_LBL.err); }
+}
 // Approve one or more assistant evidence proposals: persist as drafts, reflect in
 // the editors, and remove the card(s) once applied.
 async function aiApplyProposals(items, node) {
@@ -449,6 +529,7 @@ window.AIAssistConfig = {
   chatEndpoint: '/respond/' + INVITE_CODE + '/ai-chat',
   frameworkLabel: '{{assessment.security_framework}}',
   subtitle: 'Evidence help · ask anything',
+  placeholder: {{{tjs 'ev.placeholderEvidence'}}},
   greeting: 'Hi — I can explain what each control is asking for and help you write clear evidence. Ask me anything, or use “Refine with AI” on a control to expand a quick note.',
   getSelected: function(){ return []; },   // the server loads the control set for context
   applyActions: function(){},               // evidence mode exposes no scope CRUD

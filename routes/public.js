@@ -19,6 +19,7 @@ const {
   defaultCategory
 } = require('../config/security-frameworks');
 const { frameworkMap, getFrameworks } = require('../config/framework-map');
+const history = require('../config/control-history');
 
 ensureUploadDirs();
 const upload = multer({
@@ -412,17 +413,69 @@ router.post('/respond/:code/save/:controlId', ensureEvidenceUser, express.json({
   }
   const acc = evidenceAccess(req, assessment);
   if (!acc || !acc.canEdit) return res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
+  const current = get('SELECT evidence_ready FROM assessment_controls WHERE id = ? AND assessment_id = ?', [req.params.controlId, assessment.id]);
+  if (current && current.evidence_ready) return res.json({ success: false, message: tr(req, 'ev.roReady', 'This control is marked Ready. Reactivate it to make changes.') });
 
   const { evidence_text, evidence_html } = req.body;
+  const who = history.actor(req);
   // A provider save is real evidence — flip provenance off 'ai-suggested'.
   run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?,
     evidence_status = CASE WHEN ? != '' THEN 'provided' ELSE 'pending' END,
-    evidence_source = 'user',
+    evidence_source = 'user', evidence_edited_by = ?, evidence_edited_at = CURRENT_TIMESTAMP,
     updated_at = CURRENT_TIMESTAMP
     WHERE id = ? AND assessment_id = ?`,
-    [evidence_text, evidence_html, evidence_text || '', req.params.controlId, assessment.id]);
+    [evidence_text, evidence_html, evidence_text || '', who.name, req.params.controlId, assessment.id]);
+  const saved = get('SELECT * FROM assessment_controls WHERE id = ?', [req.params.controlId]);
+  history.record({ controlDbId: Number(req.params.controlId), assessmentId: assessment.id, action: 'save', actorName: who.name, actorType: who.type, control: saved });
 
   res.json({ success: true });
+});
+
+// Mark a control Ready (locked) / reactivate it. Records history.
+router.post('/respond/:code/ready/:controlId', ensureEvidenceUser, express.json(), (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
+  if (!assessment) return res.json({ success: false });
+  const acc = evidenceAccess(req, assessment);
+  if (!acc || !acc.canEdit) return res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
+  const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?', [req.params.controlId, assessment.id]);
+  if (!control) return res.json({ success: false });
+  const makeReady = req.body.ready !== false && !control.evidence_ready;
+  const who = history.actor(req);
+  run('UPDATE assessment_controls SET evidence_ready = ?, evidence_edited_by = ?, evidence_edited_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+    [makeReady ? 1 : 0, who.name, control.id]);
+  history.record({ controlDbId: control.id, assessmentId: assessment.id, action: makeReady ? 'ready' : 'reactivate', actorName: who.name, actorType: who.type, control });
+  res.json({ success: true, ready: makeReady });
+});
+
+// The per-control edit history (for the History panel).
+router.get('/respond/:code/history/:controlId', ensureEvidenceUser, (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const assessment = get('SELECT id FROM assessments WHERE invite_code = ?', [code]);
+  if (!assessment) return res.json({ success: false, entries: [] });
+  const control = get('SELECT id FROM assessment_controls WHERE id = ? AND assessment_id = ?', [req.params.controlId, assessment.id]);
+  if (!control) return res.json({ success: false, entries: [] });
+  res.json({ success: true, entries: history.list(control.id) });
+});
+
+// Revert a control to a prior history snapshot (writes a new 'revert' entry).
+router.post('/respond/:code/revert/:controlId', ensureEvidenceUser, express.json(), (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
+  if (!assessment) return res.json({ success: false });
+  const acc = evidenceAccess(req, assessment);
+  if (!acc || !acc.canEdit) return res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
+  const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?', [req.params.controlId, assessment.id]);
+  if (!control || control.evidence_ready) return res.json({ success: false, message: tr(req, 'ev.roReady', 'This control is marked Ready. Reactivate it to make changes.') });
+  const snap = get('SELECT * FROM assessment_control_history WHERE id = ? AND control_db_id = ?', [req.body.historyId, control.id]);
+  if (!snap) return res.json({ success: false, message: 'History entry not found.' });
+  const who = history.actor(req);
+  run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?, evidence_status = ?,
+       evidence_source = 'user', evidence_edited_by = ?, evidence_edited_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+    [snap.evidence_text || '', snap.evidence_html || '', snap.evidence_status || 'pending', who.name, control.id]);
+  const reverted = get('SELECT * FROM assessment_controls WHERE id = ?', [control.id]);
+  history.record({ controlDbId: control.id, assessmentId: assessment.id, action: 'revert', actorName: who.name, actorType: who.type, control: reverted, note: 'Reverted to #' + snap.id });
+  res.json({ success: true, text: reverted.evidence_text, html: reverted.evidence_html });
 });
 
 // Generate an AI-suggested placeholder evidence DRAFT for one control (provider).
@@ -448,8 +501,11 @@ router.post('/respond/:code/suggest/:controlId', ensureEvidenceUser, express.jso
     const es = require('../config/evidence-suggest');
     const html = es.suggestToHtml(text);
     run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?, evidence_source = 'ai-suggested',
-         evidence_status = 'pending', evidence_suggested_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+         evidence_status = 'pending', evidence_suggested_at = CURRENT_TIMESTAMP,
+         evidence_edited_by = 'Aegis AI', evidence_edited_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
       [text, html, control.id]);
+    const drafted = get('SELECT * FROM assessment_controls WHERE id = ?', [control.id]);
+    history.record({ controlDbId: control.id, assessmentId: assessment.id, action: 'ai-draft', actorName: 'Aegis AI', actorType: 'ai', control: drafted });
     res.json({ success: true, text, html });
   } catch (err) {
     console.error('respond suggest error:', err);
@@ -553,14 +609,17 @@ router.post('/respond/:code/apply-suggestions', ensureEvidenceUser, express.json
     const applied = [];
     for (const it of items) {
       if (!it || !it.controlDbId || !it.text) continue;
-      const control = get('SELECT id, evidence_source, evidence_text FROM assessment_controls WHERE id = ? AND assessment_id = ?', [it.controlDbId, assessment.id]);
+      const control = get('SELECT id, evidence_source, evidence_text, evidence_ready FROM assessment_controls WHERE id = ? AND assessment_id = ?', [it.controlDbId, assessment.id]);
       if (!control) continue;
-      if (control.evidence_source === 'user') continue; // never overwrite real evidence
+      if (control.evidence_source === 'user' || control.evidence_ready) continue; // never overwrite real/locked evidence
       const text = String(it.text);
       const html = es.suggestToHtml(text);
       run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?, evidence_source = 'ai-suggested',
-           evidence_status = 'pending', evidence_suggested_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+           evidence_status = 'pending', evidence_suggested_at = CURRENT_TIMESTAMP,
+           evidence_edited_by = 'Aegis AI', evidence_edited_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
         [text, html, control.id]);
+      const d2 = get('SELECT * FROM assessment_controls WHERE id = ?', [control.id]);
+      history.record({ controlDbId: control.id, assessmentId: assessment.id, action: 'ai-draft', actorName: 'Aegis AI', actorType: 'ai', control: d2 });
       applied.push({ controlDbId: control.id, text, html });
     }
     res.json({ success: true, applied });

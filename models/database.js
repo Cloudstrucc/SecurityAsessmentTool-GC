@@ -299,6 +299,42 @@ async function initDatabase() {
     )
   `);
 
+  // Per-control edit history: one row per manual save / AI draft / ready / reactivate
+  // / review action / revert, each carrying a snapshot so the provider can revert.
+  db.run(`
+    CREATE TABLE IF NOT EXISTS assessment_control_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      control_db_id INTEGER NOT NULL,
+      assessment_id INTEGER NOT NULL,
+      action TEXT NOT NULL,
+      actor_name TEXT,
+      actor_type TEXT,
+      evidence_text TEXT,
+      evidence_html TEXT,
+      evidence_status TEXT,
+      note TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (assessment_id) REFERENCES assessments(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Background "suggest drafts in bulk" jobs — one active per assessment; the page
+  // polls status and shows progress that survives navigation/reloads.
+  db.run(`
+    CREATE TABLE IF NOT EXISTS evidence_suggest_jobs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      assessment_id INTEGER NOT NULL,
+      status TEXT NOT NULL DEFAULT 'queued',
+      total INTEGER DEFAULT 0,
+      done INTEGER DEFAULT 0,
+      errors INTEGER DEFAULT 0,
+      started_by TEXT,
+      message TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      finished_at DATETIME
+    )
+  `);
+
   db.run(`
     CREATE TABLE IF NOT EXISTS comments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -989,6 +1025,19 @@ async function initDatabase() {
     // evidence the provider wrote or edited. Set 'user' the moment they edit.
     ['assessment_controls', 'evidence_source', 'ALTER TABLE assessment_controls ADD COLUMN evidence_source TEXT'],
     ['assessment_controls', 'evidence_suggested_at', 'ALTER TABLE assessment_controls ADD COLUMN evidence_suggested_at DATETIME'],
+    // Who last changed the evidence + when (for the "edited by X (incl. AI)" banner).
+    ['assessment_controls', 'evidence_edited_by', 'ALTER TABLE assessment_controls ADD COLUMN evidence_edited_by TEXT'],
+    ['assessment_controls', 'evidence_edited_at', 'ALTER TABLE assessment_controls ADD COLUMN evidence_edited_at DATETIME'],
+    // Provider marks a control "Ready" (locked) once its evidence is complete;
+    // Reactivate reopens it for edits.
+    ['assessment_controls', 'evidence_ready', 'ALTER TABLE assessment_controls ADD COLUMN evidence_ready INTEGER DEFAULT 0'],
+    // Assessor review state during the audit phase.
+    ['assessment_controls', 'review_status', 'ALTER TABLE assessment_controls ADD COLUMN review_status TEXT'],
+    ['assessment_controls', 'assessor_feedback', 'ALTER TABLE assessment_controls ADD COLUMN assessor_feedback TEXT'],
+    // Evidence-strength scoring inputs (assessor).
+    ['assessment_controls', 'evidence_reliability', 'ALTER TABLE assessment_controls ADD COLUMN evidence_reliability TEXT'],
+    ['assessment_controls', 'evidence_sufficiency', 'ALTER TABLE assessment_controls ADD COLUMN evidence_sufficiency TEXT'],
+    ['assessment_controls', 'control_weight', 'ALTER TABLE assessment_controls ADD COLUMN control_weight TEXT'],
     ['iato_checklist', 'project_id', 'ALTER TABLE iato_checklist ADD COLUMN project_id INTEGER'],
     ['iato_checklist', 'ato_record_id', 'ALTER TABLE iato_checklist ADD COLUMN ato_record_id INTEGER'],
     ['iato_checklist', 'residual_risk', 'ALTER TABLE iato_checklist ADD COLUMN residual_risk TEXT'],
