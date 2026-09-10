@@ -3946,5 +3946,8 @@
   "tut.phase5label": "Audit e revisione",
   "tut.phase5who": "(valutatore)",
   "tut.phase6": "Pacchetto di decisione e autorizzazione",
-  "tut.phaseWord": "Fase"
+  "tut.phaseWord": "Fase",
+  "ai.errAuth": "Il provider di IA ha rifiutato la chiave API configurata. Chiedi a un amministratore di verificare la chiave dell’IA nelle impostazioni dell’organizzazione (o la chiave della piattaforma).",
+  "ai.errRate": "Il provider di IA è occupato in questo momento (limite di frequenza). Attendi un momento e riprova.",
+  "ai.errUnavailable": "Impossibile raggiungere il provider di IA. Riprova a breve; se il problema persiste, chiedi a un amministratore di verificare la configurazione dell’IA."
 }

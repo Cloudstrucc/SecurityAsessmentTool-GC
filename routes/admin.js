@@ -1714,7 +1714,7 @@ router.post('/projects/:id/ai/suggest-controls', ensureAuthenticated, express.js
     });
   } catch (err) {
     console.error('Project AI control suggestion error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(err && (err.status === 401 || err.status === 403) ? 502 : 500).json({ error: ai.friendlyError(err, req.t) });
   }
 });
 
@@ -2803,7 +2803,7 @@ router.post('/assessments/:id/ai/document-guidance', ensureAuthenticated, expres
     res.json({ success: true, guidance });
   } catch (err) {
     console.error('Document guidance AI error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(err && (err.status === 401 || err.status === 403) ? 502 : 500).json({ error: ai.friendlyError(err, req.t) });
   }
 });
 

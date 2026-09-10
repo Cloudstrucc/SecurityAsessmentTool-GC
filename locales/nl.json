@@ -3946,5 +3946,8 @@
   "tut.phase5label": "Audit en review",
   "tut.phase5who": "(beoordelaar)",
   "tut.phase6": "Besluitpakket en autorisatie",
-  "tut.phaseWord": "Fase"
+  "tut.phaseWord": "Fase",
+  "ai.errAuth": "De AI-provider heeft de geconfigureerde API-sleutel geweigerd. Vraag een beheerder om de AI-sleutel te controleren in de organisatie-instellingen (of de platformsleutel).",
+  "ai.errRate": "De AI-provider is momenteel bezet (snelheidslimiet). Wacht even en probeer het opnieuw.",
+  "ai.errUnavailable": "De AI-provider kon niet worden bereikt. Probeer het zo dadelijk opnieuw; als het aanhoudt, vraag een beheerder om de AI-configuratie te controleren."
 }

@@ -3925,5 +3925,8 @@
   "tut.phase5label": "Audit &amp; review",
   "tut.phase5who": "(assessor)",
   "tut.phase6": "Decision package &amp; authorization",
-  "tut.phaseWord": "Phase"
+  "tut.phaseWord": "Phase",
+  "ai.errAuth": "The AI provider rejected the configured API key. Ask an administrator to check the AI key under Organization settings (or the platform key).",
+  "ai.errRate": "The AI provider is busy right now (rate limited). Please wait a moment and try again.",
+  "ai.errUnavailable": "The AI provider could not be reached. Please try again shortly; if it persists, ask an administrator to check the AI configuration."
 }

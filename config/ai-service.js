@@ -66,7 +66,9 @@ async function fetchJson(url, options, providerLabel) {
     }
     if (!response.ok) {
       const errBody = await response.text();
-      throw new Error(`${providerLabel} API error (${response.status}): ${errBody.slice(0, 500)}`);
+      const e = new Error(`${providerLabel} API error (${response.status}): ${errBody.slice(0, 500)}`);
+      e.status = response.status;        // let callers map 401/403/429 to a friendly, localized hint
+      throw e;
     }
     return response.json();
   }
@@ -642,9 +644,33 @@ ${controlGuidance ? 'What this control expects: ' + controlGuidance + '\n' : ''}
   return String(text || '').trim();
 }
 
+// Map a provider error to a short, user-facing, localized hint. `t` is an
+// i18next translator (pass `req.t`); when it's absent we fall back to English
+// so the message is still sensible. Only auth (401/403) and rate-limit (429)
+// get a friendly rewrite — everything else keeps its original message so real
+// diagnostics aren't swallowed.
+const AI_ERR_FALLBACK = {
+  'ai.errAuth': 'The AI provider rejected the configured API key. Ask an administrator to check the AI key under Organization settings (or the platform key).',
+  'ai.errRate': 'The AI provider is busy right now (rate limited). Please wait a moment and try again.',
+  'ai.errUnavailable': 'The AI provider could not be reached. Please try again shortly; if it persists, ask an administrator to check the AI configuration.'
+};
+function friendlyError(err, t) {
+  const status = err && err.status;
+  let key = null;
+  if (status === 401 || status === 403) key = 'ai.errAuth';
+  else if (status === 429) key = 'ai.errRate';
+  else if (status === 502 || status === 503 || status === 504) key = 'ai.errUnavailable';
+  if (!key) return (err && err.message) || AI_ERR_FALLBACK['ai.errUnavailable'];
+  if (typeof t === 'function') {
+    try { const s = t(key); if (s && s !== key) return s; } catch (e) { /* fall through */ }
+  }
+  return AI_ERR_FALLBACK[key];
+}
+
 module.exports = {
   isConfigured,
   callClaude,
+  friendlyError,
   testConnection,
   parseDocumentForIntake,
   suggestFromDescription,

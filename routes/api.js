@@ -531,7 +531,7 @@ router.post('/ai/assessment-chat', ensureAuthenticated, express.json(), async (r
     res.json({ success: true, reply: result.reply, actions: result.actions });
   } catch (err) {
     console.error('AI assessment-chat error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(err && (err.status === 401 || err.status === 403) ? 502 : 500).json({ error: ai.friendlyError(err, req.t) });
   }
 });
 
@@ -573,7 +573,7 @@ router.post('/ai/refine-answer', ensureAuthenticated, express.json(), async (req
     res.json({ success: true, refined });
   } catch (err) {
     console.error('AI refine error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(err && (err.status === 401 || err.status === 403) ? 502 : 500).json({ error: ai.friendlyError(err, req.t) });
   }
 });
 
@@ -631,7 +631,7 @@ router.post('/ai/parse-document', aiUpload.single('document'), async (req, res) 
   } catch (err) {
     console.error('AI parse-document error:', err);
     if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-    res.status(500).json({ error: err.message });
+    res.status(err && (err.status === 401 || err.status === 403) ? 502 : 500).json({ error: ai.friendlyError(err, req.t) });
   }
 });
 
@@ -647,7 +647,7 @@ router.post('/ai/suggest-from-description', express.json(), async (req, res) => 
     res.json({ success: true, suggestions: result });
   } catch (err) {
     console.error('AI suggest error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(err && (err.status === 401 || err.status === 403) ? 502 : 500).json({ error: ai.friendlyError(err, req.t) });
   }
 });
 
@@ -665,7 +665,7 @@ router.post('/ai/review-intake/:id', ensureAuthenticated, express.json(), async 
     res.json({ success: true, review: result });
   } catch (err) {
     console.error('AI review error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(err && (err.status === 401 || err.status === 403) ? 502 : 500).json({ error: ai.friendlyError(err, req.t) });
   }
 });
 
@@ -701,7 +701,7 @@ router.post('/ai/suggest-controls/:id', ensureAuthenticated, express.json(), asy
     res.json({ success: true, suggestions: result });
   } catch (err) {
     console.error('AI suggest-controls error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(err && (err.status === 401 || err.status === 403) ? 502 : 500).json({ error: ai.friendlyError(err, req.t) });
   }
 });
 
@@ -721,7 +721,7 @@ router.post('/ai/evidence-narrative', ensureAuthenticated, express.json(), async
     res.json({ success: true, narrative: result });
   } catch (err) {
     console.error('AI evidence error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(err && (err.status === 401 || err.status === 403) ? 502 : 500).json({ error: ai.friendlyError(err, req.t) });
   }
 });
 
@@ -741,7 +741,7 @@ router.post('/ai/evidence-guidance', ensureAuthenticated, express.json(), async 
     res.json({ success: true, guidance: result });
   } catch (err) {
     console.error('AI guidance error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(err && (err.status === 401 || err.status === 403) ? 502 : 500).json({ error: ai.friendlyError(err, req.t) });
   }
 });
 
@@ -799,7 +799,7 @@ router.post('/ai/suggested-evidence/:controlDbId', ensureAuthenticated, express.
     res.json({ success: true, text, html, source: 'ai-suggested', aiConfigured: ai.isConfigured() });
   } catch (err) {
     console.error('AI suggested-evidence error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(err && (err.status === 401 || err.status === 403) ? 502 : 500).json({ error: ai.friendlyError(err, req.t) });
   }
 });
 

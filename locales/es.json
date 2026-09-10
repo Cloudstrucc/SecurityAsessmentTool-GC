@@ -3968,5 +3968,8 @@
   "tut.phase5label": "Auditoría y revisión",
   "tut.phase5who": "(evaluador)",
   "tut.phase6": "Paquete de decisión y autorización",
-  "tut.phaseWord": "Fase"
+  "tut.phaseWord": "Fase",
+  "ai.errAuth": "El proveedor de IA rechazó la clave de API configurada. Pida a un administrador que revise la clave de IA en la configuración de la organización (o la clave de la plataforma).",
+  "ai.errRate": "El proveedor de IA está ocupado en este momento (límite de solicitudes). Espere un momento e inténtelo de nuevo.",
+  "ai.errUnavailable": "No se pudo contactar con el proveedor de IA. Inténtelo de nuevo en breve; si persiste, pida a un administrador que revise la configuración de la IA."
 }
