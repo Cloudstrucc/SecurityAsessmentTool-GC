@@ -1,9 +1,22 @@
 const nodemailer = require('nodemailer');
+const graphMailer = require('./graphMailer');
 
 let transporter = null;
 let emailConfigured = false;
 
 function initialize() {
+  // Microsoft Graph (app-only) is the preferred modern-auth sender when configured.
+  // Verify credentials/permission at startup (non-blocking) so problems surface early.
+  if (graphMailer.graphConfigured()) {
+    graphMailer.verifyGraph()
+      .then(() => console.log(`[Email] Microsoft Graph sender ready (${graphMailer.sender()}) ✓`))
+      .catch(err => {
+        console.warn('[Email] Microsoft Graph verification failed:', err.message);
+        console.warn('[Email]   Check GRAPH_CLIENT_SECRET, the Mail.Send application permission + admin consent,');
+        console.warn('[Email]   and the Application Access Policy scoping the app to ' + graphMailer.sender() + '.');
+      });
+  }
+
   if (process.env.SMTP_HOST) {
     const config = {
       host: process.env.SMTP_HOST,
@@ -41,8 +54,8 @@ function initialize() {
       console.warn('[Email]   or configure OAuth2 with SMTP_OAUTH_CLIENT_ID, SMTP_OAUTH_CLIENT_SECRET, SMTP_OAUTH_REFRESH_TOKEN');
       emailConfigured = false;
     });
-  } else {
-    console.log('[Email] No SMTP_HOST configured — emails will be logged to console.');
+  } else if (!graphMailer.graphConfigured()) {
+    console.log('[Email] No SMTP_HOST or Graph sender configured — emails will be logged to console.');
   }
 }
 
@@ -69,6 +82,9 @@ async function safeSend(mailOptions) {
   // Prefer the tenant's own mail server whenever one is configured and enabled.
   const orgCfg = ambientOrgSmtp();
   if (orgCfg) return sendVia(orgCfg, mailOptions);
+
+  // Otherwise, Microsoft Graph (app-only) is the platform sender when configured.
+  if (graphMailer.graphConfigured()) return graphMailer.sendViaGraph(mailOptions);
 
   if (!transporter || !emailConfigured) {
     console.log(`[Email Mock] To: ${mailOptions.to} | Subject: ${mailOptions.subject}`);
@@ -304,5 +320,9 @@ module.exports = {
   sendRouted,
   ambientOrgSmtp,
   sendTestEmail,
-  verifyTransport
+  verifyTransport,
+  // Microsoft Graph (app-only) sender
+  graphConfigured: graphMailer.graphConfigured,
+  verifyGraph: graphMailer.verifyGraph,
+  sendTestGraph: graphMailer.sendTestGraph
 };
