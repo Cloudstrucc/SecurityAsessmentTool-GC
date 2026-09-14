@@ -151,13 +151,18 @@ async function sendViaGraph(mailOptions) {
 
 /** Send a test message to confirm the whole path works end to end. */
 async function sendTestGraph(to) {
+  const { renderEmail, esc } = require('./emailLayout');
   return sendViaGraph({
     to,
     subject: 'Aegis SA — Microsoft Graph email test',
-    html: `<div style="font-family:Inter,Arial,sans-serif">
-      <p>✅ Microsoft Graph email is working.</p>
-      <p>This test was sent as <strong>${sender()}</strong> using app-only Graph <code>Mail.Send</code>.</p>
-    </div>`
+    html: renderEmail({
+      title: 'Microsoft Graph email works',
+      preheader: 'Graph app-only email is configured correctly.',
+      intro: [
+        '✅ Microsoft Graph email is working.',
+        `This test was sent as <strong>${esc(sender())}</strong> using app-only Graph <code>Mail.Send</code>.`
+      ]
+    })
   });
 }
 

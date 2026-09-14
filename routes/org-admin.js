@@ -31,6 +31,9 @@ function renderConsole(req, res, extra = {}) {
     // Last 24h of validation history per integration, for the log panels.
     checkHistory: org ? checks.historyAll(org.id) : {},
     domainToken: org ? checks.domainVerificationToken(org.id) : '',
+    // Platform Microsoft Graph (app-only) sender status, for the Email card.
+    graphConfigured: emailService.graphConfigured(),
+    graphSender: process.env.GRAPH_SENDER || '',
     // Org-level report branding (defaults every project inherits).
     orgBranding: org ? (reportBranding.getOrgRow(org.id) || {}) : {}
   }, extra));
@@ -111,6 +114,22 @@ router.post('/organization/smtp/test', access.ensureOrgAdmin, async (req, res) =
   }, { kind: 'test', user: req.user });
   if (result.sent) req.flash('success', `Test email sent to ${to}.`);
   else req.flash('error', `Test email failed: ${result.error}`);
+  res.redirect('/admin/organization#smtp');
+});
+
+// Send a test email through the platform Microsoft Graph (app-only) sender.
+router.post('/organization/graph/test', access.ensureOrgAdmin, async (req, res) => {
+  if (!emailService.graphConfigured()) {
+    req.flash('error', req.t ? req.t('ui.graphNotConfigured') : 'Microsoft Graph email is not configured on this server.');
+    return res.redirect('/admin/organization#smtp');
+  }
+  const to = (req.body.test_to || req.user.email || '').trim();
+  const result = await emailService.sendTestGraph(to);
+  if (result.sent) {
+    req.flash('success', req.t ? req.t('ui.graphTestSent', { to }) : `Test email sent to ${to}.`);
+  } else {
+    req.flash('error', req.t ? req.t('ui.graphTestFailed', { error: result.error }) : `Graph test failed: ${result.error}`);
+  }
   res.redirect('/admin/organization#smtp');
 });
 

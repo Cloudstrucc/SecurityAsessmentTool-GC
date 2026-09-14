@@ -3949,5 +3949,10 @@
   "tut.phaseWord": "Phase",
   "ai.errAuth": "Der KI-Anbieter hat den konfigurierten API-Schlüssel abgelehnt. Bitten Sie einen Administrator, den KI-Schlüssel in den Organisationseinstellungen (oder den Plattformschlüssel) zu prüfen.",
   "ai.errRate": "Der KI-Anbieter ist gerade ausgelastet (Ratenbegrenzung). Bitte warten Sie einen Moment und versuchen Sie es erneut.",
-  "ai.errUnavailable": "Der KI-Anbieter war nicht erreichbar. Bitte versuchen Sie es in Kürze erneut; wenn das Problem bestehen bleibt, bitten Sie einen Administrator, die KI-Konfiguration zu prüfen."
+  "ai.errUnavailable": "Der KI-Anbieter war nicht erreichbar. Bitte versuchen Sie es in Kürze erneut; wenn das Problem bestehen bleibt, bitten Sie einen Administrator, die KI-Konfiguration zu prüfen.",
+  "ui.sendGraphTest": "Graph-Test senden",
+  "ui.graphSenderActive": "Microsoft Graph-E-Mail ist aktiv",
+  "ui.graphNotConfigured": "Microsoft Graph-E-Mail ist auf diesem Server nicht konfiguriert.",
+  "ui.graphTestSent": "Test-E-Mail an {{to}} gesendet.",
+  "ui.graphTestFailed": "Graph-Test fehlgeschlagen: {{error}}"
 }

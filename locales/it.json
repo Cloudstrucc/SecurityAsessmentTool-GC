@@ -3949,5 +3949,10 @@
   "tut.phaseWord": "Fase",
   "ai.errAuth": "Il provider di IA ha rifiutato la chiave API configurata. Chiedi a un amministratore di verificare la chiave dell’IA nelle impostazioni dell’organizzazione (o la chiave della piattaforma).",
   "ai.errRate": "Il provider di IA è occupato in questo momento (limite di frequenza). Attendi un momento e riprova.",
-  "ai.errUnavailable": "Impossibile raggiungere il provider di IA. Riprova a breve; se il problema persiste, chiedi a un amministratore di verificare la configurazione dell’IA."
+  "ai.errUnavailable": "Impossibile raggiungere il provider di IA. Riprova a breve; se il problema persiste, chiedi a un amministratore di verificare la configurazione dell’IA.",
+  "ui.sendGraphTest": "Invia test Graph",
+  "ui.graphSenderActive": "L’email di Microsoft Graph è attiva",
+  "ui.graphNotConfigured": "L’email di Microsoft Graph non è configurata su questo server.",
+  "ui.graphTestSent": "Email di prova inviata a {{to}}.",
+  "ui.graphTestFailed": "Test Graph non riuscito: {{error}}"
 }

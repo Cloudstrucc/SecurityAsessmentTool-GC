@@ -37,6 +37,19 @@
         <div class="col-md-8"><label class="form-label small">{{t 'ui.sendATestEmailTo'}}</label><input class="form-control" name="test_to" value="{{admin.email}}"></div>
         <div class="col-md-4"><button class="btn btn-outline-primary w-100"><i class="bi bi-send me-1"></i>{{t 'ui.sendTest'}}</button></div>
       </form>
+      {{#if graphConfigured}}
+        <div class="alert alert-light border d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 mb-0">
+          <div class="small">
+            <i class="bi bi-microsoft me-1 text-primary"></i>
+            <span class="fw-semibold">{{t 'ui.graphSenderActive'}}</span>
+            {{#if graphSender}}<span class="text-muted">· {{graphSender}}</span>{{/if}}
+          </div>
+          <form method="POST" action="/admin/organization/graph/test" class="d-flex gap-2 align-items-center mb-0">
+            <input class="form-control form-control-sm" name="test_to" value="{{admin.email}}" style="max-width:240px">
+            <button class="btn btn-sm btn-primary"><i class="bi bi-send me-1"></i>{{t 'ui.sendGraphTest'}}</button>
+          </form>
+        </div>
+      {{/if}}
       {{> org-check-panel feature="smtp" label="SMTP" verifiedAt=settings.smtp_verified_at history=checkHistory.smtp}}
       {{#if settings.smtp_host}}
         <hr>

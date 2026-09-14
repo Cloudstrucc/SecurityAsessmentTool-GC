@@ -948,19 +948,32 @@ router.post('/self-assessment/submit', express.json({ limit: '4mb' }), (req, res
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       const hasAccount = get('SELECT id FROM users WHERE email = ? AND is_active = 1', [reviewer]);
       const who = name || req.user?.name || 'A colleague';
+      const { renderEmail, esc } = require('../utils/emailLayout');
       emailService.sendMail(hasAccount ? {
         from: process.env.EMAIL_FROM || process.env.SMTP_USER,
         to: reviewer,
         subject: `Pre-assessment ready for review — ${refCode}`,
-        html: `<p>${who} shared a security pre-assessment (<strong>${refCode}</strong>) for your review.</p>
-               <p><a href="${baseUrl}/admin/self-assessments">Open it in the portal</a> to review and, if appropriate, convert it to a project.</p>`
+        html: renderEmail({
+          title: 'Pre-assessment ready for review',
+          preheader: `${who} shared pre-assessment ${refCode}.`,
+          intro: [`${esc(who)} shared a security pre-assessment (<strong>${esc(refCode)}</strong>) for your review.`],
+          button: { url: `${baseUrl}/admin/self-assessments`, label: 'Open it in the portal' },
+          note: 'Review it and, if appropriate, convert it to a project.'
+        })
       } : {
         from: process.env.EMAIL_FROM || process.env.SMTP_USER,
         to: reviewer,
         subject: `You're invited to review a pre-assessment — ${refCode}`,
-        html: `<p>${who} shared a security pre-assessment (<strong>${refCode}</strong>) and would like you to review it.</p>
-               <p>Create an account to review and proceed:</p>
-               <p><a href="${baseUrl}/register?plan=trial">Start a free trial</a> &nbsp;·&nbsp; <a href="${baseUrl}/pricing">see plans</a></p>`
+        html: renderEmail({
+          title: 'Review a pre-assessment',
+          preheader: `${who} would like you to review pre-assessment ${refCode}.`,
+          intro: [
+            `${esc(who)} shared a security pre-assessment (<strong>${esc(refCode)}</strong>) and would like you to review it.`,
+            'Create an account to review and proceed:'
+          ],
+          button: { url: `${baseUrl}/register?plan=trial`, label: 'Start a free trial' },
+          note: `Or <a href="${esc(baseUrl)}/pricing">see plans</a>.`
+        })
       }).catch(() => {});
     }
 

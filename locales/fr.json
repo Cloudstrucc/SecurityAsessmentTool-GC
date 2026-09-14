@@ -3971,5 +3971,10 @@
   "tut.phaseWord": "Phase",
   "ai.errAuth": "Le fournisseur d’IA a rejeté la clé API configurée. Demandez à un administrateur de vérifier la clé d’IA dans les paramètres de l’organisation (ou la clé de la plateforme).",
   "ai.errRate": "Le fournisseur d’IA est actuellement occupé (limite de débit atteinte). Veuillez patienter un instant et réessayer.",
-  "ai.errUnavailable": "Impossible de joindre le fournisseur d’IA. Réessayez sous peu ; si le problème persiste, demandez à un administrateur de vérifier la configuration de l’IA."
+  "ai.errUnavailable": "Impossible de joindre le fournisseur d’IA. Réessayez sous peu ; si le problème persiste, demandez à un administrateur de vérifier la configuration de l’IA.",
+  "ui.sendGraphTest": "Envoyer un test Graph",
+  "ui.graphSenderActive": "La messagerie Microsoft Graph est active",
+  "ui.graphNotConfigured": "La messagerie Microsoft Graph n’est pas configurée sur ce serveur.",
+  "ui.graphTestSent": "E-mail de test envoyé à {{to}}.",
+  "ui.graphTestFailed": "Échec du test Graph : {{error}}"
 }

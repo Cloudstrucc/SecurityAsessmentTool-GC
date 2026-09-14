@@ -3949,5 +3949,10 @@
   "tut.phaseWord": "フェーズ",
   "ai.errAuth": "AI プロバイダーが、設定された API キーを拒否しました。管理者に、組織設定の AI キー（またはプラットフォームのキー）を確認するよう依頼してください。",
   "ai.errRate": "AI プロバイダーは現在混み合っています（レート制限）。少し待ってからもう一度お試しください。",
-  "ai.errUnavailable": "AI プロバイダーに接続できませんでした。しばらくしてからもう一度お試しください。解消しない場合は、管理者に AI 設定の確認を依頼してください。"
+  "ai.errUnavailable": "AI プロバイダーに接続できませんでした。しばらくしてからもう一度お試しください。解消しない場合は、管理者に AI 設定の確認を依頼してください。",
+  "ui.sendGraphTest": "Graph テストを送信",
+  "ui.graphSenderActive": "Microsoft Graph メールが有効です",
+  "ui.graphNotConfigured": "このサーバーでは Microsoft Graph メールが構成されていません。",
+  "ui.graphTestSent": "{{to}} にテストメールを送信しました。",
+  "ui.graphTestFailed": "Graph テストに失敗しました: {{error}}"
 }

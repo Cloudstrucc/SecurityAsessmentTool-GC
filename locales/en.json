@@ -3928,5 +3928,10 @@
   "tut.phaseWord": "Phase",
   "ai.errAuth": "The AI provider rejected the configured API key. Ask an administrator to check the AI key under Organization settings (or the platform key).",
   "ai.errRate": "The AI provider is busy right now (rate limited). Please wait a moment and try again.",
-  "ai.errUnavailable": "The AI provider could not be reached. Please try again shortly; if it persists, ask an administrator to check the AI configuration."
+  "ai.errUnavailable": "The AI provider could not be reached. Please try again shortly; if it persists, ask an administrator to check the AI configuration.",
+  "ui.sendGraphTest": "Send Graph test",
+  "ui.graphSenderActive": "Microsoft Graph email is active",
+  "ui.graphNotConfigured": "Microsoft Graph email is not configured on this server.",
+  "ui.graphTestSent": "Test email sent to {{to}}.",
+  "ui.graphTestFailed": "Graph test failed: {{error}}"
 }

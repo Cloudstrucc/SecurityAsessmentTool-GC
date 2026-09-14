@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const graphMailer = require('./graphMailer');
+const { renderEmail, esc } = require('./emailLayout');
 
 let transporter = null;
 let emailConfigured = false;
@@ -144,10 +145,14 @@ async function sendTestEmail(cfg, to) {
   return sendVia(cfg, {
     to,
     subject: 'Aegis SA — SMTP test',
-    html: `<div style="font-family:Inter,Arial,sans-serif">
-      <p>✅ Your custom SMTP configuration works.</p>
-      <p>This test message was sent from Aegis SA using your organization's mail server.</p>
-    </div>`
+    html: renderEmail({
+      title: 'SMTP test successful',
+      preheader: 'Your custom SMTP configuration works.',
+      intro: [
+        '✅ Your custom SMTP configuration works.',
+        "This test message was sent from Aegis SA using your organization's mail server."
+      ]
+    })
   });
 }
 
@@ -166,28 +171,19 @@ async function sendInvite({ to, recipientName, projectName, inviteCode, expiresA
   return send({
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to,
-    subject: `Security Assessment Evidence Request – ${projectName}`,
-    html: `
-      <div style="font-family: 'Noto Sans', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: #26374a; color: white; padding: 24px; border-radius: 8px 8px 0 0;">
-          <h2 style="margin:0;">GC Security Assessment Portal</h2>
-        </div>
-        <div style="padding: 24px; background: #f8f9fa; border: 1px solid #e0e0e0;">
-          <p>Dear ${recipientName},</p>
-          <p>You have been invited to provide security evidence for the <strong>${projectName}</strong> project as part of the Security Assessment &amp; Authorization (SA&amp;A) process.</p>
-          <p><strong>Your Access Code:</strong></p>
-          <div style="background: white; border: 2px solid #2b4380; border-radius: 8px; padding: 16px; text-align: center; font-size: 24px; font-weight: 700; letter-spacing: 4px; margin: 16px 0;">
-            ${inviteCode}
-          </div>
-          <p><a href="${url}" style="display: inline-block; background: #2b4380; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">Access Assessment Portal</a></p>
-          <p style="color: #6c757d; font-size: 14px;">This invitation expires on ${new Date(expiresAt).toLocaleDateString('en-CA')}.</p>
-          <p>If you have questions, please contact ${assessorName}.</p>
-        </div>
-        <div style="padding: 16px; text-align: center; color: #6c757d; font-size: 12px;">
-          Government of Canada – Aegis SA
-        </div>
-      </div>
-    `
+    subject: `Security assessment evidence request – ${projectName}`,
+    html: renderEmail({
+      title: 'Evidence request',
+      preheader: `Provide security evidence for ${projectName}.`,
+      intro: [
+        `Dear ${esc(recipientName)},`,
+        `You have been invited to provide security evidence for <strong>${esc(projectName)}</strong> as part of the Security Assessment &amp; Authorization (SA&amp;A) process.`,
+        `Your access code:`
+      ],
+      code: inviteCode,
+      button: { url, label: 'Open the assessment portal' },
+      note: `This invitation expires on ${esc(new Date(expiresAt).toLocaleDateString('en-CA'))}. If you have questions, please contact ${esc(assessorName)}.`
+    })
   });
 }
 
@@ -202,23 +198,18 @@ async function sendUserInvitation({ to, recipientName, inviteCode, invitedByName
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to,
     subject: `Invitation to join the Security Assessment Portal`,
-    html: `
-      <div style="font-family: 'Noto Sans', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: #26374a; color: white; padding: 24px; border-radius: 8px 8px 0 0;">
-          <h2 style="margin:0;">GC Security Assessment Portal</h2>
-        </div>
-        <div style="padding: 24px; background: #f8f9fa; border: 1px solid #e0e0e0;">
-          <p>Dear ${recipientName || 'colleague'},</p>
-          <p>${invitedByName || 'An assessor'} has invited you to join the portal as a <strong>${roleLabel}</strong>${organization ? ` for <strong>${organization}</strong>` : ''}.</p>
-          ${message ? `<p>${message}</p>` : ''}
-          <p><strong>Your invitation code:</strong></p>
-          <div style="background: white; border: 2px solid #2b4380; border-radius: 8px; padding: 16px; text-align: center; font-size: 24px; font-weight: 700; letter-spacing: 4px; margin: 16px 0;">
-            ${inviteCode}
-          </div>
-          <p><a href="${url}" style="display: inline-block; background: #2b4380; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">Create Account</a></p>
-        </div>
-      </div>
-    `
+    html: renderEmail({
+      title: 'You’re invited',
+      preheader: `Join the Security Assessment Portal as a ${roleLabel}.`,
+      intro: [
+        `Dear ${esc(recipientName || 'colleague')},`,
+        `${esc(invitedByName || 'An assessor')} has invited you to join the portal as a <strong>${esc(roleLabel)}</strong>${organization ? ` for <strong>${esc(organization)}</strong>` : ''}.`,
+        ...(message ? [esc(message)] : []),
+        `Your invitation code:`
+      ],
+      code: inviteCode,
+      button: { url, label: 'Create your account' }
+    })
   });
 }
 
@@ -229,17 +220,17 @@ async function sendAssignmentNotification({ to, recipientName, entityType, entit
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to,
     subject: `Assigned to ${entityType}: ${entityName}`,
-    html: `
-      <div style="font-family:'Noto Sans',Arial,sans-serif;max-width:600px;margin:0 auto">
-        <div style="background:#0a1626;color:#fff;padding:20px;border-radius:8px 8px 0 0"><h2 style="margin:0">Aegis SA</h2></div>
-        <div style="padding:22px;background:#f8f9fa;border:1px solid #e0e0e0">
-          <p>Dear ${recipientName || 'colleague'},</p>
-          <p>${assignedByName || 'An assessor'} assigned you to the ${entityType} <strong>${entityName}</strong>.</p>
-          ${message ? `<p>${message}</p>` : ''}
-          <p><a href="${url}" style="display:inline-block;background:#2f80cf;color:#fff;padding:12px 22px;border-radius:6px;text-decoration:none;font-weight:600">Open the ${entityType}</a></p>
-          <p style="color:#6c757d;font-size:13px">Or paste this link: ${url}</p>
-        </div>
-      </div>`
+    html: renderEmail({
+      title: `New ${esc(entityType)} assignment`,
+      preheader: `${assignedByName || 'An assessor'} assigned you to ${entityName}.`,
+      intro: [
+        `Dear ${esc(recipientName || 'colleague')},`,
+        `${esc(assignedByName || 'An assessor')} assigned you to the ${esc(entityType)} <strong>${esc(entityName)}</strong>.`,
+        ...(message ? [esc(message)] : [])
+      ],
+      button: { url, label: `Open the ${esc(entityType)}` },
+      note: `If the button doesn’t work, paste this link into your browser:<br><span style="word-break:break-all">${esc(url)}</span>`
+    })
   });
 }
 
@@ -256,32 +247,27 @@ async function sendMentionNotification({ to, recipientName, projectName, count, 
     ? `You were mentioned ${count} times in ${projectName}`
     : `${who} mentioned you in ${projectName}`;
   const excerptHtml = (excerpts && excerpts.length)
-    ? `<div style="margin:14px 0;padding:12px;background:#f5f7fa;border-left:3px solid #0f766e;border-radius:4px;color:#333">
-         ${excerpts.map(e => `<p style="margin:0 0 8px">${String(e).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</p>`).join('')}
+    ? `<div style="margin:6px 0 4px;padding:12px 14px;background:#f0faf8;border-left:3px solid #0f766e;border-radius:6px;color:#334155">
+         ${excerpts.map(e => `<p style="margin:0 0 8px">${esc(e)}</p>`).join('')}
        </div>`
     : '';
   return safeSend({
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to,
     subject,
-    html: `
-      <div style="font-family:Inter,Arial,sans-serif;max-width:600px;margin:0 auto">
-        <div style="background:#0f766e;color:#fff;padding:20px;border-radius:8px 8px 0 0">
-          <h2 style="margin:0;font-size:18px">Aegis SA — you were mentioned</h2>
-        </div>
-        <div style="padding:22px;background:#f8f9fa;border:1px solid #e0e0e0">
-          <p>Hello ${recipientName || ''},</p>
-          <p><strong>${who}</strong> mentioned you in the discussion for <strong>${projectName}</strong>${count > 1 ? ` (${count} mentions)` : ''}.</p>
-          ${excerptHtml}
-          <p style="margin-top:18px">
-            <a href="${link}" style="display:inline-block;background:#0f766e;color:#fff;padding:11px 22px;border-radius:6px;text-decoration:none;font-weight:600">Open the discussion</a>
-          </p>
-          <p style="color:#6c757d;font-size:12px;margin-top:20px">
-            You are receiving this because you were mentioned by name.
-            <a href="${baseUrl}/admin/notifications/preferences">Change your notification preferences</a>.
-          </p>
-        </div>
-      </div>`
+    html: renderEmail({
+      title: 'You were mentioned',
+      accent: '#0f766e',
+      preheader: subject,
+      intro: [
+        `Hello ${esc(recipientName || '')},`,
+        `<strong>${esc(who)}</strong> mentioned you in the discussion for <strong>${esc(projectName)}</strong>${count > 1 ? ` (${count} mentions)` : ''}.`
+      ],
+      bodyHtml: excerptHtml,
+      button: { url: link, label: 'Open the discussion' },
+      note: 'You are receiving this because you were mentioned by name.',
+      footerLink: { url: `${baseUrl}/admin/notifications/preferences`, label: 'Notification preferences' }
+    })
   });
 }
 
@@ -293,8 +279,15 @@ async function sendSubmissionNotification({ assessorEmail, projectName, submitte
   return safeSend({
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to: assessorEmail,
-    subject: `Evidence Submitted – ${projectName}`,
-    html: `<p>${submitterName} has submitted evidence for <strong>${projectName}</strong>. Please review the submission in the Aegis SA portal.</p>`
+    subject: `Evidence submitted – ${projectName}`,
+    html: renderEmail({
+      title: 'Evidence submitted',
+      preheader: `${submitterName} submitted evidence for ${projectName}.`,
+      intro: [
+        `<strong>${esc(submitterName)}</strong> has submitted evidence for <strong>${esc(projectName)}</strong>.`,
+        `Please review the submission in the Aegis SA portal.`
+      ]
+    })
   });
 }
 
@@ -303,7 +296,11 @@ async function sendATONotification({ to, projectName, atoType, message }) {
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to,
     subject: `${atoType} – ${projectName}`,
-    html: `<p>${message}</p>`
+    html: renderEmail({
+      title: `${esc(atoType)} — ${esc(projectName)}`,
+      preheader: `${atoType} for ${projectName}.`,
+      intro: [esc(message)]
+    })
   });
 }
 
