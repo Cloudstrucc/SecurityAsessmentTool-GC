@@ -6,6 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
 const QRCode = require('qrcode');
 const { UPLOAD_DIR, INTAKE_UPLOAD_DIR: intakeUploadDir, ensureUploadDirs } = require('../config/storage');
@@ -782,6 +783,73 @@ function ensureClientAuth(req, res, next) {
 }
 
 // ── CLIENT REGISTRATION ──
+
+// ── SELF-SERVICE ACCOUNT RECOVERY (forgot / reset password) ──────────────────
+// Recovers any existing account (including org-less / auto-created ones an admin
+// can't see) via a single-use, time-limited, hashed token emailed to the account.
+function trx(req, key, fallback) { return (req.t && req.t(key) !== key) ? req.t(key) : fallback; }
+function hashToken(token) { return crypto.createHash('sha256').update(String(token)).digest('hex'); }
+function findResetRow(token) {
+  if (!token) return null;
+  const row = get('SELECT * FROM password_resets WHERE token_hash = ? AND used_at IS NULL', [hashToken(token)]);
+  if (!row || new Date(row.expires_at) < new Date()) return null;
+  return row;
+}
+
+router.get('/forgot-password', (req, res) => {
+  res.render('public/forgot-password', { title: 'Reset password', prefillEmail: req.query.email || '' });
+});
+
+router.post('/forgot-password', async (req, res) => {
+  const email = String(req.body.email || '').toLowerCase().trim();
+  // Neutral response regardless of whether the account exists (anti-enumeration).
+  const neutral = trx(req, 'rec.sentIfExists', 'If an account exists for that email, we’ve sent a recovery link.');
+  if (email) {
+    try {
+      const user = get('SELECT id, email, name, is_active, is_break_glass FROM users WHERE lower(email) = lower(?)', [email]);
+      if (user && user.is_active && !user.is_break_glass) {
+        const token = crypto.randomBytes(32).toString('hex');
+        const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 60 minutes
+        run('UPDATE password_resets SET used_at = CURRENT_TIMESTAMP WHERE user_id = ? AND used_at IS NULL', [user.id]);
+        run('INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (?,?,?)', [user.id, hashToken(token), expires]);
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        await emailService.sendPasswordReset({ to: user.email, name: user.name, url: `${baseUrl}/reset-password/${token}`, lang: req.language });
+      }
+    } catch (e) { console.error('[recovery] request error:', e.message); }
+  }
+  req.flash('info', neutral);
+  res.redirect('/client/login');
+});
+
+router.get('/reset-password/:token', (req, res) => {
+  if (!findResetRow(req.params.token)) {
+    req.flash('error', trx(req, 'rec.invalidLink', 'This recovery link is invalid or has expired. Please request a new one.'));
+    return res.redirect('/forgot-password');
+  }
+  res.render('public/reset-password', { title: 'Choose a new password', token: req.params.token });
+});
+
+router.post('/reset-password/:token', (req, res) => {
+  const row = findResetRow(req.params.token);
+  if (!row) {
+    req.flash('error', trx(req, 'rec.invalidLink', 'This recovery link is invalid or has expired. Please request a new one.'));
+    return res.redirect('/forgot-password');
+  }
+  const { password, confirmPassword } = req.body;
+  const back = () => res.redirect('/reset-password/' + req.params.token);
+  if (!password || password.length < 10) { req.flash('error', trx(req, 'rec.pwTooShort', 'Password must be at least 10 characters.')); return back(); }
+  if (password !== confirmPassword) { req.flash('error', trx(req, 'rec.pwMismatch', 'Passwords do not match.')); return back(); }
+  const user = get('SELECT id, role FROM users WHERE id = ?', [row.user_id]);
+  if (!user) { req.flash('error', trx(req, 'rec.invalidLink', 'This recovery link is invalid or has expired. Please request a new one.')); return res.redirect('/forgot-password'); }
+  // Set the new password and force fresh MFA enrollment (matches admin reset).
+  run('UPDATE users SET password = ? WHERE id = ?', [bcrypt.hashSync(password, 12), user.id]);
+  run(`UPDATE users SET mfa_enabled = 0, totp_secret = NULL, webauthn_credential_id = NULL,
+       webauthn_public_key = NULL, webauthn_counter = 0, must_reenroll_mfa = 1 WHERE id = ?`, [user.id]);
+  run('UPDATE password_resets SET used_at = CURRENT_TIMESTAMP WHERE user_id = ? AND used_at IS NULL', [user.id]);
+  req.flash('success', trx(req, 'rec.success', 'Your password has been reset. Please sign in.'));
+  const dest = (user.role === 'assessor' || user.role === 'admin') ? '/admin/login' : '/client/login';
+  res.redirect(dest);
+});
 
 router.get('/client/register', (req, res) => {
   const inviteCode = req.query.invite || '';

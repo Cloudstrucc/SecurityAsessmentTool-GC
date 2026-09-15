@@ -2440,3 +2440,26 @@ test('assessment detail: read-only evidence, view/edit gate, and filter/CSV tool
   assert.match(detail.text, /id="evGateModal"/, 'ownership gate modal present');
   assert.match(detail.text, /No evidence provided yet\.|rv\.noEvidenceYet/, 'blank evidence shows a read-only placeholder');
 });
+
+test('self-service account recovery: forgot-password page, neutral response, and invalid-token handling', async () => {
+  const jar = new CookieJar();
+
+  // The forgot-password page renders with an email field.
+  const page = await getText(jar, '/forgot-password');
+  assert.match(page.text, /name="email"/, 'forgot-password form present');
+
+  // Requesting a reset for an unknown email is accepted and redirects to sign-in
+  // (neutral response — no account-existence disclosure).
+  const req = await request(jar, 'POST', '/forgot-password', { form: { email: `nobody-${Date.now()}@example.com` }, redirect: 'manual' });
+  assert.equal(req.status, 302, 'forgot-password POST redirects');
+  assert.match(req.headers.get('location') || '', /\/client\/login/, 'redirects to sign-in');
+
+  // A bad/expired token is rejected and bounced back to request a new link.
+  const bad = await request(jar, 'GET', '/reset-password/not-a-real-token', { redirect: 'manual' });
+  assert.equal(bad.status, 302);
+  assert.match(bad.headers.get('location') || '', /\/forgot-password/, 'invalid token returns to forgot-password');
+
+  // The sign-in pages expose the recovery entry point.
+  const clientLogin = await getText(jar, '/client/login');
+  assert.match(clientLogin.text, /href="\/forgot-password"/, 'client login links to recovery');
+});

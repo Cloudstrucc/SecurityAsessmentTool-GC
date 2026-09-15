@@ -310,6 +310,25 @@ async function sendMail(mailOptions) {
   return safeSend(mailOptions);
 }
 
+async function sendPasswordReset({ to, name, url, lang }) {
+  const { t, tp } = emailT(recipientLang(to, lang));
+  return safeSend({
+    from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+    to,
+    subject: tp('em.resetSubject'),
+    html: renderEmail({
+      title: tp('em.resetTitle'),
+      preheader: tp('em.resetPreheader'),
+      intro: [
+        name ? t('em.greetingDear', { name }) : t('em.greetingColleague'),
+        t('em.resetBody')
+      ],
+      button: { url, label: tp('em.resetButton') },
+      note: t('em.resetNote')
+    })
+  });
+}
+
 async function sendSubmissionNotification({ assessorEmail, projectName, submitterName, lang }) {
   const { t, tp } = emailT(recipientLang(assessorEmail, lang));
   return safeSend({
@@ -349,6 +368,7 @@ module.exports = {
   sendSubmissionNotification,
   sendATONotification,
   sendMentionNotification,
+  sendPasswordReset,
   sendMail,
   sendVia,
   sendRouted,

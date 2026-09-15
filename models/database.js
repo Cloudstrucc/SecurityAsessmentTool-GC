@@ -934,6 +934,16 @@ async function initDatabase() {
       read_at DATETIME,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`],
+    // Self-service password recovery: single-use, time-limited, hashed tokens.
+    ['password_resets', null, `CREATE TABLE IF NOT EXISTS password_resets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      token_hash TEXT NOT NULL,
+      expires_at DATETIME NOT NULL,
+      used_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )`],
     // Pre-assessment reviewer routing (Increment 5).
     ['self_assessments', 'reviewer_email', 'ALTER TABLE self_assessments ADD COLUMN reviewer_email TEXT'],
     ['self_assessments', 'reviewer_notified_at', 'ALTER TABLE self_assessments ADD COLUMN reviewer_notified_at DATETIME'],
