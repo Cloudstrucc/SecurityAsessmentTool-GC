@@ -254,7 +254,8 @@ function addFooters(doc, footerText) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // ASSESSMENT REPORT PDF
 // ═══════════════════════════════════════════════════════════════════════════════
-function generateAssessmentReport(assessment, controls, project, outputPath) {
+function generateAssessmentReport(assessment, controls, project, outputPath, options = {}) {
+  const brand = brandConfig(project, options);
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 50, size: 'LETTER', bufferPages: true });
     const stream = fs.createWriteStream(outputPath);
@@ -316,7 +317,7 @@ function generateAssessmentReport(assessment, controls, project, outputPath) {
       drawControlDetail(doc, control, true);
     });
 
-    addFooters(doc, `Government of Canada — ITSG-33 SA Report — ${project.name}`);
+    addFooters(doc, `${brand.organization} — ITSG-33 SA Report — ${project.name}`);
 
     doc.end();
     stream.on('finish', () => resolve(outputPath));
@@ -339,10 +340,14 @@ function generateATODocument(assessment, project, atoType, controls, outputPath,
     const title = isIATO ? 'Interim Authority to Operate (iATO)' : 'Authority to Operate (ATO)';
     const stats = computeStats(controls);
     const { poamItems = [], riskAcceptance = '', poamNotes = '' } = extras;
+    const brand = brandConfig(project, { branding: extras.branding, logoDir: extras.logoDir });
 
-    // ── Official header ──
+    // ── Official header (organization-branded) ──
     doc.rect(0, 0, doc.page.width, 90).fill(COLORS.navy);
-    doc.fontSize(11).fillColor('#aabbcc').text('GOVERNMENT OF CANADA', 50, 15, { width: doc.page.width - 100, align: 'center' });
+    if (brand.logoPath) {
+      try { doc.image(brand.logoPath, 50, 22, { fit: [54, 46], valign: 'center' }); } catch (err) { /* resilient */ }
+    }
+    doc.fontSize(11).fillColor('#aabbcc').text(String(brand.organization).toUpperCase(), 50, 15, { width: doc.page.width - 100, align: 'center' });
     doc.fontSize(20).fillColor(COLORS.white).text(title, 50, 35, { width: doc.page.width - 100, align: 'center' });
     doc.fontSize(10).fillColor('#aabbcc').text('ITSG-33 Security Assessment & Authorization', 50, 65, { width: doc.page.width - 100, align: 'center' });
 
@@ -394,7 +399,7 @@ function generateATODocument(assessment, project, atoType, controls, outputPath,
         `${stats.partial.length} partially met, and ${stats.notMet.length} not met. ` +
         `${stats.inherited.length} controls are inherited from shared infrastructure. ` +
         `${stats.evidenced.length} controls have documented evidence.\n\n` +
-        `This Authority to Operate authorizes the system for operational use within the Government of Canada, ` +
+        `This Authority to Operate authorizes the system for operational use within ${brand.organization}, ` +
         `subject to the conditions and residual risks documented herein. The system owner is responsible for ` +
         `maintaining the security posture and reporting any changes that may affect the security categorization.`,
         { lineGap: 2 }
@@ -532,7 +537,7 @@ function generateATODocument(assessment, project, atoType, controls, outputPath,
     doc.text('Departmental Security Officer', 320, sigY + 93);
     doc.text('Date: ____________________', 320, sigY + 108);
 
-    addFooters(doc, `Government of Canada — ${title} — ${project.name}`);
+    addFooters(doc, `${brand.organization} — ${title} — ${project.name}`);
 
     doc.end();
     stream.on('finish', () => resolve(outputPath));

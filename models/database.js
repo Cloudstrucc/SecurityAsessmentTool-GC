@@ -1105,6 +1105,8 @@ async function initDatabase() {
     ['users', 'nav_labels', "ALTER TABLE users ADD COLUMN nav_labels TEXT DEFAULT 'auto'"],
     // Record action-toolbar label mode: 'icons' (icon+tooltip, default) or 'text' (icon+label).
     ['users', 'action_labels', "ALTER TABLE users ADD COLUMN action_labels TEXT DEFAULT 'icons'"],
+    // Recipient language preference — used to localize outbound notification emails.
+    ['users', 'language', 'ALTER TABLE users ADD COLUMN language TEXT'],
   ];
 
   migrations.forEach(([table, column, sql]) => {

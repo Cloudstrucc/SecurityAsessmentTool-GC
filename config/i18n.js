@@ -42,6 +42,15 @@ function i18nMiddleware() { return i18nextMiddleware.handle(i18next); }
 function i18nLocals(req, res, next) {
   res.locals.lang = req.language || DEFAULT_LANG;
   res.locals.req = req;
+  // Persist an authenticated user's explicit language choice (?lang=xx) so
+  // async notification emails can be sent in their preferred language.
+  try {
+    const chosen = req.query && req.query.lang ? String(req.query.lang).toLowerCase().split('-')[0] : null;
+    if (chosen && req.user && req.user.id && SUPPORTED_LANGS.includes(chosen) && req.user.language !== chosen) {
+      require('../models/database').run('UPDATE users SET language = ? WHERE id = ?', [chosen, req.user.id]);
+      req.user.language = chosen;
+    }
+  } catch (e) { /* non-fatal: language persistence is best-effort */ }
   res.locals.supportedLangs = SUPPORTED_LANGS.map(code => ({
     code, name: langNames[code], short: code.toUpperCase(),
     active: code === (req.language || DEFAULT_LANG),

@@ -150,18 +150,17 @@ async function sendViaGraph(mailOptions) {
 }
 
 /** Send a test message to confirm the whole path works end to end. */
-async function sendTestGraph(to) {
-  const { renderEmail, esc } = require('./emailLayout');
+async function sendTestGraph(to, lang) {
+  const { renderEmail } = require('./emailLayout');
+  const { emailT } = require('./emailI18n');
+  const { t, tp } = emailT(lang);
   return sendViaGraph({
     to,
-    subject: 'Aegis SA — Microsoft Graph email test',
+    subject: tp('em.graphTestSubject'),
     html: renderEmail({
-      title: 'Microsoft Graph email works',
-      preheader: 'Graph app-only email is configured correctly.',
-      intro: [
-        '✅ Microsoft Graph email is working.',
-        `This test was sent as <strong>${esc(sender())}</strong> using app-only Graph <code>Mail.Send</code>.`
-      ]
+      title: tp('em.graphTestTitle'),
+      preheader: tp('em.graphTestBody1'),
+      intro: [t('em.graphTestBody1'), t('em.graphTestBody2', { sender: sender() })]
     })
   });
 }

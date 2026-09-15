@@ -106,7 +106,7 @@ router.post('/organization/smtp/test', access.ensureOrgAdmin, async (req, res) =
   const cfg = orgSettings.smtpConfig(orgSettings.getSettings(org && org.id));
   if (!cfg) { req.flash('error', 'Save and enable SMTP settings before testing.'); return res.redirect('/admin/organization#smtp'); }
   const to = (req.body.test_to || req.user.email || '').trim();
-  const result = await emailService.sendTestEmail(cfg, to);
+  const result = await emailService.sendTestEmail(cfg, to, req.language);
   checks.recordResult(org.id, 'smtp', {
     ok: !!result.sent,
     message: result.sent ? `Test email delivered to ${to}.` : `Test email failed: ${result.error}`,
@@ -124,7 +124,7 @@ router.post('/organization/graph/test', access.ensureOrgAdmin, async (req, res) 
     return res.redirect('/admin/organization#smtp');
   }
   const to = (req.body.test_to || req.user.email || '').trim();
-  const result = await emailService.sendTestGraph(to);
+  const result = await emailService.sendTestGraph(to, req.language);
   if (result.sent) {
     req.flash('success', req.t ? req.t('ui.graphTestSent', { to }) : `Test email sent to ${to}.`);
   } else {

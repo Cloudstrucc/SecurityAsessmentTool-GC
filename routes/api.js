@@ -948,31 +948,33 @@ router.post('/self-assessment/submit', express.json({ limit: '4mb' }), (req, res
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       const hasAccount = get('SELECT id FROM users WHERE email = ? AND is_active = 1', [reviewer]);
       const who = name || req.user?.name || 'A colleague';
-      const { renderEmail, esc } = require('../utils/emailLayout');
+      const { renderEmail } = require('../utils/emailLayout');
+      const { emailT } = require('../utils/emailI18n');
+      const { t, tp } = emailT(emailService.recipientLang(reviewer));
       emailService.sendMail(hasAccount ? {
         from: process.env.EMAIL_FROM || process.env.SMTP_USER,
         to: reviewer,
-        subject: `Pre-assessment ready for review — ${refCode}`,
+        subject: tp('em.preReadySubject', { ref: refCode }),
         html: renderEmail({
-          title: 'Pre-assessment ready for review',
-          preheader: `${who} shared pre-assessment ${refCode}.`,
-          intro: [`${esc(who)} shared a security pre-assessment (<strong>${esc(refCode)}</strong>) for your review.`],
-          button: { url: `${baseUrl}/admin/self-assessments`, label: 'Open it in the portal' },
-          note: 'Review it and, if appropriate, convert it to a project.'
+          title: tp('em.preReadyTitle'),
+          preheader: tp('em.preReadySubject', { ref: refCode }),
+          intro: [t('em.preReadyBody', { who, ref: refCode })],
+          button: { url: `${baseUrl}/admin/self-assessments`, label: tp('em.preOpen') },
+          note: t('em.preReadyNote')
         })
       } : {
         from: process.env.EMAIL_FROM || process.env.SMTP_USER,
         to: reviewer,
-        subject: `You're invited to review a pre-assessment — ${refCode}`,
+        subject: tp('em.preInviteSubject', { ref: refCode }),
         html: renderEmail({
-          title: 'Review a pre-assessment',
-          preheader: `${who} would like you to review pre-assessment ${refCode}.`,
+          title: tp('em.preInviteTitle'),
+          preheader: tp('em.preInviteSubject', { ref: refCode }),
           intro: [
-            `${esc(who)} shared a security pre-assessment (<strong>${esc(refCode)}</strong>) and would like you to review it.`,
-            'Create an account to review and proceed:'
+            t('em.preInviteBody1', { who, ref: refCode }),
+            t('em.preInviteBody2')
           ],
-          button: { url: `${baseUrl}/register?plan=trial`, label: 'Start a free trial' },
-          note: `Or <a href="${esc(baseUrl)}/pricing">see plans</a>.`
+          button: { url: `${baseUrl}/register?plan=trial`, label: tp('em.preTrial') },
+          footerLink: { url: `${baseUrl}/pricing`, label: tp('em.seePlans') }
         })
       }).catch(() => {});
     }

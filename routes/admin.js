@@ -2436,7 +2436,9 @@ router.get('/decision-packages/:id/export-pdf', ensureAuthenticated, async (req,
     await pdfExport.generateATODocument(merged, project, dp.decision_type || 'ato', controls, outputPath, {
       poamItems: extra.poam || [],
       riskAcceptance: dp.residual_risk_statement || '',
-      poamNotes: dp.decision_rationale || ''
+      poamNotes: dp.decision_rationale || '',
+      branding: reportBranding.resolve({ projectId: project.id, organizationId: project.organization_id }),
+      logoDir: brandingUploadDir
     });
 
     res.download(outputPath, `${dp.reference || 'decision-package'}.pdf`, err => {
@@ -3198,7 +3200,10 @@ router.get('/assessments/:id/export-pdf', ensureAuthenticated, async (req, res) 
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
     const outputPath = path.join(outputDir, `sa-report-${assessment.id}-${Date.now()}.pdf`);
 
-    await pdfExport.generateAssessmentReport(assessment, controls, assessment, outputPath);
+    await pdfExport.generateAssessmentReport(assessment, controls, assessment, outputPath, {
+      branding: reportBranding.resolve({ projectId: assessment.project_id, organizationId: assessment.organization_id }),
+      logoDir: brandingUploadDir
+    });
     res.download(outputPath);
   } catch (err) {
     console.error(err);

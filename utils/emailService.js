@@ -1,6 +1,31 @@
 const nodemailer = require('nodemailer');
 const graphMailer = require('./graphMailer');
 const { renderEmail, esc } = require('./emailLayout');
+const { emailT, SUPPORTED_LANGS, DEFAULT_LANG } = require('./emailI18n');
+
+/**
+ * Resolve the language to send a message in. Explicit `lang` wins; otherwise
+ * we look up the recipient's saved preference by email; otherwise English.
+ */
+function recipientLang(email, explicit) {
+  if (explicit && SUPPORTED_LANGS.includes(explicit)) return explicit;
+  try {
+    const { get } = require('../models/database');
+    const u = get('SELECT language FROM users WHERE lower(email) = lower(?)', [String(email || '')]);
+    if (u && u.language && SUPPORTED_LANGS.includes(u.language)) return u.language;
+  } catch (e) { /* fall back to default */ }
+  return DEFAULT_LANG;
+}
+
+/** Localized entity noun for assignment emails; unknown types pass through. */
+function entityLabel(tp, entityType) {
+  const map = {
+    'assessment': 'em.entityAssessment', 'project': 'em.entityProject',
+    'decision package': 'em.entityDecisionPackage', 'poam': 'em.entityPoam', 'poa&m': 'em.entityPoam'
+  };
+  const key = map[String(entityType || '').toLowerCase()];
+  return key ? tp(key) : String(entityType || '');
+}
 
 let transporter = null;
 let emailConfigured = false;
@@ -141,17 +166,15 @@ async function sendVia(cfg, mailOptions) {
 }
 
 /** Validate a tenant SMTP config by sending a test message. */
-async function sendTestEmail(cfg, to) {
+async function sendTestEmail(cfg, to, lang) {
+  const { t, tp } = emailT(recipientLang(to, lang));
   return sendVia(cfg, {
     to,
-    subject: 'Aegis SA — SMTP test',
+    subject: tp('em.smtpTestSubject'),
     html: renderEmail({
-      title: 'SMTP test successful',
-      preheader: 'Your custom SMTP configuration works.',
-      intro: [
-        '✅ Your custom SMTP configuration works.',
-        "This test message was sent from Aegis SA using your organization's mail server."
-      ]
+      title: tp('em.smtpTestTitle'),
+      preheader: tp('em.smtpTestBody1'),
+      intro: [t('em.smtpTestBody1'), t('em.smtpTestBody2')]
     })
   });
 }
@@ -165,71 +188,80 @@ async function sendRouted(smtpConfig, mailOptions) {
   return safeSend(mailOptions);
 }
 
-async function sendInvite({ to, recipientName, projectName, inviteCode, expiresAt, assessorName, baseUrl, smtpConfig }) {
+async function sendInvite({ to, recipientName, projectName, inviteCode, expiresAt, assessorName, baseUrl, smtpConfig, lang }) {
   const url = `${baseUrl}/respond/${inviteCode}`;
   const send = smtpConfig ? (opts) => sendVia(smtpConfig, opts) : safeSend;
+  const { t, tp } = emailT(recipientLang(to, lang));
+  const date = new Date(expiresAt).toLocaleDateString('en-CA');
   return send({
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to,
-    subject: `Security assessment evidence request – ${projectName}`,
+    subject: tp('em.inviteSubject', { project: projectName }),
     html: renderEmail({
-      title: 'Evidence request',
-      preheader: `Provide security evidence for ${projectName}.`,
+      title: tp('em.inviteTitle'),
+      preheader: tp('em.invitePreheader', { project: projectName }),
       intro: [
-        `Dear ${esc(recipientName)},`,
-        `You have been invited to provide security evidence for <strong>${esc(projectName)}</strong> as part of the Security Assessment &amp; Authorization (SA&amp;A) process.`,
-        `Your access code:`
+        recipientName ? t('em.greetingDear', { name: recipientName }) : t('em.greetingColleague'),
+        t('em.inviteBody', { project: projectName }),
+        t('em.accessCode')
       ],
       code: inviteCode,
-      button: { url, label: 'Open the assessment portal' },
-      note: `This invitation expires on ${esc(new Date(expiresAt).toLocaleDateString('en-CA'))}. If you have questions, please contact ${esc(assessorName)}.`
+      button: { url, label: tp('em.openPortal') },
+      note: t('em.inviteExpiry', { date, contact: assessorName })
     })
   });
 }
 
-async function sendUserInvitation({ to, recipientName, inviteCode, invitedByName, role, organization, baseUrl, message, smtpConfig }) {
+async function sendUserInvitation({ to, recipientName, inviteCode, invitedByName, role, organization, baseUrl, message, smtpConfig, lang }) {
   const isAssessor = role === 'assessor';
   const path = isAssessor ? '/admin/register' : (role === 'member' ? '/redeem' : '/client/register');
   const url = role === 'member' ? `${baseUrl}/redeem/${inviteCode}` : `${baseUrl}${path}?invite=${inviteCode}`;
-  const roleLabel = role === 'member' ? 'team member' : (isAssessor ? 'assessor' : 'client');
   const send = smtpConfig ? (opts) => sendVia(smtpConfig, opts) : safeSend;
+  const { t, tp } = emailT(recipientLang(to, lang));
+  const roleLabel = tp(role === 'member' ? 'em.roleMember' : (isAssessor ? 'em.roleAssessor' : 'em.roleClient'));
+  const inviter = invitedByName || tp('em.someone');
 
   return send({
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to,
-    subject: `Invitation to join the Security Assessment Portal`,
+    subject: tp('em.userInviteSubject'),
     html: renderEmail({
-      title: 'You’re invited',
-      preheader: `Join the Security Assessment Portal as a ${roleLabel}.`,
+      title: tp('em.userInviteTitle'),
+      preheader: tp('em.userInvitePreheader', { role: roleLabel }),
       intro: [
-        `Dear ${esc(recipientName || 'colleague')},`,
-        `${esc(invitedByName || 'An assessor')} has invited you to join the portal as a <strong>${esc(roleLabel)}</strong>${organization ? ` for <strong>${esc(organization)}</strong>` : ''}.`,
+        recipientName ? t('em.greetingDear', { name: recipientName }) : t('em.greetingColleague'),
+        organization
+          ? t('em.userInviteBodyOrg', { inviter, role: roleLabel, org: organization })
+          : t('em.userInviteBody', { inviter, role: roleLabel }),
         ...(message ? [esc(message)] : []),
-        `Your invitation code:`
+        t('em.invitationCode')
       ],
       code: inviteCode,
-      button: { url, label: 'Create your account' }
+      button: { url, label: tp('em.createAccount') }
     })
   });
 }
 
-async function sendAssignmentNotification({ to, recipientName, entityType, entityName, assignedByName, baseUrl, message, link, smtpConfig }) {
+async function sendAssignmentNotification({ to, recipientName, entityType, entityName, assignedByName, baseUrl, message, link, smtpConfig, lang }) {
   const url = link ? `${baseUrl}${link}` : `${baseUrl}/admin/dashboard`;
   const send = smtpConfig ? (opts) => sendVia(smtpConfig, opts) : safeSend;
+  const { t, tp } = emailT(recipientLang(to, lang));
+  const entity = entityLabel(tp, entityType);
+  const assigner = assignedByName || tp('em.someone');
   return send({
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to,
-    subject: `Assigned to ${entityType}: ${entityName}`,
+    subject: tp('em.assignSubject', { entity, name: entityName }),
     html: renderEmail({
-      title: `New ${esc(entityType)} assignment`,
-      preheader: `${assignedByName || 'An assessor'} assigned you to ${entityName}.`,
+      title: tp('em.assignTitle', { entity }),
+      preheader: tp('em.assignPreheader', { assigner, name: entityName }),
       intro: [
-        `Dear ${esc(recipientName || 'colleague')},`,
-        `${esc(assignedByName || 'An assessor')} assigned you to the ${esc(entityType)} <strong>${esc(entityName)}</strong>.`,
+        recipientName ? t('em.greetingDear', { name: recipientName }) : t('em.greetingColleague'),
+        t('em.assignBody', { assigner, entity, name: entityName }),
         ...(message ? [esc(message)] : [])
       ],
-      button: { url, label: `Open the ${esc(entityType)}` },
-      note: `If the button doesn’t work, paste this link into your browser:<br><span style="word-break:break-all">${esc(url)}</span>`
+      button: { url, label: tp('em.openEntity', { entity }) },
+      note: `${t('em.pasteLink')}<br><span style="word-break:break-all">${esc(url)}</span>`
     })
   });
 }
@@ -239,13 +271,14 @@ async function sendAssignmentNotification({ to, recipientName, entityType, entit
  * information, so message text is included only when the tenant has explicitly
  * opted in (org_settings.notify_mention_excerpt).
  */
-async function sendMentionNotification({ to, recipientName, projectName, count, authors, link, excerpts = [], baseUrl = '' }) {
+async function sendMentionNotification({ to, recipientName, projectName, count, authors, link, excerpts = [], baseUrl = '', lang }) {
+  const { t, tp } = emailT(recipientLang(to, lang));
   const who = (authors && authors.length)
-    ? (authors.length === 1 ? authors[0] : `${authors[0]} and ${authors.length - 1} other(s)`)
-    : 'Someone';
+    ? (authors.length === 1 ? authors[0] : tp('em.whoOthers', { first: authors[0], n: authors.length - 1 }))
+    : tp('em.someone');
   const subject = count > 1
-    ? `You were mentioned ${count} times in ${projectName}`
-    : `${who} mentioned you in ${projectName}`;
+    ? tp('em.mentionSubjectMany', { count, project: projectName })
+    : tp('em.mentionSubjectOne', { who, project: projectName });
   const excerptHtml = (excerpts && excerpts.length)
     ? `<div style="margin:6px 0 4px;padding:12px 14px;background:#f0faf8;border-left:3px solid #0f766e;border-radius:6px;color:#334155">
          ${excerpts.map(e => `<p style="margin:0 0 8px">${esc(e)}</p>`).join('')}
@@ -256,17 +289,19 @@ async function sendMentionNotification({ to, recipientName, projectName, count, 
     to,
     subject,
     html: renderEmail({
-      title: 'You were mentioned',
+      title: tp('em.mentionTitle'),
       accent: '#0f766e',
       preheader: subject,
       intro: [
-        `Hello ${esc(recipientName || '')},`,
-        `<strong>${esc(who)}</strong> mentioned you in the discussion for <strong>${esc(projectName)}</strong>${count > 1 ? ` (${count} mentions)` : ''}.`
+        recipientName ? t('em.greetingHello', { name: recipientName }) : t('em.greetingColleague'),
+        count > 1
+          ? t('em.mentionBodyMany', { who, project: projectName, count })
+          : t('em.mentionBody', { who, project: projectName })
       ],
       bodyHtml: excerptHtml,
-      button: { url: link, label: 'Open the discussion' },
-      note: 'You are receiving this because you were mentioned by name.',
-      footerLink: { url: `${baseUrl}/admin/notifications/preferences`, label: 'Notification preferences' }
+      button: { url: link, label: tp('em.openDiscussion') },
+      note: t('em.mentionNote'),
+      footerLink: { url: `${baseUrl}/admin/notifications/preferences`, label: tp('em.notificationPreferences') }
     })
   });
 }
@@ -275,30 +310,32 @@ async function sendMail(mailOptions) {
   return safeSend(mailOptions);
 }
 
-async function sendSubmissionNotification({ assessorEmail, projectName, submitterName }) {
+async function sendSubmissionNotification({ assessorEmail, projectName, submitterName, lang }) {
+  const { t, tp } = emailT(recipientLang(assessorEmail, lang));
   return safeSend({
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to: assessorEmail,
-    subject: `Evidence submitted – ${projectName}`,
+    subject: tp('em.submissionSubject', { project: projectName }),
     html: renderEmail({
-      title: 'Evidence submitted',
-      preheader: `${submitterName} submitted evidence for ${projectName}.`,
+      title: tp('em.submissionTitle'),
+      preheader: tp('em.submissionSubject', { project: projectName }),
       intro: [
-        `<strong>${esc(submitterName)}</strong> has submitted evidence for <strong>${esc(projectName)}</strong>.`,
-        `Please review the submission in the Aegis SA portal.`
+        t('em.submissionBody', { submitter: submitterName, project: projectName }),
+        t('em.submissionReview')
       ]
     })
   });
 }
 
-async function sendATONotification({ to, projectName, atoType, message }) {
+async function sendATONotification({ to, projectName, atoType, message, lang }) {
+  const { tp } = emailT(recipientLang(to, lang));
   return safeSend({
     from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to,
-    subject: `${atoType} – ${projectName}`,
+    subject: tp('em.atoSubject', { atoType, project: projectName }),
     html: renderEmail({
-      title: `${esc(atoType)} — ${esc(projectName)}`,
-      preheader: `${atoType} for ${projectName}.`,
+      title: tp('em.atoTitle', { atoType, project: projectName }),
+      preheader: tp('em.atoSubject', { atoType, project: projectName }),
       intro: [esc(message)]
     })
   });
@@ -317,6 +354,7 @@ module.exports = {
   sendRouted,
   ambientOrgSmtp,
   sendTestEmail,
+  recipientLang,
   verifyTransport,
   // Microsoft Graph (app-only) sender
   graphConfigured: graphMailer.graphConfigured,
