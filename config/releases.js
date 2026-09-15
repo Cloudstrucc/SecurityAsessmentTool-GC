@@ -28,6 +28,30 @@ function md(body) {
 // ── Curated backfill (last ~3 months). Four majors: 1.0.0, 2.0.0, 3.0.0, 4.0.0 ──
 // commit = the tag anchor for the backfill script. body = the GitHub release body.
 const CURATED = [
+  { version: '6.0.0', date: '2026-09-15', commit: 'cf706b4',
+    name: 'Enterprise email delivery & world-ready notifications', prs: [],
+    body: `A major release focused on how Aegis SA **communicates**: modern-auth email delivery through Microsoft 365, notifications and the end-to-end tutorial fully localized into all 8 languages, organization-branded reports (no country-specific chrome), and clearer AI error handling.
+
+### ✨ Features
+- **Microsoft Graph (app-only) email delivery** — send all notifications as a shared mailbox via Graph \`Mail.Send\`, with no SMTP AUTH, no user sign-in, no refresh token, and no mailbox licence. Configured with \`GRAPH_TENANT_ID\` / \`GRAPH_CLIENT_ID\` / \`GRAPH_CLIENT_SECRET\` / \`GRAPH_SENDER\`; startup verification and a one-click **"Send Graph test"** button in Organization settings. SMTP (basic + OAuth2) remains supported as a fallback.
+- **Recipient-language notifications** — every email (invites, user invitations, assignment, mention digests, evidence submitted, ATO/iATO, pre-assessment review, and the test emails) is now sent in the **recipient's language**, resolved from a new saved per-user language preference. Localized across **en, fr, es, de, pt, it, nl, ja**.
+- **Redesigned email template** — one consistent, responsive, email-client-safe layout (preheader, bulletproof CTA button, access-code pill, uniform header/footer) shared by every message.
+- **Organization-branded reports** — the ITSG-33 assessment report and the ATO/iATO document now carry the **resolved organization name and logo** (project → org → platform default) instead of hardcoded country/government wording.
+- **Filterable, exportable control list** on the assessment record (carried in from 5.1): filter by state, fuzzy search, and CSV export of exactly the filtered controls.
+
+### 🌐 Internationalization
+- The **end-to-end tutorial** in Help is fully translated into all 8 languages (six-phase, click-by-click walkthrough).
+- Country/government-specific wording removed from emails and reports in favour of neutral, organization-driven branding.
+
+### 🛠 Fixes & hardening
+- AI provider **auth/rate-limit failures now show a friendly, localized hint** ("the key was rejected — check Organization settings") instead of the raw provider JSON; real diagnostics are preserved for other errors.
+- Deploy script now syncs the new mail secrets (\`GRAPH_*\`, \`SMTP_OAUTH_*\`) to Azure App Settings from the environment file.
+
+### ⚙️ Upgrade notes
+- New database column \`users.language\` is added automatically by the startup migration — no manual step.
+- To enable Graph email, set the \`GRAPH_*\` variables in each environment's \`.env\` and redeploy; the sender mailbox must be scoped to the app via an Exchange Application Access Policy.
+- No breaking API changes for existing SMTP configurations; Graph is used only when \`GRAPH_*\` is configured.` },
+
   { version: '5.1.0', date: '2026-09-08', commit: 'b0de88d',
     name: 'Read-only evidence, ownership gate & a filterable control list', prs: [],
     body: `A safer, clearer assessor record — evidence always visible read-only, editing gated behind assignment, a filter/search/CSV toolbar over the control list — plus a comprehensive click-by-click tutorial and polished toolbars.
