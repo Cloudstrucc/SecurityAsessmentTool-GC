@@ -4055,5 +4055,7 @@
   "ru.selectHelp": "Selecteer om dit control terug te sturen voor bijwerken",
   "ru.sendBtn": "Terugsturen voor bijwerken",
   "ru.sent": "{{n}} control(s) teruggestuurd voor bijwerken en de toegewezen persoon is op de hoogte gebracht.",
-  "st.reactivated": "Opnieuw geactiveerd voor herindiening"
+  "st.reactivated": "Opnieuw geactiveerd voor herindiening",
+  "ru.modalTitle": "Controls terugsturen voor bijwerken",
+  "ru.modalHelp": "Voeg een optionele notitie toe per control waarin je uitlegt wat er moet veranderen. De toegewezen persoon ziet de notitie naast het control."
 }

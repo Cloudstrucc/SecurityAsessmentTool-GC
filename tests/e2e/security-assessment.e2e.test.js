@@ -2482,9 +2482,9 @@ test('assessor sends individual control(s) back for update — reopens as reacti
   const blocked = await (await request(jar, 'POST', `/respond/${code}/save/${cid}`, { json: { evidence_text: 'y', evidence_html: '<p>y</p>' } })).json();
   assert.equal(blocked.success, false, 'evidence is locked after submit');
 
-  // Assessor sends the control back for update with a note.
+  // Assessor sends the control back for update with a per-control note.
   const ru = await request(jar, 'POST', `/admin/assessments/${assessmentId}/request-updates`,
-    { form: { control_ids: String(cid), resubmit_note: 'Please add the config export' }, redirect: 'manual' });
+    { form: { control_ids: String(cid), notes_json: JSON.stringify({ [cid]: 'Please add the config export' }) }, redirect: 'manual' });
   assert.equal(ru.status, 302, 'request-updates redirects');
 
   // Assessment record now shows the reactivated state.

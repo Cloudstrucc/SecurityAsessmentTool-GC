@@ -1650,32 +1650,64 @@ window.AIAssistConfig = {
 </script>
 
 {{#if canRequestUpdates}}{{#unless viewingVersion}}
-<!-- Send selected control(s) back to the assignee for update -->
-<div id="ruBar" class="position-fixed bottom-0 start-50 translate-middle-x mb-3 shadow rounded bg-white border p-3" style="z-index:1080;min-width:340px;max-width:560px;display:none">
-  <div class="d-flex align-items-center gap-2 mb-2">
-    <span class="badge text-bg-warning"><i class="bi bi-arrow-repeat me-1"></i><span id="ruCount">0</span></span>
-    <span class="small fw-semibold">{{t 'ru.barTitle'}}</span>
-    <button type="button" class="btn-close ms-auto" aria-label="Close" onclick="ruClear()"></button>
-  </div>
-  <textarea id="ruNote" class="form-control form-control-sm mb-2" rows="2" placeholder="{{t 'ru.notePlaceholder'}}"></textarea>
-  <div class="d-flex justify-content-end gap-2">
-    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="ruClear()">{{t 'ui.cancel'}}</button>
-    <button type="button" class="btn btn-sm btn-warning" onclick="ruSend()"><i class="bi bi-send me-1"></i>{{t 'ru.sendBtn'}}</button>
+<!-- Send selected control(s) back to the assignee for update (with a note per control) -->
+<div id="ruBar" class="position-fixed bottom-0 start-50 translate-middle-x mb-3 shadow rounded bg-white border p-2 px-3 d-flex align-items-center gap-2" style="z-index:1080;display:none">
+  <span class="badge text-bg-warning"><i class="bi bi-arrow-repeat me-1"></i><span id="ruCount">0</span></span>
+  <span class="small fw-semibold">{{t 'ru.barTitle'}}</span>
+  <button type="button" class="btn btn-sm btn-warning ms-2" onclick="ruOpen()"><i class="bi bi-send me-1"></i>{{t 'ru.sendBtn'}}</button>
+  <button type="button" class="btn-close ms-1" aria-label="Close" onclick="ruClear()"></button>
+</div>
+
+<div class="modal fade" id="ruModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-arrow-repeat me-2"></i>{{t 'ru.modalTitle'}}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small">{{t 'ru.modalHelp'}}</p>
+        <div id="ruModalRows"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{t 'ui.cancel'}}</button>
+        <button type="button" class="btn btn-warning" onclick="ruSend()"><i class="bi bi-send me-1"></i>{{t 'ru.sendBtn'}}</button>
+      </div>
+    </div>
   </div>
 </div>
+
 <form id="ruForm" method="POST" action="/admin/assessments/{{assessment.id}}/request-updates" class="d-none">
   <input type="hidden" name="control_ids" id="ruIds">
-  <input type="hidden" name="resubmit_note" id="ruNoteField">
+  <input type="hidden" name="notes_json" id="ruNotesJson">
 </form>
 <script>
 (function(){
-  function ids(){ return [].slice.call(document.querySelectorAll('.ru-select:checked')).map(function(b){return b.getAttribute('data-cid');}); }
-  window.ruUpdateBar=function(){ var n=ids().length; var bar=document.getElementById('ruBar'); document.getElementById('ruCount').textContent=n; bar.style.display=n?'block':'none'; };
-  window.ruClear=function(){ document.querySelectorAll('.ru-select:checked').forEach(function(b){b.checked=false;}); var t=document.getElementById('ruNote'); if(t) t.value=''; ruUpdateBar(); };
+  var NOTE_PH = {{{tjs 'ru.notePlaceholder'}}};
+  function selected(){
+    return [].slice.call(document.querySelectorAll('.ru-select:checked')).map(function(b){
+      var card=b.closest('.control-card');
+      return { id:b.getAttribute('data-cid'),
+               label:((card&&card.getAttribute('data-ctrlid'))||'')+' — '+((card&&card.getAttribute('data-title'))||'') };
+    });
+  }
+  window.ruUpdateBar=function(){ var n=document.querySelectorAll('.ru-select:checked').length; var bar=document.getElementById('ruBar'); document.getElementById('ruCount').textContent=n; bar.style.display=n?'flex':'none'; };
+  window.ruClear=function(){ document.querySelectorAll('.ru-select:checked').forEach(function(b){b.checked=false;}); ruUpdateBar(); };
+  window.ruOpen=function(){
+    var sel=selected(); if(!sel.length) return;
+    document.getElementById('ruModalRows').innerHTML = sel.map(function(s){
+      return '<div class="mb-3"><label class="form-label small fw-semibold mb-1">'+
+        s.label.replace(/[<>&]/g,function(c){return({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]);})+
+        '</label><textarea class="form-control form-control-sm ru-note" rows="2" data-note-for="'+s.id+'" placeholder="'+NOTE_PH.replace(/"/g,'&quot;')+'"></textarea></div>';
+    }).join('');
+    try { new bootstrap.Modal(document.getElementById('ruModal')).show(); } catch(e){ ruSend(); }
+  };
   window.ruSend=function(){
-    var sel=ids(); if(!sel.length) return;
-    document.getElementById('ruIds').value=sel.join(',');
-    document.getElementById('ruNoteField').value=(document.getElementById('ruNote').value||'').trim();
+    var sel=selected(); if(!sel.length) return;
+    var notes={};
+    document.querySelectorAll('.ru-note').forEach(function(t){ var v=(t.value||'').trim(); if(v) notes[t.getAttribute('data-note-for')]=v; });
+    document.getElementById('ruIds').value=sel.map(function(s){return s.id;}).join(',');
+    document.getElementById('ruNotesJson').value=JSON.stringify(notes);
     document.getElementById('ruForm').submit();
   };
 })();

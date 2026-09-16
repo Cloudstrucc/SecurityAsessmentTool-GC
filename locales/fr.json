@@ -4077,5 +4077,7 @@
   "ru.selectHelp": "Sélectionner pour renvoyer ce contrôle pour mise à jour",
   "ru.sendBtn": "Renvoyer pour mise à jour",
   "ru.sent": "{{n}} contrôle(s) renvoyé(s) pour mise à jour et la personne attribuée a été notifiée.",
-  "st.reactivated": "Réactivée pour nouvelle soumission"
+  "st.reactivated": "Réactivée pour nouvelle soumission",
+  "ru.modalTitle": "Renvoyer des contrôles pour mise à jour",
+  "ru.modalHelp": "Ajoutez une note facultative pour chaque contrôle expliquant ce qui doit changer. La personne attribuée verra la note à côté du contrôle."
 }

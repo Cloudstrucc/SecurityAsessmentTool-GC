@@ -4034,5 +4034,7 @@
   "ru.selectHelp": "Select to send this control back for update",
   "ru.sendBtn": "Send for update",
   "ru.sent": "Sent {{n}} control(s) for update and notified the assignee.",
-  "st.reactivated": "Reactivated for re-submission"
+  "st.reactivated": "Reactivated for re-submission",
+  "ru.modalTitle": "Send controls back for update",
+  "ru.modalHelp": "Add an optional note for each control explaining what needs to change. The assignee will see the note next to the control."
 }

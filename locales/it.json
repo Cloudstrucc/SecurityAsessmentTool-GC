@@ -4055,5 +4055,7 @@
   "ru.selectHelp": "Seleziona per rinviare questo controllo per l’aggiornamento",
   "ru.sendBtn": "Invia per aggiornamento",
   "ru.sent": "{{n}} controllo/i inviato/i per l’aggiornamento e persona assegnata notificata.",
-  "st.reactivated": "Riattivata per nuovo invio"
+  "st.reactivated": "Riattivata per nuovo invio",
+  "ru.modalTitle": "Rinviare i controlli per l’aggiornamento",
+  "ru.modalHelp": "Aggiungi una nota facoltativa per ogni controllo che spieghi cosa deve cambiare. La persona assegnata vedrà la nota accanto al controllo."
 }

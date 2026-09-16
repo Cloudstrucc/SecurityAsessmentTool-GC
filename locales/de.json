@@ -4055,5 +4055,7 @@
   "ru.selectHelp": "Auswählen, um dieses Control zur Aktualisierung zurückzusenden",
   "ru.sendBtn": "Zur Aktualisierung senden",
   "ru.sent": "{{n}} Control(s) zur Aktualisierung zurückgesendet und die zugewiesene Person benachrichtigt.",
-  "st.reactivated": "Zur erneuten Einreichung reaktiviert"
+  "st.reactivated": "Zur erneuten Einreichung reaktiviert",
+  "ru.modalTitle": "Controls zur Aktualisierung zurücksenden",
+  "ru.modalHelp": "Fügen Sie für jedes Control eine optionale Notiz hinzu, die erklärt, was geändert werden muss. Die zugewiesene Person sieht die Notiz neben dem Control."
 }

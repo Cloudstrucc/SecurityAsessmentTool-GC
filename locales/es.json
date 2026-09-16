@@ -4077,5 +4077,7 @@
   "ru.selectHelp": "Seleccionar para devolver este control para actualización",
   "ru.sendBtn": "Enviar a actualización",
   "ru.sent": "Se enviaron {{n}} control(es) para actualización y se notificó a la persona asignada.",
-  "st.reactivated": "Reactivada para reenvío"
+  "st.reactivated": "Reactivada para reenvío",
+  "ru.modalTitle": "Devolver controles para actualización",
+  "ru.modalHelp": "Agrega una nota opcional para cada control explicando qué debe cambiar. La persona asignada verá la nota junto al control."
 }

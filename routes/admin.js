@@ -811,7 +811,7 @@ async function activateAndSendInvite(req, assessmentId, { sendEmail = true } = {
  * and moves the assessment to the 'reactivated' status. `controlIds` empty/omitted
  * means the whole assessment (all applicable controls). Returns the count reopened.
  */
-function reopenForResubmission(assessmentId, { controlIds, note } = {}) {
+function reopenForResubmission(assessmentId, { controlIds, note, notesById } = {}) {
   const ids = Array.isArray(controlIds) ? controlIds.map(Number).filter(Boolean) : null;
   let targets;
   if (ids && ids.length) {
@@ -819,8 +819,11 @@ function reopenForResubmission(assessmentId, { controlIds, note } = {}) {
   } else {
     targets = all('SELECT id FROM assessment_controls WHERE assessment_id = ? AND is_applicable = 1', [assessmentId]);
   }
-  const noteVal = (note && String(note).trim()) ? String(note).trim() : null;
+  const clean = v => (v && String(v).trim()) ? String(v).trim() : null;
+  const shared = clean(note);
   targets.forEach(t => {
+    const per = notesById && (notesById[t.id] != null ? notesById[t.id] : notesById[String(t.id)]);
+    const noteVal = clean(per) || shared;   // per-control note wins, else the shared/whole note
     run(`UPDATE assessment_controls
          SET review_status = 'needs-resubmission', evidence_ready = 0,
              resubmit_note = ?, resubmit_requested_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
@@ -3103,7 +3106,11 @@ router.post('/assessments/:id/request-updates', ensureAuthenticated, async (req,
       req.flash('error', req.t ? req.t('ru.noneSelected') : 'Select at least one control to send for update.');
       return res.redirect(`/admin/assessments/${assessment.id}`);
     }
-    const n = reopenForResubmission(assessment.id, { controlIds: ids, note: req.body.resubmit_note || null });
+    // Per-control notes: notes_json is a {controlId: note} map from the modal;
+    // resubmit_note (if present) is an optional note applied to any without one.
+    let notesById = null;
+    try { if (req.body.notes_json) notesById = JSON.parse(req.body.notes_json); } catch (e) { notesById = null; }
+    const n = reopenForResubmission(assessment.id, { controlIds: ids, notesById, note: req.body.resubmit_note || null });
     const inv = await activateAndSendInvite(req, assessment.id);
     if (!inv.ok) { req.flash('error', inv.error); return res.redirect(`/admin/assessments/${assessment.id}`); }
     req.flash('success', (req.t ? req.t('ru.sent', { n }) : `Sent {n} control(s) for update and notified the assignee.`).replace('{n}', n));
