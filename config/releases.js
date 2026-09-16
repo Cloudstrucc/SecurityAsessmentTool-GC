@@ -28,6 +28,22 @@ function md(body) {
 // ── Curated backfill (last ~3 months). Four majors: 1.0.0, 2.0.0, 3.0.0, 4.0.0 ──
 // commit = the tag anchor for the backfill script. body = the GitHub release body.
 const CURATED = [
+  { version: '6.1.0', date: '2026-09-16', commit: '38f1726',
+    name: 'Account recovery & targeted re-submission', prs: [],
+    body: `Two provider-experience features on top of 6.0: self-service account recovery, and the ability to reopen a submitted assessment — whole or by specific controls — for re-submission.
+
+### ✨ Features
+- **Self-service account recovery** — a "Forgot password?" link on the client and assessor sign-in pages emails a single-use, 60-minute recovery link; the user sets a new password and re-enrolls MFA. Neutral responses avoid account enumeration; recovers accounts an admin can't see (e.g. auto-created or org-less), so stuck invitees can unblock themselves.
+- **Reopen a submitted assessment for re-submission** — assigning + sending an already-submitted assessment now reopens the whole thing into a new **Reactivated for re-submission** status instead of leaving the assignee on a read-only record.
+- **Send individual controls back for update** — assessors can select one or more controls and send them back with a **note per control**. Only those controls unlock in the evidence flow; the rest stay read-only but remain expandable for reference, and each shows its note. Works from the submitted *and* audit states, reopening only the chosen controls.
+
+### 🌐 Internationalization
+- All new UI, emails, and status labels (recovery, reactivation, per-control notes) localized across en, fr, es, de, pt, it, nl, ja.
+
+### ⚙️ Upgrade notes
+- New columns \`password_resets\` (table), \`assessment_controls.resubmit_note\` / \`resubmit_requested_at\`, and \`users.language\` are applied automatically by the startup migration — no manual step.
+- No breaking changes; existing flows are unchanged unless an assessment is reopened.` },
+
   { version: '6.0.0', date: '2026-09-15', commit: 'cf706b4',
     name: 'Enterprise email delivery & world-ready notifications', prs: [],
     body: `A major release focused on how Aegis SA **communicates**: modern-auth email delivery through Microsoft 365, notifications and the end-to-end tutorial fully localized into all 8 languages, organization-branded reports (no country-specific chrome), and clearer AI error handling.
