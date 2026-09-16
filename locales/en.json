@@ -4021,5 +4021,18 @@
   "rec.setPassword": "Set new password",
   "rec.success": "Your password has been reset. Please sign in.",
   "rec.title": "Reset your password",
-  "ui.forgotPassword": "Forgot password?"
+  "ui.forgotPassword": "Forgot password?",
+  "ru.bannerBody": "Please update the highlighted control(s) below. You can expand any other control for reference, but only the highlighted ones can be edited.",
+  "ru.bannerTitle": "Reactivated for re-submission.",
+  "ru.barTitle": "control(s) selected to send for update",
+  "ru.controlFlag": "Sent back for update",
+  "ru.controlLocked": "This control is read-only — only the controls sent back for update can be edited.",
+  "ru.noneSelected": "Select at least one control to send for update.",
+  "ru.notePlaceholder": "Optional note to the assignee (why these controls need updating)…",
+  "ru.reactivatedAll": "Assessment reactivated for re-submission and re-assigned to {{name}}.",
+  "ru.referenceOnly": "Read-only — for reference",
+  "ru.selectHelp": "Select to send this control back for update",
+  "ru.sendBtn": "Send for update",
+  "ru.sent": "Sent {{n}} control(s) for update and notified the assignee.",
+  "st.reactivated": "Reactivated for re-submission"
 }

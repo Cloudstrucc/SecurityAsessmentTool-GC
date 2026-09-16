@@ -384,12 +384,24 @@ router.get('/respond/:code', ensureEvidenceUser, (req, res) => {
     families[c.family].controls.push(c);
   });
 
-  const total = controls.length;
-  const provided = controls.filter(c => c.evidence_status === 'provided').length;
   const isSubmitted = assessment.status === 'submitted' || assessment.status === 'audit' || assessment.status === 'completed';
+  // "Reactivated for re-submission": the assessment is editable again, but only the
+  // controls the assessor sent back (review_status = needs-resubmission) are
+  // unlocked. Everything else stays read-only for reference.
+  const resubmitMode = assessment.status === 'reactivated';
   // Read-only whenever the assessment is locked by status OR the viewer is not the
   // current assignee (owner viewing progress, or a past assignee).
   const isReadOnly = isSubmitted || !acc.canEdit;
+  controls.forEach(c => {
+    c.locked = resubmitMode && c.review_status !== 'needs-resubmission';
+    c.resubmit_active = resubmitMode && c.review_status === 'needs-resubmission';
+    c.readonly = isReadOnly || c.locked;         // per-control editability
+  });
+
+  // Progress + submit gating count only the editable (targeted) controls.
+  const editable = controls.filter(c => !c.readonly);
+  const total = resubmitMode ? editable.length : controls.length;
+  const provided = (resubmitMode ? editable : controls).filter(c => c.evidence_status === 'provided').length;
 
   res.render('public/respond', {
     title: `Evidence Submission – ${assessment.project_name}`,
@@ -398,7 +410,7 @@ router.get('/respond/:code', ensureEvidenceUser, (req, res) => {
     families: Object.values(families),
     controls, total, provided,
     progress: total > 0 ? Math.round(provided / total * 100) : 0,
-    isSubmitted, isReadOnly,
+    isSubmitted, isReadOnly, resubmitMode,
     viewMode: acc.mode,
     readOnlyReason: isReadOnly && !isSubmitted ? (acc.mode === 'owner-view'
       ? tr(req, 'ev.roOwner', 'Read-only: this assessment is assigned to someone else. Take ownership from the assessment page to make changes.')
@@ -415,7 +427,11 @@ router.post('/respond/:code/save/:controlId', ensureEvidenceUser, express.json({
   }
   const acc = evidenceAccess(req, assessment);
   if (!acc || !acc.canEdit) return res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
-  const current = get('SELECT evidence_ready FROM assessment_controls WHERE id = ? AND assessment_id = ?', [req.params.controlId, assessment.id]);
+  const current = get('SELECT evidence_ready, review_status FROM assessment_controls WHERE id = ? AND assessment_id = ?', [req.params.controlId, assessment.id]);
+  // In re-submission mode only the controls sent back for update are editable.
+  if (assessment.status === 'reactivated' && current && current.review_status !== 'needs-resubmission') {
+    return res.json({ success: false, message: tr(req, 'ru.controlLocked', 'This control is read-only — only the controls sent back for update can be edited.') });
+  }
   if (current && current.evidence_ready) return res.json({ success: false, message: tr(req, 'ev.roReady', 'This control is marked Ready. Reactivate it to make changes.') });
 
   const { evidence_text, evidence_html } = req.body;
@@ -511,6 +527,9 @@ router.post('/respond/:code/ready/:controlId', ensureEvidenceUser, express.json(
   if (!acc || !acc.canEdit) return res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
   const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?', [req.params.controlId, assessment.id]);
   if (!control) return res.json({ success: false });
+  if (assessment.status === 'reactivated' && control.review_status !== 'needs-resubmission') {
+    return res.json({ success: false, message: tr(req, 'ru.controlLocked', 'This control is read-only — only the controls sent back for update can be edited.') });
+  }
   const makeReady = req.body.ready !== false && !control.evidence_ready;
   const who = history.actor(req);
   run('UPDATE assessment_controls SET evidence_ready = ?, evidence_edited_by = ?, evidence_edited_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?',

@@ -35,6 +35,13 @@
     {{/if}}
   {{/if}}
 
+  {{#if resubmitMode}}
+    <div class="alert alert-warning">
+      <i class="bi bi-arrow-repeat me-2"></i>
+      <strong>{{t 'ru.bannerTitle'}}</strong> {{t 'ru.bannerBody'}}
+    </div>
+  {{/if}}
+
   <!-- Progress bar (sticky) -->
   <div class="progress-sticky">
     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -122,13 +129,22 @@
       </div>
 
       {{#each this.controls}}
-        <div class="control-card ev-ctrl {{#if this.is_inherited}}inherited{{/if}} {{#eq this.evidence_status 'provided'}}border-success{{/eq}}"
+        <div class="control-card ev-ctrl {{#if this.is_inherited}}inherited{{/if}} {{#if this.resubmit_active}}border-warning{{else}}{{#eq this.evidence_status 'provided'}}border-success{{/eq}}{{/if}}"
           id="control-{{this.id}}"
           data-evstatus="{{#if this.evidence_ready}}ready{{else}}{{#if (eq this.evidence_status 'provided')}}provided{{else}}{{#if (eq this.evidence_source 'ai-suggested')}}draft{{else}}pending{{/if}}{{/if}}{{/if}}">
 
+          {{#if this.resubmit_active}}
+            <div class="alert alert-warning py-2 px-3 mb-2 small">
+              <i class="bi bi-arrow-repeat me-1"></i><strong>{{t 'ru.controlFlag'}}</strong>{{#if this.resubmit_note}} — {{this.resubmit_note}}{{/if}}
+            </div>
+          {{/if}}
+          {{#if this.locked}}
+            <div class="small text-muted mb-2"><i class="bi bi-lock me-1"></i>{{t 'ru.referenceOnly'}}</div>
+          {{/if}}
+
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div class="d-flex align-items-start gap-2">
-              {{#unless ../../isReadOnly}}<input type="checkbox" class="form-check-input ev-select mt-1" data-cid="{{this.id}}" onchange="updateBulkBar()">{{/unless}}
+              {{#unless this.readonly}}<input type="checkbox" class="form-check-input ev-select mt-1" data-cid="{{this.id}}" onchange="updateBulkBar()">{{/unless}}
               <div>
                 <span class="control-id">{{this.control_id}}</span>
                 <span class="control-title ms-2">{{this.title}}</span>
@@ -168,7 +184,7 @@
               <span class="badge rounded-pill {{#if (eq this.evidence_source 'ai-suggested')}}text-bg-warning{{else}}text-bg-light border{{/if}}">
                 <i class="bi {{#if (eq this.evidence_source 'ai-suggested')}}bi-magic{{else}}bi-person-check{{/if}} me-1"></i>{{t 'ev.editedBy'}} {{this.evidence_edited_by}}</span>
             </div>
-            {{#if ../../isReadOnly}}
+            {{#if this.readonly}}
               <div class="evidence-editor" style="background:#f8f9fa;min-height:80px">
                 {{{this.evidence_html}}}
                 {{#unless this.evidence_html}}{{this.evidence_text}}{{/unless}}
@@ -212,7 +228,7 @@
           </div>
 
           <!-- File Upload -->
-          {{#unless ../../isReadOnly}}
+          {{#unless this.readonly}}
             <div class="mb-2">
               <label class="form-label small fw-semibold">Attachments</label>
               <div class="input-group input-group-sm">

@@ -4042,5 +4042,18 @@
   "rec.setPassword": "Definir nova senha",
   "rec.success": "Sua senha foi redefinida. Faça login.",
   "rec.title": "Redefinir sua senha",
-  "ui.forgotPassword": "Esqueceu a senha?"
+  "ui.forgotPassword": "Esqueceu a senha?",
+  "ru.bannerBody": "Atualize o(s) controle(s) destacado(s) abaixo. Você pode expandir qualquer outro controle para referência, mas apenas os destacados podem ser editados.",
+  "ru.bannerTitle": "Reativada para reenvio.",
+  "ru.barTitle": "controle(s) selecionado(s) para enviar para atualização",
+  "ru.controlFlag": "Devolvido para atualização",
+  "ru.controlLocked": "Este controle é somente leitura — apenas os controles devolvidos para atualização podem ser editados.",
+  "ru.noneSelected": "Selecione pelo menos um controle para enviar para atualização.",
+  "ru.notePlaceholder": "Nota opcional para a pessoa atribuída (por que estes controles precisam de atualização)…",
+  "ru.reactivatedAll": "Avaliação reativada para reenvio e reatribuída a {{name}}.",
+  "ru.referenceOnly": "Somente leitura — para referência",
+  "ru.selectHelp": "Selecionar para devolver este controle para atualização",
+  "ru.sendBtn": "Enviar para atualização",
+  "ru.sent": "{{n}} controle(s) enviado(s) para atualização e a pessoa atribuída foi notificada.",
+  "st.reactivated": "Reativada para reenvio"
 }

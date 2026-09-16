@@ -154,7 +154,9 @@ function intakeFlow(intake) {
 
 /** An assessment record's own flow. */
 function assessmentFlow(assessment) {
-  const r = assessment ? rank(ASSESSMENT_ORDER, assessment.status) : -1;
+  // 'reactivated' (re-opened for re-submission) ranks like evidence-gathering.
+  const effStatus = assessment && assessment.status === 'reactivated' ? 'evidence-gathering' : (assessment && assessment.status);
+  const r = assessment ? rank(ASSESSMENT_ORDER, effStatus) : -1;
   const href = assessment ? `/admin/assessments/${assessment.id}` : null;
   const at = name => r >= rank(ASSESSMENT_ORDER, name);
   const mk = (key, labelKey, done, stepKey) => ({

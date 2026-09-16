@@ -156,6 +156,7 @@ app.engine('hbs', engine({
         'draft': ['bg-secondary', 'st.draft', 'Draft'],
         'in-progress': ['bg-info', 'st.in-progress', 'In Progress'],
         'evidence-gathering': ['bg-warning text-dark', 'st.evidence-gathering', 'Evidence Gathering'],
+        'reactivated': ['bg-warning text-dark', 'st.reactivated', 'Reactivated for re-submission'],
         'submitted': ['bg-primary', 'st.submitted', 'Submitted'],
         'under-review': ['bg-info', 'st.under-review', 'Under Review'],
         'audit': ['bg-warning text-dark', 'st.audit', 'Audit'],

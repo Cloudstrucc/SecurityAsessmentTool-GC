@@ -4064,5 +4064,18 @@
   "rec.setPassword": "Establecer nueva contraseña",
   "rec.success": "Tu contraseña se ha restablecido. Inicia sesión.",
   "rec.title": "Restablecer tu contraseña",
-  "ui.forgotPassword": "¿Olvidaste tu contraseña?"
+  "ui.forgotPassword": "¿Olvidaste tu contraseña?",
+  "ru.bannerBody": "Actualiza el/los control(es) resaltado(s) a continuación. Puedes expandir cualquier otro control como referencia, pero solo los resaltados se pueden editar.",
+  "ru.bannerTitle": "Reactivada para reenvío.",
+  "ru.barTitle": "control(es) seleccionado(s) para enviar a actualización",
+  "ru.controlFlag": "Devuelto para actualización",
+  "ru.controlLocked": "Este control es de solo lectura: solo se pueden editar los controles devueltos para actualización.",
+  "ru.noneSelected": "Selecciona al menos un control para enviar a actualización.",
+  "ru.notePlaceholder": "Nota opcional para la persona asignada (por qué estos controles necesitan actualización)…",
+  "ru.reactivatedAll": "Evaluación reactivada para reenvío y reasignada a {{name}}.",
+  "ru.referenceOnly": "Solo lectura — como referencia",
+  "ru.selectHelp": "Seleccionar para devolver este control para actualización",
+  "ru.sendBtn": "Enviar a actualización",
+  "ru.sent": "Se enviaron {{n}} control(es) para actualización y se notificó a la persona asignada.",
+  "st.reactivated": "Reactivada para reenvío"
 }

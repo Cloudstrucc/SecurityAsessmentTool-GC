@@ -65,7 +65,7 @@ router.use((req, res, next) => {
   if (p === '/assessments' || p === '/intakes') return res.redirect('/admin/dashboard');
   // Per-action RBAC on an assessment: assessor-only actions are blocked even for
   // the assigned practitioner. They keep view, report downloads and comments.
-  if (/^\/assessments\/\d+\/(tailoring|send-invite|assign|take-ownership|suggest-evidence-all|controls\/|return-for-revision|start-audit|audit-control|complete-audit|checklist|poam|reactivate|delete|manage-controls|add-controls|remove-control|update-control|ai\/)/.test(p)) {
+  if (/^\/assessments\/\d+\/(tailoring|send-invite|assign|take-ownership|suggest-evidence-all|controls\/|return-for-revision|request-updates|start-audit|audit-control|complete-audit|checklist|poam|reactivate|delete|manage-controls|add-controls|remove-control|update-control|ai\/)/.test(p)) {
     return deny('Only an assessor can perform that action.');
   }
   // Scope assessment/intake detail to the practitioner's own assignments.
@@ -804,6 +804,32 @@ async function activateAndSendInvite(req, assessmentId, { sendEmail = true } = {
   }
   return { ok: true, emailResult, recipientEmail };
 }
+
+/**
+ * Reopen a submitted assessment for re-submission. Marks the target controls as
+ * needs-resubmission (unlocking them for the provider), records an optional note,
+ * and moves the assessment to the 'reactivated' status. `controlIds` empty/omitted
+ * means the whole assessment (all applicable controls). Returns the count reopened.
+ */
+function reopenForResubmission(assessmentId, { controlIds, note } = {}) {
+  const ids = Array.isArray(controlIds) ? controlIds.map(Number).filter(Boolean) : null;
+  let targets;
+  if (ids && ids.length) {
+    targets = all(`SELECT id FROM assessment_controls WHERE assessment_id = ? AND id IN (${ids.map(() => '?').join(',')})`, [assessmentId, ...ids]);
+  } else {
+    targets = all('SELECT id FROM assessment_controls WHERE assessment_id = ? AND is_applicable = 1', [assessmentId]);
+  }
+  const noteVal = (note && String(note).trim()) ? String(note).trim() : null;
+  targets.forEach(t => {
+    run(`UPDATE assessment_controls
+         SET review_status = 'needs-resubmission', evidence_ready = 0,
+             resubmit_note = ?, resubmit_requested_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`, [noteVal, t.id]);
+  });
+  run("UPDATE assessments SET status = 'reactivated', submitted_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [assessmentId]);
+  return targets.length;
+}
+
 function assignEntityFromRequest({ req, entityType, entityId, entityName }) {
   const mode = req.body.assignment_mode || 'existing';
   const assigneeRole = req.body.assignee_role || 'client';
@@ -2640,6 +2666,9 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     assessmentFlow: processFlows.assessmentFlow(assessment),
     assessmentLock: decisionPackages.assessmentLock(assessment.id),
     collabEnabled: collaboration.isEnabled(get('SELECT * FROM projects WHERE id = ?', [assessment.project_id]), orgSettingsFor(req)),
+    // The assessor can send individual controls back for update once the provider
+    // has moved past initial gathering (submitted / audit / already reactivated).
+    canRequestUpdates: ['submitted', 'reactivated', 'audit'].includes(assessment.status),
     families: Object.values(families), controls, stats, documents, atoRecords,
     tailorMode: req.query.tailor === '1' && !viewingVersion,
     projectContextJSON: JSON.stringify({
@@ -2858,6 +2887,14 @@ router.post('/assessments/:id/assign', ensureAuthenticated, async (req, res) => 
     `, [req.params.id]);
     if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
 
+    // If the assessment was already submitted, assigning + sending it reopens the
+    // whole thing for re-submission (otherwise the assignee would land on a
+    // read-only record). It moves to the 'reactivated' status.
+    let reopened = 0;
+    if (assessment.status === 'submitted') {
+      reopened = reopenForResubmission(assessment.id, { note: req.body.resubmit_note || null });
+    }
+
     const result = assignEntityFromRequest({
       req,
       entityType: 'assessment',
@@ -2888,7 +2925,9 @@ router.post('/assessments/:id/assign', ensureAuthenticated, async (req, res) => 
       // New invitee → the register link is the useful one to share.
       setInviteBanner(req, { code: result.inviteCode, recipient: result.name || result.email, entityLabel: assessment.project_name });
     }
-    req.flash('success', `Assessment${assessment.intake_id ? ' and linked intake' : ''} assigned to ${result.name || result.email} and activated.`);
+    req.flash('success', reopened
+      ? (req.t ? req.t('ru.reactivatedAll', { name: result.name || result.email }) : `Assessment reactivated for re-submission and re-assigned to ${result.name || result.email}.`)
+      : `Assessment${assessment.intake_id ? ' and linked intake' : ''} assigned to ${result.name || result.email} and activated.`);
     res.redirect(`/admin/assessments/${assessment.id}`);
   } catch (err) {
     console.error('Assessment assignment error:', err);
@@ -3046,6 +3085,32 @@ router.post('/assessments/:id/return-for-revision', ensureAuthenticated, async (
   } catch (err) {
     console.error('return-for-revision error:', err);
     req.flash('error', 'Could not return for revision: ' + err.message);
+    res.redirect(`/admin/assessments/${req.params.id}`);
+  }
+});
+
+// Send specific control(s) back to the assignee for update, with an optional
+// note. Reopens the assessment (status 'reactivated') but unlocks ONLY the
+// selected controls — the assignee can still expand the rest for reference.
+router.post('/assessments/:id/request-updates', ensureAuthenticated, async (req, res) => {
+  try {
+    const assessment = get('SELECT a.*, p.name AS project_name FROM assessments a JOIN projects p ON p.id = a.project_id WHERE a.id = ?', [req.params.id]);
+    if (!assessment) { req.flash('error', 'Assessment not found'); return res.redirect('/admin/assessments'); }
+    let ids = req.body.control_ids;
+    if (typeof ids === 'string') ids = ids.split(',');
+    ids = (Array.isArray(ids) ? ids : []).map(Number).filter(Boolean);
+    if (!ids.length) {
+      req.flash('error', req.t ? req.t('ru.noneSelected') : 'Select at least one control to send for update.');
+      return res.redirect(`/admin/assessments/${assessment.id}`);
+    }
+    const n = reopenForResubmission(assessment.id, { controlIds: ids, note: req.body.resubmit_note || null });
+    const inv = await activateAndSendInvite(req, assessment.id);
+    if (!inv.ok) { req.flash('error', inv.error); return res.redirect(`/admin/assessments/${assessment.id}`); }
+    req.flash('success', (req.t ? req.t('ru.sent', { n }) : `Sent {n} control(s) for update and notified the assignee.`).replace('{n}', n));
+    res.redirect(`/admin/assessments/${assessment.id}`);
+  } catch (err) {
+    console.error('request-updates error:', err);
+    req.flash('error', 'Could not send controls for update: ' + err.message);
     res.redirect(`/admin/assessments/${req.params.id}`);
   }
 });

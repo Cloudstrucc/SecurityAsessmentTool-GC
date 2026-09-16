@@ -4064,5 +4064,18 @@
   "rec.setPassword": "Définir le nouveau mot de passe",
   "rec.success": "Votre mot de passe a été réinitialisé. Veuillez vous connecter.",
   "rec.title": "Réinitialiser votre mot de passe",
-  "ui.forgotPassword": "Mot de passe oublié ?"
+  "ui.forgotPassword": "Mot de passe oublié ?",
+  "ru.bannerBody": "Veuillez mettre à jour le(s) contrôle(s) surligné(s) ci-dessous. Vous pouvez développer tout autre contrôle pour référence, mais seuls les contrôles surlignés peuvent être modifiés.",
+  "ru.bannerTitle": "Réactivée pour nouvelle soumission.",
+  "ru.barTitle": "contrôle(s) sélectionné(s) à renvoyer pour mise à jour",
+  "ru.controlFlag": "Renvoyé pour mise à jour",
+  "ru.controlLocked": "Ce contrôle est en lecture seule — seuls les contrôles renvoyés pour mise à jour peuvent être modifiés.",
+  "ru.noneSelected": "Sélectionnez au moins un contrôle à renvoyer pour mise à jour.",
+  "ru.notePlaceholder": "Note facultative à la personne attribuée (pourquoi ces contrôles doivent être mis à jour)…",
+  "ru.reactivatedAll": "Évaluation réactivée pour nouvelle soumission et réattribuée à {{name}}.",
+  "ru.referenceOnly": "Lecture seule — pour référence",
+  "ru.selectHelp": "Sélectionner pour renvoyer ce contrôle pour mise à jour",
+  "ru.sendBtn": "Renvoyer pour mise à jour",
+  "ru.sent": "{{n}} contrôle(s) renvoyé(s) pour mise à jour et la personne attribuée a été notifiée.",
+  "st.reactivated": "Réactivée pour nouvelle soumission"
 }

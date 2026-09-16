@@ -1044,6 +1044,9 @@ async function initDatabase() {
     // Assessor review state during the audit phase.
     ['assessment_controls', 'review_status', 'ALTER TABLE assessment_controls ADD COLUMN review_status TEXT'],
     ['assessment_controls', 'assessor_feedback', 'ALTER TABLE assessment_controls ADD COLUMN assessor_feedback TEXT'],
+    // Per-control "send back for update" note + timestamp (re-submission requests).
+    ['assessment_controls', 'resubmit_note', 'ALTER TABLE assessment_controls ADD COLUMN resubmit_note TEXT'],
+    ['assessment_controls', 'resubmit_requested_at', 'ALTER TABLE assessment_controls ADD COLUMN resubmit_requested_at DATETIME'],
     // Evidence-strength scoring inputs (assessor).
     ['assessment_controls', 'evidence_reliability', 'ALTER TABLE assessment_controls ADD COLUMN evidence_reliability TEXT'],
     ['assessment_controls', 'evidence_sufficiency', 'ALTER TABLE assessment_controls ADD COLUMN evidence_sufficiency TEXT'],

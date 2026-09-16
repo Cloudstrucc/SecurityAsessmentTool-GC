@@ -145,6 +145,19 @@
               </form>
             {{/eq}}
 
+            {{#eq assessment.status "reactivated"}}
+              <span class="badge bg-warning text-dark align-self-center"><i class="bi bi-arrow-repeat me-1"></i>{{t 'st.reactivated'}}</span>
+              <a href="/respond/{{assessment.invite_code}}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-eye me-1"></i>{{t 'ui.viewEvidence'}}
+              </a>
+              <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#assignSendModal" title="{{t 'ui.assignAndSend'}}">
+                <i class="bi bi-person-plus me-1"></i>{{t 'ui.assignAndSend'}}
+              </button>
+              <button type="button" class="btn {{#if assignedToOther}}btn-outline-secondary{{else}}btn-success{{/if}} btn-sm" onclick="evEditGate('')">
+                <i class="bi bi-pencil-square me-1"></i>{{t 'ev.viewEdit'}}
+              </button>
+            {{/eq}}
+
             {{#eq assessment.status "audit"}}
               <a href="/respond/{{assessment.invite_code}}" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-eye me-1"></i>{{t 'ui.viewEvidence'}}
@@ -553,6 +566,7 @@
                   <input type="checkbox" class="form-check-input ai-control-checkbox" value="{{this.id}}" style="display:none;">
                 {{/if}}
                 {{#eq ../../assessment.status "audit"}}<input type="checkbox" class="form-check-input rv-select" data-cid="{{this.id}}" onchange="rvUpdateBar()">{{/eq}}
+                {{#if ../../canRequestUpdates}}{{#unless ../../viewingVersion}}<input type="checkbox" class="form-check-input ru-select" data-cid="{{this.id}}" title="{{t 'ru.selectHelp'}}" onchange="ruUpdateBar()">{{/unless}}{{/if}}
                 {{{controlResultIcon this.audit_result}}}
                 <span class="control-id">{{this.control_id}}</span>
                 <span class="control-title">{{this.title}}</span>
@@ -1634,6 +1648,39 @@ window.AIAssistConfig = {
   else document.addEventListener('DOMContentLoaded', ctrlApplyFilter);
 })();
 </script>
+
+{{#if canRequestUpdates}}{{#unless viewingVersion}}
+<!-- Send selected control(s) back to the assignee for update -->
+<div id="ruBar" class="position-fixed bottom-0 start-50 translate-middle-x mb-3 shadow rounded bg-white border p-3" style="z-index:1080;min-width:340px;max-width:560px;display:none">
+  <div class="d-flex align-items-center gap-2 mb-2">
+    <span class="badge text-bg-warning"><i class="bi bi-arrow-repeat me-1"></i><span id="ruCount">0</span></span>
+    <span class="small fw-semibold">{{t 'ru.barTitle'}}</span>
+    <button type="button" class="btn-close ms-auto" aria-label="Close" onclick="ruClear()"></button>
+  </div>
+  <textarea id="ruNote" class="form-control form-control-sm mb-2" rows="2" placeholder="{{t 'ru.notePlaceholder'}}"></textarea>
+  <div class="d-flex justify-content-end gap-2">
+    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="ruClear()">{{t 'ui.cancel'}}</button>
+    <button type="button" class="btn btn-sm btn-warning" onclick="ruSend()"><i class="bi bi-send me-1"></i>{{t 'ru.sendBtn'}}</button>
+  </div>
+</div>
+<form id="ruForm" method="POST" action="/admin/assessments/{{assessment.id}}/request-updates" class="d-none">
+  <input type="hidden" name="control_ids" id="ruIds">
+  <input type="hidden" name="resubmit_note" id="ruNoteField">
+</form>
+<script>
+(function(){
+  function ids(){ return [].slice.call(document.querySelectorAll('.ru-select:checked')).map(function(b){return b.getAttribute('data-cid');}); }
+  window.ruUpdateBar=function(){ var n=ids().length; var bar=document.getElementById('ruBar'); document.getElementById('ruCount').textContent=n; bar.style.display=n?'block':'none'; };
+  window.ruClear=function(){ document.querySelectorAll('.ru-select:checked').forEach(function(b){b.checked=false;}); var t=document.getElementById('ruNote'); if(t) t.value=''; ruUpdateBar(); };
+  window.ruSend=function(){
+    var sel=ids(); if(!sel.length) return;
+    document.getElementById('ruIds').value=sel.join(',');
+    document.getElementById('ruNoteField').value=(document.getElementById('ruNote').value||'').trim();
+    document.getElementById('ruForm').submit();
+  };
+})();
+</script>
+{{/unless}}{{/if}}
 
 {{#if collabEnabled}}
   {{> collab-panel }}

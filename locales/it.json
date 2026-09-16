@@ -4042,5 +4042,18 @@
   "rec.setPassword": "Imposta nuova password",
   "rec.success": "La tua password è stata reimpostata. Effettua l’accesso.",
   "rec.title": "Reimposta la password",
-  "ui.forgotPassword": "Password dimenticata?"
+  "ui.forgotPassword": "Password dimenticata?",
+  "ru.bannerBody": "Aggiorna il/i controllo/i evidenziato/i qui sotto. Puoi espandere qualsiasi altro controllo come riferimento, ma solo quelli evidenziati possono essere modificati.",
+  "ru.bannerTitle": "Riattivata per nuovo invio.",
+  "ru.barTitle": "controllo/i selezionato/i da inviare per l’aggiornamento",
+  "ru.controlFlag": "Rinviato per aggiornamento",
+  "ru.controlLocked": "Questo controllo è in sola lettura — solo i controlli rinviati per l’aggiornamento possono essere modificati.",
+  "ru.noneSelected": "Seleziona almeno un controllo da inviare per l’aggiornamento.",
+  "ru.notePlaceholder": "Nota facoltativa per la persona assegnata (perché questi controlli necessitano di aggiornamento)…",
+  "ru.reactivatedAll": "Valutazione riattivata per nuovo invio e riassegnata a {{name}}.",
+  "ru.referenceOnly": "Sola lettura — come riferimento",
+  "ru.selectHelp": "Seleziona per rinviare questo controllo per l’aggiornamento",
+  "ru.sendBtn": "Invia per aggiornamento",
+  "ru.sent": "{{n}} controllo/i inviato/i per l’aggiornamento e persona assegnata notificata.",
+  "st.reactivated": "Riattivata per nuovo invio"
 }

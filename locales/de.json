@@ -4042,5 +4042,18 @@
   "rec.setPassword": "Neues Passwort festlegen",
   "rec.success": "Ihr Passwort wurde zurückgesetzt. Bitte melden Sie sich an.",
   "rec.title": "Passwort zurücksetzen",
-  "ui.forgotPassword": "Passwort vergessen?"
+  "ui.forgotPassword": "Passwort vergessen?",
+  "ru.bannerBody": "Bitte aktualisieren Sie die unten hervorgehobenen Controls. Sie können jedes andere Control zur Referenz aufklappen, aber nur die hervorgehobenen können bearbeitet werden.",
+  "ru.bannerTitle": "Zur erneuten Einreichung reaktiviert.",
+  "ru.barTitle": "Control(s) zum Zurücksenden zur Aktualisierung ausgewählt",
+  "ru.controlFlag": "Zur Aktualisierung zurückgesendet",
+  "ru.controlLocked": "Dieses Control ist schreibgeschützt — nur die zur Aktualisierung zurückgesendeten Controls können bearbeitet werden.",
+  "ru.noneSelected": "Wählen Sie mindestens ein Control aus, das zur Aktualisierung zurückgesendet werden soll.",
+  "ru.notePlaceholder": "Optionale Notiz an die zugewiesene Person (warum diese Controls aktualisiert werden müssen)…",
+  "ru.reactivatedAll": "Bewertung zur erneuten Einreichung reaktiviert und an {{name}} neu zugewiesen.",
+  "ru.referenceOnly": "Schreibgeschützt — zur Referenz",
+  "ru.selectHelp": "Auswählen, um dieses Control zur Aktualisierung zurückzusenden",
+  "ru.sendBtn": "Zur Aktualisierung senden",
+  "ru.sent": "{{n}} Control(s) zur Aktualisierung zurückgesendet und die zugewiesene Person benachrichtigt.",
+  "st.reactivated": "Zur erneuten Einreichung reaktiviert"
 }

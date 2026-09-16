@@ -2463,3 +2463,38 @@ test('self-service account recovery: forgot-password page, neutral response, and
   const clientLogin = await getText(jar, '/client/login');
   assert.match(clientLogin.text, /href="\/forgot-password"/, 'client login links to recovery');
 });
+
+test('assessor sends individual control(s) back for update — reopens as reactivated and unlocks only those', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Reopen ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const respond = await getText(jar, `/respond/${code}`);
+  const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
+
+  // Provider provides evidence and submits.
+  await request(jar, 'POST', `/respond/${code}/save/${cid}`, { json: { evidence_text: 'x', evidence_html: '<p>x</p>' } });
+  await request(jar, 'POST', `/respond/${code}/submit`, {});
+
+  // Once submitted, saving is rejected (locked).
+  const blocked = await (await request(jar, 'POST', `/respond/${code}/save/${cid}`, { json: { evidence_text: 'y', evidence_html: '<p>y</p>' } })).json();
+  assert.equal(blocked.success, false, 'evidence is locked after submit');
+
+  // Assessor sends the control back for update with a note.
+  const ru = await request(jar, 'POST', `/admin/assessments/${assessmentId}/request-updates`,
+    { form: { control_ids: String(cid), resubmit_note: 'Please add the config export' }, redirect: 'manual' });
+  assert.equal(ru.status, 302, 'request-updates redirects');
+
+  // Assessment record now shows the reactivated state.
+  const detail2 = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(detail2.text, /Reactivated for re-submission/, 'detail shows reactivated state');
+
+  // Evidence flow: reactivation banner + the per-control note, and the control is editable again.
+  const respond2 = await getText(jar, `/respond/${code}`);
+  assert.match(respond2.text, /Reactivated for re-submission/, 'respond shows reactivation banner');
+  assert.match(respond2.text, /Please add the config export/, 'per-control resubmission note shown');
+  const ok = await (await request(jar, 'POST', `/respond/${code}/save/${cid}`, { json: { evidence_text: 'z', evidence_html: '<p>z</p>' } })).json();
+  assert.equal(ok.success, true, 'control is editable again after being sent back');
+});

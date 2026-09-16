@@ -4042,5 +4042,18 @@
   "rec.setPassword": "Nieuw wachtwoord instellen",
   "rec.success": "Je wachtwoord is opnieuw ingesteld. Meld je aan.",
   "rec.title": "Je wachtwoord opnieuw instellen",
-  "ui.forgotPassword": "Wachtwoord vergeten?"
+  "ui.forgotPassword": "Wachtwoord vergeten?",
+  "ru.bannerBody": "Werk de gemarkeerde control(s) hieronder bij. Je kunt elk ander control uitklappen ter referentie, maar alleen de gemarkeerde kunnen worden bewerkt.",
+  "ru.bannerTitle": "Opnieuw geactiveerd voor herindiening.",
+  "ru.barTitle": "control(s) geselecteerd om terug te sturen voor bijwerken",
+  "ru.controlFlag": "Teruggestuurd voor bijwerken",
+  "ru.controlLocked": "Dit control is alleen-lezen — alleen de teruggestuurde controls kunnen worden bewerkt.",
+  "ru.noneSelected": "Selecteer minstens één control om terug te sturen voor bijwerken.",
+  "ru.notePlaceholder": "Optionele notitie aan de toegewezen persoon (waarom deze controls bijgewerkt moeten worden)…",
+  "ru.reactivatedAll": "Beoordeling opnieuw geactiveerd voor herindiening en opnieuw toegewezen aan {{name}}.",
+  "ru.referenceOnly": "Alleen-lezen — ter referentie",
+  "ru.selectHelp": "Selecteer om dit control terug te sturen voor bijwerken",
+  "ru.sendBtn": "Terugsturen voor bijwerken",
+  "ru.sent": "{{n}} control(s) teruggestuurd voor bijwerken en de toegewezen persoon is op de hoogte gebracht.",
+  "st.reactivated": "Opnieuw geactiveerd voor herindiening"
 }
