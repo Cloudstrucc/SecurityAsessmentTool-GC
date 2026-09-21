@@ -13,7 +13,7 @@
  *   GRAPH_TENANT_ID      – directory (tenant) ID of the Entra app
  *   GRAPH_CLIENT_ID      – application (client) ID
  *   GRAPH_CLIENT_SECRET  – a client secret value
- *   GRAPH_SENDER         – the mailbox to send as, e.g. contact-aegis-sa@vanguardcs.ca
+ *   GRAPH_SENDER         – the mailbox to send as, e.g. no-reply@yourdomain.example
  *   GRAPH_SAVE_TO_SENT   – optional "false" to skip saving to the mailbox Sent Items (default: save)
  *
  * When these are set, utils/emailService routes every message through here

@@ -1,6 +1,6 @@
 {
   "brand": {
-    "company": "Vanguard Cloud Services",
+    "company": "Aegis SA",
     "product": "Aegis SA",
     "tagline": "Plattform für Sicherheitsbewertung & Autorisierung",
     "by": "von"
@@ -2060,7 +2060,6 @@
   },
   "provision_status": {
     "span": {
-      "vanguard_cloud_services_inc": "Vanguard Cloud Services Inc",
       "initializing": "Initialisierung",
       "validating_azure_credentials": "Azure-Anmeldedaten werden überprüft",
       "creating_resource_group": "Ressourcengruppe wird erstellt",
@@ -2073,7 +2072,8 @@
       "login_email": "Anmelde-E-Mail",
       "role": "Rolle",
       "security_assessor_admin": "Sicherheitsprüfer-Administrator",
-      "plan": "Tarif"
+      "plan": "Tarif",
+      "aegis_sa": "Aegis SA"
     },
     "h2": {
       "deploying_your_instance": "Ihre Instanz wird bereitgestellt"
@@ -2284,8 +2284,8 @@
   "pl.compB": "Haben Sie einen Gutschein-Zugangscode?",
   "pl.compT": "Geben Sie ihn auf der Registrierungsseite ein, um einen Tarif kostenlos freizuschalten – keine Zahlungsdaten erforderlich.",
   "pl.placeholderNote": "Beispielpreise zu Testzwecken. Beträge, Benutzerzahlen und Projektlimits sind Beispiele.",
-  "pl.footerBrand": "Aegis SA · Vanguard Cloud Services",
-  "pl.footerLine": "Plattform für Sicherheitsbewertung und -autorisierung · vanguardcs.ca",
+  "pl.footerBrand": "Aegis SA",
+  "pl.footerLine": "Plattform für Sicherheitsbewertung und -autorisierung",
   "pbmm.title": "Hinweis zu personenbezogenen Daten und Datenschutz",
   "pbmm.lead": "Bitte prüfen und bestätigen Sie diesen Hinweis, bevor Ihr Konto erstellt wird.",
   "pbmm.p1": "Aegis SA erfasst Ihren Namen, Ihre geschäftliche E-Mail und Ihre Organisation, um Ihr Konto zu erstellen und zu schützen, Ihre Identität zu prüfen, Prüfprotokolle zu führen und die Sicherheitsbewertungs- und -autorisierungsaktivitäten (SA&A) zu verwalten. Ihre personenbezogenen Daten werden gemäß den geltenden Datenschutzgesetzen erfasst und verwendet.",
@@ -2299,7 +2299,7 @@
   "pbmm.linkPrivacyAct": "Datenschutz",
   "pbmm.urlProtectedB": "https://de.wikipedia.org/wiki/Personenbezogene_Daten",
   "pbmm.urlPrivacyAct": "https://de.wikipedia.org/wiki/Datenschutz",
-  "pb.metaTitle": "Aegis SA — Sicherheitsbewertung und -autorisierung, vereinfacht · Vanguard Cloud Services",
+  "pb.metaTitle": "Aegis SA — Sicherheitsbewertung und -autorisierung, vereinfacht",
   "pb.coverTag": "Bewerten · Autorisieren · Vererben · Prüfen",
   "pb.coverEyebrow": "Plattform für Sicherheitsbewertung und -autorisierung · Überblick in klarer Sprache",
   "pb.coverH1a": "Jede Bewertung an",
@@ -2446,7 +2446,7 @@
   "pb.s8C4B": "Für Prüfer (Audit)",
   "pb.s8C4T": "Eine vollständige, mit Zeitstempel versehene Spur – Aufnahme, Nachweise, Entscheidungen und Unterschriften – in einem einzigen Datensatz statt in einem Ordner voller Dateien.",
   "pb.s8Lede": "Aegis SA verwandelt die Sicherheitsbewertung von einem verstreuten, manuellen Engpass in einen zentralen, KI-gestützten, sich summierenden Wert – verkürzt die Zeit bis zur Autorisierung, ohne die Strenge zu verringern, und lässt jede Bewertung die Qualität der nächsten steigern.",
-  "pb.footer1": "Aegis SA — Plattform für Sicherheitsbewertung und -autorisierung · Vanguard Cloud Services · vanguardcs.ca",
+  "pb.footer1": "Aegis SA — Plattform für Sicherheitsbewertung und -autorisierung",
   "pb.footer2a": "Ein Überblick in klarer Sprache. Einige als",
   "pb.footer2b": "geplant",
   "pb.footer2c": "gekennzeichnete Funktionen stehen auf der Roadmap.",
@@ -3042,7 +3042,6 @@
   "ui.clientInvites": "Kundeneinladungen",
   "ui.manageControls": "Kontrollen verwalten",
   "ui.intake2": "/intake",
-  "ui.vanguardcsCa": "VanguardCS.ca",
   "ui.retune": "). Neu abstimmen",
   "ui.inviteNewUser": "Neuen Benutzer einladen",
   "ui.highRiskTbs": "Hohes Risiko (TBS)",
@@ -3239,7 +3238,6 @@
   "ui.usingPlatformDefault": "Plattformstandard wird verwendet",
   "ui.usingPlatformDefaultAnthropic": "Plattformstandard wird verwendet (Anthropic)",
   "ui.thisCannotBeUndone": "Dies kann nicht rückgängig gemacht werden.",
-  "ui.vanguardCybersecurity": "Vanguard Cybersecurity",
   "ui.knownInterconnections": "Bekannte Verbindungen",
   "ui.listedInterconnections": "Aufgeführte Verbindungen",
   "ui.projectAuthorityName": "Name der Projektbehörde",
@@ -3459,7 +3457,6 @@
   "ui.selectProjectDocumentsAndControls": "Wählen Sie Dokumente und Kontrollen, sehen Sie den von Anthropic erzeugten Leitfaden an und speichern Sie nur Genehmigtes.",
   "ui.addContextOrAdjustDetails": "Ergänzen Sie Kontext oder passen Sie Details an, bevor Sie Projekt und Bewertung erstellen. Diese Angaben fließen in die Empfehlungs-Engine ein.",
   "ui.theTailoredRecommendationCanUse": "Die angepasste Empfehlung kann diese Dokumente als Kontext nutzen. Sie können vor dem Speichern Kontrollen hinzufügen oder entfernen.",
-  "ui.vanguardCloudServicesSecurityAssessment": "Vanguard Cloud Services Plattform für Sicherheitsbewertung und -autorisierung (SA&A) für Multi-Framework-Compliance.",
   "ui.toChangeTheResolvedProfile": "um das ermittelte Profil und die empfohlenen Kontrollen dieser Bewertung zu ändern — die Projekterfassung bleibt unverändert.",
   "ui.youHaveNoAssignedAssessments": "Ihnen sind noch keine Bewertungen zugewiesen. Sobald ein Prüfer Ihnen eine Akte zuweist, erscheint sie hier und Sie erhalten eine E-Mail mit Direktlink.",
   "ui.archivingKeepsTheProjectAnd": "Das Archivieren erhält Projekt, Bewertungen und Erfassungen, blendet sie aber aus dem Dashboard aus. Sie können sie jederzeit wiederherstellen.",
@@ -4057,5 +4054,8 @@
   "ru.sent": "{{n}} Control(s) zur Aktualisierung zurückgesendet und die zugewiesene Person benachrichtigt.",
   "st.reactivated": "Zur erneuten Einreichung reaktiviert",
   "ru.modalTitle": "Controls zur Aktualisierung zurücksenden",
-  "ru.modalHelp": "Fügen Sie für jedes Control eine optionale Notiz hinzu, die erklärt, was geändert werden muss. Die zugewiesene Person sieht die Notiz neben dem Control."
+  "ru.modalHelp": "Fügen Sie für jedes Control eine optionale Notiz hinzu, die erklärt, was geändert werden muss. Die zugewiesene Person sieht die Notiz neben dem Control.",
+  "ui.platformDescription": "Aegis SA Plattform für Sicherheitsbewertung und -autorisierung (SA&A) für Multi-Framework-Compliance.",
+  "ui.orgNamePlaceholder": "Ihre Organisation",
+  "ui.assessorCompanyPlaceholder": "Name des Prüfunternehmens"
 }

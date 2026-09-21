@@ -62,6 +62,11 @@ function codePill(code, accent = DEFAULT_ACCENT) {
  */
 function renderEmail(o = {}) {
   const accent = o.accent || DEFAULT_ACCENT;
+  // Brand mark: only when the app knows its public URL (email clients need a hosted image).
+  const base = String(process.env.PUBLIC_BASE_URL || '').replace(/\/+$/, '');
+  const markImg = base
+    ? `<img src="${base}/images/aegis-shield-64.png" width="28" height="31" alt="" style="vertical-align:middle;margin-right:10px;border:0">`
+    : '';
   const preheader = o.preheader || '';
   const intro = (o.intro || []).map(p => `<p style="margin:0 0 14px">${p}</p>`).join('');
   const btn = o.button ? button(o.button.url, o.button.label, accent) : '';
@@ -87,7 +92,7 @@ function renderEmail(o = {}) {
         <!-- header -->
         <tr><td style="background:${HEADER_BG};padding:22px 28px">
           <table role="presentation" width="100%"><tr>
-            <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#fff;font-size:20px;font-weight:700;letter-spacing:.2px">${BRAND}</td>
+            <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#fff;font-size:20px;font-weight:700;letter-spacing:.2px">${markImg}${BRAND}</td>
             <td align="right" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#aebacb;font-size:12px">${TAGLINE}</td>
           </tr></table>
         </td></tr>

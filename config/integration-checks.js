@@ -32,6 +32,10 @@ function withTimeout(promise, ms = NET_TIMEOUT_MS, label = 'operation') {
 
 /** The TXT value the tenant must publish to prove domain ownership. */
 function domainVerificationToken(orgId) {
+  return `aegis-domain-verification=org${orgId}`;
+}
+/** Legacy token/record name still honoured for domains verified before the rebrand. */
+function legacyDomainVerificationToken(orgId) {
   return `vanguard-domain-verification=org${orgId}`;
 }
 
@@ -48,18 +52,23 @@ async function checkDomain(orgId, expectedHost) {
   if (!domain) return { ok: false, message: 'No custom domain is configured.', detail: null };
 
   const token = domainVerificationToken(orgId);
-  const txtName = `_vanguard-verify.${domain}`;
+  const legacyToken = legacyDomainVerificationToken(orgId);
+  const txtName = `_aegis-verify.${domain}`;
+  const legacyTxtName = `_vanguard-verify.${domain}`;
   const detail = { domain, expectedHost: expectedHost || null, txtName, expectedTxt: token };
 
   // 1) TXT ownership record.
   let txtOk = false;
-  try {
-    const records = await withTimeout(dns.resolveTxt(txtName), NET_TIMEOUT_MS, 'TXT lookup');
-    const flat = records.map(r => (Array.isArray(r) ? r.join('') : String(r)).trim());
-    detail.txtFound = flat;
-    txtOk = flat.some(v => v === token);
-  } catch (err) {
-    detail.txtError = err.code || err.message;
+  // Accept the current record name/token, or the legacy one from before the rebrand.
+  for (const name of [txtName, legacyTxtName]) {
+    try {
+      const records = await withTimeout(dns.resolveTxt(name), NET_TIMEOUT_MS, 'TXT lookup');
+      const flat = records.map(r => (Array.isArray(r) ? r.join('') : String(r)).trim());
+      detail.txtFound = (detail.txtFound || []).concat(flat);
+      if (flat.some(v => v === token || v === legacyToken)) { txtOk = true; break; }
+    } catch (err) {
+      detail.txtError = err.code || err.message;
+    }
   }
 
   // 2) CNAME routing record (with an A-record fallback for apex domains).

@@ -1,14 +1,14 @@
 /* ============================================================================
-   Vanguard Design System — vanguard-design.css
-   Shared visual language for Vanguard Cloud Services Aegis SA Platform.
+   Aegis SA Design System — aegis-design.css
+   Shared visual language for the Aegis SA Platform.
    Derived from the Aegis SA product brief (navy + sky gradient).
-   Load AFTER Bootstrap to layer the Vanguard look on top of app views,
+   Load AFTER Bootstrap to layer the Aegis SA look on top of app views,
    or standalone for marketing / registration / pricing pages.
    ============================================================================ */
 
 /* ---------- Design tokens ---------- */
 :root {
-  /* Brand palette (from logo + vanguardcs.ca) */
+  /* Brand palette */
   --vg-navy-950:#0a1626; --vg-navy-900:#0d2136; --vg-navy-800:#143453; --vg-navy-700:#1c4468;
   --vg-sky-300:#a9d8f2;  --vg-sky-400:#7cc4ee;  --vg-sky-500:#4d9fe0;  --vg-sky-600:#2f80cf;
   --vg-peri-500:#6d7fca; --vg-peri-400:#8593d6; --vg-cyan-500:#4fc8dd;

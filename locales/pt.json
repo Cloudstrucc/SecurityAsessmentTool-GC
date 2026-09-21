@@ -1,6 +1,6 @@
 {
   "brand": {
-    "company": "Vanguard Cloud Services",
+    "company": "Aegis SA",
     "product": "Aegis SA",
     "tagline": "Plataforma de Avaliação e Autorização de Segurança",
     "by": "por"
@@ -2060,7 +2060,6 @@
   },
   "provision_status": {
     "span": {
-      "vanguard_cloud_services_inc": "Vanguard Cloud Services Inc",
       "initializing": "Inicializando",
       "validating_azure_credentials": "Validando Credenciais do Azure",
       "creating_resource_group": "Criando Grupo de Recursos",
@@ -2073,7 +2072,8 @@
       "login_email": "Email de Login",
       "role": "Função",
       "security_assessor_admin": "Administrador Avaliador de Segurança",
-      "plan": "Plano"
+      "plan": "Plano",
+      "aegis_sa": "Aegis SA"
     },
     "h2": {
       "deploying_your_instance": "Implantando Sua Instância"
@@ -2284,8 +2284,8 @@
   "pl.compB": "Tem um código de acesso de cortesia?",
   "pl.compT": "Insira-o na página de registro para desbloquear um plano sem custo — nenhum dado de pagamento é necessário.",
   "pl.placeholderNote": "Preços de exemplo para testes. Os valores, o número de usuários e os limites de projetos são exemplos.",
-  "pl.footerBrand": "Aegis SA · Vanguard Cloud Services",
-  "pl.footerLine": "Plataforma de avaliação e autorização de segurança · vanguardcs.ca",
+  "pl.footerBrand": "Aegis SA",
+  "pl.footerLine": "Plataforma de avaliação e autorização de segurança",
   "pbmm.title": "Aviso de informações pessoais e privacidade",
   "pbmm.lead": "Revise este aviso e ateste-o antes de criar sua conta.",
   "pbmm.p1": "O Aegis SA coleta seu nome, e-mail de trabalho e organização para criar e proteger sua conta, verificar sua identidade, manter registros de auditoria e administrar as atividades de avaliação e autorização de segurança (SA&A). Suas informações pessoais são coletadas e usadas conforme as leis de privacidade aplicáveis.",
@@ -2299,7 +2299,7 @@
   "pbmm.linkPrivacyAct": "Proteção de dados e privacidade",
   "pbmm.urlProtectedB": "https://pt.wikipedia.org/wiki/Dados_pessoais",
   "pbmm.urlPrivacyAct": "https://pt.wikipedia.org/wiki/Prote%C3%A7%C3%A3o_de_dados",
-  "pb.metaTitle": "Aegis SA — Avaliação e autorização de segurança, simplificadas · Vanguard Cloud Services",
+  "pb.metaTitle": "Aegis SA — Avaliação e autorização de segurança, simplificadas",
   "pb.coverTag": "Avaliar · Autorizar · Herdar · Auditar",
   "pb.coverEyebrow": "Plataforma de avaliação e autorização de segurança · Visão geral em linguagem clara",
   "pb.coverH1a": "Cada avaliação em",
@@ -2446,7 +2446,7 @@
   "pb.s8C4B": "Para os auditores",
   "pb.s8C4T": "Uma trilha completa e com carimbo de data/hora — admissão, evidências, decisões e assinaturas — em um único registro em vez de uma pasta de arquivos.",
   "pb.s8Lede": "O Aegis SA transforma a avaliação de segurança de um gargalo manual e disperso em um ativo centralizado, assistido por IA e cumulativo — reduzindo o tempo até a autorização sem reduzir o rigor, e fazendo cada avaliação elevar a qualidade da próxima.",
-  "pb.footer1": "Aegis SA — Plataforma de avaliação e autorização de segurança · Vanguard Cloud Services · vanguardcs.ca",
+  "pb.footer1": "Aegis SA — Plataforma de avaliação e autorização de segurança",
   "pb.footer2a": "Uma visão geral em linguagem clara. Algumas capacidades indicadas como",
   "pb.footer2b": "previstas",
   "pb.footer2c": "estão no roteiro.",
@@ -3042,7 +3042,6 @@
   "ui.clientInvites": "Convites de cliente",
   "ui.manageControls": "Gerenciar controles",
   "ui.intake2": "/intake",
-  "ui.vanguardcsCa": "VanguardCS.ca",
   "ui.retune": "). Reajustar",
   "ui.inviteNewUser": "Convidar novo usuário",
   "ui.highRiskTbs": "Risco alto (TBS)",
@@ -3239,7 +3238,6 @@
   "ui.usingPlatformDefault": "Usando o padrão da plataforma",
   "ui.usingPlatformDefaultAnthropic": "Usando o padrão da plataforma (Anthropic)",
   "ui.thisCannotBeUndone": "Esta ação não pode ser desfeita.",
-  "ui.vanguardCybersecurity": "Vanguard Cybersecurity",
   "ui.knownInterconnections": "Interconexões conhecidas",
   "ui.listedInterconnections": "Interconexões listadas",
   "ui.projectAuthorityName": "Nome da autoridade do projeto",
@@ -3459,7 +3457,6 @@
   "ui.selectProjectDocumentsAndControls": "Selecione documentos e controles, visualize a orientação gerada pela Anthropic e salve apenas o que aprovar.",
   "ui.addContextOrAdjustDetails": "Adicione contexto ou ajuste detalhes antes de criar o projeto e a avaliação. Essas substituições alimentam o motor de recomendação.",
   "ui.theTailoredRecommendationCanUse": "A recomendação adaptada pode usar estes documentos como contexto. Você ainda pode adicionar ou remover controles antes de salvar.",
-  "ui.vanguardCloudServicesSecurityAssessment": "Plataforma de avaliação e autorização de segurança (SA&A) da Vanguard Cloud Services para fluxos de conformidade multiestrutura.",
   "ui.toChangeTheResolvedProfile": "para alterar o perfil resolvido e o conjunto de controles recomendado desta avaliação — isso não altera a solicitação do projeto.",
   "ui.youHaveNoAssignedAssessments": "Você ainda não tem avaliações atribuídas. Quando um avaliador atribuir um arquivo, ele aparecerá aqui e você receberá um e-mail com link direto.",
   "ui.archivingKeepsTheProjectAnd": "Arquivar mantém o projeto, suas avaliações e solicitações intactos, mas os oculta do painel. Você pode restaurá-los a qualquer momento.",
@@ -4057,5 +4054,8 @@
   "ru.sent": "{{n}} controle(s) enviado(s) para atualização e a pessoa atribuída foi notificada.",
   "st.reactivated": "Reativada para reenvio",
   "ru.modalTitle": "Devolver controles para atualização",
-  "ru.modalHelp": "Adicione uma nota opcional para cada controle explicando o que precisa mudar. A pessoa atribuída verá a nota ao lado do controle."
+  "ru.modalHelp": "Adicione uma nota opcional para cada controle explicando o que precisa mudar. A pessoa atribuída verá a nota ao lado do controle.",
+  "ui.platformDescription": "Plataforma de avaliação e autorização de segurança (SA&A) da Aegis SA para fluxos de conformidade multiestrutura.",
+  "ui.orgNamePlaceholder": "Sua organização",
+  "ui.assessorCompanyPlaceholder": "Nome da empresa avaliadora"
 }

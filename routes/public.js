@@ -42,7 +42,7 @@ router.get('/', (req, res) => {
   // Client / project evidence users (client session): the Client Portal.
   if (req.session && req.session.clientId) return res.redirect('/portal');
   res.render('index', {
-    title: 'Vanguard Cloud Services - Aegis SA Platform',
+    title: 'Aegis SA Platform',
     layout: 'home',
     frameworkHighlights: ['ITSG-33', 'CIS Controls v8', 'ISO 27001', 'FedRAMP', 'NIST SP 800-53', 'ASD ISM', 'Essential Eight']
   });
@@ -74,7 +74,7 @@ router.get('/portal', (req, res) => {
     `, [cid, cid, cid]);
   }
   res.render('portal', {
-    title: 'Client Portal - Vanguard Cloud Services',
+    title: 'Client Portal - Aegis SA',
     layout: 'home',
     myAssessments, myIntakes,
     hasMyWork: myAssessments.length > 0 || myIntakes.length > 0

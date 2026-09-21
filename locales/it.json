@@ -1,6 +1,6 @@
 {
   "brand": {
-    "company": "Vanguard Cloud Services",
+    "company": "Aegis SA",
     "product": "Aegis SA",
     "tagline": "Piattaforma di Valutazione e Autorizzazione della Sicurezza",
     "by": "di"
@@ -2060,7 +2060,6 @@
   },
   "provision_status": {
     "span": {
-      "vanguard_cloud_services_inc": "Vanguard Cloud Services Inc",
       "initializing": "Inizializzazione",
       "validating_azure_credentials": "Convalida credenziali Azure",
       "creating_resource_group": "Creazione gruppo di risorse",
@@ -2073,7 +2072,8 @@
       "login_email": "Email di accesso",
       "role": "Ruolo",
       "security_assessor_admin": "Amministratore Security Assessor",
-      "plan": "Piano"
+      "plan": "Piano",
+      "aegis_sa": "Aegis SA"
     },
     "h2": {
       "deploying_your_instance": "Distribuzione della tua istanza"
@@ -2284,8 +2284,8 @@
   "pl.compB": "Hai un codice di accesso omaggio?",
   "pl.compT": "Inseriscilo nella pagina di registrazione per sbloccare un piano senza costi: nessun dato di pagamento richiesto.",
   "pl.placeholderNote": "Prezzi di esempio a scopo di test. Importi, numero di utenti e limiti dei progetti sono esempi.",
-  "pl.footerBrand": "Aegis SA · Vanguard Cloud Services",
-  "pl.footerLine": "Piattaforma di valutazione e autorizzazione della sicurezza · vanguardcs.ca",
+  "pl.footerBrand": "Aegis SA",
+  "pl.footerLine": "Piattaforma di valutazione e autorizzazione della sicurezza",
   "pbmm.title": "Informativa su dati personali e privacy",
   "pbmm.lead": "Esamina e attesta questa informativa prima di creare l’account.",
   "pbmm.p1": "Aegis SA raccoglie il tuo nome, la tua email di lavoro e la tua organizzazione per creare e proteggere il tuo account, verificare la tua identità, tenere registri di audit e gestire le attività di valutazione e autorizzazione della sicurezza (SA&A). I tuoi dati personali sono raccolti e utilizzati ai sensi delle leggi sulla privacy applicabili.",
@@ -2299,7 +2299,7 @@
   "pbmm.linkPrivacyAct": "Protezione dei dati e privacy",
   "pbmm.urlProtectedB": "https://it.wikipedia.org/wiki/Dati_personali",
   "pbmm.urlPrivacyAct": "https://it.wikipedia.org/wiki/Privacy",
-  "pb.metaTitle": "Aegis SA — Valutazione e autorizzazione della sicurezza, semplificate · Vanguard Cloud Services",
+  "pb.metaTitle": "Aegis SA — Valutazione e autorizzazione della sicurezza, semplificate",
   "pb.coverTag": "Valutare · Autorizzare · Ereditare · Verificare",
   "pb.coverEyebrow": "Piattaforma di valutazione e autorizzazione della sicurezza · Panoramica in linguaggio chiaro",
   "pb.coverH1a": "Ogni valutazione in",
@@ -2446,7 +2446,7 @@
   "pb.s8C4B": "Per i revisori",
   "pb.s8C4T": "Una traccia completa e con marca temporale — ammissione, prove, decisioni e firme — su un unico registro invece di una cartella di file.",
   "pb.s8Lede": "Aegis SA trasforma la valutazione della sicurezza da collo di bottiglia manuale e disperso in un patrimonio centralizzato, assistito dall’IA e che si accumula — riducendo il tempo fino all’autorizzazione senza ridurre il rigore, e facendo sì che ogni valutazione elevi la qualità della successiva.",
-  "pb.footer1": "Aegis SA — Piattaforma di valutazione e autorizzazione della sicurezza · Vanguard Cloud Services · vanguardcs.ca",
+  "pb.footer1": "Aegis SA — Piattaforma di valutazione e autorizzazione della sicurezza",
   "pb.footer2a": "Una panoramica in linguaggio chiaro. Alcune funzionalità indicate come",
   "pb.footer2b": "previste",
   "pb.footer2c": "sono nella roadmap.",
@@ -3042,7 +3042,6 @@
   "ui.clientInvites": "Inviti cliente",
   "ui.manageControls": "Gestisci controlli",
   "ui.intake2": "/intake",
-  "ui.vanguardcsCa": "VanguardCS.ca",
   "ui.retune": "). Ritara",
   "ui.inviteNewUser": "Invita un nuovo utente",
   "ui.highRiskTbs": "Rischio elevato (TBS)",
@@ -3239,7 +3238,6 @@
   "ui.usingPlatformDefault": "Utilizza il valore predefinito della piattaforma",
   "ui.usingPlatformDefaultAnthropic": "Utilizza il valore predefinito della piattaforma (Anthropic)",
   "ui.thisCannotBeUndone": "L'operazione non può essere annullata.",
-  "ui.vanguardCybersecurity": "Vanguard Cybersecurity",
   "ui.knownInterconnections": "Interconnessioni note",
   "ui.listedInterconnections": "Interconnessioni elencate",
   "ui.projectAuthorityName": "Nome dell'autorità di progetto",
@@ -3459,7 +3457,6 @@
   "ui.selectProjectDocumentsAndControls": "Seleziona documenti e controlli, visualizza le linee guida generate da Anthropic e salva solo ciò che approvi.",
   "ui.addContextOrAdjustDetails": "Aggiungi contesto o modifica i dettagli prima di creare progetto e valutazione. Questi valori alimentano il motore di raccomandazione.",
   "ui.theTailoredRecommendationCanUse": "La raccomandazione adattata può usare questi documenti come contesto. Puoi ancora aggiungere o rimuovere controlli prima di salvare.",
-  "ui.vanguardCloudServicesSecurityAssessment": "Piattaforma di valutazione e autorizzazione di sicurezza (SA&A) di Vanguard Cloud Services per flussi di conformità multi-framework.",
   "ui.toChangeTheResolvedProfile": "per modificare il profilo risolto e l'insieme di controlli consigliato per questa valutazione — non modifica la richiesta del progetto.",
   "ui.youHaveNoAssignedAssessments": "Non hai ancora valutazioni assegnate. Quando un valutatore ti assegna un file, comparirà qui e riceverai un'email con un link diretto.",
   "ui.archivingKeepsTheProjectAnd": "L'archiviazione mantiene intatti progetto, valutazioni e richieste ma li nasconde dalla dashboard. Puoi ripristinarli in qualsiasi momento.",
@@ -4057,5 +4054,8 @@
   "ru.sent": "{{n}} controllo/i inviato/i per l’aggiornamento e persona assegnata notificata.",
   "st.reactivated": "Riattivata per nuovo invio",
   "ru.modalTitle": "Rinviare i controlli per l’aggiornamento",
-  "ru.modalHelp": "Aggiungi una nota facoltativa per ogni controllo che spieghi cosa deve cambiare. La persona assegnata vedrà la nota accanto al controllo."
+  "ru.modalHelp": "Aggiungi una nota facoltativa per ogni controllo che spieghi cosa deve cambiare. La persona assegnata vedrà la nota accanto al controllo.",
+  "ui.platformDescription": "Piattaforma di valutazione e autorizzazione di sicurezza (SA&A) di Aegis SA per flussi di conformità multi-framework.",
+  "ui.orgNamePlaceholder": "La tua organizzazione",
+  "ui.assessorCompanyPlaceholder": "Nome della società di valutazione"
 }

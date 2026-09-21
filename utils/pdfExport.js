@@ -557,10 +557,16 @@ function formatDateValue(value) {
   return date.toLocaleDateString('en-CA');
 }
 
+// Platform mark (Aegis SA shield) — used in report headers when the org/project
+// has not uploaded a logo of its own. A customer logo always takes precedence.
+const PLATFORM_MARK = path.join(__dirname, '..', 'public', 'images', 'aegis-shield-256.png');
+
 function resolveLogoPath(branding = {}, logoDir) {
-  if (!branding.logo_filename || !logoDir) return null;
-  const logoPath = path.join(logoDir, branding.logo_filename);
-  return fs.existsSync(logoPath) ? logoPath : null;
+  if (branding.logo_filename && logoDir) {
+    const logoPath = path.join(logoDir, branding.logo_filename);
+    if (fs.existsSync(logoPath)) return logoPath;
+  }
+  return fs.existsSync(PLATFORM_MARK) ? PLATFORM_MARK : null;
 }
 
 function brandConfig(project = {}, options = {}) {

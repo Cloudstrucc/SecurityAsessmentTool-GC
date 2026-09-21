@@ -136,7 +136,7 @@
           <form method="POST" action="/admin/projects/{{project.id}}/branding" enctype="multipart/form-data">
             <div class="mb-2">
               <label class="form-label small fw-semibold" for="organization_name">{{t 'ui.organizationName'}}</label>
-              <input type="text" class="form-control form-control-sm" id="organization_name" name="organization_name" value="{{branding.organization_name}}" placeholder="{{t 'ui.vanguardCybersecurity'}}">
+              <input type="text" class="form-control form-control-sm" id="organization_name" name="organization_name" value="{{branding.organization_name}}" placeholder="{{t 'ui.orgNamePlaceholder'}}">
             </div>
             <div class="mb-2">
               <label class="form-label small fw-semibold" for="logo">{{t 'ui.organizationLogo'}}</label>
@@ -154,7 +154,7 @@
               </div>
               <div class="col-md-6">
                 <label class="form-label small fw-semibold" for="assessor_company_name">{{t 'ui.assessorCompany'}}</label>
-                <input type="text" class="form-control form-control-sm" id="assessor_company_name" name="assessor_company_name" value="{{branding.assessor_company_name}}" placeholder="{{t 'ui.vanguardcsCa'}}">
+                <input type="text" class="form-control form-control-sm" id="assessor_company_name" name="assessor_company_name" value="{{branding.assessor_company_name}}" placeholder="{{t 'ui.assessorCompanyPlaceholder'}}">
               </div>
             </div>
             <div class="row g-2 mt-1">

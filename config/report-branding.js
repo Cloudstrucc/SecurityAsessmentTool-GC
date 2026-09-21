@@ -11,7 +11,7 @@
  *
  * Branding is stored in `report_branding`: `scope_type` is 'project' (keyed by
  * project_id) or 'org' (keyed by organization_id). The platform default is the
- * Vanguard Cloud Services / Aegis SA palette and is never stored in the table.
+ * Aegis SA palette and is never stored in the table.
  */
 const { get, run } = require('../models/database');
 
@@ -19,7 +19,7 @@ const { get, run } = require('../models/database');
 // Matches the Aegis SA app chrome (see views/layouts/main.hbs --cs-* tokens).
 const PLATFORM_DEFAULT = {
   scope_type: 'platform',
-  organization_name: 'Vanguard Cloud Services',
+  organization_name: 'Aegis SA',
   product_name: 'Aegis SA',
   logo_filename: null,
   logo_original_name: null,
@@ -30,7 +30,7 @@ const PLATFORM_DEFAULT = {
   primary_color: '#143453',   // --cs-blue (ink)
   accent_color: '#4d9fe0',    // --cs-accent
   header_text: '',
-  footer_text: 'Vanguard Cloud Services · Aegis SA'
+  footer_text: 'Aegis SA · Security Assessment & Authorization'
 };
 
 // Fields that fall through the resolution chain when blank.

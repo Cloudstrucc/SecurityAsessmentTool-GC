@@ -1,6 +1,6 @@
 {
   "brand": {
-    "company": "Vanguard Cloud Services",
+    "company": "Aegis SA",
     "product": "Aegis SA",
     "tagline": "Beveiligingsbeoordeling & Autorisatieplatform",
     "by": "door"
@@ -2060,7 +2060,6 @@
   },
   "provision_status": {
     "span": {
-      "vanguard_cloud_services_inc": "Vanguard Cloud Services Inc",
       "initializing": "Initialiseren",
       "validating_azure_credentials": "Azure-referenties valideren",
       "creating_resource_group": "Resourcegroep aanmaken",
@@ -2073,7 +2072,8 @@
       "login_email": "Inlog-e-mail",
       "role": "Rol",
       "security_assessor_admin": "Beveiligingsbeoordelaar Admin",
-      "plan": "Plan"
+      "plan": "Plan",
+      "aegis_sa": "Aegis SA"
     },
     "h2": {
       "deploying_your_instance": "Uw instantie wordt geïmplementeerd"
@@ -2284,8 +2284,8 @@
   "pl.compB": "Hebt u een aanbiedingstoegangscode?",
   "pl.compT": "Voer deze in op de registratiepagina om een abonnement kosteloos te ontgrendelen — geen betaalgegevens nodig.",
   "pl.placeholderNote": "Voorbeeldprijzen voor tests. Bedragen, aantallen gebruikers en projectlimieten zijn voorbeelden.",
-  "pl.footerBrand": "Aegis SA · Vanguard Cloud Services",
-  "pl.footerLine": "Platform voor beveiligingsbeoordeling en -autorisatie · vanguardcs.ca",
+  "pl.footerBrand": "Aegis SA",
+  "pl.footerLine": "Platform voor beveiligingsbeoordeling en -autorisatie",
   "pbmm.title": "Verklaring persoonsgegevens en privacy",
   "pbmm.lead": "Bekijk en bevestig deze verklaring voordat uw account wordt aangemaakt.",
   "pbmm.p1": "Aegis SA verzamelt uw naam, zakelijke e-mail en organisatie om uw account aan te maken en te beveiligen, uw identiteit te verifiëren, auditlogboeken bij te houden en de activiteiten voor beveiligingsbeoordeling en -autorisatie (SA&A) te beheren. Uw persoonsgegevens worden verzameld en gebruikt volgens de toepasselijke privacywetgeving.",
@@ -2299,7 +2299,7 @@
   "pbmm.linkPrivacyAct": "Gegevensbescherming en privacy",
   "pbmm.urlProtectedB": "https://nl.wikipedia.org/wiki/Persoonsgegevens",
   "pbmm.urlPrivacyAct": "https://nl.wikipedia.org/wiki/Privacy",
-  "pb.metaTitle": "Aegis SA — Beveiligingsbeoordeling en -autorisatie, vereenvoudigd · Vanguard Cloud Services",
+  "pb.metaTitle": "Aegis SA — Beveiligingsbeoordeling en -autorisatie, vereenvoudigd",
   "pb.coverTag": "Beoordelen · Autoriseren · Overerven · Auditen",
   "pb.coverEyebrow": "Platform voor beveiligingsbeoordeling en -autorisatie · Overzicht in duidelijke taal",
   "pb.coverH1a": "Elke beoordeling op",
@@ -2446,7 +2446,7 @@
   "pb.s8C4B": "Voor auditors",
   "pb.s8C4T": "Een volledig, van tijdstempels voorzien spoor — intake, bewijs, beslissingen en handtekeningen — op één record in plaats van een map met bestanden.",
   "pb.s8Lede": "Aegis SA verandert beveiligingsbeoordeling van een versnipperd, handmatig knelpunt in een gecentraliseerd, AI-ondersteund, cumulatief bezit — het verkort de tijd tot autorisatie zonder de nauwkeurigheid te verlagen, en laat elke beoordeling de kwaliteit van de volgende verhogen.",
-  "pb.footer1": "Aegis SA — Platform voor beveiligingsbeoordeling en -autorisatie · Vanguard Cloud Services · vanguardcs.ca",
+  "pb.footer1": "Aegis SA — Platform voor beveiligingsbeoordeling en -autorisatie",
   "pb.footer2a": "Een overzicht in duidelijke taal. Sommige mogelijkheden aangeduid als",
   "pb.footer2b": "gepland",
   "pb.footer2c": "staan op de roadmap.",
@@ -3042,7 +3042,6 @@
   "ui.clientInvites": "Klantuitnodigingen",
   "ui.manageControls": "Controls beheren",
   "ui.intake2": "/intake",
-  "ui.vanguardcsCa": "VanguardCS.ca",
   "ui.retune": "). Bijstellen",
   "ui.inviteNewUser": "Nieuwe gebruiker uitnodigen",
   "ui.highRiskTbs": "Hoog risico (TBS)",
@@ -3239,7 +3238,6 @@
   "ui.usingPlatformDefault": "Gebruikt platformstandaard",
   "ui.usingPlatformDefaultAnthropic": "Gebruikt platformstandaard (Anthropic)",
   "ui.thisCannotBeUndone": "Dit kan niet ongedaan worden gemaakt.",
-  "ui.vanguardCybersecurity": "Vanguard Cybersecurity",
   "ui.knownInterconnections": "Bekende koppelingen",
   "ui.listedInterconnections": "Vermelde koppelingen",
   "ui.projectAuthorityName": "Naam projectautoriteit",
@@ -3459,7 +3457,6 @@
   "ui.selectProjectDocumentsAndControls": "Selecteer documenten en controls, bekijk de door Anthropic gegenereerde richtlijn en sla alleen op wat je goedkeurt.",
   "ui.addContextOrAdjustDetails": "Voeg context toe of pas details aan voordat je project en beoordeling maakt. Deze overschrijvingen voeden de aanbevelingsengine.",
   "ui.theTailoredRecommendationCanUse": "De afgestemde aanbeveling kan deze documenten als context gebruiken. Je kunt vóór het opslaan nog controls toevoegen of verwijderen.",
-  "ui.vanguardCloudServicesSecurityAssessment": "Vanguard Cloud Services-platform voor beveiligingsbeoordeling en -autorisatie (SA&A) voor multi-framework compliance.",
   "ui.toChangeTheResolvedProfile": "om het bepaalde profiel en de aanbevolen controlset voor deze beoordeling te wijzigen — de projectaanvraag verandert hierdoor niet.",
   "ui.youHaveNoAssignedAssessments": "Je hebt nog geen toegewezen beoordelingen. Zodra een beoordelaar je een dossier toewijst, verschijnt het hier en ontvang je een e-mail met directe link.",
   "ui.archivingKeepsTheProjectAnd": "Archiveren houdt het project, de beoordelingen en aanvragen intact maar verbergt ze van het dashboard. Je kunt ze altijd herstellen.",
@@ -4057,5 +4054,8 @@
   "ru.sent": "{{n}} control(s) teruggestuurd voor bijwerken en de toegewezen persoon is op de hoogte gebracht.",
   "st.reactivated": "Opnieuw geactiveerd voor herindiening",
   "ru.modalTitle": "Controls terugsturen voor bijwerken",
-  "ru.modalHelp": "Voeg een optionele notitie toe per control waarin je uitlegt wat er moet veranderen. De toegewezen persoon ziet de notitie naast het control."
+  "ru.modalHelp": "Voeg een optionele notitie toe per control waarin je uitlegt wat er moet veranderen. De toegewezen persoon ziet de notitie naast het control.",
+  "ui.platformDescription": "Aegis SA-platform voor beveiligingsbeoordeling en -autorisatie (SA&A) voor multi-framework compliance.",
+  "ui.orgNamePlaceholder": "Je organisatie",
+  "ui.assessorCompanyPlaceholder": "Naam van het beoordelingsbureau"
 }
