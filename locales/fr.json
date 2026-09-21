@@ -4079,5 +4079,11 @@
   "ru.modalHelp": "Ajoutez une note facultative pour chaque contrôle expliquant ce qui doit changer. La personne attribuée verra la note à côté du contrôle.",
   "ui.platformDescription": "Plateforme d'évaluation et d'autorisation de sécurité (SA&A) de Aegis SA pour les processus de conformité multicadres.",
   "ui.orgNamePlaceholder": "Votre organisation",
-  "ui.assessorCompanyPlaceholder": "Nom du cabinet d’évaluation"
+  "ui.assessorCompanyPlaceholder": "Nom du cabinet d’évaluation",
+  "auth.loginTitle": "Connexion",
+  "pg.perPage": "Par page",
+  "pg.showing": "Affichage de {{from}}–{{to}} sur {{total}}",
+  "pg.prev": "Précédent",
+  "pg.next": "Suivant",
+  "pg.pagination": "Pagination"
 }

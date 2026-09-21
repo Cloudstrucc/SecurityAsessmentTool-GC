@@ -233,6 +233,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(UPLOAD_DIR));
 app.use(i18nMiddleware());
 app.use(i18nLocals);
+// Sign-in / registration / recovery pages: no application nav, taller brand bar.
+app.use((req, res, next) => {
+  if (/^\/(admin\/login|client\/login|forgot-password|reset-password|admin\/register|client\/register)(\/|$)/.test(req.path)) res.locals.authPage = true;
+  next();
+});
 
 app.set('trust proxy', 1);
 app.use(session({

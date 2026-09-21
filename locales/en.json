@@ -210,7 +210,7 @@
   "bq.gpa": "Governance, Policy & Awareness",
   "bq.ssc": "System-Specific Considerations",
   "auth.login": "Sign In",
-  "auth.loginTitle": "Assessor Login",
+  "auth.loginTitle": "Login",
   "auth.clientLogin": "Client Sign In",
   "auth.email": "Email address",
   "auth.password": "Password",
@@ -4036,5 +4036,10 @@
   "ru.modalHelp": "Add an optional note for each control explaining what needs to change. The assignee will see the note next to the control.",
   "ui.platformDescription": "Aegis SA Security Assessment & Authorization (SA&A) Platform for multi-framework compliance and assessment workflows.",
   "ui.orgNamePlaceholder": "Your organization",
-  "ui.assessorCompanyPlaceholder": "Assessment firm name"
+  "ui.assessorCompanyPlaceholder": "Assessment firm name",
+  "pg.perPage": "Per page",
+  "pg.showing": "Showing {{from}}–{{to}} of {{total}}",
+  "pg.prev": "Previous",
+  "pg.next": "Next",
+  "pg.pagination": "Pagination"
 }

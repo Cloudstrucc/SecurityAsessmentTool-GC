@@ -4057,5 +4057,11 @@
   "ru.modalHelp": "Adicione uma nota opcional para cada controle explicando o que precisa mudar. A pessoa atribuída verá a nota ao lado do controle.",
   "ui.platformDescription": "Plataforma de avaliação e autorização de segurança (SA&A) da Aegis SA para fluxos de conformidade multiestrutura.",
   "ui.orgNamePlaceholder": "Sua organização",
-  "ui.assessorCompanyPlaceholder": "Nome da empresa avaliadora"
+  "ui.assessorCompanyPlaceholder": "Nome da empresa avaliadora",
+  "auth.loginTitle": "Entrar",
+  "pg.perPage": "Por página",
+  "pg.showing": "Exibindo {{from}}–{{to}} de {{total}}",
+  "pg.prev": "Anterior",
+  "pg.next": "Próxima",
+  "pg.pagination": "Paginação"
 }

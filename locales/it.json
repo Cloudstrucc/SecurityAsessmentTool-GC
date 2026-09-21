@@ -4057,5 +4057,11 @@
   "ru.modalHelp": "Aggiungi una nota facoltativa per ogni controllo che spieghi cosa deve cambiare. La persona assegnata vedrà la nota accanto al controllo.",
   "ui.platformDescription": "Piattaforma di valutazione e autorizzazione di sicurezza (SA&A) di Aegis SA per flussi di conformità multi-framework.",
   "ui.orgNamePlaceholder": "La tua organizzazione",
-  "ui.assessorCompanyPlaceholder": "Nome della società di valutazione"
+  "ui.assessorCompanyPlaceholder": "Nome della società di valutazione",
+  "auth.loginTitle": "Accedi",
+  "pg.perPage": "Per pagina",
+  "pg.showing": "Visualizzati {{from}}–{{to}} di {{total}}",
+  "pg.prev": "Precedente",
+  "pg.next": "Successiva",
+  "pg.pagination": "Paginazione"
 }

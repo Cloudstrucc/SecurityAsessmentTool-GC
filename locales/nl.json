@@ -4057,5 +4057,11 @@
   "ru.modalHelp": "Voeg een optionele notitie toe per control waarin je uitlegt wat er moet veranderen. De toegewezen persoon ziet de notitie naast het control.",
   "ui.platformDescription": "Aegis SA-platform voor beveiligingsbeoordeling en -autorisatie (SA&A) voor multi-framework compliance.",
   "ui.orgNamePlaceholder": "Je organisatie",
-  "ui.assessorCompanyPlaceholder": "Naam van het beoordelingsbureau"
+  "ui.assessorCompanyPlaceholder": "Naam van het beoordelingsbureau",
+  "auth.loginTitle": "Aanmelden",
+  "pg.perPage": "Per pagina",
+  "pg.showing": "{{from}}–{{to}} van {{total}} weergegeven",
+  "pg.prev": "Vorige",
+  "pg.next": "Volgende",
+  "pg.pagination": "Paginering"
 }

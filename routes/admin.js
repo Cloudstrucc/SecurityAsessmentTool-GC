@@ -967,7 +967,7 @@ router.get('/login', (req, res) => {
       hasWebAuthn: !!user.webauthn_credential_id
     });
   }
-  res.render('admin/login', { title: 'Assessor Login', layout: 'main', prefillEmail: req.query.email || '' });
+  res.render('admin/login', { title: 'Login', layout: 'main', prefillEmail: req.query.email || '' });
 });
 
 router.post('/login', (req, res, next) => {
@@ -1294,7 +1294,28 @@ router.get('/projects', ensureAuthenticated, (req, res) => {
 
 router.get('/security-controls', ensureAuthenticated, (req, res) => {
   const { where, params, filters } = catalogFilterParts(req.query);
-  const controls = all(`SELECT * FROM security_control_catalog ${where} ORDER BY framework, family, control_id`, params);
+  // Server-side pagination: 20 per page by default, user-selectable up to 100.
+  const PER_OPTIONS = [20, 50, 100];
+  const per = PER_OPTIONS.includes(Number(req.query.per)) ? Number(req.query.per) : 20;
+  const total = get(`SELECT COUNT(*) AS c FROM security_control_catalog ${where}`, params)?.c || 0;
+  const pages = Math.max(1, Math.ceil(total / per));
+  const page = Math.min(pages, Math.max(1, parseInt(req.query.page, 10) || 1));
+  const controls = all(`SELECT * FROM security_control_catalog ${where} ORDER BY framework, family, control_id LIMIT ? OFFSET ?`,
+    [...params, per, (page - 1) * per]);
+  const qs = new URLSearchParams();
+  for (const k of ['framework', 'family', 'q', 'baseline', 'category', 'applicability', 'status']) if (filters[k]) qs.set(k, filters[k]);
+  qs.set('per', String(per));
+  const base = '/admin/security-controls?' + qs.toString();
+  // A compact window of page numbers around the current page.
+  const win = 2, lo = Math.max(1, page - win), hi = Math.min(pages, page + win);
+  const pageList = []; for (let n = lo; n <= hi; n++) pageList.push({ n, active: n === page, href: `${base}&page=${n}` });
+  const pagination = {
+    page, per, pages, total, base,
+    from: total ? (page - 1) * per + 1 : 0, to: Math.min(page * per, total),
+    hasPrev: page > 1, hasNext: page < pages, prevHref: `${base}&page=${page - 1}`, nextHref: `${base}&page=${page + 1}`,
+    firstHref: `${base}&page=1`, lastHref: `${base}&page=${pages}`, showFirst: lo > 1, showLast: hi < pages,
+    perOptions: PER_OPTIONS.map(n => ({ n, selected: n === per })), pageList
+  };
   const frameworks = all('SELECT DISTINCT framework FROM security_control_catalog ORDER BY framework');
   const families = all('SELECT DISTINCT family, category FROM security_control_catalog ORDER BY family');
   const categories = all('SELECT DISTINCT category FROM security_control_catalog WHERE category IS NOT NULL AND category != \'\' ORDER BY category');
@@ -1309,7 +1330,8 @@ router.get('/security-controls', ensureAuthenticated, (req, res) => {
     families,
     categories,
     statuses,
-    filters
+    filters,
+    pagination
   });
 });
 

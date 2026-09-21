@@ -65,7 +65,12 @@
       <div class="col-md-9 d-flex align-items-end gap-2 flex-wrap">
         <button class="btn btn-primary" type="submit"><i class="bi bi-funnel me-1"></i>{{t 'ui.apply'}}</button>
         <a class="btn btn-outline-secondary" href="/admin/security-controls">{{t 'ui.reset'}}</a>
-        <span class="badge bg-primary fs-6">{{controls.length}} controls</span>
+        <span class="badge bg-primary fs-6">{{pagination.total}} controls</span>
+        <label class="ms-auto d-flex align-items-center gap-2 small text-muted mb-0" for="per">{{t 'pg.perPage'}}
+          <select class="form-select form-select-sm" id="per" name="per" style="width:auto" onchange="this.form.submit()">
+            {{#each pagination.perOptions}}<option value="{{this.n}}" {{#if this.selected}}selected{{/if}}>{{this.n}}</option>{{/each}}
+          </select>
+        </label>
       </div>
     </div>
   </form>
@@ -114,6 +119,19 @@
         </tbody>
       </table>
     </div>
+
+    {{#if controls.length}}
+    <nav class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2" aria-label="{{t 'pg.pagination'}}">
+      <span class="small text-muted">{{t 'pg.showing' from=pagination.from to=pagination.to total=pagination.total}}</span>
+      <ul class="pagination pagination-sm mb-0">
+        <li class="page-item {{#unless pagination.hasPrev}}disabled{{/unless}}"><a class="page-link" href="{{pagination.prevHref}}" aria-label="{{t 'pg.prev'}}">&laquo; {{t 'pg.prev'}}</a></li>
+        {{#if pagination.showFirst}}<li class="page-item"><a class="page-link" href="{{pagination.firstHref}}">1</a></li><li class="page-item disabled"><span class="page-link">…</span></li>{{/if}}
+        {{#each pagination.pageList}}<li class="page-item {{#if this.active}}active{{/if}}"><a class="page-link" href="{{this.href}}" {{#if this.active}}aria-current="page"{{/if}}>{{this.n}}</a></li>{{/each}}
+        {{#if pagination.showLast}}<li class="page-item disabled"><span class="page-link">…</span></li><li class="page-item"><a class="page-link" href="{{pagination.lastHref}}">{{pagination.pages}}</a></li>{{/if}}
+        <li class="page-item {{#unless pagination.hasNext}}disabled{{/unless}}"><a class="page-link" href="{{pagination.nextHref}}" aria-label="{{t 'pg.next'}}">{{t 'pg.next'}} &raquo;</a></li>
+      </ul>
+    </nav>
+    {{/if}}
 
     {{#unless controls.length}}
       <div class="text-center text-muted py-5">

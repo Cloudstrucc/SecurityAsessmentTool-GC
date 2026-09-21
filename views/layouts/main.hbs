@@ -85,6 +85,8 @@
     .gc-sig img { height:30px; width:auto; }
     /* Aegis SA mark: the full logo lives only in the top brand bar (reversed on navy). */
     .gc-sig .brand-logo { height:34px; width:auto; display:block; }
+    body.auth-page .gc-fip-inner { padding:1.1rem 0; }
+    body.auth-page .gc-sig .brand-logo { height:42px; }
     .gc-sig .brand-name { font-family:'Lato',sans-serif; font-weight:700; font-size:1.05rem; letter-spacing:0; }
     .gc-sig .brand-sep { color:rgba(255,255,255,.32); font-weight:300; }
     .gc-sig .brand-product { font-weight:500; font-size:.9rem; opacity:.86; }
@@ -261,7 +263,7 @@
   </style>
   {{#if extraStyles}}{{{extraStyles}}}{{/if}}
 </head>
-<body vocab="http://schema.org/" typeof="WebPage"{{#if user}} class="nav-dock nav-pos-{{navPosition}}{{#if navPinned}} nav-pinned{{/if}} nav-labels-{{navLabels}}" data-nav-default-pos="{{navPosition}}" data-nav-default-pinned="{{navPinned}}" data-nav-default-labels="{{navLabels}}" data-action-labels="{{actionLabels}}" data-more-label="{{t 'navd.more'}}" data-ra-more="{{t 'ra.menu'}}" data-ra-tools="{{t 'ra.tools'}}" data-ra-move="{{t 'ra.dragToMove'}}" data-ra-dock="{{t 'ra.dockHere'}}"{{/if}}>
+<body vocab="http://schema.org/" typeof="WebPage"{{#if authPage}} class="auth-page"{{/if}}{{#if user}} class="nav-dock nav-pos-{{navPosition}}{{#if navPinned}} nav-pinned{{/if}} nav-labels-{{navLabels}}" data-nav-default-pos="{{navPosition}}" data-nav-default-pinned="{{navPinned}}" data-nav-default-labels="{{navLabels}}" data-action-labels="{{actionLabels}}" data-more-label="{{t 'navd.more'}}" data-ra-more="{{t 'ra.menu'}}" data-ra-tools="{{t 'ra.tools'}}" data-ra-move="{{t 'ra.dragToMove'}}" data-ra-dock="{{t 'ra.dockHere'}}"{{/if}}>
 
   {{#if user}}
   <!-- Edge-reveal hotzones (shown only when the menu is unpinned) -->
@@ -301,6 +303,7 @@
       </div>
     </div>
 
+    {{#unless authPage}}
     <nav class="gc-app-bar" id="gcAppBar" aria-label="Application navigation">
       <div class="container gc-edge gc-app-inner">
         <button class="gc-menu-btn" onclick="document.getElementById('gcNav').classList.toggle('show')" aria-label="Toggle navigation">
@@ -402,6 +405,7 @@
         {{/if}}
       </div>
     </nav>
+    {{/unless}}
   </header>
 
   <div class="gc-shell">

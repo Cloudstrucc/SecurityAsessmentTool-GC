@@ -706,7 +706,7 @@ test('the retired legacy ATO editor is gone', async () => {
 });
 test('admin can browse the security control catalog', async () => {
   const jar = await loginAdminWithTotp();
-  const page = await getText(jar, '/admin/security-controls?q=account');
+  const page = await getText(jar, '/admin/security-controls?q=account&per=100');
   assert.equal(page.response.status, 200);
   assert.match(page.text, /Security Control Catalog/);
   assert.match(page.text, /AC-2/);
@@ -2497,4 +2497,26 @@ test('assessor sends individual control(s) back for update — reopens as reacti
   assert.match(respond2.text, /Please add the config export/, 'per-control resubmission note shown');
   const ok = await (await request(jar, 'POST', `/respond/${code}/save/${cid}`, { json: { evidence_text: 'z', evidence_html: '<p>z</p>' } })).json();
   assert.equal(ok.success, true, 'control is editable again after being sent back');
+});
+
+test('security control catalog paginates (default 20, up to 100) and preserves filters across pages', async () => {
+  const jar = await loginAdminWithTotp();
+  // Default page size is 20 with a pager.
+  const p1 = await getText(jar, '/admin/security-controls');
+  const rows1 = (p1.text.match(/<tr data-search=/g) || []).length;
+  assert.ok(rows1 <= 20, `default page shows at most 20 rows (got ${rows1})`);
+  assert.match(p1.text, /name="per"/, 'per-page selector present');
+  assert.match(p1.text, /class="pagination/, 'pager present');
+
+  // 100 per page is allowed; out-of-range values fall back to 20.
+  const p100 = await getText(jar, '/admin/security-controls?per=100');
+  const rows100 = (p100.text.match(/<tr data-search=/g) || []).length;
+  assert.ok(rows100 <= 100 && rows100 >= rows1, 'per=100 shows up to 100 rows');
+  const pBad = await getText(jar, '/admin/security-controls?per=999');
+  assert.ok(((pBad.text.match(/<tr data-search=/g) || []).length) <= 20, 'invalid per falls back to 20');
+
+  // Page links carry the active filters and page size.
+  const pf = await getText(jar, '/admin/security-controls?q=account&per=20');
+  const EQ = '(?:=|&#x3D;)';
+  assert.match(pf.text, new RegExp('href="/admin/security-controls\\?[^"]*q' + EQ + 'account[^"]*per' + EQ + '20[^"]*&amp;page' + EQ), 'pager links preserve filters + per');
 });

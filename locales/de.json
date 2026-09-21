@@ -4057,5 +4057,11 @@
   "ru.modalHelp": "Fügen Sie für jedes Control eine optionale Notiz hinzu, die erklärt, was geändert werden muss. Die zugewiesene Person sieht die Notiz neben dem Control.",
   "ui.platformDescription": "Aegis SA Plattform für Sicherheitsbewertung und -autorisierung (SA&A) für Multi-Framework-Compliance.",
   "ui.orgNamePlaceholder": "Ihre Organisation",
-  "ui.assessorCompanyPlaceholder": "Name des Prüfunternehmens"
+  "ui.assessorCompanyPlaceholder": "Name des Prüfunternehmens",
+  "auth.loginTitle": "Anmelden",
+  "pg.perPage": "Pro Seite",
+  "pg.showing": "{{from}}–{{to}} von {{total}} angezeigt",
+  "pg.prev": "Zurück",
+  "pg.next": "Weiter",
+  "pg.pagination": "Seitennavigation"
 }

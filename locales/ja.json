@@ -4057,5 +4057,11 @@
   "ru.modalHelp": "各コントロールに、変更が必要な点を説明する任意のメモを追加します。担当者はコントロールの横にメモを確認できます。",
   "ui.platformDescription": "マルチフレームワーク準拠に対応した Aegis SA のセキュリティ評価・認可 (SA&A) プラットフォーム。",
   "ui.orgNamePlaceholder": "組織名",
-  "ui.assessorCompanyPlaceholder": "評価会社名"
+  "ui.assessorCompanyPlaceholder": "評価会社名",
+  "auth.loginTitle": "ログイン",
+  "pg.perPage": "1ページあたり",
+  "pg.showing": "{{total}} 件中 {{from}}–{{to}} 件を表示",
+  "pg.prev": "前へ",
+  "pg.next": "次へ",
+  "pg.pagination": "ページ送り"
 }
