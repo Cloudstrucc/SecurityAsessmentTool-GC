@@ -83,9 +83,8 @@
     .gc-sig { display:flex; align-items:center; gap:.65rem; text-decoration:none; color:#fff; }
     .gc-sig:hover { color:#fff; text-decoration:none; }
     .gc-sig img { height:30px; width:auto; }
-    /* Aegis SA marks: full logo (reversed on the dark bar, full-colour on white). */
+    /* Aegis SA mark: the full logo lives only in the top brand bar (reversed on navy). */
     .gc-sig .brand-logo { height:34px; width:auto; display:block; }
-    .gc-app-title .brand-logo { height:28px; width:auto; display:block; }
     .gc-sig .brand-name { font-family:'Lato',sans-serif; font-weight:700; font-size:1.05rem; letter-spacing:0; }
     .gc-sig .brand-sep { color:rgba(255,255,255,.32); font-weight:300; }
     .gc-sig .brand-product { font-weight:500; font-size:.9rem; opacity:.86; }
@@ -304,9 +303,6 @@
 
     <nav class="gc-app-bar" id="gcAppBar" aria-label="Application navigation">
       <div class="container gc-edge gc-app-inner">
-        <a class="gc-app-title" href="{{homeHref}}" aria-label="{{t 'brand.product'}}">
-          <img src="/images/aegis-logo.svg" alt="{{t 'brand.product'}}" class="brand-logo">
-        </a>
         <button class="gc-menu-btn" onclick="document.getElementById('gcNav').classList.toggle('show')" aria-label="Toggle navigation">
           <i class="bi bi-list" aria-hidden="true"></i> {{t 'nav.menu'}}
         </button>
