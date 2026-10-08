@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Workflow C — Pipeline Board</title>
+<style>
+:root{
+  --navy-950:#0a1626;--navy-900:#0d2136;--navy-800:#143453;
+  --sky-300:#a9d8f2;--sky-400:#7cc4ee;--sky-500:#4d9fe0;--sky-600:#2f80cf;
+  --peri-500:#6d7fca;--ink:#17273a;--muted:#5f7185;--line:#dce7f2;
+  --mist:#f4f9fd;--soft:#eaf5fd;--amber:#e0a53d;--green:#2fa06d;--red:#d64550;
+  --r:14px;--r-sm:10px;--pill:999px;
+  --shadow-sm:0 2px 10px rgba(15,32,54,.06);--shadow:0 10px 30px rgba(15,32,54,.10);
+  --shadow-lg:0 20px 50px rgba(10,22,38,.20);
+  --font:'Inter','Segoe UI',Roboto,system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font);background:var(--mist);color:var(--ink);font-size:14px;line-height:1.5}
+.appbar{background:var(--navy-950);color:#fff;padding:.7rem 1.25rem;display:flex;align-items:center;gap:1rem}
+.logo{display:flex;align-items:center;gap:.5rem;font-weight:800;letter-spacing:.12em;font-size:15px}
+.logo .sh{width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,var(--peri-500),var(--sky-400))}
+.appbar .sp{flex:1}.appbar .who{font-size:12.5px;opacity:.75}
+.note{max-width:1480px;margin:1rem auto .25rem;padding:0 1rem}
+.note h1{font-size:20px;margin:.2rem 0}
+.note p{color:var(--muted);margin:.25rem 0 .75rem;max-width:88ch}
+
+.toolbar{max-width:1480px;margin:0 auto .8rem;padding:0 1rem;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.seg{display:flex;border:1px solid var(--line);border-radius:var(--pill);overflow:hidden;background:#fff}
+.seg button{border:0;background:#fff;padding:.35rem .85rem;font:inherit;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--navy-900);color:#fff;font-weight:600}
+.spacer{flex:1}
+.pillbtn{border:1px solid var(--line);background:#fff;border-radius:var(--pill);padding:.35rem .85rem;font:inherit;font-size:12.5px;cursor:pointer}
+
+/* ===== board ===== */
+.board{max-width:1480px;margin:0 auto 2rem;padding:0 1rem 1rem;display:grid;grid-template-columns:repeat(7,minmax(190px,1fr));gap:.6rem;overflow-x:auto}
+.col{background:#eef4fa;border:1px solid var(--line);border-radius:var(--r);min-height:360px;display:flex;flex-direction:column}
+.col h3{margin:0;padding:.6rem .7rem;font-size:12px;display:flex;align-items:center;gap:.4rem;border-bottom:1px solid var(--line)}
+.col h3 .n{background:#fff;border:1px solid var(--line);border-radius:var(--pill);font-size:11px;padding:0 .45rem;margin-left:auto;color:var(--muted)}
+.col .who{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:.35rem .7rem 0}
+.col .body{padding:.45rem;display:flex;flex-direction:column;gap:.45rem}
+.ccard{background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);padding:.55rem .6rem;cursor:pointer;box-shadow:var(--shadow-sm)}
+.ccard:hover{border-color:var(--sky-500)}
+.ccard.sel{border-color:var(--sky-600);box-shadow:0 0 0 3px rgba(77,159,224,.18)}
+.ccard .t{font-size:12.5px;font-weight:700;line-height:1.3}
+.ccard .m{font-size:11px;color:var(--muted);margin-top:.15rem}
+.ccard .bar{height:4px;background:var(--soft);border-radius:var(--pill);margin-top:.45rem;overflow:hidden}
+.ccard .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--peri-500),var(--sky-400))}
+.ccard .ft{display:flex;align-items:center;gap:.3rem;margin-top:.4rem;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:.25rem;border-radius:var(--pill);padding:.05rem .45rem;font-size:10.5px;font-weight:700}
+.chip.g{background:#e6f6ee;color:#1d6b49}.chip.a{background:#fdf3e2;color:#8a6116}
+.chip.r{background:#fdeaec;color:#9c2b33}.chip.b{background:var(--soft);color:var(--navy-800)}
+.chip.n{background:#eef1f6;color:var(--muted)}
+.chip.me{background:var(--navy-900);color:#fff}
+.col.hot{background:#fdf6ea;border-color:#f0dcb4}
+
+/* ===== drawer ===== */
+.scrim{position:fixed;inset:0;background:rgba(10,22,38,.35);opacity:0;pointer-events:none;transition:.18s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:#fff;box-shadow:var(--shadow-lg);transform:translateX(100%);transition:.22s;display:flex;flex-direction:column;z-index:5}
+.drawer.on{transform:none}
+.dhead{padding:1rem 1.15rem;border-bottom:1px solid var(--line);background:var(--navy-900);color:#fff}
+.dhead .eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.7}
+.dhead h2{margin:.15rem 0 .1rem;font-size:18px}
+.dhead .meta{font-size:12px;opacity:.75}
+.dhead .x{position:absolute;top:.9rem;right:1rem;background:transparent;border:0;color:#fff;font-size:20px;cursor:pointer;opacity:.8}
+.dbody{padding:1.1rem;overflow:auto;flex:1}
+.dnow{border:1px solid var(--line);border-left:5px solid var(--sky-600);border-radius:var(--r-sm);padding:.75rem .85rem;background:var(--mist);margin-bottom:1rem}
+.dnow .k{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.dnow h4{margin:.15rem 0 .25rem;font-size:15px}
+.dnow p{margin:0;font-size:12.5px;color:var(--muted)}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:var(--pill);padding:.45rem .95rem;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.btn.pri{background:var(--navy-900);border-color:var(--navy-900);color:#fff}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--sky-600)}
+.lane{list-style:none;margin:0;padding:0}
+.lane li{display:flex;gap:.6rem;padding:.5rem 0;border-bottom:1px solid var(--line)}
+.lane li:last-child{border-bottom:0}
+.lane .dot{flex:0 0 18px;height:18px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:9px;font-weight:800;color:var(--muted);margin-top:2px}
+.lane li.done .dot{background:var(--green);border-color:var(--green);color:#fff}
+.lane li.now .dot{background:var(--sky-600);border-color:var(--sky-600);color:#fff;box-shadow:0 0 0 4px rgba(77,159,224,.16)}
+.lane .lbl{font-size:13px;font-weight:600}
+.lane li.done .lbl,.lane li.todo .lbl{font-weight:500;color:var(--muted)}
+.lane .sub{font-size:11.5px;color:var(--muted)}
+.lane .when{margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap}
+.sect{margin-top:1.1rem}
+.sect h5{margin:0 0 .4rem;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+td{padding:.35rem .4rem;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+.dfoot{border-top:1px solid var(--line);padding:.75rem 1.15rem;background:var(--mist);display:flex;gap:.6rem;align-items:center}
+.dfoot .t{flex:1;font-size:12px;color:var(--muted)}
+.callout{border:1px dashed var(--sky-500);background:#f2f9fe;border-radius:var(--r-sm);padding:.55rem .7rem;font-size:12px;color:var(--navy-800);margin-top:.85rem}
+.ann{max-width:1480px;margin:0 auto 3rem;padding:0 1rem}
+.ann .inner{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:.9rem 1.1rem}
+.ann h4{margin:0 0 .4rem;font-size:13px}
+.ann ul{margin:0;padding-left:1.1rem;font-size:12.5px;color:var(--muted)}
+.ann li{margin-bottom:.25rem}
+.hint{max-width:1480px;margin:0 auto .6rem;padding:0 1rem;font-size:12.5px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <span class="logo"><span class="sh"></span> AEGIS S.A.</span>
+  <span class="sp"></span>
+  <span class="who">Fred Pearson · Assessor</span>
+</div>
+
+<div class="note">
+  <h1>Workflow C — “Pipeline Board”</h1>
+  <p>For people who run <b>many systems at once</b>. Every project is a card; the columns are the seven workflow steps, so the whole portfolio’s
+  position is one glance. A card carries its own progress bar, who it is waiting on, and whether it is overdue. Clicking a card opens a
+  <b>slide-over</b> with that project’s step-by-step lane and a single next action — you do the work without ever losing the board.</p>
+</div>
+
+<div class="toolbar">
+  <div class="seg">
+    <button class="on">Board</button><button>List</button><button>Calendar</button>
+  </div>
+  <button class="pillbtn">👤 Only mine</button>
+  <button class="pillbtn">⏰ Overdue (2)</button>
+  <button class="pillbtn">🏷️ Protected B</button>
+  <span class="spacer"></span>
+  <button class="pillbtn">+ New project</button>
+</div>
+
+<div class="hint">Click any card to open its slide-over. The <b>Claims Portal</b> card is the project walked end-to-end.</div>
+
+<div class="board" id="board"></div>
+
+<div class="ann"><div class="inner">
+  <h4>What this design fixes</h4>
+  <ul>
+    <li><b>Portfolio position is free.</b> You see every system’s stage without opening anything — the question “where is X?” disappears.</li>
+    <li><b>Stalls are obvious.</b> Columns owned by someone else are tinted, and a card that has not moved in N days surfaces an “idle 9 days” chip.</li>
+    <li><b>Work happens in a slide-over.</b> You never lose your place; close the drawer and the board is exactly where you left it.</li>
+    <li><b>One lane per project.</b> The drawer shows the same seven steps as the board columns, so the mental model never changes between views.</li>
+    <li><b>Good for managers and assessors both.</b> The same board answers “what do I do next” (filter to mine) and “how is the programme doing”.</li>
+  </ul>
+</div></div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="dhead" style="position:relative">
+    <button class="x" id="dx">×</button>
+    <div class="eyebrow" id="deyebrow">Project</div>
+    <h2 id="dtitle">Claims Portal</h2>
+    <div class="meta" id="dmeta">INT-CA986793 · Dana Whitfield · Protected B · 5 controls</div>
+  </div>
+  <div class="dbody">
+    <div class="dnow">
+      <div class="k">Your next action</div>
+      <h4 id="dnowt">Score 5 controls</h4>
+      <p id="dnowp">Three are scored. The decision step stays locked until every control has a result.</p>
+      <div style="margin-top:.6rem"><button class="btn pri" id="dnowb">Review next control →</button></div>
+    </div>
+
+    <div class="sect">
+      <h5>Journey</h5>
+      <ul class="lane" id="dlane"></ul>
+    </div>
+
+    <div class="sect" id="dextra"></div>
+
+    <div class="callout"><b>Why a drawer:</b> today a project page and an assessment page are two different places with two different
+    progress trackers. One lane in one drawer removes the “which tracker is right?” question entirely.</div>
+  </div>
+  <div class="dfoot">
+    <span class="t" id="dfoott">Waiting on <b>you</b> · idle 2 days</span>
+    <button class="btn ghost">Open full record</button>
+    <button class="btn pri" id="dfootb">Review next control →</button>
+  </div>
+</aside>
+
+<script>
+const COLS=[
+ {n:'1 · Intake',      who:'Business owner'},
+ {n:'2 · Assessment open', who:'Assessor'},
+ {n:'3 · Tailoring',   who:'Assessor'},
+ {n:'4 · Sent',        who:'Provider'},
+ {n:'5 · Evidence',    who:'Provider'},
+ {n:'6 · Review',      who:'Assessor'},
+ {n:'7 · Decision',    who:'Authorizer'}
+];
+const HOT=[3,4]; // columns owned by someone else
+const CARDS=[
+ {col:0,t:'HR Records',      m:'2 of 6 sections',       p:18, chips:['<span class="chip me">You</span>','<span class="chip n">Due 10 Oct</span>']},
+ {col:0,t:'Vendor Portal',   m:'Not started',           p:4,  chips:['<span class="chip n">M. Okafor</span>']},
+ {col:0,t:'Field Devices',   m:'5 of 6 sections',       p:30, chips:['<span class="chip n">idle 9 d</span>']},
+ {col:1,t:'Payments Hub',    m:'Intake submitted 2 Oct',p:30, chips:['<span class="chip me">You</span>']},
+ {col:2,t:'Benefits API',    m:'190 suggested · 0 decided',p:38,chips:['<span class="chip me">You</span>','<span class="chip n">Due Mon</span>']},
+ {col:2,t:'Case Tracker',    m:'126 of 190 decided',    p:44, chips:['<span class="chip n">R. Vidal</span>']},
+ {col:3,t:'Payroll Gateway', m:'Sent 24 Sep · no reply',p:55, chips:['<span class="chip a">idle 14 d</span>','<span class="chip n">Nudge</span>']},
+ {col:3,t:'Grants Intake',   m:'Sent 1 Oct',            p:55, chips:['<span class="chip n">J. Moreau</span>']},
+ {col:4,t:'Claims Portal',   m:'49 of 60 blanks · 8 of 14 files',p:70,chips:['<span class="chip r">2 d late</span>','<span class="chip n">D. Whitfield</span>'],key:true},
+ {col:4,t:'Licensing DB',    m:'22 of 40 blanks',       p:66, chips:['<span class="chip n">S. Antoun</span>']},
+ {col:5,t:'Permits Service', m:'4 of 9 scored',         p:82, chips:['<span class="chip me">You</span>']},
+ {col:6,t:'Travel Claims',   m:'Ready to issue · 1 finding',p:95,chips:['<span class="chip me">You</span>','<span class="chip a">iATO</span>']}
+];
+const LANE=[
+ {l:'Intake',          s:'INT-CA986793 accepted',            w:'2 Oct'},
+ {l:'Assessment open', s:'Package v1 created',               w:'2 Oct'},
+ {l:'Tailoring',       s:'190 → 5 in scope, 1 inherited',    w:'3 Oct'},
+ {l:'Assign &amp; send',   s:'Sent to D. Whitfield · due 29 Oct', w:'3 Oct'},
+ {l:'Evidence',        s:'Submitted · 5 of 5 controls',      w:'6 Oct'},
+ {l:'Review &amp; audit',  s:'3 of 5 scored',                    w:'now'},
+ {l:'Decision',        s:'Locked until every control is scored', w:'—'}
+];
+const CUR=5;
+
+const board=document.getElementById('board');
+COLS.forEach((c,i)=>{
+  const col=document.createElement('div');
+  col.className='col'+(HOT.includes(i)?' hot':'');
+  const list=CARDS.filter(x=>x.col===i);
+  col.innerHTML='<h3>'+c.n+'<span class="n">'+list.length+'</span></h3><div class="who">owner: '+c.who+'</div>';
+  const bd=document.createElement('div'); bd.className='body';
+  list.forEach(x=>{
+    const d=document.createElement('div');
+    d.className='ccard'+(x.key?' sel':'');
+    d.innerHTML='<div class="t">'+x.t+'</div><div class="m">'+x.m+'</div>'+
+      '<div class="bar"><i style="width:'+x.p+'%"></i></div><div class="ft">'+x.chips.join('')+'</div>';
+    d.onclick=()=>open(x);
+    bd.appendChild(d);
+  });
+  col.appendChild(bd); board.appendChild(col);
+});
+
+const drawer=document.getElementById('drawer'), scrim=document.getElementById('scrim');
+function open(x){
+  document.getElementById('dtitle').textContent=x.t;
+  document.getElementById('dmeta').textContent = x.key
+    ? 'INT-CA986793 · Dana Whitfield · Protected B · 5 controls'
+    : x.m;
+  const lane=document.getElementById('dlane'); lane.innerHTML='';
+  const at = x.key ? CUR : x.col;
+  LANE.forEach((l,j)=>{
+    const li=document.createElement('li');
+    li.className=j<at?'done':(j===at?'now':'todo');
+    li.innerHTML='<span class="dot">'+(j<at?'✓':(j+1))+'</span><span><span class="lbl">'+l.l+'</span><div class="sub">'+
+      (j<=at?l.s:'—')+'</div></span><span class="when">'+(j<=at?l.w:'')+'</span>';
+    lane.appendChild(li);
+  });
+  const extra=document.getElementById('dextra');
+  extra.innerHTML = at===5
+   ? '<h5>Scoring so far</h5><table><tr><td><b>AC-1</b></td><td><span class="chip g">Met</span></td><td>Inherited policy current.</td></tr>'+
+     '<tr><td><b>AC-2</b></td><td><span class="chip g">Met</span></td><td>Recertification verified.</td></tr>'+
+     '<tr><td><b>AC-6</b></td><td><span class="chip a">Partial</span></td><td>3 service accounts over-privileged.</td></tr>'+
+     '<tr><td><b>AU-2</b></td><td><span class="chip n">unscored</span></td><td>—</td></tr>'+
+     '<tr><td><b>IA-2</b></td><td><span class="chip n">unscored</span></td><td>—</td></tr></table>'
+   : '<h5>Recent activity</h5><table><tr><td>Stage entered</td><td>'+(LANE[at]?LANE[at].w:'—')+'</td></tr><tr><td>Waiting on</td><td>'+COLS[at].who+'</td></tr></table>';
+  const next = at===5 ? 'Review next control →' : (at===6 ? 'Issue decision' : 'Open step '+(at+1));
+  document.getElementById('dnowt').textContent = at===5?'Score 5 controls':(at===6?'Issue the authorization decision':COLS[at].n.split('· ')[1]);
+  document.getElementById('dnowp').textContent = at===5
+    ? 'Three are scored. The decision step stays locked until every control has a result.'
+    : 'Waiting on '+COLS[at].who+'. You can nudge, reassign or take it back.';
+  document.getElementById('dnowb').textContent=next;
+  document.getElementById('dfootb').textContent=next;
+  document.getElementById('dfoott').innerHTML='Waiting on <b>'+COLS[at].who+'</b>';
+  drawer.classList.add('on'); scrim.classList.add('on');
+}
+function close(){drawer.classList.remove('on');scrim.classList.remove('on');}
+document.getElementById('dx').onclick=close; scrim.onclick=close;
+open(CARDS.find(c=>c.key));
+</script>
+</body>
+</html>

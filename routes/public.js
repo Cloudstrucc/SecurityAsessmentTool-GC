@@ -352,8 +352,19 @@ router.get('/respond/:code', ensureEvidenceUser, (req, res) => {
   if (!assessment) {
     return res.render('error', { title: 'Invalid Code', message: 'The access code is not valid. Please check the code and try again.', showAccessForm: true });
   }
+  // A draft is not yet open for evidence. The assessor who owns it can still
+  // preview it read-only (the record page links here), so only send people
+  // without access to the error page — otherwise it is a dead end from their
+  // own record.
   if (assessment.status === 'draft') {
-    return res.render('error', { title: 'Not Ready', message: 'This assessment has not been activated yet.', showAccessForm: false });
+    const preview = evidenceAccess(req, assessment);
+    if (!preview || !preview.canView) {
+      return res.render('error', {
+        title: tr(req, 'ev.notReadyTitle', 'Not Ready'),
+        message: tr(req, 'ev.notReadyMsg', 'This assessment has not been activated yet.'),
+        showAccessForm: false
+      });
+    }
   }
   if (assessment.invite_expires_at && new Date(assessment.invite_expires_at) < new Date()) {
     return res.render('error', { title: 'Expired', message: 'This invitation has expired.', showAccessForm: false });
@@ -412,9 +423,13 @@ router.get('/respond/:code', ensureEvidenceUser, (req, res) => {
     progress: total > 0 ? Math.round(provided / total * 100) : 0,
     isSubmitted, isReadOnly, resubmitMode,
     viewMode: acc.mode,
-    readOnlyReason: isReadOnly && !isSubmitted ? (acc.mode === 'owner-view'
-      ? tr(req, 'ev.roOwner', 'Read-only: this assessment is assigned to someone else. Take ownership from the assessment page to make changes.')
-      : (acc.mode === 'past' ? tr(req, 'ev.roPast', 'Read-only: you are no longer assigned to this assessment.') : '')) : ''
+    readOnlyReason: isReadOnly && !isSubmitted
+      ? (assessment.status === 'draft'
+        ? tr(req, 'ev.roDraft', 'Preview only: this assessment is still a draft. Use "Assign & send" on the assessment record to open it for evidence.')
+        : (acc.mode === 'owner-view'
+          ? tr(req, 'ev.roOwner', 'Read-only: this assessment is assigned to someone else. Take ownership from the assessment page to make changes.')
+          : (acc.mode === 'past' ? tr(req, 'ev.roPast', 'Read-only: you are no longer assigned to this assessment.') : '')))
+      : ''
   });
 });
 

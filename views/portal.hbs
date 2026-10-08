@@ -100,9 +100,13 @@
               <span class="badge bg-light text-dark ms-1">{{this.status}}</span>
               {{#unless this.is_current}}<span class="badge bg-secondary ms-1"><i class="bi bi-eye me-1"></i>{{t 'portal.readOnly'}}</span>{{/unless}}
             </div>
+            {{#if this.invite_code}}
             <a href="/respond/{{this.invite_code}}" class="btn btn-sm {{#if this.is_current}}btn-primary{{else}}btn-outline-secondary{{/if}}">
               {{#if this.is_current}}<i class="bi bi-pencil-square me-1"></i>{{t 'portal.openWork'}}{{else}}<i class="bi bi-eye me-1"></i>{{t 'portal.viewWork'}}{{/if}}
             </a>
+            {{else}}
+            <span class="badge bg-light text-dark border">{{t 'ev.noFlow'}}</span>
+            {{/if}}
           </div>
           {{/each}}
         </div>

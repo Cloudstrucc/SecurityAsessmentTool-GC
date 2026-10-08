@@ -92,8 +92,19 @@ function assessmentReport(assessmentId, { orgId, req } = {}) {
   if (!a) return null;
   const project = projectForOrg(a.project_id, orgId);
   if (!project) return null;
-  const controls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessmentId]);
+  const allControls = all('SELECT * FROM assessment_controls WHERE assessment_id = ? ORDER BY family, control_id', [assessmentId]);
+  // The tailoring decision belongs in the record: controls the baseline
+  // recommended but the assessor excluded are reported separately, with their
+  // reason, rather than silently dropped.
+  const controls = allControls.filter(c => c.is_applicable);
+  const scopedOut = allControls.filter(c => !c.is_applicable).map(c => ({
+    control_id: c.control_id, family: c.family, title: c.title, priority: c.priority,
+    reason: stripHtml(c.scoped_out_reason) || ''
+  }));
   const stats = familyStats(controls);
+  stats.offered = allControls.length;
+  stats.scopedOut = scopedOut.length;
+  stats.inScope = controls.length;
   // An untouched AI-suggested draft is NOT real evidence — never print it as such in
   // the official record. It shows as pending (no evidence) until the provider edits it.
   const realEvidence = (c) => c.evidence_source === 'ai-suggested' ? '' : stripHtml(c.evidence_text || c.evidence_html);
@@ -126,9 +137,10 @@ function assessmentReport(assessmentId, { orgId, req } = {}) {
       is_inherited: !!c.is_inherited, inherited_from: c.inherited_from,
       result: normResult(c.audit_result), evidence_status: c.evidence_status,
       is_draft: c.evidence_source === 'ai-suggested',
+      rationale: stripHtml(c.tailoring_rationale) || '',
       evidence: realEvidence(c), finding: stripHtml(c.audit_comments)
     })),
-    findings, versions
+    scopedOut, findings, versions
   };
 }
 

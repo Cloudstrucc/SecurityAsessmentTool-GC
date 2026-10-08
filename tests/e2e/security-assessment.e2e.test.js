@@ -186,6 +186,20 @@ async function createSingleControlAssessment(jar, projectId) {
   return { assessmentPath, assessmentId: assessmentPath.match(/(\d+)$/)[1] };
 }
 
+/**
+ * Resolve an assessment's evidence-flow code. The record page links to the flow
+ * through /admin/assessments/:id/evidence (so a row with a missing code gets one
+ * rather than yielding a dead "/respond/" link), so follow that hop rather than
+ * scraping a code out of the markup.
+ */
+async function evidenceCode(jar, assessmentId) {
+  const hop = await request(jar, 'GET', `/admin/assessments/${assessmentId}/evidence`);
+  assert.equal(hop.status, 302, 'the evidence route redirects into the flow');
+  const m = (hop.headers.get('location') || '').match(/^\/respond\/([A-Z0-9]+)/);
+  assert.ok(m, 'the evidence route resolves to an invite code');
+  return m[1];
+}
+
 async function uploadSaddDocument(jar, projectId) {
   assert.ok(fs.existsSync(SADD_PATH), `SADD test document missing at ${SADD_PATH}`);
   const formData = new FormData();
@@ -2148,8 +2162,8 @@ test('evidence ownership: an assigned assessment is read-only for the owner unti
   // The detail now offers "Take ownership" (assigned to someone else).
   const detail1 = await getText(jar, `/admin/assessments/${assessmentId}`);
   assert.match(detail1.text, /take-ownership/, 'assigned-to-other shows the Take ownership action');
-  const codeM = detail1.text.match(/\/respond\/([A-Z0-9]+)/);
-  assert.ok(codeM, 'assessment has an evidence-flow code');
+  const codeM = [null, await evidenceCode(jar, assessmentId)];
+  assert.ok(codeM[1], 'assessment has an evidence-flow code');
   const code = codeM[1];
 
   // The owner opens the evidence flow read-only, and saving is refused.
@@ -2196,7 +2210,7 @@ test('evidence editor shows a Save button, periodic autosave, and a saved indica
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
 
   const page = await getText(jar, `/respond/${code}`);
   assert.match(page.text, /bi-save/, 'the evidence editor shows a Save button');
@@ -2212,7 +2226,7 @@ test('suggested evidence: a placeholder draft is generated (offline fallback) an
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`); // -> evidence-gathering, owner can edit
 
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
   const respond = await getText(jar, `/respond/${code}`);
   const cid = respond.text.match(/editor-(\d+)/)[1];
 
@@ -2236,7 +2250,7 @@ test('bulk suggested evidence generates drafts for empty controls and skips real
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
 
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
   const respond = await getText(jar, `/respond/${code}`);
   const cid = respond.text.match(/editor-(\d+)/)[1];
 
@@ -2259,7 +2273,7 @@ test('assistant evidence proposals: apply-suggestions writes drafts and never ov
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
   const respond = await getText(jar, `/respond/${code}`);
   const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
 
@@ -2289,7 +2303,7 @@ test('reports never present an untouched AI-suggested draft as real evidence', a
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
   const respond = await getText(jar, `/respond/${code}`);
   const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
 
@@ -2319,7 +2333,7 @@ test('evidence Ready lock, edit history, and revert work per control', async () 
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
   const respond = await getText(jar, `/respond/${code}`);
   const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
 
@@ -2352,7 +2366,7 @@ test('bulk suggest runs as a background job with pollable status that fills empt
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
 
   // Start the background job.
   const start = await (await request(jar, 'POST', `/respond/${code}/suggest-bulk`, { json: {} })).json();
@@ -2380,7 +2394,7 @@ test('provider bulk actions mark selected controls Ready', async () => {
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
   const respond = await getText(jar, `/respond/${code}`);
   const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
 
@@ -2398,7 +2412,7 @@ test('assessor review: per-control status/scoring, return-for-revision, and bulk
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
   const respond = await getText(jar, `/respond/${code}`);
   const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
 
@@ -2470,7 +2484,7 @@ test('assessor sends individual control(s) back for update — reopens as reacti
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
   const respond = await getText(jar, `/respond/${code}`);
   const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
 
@@ -2519,4 +2533,161 @@ test('security control catalog paginates (default 20, up to 100) and preserves f
   const pf = await getText(jar, '/admin/security-controls?q=account&per=20');
   const EQ = '(?:=|&#x3D;)';
   assert.match(pf.text, new RegExp('href="/admin/security-controls\\?[^"]*q' + EQ + 'account[^"]*per' + EQ + '20[^"]*&amp;page' + EQ), 'pager links preserve filters + per');
+});
+
+test('tailoring keeps every recommended control on the record: unselected ones are scoped out with a reason, and only in-scope controls reach the evidence provider', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Tailoring Project');
+
+  // Three controls are offered; only one is selected, and one of the other two
+  // carries an explicit exclusion reason.
+  const offered = ['AC-2', 'AU-2', 'IA-2'];
+  // URLSearchParams flattens an array value into one comma-joined field, so the
+  // repeated offered_ids keys are appended by hand.
+  const params = new URLSearchParams();
+  offered.forEach(id => params.append('offered_ids', id));
+  const form = {
+    control_ids: 'AC-2',
+    'title_AC-2': 'Account Management',
+    'desc_AC-2': 'Access Control: Account Management',
+    'rationale_AC-2': 'Required by the Protected B / Medium / Medium baseline.',
+    'priority_AC-2': 'P1',
+    'applicable[AC-2]': '1',
+    'title_AU-2': 'Event Logging',
+    'rationale_AU-2': 'Required by the Protected B / Medium / Medium baseline.',
+    'priority_AU-2': 'P1',
+    'scoped_out_reason[AU-2]': 'Logging is inherited from the hosting platform.',
+    'title_IA-2': 'Identification and Authentication',
+    'rationale_IA-2': 'Required by the Protected B / Medium / Medium baseline.',
+    'priority_IA-2': 'P1'
+  };
+  Object.entries(form).forEach(([k, v]) => params.append(k, v));
+  const created = await request(jar, 'POST', `/admin/projects/${projectId}/assessments/new`, {
+    body: params.toString(), headers: { 'content-type': 'application/x-www-form-urlencoded' }
+  });
+  assert.equal(created.status, 302);
+  const assessmentId = created.headers.get('location').match(/(\d+)$/)[1];
+
+  // The record keeps all three; the detail page separates them.
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(detail.text, /scopedOutRegister/, 'tailored-out register is rendered');
+  assert.match(detail.text, /Logging is inherited from the hosting platform\./,
+    'the assessor-supplied exclusion reason is shown');
+  assert.match(detail.text, /Tailored out by the assessor during control selection\./,
+    'an unselected control with no reason gets a default one');
+  assert.match(detail.text, /Required by the Protected B \/ Medium \/ Medium baseline\./,
+    'the in-scope control shows why it is in scope');
+
+  // Only the in-scope control reaches the evidence provider, and it carries the
+  // reason it is being asked for.
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const detailSent = await getText(jar, `/admin/assessments/${assessmentId}`);
+  const code = await evidenceCode(jar, assessmentId);
+  const respond = await getText(jar, `/respond/${code}`);
+  assert.match(respond.text, /AC-2/, 'the in-scope control is shown to the provider');
+  assert.doesNotMatch(respond.text, /Logging is inherited from the hosting platform/,
+    'an exclusion reason never reaches the evidence provider');
+  assert.match(respond.text, /Required by the Protected B \/ Medium \/ Medium baseline\./,
+    'the provider is told why the control is being asked about');
+
+  // Bring one scoped-out control back, then confirm the counts move.
+  const soId = detail.text.match(/id="so-row-(\d+)"/)?.[1];
+  assert.ok(soId, 'scoped-out rows carry their control row id');
+  const back = await request(jar, 'POST',
+    `/admin/assessments/${assessmentId}/controls/${soId}/scope`, { json: { status: 'in-scope' } });
+  assert.equal(back.status, 200);
+  assert.equal((await back.json()).status, 'in-scope');
+
+  // Scoping a control out requires a reason.
+  const noReason = await request(jar, 'POST',
+    `/admin/assessments/${assessmentId}/controls/${soId}/scope`, { json: { status: 'scoped-out' } });
+  assert.equal(noReason.status, 400, 'a reason is mandatory when tailoring a control out');
+
+  const withReason = await request(jar, 'POST',
+    `/admin/assessments/${assessmentId}/controls/${soId}/scope`,
+    { json: { status: 'scoped-out', reason: 'Not reachable from untrusted networks.' } });
+  assert.equal(withReason.status, 200);
+  const after = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(after.text, /Not reachable from untrusted networks\./, 'the new reason is recorded');
+});
+
+test('the evidence flow is reachable from the record even when the invite code is missing or the assessment is still a draft', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Evidence Link Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+
+  // The evidence route resolves to the real flow even while the assessment is
+  // still a draft — a blank invite code used to yield "/respond/", a 404.
+  const hop = await request(jar, 'GET', `/admin/assessments/${assessmentId}/evidence`);
+  assert.equal(hop.status, 302);
+  const target = hop.headers.get('location');
+  assert.match(target, /^\/respond\/[A-Z0-9]+$/, 'redirects to a real invite code');
+  const code = target.replace('/respond/', '');
+
+  // A draft now gives its owner a read-only preview with an explanation rather
+  // than a dead end.
+  const preview = await getText(jar, target);
+  assert.equal(preview.response.status, 200, 'a draft assessment still renders for its owner');
+  assert.doesNotMatch(preview.text, /has not been activated yet/, 'no dead-end error page for the owner');
+  assert.match(preview.text, /still a draft/, 'the preview explains why it is read-only');
+
+  // Signed-out visitors are still sent to sign in.
+  const stranger = new CookieJar();
+  const anon = await request(stranger, 'GET', target, { redirect: 'manual' });
+  assert.equal(anon.status, 302, 'signed-out visitors are sent to sign in');
+
+  // Once activated the record links to the flow through the server, never
+  // through a code interpolated into the template.
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(detail.text, new RegExp(`/admin/assessments/${assessmentId}/evidence`),
+    'the record points at the server-side evidence route');
+  assert.doesNotMatch(detail.text, /href="\/respond\/"/, 'no empty /respond/ link is ever rendered');
+
+  // A per-control link carries its anchor through the redirect.
+  const cid = detail.text.match(/evEditGate\('#control-(\d+)'\)/)?.[1];
+  assert.ok(cid, 'per-control "view / edit evidence" buttons are rendered');
+  const anchored = await request(jar, 'GET', `/admin/assessments/${assessmentId}/evidence?c=${cid}`);
+  assert.equal(anchored.status, 302);
+  assert.match(anchored.headers.get('location'), new RegExp(`^/respond/[A-Z0-9]+#control-${cid}$`),
+    'the control anchor survives the redirect');
+
+  // And the evidence is editable from the flow the record links to.
+  const live = await getText(jar, target);
+  assert.equal(live.response.status, 200);
+  assert.doesNotMatch(live.text, /still a draft/, 'the draft banner clears once the assessment is activated');
+  const saved = await (await request(jar, 'POST', `/respond/${code}/save/${cid}`,
+    { json: { evidence_text: 'Account inventory attached.', evidence_html: '<p>Account inventory attached.</p>' } })).json();
+  assert.equal(saved.success, true, 'evidence can be saved from the flow the record links to');
+});
+
+test('an assessment that predates invite codes is repaired on startup', () => {
+  const legacyDb = path.join(TMP, 'legacy-invite.db');
+  fs.rmSync(legacyDb, { force: true });
+  const script = `
+    (async () => {
+      const db = require('${path.join(ROOT, 'models', 'database.js').replace(/\\/g, '\\\\')}');
+      await db.initDatabase();
+      const pid = db.run("INSERT INTO projects (name, slug, data_classification) VALUES ('Legacy', 'legacy-' || abs(random()), 'protected-b')");
+      db.run("INSERT INTO assessments (project_id, type, status, invite_code) VALUES (?, 'initial', 'evidence-gathering', NULL)", [pid]);
+      await db.saveDatabase();
+      console.log('SEEDED');
+    })();
+  `;
+  execFileSync(process.execPath, ['-e', script], { cwd: ROOT, env: { ...process.env, DB_PATH: legacyDb }, stdio: 'pipe' });
+
+  const verify = `
+    (async () => {
+      const db = require('${path.join(ROOT, 'models', 'database.js').replace(/\\/g, '\\\\')}');
+      await db.initDatabase();
+      const rows = db.all("SELECT invite_code FROM assessments WHERE invite_code IS NULL OR TRIM(invite_code) = ''");
+      const any = db.all("SELECT invite_code FROM assessments");
+      console.log('MISSING=' + rows.length + ' CODES=' + any.map(r => r.invite_code).join(','));
+    })();
+  `;
+  const out = execFileSync(process.execPath, ['-e', verify], { cwd: ROOT, env: { ...process.env, DB_PATH: legacyDb }, stdio: 'pipe' }).toString();
+  const m = out.match(/MISSING=(\d+) CODES=(.*)/);
+  assert.ok(m, `verification output should report the backfill state, got: ${out}`);
+  assert.equal(m[1], '0', 'no assessment is left without an invite code');
+  assert.match(m[2], /[A-Z0-9]{8}/, 'the generated code looks like an invite code');
 });

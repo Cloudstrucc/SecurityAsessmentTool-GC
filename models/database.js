@@ -1051,6 +1051,14 @@ async function initDatabase() {
     ['assessment_controls', 'evidence_reliability', 'ALTER TABLE assessment_controls ADD COLUMN evidence_reliability TEXT'],
     ['assessment_controls', 'evidence_sufficiency', 'ALTER TABLE assessment_controls ADD COLUMN evidence_sufficiency TEXT'],
     ['assessment_controls', 'control_weight', 'ALTER TABLE assessment_controls ADD COLUMN control_weight TEXT'],
+    // Tailoring record: every recommended control is kept, in scope or not, with
+    // the reason it was selected (or excluded). is_applicable stays the switch
+    // that governs what the evidence provider sees.
+    ['assessment_controls', 'tailoring_status', "ALTER TABLE assessment_controls ADD COLUMN tailoring_status TEXT DEFAULT 'in-scope'"],
+    ['assessment_controls', 'tailoring_rationale', 'ALTER TABLE assessment_controls ADD COLUMN tailoring_rationale TEXT'],
+    ['assessment_controls', 'rationale_source', "ALTER TABLE assessment_controls ADD COLUMN rationale_source TEXT DEFAULT 'engine'"],
+    ['assessment_controls', 'scoped_out_reason', 'ALTER TABLE assessment_controls ADD COLUMN scoped_out_reason TEXT'],
+    ['assessment_controls', 'scoped_out_at', 'ALTER TABLE assessment_controls ADD COLUMN scoped_out_at DATETIME'],
     ['iato_checklist', 'project_id', 'ALTER TABLE iato_checklist ADD COLUMN project_id INTEGER'],
     ['iato_checklist', 'ato_record_id', 'ALTER TABLE iato_checklist ADD COLUMN ato_record_id INTEGER'],
     ['iato_checklist', 'residual_risk', 'ALTER TABLE iato_checklist ADD COLUMN residual_risk TEXT'],
@@ -1138,6 +1146,37 @@ async function initDatabase() {
       // Table might not exist yet, that's fine — CREATE TABLE handles it
     }
   });
+
+  // Invite-code backfill. The evidence flow is addressed by invite code
+  // (/respond/<code>); an assessment without one produces a dead "/respond/"
+  // link from the record page and an unusable link in the invite email. Older
+  // rows predate the code being set at creation, so give them one.
+  try {
+    const orphans = db.exec(
+      "SELECT id FROM assessments WHERE invite_code IS NULL OR TRIM(invite_code) = ''");
+    if (orphans.length && orphans[0].values.length) {
+      const taken = new Set();
+      const existing = db.exec('SELECT UPPER(TRIM(invite_code)) FROM assessments WHERE invite_code IS NOT NULL');
+      if (existing.length) existing[0].values.forEach(r => taken.add(r[0]));
+      orphans[0].values.forEach(([id]) => {
+        let code;
+        do {
+          code = require('crypto').randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase();
+        } while (taken.has(code));
+        taken.add(code);
+        db.run('UPDATE assessments SET invite_code = ? WHERE id = ?', [code, id]);
+      });
+      console.log(`Migration: generated invite codes for ${orphans[0].values.length} assessment(s)`);
+    }
+  } catch (e) { /* assessments table may not exist on a fresh DB yet */ }
+
+  // Tailoring-status backfill: rows that predate the column take their status
+  // from is_applicable, which was already the provider-visibility switch.
+  try {
+    db.run(`UPDATE assessment_controls
+               SET tailoring_status = CASE WHEN is_applicable = 0 THEN 'scoped-out' ELSE 'in-scope' END
+             WHERE tailoring_status IS NULL OR tailoring_status = ''`);
+  } catch (e) { /* table may not exist on a fresh DB yet */ }
 
   // Tenant isolation backfill: older projects predate organization_id. Adopt each
   // project into its creator's organization so workspace scoping has something to
