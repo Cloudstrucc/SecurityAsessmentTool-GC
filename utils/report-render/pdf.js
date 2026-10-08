@@ -170,6 +170,15 @@ function render(model, opts = {}) {
         doc.fillColor(muted).text(`${t('rf.evidence')}: ${c.evidence || '—'}`, { width: W() });
         doc.moveDown(0.5);
       });
+      // The tailoring decision is part of the authorization record: what the
+      // baseline recommended, what stayed in scope, and why the rest came out.
+      heading('5', t('rf.tailoringRegister'));
+      const so = m.scopedOut || [];
+      para(`${t('rf.controlsOffered')}: ${s.offered != null ? s.offered : m.controls.length + so.length} · ${t('rf.controlsInScope')}: ${s.inScope != null ? s.inScope : m.controls.length} · ${t('rf.scopedOut')}: ${so.length}`, { bold: true });
+      dataTable([t('rf.control'), t('rf.title'), t('rf.exclusionReason')],
+        so.length ? so.map(c => [c.control_id, c.title || '', c.reason || '—']) : [['—', '', '']],
+        [0.14, 0.36, 0.5]);
+
       heading('A', t('rf.versionHistory'));
       dataTable([t('rf.version'), t('rf.title'), t('rf.date'), t('rf.by'), t('rf.summary')],
         m.versions.map(v => [v.version, v.label || '', String(v.created_at || '').slice(0, 10), v.created_by_name || '', v.summary || '']),

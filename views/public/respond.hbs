@@ -166,6 +166,13 @@
             <p class="control-desc mb-2">{{this.description}}</p>
           {{/if}}
 
+          {{#if this.tailoring_rationale}}
+            <div class="tailor-why mb-2">
+              <span class="tailor-why-k"><i class="bi bi-info-circle me-1"></i>{{t 'tl.whyAsked'}}</span>
+              <span class="tailor-why-v">{{this.tailoring_rationale}}</span>
+            </div>
+          {{/if}}
+
           {{#if this.evidence_guidance}}
             <div class="p-2 rounded mb-3" style="background:#fff8e1">
               <small class="fw-semibold"><i class="bi bi-lightbulb me-1"></i>Evidence Guidance:</small>

@@ -72,6 +72,14 @@ function render(model, opts = {}) {
       out += `- **${t('rf.finding')}:** ${c.finding || '—'}\n`;
       out += `- **${t('rf.evidence')}:** ${c.evidence || '—'}\n\n`;
     });
+    const so = m.scopedOut || [];
+    out += h(2, t('rf.tailoringRegister'));
+    out += `- ${t('rf.controlsOffered')}: **${s.offered != null ? s.offered : m.controls.length + so.length}** · `
+        + `${t('rf.controlsInScope')}: **${s.inScope != null ? s.inScope : m.controls.length}** · `
+        + `${t('rf.scopedOut')}: **${so.length}**\n\n`;
+    out += table([t('rf.control'), t('rf.title'), t('rf.exclusionReason')],
+      so.length ? so.map(c => [c.control_id, c.title || '', c.reason || '—']) : [['—', '', '']]);
+
     out += h(2, t('rf.versionHistory'));
     out += table([t('rf.version'), t('rf.title'), t('rf.date'), t('rf.by'), t('rf.summary')],
       m.versions.map(v => [v.version, v.label || '', String(v.created_at || '').slice(0, 10), v.created_by_name || '', v.summary || '']));

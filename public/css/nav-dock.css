@@ -88,15 +88,25 @@
   body.nav-dock.nav-pos-right .gc-app-bar {
     position:fixed; top:var(--brand-h); bottom:0; width:var(--rail-w); z-index:1030;
     overflow-y:auto; overflow-x:hidden; background:#fff; border-bottom:none;
+    /* A classic scrollbar steals ~15px of a 68px rail and pushes the icons
+       off-centre; the rail still scrolls with the wheel / trackpad. */
+    scrollbar-width:none; -ms-overflow-style:none;
     transition:transform .28s cubic-bezier(.4,0,.2,1); box-shadow:0 0 18px rgba(15,32,54,.08);
   }
+  body.nav-dock.nav-pos-left  .gc-app-bar::-webkit-scrollbar,
+  body.nav-dock.nav-pos-right .gc-app-bar::-webkit-scrollbar { width:0; height:0; }
+
   body.nav-dock.nav-pos-left  .gc-app-bar { left:0;  border-right:3px solid transparent; border-image:var(--cs-grad) 1; }
   body.nav-dock.nav-pos-right .gc-app-bar { right:0; border-left:3px solid transparent;  border-image:var(--cs-grad) 1; }
 
   body.nav-dock.nav-pos-left .gc-app-inner,
   body.nav-dock.nav-pos-right .gc-app-inner {
-    flex-direction:column; align-items:stretch; height:100%; max-width:none; padding:.75rem .6rem;
+    flex-direction:column; align-items:stretch; height:100%; max-width:none;
     flex-wrap:nowrap;
+    /* .gc-app-inner is also .container.gc-edge, whose 2rem !important side padding
+       would eat the whole 68px rail and leave the nav 0px wide — the icons then
+       spill outside the rail and get clipped by its overflow:hidden. */
+    padding:.75rem .5rem !important;
   }
   body.nav-dock.nav-pos-left .gc-app-nav,
   body.nav-dock.nav-pos-right .gc-app-nav { flex-direction:column; align-items:stretch; width:100%; gap:1px; }

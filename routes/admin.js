@@ -134,6 +134,19 @@ function normalizeEmail(email) {
   return (email || '').trim().toLowerCase();
 }
 
+/**
+ * Localized flash/message text with an English fallback. i18next interpolates
+ * `opts` into the locale string; the fallback is already-interpolated English so
+ * a missing key still reads correctly.
+ */
+function tr(req, key, fallback, opts) {
+  if (req.t) {
+    const v = req.t(key, opts || {});
+    if (v && v !== key) return v;
+  }
+  return fallback;
+}
+
 // Stash a structured "invite sent" banner so the layout can render the code as a
 // real hyperlink to /redeem (opens in a new tab) instead of as escaped flash text.
 function setInviteBanner(req, { code, recipient, entityLabel } = {}) {
@@ -771,6 +784,42 @@ function entityLink(entityType, entityId) {
 // invite. Assignment and activation go hand in hand: assigning a user should make
 // the assessment immediately accessible, not leave it inert until a separate
 // "send invite" click. Sets the redeem banner to the code that fits the recipient.
+/**
+ * The evidence flow is addressed by invite code. A row without one yields a dead
+ * "/respond/" link on the record page and an unusable link in the invite email,
+ * so generate and persist one on demand rather than trusting the column.
+ * Returns the code.
+ */
+function ensureInviteCode(assessmentId) {
+  const row = get('SELECT invite_code FROM assessments WHERE id = ?', [assessmentId]);
+  if (!row) return null;
+  const current = String(row.invite_code || '').trim();
+  if (current) return current.toUpperCase();
+  let code;
+  do {
+    code = uuidv4().replace(/-/g, '').substring(0, 8).toUpperCase();
+  } while (get('SELECT 1 AS x FROM assessments WHERE UPPER(TRIM(invite_code)) = ?', [code]));
+  run('UPDATE assessments SET invite_code = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [code, assessmentId]);
+  console.log(`[Assessment] Generated missing invite code for assessment ${assessmentId}`);
+  return code;
+}
+
+/**
+ * Open the evidence flow for an assessment. Going through the server means the
+ * record page never has to interpolate a possibly-empty code into a URL, and a
+ * legacy row missing its code is repaired on the way through.
+ * `?c=<assessment_control_id>` is carried over as the in-page anchor.
+ */
+router.get('/assessments/:id/evidence', ensureAuthenticated, (req, res) => {
+  const code = ensureInviteCode(req.params.id);
+  if (!code) {
+    req.flash('error', tr(req, 'ev.noFlow', 'That assessment no longer exists.'));
+    return res.redirect('/admin/assessments');
+  }
+  const anchor = /^\d+$/.test(String(req.query.c || '')) ? `#control-${req.query.c}` : '';
+  res.redirect(`/respond/${code}${anchor}`);
+});
+
 async function activateAndSendInvite(req, assessmentId, { sendEmail = true } = {}) {
   const assessment = get(`
     SELECT a.*, p.project_owner_name, p.project_owner_email, p.name as project_name
@@ -780,6 +829,9 @@ async function activateAndSendInvite(req, assessmentId, { sendEmail = true } = {
 
   const recipientEmail = assessment.assigned_to_email || assessment.project_owner_email;
   if (!recipientEmail) return { ok: false, error: 'No assigned user or project owner email is available for this assessment.' };
+
+  // Never email a link built from a missing code.
+  assessment.invite_code = ensureInviteCode(assessment.id);
 
   // Activate on first send (draft → evidence-gathering); always refresh the window.
   const expiresAt = new Date();
@@ -1893,17 +1945,26 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
     const inherited = req.body.inherited || {};
     const inheritedFrom = req.body.inherited_from || {};
     const applicable = req.body.applicable || {};
+    const scopeOutReason = req.body.scoped_out_reason || {};
 
-    const controlList = Array.isArray(controlIds) ? controlIds : [controlIds];
+    const selected = new Set(asArray(controlIds));
+    // Every control the baseline offered is kept on the record — the ones the
+    // assessor did not select become "scoped out" rather than disappearing, so
+    // the tailoring decision is auditable. `offered_ids` is posted by the form
+    // for all rendered controls; older posts fall back to the selected set.
+    const offered = asArray(req.body.offered_ids);
+    const controlList = offered.length ? offered : [...selected];
     const statements = controlList.map(cid => {
+      const inScope = selected.has(cid) && applicable[cid] !== '0';
       const family = req.body[`family_${cid}`] || cid.split('-')[0];
       const framework = req.body[`framework_${cid}`] || frameworkFields.securityFramework || 'ITSG-33';
       const familyName = req.body[`family_name_${cid}`] || CONTROL_FAMILIES[family] || family;
       const priority = req.body[`priority_${cid}`] || 'P1';
       return {
-        sql: `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title, 
-          description, control_guidance, tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority, risk_level, framework, guidance_source)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        sql: `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title,
+          description, control_guidance, tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority, risk_level, framework, guidance_source,
+          tailoring_status, tailoring_rationale, rationale_source, scoped_out_reason, scoped_out_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         params: [assessmentId, cid, family, familyName,
           req.body[`title_${cid}`] || cid,
           req.body[`desc_${cid}`] || '',
@@ -1912,11 +1973,16 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
           guidance[cid] || req.body[`guidance_${cid}`] || '',
           inherited[cid] ? 1 : 0,
           inheritedFrom[cid] || '',
-          applicable[cid] !== '0' ? 1 : 0,
+          inScope ? 1 : 0,
           priority,
           req.body[`risk_${cid}`] || computeRiskLevel({ family, priority }),
           framework,
-          guidance[cid] || req.body[`guidance_${cid}`] ? 'manual' : 'catalog'
+          guidance[cid] || req.body[`guidance_${cid}`] ? 'manual' : 'catalog',
+          inScope ? 'in-scope' : 'scoped-out',
+          req.body[`rationale_${cid}`] || '',
+          'engine',
+          inScope ? null : ((scopeOutReason[cid] || '').trim() || 'Tailored out by the assessor during control selection.'),
+          inScope ? null : new Date().toISOString()
         ]
       };
     });
@@ -1926,12 +1992,19 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
       console.log('[Assessment] Inserted', statements.length, 'controls for assessment', assessmentId);
     }
 
+    const inScopeCount = controlList.filter(cid => selected.has(cid) && applicable[cid] !== '0').length;
+    const scopedOutCount = statements.length - inScopeCount;
+
     // Baseline version 1 — the starting point the assessor can always revert to.
     createAssessmentVersion(assessmentId, {
-      label: 'Created', summary: `Baseline — ${statements.length} control(s)`, user: req.user
+      label: 'Created',
+      summary: `Baseline — ${inScopeCount} in scope, ${scopedOutCount} tailored out of ${statements.length} offered`,
+      user: req.user
     });
 
-    req.flash('success', `Assessment created with ${statements.length} controls. You can now review and send the invite.`);
+    req.flash('success', tr(req, 'tl.createdFlash',
+      `Assessment created: ${inScopeCount} control(s) in scope, ${scopedOutCount} tailored out of ${statements.length} recommended. You can now review and send the invite.`,
+      { inScope: inScopeCount, scopedOut: scopedOutCount, offered: statements.length }));
     res.redirect(`/admin/assessments/${assessmentId}`);
   } catch (err) {
     console.error('Assessment creation error:', err);
@@ -2631,14 +2704,29 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     }
   }
 
+  // Tailored-out controls stay on the record but are kept out of the working
+  // list: the assessor reviews them in their own register, and the evidence
+  // provider never sees them (/respond already filters on is_applicable).
+  const offeredCount = controls.length;
+  const scopedOut = controls.filter(c => !c.is_applicable);
+  controls = controls.filter(c => c.is_applicable);
+
   const families = {};
   controls.forEach(c => {
     if (!families[c.family]) families[c.family] = { code: c.family, name: c.family_name, controls: [] };
     families[c.family].controls.push(c);
   });
 
+  const scopedOutFamilies = {};
+  scopedOut.forEach(c => {
+    if (!scopedOutFamilies[c.family]) scopedOutFamilies[c.family] = { code: c.family, name: c.family_name, controls: [] };
+    scopedOutFamilies[c.family].controls.push(c);
+  });
+
   const stats = {
     total: controls.length,
+    offered: offeredCount,
+    scopedOut: scopedOut.length,
     applicable: controls.filter(c => c.is_applicable).length,
     inherited: controls.filter(c => c.is_inherited).length,
     evidenceProvided: controls.filter(c => c.evidence_status === 'provided').length,
@@ -2695,6 +2783,7 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     // has moved past initial gathering (submitted / audit / already reactivated).
     canRequestUpdates: ['submitted', 'reactivated', 'audit'].includes(assessment.status),
     families: Object.values(families), controls, stats, documents, atoRecords,
+    scopedOut, scopedOutFamilies: Object.values(scopedOutFamilies),
     tailorMode: req.query.tailor === '1' && !viewingVersion,
     projectContextJSON: JSON.stringify({
       name: assessment.project_name,
@@ -4314,6 +4403,98 @@ router.post('/assessments/:id/add-controls', ensureAuthenticated, (req, res) => 
     req.flash('info', 'No new controls to add.');
   }
   res.redirect(`/admin/assessments/${assessment.id}/manage-controls`);
+});
+
+/**
+ * Move a control in or out of scope without deleting it. Tailoring decisions are
+ * part of the authorization record, so "removed" means recorded-as-excluded:
+ * is_applicable drives what the evidence provider sees, tailoring_status and
+ * scoped_out_reason document why.
+ */
+router.post('/assessments/:id/controls/:controlId/scope', ensureAuthenticated, express.json(), (req, res) => {
+  const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+  if (!assessment) return res.status(404).json({ error: 'Assessment not found' });
+  const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?',
+    [req.params.controlId, assessment.id]);
+  if (!control) return res.status(404).json({ error: 'Control not found' });
+
+  const inScope = String(req.body.status || '') !== 'scoped-out';
+  const reason = (req.body.reason || '').trim();
+  if (!inScope && !reason) {
+    return res.status(400).json({ error: tr(req, 'tl.reasonRequired', 'A reason is required when tailoring a control out of scope.') });
+  }
+
+  run(`UPDATE assessment_controls
+         SET is_applicable = ?, tailoring_status = ?, scoped_out_reason = ?, scoped_out_at = ?,
+             updated_at = CURRENT_TIMESTAMP
+       WHERE id = ? AND assessment_id = ?`,
+    [inScope ? 1 : 0, inScope ? 'in-scope' : 'scoped-out',
+      inScope ? null : reason, inScope ? null : new Date().toISOString(),
+      control.id, assessment.id]);
+
+  res.json({ success: true, controlId: control.control_id, status: inScope ? 'in-scope' : 'scoped-out' });
+});
+
+/** Save an assessor-written rationale for why a control is in scope. */
+router.post('/assessments/:id/controls/:controlId/rationale', ensureAuthenticated, express.json(), (req, res) => {
+  const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+  if (!assessment) return res.status(404).json({ error: 'Assessment not found' });
+  const control = get('SELECT id FROM assessment_controls WHERE id = ? AND assessment_id = ?',
+    [req.params.controlId, assessment.id]);
+  if (!control) return res.status(404).json({ error: 'Control not found' });
+
+  run(`UPDATE assessment_controls SET tailoring_rationale = ?, rationale_source = 'manual',
+         updated_at = CURRENT_TIMESTAMP WHERE id = ? AND assessment_id = ?`,
+    [(req.body.rationale || '').trim(), control.id, assessment.id]);
+  res.json({ success: true });
+});
+
+/**
+ * Rewrite a control's tailoring rationale in plain language, for the person who
+ * has to supply the evidence. Falls back to the engine rationale on any failure
+ * so the UI always has something to show.
+ */
+router.post('/assessments/:id/ai/explain-control/:controlId', ensureAuthenticated, express.json(), async (req, res) => {
+  const assessment = get(`SELECT a.*, p.name AS project_name, p.description AS project_description,
+      p.data_classification, p.hosting_type, p.app_type, p.technologies
+    FROM assessments a JOIN projects p ON p.id = a.project_id WHERE a.id = ?`, [req.params.id]);
+  if (!assessment) return res.status(404).json({ error: 'Assessment not found' });
+  const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?',
+    [req.params.controlId, assessment.id]);
+  if (!control) return res.status(404).json({ error: 'Control not found' });
+
+  const lang = String(req.language || 'en').split('-')[0];
+  const system = [
+    'You explain security control scoping to a non-specialist who has to supply the evidence.',
+    `Answer in ${lang}, in 2-3 short sentences: why does THIS system have to satisfy this control, and what will the person be asked to show?`,
+    'Do not restate the control text. Do not invent facts about the system — if something is unknown, say what would need to be confirmed.',
+    'Plain prose only: no preamble, no headings, no bullet points.'
+  ].join(' ');
+  const userContent = [
+    `System: ${assessment.project_name} — ${(assessment.project_description || '').slice(0, 600)}`,
+    `Classification: ${assessment.data_classification || 'n/a'} · Hosting: ${assessment.hosting_type || 'n/a'} · Users: ${assessment.app_type || 'n/a'}`,
+    `Technologies: ${assessment.technologies || 'n/a'}`,
+    '',
+    `Control ${control.control_id} — ${control.title}`,
+    `Control text: ${(control.description || '').slice(0, 900)}`,
+    `Why the baseline selected it: ${control.tailoring_rationale || 'selected by the baseline profile'}`
+  ].join('\n');
+
+  try {
+    const text = String(await ai.callClaude(system, userContent, { maxTokens: 350 }) || '').trim();
+    if (!text) throw new Error('empty response');
+    run(`UPDATE assessment_controls SET tailoring_rationale = ?, rationale_source = 'ai',
+           ai_generated_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ? AND assessment_id = ?`, [text, control.id, assessment.id]);
+    res.json({ success: true, rationale: text, source: 'ai' });
+  } catch (err) {
+    console.error('explain-control error:', err.message);
+    res.status(502).json({
+      error: tr(req, 'tl.explainFailed', 'Could not generate an explanation right now.'),
+      rationale: control.tailoring_rationale || '',
+      source: control.rationale_source || 'engine'
+    });
+  }
 });
 
 // Remove a control from an assessment

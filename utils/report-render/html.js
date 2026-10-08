@@ -255,9 +255,27 @@ function assessmentBody(m, b, t, logoDataUri, cls) {
       </section>${foot(b, m, cls)}</div>`;
   });
 
+  // tailoring register — what the baseline recommended and why it was excluded
+  const so = m.scopedOut || [];
+  h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span>${esc(cls || '')}</span></div>
+    <section><div class="sec-h"><span class="num">5</span><h2>${esc(t('rf.tailoringRegister'))}</h2></div>
+      <div class="kpis" style="margin-bottom:6mm">
+        <div class="kpi"><div class="n">${s.offered != null ? s.offered : (s.inScope || 0) + so.length}</div><div class="l">${esc(t('rf.controlsOffered'))}</div></div>
+        <div class="kpi ok"><div class="n">${s.inScope != null ? s.inScope : m.controls.length}</div><div class="l">${esc(t('rf.controlsInScope'))}</div></div>
+        <div class="kpi warn"><div class="n">${so.length}</div><div class="l">${esc(t('rf.scopedOut'))}</div></div>
+      </div>
+      <h3>${esc(t('rf.scopedOut'))}</h3>
+      <table class="data"><thead><tr><th style="width:22mm">${esc(t('rf.control'))}</th><th>${esc(t('rf.title'))}</th>
+        <th style="width:70mm">${esc(t('rf.exclusionReason'))}</th></tr></thead><tbody>
+        ${so.length ? so.map(c => `<tr><td><span class="ctlid">${esc(c.control_id)}</span></td>
+          <td>${esc(c.title || '')}</td><td>${esc(c.reason || '—')}</td></tr>`).join('')
+          : `<tr><td colspan="3">—</td></tr>`}
+      </tbody></table>
+    </section>${foot(b, m, cls)}</div>`;
+
   // signatures + version history
   h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span>${esc(cls || '')}</span></div>
-    <section><div class="sec-h"><span class="num">5</span><h2>${esc(t('rf.signatures'))}</h2></div>
+    <section><div class="sec-h"><span class="num">6</span><h2>${esc(t('rf.signatures'))}</h2></div>
       <div class="sigs">
         <div><div class="sigline"></div><div class="sig"><div class="role">${esc(t('rf.assessor'))}</div><div class="when">${esc(a.assessor_signed_at)}</div></div></div>
         <div><div class="sigline"></div><div class="sig"><div class="role">${esc(t('rf.authorizingOfficial'))}</div><div class="when">${esc(a.authority_signed_at)}</div></div></div>

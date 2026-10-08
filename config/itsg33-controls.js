@@ -554,6 +554,99 @@ function assessSAARequirement(projectInfo) {
 }
 
 /**
+ * Human-readable labels for the baseline profiles a control can belong to.
+ * Used to explain WHY a control was recommended. Catalog content, like control
+ * titles and descriptions — not localized (see docs/REPORTING.md).
+ */
+const PROFILE_LABELS = {
+  CCCS_LOW: 'the Low cloud baseline (Protected A / Low / Low)',
+  PBMM: 'the Protected B / Medium / Medium baseline',
+  PBMM_HVA: 'the High Value Asset overlay',
+  SECRET_MM: 'the Secret / Medium / Medium baseline'
+};
+
+/**
+ * Plain-language reasons a system characteristic pulled a control in. The keys
+ * are the context tags added in getRecommendedControls().
+ */
+const TAG_REASONS = {
+  'public-content': 'the system serves externally reachable content',
+  external: 'the system is used by people outside the organization',
+  waf: 'the system is exposed through a web front end',
+  ddos: 'the system is reachable from untrusted networks',
+  boundary: 'the system crosses a trust boundary',
+  pii: 'the system holds personal information',
+  privacy: 'the system holds personal information',
+  retention: 'the system retains personal information',
+  handling: 'the system handles personal information',
+  interconnections: 'the system integrates with other systems',
+  interfaces: 'the system exposes or consumes interfaces',
+  isa: 'the system interconnects with systems under other authority',
+  device: 'the system is reached from end-user or mobile devices',
+  byod: 'the system is reached from personally owned devices',
+  wireless: 'the system is reached over wireless networks'
+};
+
+/**
+ * Build the sentence that explains why a control is in the recommended set.
+ * Deterministic and instant — no model call. The assessor can overwrite it, and
+ * `POST /admin/assessments/:id/ai/explain-control` can rewrite it in plain
+ * language for the evidence provider.
+ *
+ * @returns {{text: string, factors: string[]}}
+ */
+function buildTailoringRationale(control, ctx) {
+  const { matchedProfiles = [], matchedTags = [], inheritedFrom = [], basicWeb = false } = ctx || {};
+  const factors = [];
+  const parts = [];
+
+  if (basicWeb) {
+    parts.push('Part of the basic web security baseline applied to unclassified systems');
+    factors.push('baseline:basic-web');
+  } else if (matchedProfiles.length) {
+    // Name the narrowest (most specific) baseline that pulled it in.
+    const order = ['SECRET_MM', 'PBMM_HVA', 'PBMM', 'CCCS_LOW'];
+    const narrowest = order.find(p => matchedProfiles.includes(p)) || matchedProfiles[0];
+    parts.push(`Required by ${PROFILE_LABELS[narrowest] || 'the selected baseline'}`);
+    factors.push('baseline:' + narrowest);
+  }
+
+  // De-duplicate the system-characteristic reasons (several tags share wording).
+  const seen = new Set();
+  const why = [];
+  matchedTags.forEach(t => {
+    const r = TAG_REASONS[t];
+    if (r && !seen.has(r)) { seen.add(r); why.push(r); factors.push('context:' + t); }
+  });
+  if (why.length) {
+    parts.push('and reinforced for this system because ' + listPhrase(why.slice(0, 3)));
+  }
+
+  if (control.priority === 'P1') {
+    parts.push('It is a Priority 1 (foundational) control');
+    factors.push('priority:P1');
+  } else if (control.priority === 'P3') {
+    parts.push('It is a Priority 3 control and is a common candidate for tailoring out on small systems');
+    factors.push('priority:P3');
+  }
+
+  if (inheritedFrom.length) {
+    parts.push(`It may be satisfied by an existing service — a likely source is ${listPhrase(inheritedFrom.slice(0, 3))}`);
+    factors.push('inheritable');
+  }
+
+  if (!parts.length) parts.push('Included by the assessor');
+
+  return { text: parts.join('. ').replace(/\.\s*and /, ', and ') + '.', factors };
+}
+
+/** "a", "a and b", "a, b and c" */
+function listPhrase(items) {
+  if (items.length <= 1) return items[0] || '';
+  return items.slice(0, -1).join(', ') + ' and ' + items[items.length - 1];
+}
+
+/**
  * Get recommended controls based on project info and security profile.
  * Now fully profile-aware — selects controls based on the determined profile.
  */
@@ -658,8 +751,9 @@ function getRecommendedControls(projectInfo) {
 
     // Tag relevance
     let tagMatches = 0;
+    const matchedTags = [];
     allTags.forEach(tag => {
-      if (control.tags.includes(tag)) { relevanceScore += 2; tagMatches++; }
+      if (control.tags.includes(tag)) { relevanceScore += 2; tagMatches++; matchedTags.push(tag); }
     });
 
     // Profile inclusion — primary selection criteria
@@ -678,6 +772,12 @@ function getRecommendedControls(projectInfo) {
       include = inProfile;
     }
 
+    const matchedProfiles = control.profiles.filter(p => includeProfiles.has(p));
+    const rationale = buildTailoringRationale(control, {
+      matchedProfiles, matchedTags, inheritedFrom,
+      basicWeb: !inProfile && include
+    });
+
     return {
       ...control,
       familyName: CONTROL_FAMILIES[control.family],
@@ -685,6 +785,8 @@ function getRecommendedControls(projectInfo) {
       inheritedFrom,
       isInherited: inheritedFrom.length > 0,
       tailoredDescription: control.description,
+      tailoringRationale: rationale.text,
+      rationaleFactors: rationale.factors,
       _include: include
     };
   }).filter(c => c._include)
@@ -734,6 +836,7 @@ module.exports = {
   CONTROLS,
   GC_WEB_GUIDANCE,
   getRecommendedControls,
+  buildTailoringRationale,
   assessSAARequirement,
   groupByFamily,
   computeRiskLevel,

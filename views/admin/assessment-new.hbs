@@ -116,7 +116,16 @@
             <span class="section-number">{{this.code}}</span>
             {{this.name}}
           </h3>
-          <p class="section-description">{{this.controls.length}} control(s) in this family</p>
+          <p class="section-description">
+            {{this.controls.length}} control(s) in this family
+            <span class="ms-2">
+              <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none"
+                onclick="toggleFamily('{{this.code}}', true)">{{t 'bk.selectFamily'}}</button>
+              <span class="text-muted mx-1">·</span>
+              <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-danger"
+                onclick="toggleFamily('{{this.code}}', false)">{{t 'bk.tailorOutFamily'}}</button>
+            </span>
+          </p>
         </div>
 
         {{#each this.controls}}
@@ -139,9 +148,18 @@
               </div>
             </div>
 
-            <p class="control-desc mb-3">{{this.description}}</p>
+            <p class="control-desc mb-2">{{this.description}}</p>
+
+            {{#if this.tailoringRationale}}
+              <div class="tailor-why mb-3">
+                <span class="tailor-why-k"><i class="bi bi-info-circle me-1"></i>{{t 'tl.whyInScope'}}</span>
+                <span class="tailor-why-v">{{this.tailoringRationale}}</span>
+              </div>
+            {{/if}}
 
             <!-- Hidden fields for standard data -->
+            <input type="hidden" name="offered_ids" value="{{this.id}}">
+            <input type="hidden" name="rationale_{{this.id}}" value="{{this.tailoringRationale}}">
             <input type="hidden" name="title_{{this.id}}" value="{{this.title}}">
             <input type="hidden" name="desc_{{this.id}}" value="{{this.description}}">
             <input type="hidden" name="control_guidance_{{this.id}}" value="{{this.controlGuidance}}">
@@ -181,12 +199,19 @@
                   </small>
                 </div>
               {{/if}}
-              <div class="mt-2">
-                <label class="form-label small fw-semibold">{{t 'ui.applicability'}}</label>
-                <select class="form-select form-select-sm" name="applicable[{{this.id}}]" style="max-width:200px">
-                  <option value="1" selected>{{t 'ui.inScope'}}</option>
-                  <option value="0">{{t 'ui.outOfScope'}}</option>
-                </select>
+              <div class="row g-2 mt-2">
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold">{{t 'ui.applicability'}}</label>
+                  <select class="form-select form-select-sm" name="applicable[{{this.id}}]">
+                    <option value="1" selected>{{t 'ui.inScope'}}</option>
+                    <option value="0">{{t 'ui.outOfScope'}}</option>
+                  </select>
+                </div>
+                <div class="col-md-8">
+                  <label class="form-label small fw-semibold">{{t 'tl.scopeOutReason'}}</label>
+                  <input type="text" class="form-control form-control-sm"
+                    name="scoped_out_reason[{{this.id}}]" placeholder="{{t 'tl.scopeOutReasonPh'}}">
+                </div>
               </div>
             </div>
 
@@ -198,6 +223,25 @@
         {{/each}}
       </div>
     {{/each}}
+
+    {{!-- Floating bulk-action bar: shows as soon as anything is selected. --}}
+    <div class="bulk-bar" id="bulkBar" role="region" aria-label="{{t 'bk.barLabel'}}">
+      <span class="bulk-n"><strong id="bulkCount">0</strong> {{t 'bk.selected'}}</span>
+      <input type="text" class="bulk-reason" id="bulkReason" autocomplete="off"
+        placeholder="{{t 'bk.reasonPh'}}" aria-label="{{t 'bk.reasonPh'}}">
+      <button type="button" class="btn btn-sm btn-outline-danger" onclick="bulkTailorOut()">
+        <i class="bi bi-dash-circle me-1"></i>{{t 'bk.tailorOutSelected'}}
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-light" id="bulkKeepOnly" onclick="bulkKeepOnly()">
+        <i class="bi bi-bullseye me-1"></i>{{t 'bk.keepOnly'}}
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-light" onclick="toggleAll(true)">
+        <i class="bi bi-check2-square me-1"></i>{{t 'ui.selectAll'}}
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-light" onclick="toggleAll(false)">
+        <i class="bi bi-x-square me-1"></i>{{t 'bk.clear'}}
+      </button>
+    </div>
 
     <div class="d-flex justify-content-between align-items-center mt-4 mb-5">
       <a href="/admin/projects/{{project.id}}" class="btn btn-outline-secondary">
@@ -212,13 +256,63 @@
 
 <script>
 function updateCount() {
+  const boxes = document.querySelectorAll('.control-toggle');
   const checked = document.querySelectorAll('.control-toggle:checked').length;
   document.getElementById('selectedCount').textContent = checked;
+  bulkBar(checked, boxes.length);
 }
 function toggleAll(state) {
   document.querySelectorAll('.control-toggle').forEach(cb => { cb.checked = state; });
   updateCount();
 }
+function familyOfId(id) { return String(id).split(/[.\-(]/)[0].toUpperCase(); }
+function toggleFamily(code, state) {
+  document.querySelectorAll('.control-toggle').forEach(cb => {
+    if (familyOfId(cb.value) === String(code).toUpperCase()) cb.checked = state;
+  });
+  updateCount();
+}
+
+// ── Floating bulk-action bar ────────────────────────────────────────────────
+// Appears as soon as anything is selected so "Select all" has somewhere to go:
+// the sticky header counts, this acts.
+function bulkBar(checked, total) {
+  const bar = document.getElementById('bulkBar');
+  if (!bar) return;
+  bar.classList.toggle('on', checked > 0);
+  const n = document.getElementById('bulkCount');
+  if (n) n.textContent = checked;
+  const keep = document.getElementById('bulkKeepOnly');
+  if (keep) keep.disabled = (checked === total);
+}
+function bulkTailorOut() {
+  const sel = Array.prototype.filter.call(document.querySelectorAll('.control-toggle'), cb => cb.checked);
+  if (!sel.length) return;
+  // The reason comes from the bar's own field rather than a native prompt(),
+  // which blocks the page and does not match the rest of the UI.
+  const box = document.getElementById('bulkReason');
+  const reason = box ? box.value : '';
+  sel.forEach(cb => {
+    cb.checked = false;
+    const card = document.getElementById('card-' + cb.value);
+    if (card) card.style.opacity = '.5';
+    const r = document.querySelector('[name="scoped_out_reason[' + CSS.escape(cb.value) + ']"]');
+    if (r && reason.trim()) r.value = reason.trim();
+  });
+  if (box) box.value = '';
+  updateCount();
+}
+function bulkKeepOnly() {
+  const keep = new Set(Array.prototype.filter.call(document.querySelectorAll('.control-toggle'), cb => cb.checked)
+    .map(cb => cb.value));
+  document.querySelectorAll('.control-toggle').forEach(cb => {
+    cb.checked = keep.has(cb.value);
+    const card = document.getElementById('card-' + cb.value);
+    if (card) card.style.opacity = cb.checked ? '' : '.5';
+  });
+  updateCount();
+}
+document.addEventListener('DOMContentLoaded', updateCount);
 </script>
 
 {{> ai-assess-helper }}
@@ -240,12 +334,37 @@ function toggleAll(state) {
       '<input type="checkbox" class="form-check-input control-toggle" name="control_ids" value="'+id+'" id="ctrl-'+id+'" checked onchange="updateCount()">'+
       '<strong>'+id+'</strong> <span class="badge bg-info text-dark">added by AI</span>'+
       (a && a.reason ? '<span class="text-muted small ms-1">'+escAttr(a.reason)+'</span>' : '')+'</div>'+
+      '<input type="hidden" name="offered_ids" value="'+id+'">'+
+      '<input type="hidden" name="rationale_'+id+'" value="'+escAttr((a && a.reason) || 'Added during tailoring by the Aegis SA Assistant.')+'">'+
       '<input type="hidden" name="title_'+id+'" value="'+id+'">'+
       '<input type="hidden" name="family_'+id+'" value="'+fam+'">'+
       '<input type="hidden" name="priority_'+id+'" value="P1">'+
       (a && a.tailoring ? '<input type="hidden" name="tailored['+id+']" value="'+escAttr(a.tailoring)+'">' : '');
     (document.getElementById('aiAddedControls')||form).appendChild(div);
   }
+  // The assistant can target whole families rather than listing hundreds of IDs:
+  //   families: ["AU","SC"]   → every currently-rendered control in those families
+  //   exceptFamilies: ["AC"]  → every rendered control NOT in those families
+  // Both are resolved here against the controls actually on the page.
+  function familyOf(id){ return String(id).split(/[.\-(]/)[0].toUpperCase(); }
+  function allRenderedIds(){
+    return Array.prototype.map.call(document.querySelectorAll('.control-toggle'), function(cb){ return cb.value; });
+  }
+  function expandIds(a){
+    var out = (a.controlIds || []).slice();
+    var fams = (a.families || []).map(function(f){ return String(f).toUpperCase(); });
+    var except = (a.exceptFamilies || []).map(function(f){ return String(f).toUpperCase(); });
+    if (fams.length || except.length) {
+      allRenderedIds().forEach(function(id){
+        var f = familyOf(id);
+        var hit = fams.length ? fams.indexOf(f) > -1 : true;
+        if (except.length && except.indexOf(f) > -1) hit = false;
+        if (hit && out.indexOf(id) === -1) out.push(id);
+      });
+    }
+    return out;
+  }
+
   window.AIAssistConfig = {
     mode: 'create',
     projectId: {{project.id}},
@@ -262,7 +381,7 @@ function toggleAll(state) {
     applyActions: function(actions){
       (actions||[]).forEach(function(a){
         var op=(a.op||'').toLowerCase();
-        (a.controlIds||[]).forEach(function(id){
+        (expandIds(a)).forEach(function(id){
           var cb=document.getElementById('ctrl-'+id);
           if(op==='remove'){ if(cb){ cb.checked=false; var c=document.getElementById('card-'+id); if(c) c.style.opacity='.5'; } }
           else if(op==='add'){ if(cb){ cb.checked=true; var c2=document.getElementById('card-'+id); if(c2) c2.style.opacity=''; } else { injectControl(id, a); } }

@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Workflow A — Guided Rail</title>
+<style>
+:root{
+  --navy-950:#0a1626; --navy-900:#0d2136; --navy-800:#143453; --navy-700:#1c4468;
+  --sky-300:#a9d8f2; --sky-400:#7cc4ee; --sky-500:#4d9fe0; --sky-600:#2f80cf;
+  --peri-500:#6d7fca; --ink:#17273a; --muted:#5f7185; --line:#dce7f2;
+  --paper:#fff; --mist:#f4f9fd; --soft:#eaf5fd;
+  --amber:#e0a53d; --green:#2fa06d; --red:#d64550;
+  --r:14px; --r-sm:10px; --pill:999px;
+  --shadow-sm:0 2px 10px rgba(15,32,54,.06);
+  --shadow:0 10px 30px rgba(15,32,54,.10);
+  --font:'Inter','Segoe UI',Roboto,system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font);background:var(--mist);color:var(--ink);font-size:14px;line-height:1.5}
+a{color:var(--sky-600);text-decoration:none}
+.appbar{background:var(--navy-950);color:#fff;padding:.7rem 1.25rem;display:flex;align-items:center;gap:1rem}
+.logo{display:flex;align-items:center;gap:.5rem;font-weight:800;letter-spacing:.12em;font-size:15px}
+.logo .sh{width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,var(--peri-500),var(--sky-400));display:inline-block}
+.appbar .sp{flex:1}
+.appbar .who{font-size:12.5px;opacity:.75}
+
+/* mockup chrome */
+.note{max-width:1320px;margin:1rem auto .25rem;padding:0 1rem}
+.note h1{font-size:20px;margin:.2rem 0}
+.note p{color:var(--muted);margin:.25rem 0 .75rem;max-width:80ch}
+.stepnav{display:flex;flex-wrap:wrap;gap:.4rem;padding:0 1rem;max-width:1320px;margin:0 auto 1rem}
+.stepnav button{border:1px solid var(--line);background:#fff;border-radius:var(--pill);padding:.35rem .8rem;font:inherit;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.stepnav button.on{background:var(--navy-900);border-color:var(--navy-900);color:#fff;font-weight:600}
+
+.shell{max-width:1320px;margin:0 auto 3rem;padding:0 1rem;display:grid;grid-template-columns:286px 1fr;gap:1rem;align-items:start}
+@media(max-width:900px){.shell{grid-template-columns:1fr}}
+
+/* ------- the rail ------- */
+.rail{position:sticky;top:1rem;background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden}
+.rail-head{padding:.85rem 1rem;background:var(--navy-900);color:#fff}
+.rail-head .eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.7}
+.rail-head .title{font-weight:700;font-size:14.5px;margin-top:.15rem}
+.rail-head .meta{font-size:11.5px;opacity:.7;margin-top:.2rem}
+.rail-prog{padding:.75rem 1rem .25rem}
+.bar{height:6px;background:var(--soft);border-radius:var(--pill);overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--peri-500),var(--sky-400))}
+.rail-prog .cap{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:.35rem}
+
+.steps{list-style:none;margin:.4rem 0 0;padding:0 0 .6rem}
+.steps li{display:flex;gap:.65rem;padding:.42rem 1rem;position:relative}
+.steps li .dot{flex:0 0 20px;height:20px;border-radius:50%;border:2px solid var(--line);background:#fff;display:grid;place-items:center;font-size:10px;font-weight:700;color:var(--muted);margin-top:1px;z-index:1}
+.steps li::before{content:"";position:absolute;left:calc(1rem + 9px);top:0;bottom:0;width:2px;background:var(--line)}
+.steps li:first-child::before{top:50%}
+.steps li:last-child::before{bottom:50%}
+.steps li .lbl{font-size:13px;font-weight:600}
+.steps li .sub{font-size:11.5px;color:var(--muted)}
+.steps li.done .dot{background:var(--green);border-color:var(--green);color:#fff}
+.steps li.done .lbl{color:var(--muted);font-weight:500}
+.steps li.now{background:var(--soft)}
+.steps li.now .dot{background:var(--sky-600);border-color:var(--sky-600);color:#fff;box-shadow:0 0 0 4px rgba(77,159,224,.18)}
+.steps li.now .lbl{color:var(--navy-900)}
+.steps li.block .dot{border-color:var(--amber);color:var(--amber)}
+.steps li.todo .lbl{color:var(--muted);font-weight:500}
+.owner{font-size:10.5px;border:1px solid var(--line);border-radius:var(--pill);padding:0 .4rem;color:var(--muted);margin-left:.3rem;white-space:nowrap}
+
+.rail-foot{border-top:1px solid var(--line);padding:.75rem 1rem;background:var(--mist)}
+.rail-foot .k{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.rail-foot .v{font-size:12.5px;margin-bottom:.4rem}
+
+/* ------- main ------- */
+.crumbs{font-size:12px;color:var(--muted);margin:.15rem 0 .6rem}
+.crumbs b{color:var(--ink);font-weight:600}
+
+.next{background:#fff;border:1px solid var(--line);border-left:5px solid var(--sky-600);border-radius:var(--r);padding:1rem 1.15rem;box-shadow:var(--shadow-sm);display:flex;gap:1rem;align-items:flex-start;margin-bottom:1rem}
+.next .ico{flex:0 0 38px;height:38px;border-radius:11px;background:var(--soft);display:grid;place-items:center;font-size:18px}
+.next h2{margin:0 0 .15rem;font-size:16px}
+.next p{margin:0;color:var(--muted);font-size:13px;max-width:70ch}
+.next .acts{margin-top:.7rem;display:flex;gap:.5rem;flex-wrap:wrap}
+.next .why{margin-top:.55rem;font-size:12px;color:var(--muted);background:var(--mist);border-radius:var(--r-sm);padding:.45rem .6rem}
+
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:var(--pill);padding:.45rem .95rem;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.btn.pri{background:var(--navy-900);border-color:var(--navy-900);color:#fff}
+.btn.ghost{background:transparent}
+.btn.sm{padding:.25rem .65rem;font-size:12px}
+
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm);margin-bottom:1rem}
+.card > h3{margin:0;padding:.75rem 1rem;border-bottom:1px solid var(--line);font-size:13.5px;display:flex;align-items:center;gap:.5rem}
+.card .bd{padding:1rem}
+.muted{color:var(--muted)}
+.row{display:flex;gap:.75rem;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.field label{display:block;font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:.2rem}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:var(--r-sm);padding:.45rem .6rem;font:inherit;font-size:13px;background:#fff}
+.chip{display:inline-flex;align-items:center;gap:.3rem;border-radius:var(--pill);padding:.1rem .55rem;font-size:11.5px;font-weight:600}
+.chip.g{background:#e6f6ee;color:#1d6b49}.chip.a{background:#fdf3e2;color:#8a6116}
+.chip.r{background:#fdeaec;color:#9c2b33}.chip.b{background:var(--soft);color:var(--navy-800)}
+.chip.n{background:#eef1f6;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:.4rem .6rem;border-bottom:1px solid var(--line)}
+td{padding:.5rem .6rem;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem}
+@media(max-width:700px){.kpi{grid-template-columns:repeat(2,1fr)}}
+.kpi div{background:var(--mist);border-radius:var(--r-sm);padding:.6rem;text-align:center}
+.kpi b{display:block;font-size:20px}
+.kpi span{font-size:11px;color:var(--muted)}
+
+/* sticky commit bar */
+.commit{position:sticky;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:.6rem .9rem;display:flex;align-items:center;gap:.75rem;margin-top:1rem}
+.commit .t{font-size:12.5px;color:var(--muted);flex:1}
+.commit .t b{color:var(--ink)}
+
+.callout{border:1px dashed var(--sky-500);background:#f2f9fe;border-radius:var(--r-sm);padding:.55rem .7rem;font-size:12.5px;color:var(--navy-800);margin-top:.75rem}
+.callout b{color:var(--navy-900)}
+.pane{display:none}.pane.on{display:block}
+.legend{font-size:12px;color:var(--muted);margin-top:.4rem}
+.ann{margin-top:1.2rem;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:.9rem 1.1rem}
+.ann h4{margin:0 0 .4rem;font-size:13px}
+.ann ul{margin:0;padding-left:1.1rem;font-size:12.5px;color:var(--muted)}
+.ann li{margin-bottom:.25rem}
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <span class="logo"><span class="sh"></span> AEGIS S.A.</span>
+  <span class="sp"></span>
+  <span class="who">Fred Pearson · Assessor</span>
+</div>
+
+<div class="note">
+  <h1>Workflow A — “Guided Rail”</h1>
+  <p>One rail, always on screen, answers three questions at a glance: <b>where am I</b>, <b>what is done</b>, and <b>what do I do next</b>.
+  Every page in a project keeps the same rail; the body changes. A single <b>Next action</b> card gives exactly one primary button, and a sticky
+  commit bar at the bottom never lets a step end without telling you what it unlocked. Use the pills to walk the seven steps.</p>
+</div>
+
+<div class="stepnav" id="nav"></div>
+
+<div class="shell">
+  <!-- ======== RAIL ======== -->
+  <aside class="rail">
+    <div class="rail-head">
+      <div class="eyebrow">Project</div>
+      <div class="title">Claims Portal</div>
+      <div class="meta">INT-CA986793 · Dana Whitfield · Protected B</div>
+    </div>
+    <div class="rail-prog">
+      <div class="bar"><i id="railbar" style="width:14%"></i></div>
+      <div class="cap"><span id="railcap">Step 1 of 7</span><span id="railpct">14%</span></div>
+    </div>
+    <ul class="steps" id="rail"></ul>
+    <div class="rail-foot">
+      <div class="k">Waiting on</div>
+      <div class="v" id="railwait">You</div>
+      <div class="k">Target decision</div>
+      <div class="v">iATO · 6 Jan 2027</div>
+    </div>
+  </aside>
+
+  <!-- ======== MAIN ======== -->
+  <main>
+    <div class="crumbs" id="crumbs"></div>
+
+    <!-- 1 INTAKE -->
+    <section class="pane" data-step="0">
+      <div class="next">
+        <div class="ico">📝</div>
+        <div style="flex:1">
+          <h2>Describe the system you want authorized</h2>
+          <p>Six short sections. Nothing is final — you can change any answer until the assessment is sent out.</p>
+          <div class="why">Why this matters: your answers to <b>classification</b> and <b>C-I-A</b> pick the control profile, so the tailoring step starts from the right baseline instead of all 190 controls.</div>
+          <div class="acts"><button class="btn pri">Start intake →</button><button class="btn ghost">Import from a previous project</button></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Intake · section 2 of 6 <span class="chip b">4 min left</span></h3>
+        <div class="bd">
+          <div class="grid2">
+            <div class="field"><label>System name</label><input value="Claims Portal"></div>
+            <div class="field"><label>Business owner</label><input value="Dana Whitfield"></div>
+            <div class="field"><label>Classification</label><select><option>Protected B</option><option>Protected A</option><option>Unclassified</option></select></div>
+            <div class="field"><label>User base</label><select><option>Both internal &amp; external</option></select></div>
+          </div>
+          <div class="callout"><b>Change from today:</b> the 8-section single page becomes 6 short sections with a save-as-you-go progress pill. Each section shows how it feeds a later step (“this picks your control profile”), so nobody wonders why they are being asked.</div>
+        </div>
+      </div>
+
+      <div class="commit">
+        <div class="t">Saved automatically · <b>Section 2 of 6</b></div>
+        <button class="btn ghost">Back</button>
+        <button class="btn pri">Save &amp; continue →</button>
+      </div>
+    </section>
+
+    <!-- 2 ACCEPT / CREATE ASSESSMENT -->
+    <section class="pane" data-step="1">
+      <div class="next">
+        <div class="ico">✅</div>
+        <div style="flex:1">
+          <h2>Accept the intake and open an assessment</h2>
+          <p>The intake is complete. Accepting it creates assessment package <b>v1</b> and pre-selects a control profile from the Protected B / High-integrity answers.</p>
+          <div class="why">This is the only action available right now. Everything else on this project is greyed out until an assessment exists — so there is nothing to hunt for.</div>
+          <div class="acts"><button class="btn pri">Accept intake &amp; create assessment</button><button class="btn">Send back for clarification</button></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>What accepting will create</h3>
+        <div class="bd">
+          <table>
+            <tr><td style="width:40%"><b>Assessment package</b></td><td>Claims Portal — v1 <span class="chip n">draft</span></td></tr>
+            <tr><td><b>Suggested profile</b></td><td>ITSG-33 Protected B / Medium-Medium-Medium → <b>190 controls</b></td></tr>
+            <tr><td><b>Invite code</b></td><td>generated on assign, not now</td></tr>
+          </table>
+          <div class="callout"><b>Change from today:</b> today two separate progress trackers run side by side (project 4 stages, assessment 5 stages) and they disagree. Here there is <b>one</b> seven-step journey; the assessment is steps 3–7 of it.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 TAILOR -->
+    <section class="pane" data-step="2">
+      <div class="next">
+        <div class="ico">🎛️</div>
+        <div style="flex:1">
+          <h2>Cut 190 suggested controls down to what actually applies</h2>
+          <p>Mark controls <b>in scope</b>, <b>inherited</b> (satisfied by an enterprise service) or <b>not applicable</b>. You can send the assessment before you finish, but the rail will keep showing this step as incomplete.</p>
+          <div class="acts"><button class="btn pri">Save tailoring</button><button class="btn">Apply a saved profile</button></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Tailoring <span class="chip g">5 in scope</span> <span class="chip b">1 inherited</span> <span class="chip n">184 removed</span></h3>
+        <div class="bd">
+          <table>
+            <tr><th>Control</th><th>Family</th><th>Decision</th><th>Rationale</th></tr>
+            <tr><td><b>AC-1</b> Policy &amp; procedures</td><td>Access Control</td><td><span class="chip b">Inherited</span></td><td class="muted">Departmental IT Security Policy (enterprise-wide)</td></tr>
+            <tr><td><b>AC-2</b> Account management</td><td>Access Control</td><td><span class="chip g">In scope</span></td><td class="muted">—</td></tr>
+            <tr><td><b>AC-6</b> Least privilege</td><td>Access Control</td><td><span class="chip g">In scope</span></td><td class="muted">—</td></tr>
+            <tr><td><b>AU-2</b> Event logging</td><td>Audit &amp; Accountability</td><td><span class="chip g">In scope</span></td><td class="muted">—</td></tr>
+            <tr><td><b>IA-2</b> Identification &amp; auth</td><td>Identification &amp; Auth</td><td><span class="chip g">In scope</span></td><td class="muted">—</td></tr>
+          </table>
+          <div class="callout"><b>Change from today:</b> “Controls tailored” currently only ticks when you hit <i>Assign &amp; send</i>, which makes saving feel like it did nothing. Here <b>Save tailoring completes the step</b> and the rail updates instantly.</div>
+        </div>
+      </div>
+
+      <div class="commit">
+        <div class="t">Unsaved changes on <b>2 controls</b></div>
+        <button class="btn ghost">Discard</button>
+        <button class="btn pri">Save tailoring — completes step 3 of 7</button>
+      </div>
+    </section>
+
+    <!-- 4 ASSIGN -->
+    <section class="pane" data-step="3">
+      <div class="next">
+        <div class="ico">📤</div>
+        <div style="flex:1">
+          <h2>Send 5 controls to the evidence provider</h2>
+          <p>They get an email with a secure link. You keep read-only visibility and can nudge, reassign or pull it back at any time.</p>
+          <div class="why">After you send, <b>the ball is in their court</b> — the rail switches “Waiting on” to the provider and your dashboard moves this project to <i>Awaiting others</i> so it stops nagging you.</div>
+          <div class="acts"><button class="btn pri">Assign &amp; send</button><button class="btn">Preview the email</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Assignment</h3>
+        <div class="bd">
+          <div class="grid2">
+            <div class="field"><label>Send to</label><input value="dana.whitfield@example.org"></div>
+            <div class="field"><label>Due date</label><input value="2026-10-29"></div>
+          </div>
+          <p style="margin:.7rem 0 .2rem"><label><input type="checkbox" checked> Generate AI evidence drafts so they start from a skeleton, not a blank box</label></p>
+          <div class="callout"><b>Change from today:</b> the confirmation screen tells the provider and the assessor <b>the same three facts</b> — what was sent, who owns it now, and when it is due.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 EVIDENCE -->
+    <section class="pane" data-step="4">
+      <div class="next">
+        <div class="ico">🧩</div>
+        <div style="flex:1">
+          <h2>Fill the 11 remaining blanks, then submit</h2>
+          <p>AI drafted all five narratives. Each highlighted slot is a fact only you can supply. Fill a slot and it turns green.</p>
+          <div class="acts"><button class="btn pri">Go to the next blank →</button><button class="btn">Submit all evidence</button></div>
+          <div class="why">Progress is counted by <b>slots filled</b>, not by “is the box non-empty”. A page full of AI placeholders is 0% done, and the bar says so.</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Evidence completeness</h3>
+        <div class="bd">
+          <div class="kpi">
+            <div><b>5/5</b><span>controls drafted</span></div>
+            <div><b>49/60</b><span>values filled</span></div>
+            <div><b>8/14</b><span>files attached</span></div>
+            <div><b>2</b><span>controls ready</span></div>
+          </div>
+          <table style="margin-top:.8rem">
+            <tr><th>Control</th><th>Slots</th><th>Attachments</th><th>State</th></tr>
+            <tr><td><b>AC-1</b></td><td>9/9</td><td>2/2</td><td><span class="chip g">Ready</span></td></tr>
+            <tr><td><b>AC-2</b></td><td>12/12</td><td>3/3</td><td><span class="chip g">Ready</span></td></tr>
+            <tr><td><b>AC-6</b></td><td>11/14</td><td>1/3</td><td><span class="chip a">3 blanks left</span></td></tr>
+            <tr><td><b>AU-2</b></td><td>9/14</td><td>0/4</td><td><span class="chip a">5 blanks, 4 files</span></td></tr>
+            <tr><td><b>IA-2</b></td><td>8/11</td><td>2/2</td><td><span class="chip a">3 blanks left</span></td></tr>
+          </table>
+          <div class="callout">See <b>workflow-d-evidence-slots.html</b> for the interactive version of the slot filling.</div>
+        </div>
+      </div>
+      <div class="commit">
+        <div class="t"><b>11 blanks</b> and <b>6 attachments</b> still missing — submitting now will flag those controls as incomplete</div>
+        <button class="btn ghost">Save &amp; finish later</button>
+        <button class="btn pri">Go to next blank →</button>
+      </div>
+    </section>
+
+    <!-- 6 REVIEW -->
+    <section class="pane" data-step="5">
+      <div class="next">
+        <div class="ico">🔍</div>
+        <div style="flex:1">
+          <h2>Score 5 controls, then close the audit</h2>
+          <p>Three scored, two to go. The totals below update the moment you score — the decision screen will never show you zeros.</p>
+          <div class="acts"><button class="btn pri">Review next unscored control →</button><button class="btn">Return 2 controls for re-submission</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Audit progress <span class="chip b">3 of 5 scored</span></h3>
+        <div class="bd">
+          <div class="kpi">
+            <div><b style="color:var(--green)">3</b><span>met</span></div>
+            <div><b style="color:var(--amber)">1</b><span>partially met</span></div>
+            <div><b style="color:var(--red)">1</b><span>not met</span></div>
+            <div><b>53.8%</b><span>weighted score</span></div>
+          </div>
+          <table style="margin-top:.8rem">
+            <tr><th>Control</th><th>Result</th><th>Auditor note</th></tr>
+            <tr><td><b>AC-1</b></td><td><span class="chip g">Met</span></td><td class="muted">Inherited policy current.</td></tr>
+            <tr><td><b>AC-2</b></td><td><span class="chip g">Met</span></td><td class="muted">Recertification evidence verified.</td></tr>
+            <tr><td><b>AC-6</b></td><td><span class="chip a">Partially met</span></td><td class="muted">3 service accounts over-privileged.</td></tr>
+            <tr><td><b>AU-2</b></td><td><span class="chip r">Not met</span></td><td class="muted">No central log retention.</td></tr>
+            <tr><td><b>IA-2</b></td><td><span class="chip g">Met</span></td><td class="muted">Phishing-resistant MFA enforced.</td></tr>
+          </table>
+          <div class="callout"><b>Change from today:</b> starting an audit currently jumps the tracker straight to “Completed · 1/1” before a single control is scored, and the family panel keeps saying “0 met”. Here <b>audit progress is controls scored</b>, and every counter is live.</div>
+        </div>
+      </div>
+      <div class="commit">
+        <div class="t"><b>2 controls unscored</b> — they will be treated as “not assessed” in the decision</div>
+        <button class="btn ghost">Score remaining</button>
+        <button class="btn pri">Close audit →</button>
+      </div>
+    </section>
+
+    <!-- 7 DECISION -->
+    <section class="pane" data-step="6">
+      <div class="next">
+        <div class="ico">🛡️</div>
+        <div style="flex:1">
+          <h2>Issue the authorization decision</h2>
+          <p>2 high-risk findings are open, so a full authorization is not available. The recommended path is an <b>interim authorization with a remediation plan</b>.</p>
+          <div class="acts"><button class="btn pri">Issue interim authorization (iATO)</button><button class="btn">Override decision…</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Remediation plan — generated from the 2 open findings</h3>
+        <div class="bd">
+          <table>
+            <tr><th>Finding</th><th>Risk</th><th>Owner</th><th>Due</th></tr>
+            <tr><td><b>AU-2</b> No centralized audit log retention</td><td><span class="chip r">High</span></td><td>Platform Ops</td><td>2026-12-15</td></tr>
+            <tr><td><b>AC-6</b> 3 service accounts over-privileged</td><td><span class="chip a">Medium</span></td><td>App Team</td><td>2026-11-28</td></tr>
+          </table>
+          <div class="callout"><b>Change from today:</b> remediation items are <b>pre-filled from the not-met / partially-met controls</b> rather than typed from scratch, and the expiry date defaults to 90 days with the date shown in words (“expires 6 Jan 2027 — 90 days”).</div>
+          <div class="field" style="margin-top:.8rem"><label>Residual risk accepted because…</label><textarea rows="3">Interim authorization for 90 days. Compensating measures: phishing-resistant MFA tenant-wide, quarterly privileged access review, no direct internet exposure.</textarea></div>
+        </div>
+      </div>
+      <div class="commit">
+        <div class="t">This will issue <b>iATO · expires 6 Jan 2027</b>, email Dana Whitfield, and lock assessment v1</div>
+        <button class="btn ghost">Preview the decision letter</button>
+        <button class="btn pri">Issue iATO</button>
+      </div>
+    </section>
+
+    <div class="ann">
+      <h4>What this design fixes</h4>
+      <ul>
+        <li><b>One journey, not two.</b> The project’s 4 stages and the assessment’s 5 stages collapse into a single 7-step rail, so the two trackers can never disagree.</li>
+        <li><b>Exactly one primary button per screen.</b> The “Next action” card is the only blue button; everything else is secondary.</li>
+        <li><b>“Waiting on” is explicit.</b> The rail names the person who owes the next move, so the project stops feeling abandoned after it is sent out.</li>
+        <li><b>Steps complete when you complete them.</b> Save tailoring finishes tailoring; scoring controls advances the audit — not a side effect of a different button.</li>
+        <li><b>Nothing ends silently.</b> The sticky commit bar states what the action will do and what is still missing before you press it.</li>
+      </ul>
+    </div>
+  </main>
+</div>
+
+<script>
+const STEPS = [
+  {k:'Intake',          s:'System description',       own:'Business owner'},
+  {k:'Accept &amp; open',   s:'Create assessment v1',     own:'Assessor'},
+  {k:'Tailor controls', s:'190 → in-scope set',       own:'Assessor'},
+  {k:'Assign &amp; send',   s:'Hand off for evidence',    own:'Assessor'},
+  {k:'Evidence',        s:'Fill slots &amp; attach',      own:'Provider'},
+  {k:'Review &amp; audit',  s:'Score every control',      own:'Assessor'},
+  {k:'Decision',        s:'ATO / iATO + remediation', own:'Authorizer'}
+];
+const WAIT = ['Business owner','You','You','Provider — Dana Whitfield','Provider — Dana Whitfield','You','Authorizing official'];
+let cur = 4;
+
+const nav = document.getElementById('nav');
+STEPS.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.innerHTML = (i+1)+'. '+s.k;
+  b.onclick = ()=>go(i);
+  nav.appendChild(b);
+});
+
+function go(i){
+  cur=i;
+  [...nav.children].forEach((b,j)=>b.classList.toggle('on',j===i));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on', +p.dataset.step===i));
+  const rail=document.getElementById('rail'); rail.innerHTML='';
+  STEPS.forEach((s,j)=>{
+    const li=document.createElement('li');
+    li.className = j<i?'done':(j===i?'now':'todo');
+    li.innerHTML = '<span class="dot">'+(j<i?'✓':(j+1))+'</span><span><span class="lbl">'+s.k+'</span>'+
+      (j===i?'<span class="owner">'+s.own+'</span>':'')+'<div class="sub">'+s.s+'</div></span>';
+    li.onclick=()=>go(j);
+    li.style.cursor='pointer';
+    rail.appendChild(li);
+  });
+  const pct = Math.round(((i+ .5)/STEPS.length)*100);
+  document.getElementById('railbar').style.width=pct+'%';
+  document.getElementById('railpct').textContent=pct+'%';
+  document.getElementById('railcap').textContent='Step '+(i+1)+' of '+STEPS.length;
+  document.getElementById('railwait').textContent=WAIT[i];
+  document.getElementById('crumbs').innerHTML='Projects › Claims Portal › <b>'+STEPS[i].k+'</b>';
+}
+go(cur);
+</script>
+</body>
+</html>

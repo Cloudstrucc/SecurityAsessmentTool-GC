@@ -134,7 +134,7 @@
             {{/eq}}
 
             {{#eq assessment.status "submitted"}}
-              <a href="/respond/{{assessment.invite_code}}" class="btn btn-outline-secondary btn-sm">
+              <a href="/admin/assessments/{{assessment.id}}/evidence" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-eye me-1"></i>{{t 'ui.viewEvidence'}}
               </a>
               <form method="POST" action="/admin/assessments/{{assessment.id}}/start-audit" class="d-inline">
@@ -147,7 +147,7 @@
 
             {{#eq assessment.status "reactivated"}}
               <span class="badge bg-warning text-dark align-self-center"><i class="bi bi-arrow-repeat me-1"></i>{{t 'st.reactivated'}}</span>
-              <a href="/respond/{{assessment.invite_code}}" class="btn btn-outline-secondary btn-sm">
+              <a href="/admin/assessments/{{assessment.id}}/evidence" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-eye me-1"></i>{{t 'ui.viewEvidence'}}
               </a>
               <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#assignSendModal" title="{{t 'ui.assignAndSend'}}">
@@ -159,7 +159,7 @@
             {{/eq}}
 
             {{#eq assessment.status "audit"}}
-              <a href="/respond/{{assessment.invite_code}}" class="btn btn-outline-secondary btn-sm">
+              <a href="/admin/assessments/{{assessment.id}}/evidence" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-eye me-1"></i>{{t 'ui.viewEvidence'}}
               </a>
               <button class="btn btn-success" data-bs-toggle="collapse" data-bs-target="#completeAuditForm">
@@ -168,7 +168,7 @@
             {{/eq}}
 
             {{#eq assessment.status "completed"}}
-              <a href="/respond/{{assessment.invite_code}}" class="btn btn-outline-secondary btn-sm">
+              <a href="/admin/assessments/{{assessment.id}}/evidence" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-eye me-1"></i>{{t 'ui.viewEvidence'}}
               </a>
             {{/eq}}
@@ -693,6 +693,24 @@
             {{/if}}
           {{/if}}
 
+          {{!-- Why this control is in scope (engine, assessor or AI) --}}
+          <div class="tailor-why mt-2 {{#eq this.rationale_source 'ai'}}ai{{/eq}}" id="why-{{this.id}}">
+            <span class="tailor-why-k"><i class="bi bi-info-circle me-1"></i>{{t 'tl.whyInScope'}}</span>
+            <span class="tailor-why-v" id="why-text-{{this.id}}">{{#if this.tailoring_rationale}}{{this.tailoring_rationale}}{{else}}{{t 'tl.noRationale'}}{{/if}}</span>
+            {{#eq this.rationale_source 'ai'}}<span class="badge text-bg-light border ms-1" style="font-size:.65rem"><i class="bi bi-stars me-1"></i>{{t 'tl.srcAi'}}</span>{{/eq}}
+            {{#eq this.rationale_source 'manual'}}<span class="badge text-bg-light border ms-1" style="font-size:.65rem">{{t 'tl.srcManual'}}</span>{{/eq}}
+            {{#unless ../../viewingVersion}}
+              <button type="button" class="btn btn-sm btn-link p-0 ms-2 text-decoration-none" style="font-size:.74rem;color:#8b5cf6"
+                onclick="tlExplain({{this.id}}, '{{../../assessment.id}}', this)" title="{{t 'tl.explainHelp'}}">
+                <i class="bi bi-stars me-1"></i>{{t 'tl.explainPlain'}}
+              </button>
+              <button type="button" class="btn btn-sm btn-link p-0 ms-2 text-decoration-none text-danger" style="font-size:.74rem"
+                onclick="tlScopeOut({{this.id}}, '{{../../assessment.id}}', '{{this.control_id}}')">
+                <i class="bi bi-dash-circle me-1"></i>{{t 'tl.tailorOut'}}
+              </button>
+            {{/unless}}
+          </div>
+
           {{#if this.tailored_description}}
             <div class="mt-2 p-2 rounded" style="background:#f8f9fa">
               <small class="text-muted fw-semibold d-block mb-1">{{t 'ui.tailoredDescription'}}</small>
@@ -851,6 +869,58 @@
     </div>
   {{/each}}
 
+  {{!-- ── Tailored-out register ────────────────────────────────────────────
+       Controls the baseline recommended that the assessor took out of scope.
+       They stay on the record (the tailoring decision is part of the
+       authorization evidence) but never reach the evidence provider. --}}
+  {{#if scopedOut.length}}
+    <div class="card mt-4" id="scopedOutRegister">
+      <div class="card-header d-flex align-items-center flex-wrap gap-2" style="cursor:pointer"
+           data-bs-toggle="collapse" data-bs-target="#scopedOutBody">
+        <i class="bi bi-funnel me-1"></i>
+        <strong>{{t 'tl.tailoredOutTitle'}}</strong>
+        <span class="badge bg-light text-dark">{{scopedOut.length}}</span>
+        <span class="small ms-1" style="opacity:.75">{{t 'tl.tailoredOutHint'}}</span>
+        <span class="ms-auto small" style="opacity:.75">
+          {{stats.offered}} {{t 'tl.offered'}} → {{stats.total}} {{t 'tl.inScopeLower'}}
+        </span>
+      </div>
+      <div class="collapse" id="scopedOutBody">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th style="width:120px">{{t 'tl.colControl'}}</th>
+                  <th>{{t 'tl.colTitle'}}</th>
+                  <th style="width:34%">{{t 'tl.colReason'}}</th>
+                  <th style="width:150px"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each scopedOut}}
+                  <tr class="scoped-out-row" id="so-row-{{this.id}}">
+                    <td><span class="control-id">{{this.control_id}}</span><div class="small text-muted">{{this.family}}</div></td>
+                    <td class="small">{{this.title}}</td>
+                    <td class="small">{{#if this.scoped_out_reason}}{{this.scoped_out_reason}}{{else}}{{t 'tl.noReason'}}{{/if}}</td>
+                    <td class="text-end">
+                      {{#unless ../viewingVersion}}
+                        <button type="button" class="btn btn-sm btn-outline-success"
+                          onclick="tlScopeIn({{this.id}}, '{{../assessment.id}}', '{{this.control_id}}')">
+                          <i class="bi bi-plus-circle me-1"></i>{{t 'tl.bringBack'}}
+                        </button>
+                      {{/unless}}
+                    </td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  {{/if}}
+
     </div><!-- end col-lg-9 -->
 
     <!-- Family Navigation Sidebar -->
@@ -893,6 +963,51 @@
 </div><!-- end container -->
 
 <script>
+// ── Tailoring: rationale + scope in/out ──────────────────────────────────────
+async function tlExplain(controlId, assessmentId, btn) {
+  const txt = document.getElementById('why-text-' + controlId);
+  const box = document.getElementById('why-' + controlId);
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>' + {{{tjs 'tl.explaining'}}};
+  try {
+    const r = await fetch('/admin/assessments/' + assessmentId + '/ai/explain-control/' + controlId, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}'
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'failed');
+    if (txt) txt.textContent = d.rationale;
+    if (box) box.classList.add('ai');
+  } catch (e) {
+    alert(e.message || {{{tjs 'tl.explainFailed'}}});
+  } finally {
+    btn.disabled = false; btn.innerHTML = original;
+  }
+}
+
+async function tlScopeOut(controlId, assessmentId, code) {
+  const reason = prompt({{{tjs 'tl.promptReason'}}} + ' (' + code + ')');
+  if (reason === null) return;
+  if (!reason.trim()) { alert({{{tjs 'tl.reasonRequired'}}}); return; }
+  const r = await fetch('/admin/assessments/' + assessmentId + '/controls/' + controlId + '/scope', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: 'scoped-out', reason: reason.trim() })
+  });
+  const d = await r.json();
+  if (!r.ok) { alert(d.error || 'Could not update the control.'); return; }
+  location.reload();
+}
+
+async function tlScopeIn(controlId, assessmentId, code) {
+  const r = await fetch('/admin/assessments/' + assessmentId + '/controls/' + controlId + '/scope', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: 'in-scope' })
+  });
+  const d = await r.json();
+  if (!r.ok) { alert(d.error || 'Could not update the control.'); return; }
+  location.reload();
+}
+
 async function auditControl(controlId, assessmentId, result, btn, comments) {
   const payload = {};
   if (result) {
@@ -1555,11 +1670,17 @@ window.AIAssistConfig = {
 </div>
 <script>
 (function(){
-  var FLOW='/respond/{{assessment.invite_code}}', AID='{{assessment.id}}';
+  // Go through the server rather than interpolating the invite code here: a row
+  // with a missing code used to produce a dead "/respond/" link (404).
+  var AID='{{assessment.id}}';
+  var FLOW='/admin/assessments/{{assessment.id}}/evidence';
   var MINE={{#if assignedToMe}}true{{else}}false{{/if}}, OTHER={{#if assignedToOther}}true{{else}}false{{/if}};
   var ERR={{{tjs 'ev.gateError'}}};
   var anchor='';
-  function openFlow(){ window.open(FLOW+anchor,'_blank','noopener'); }
+  function openFlow(){
+    var m = /^#control-(\d+)$/.exec(anchor || '');
+    window.open(FLOW + (m ? '?c=' + m[1] : ''), '_blank', 'noopener');
+  }
   window.evEditGate=function(a){
     anchor=a||'';
     if (MINE || !OTHER) { openFlow(); return; }   // owner or unassigned → editable

@@ -231,6 +231,38 @@
     .control-card .control-title { font-weight:600; margin-bottom:.25rem; }
     .control-card .control-desc { font-size:.875rem; color:var(--gc-muted); }
 
+    /* Tailoring rationale — why a control is in (or out of) scope. */
+    .tailor-why { font-size:.8rem; line-height:1.5; background:#f3f8fd; border-left:3px solid var(--cs-accent,#4d9fe0);
+      border-radius:0 6px 6px 0; padding:.45rem .65rem; }
+    .tailor-why-k { font-weight:700; color:var(--cs-nav,#26374a); margin-right:.3rem; }
+    .tailor-why-v { color:#44586d; }
+    .tailor-why.out { background:#faf7f2; border-left-color:#e0a53d; }
+    .tailor-why.ai { background:#f8f5ff; border-left-color:#8b5cf6; }
+    .scoped-out-row td { color:var(--gc-muted); }
+    .scoped-out-row .control-id { opacity:.75; }
+
+    /* Floating bulk-action bar (control tailoring). Hidden until something is
+       selected, so "Select all" always has somewhere to go. */
+    .bulk-bar {
+      position:fixed; left:50%; bottom:1.1rem; transform:translateX(-50%) translateY(140%);
+      display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; z-index:1040;
+      background:var(--cs-nav,#0d2136); color:#fff; border-radius:999px;
+      padding:.5rem .85rem; box-shadow:0 12px 32px rgba(10,22,38,.32);
+      transition:transform .2s cubic-bezier(.4,0,.2,1); max-width:calc(100vw - 2rem);
+    }
+    .bulk-bar.on { transform:translateX(-50%) translateY(0); }
+    .bulk-bar .bulk-n { font-size:.85rem; padding-right:.3rem; white-space:nowrap; }
+    .bulk-bar .bulk-reason {
+      border:1px solid rgba(255,255,255,.35); background:rgba(255,255,255,.1); color:#fff;
+      border-radius:999px; padding:.2rem .7rem; font-size:.8rem; min-width:13rem; outline:none;
+    }
+    .bulk-bar .bulk-reason::placeholder { color:rgba(255,255,255,.6); }
+    .bulk-bar .bulk-reason:focus { border-color:var(--cs-accent,#4d9fe0); background:rgba(255,255,255,.16); }
+    .bulk-bar .btn { --bs-btn-padding-y:.2rem; --bs-btn-padding-x:.6rem; font-size:.8rem; white-space:nowrap; }
+    .bulk-bar .btn-outline-light { --bs-btn-color:#fff; --bs-btn-border-color:rgba(255,255,255,.45); }
+    .bulk-bar .btn-outline-danger { --bs-btn-color:#ffb3ba; --bs-btn-border-color:rgba(255,120,130,.6); }
+    @media (max-width:575px){ .bulk-bar { bottom:.6rem; padding:.4rem .6rem; } .bulk-bar .bulk-n { width:100%; } }
+
     .comment-thread { max-height:300px; overflow-y:auto; }
     .comment-item { padding:.5rem; border-bottom:1px solid #f0f0f0; font-size:.875rem; }
     .comment-item:last-child { border-bottom:none; }

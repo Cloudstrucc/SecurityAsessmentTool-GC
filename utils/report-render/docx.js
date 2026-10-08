@@ -102,6 +102,13 @@ function render(model, opts = {}) {
       children.push(P(`${t('rf.finding')}: ${c.finding || '—'}`));
       children.push(P(`${t('rf.evidence')}: ${c.evidence || '—'}`, { color: '5F7185' }));
     });
+    // Tailoring register — what was recommended, what stayed, why the rest went.
+    const so = m.scopedOut || [];
+    children.push(H(t('rf.tailoringRegister')));
+    children.push(P(`${t('rf.controlsOffered')}: ${s.offered != null ? s.offered : m.controls.length + so.length} · ${t('rf.controlsInScope')}: ${s.inScope != null ? s.inScope : m.controls.length} · ${t('rf.scopedOut')}: ${so.length}`));
+    children.push(dataTable([t('rf.control'), t('rf.title'), t('rf.exclusionReason')],
+      so.length ? so.map(c => [c.control_id, c.title || '', c.reason || '—']) : [['—', '', '']]));
+
     children.push(H(t('rf.versionHistory')));
     children.push(dataTable([t('rf.version'), t('rf.title'), t('rf.date'), t('rf.by'), t('rf.summary')],
       m.versions.map(v => [v.version, v.label || '', String(v.created_at || '').slice(0, 10), v.created_by_name || '', v.summary || ''])));
