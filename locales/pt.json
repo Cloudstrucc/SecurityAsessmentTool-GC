@@ -32,9 +32,9 @@
   },
   "home": {
     "badge": "Plataforma de Conformidade Multi-Framework",
-    "headline": "O seu sistema é",
-    "headlineAccent": "seguro o suficiente?",
-    "lead": "Descubra em minutos. Nosso assistente de autoavaliação faz perguntas em linguagem simples sobre o seu sistema, mapeia-as para os frameworks de segurança adequados à sua jurisdição e fornece um relatório instantâneo.",
+    "headline": "Um único fluxo,",
+    "headlineAccent": "da admissão ao ATO",
+    "lead": "Controles ITSG-33 / NIST adequados, evidências assistidas por IA, revisão do avaliador e um pacote de decisão assinado — tudo em um só lugar. Comece com uma autoavaliação gratuita de 5 minutos.",
     "noAccount": "Não é necessário criar conta",
     "fiveMin": "Questionário de 5 minutos",
     "instantReport": "Relatório de segurança instantâneo",

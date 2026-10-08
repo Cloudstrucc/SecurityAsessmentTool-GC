@@ -32,9 +32,9 @@
   },
   "home": {
     "badge": "Multi-Framework Compliance Platform",
-    "headline": "Is your system",
-    "headlineAccent": "secure enough?",
-    "lead": "Find out in minutes. Our self-assessment wizard asks plain-language questions about your system, maps them to the right security frameworks for your jurisdiction, and gives you an instant report.",
+    "headline": "One workflow,",
+    "headlineAccent": "from intake to ATO",
+    "lead": "Tailored ITSG-33 / NIST controls, AI-assisted evidence, assessor review, and a signed decision package — in one place. Start with a free 5-minute self-assessment.",
     "noAccount": "No account needed",
     "fiveMin": "5-minute questionnaire",
     "instantReport": "Instant security report",

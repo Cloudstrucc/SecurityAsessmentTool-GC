@@ -32,9 +32,9 @@
   },
   "home": {
     "badge": "Plateforme de conformité multi-cadre",
-    "headline": "Votre système est-il",
-    "headlineAccent": "suffisamment sécurisé ?",
-    "lead": "Découvrez-le en quelques minutes. Notre assistant d'auto-évaluation pose des questions en langage simple sur votre système, les associe aux cadres de sécurité appropriés pour votre juridiction et vous fournit un rapport instantané.",
+    "headline": "Un seul flux de travail,",
+    "headlineAccent": "de l’admission à l’ATO",
+    "lead": "Contrôles ITSG-33 / NIST adaptés, preuves assistées par l’IA, revue par l’évaluateur et un dossier de décision signé — au même endroit. Commencez par une auto-évaluation gratuite de 5 minutes.",
     "noAccount": "Aucun compte requis",
     "fiveMin": "Questionnaire de 5 minutes",
     "instantReport": "Rapport de sécurité instantané",

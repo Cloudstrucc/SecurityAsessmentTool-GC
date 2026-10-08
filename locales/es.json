@@ -32,9 +32,9 @@
   },
   "home": {
     "badge": "Plataforma de cumplimiento multi-marco",
-    "headline": "¿Su sistema es",
-    "headlineAccent": "suficientemente seguro?",
-    "lead": "Descúbralo en minutos. Nuestro asistente de autoevaluación hace preguntas en lenguaje simple sobre su sistema, las asocia con los marcos de seguridad apropiados para su jurisdicción y le proporciona un informe instantáneo.",
+    "headline": "Un solo flujo,",
+    "headlineAccent": "de la admisión al ATO",
+    "lead": "Controles ITSG-33 / NIST adaptados, evidencia asistida por IA, revisión del evaluador y un paquete de decisión firmado: todo en un mismo lugar. Empieza con una autoevaluación gratuita de 5 minutos.",
     "noAccount": "Sin cuenta necesaria",
     "fiveMin": "Cuestionario de 5 minutos",
     "instantReport": "Informe de seguridad instantáneo",
