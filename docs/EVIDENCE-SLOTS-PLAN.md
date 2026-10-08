@@ -216,13 +216,69 @@ about to present. My recommendation: ship **A** now, demo on what's there, start
 
 ---
 
-## 6 · Decisions I need from you
+## 6 · Decisions — answered 2026-10-08
 
-1. **Remove the tailoring-page "Refine with AI" too**, or only the evidence one? (assumption: both)
-2. **Scanner backend** — (a) clamd in ACI, (b) Blob + Defender for Storage, or (c) custom container?
-   Or ship Phase 1 only for now and decide later?
-3. **File types** — is the §3.1 allow-list right? Specifically: reject archives (yes/no), and
-   allow SVG (sanitised) or drop it?
-4. **Pending-scan behaviour** — hold the file invisible until a verdict (my proposal), or show it to
-   the provider immediately and only block the assessor's download?
-5. **Timing** — confirm you want B–D started *after* the demo, not before.
+| # | Decision | Status |
+|---|---|---|
+| 1 | Remove "Refine with AI" | **Evidence page: done** (shipped). Tailoring page: **left in place** — see below. |
+| 2 | Scanner backend | **Phase 1 only**, in-process Node, files stay in `UPLOAD_DIR` as today. See the correction below. |
+| 3 | File types | **Reject standalone archives. Drop SVG entirely.** |
+| 4 | Pending-scan behaviour | **Do not hide the file.** Anyone with access to the record can download it. |
+| 5 | Timing | **B–D start after the demo.** |
+
+### On #1 — the tailoring page has no "Suggest a draft"
+
+Your condition was "provided both have the suggested draft feature". The evidence page does, so its
+Refine button is gone. The **tailoring** page's Refine sits on the *tailored description* field and
+has **no per-control suggest counterpart** — removing it would leave that field with no assistance
+at all. It is still there. Two ways forward, your call:
+
+- **(a)** Leave it. The AI assistant panel on that page can already propose tailoring text via its
+  `tailor` action, so there is a path, just not a per-control button.
+- **(b)** Build a per-control "Suggest tailoring" to match the evidence page, then remove Refine.
+
+### On #2 — there is no Node library that does this
+
+This is the one place I have to push back on the brief. **No pure-Node or WebAssembly antivirus
+exists.** Every Node "antivirus" package — [`clamscan`](https://www.npmjs.com/package/clamscan),
+`pompelmi`, `h5p-clamav-scanner` — is a wrapper that shells out to the native ClamAV binary or talks
+to a `clamd` daemon over TCP. On the built-in App Service Node runtime there is no binary to shell
+out to and no daemon to reach, so none of them will work at runtime without the infrastructure from
+§3.3. I could not find a WASM build of ClamAV.
+
+So Phase 1 cannot honestly be called virus scanning. What it **can** do, in-process, with no new
+infrastructure, is **content-safety validation** — which catches the realistic document-borne
+threats for this product and is a large improvement over today's "accept anything":
+
+1. **Magic-byte verification** (`file-type`, pure JS): the real content must match the claimed
+   extension. `payload.exe` renamed `evidence.pdf` is rejected.
+2. **Allow-list by extension AND sniffed type**, both of which must agree:
+   `pdf, docx, xlsx, pptx, csv, txt, md, json, xml, png, jpg/jpeg, gif`.
+3. **Reject standalone archives** (`zip, rar, 7z, tar, gz`) and everything executable or
+   macro-enabled (`exe, dll, js, vbs, ps1, sh, jar, docm, xlsm, pptm`). **SVG dropped** per #3.
+   Note: `docx/xlsx/pptx` are themselves ZIP containers — the archive rule targets *standalone*
+   archives, not OOXML.
+4. **Active-content inspection**, the part that earns its keep:
+   - **PDF** — reject on `/JavaScript`, `/JS`, `/OpenAction`, `/AA`, `/Launch`, `/EmbeddedFile`.
+   - **OOXML** — unzip and reject on `vbaProject.bin` (macros) or external/remote relationship
+     targets.
+5. **EICAR detection**, so the control is demonstrably testable in a demo.
+6. **Filename sanitisation**, generated storage names, per-slot (5) and per-control (100 MB) caps.
+7. **Safe serving**: `Content-Disposition: attachment`, `X-Content-Type-Options: nosniff`, an
+   explicit `Content-Type` from the allow-list — never the client's.
+
+**The UI must not lie about this.** A file that passes shows **"Checked"**, not "Clean", with help
+text saying files are validated for type and active content but **not scanned for malware** unless
+an AV backend is configured. The `MALWARE_SCANNER` hook from §3.3 stays in the code so clamd can be
+switched on later without touching the UI, at which point the badge becomes a real "Clean".
+
+Because this validation is **synchronous**, there is no pending state in Phase 1 — a file is either
+accepted or rejected at upload. Your answer to #4 only starts to matter if you later add a real
+asynchronous scanner.
+
+### Revised §3.1 limits, per your answers
+
+- 5 files per attachment slot, 25 MB each, 100 MB per control.
+- Allow: `pdf, docx, xlsx, pptx, csv, txt, md, json, xml, png, jpg/jpeg, gif`.
+- Reject: standalone archives, executables, macro-enabled Office, **SVG**.
+- Storage: unchanged — `UPLOAD_DIR` (`/home/site/uploads` on Azure, already persistent).
