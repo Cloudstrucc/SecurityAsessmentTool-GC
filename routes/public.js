@@ -734,25 +734,6 @@ router.post('/respond/:code/apply-suggestions', ensureEvidenceUser, express.json
   }
 });
 
-router.post('/respond/:code/ai-refine', ensureEvidenceUser, express.json(), async (req, res) => {
-  try {
-    const code = req.params.code.toUpperCase();
-    const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
-    if (!assessment) return res.status(404).json({ error: 'Invalid access code.' });
-    if (!ai.isConfigured()) return res.status(503).json({ error: 'AI is not configured.' });
-    const { controlId, controlTitle, controlGuidance, userSummary } = req.body;
-    if (!userSummary || String(userSummary).trim().length < 3) return res.status(400).json({ error: 'Please enter a brief answer to refine.' });
-    const refined = await ai.refineControlAnswer({
-      controlId: controlId || '', controlTitle: controlTitle || '', controlGuidance: controlGuidance || '',
-      userSummary: String(userSummary), frameworkLabel: assessment.security_framework || 'ITSG-33'
-    });
-    res.json({ success: true, refined });
-  } catch (err) {
-    console.error('respond ai-refine error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // Submit all evidence
 router.post('/respond/:code/submit', ensureEvidenceUser, (req, res) => {
   const code = req.params.code.toUpperCase();
