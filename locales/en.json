@@ -4083,5 +4083,22 @@
   "bk.clear": "Clear selection",
   "bk.selectFamily": "Select family",
   "bk.tailorOutFamily": "Tailor out family",
-  "bk.reasonPh": "Reason for tailoring out (optional)"
+  "bk.reasonPh": "Reason for tailoring out (optional)",
+  "ik.archive": "Archive",
+  "ik.archiveHelp": "Hide this intake from the lists without deleting it",
+  "ik.restore": "Restore",
+  "ik.restoreHelp": "Bring this intake back into the active list",
+  "ik.delete": "Delete",
+  "ik.deleteHelp": "Permanently delete this intake",
+  "ik.deleteTitle": "Delete this intake permanently?",
+  "ik.deleteBody": "This removes the intake and its attachments for good. It cannot be undone.",
+  "ik.deleteArchiveHint": "If you only want it out of the way, archive it instead — nothing is lost and you can restore it later.",
+  "ik.deleteConfirm": "Delete permanently",
+  "ik.deleted": "Intake {{ref}} deleted permanently.",
+  "ik.deleteBlocked": "That intake belongs to a project or assessment, so it cannot be deleted. Archive it instead — it will be hidden everywhere without breaking the record it belongs to.",
+  "ik.archived": "Intake {{ref}} archived. It is hidden from the lists but not deleted.",
+  "ik.alreadyArchived": "That intake is already archived.",
+  "ik.restored": "Intake restored.",
+  "ik.notFound": "Intake not found.",
+  "ik.showActive": "Active intakes"
 }

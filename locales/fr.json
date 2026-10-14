@@ -4127,5 +4127,22 @@
   "bk.clear": "Effacer la sélection",
   "bk.selectFamily": "Sélectionner la famille",
   "bk.tailorOutFamily": "Retirer la famille",
-  "bk.reasonPh": "Motif du retrait (facultatif)"
+  "bk.reasonPh": "Motif du retrait (facultatif)",
+  "ik.archive": "Archiver",
+  "ik.archiveHelp": "Masquer cette demande des listes sans la supprimer",
+  "ik.restore": "Restaurer",
+  "ik.restoreHelp": "Remettre cette demande dans la liste active",
+  "ik.delete": "Supprimer",
+  "ik.deleteHelp": "Supprimer définitivement cette demande",
+  "ik.deleteTitle": "Supprimer définitivement cette demande ?",
+  "ik.deleteBody": "Cela supprime la demande et ses pièces jointes de façon définitive. Cette action est irréversible.",
+  "ik.deleteArchiveHint": "Si vous souhaitez seulement l'écarter, archivez-la plutôt — rien n'est perdu et vous pourrez la restaurer.",
+  "ik.deleteConfirm": "Supprimer définitivement",
+  "ik.deleted": "Demande {{ref}} supprimée définitivement.",
+  "ik.deleteBlocked": "Cette demande appartient à un projet ou à une évaluation et ne peut donc pas être supprimée. Archivez-la plutôt : elle sera masquée partout sans compromettre l'enregistrement auquel elle appartient.",
+  "ik.archived": "Demande {{ref}} archivée. Elle est masquée des listes mais non supprimée.",
+  "ik.alreadyArchived": "Cette demande est déjà archivée.",
+  "ik.restored": "Demande restaurée.",
+  "ik.notFound": "Demande introuvable.",
+  "ik.showActive": "Demandes actives"
 }

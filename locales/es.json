@@ -4127,5 +4127,22 @@
   "bk.clear": "Borrar la selección",
   "bk.selectFamily": "Seleccionar familia",
   "bk.tailorOutFamily": "Excluir familia",
-  "bk.reasonPh": "Motivo de la exclusión (opcional)"
+  "bk.reasonPh": "Motivo de la exclusión (opcional)",
+  "ik.archive": "Archivar",
+  "ik.archiveHelp": "Ocultar esta solicitud de las listas sin eliminarla",
+  "ik.restore": "Restaurar",
+  "ik.restoreHelp": "Devolver esta solicitud a la lista activa",
+  "ik.delete": "Eliminar",
+  "ik.deleteHelp": "Eliminar definitivamente esta solicitud",
+  "ik.deleteTitle": "¿Eliminar definitivamente esta solicitud?",
+  "ik.deleteBody": "Esto elimina la solicitud y sus adjuntos de forma permanente. No se puede deshacer.",
+  "ik.deleteArchiveHint": "Si solo quiere apartarla, archívela en su lugar: no se pierde nada y podrá restaurarla después.",
+  "ik.deleteConfirm": "Eliminar definitivamente",
+  "ik.deleted": "Solicitud {{ref}} eliminada definitivamente.",
+  "ik.deleteBlocked": "Esa solicitud pertenece a un proyecto o una evaluación, por lo que no se puede eliminar. Archívela en su lugar: quedará oculta en todas partes sin dañar el registro al que pertenece.",
+  "ik.archived": "Solicitud {{ref}} archivada. Queda oculta de las listas pero no se elimina.",
+  "ik.alreadyArchived": "Esa solicitud ya está archivada.",
+  "ik.restored": "Solicitud restaurada.",
+  "ik.notFound": "Solicitud no encontrada.",
+  "ik.showActive": "Solicitudes activas"
 }

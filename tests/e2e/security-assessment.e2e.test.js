@@ -2691,3 +2691,67 @@ test('an assessment that predates invite codes is repaired on startup', () => {
   assert.equal(m[1], '0', 'no assessment is left without an invite code');
   assert.match(m[2], /[A-Z0-9]{8}/, 'the generated code looks like an invite code');
 });
+
+test('a stale intake can be archived, restored and — when nothing points at it — deleted', async () => {
+  const adminJar = await loginAdminWithTotp();
+  const clientJar = await loginClientWithTotp();
+  const name = `E2E Stale Intake ${Date.now()}`;
+  await submitClientIntake(clientJar, name);
+  const intakeId = await findIntakeIdByName(adminJar, name);
+
+  // Archive hides it from the active list without deleting it.
+  const arch = await request(adminJar, 'POST', `/admin/intakes/${intakeId}/archive`);
+  assert.equal(arch.status, 302);
+  const active = await getText(adminJar, '/admin/intakes');
+  assert.doesNotMatch(active.text, new RegExp(name), 'an archived intake leaves the active list');
+
+  // It stays reachable under ?archived=1, so it can be restored.
+  const archived = await getText(adminJar, '/admin/intakes?archived=1');
+  assert.match(archived.text, new RegExp(name), 'archived intakes are listed under ?archived=1');
+
+  // Archiving twice is refused rather than silently re-stamping the status.
+  const again = await request(adminJar, 'POST', `/admin/intakes/${intakeId}/archive`);
+  assert.equal(again.status, 302);
+  const detail = await getText(adminJar, `/admin/intakes/${intakeId}`);
+  assert.match(detail.text, /already archived/i, 'a second archive is refused');
+
+  // Restore puts it back in the active list with its prior status.
+  const restore = await request(adminJar, 'POST', `/admin/intakes/${intakeId}/unarchive`);
+  assert.equal(restore.status, 302);
+  const back = await getText(adminJar, '/admin/intakes');
+  assert.match(back.text, new RegExp(name), 'a restored intake returns to the active list');
+
+  // An intake with no project behind it can be deleted outright.
+  const del = await request(adminJar, 'POST', `/admin/intakes/${intakeId}/delete`);
+  assert.equal(del.status, 302);
+  const gone = await getText(adminJar, '/admin/intakes');
+  assert.doesNotMatch(gone.text, new RegExp(name), 'a deleted intake is gone from the list');
+  assert.doesNotMatch((await getText(adminJar, '/admin/intakes?archived=1')).text, new RegExp(name),
+    'and is not hiding in the archived list either');
+});
+
+test('an intake that belongs to a project is refused deletion and told to archive instead', async () => {
+  const jar = await loginAdminWithTotp();
+  // Creating a project as an assessor also creates its linked intake.
+  const { projectId } = await createAdminProject(jar, `E2E Linked Intake ${Date.now()}`);
+  const project = await getText(jar, `/admin/projects/${projectId}`);
+  const intakeId = project.text.match(/\/admin\/intakes\/(\d+)/)?.[1];
+  assert.ok(intakeId, 'the project links to its intake');
+
+  const del = await request(jar, 'POST', `/admin/intakes/${intakeId}/delete`);
+  assert.equal(del.status, 302, 'the delete is refused with a redirect, not a crash');
+  const detail = await getText(jar, `/admin/intakes/${intakeId}`);
+  assert.match(detail.text, /belongs to a project or assessment/i,
+    'the refusal explains why and points at archiving');
+
+  // The intake is still there, and the project still references it.
+  const stillThere = await getText(jar, `/admin/projects/${projectId}`);
+  assert.match(stillThere.text, new RegExp(`/admin/intakes/${intakeId}`),
+    'the project still references its intake');
+
+  // Archiving it is allowed, and does not break the project.
+  const arch = await request(jar, 'POST', `/admin/intakes/${intakeId}/archive`);
+  assert.equal(arch.status, 302);
+  const projectAfter = await getText(jar, `/admin/projects/${projectId}`);
+  assert.equal(projectAfter.response.status, 200, 'the project still loads with its intake archived');
+});

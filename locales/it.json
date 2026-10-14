@@ -4105,5 +4105,22 @@
   "bk.clear": "Annulla selezione",
   "bk.selectFamily": "Seleziona famiglia",
   "bk.tailorOutFamily": "Escludi famiglia",
-  "bk.reasonPh": "Motivo dell’esclusione (facoltativo)"
+  "bk.reasonPh": "Motivo dell’esclusione (facoltativo)",
+  "ik.archive": "Archivia",
+  "ik.archiveHelp": "Nascondi questa richiesta dagli elenchi senza eliminarla",
+  "ik.restore": "Ripristina",
+  "ik.restoreHelp": "Riporta questa richiesta nell'elenco attivo",
+  "ik.delete": "Elimina",
+  "ik.deleteHelp": "Elimina definitivamente questa richiesta",
+  "ik.deleteTitle": "Eliminare definitivamente questa richiesta?",
+  "ik.deleteBody": "Questo rimuove la richiesta e i suoi allegati in modo permanente. Non è reversibile.",
+  "ik.deleteArchiveHint": "Se vuoi solo toglierla di mezzo, archiviala: non si perde nulla e potrai ripristinarla.",
+  "ik.deleteConfirm": "Elimina definitivamente",
+  "ik.deleted": "Richiesta {{ref}} eliminata definitivamente.",
+  "ik.deleteBlocked": "Questa richiesta appartiene a un progetto o a una valutazione e non può essere eliminata. Archiviala: sarà nascosta ovunque senza compromettere il record a cui appartiene.",
+  "ik.archived": "Richiesta {{ref}} archiviata. È nascosta dagli elenchi ma non eliminata.",
+  "ik.alreadyArchived": "Questa richiesta è già archiviata.",
+  "ik.restored": "Richiesta ripristinata.",
+  "ik.notFound": "Richiesta non trovata.",
+  "ik.showActive": "Richieste attive"
 }

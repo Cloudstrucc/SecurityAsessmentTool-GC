@@ -4105,5 +4105,22 @@
   "bk.clear": "Limpar seleção",
   "bk.selectFamily": "Selecionar família",
   "bk.tailorOutFamily": "Retirar família",
-  "bk.reasonPh": "Motivo da retirada (opcional)"
+  "bk.reasonPh": "Motivo da retirada (opcional)",
+  "ik.archive": "Arquivar",
+  "ik.archiveHelp": "Ocultar este pedido das listas sem o eliminar",
+  "ik.restore": "Restaurar",
+  "ik.restoreHelp": "Repor este pedido na lista ativa",
+  "ik.delete": "Eliminar",
+  "ik.deleteHelp": "Eliminar definitivamente este pedido",
+  "ik.deleteTitle": "Eliminar definitivamente este pedido?",
+  "ik.deleteBody": "Isto remove o pedido e os seus anexos de forma permanente. Não pode ser anulado.",
+  "ik.deleteArchiveHint": "Se apenas o quer afastar, arquive-o — nada se perde e pode restaurá-lo mais tarde.",
+  "ik.deleteConfirm": "Eliminar definitivamente",
+  "ik.deleted": "Pedido {{ref}} eliminado definitivamente.",
+  "ik.deleteBlocked": "Esse pedido pertence a um projeto ou a uma avaliação, pelo que não pode ser eliminado. Arquive-o — ficará oculto em todo o lado sem comprometer o registo a que pertence.",
+  "ik.archived": "Pedido {{ref}} arquivado. Fica oculto das listas mas não é eliminado.",
+  "ik.alreadyArchived": "Esse pedido já está arquivado.",
+  "ik.restored": "Pedido restaurado.",
+  "ik.notFound": "Pedido não encontrado.",
+  "ik.showActive": "Pedidos ativos"
 }

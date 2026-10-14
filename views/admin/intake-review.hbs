@@ -36,6 +36,29 @@
     {{#if intake.project_id}}
     <a href="/admin/projects/{{intake.project_id}}" class="btn btn-outline-success"><i class="bi bi-folder me-1"></i>{{t 'ik.viewProject'}}</a>
     {{/if}}
+
+    {{#if intake.archived_at}}
+      <form method="POST" action="/admin/intakes/{{intake.id}}/unarchive" style="display:inline;">
+        <button type="submit" class="btn btn-outline-secondary" title="{{t 'ik.restoreHelp'}}">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>{{t 'ik.restore'}}
+        </button>
+      </form>
+    {{else}}
+      <form method="POST" action="/admin/intakes/{{intake.id}}/archive" style="display:inline;">
+        <button type="submit" class="btn btn-outline-secondary" title="{{t 'ik.archiveHelp'}}">
+          <i class="bi bi-archive me-1"></i>{{t 'ik.archive'}}
+        </button>
+      </form>
+    {{/if}}
+
+    {{!-- Deleting is only offered when nothing points at the intake; otherwise it
+          would orphan the project or assessment that references it. --}}
+    {{#unless intake.project_id}}
+      <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteIntakeModal"
+        title="{{t 'ik.deleteHelp'}}">
+        <i class="bi bi-trash me-1"></i>{{t 'ik.delete'}}
+      </button>
+    {{/unless}}
   </div>
 </div>
 
@@ -891,3 +914,28 @@ window.AIAssistConfig = {
   suggestions: [{{{tjs 'aq.intake1'}}}, {{{tjs 'aq.intake2'}}}, {{{tjs 'aq.intake3'}}}]
 };
 </script>
+
+{{!-- Permanent delete — only rendered when the intake belongs to no project. --}}
+{{#unless intake.project_id}}
+<div class="modal fade" id="deleteIntakeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form method="POST" action="/admin/intakes/{{intake.id}}/delete" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-exclamation-triangle text-danger me-2"></i>{{t 'ik.deleteTitle'}}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t 'common.close'}}"></button>
+      </div>
+      <div class="modal-body">
+        <p>{{t 'ik.deleteBody'}}</p>
+        <p class="mb-0"><code>{{intake.ref_code}}</code> — {{intake.project_name}}</p>
+        <div class="alert alert-warning small mt-3 mb-0">
+          <i class="bi bi-info-circle me-1"></i>{{t 'ik.deleteArchiveHint'}}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{t 'ui.cancel'}}</button>
+        <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>{{t 'ik.deleteConfirm'}}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{{/unless}}

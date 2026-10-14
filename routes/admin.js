@@ -3879,14 +3879,20 @@ const ACTIVITY_LABELS = {
 // List all intakes
 router.get('/intakes', ensureAuthenticated, (req, res) => {
   const si = access.intakeScope(req.user);   // tenant isolation
-  const intakes = all(`SELECT * FROM intake_submissions WHERE archived_at IS NULL AND ${si.clause} ORDER BY created_at DESC`, si.params);
+  // ?archived=1 shows the archived ones, so an archived intake stays reachable
+  // and restorable rather than disappearing for good.
+  const showArchived = req.query.archived === '1';
+  const intakes = showArchived
+    ? all(`SELECT * FROM intake_submissions WHERE archived_at IS NOT NULL AND ${si.clause} ORDER BY archived_at DESC`, si.params)
+    : all(`SELECT * FROM intake_submissions WHERE archived_at IS NULL AND ${si.clause} ORDER BY created_at DESC`, si.params);
+  const archivedCount = get(`SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NOT NULL AND ${si.clause}`, si.params)?.c || 0;
   const pending = all(`SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status = 'pending' AND ${si.clause}`, si.params)[0]?.c || 0;
   const accepted = all(`SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status = 'accepted' AND ${si.clause}`, si.params)[0]?.c || 0;
   const inReview = all(`SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status = 'in-review' AND ${si.clause}`, si.params)[0]?.c || 0;
 
   res.render('admin/intakes', {
     title: 'Intake Submissions', isAdmin: true, isIntakes: true,
-    admin: req.user, intakes,
+    admin: req.user, intakes, showArchived, archivedCount,
     stats: { total: intakes.length, pending, accepted, inReview }
   });
 });
@@ -4160,6 +4166,62 @@ router.post('/intakes/:id/accept', ensureAuthenticated, (req, res) => {
 router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res, next) => {
   req.url = `/intakes/${req.params.id}/accept`;
   router.handle(req, res, next);
+});
+
+/**
+ * Archive a single intake. Mirrors the project pattern: stash the prior status
+ * so restoring is lossless, then set archived_at. Every intake list and counter
+ * already filters on archived_at, so it disappears from the UI immediately
+ * without anything being deleted.
+ */
+router.post('/intakes/:id/archive', ensureAuthenticated, (req, res) => {
+  const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
+  if (!intake) { req.flash('error', tr(req, 'ik.notFound', 'Intake not found.')); return res.redirect('/admin/intakes'); }
+  if (intake.archived_at) {
+    req.flash('error', tr(req, 'ik.alreadyArchived', 'That intake is already archived.'));
+    return res.redirect(`/admin/intakes/${intake.id}`);
+  }
+  run(`UPDATE intake_submissions SET status_before_archive = status, status = 'archived',
+       archived_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [intake.id]);
+  req.flash('success', tr(req, 'ik.archived',
+    `Intake ${intake.ref_code || ''} archived. It is hidden from the lists but not deleted.`,
+    { ref: intake.ref_code || '' }));
+  res.redirect('/admin/intakes');
+});
+
+/** Restore an archived intake to the status it held before. */
+router.post('/intakes/:id/unarchive', ensureAuthenticated, (req, res) => {
+  const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
+  if (!intake) { req.flash('error', tr(req, 'ik.notFound', 'Intake not found.')); return res.redirect('/admin/intakes'); }
+  run(`UPDATE intake_submissions
+         SET status = COALESCE(status_before_archive, 'pending'), status_before_archive = NULL,
+             archived_at = NULL, updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`, [intake.id]);
+  req.flash('success', tr(req, 'ik.restored', 'Intake restored.'));
+  res.redirect(`/admin/intakes/${intake.id}`);
+});
+
+/**
+ * Permanently delete an intake. Refused when anything still points at it —
+ * deleting the intake behind a live project or assessment would orphan the
+ * reference and break that record's audit trail. Archive covers that case.
+ */
+router.post('/intakes/:id/delete', ensureAuthenticated, (req, res) => {
+  const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
+  if (!intake) { req.flash('error', tr(req, 'ik.notFound', 'Intake not found.')); return res.redirect('/admin/intakes'); }
+
+  const linkedAssessment = get('SELECT id FROM assessments WHERE intake_id = ?', [intake.id]);
+  if (intake.project_id || linkedAssessment) {
+    req.flash('error', tr(req, 'ik.deleteBlocked',
+      'That intake belongs to a project or assessment, so it cannot be deleted. Archive it instead — it will be hidden everywhere without breaking the record it belongs to.'));
+    return res.redirect(`/admin/intakes/${intake.id}`);
+  }
+
+  run('DELETE FROM intake_attachments WHERE intake_id = ?', [intake.id]);
+  run('DELETE FROM intake_submissions WHERE id = ?', [intake.id]);
+  req.flash('success', tr(req, 'ik.deleted',
+    `Intake ${intake.ref_code || ''} deleted permanently.`, { ref: intake.ref_code || '' }));
+  res.redirect('/admin/intakes');
 });
 
 // Download intake attachment

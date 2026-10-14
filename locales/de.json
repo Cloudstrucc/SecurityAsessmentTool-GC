@@ -4105,5 +4105,22 @@
   "bk.clear": "Auswahl aufheben",
   "bk.selectFamily": "Familie auswählen",
   "bk.tailorOutFamily": "Familie herausnehmen",
-  "bk.reasonPh": "Grund für das Herausnehmen (optional)"
+  "bk.reasonPh": "Grund für das Herausnehmen (optional)",
+  "ik.archive": "Archivieren",
+  "ik.archiveHelp": "Diesen Antrag aus den Listen ausblenden, ohne ihn zu löschen",
+  "ik.restore": "Wiederherstellen",
+  "ik.restoreHelp": "Diesen Antrag zurück in die aktive Liste holen",
+  "ik.delete": "Löschen",
+  "ik.deleteHelp": "Diesen Antrag endgültig löschen",
+  "ik.deleteTitle": "Diesen Antrag endgültig löschen?",
+  "ik.deleteBody": "Dadurch werden der Antrag und seine Anhänge dauerhaft entfernt. Das lässt sich nicht rückgängig machen.",
+  "ik.deleteArchiveHint": "Wenn Sie ihn nur aus dem Weg haben möchten, archivieren Sie ihn stattdessen — nichts geht verloren und Sie können ihn später wiederherstellen.",
+  "ik.deleteConfirm": "Endgültig löschen",
+  "ik.deleted": "Antrag {{ref}} endgültig gelöscht.",
+  "ik.deleteBlocked": "Dieser Antrag gehört zu einem Projekt oder einer Bewertung und kann daher nicht gelöscht werden. Archivieren Sie ihn stattdessen — er wird überall ausgeblendet, ohne den zugehörigen Datensatz zu beschädigen.",
+  "ik.archived": "Antrag {{ref}} archiviert. Er ist aus den Listen ausgeblendet, aber nicht gelöscht.",
+  "ik.alreadyArchived": "Dieser Antrag ist bereits archiviert.",
+  "ik.restored": "Antrag wiederhergestellt.",
+  "ik.notFound": "Antrag nicht gefunden.",
+  "ik.showActive": "Aktive Anträge"
 }

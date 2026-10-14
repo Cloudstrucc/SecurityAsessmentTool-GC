@@ -4105,5 +4105,22 @@
   "bk.clear": "Selectie wissen",
   "bk.selectFamily": "Familie selecteren",
   "bk.tailorOutFamily": "Familie buiten scope plaatsen",
-  "bk.reasonPh": "Reden voor uitsluiting (optioneel)"
+  "bk.reasonPh": "Reden voor uitsluiting (optioneel)",
+  "ik.archive": "Archiveren",
+  "ik.archiveHelp": "Verberg deze aanvraag uit de lijsten zonder hem te verwijderen",
+  "ik.restore": "Herstellen",
+  "ik.restoreHelp": "Zet deze aanvraag terug in de actieve lijst",
+  "ik.delete": "Verwijderen",
+  "ik.deleteHelp": "Verwijder deze aanvraag definitief",
+  "ik.deleteTitle": "Deze aanvraag definitief verwijderen?",
+  "ik.deleteBody": "Hiermee worden de aanvraag en de bijlagen definitief verwijderd. Dit kan niet ongedaan worden gemaakt.",
+  "ik.deleteArchiveHint": "Wilt u hem alleen uit het zicht hebben, archiveer hem dan — er gaat niets verloren en u kunt hem later herstellen.",
+  "ik.deleteConfirm": "Definitief verwijderen",
+  "ik.deleted": "Aanvraag {{ref}} definitief verwijderd.",
+  "ik.deleteBlocked": "Die aanvraag hoort bij een project of beoordeling en kan daarom niet worden verwijderd. Archiveer hem — hij wordt overal verborgen zonder het bijbehorende record te breken.",
+  "ik.archived": "Aanvraag {{ref}} gearchiveerd. Hij is verborgen in de lijsten maar niet verwijderd.",
+  "ik.alreadyArchived": "Die aanvraag is al gearchiveerd.",
+  "ik.restored": "Aanvraag hersteld.",
+  "ik.notFound": "Aanvraag niet gevonden.",
+  "ik.showActive": "Actieve aanvragen"
 }

@@ -4105,5 +4105,22 @@
   "bk.clear": "選択を解除",
   "bk.selectFamily": "ファミリーを選択",
   "bk.tailorOutFamily": "ファミリーを除外",
-  "bk.reasonPh": "除外する理由（任意）"
+  "bk.reasonPh": "除外する理由（任意）",
+  "ik.archive": "アーカイブ",
+  "ik.archiveHelp": "削除せずに一覧から非表示にします",
+  "ik.restore": "復元",
+  "ik.restoreHelp": "この申請を有効な一覧に戻します",
+  "ik.delete": "削除",
+  "ik.deleteHelp": "この申請を完全に削除します",
+  "ik.deleteTitle": "この申請を完全に削除しますか。",
+  "ik.deleteBody": "申請と添付ファイルが完全に削除されます。元に戻すことはできません。",
+  "ik.deleteArchiveHint": "一覧から外したいだけであれば、アーカイブをご利用ください。データは失われず、後から復元できます。",
+  "ik.deleteConfirm": "完全に削除",
+  "ik.deleted": "申請 {{ref}} を完全に削除しました。",
+  "ik.deleteBlocked": "この申請はプロジェクトまたは評価に紐づいているため削除できません。アーカイブしてください。紐づく記録を壊さずに、すべての画面から非表示になります。",
+  "ik.archived": "申請 {{ref}} をアーカイブしました。一覧からは非表示になりますが削除はされていません。",
+  "ik.alreadyArchived": "この申請はすでにアーカイブされています。",
+  "ik.restored": "申請を復元しました。",
+  "ik.notFound": "申請が見つかりません。",
+  "ik.showActive": "有効な申請"
 }
