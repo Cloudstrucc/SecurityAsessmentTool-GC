@@ -44,10 +44,27 @@ function activeDecision(decisions) { return newest(decisions); }
 function activeAssessment(assessments) {
   if (!assessments || !assessments.length) return null;
   return assessments.slice().sort((a, b) => {
-    const d = rank(ASSESSMENT_ORDER, b.status) - rank(ASSESSMENT_ORDER, a.status);
+    const d = rank(ASSESSMENT_ORDER, effectiveStatus(b)) - rank(ASSESSMENT_ORDER, effectiveStatus(a));
     if (d !== 0) return d;
     return String(b.created_at || '').localeCompare(String(a.created_at || '')) || (b.id - a.id);
   })[0];
+}
+
+/**
+ * The status a record had before it was archived.
+ *
+ * Archiving a project rewrites status to 'archived' on its intakes and
+ * assessments (keeping the old value in status_before_archive so a restore can
+ * put it back). Reading the raw status here made closing a project collapse its
+ * own history: a fully authorized project went from "Stage 4 of 4" to
+ * "Stage 1 of 4" the moment it was closed, because an archived intake no longer
+ * looked accepted and an archived assessment no longer looked submitted.
+ */
+function effectiveStatus(row) {
+  if (!row) return '';
+  const s = String(row.status || '').toLowerCase();
+  if (s === 'archived' && row.status_before_archive) return String(row.status_before_archive).toLowerCase();
+  return s;
 }
 
 function step(labelKey, done, href) { return { labelKey, done: !!done, href: href || null }; }
@@ -66,9 +83,9 @@ function projectFlow({ project, intakes = [], assessments = [], decisions = [] }
   const assessment = activeAssessment(assessments);
   const decision = activeDecision(decisions);
 
-  const intakeStatus = String((intake && intake.status) || '').toLowerCase();
+  const intakeStatus = effectiveStatus(intake);
   const intakeAccepted = ['accepted', 'approved'].includes(intakeStatus);
-  const aRank = assessment ? rank(ASSESSMENT_ORDER, assessment.status) : -1;
+  const aRank = assessment ? rank(ASSESSMENT_ORDER, effectiveStatus(assessment)) : -1;
   const decisionStatus = String((decision && (decision.state || decision.authorization_status)) || '').toLowerCase();
   const decisionIssued = ['issued', 'approved', 'granted'].includes(decisionStatus);
 
@@ -135,7 +152,7 @@ function projectFlow({ project, intakes = [], assessments = [], decisions = [] }
 
 /** An intake record's own flow. */
 function intakeFlow(intake) {
-  const s = String((intake && intake.status) || '').toLowerCase();
+  const s = effectiveStatus(intake);
   const r = rank(INTAKE_ORDER, s);
   const href = intake ? `/admin/intakes/${intake.id}` : null;
   const mk = (key, labelKey, done, steps) => ({
@@ -155,7 +172,8 @@ function intakeFlow(intake) {
 /** An assessment record's own flow. */
 function assessmentFlow(assessment) {
   // 'reactivated' (re-opened for re-submission) ranks like evidence-gathering.
-  const effStatus = assessment && assessment.status === 'reactivated' ? 'evidence-gathering' : (assessment && assessment.status);
+  const raw = effectiveStatus(assessment);
+  const effStatus = raw === 'reactivated' ? 'evidence-gathering' : raw;
   const r = assessment ? rank(ASSESSMENT_ORDER, effStatus) : -1;
   const href = assessment ? `/admin/assessments/${assessment.id}` : null;
   const at = name => r >= rank(ASSESSMENT_ORDER, name);
