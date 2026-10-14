@@ -1147,6 +1147,25 @@ async function initDatabase() {
     }
   });
 
+  // Plan-limit re-sync. seats_limit / projects_limit are stored per organization,
+  // so changing a plan's definition in config/billing.js does not reach orgs that
+  // already exist. Re-stamp them from the plan on boot.
+  //
+  // Only orgs on a plan we recognise and WITHOUT a comp code: a comped org carries
+  // the limits its code granted, which are deliberately not the plan's defaults.
+  // Doing this at startup also means the app applies it to its own in-memory copy,
+  // rather than an external writer racing the file.
+  try {
+    const { PLANS } = require('../config/billing');
+    Object.values(PLANS).forEach(p => {
+      db.run(
+        `UPDATE organizations SET seats_limit = ?, projects_limit = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE plan = ? AND comp_code_id IS NULL
+            AND (seats_limit IS NOT ? OR projects_limit IS NOT ?)`,
+        [p.seats, p.projects, p.key, p.seats, p.projects]);
+    });
+  } catch (e) { /* organizations table may not exist on a brand-new DB yet */ }
+
   // Invite-code backfill. The evidence flow is addressed by invite code
   // (/respond/<code>); an assessment without one produces a dead "/respond/"
   // link from the record page and an unusable link in the invite email. Older
