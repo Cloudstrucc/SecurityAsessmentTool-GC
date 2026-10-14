@@ -352,6 +352,25 @@ async function initDatabase() {
 
   // ── FILE ATTACHMENTS ──
   db.run(`
+    CREATE TABLE IF NOT EXISTS evidence_slots (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      assessment_control_id INTEGER NOT NULL,
+      slot_key TEXT NOT NULL,
+      slot_type TEXT NOT NULL,
+      label TEXT NOT NULL,
+      position INTEGER,
+      value_html TEXT,
+      value_text TEXT,
+      filled_at DATETIME,
+      filled_by TEXT,
+      removed_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(assessment_control_id, slot_key),
+      FOREIGN KEY (assessment_control_id) REFERENCES assessment_controls(id) ON DELETE CASCADE
+    )
+  `);
+  db.run(`
     CREATE TABLE IF NOT EXISTS attachments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       assessment_control_id INTEGER NOT NULL,
@@ -1054,6 +1073,17 @@ async function initDatabase() {
     // Tailoring record: every recommended control is kept, in scope or not, with
     // the reason it was selected (or excluded). is_applicable stays the switch
     // that governs what the evidence provider sees.
+    // Evidence slots: cached completeness so list pages and "Mark ready" do not
+    // have to aggregate. slots_total = 0 means the control predates slots (or
+    // was hand-written) and must NOT regress to 0%.
+    ['assessment_controls', 'slots_total', 'ALTER TABLE assessment_controls ADD COLUMN slots_total INTEGER DEFAULT 0'],
+    ['assessment_controls', 'slots_filled', 'ALTER TABLE assessment_controls ADD COLUMN slots_filled INTEGER DEFAULT 0'],
+    ['assessment_controls', 'slots_migrated_at', 'ALTER TABLE assessment_controls ADD COLUMN slots_migrated_at DATETIME'],
+    // A file belongs to a specific [[ATTACH:]] slot. Existing control-level
+    // attachments keep slot_id NULL and keep working.
+    ['attachments', 'slot_id', 'ALTER TABLE attachments ADD COLUMN slot_id INTEGER'],
+    ['attachments', 'scan_status', "ALTER TABLE attachments ADD COLUMN scan_status TEXT DEFAULT 'checked'"],
+    ['attachments', 'scan_detail', 'ALTER TABLE attachments ADD COLUMN scan_detail TEXT'],
     ['assessment_controls', 'tailoring_status', "ALTER TABLE assessment_controls ADD COLUMN tailoring_status TEXT DEFAULT 'in-scope'"],
     ['assessment_controls', 'tailoring_rationale', 'ALTER TABLE assessment_controls ADD COLUMN tailoring_rationale TEXT'],
     ['assessment_controls', 'rationale_source', "ALTER TABLE assessment_controls ADD COLUMN rationale_source TEXT DEFAULT 'engine'"],

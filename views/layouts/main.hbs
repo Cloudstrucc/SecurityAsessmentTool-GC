@@ -267,6 +267,30 @@
     .desc-toggle:hover { text-decoration:underline; }
     @media print { .control-desc.is-clamped { display:block; overflow:visible; } .desc-toggle { display:none; } }
 
+    /* ── Evidence slots ──────────────────────────────────────────────────
+       A [[VALUE:]] / [[ATTACH:]] the provider still has to fill. Yellow for a
+       value, blue for a file, green once filled — so an unfinished draft is
+       visibly unfinished instead of reading as complete. */
+    .ev-slot { display:inline-flex; align-items:center; gap:.25rem; border-radius:7px;
+      padding:.02em .4em; font-weight:700; font-size:.92em; cursor:pointer;
+      border:1px solid transparent; transition:background .12s; user-select:none; }
+    .ev-slot-value { background:#fdf3d8; color:#7a5a10; border-color:#f0dcae; }
+    .ev-slot-attach { background:#e4f1fb; color:#1b4f7d; border-color:#c6def2; }
+    .ev-slot-value:hover { background:#fbe9bd; }
+    .ev-slot-attach:hover { background:#d2e7f7; }
+    .ev-slot.filled { background:#e4f6ec; color:#176844; border-color:#bce3cf; font-weight:600; }
+    .ev-slot.filled:hover { background:#d4efe1; }
+    .ev-slot:focus-visible { outline:2px solid #4d9fe0; outline-offset:1px; }
+    /* Evidence view: the finished narrative. Values read as prose; anything
+       still empty is red so the reader can see the holes. */
+    .evidence-readview { border:1px solid var(--cs-border); border-radius:6px;
+      padding:.65rem .75rem; background:#fcfdfe; min-height:80px; }
+    .evidence-readview .ev-slot-val { background:#f3faf6; border-radius:4px; padding:0 .2em; font-weight:600; }
+    .evidence-readview .ev-slot-att { color:#2f80cf; text-decoration:underline; }
+    .evidence-readview .ev-slot-empty { background:#fdeaec; color:#9c2b33; font-weight:700;
+      border-radius:4px; padding:0 .25em; }
+    @media print { .ev-slot { border:0; background:transparent; color:inherit; font-weight:600; } }
+
     /* Tailoring rationale — why a control is in (or out of) scope. */
     .tailor-why { font-size:.8rem; line-height:1.5; background:#f3f8fd; border-left:3px solid var(--cs-accent,#4d9fe0);
       border-radius:0 6px 6px 0; padding:.45rem .65rem; }

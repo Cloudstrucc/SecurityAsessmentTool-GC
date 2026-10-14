@@ -2284,7 +2284,9 @@ test('assistant evidence proposals: apply-suggestions writes drafts and never ov
   assert.equal(body.applied.length, 1, 'one draft applied');
   const respond2 = await getText(jar, `/respond/${code}`);
   assert.match(respond2.text, new RegExp('id="draftBadge-' + cid), 'the applied proposal shows as a draft');
-  assert.match(respond2.text, /ev-ph-value/, 'the [[VALUE]] placeholder renders as a colour-coded chip');
+  // Markers are now materialized into real slots, so the old inline chip class
+  // is gone — the placeholder is a countable slot span instead.
+  assert.match(respond2.text, /data-slot="s1"/, 'the [[VALUE]] placeholder becomes a countable slot');
   assert.match(respond2.text, /ev-ph-attach/, 'the [[ATTACH]] placeholder renders as a colour-coded chip');
   assert.match(respond2.text, /id="progressCount">0</, 'an approved draft does not count as provided');
 
@@ -2890,4 +2892,210 @@ test('an evidence attachment cannot be fetched through another project or assess
   const otherCode = await evidenceCode(jar, otherA.assessmentId);
   const crossCode = await request(jar, 'GET', `/respond/${otherCode}/attachment/${attId}`);
   assert.equal(crossCode.status, 404, 'the attachment is not served through another assessment code');
+});
+
+// ── Evidence slots ──────────────────────────────────────────────────────────
+
+const slotSafety = require('../../utils/file-safety');
+const slotSanitize = require('../../utils/html-sanitize');
+
+/** A control carrying an AI draft with raw [[VALUE:]] / [[ATTACH:]] markers. */
+async function seedSlotDraft(jar, label) {
+  const { projectId } = await createAdminProject(jar, `${label} ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const code = await evidenceCode(jar, assessmentId);
+  const page = await getText(jar, `/respond/${code}`);
+  const controlId = page.text.match(/id="editor-(\d+)"/)?.[1];
+  assert.ok(controlId, 'the evidence editor exposes its control id');
+
+  const draft = 'Logging is defined in [[VALUE: catalogue location]] and reviewed on '
+    + '[[VALUE: review date]]. See [[ATTACH: the event catalogue]].';
+  const save = await request(jar, 'POST', `/respond/${code}/save/${controlId}`, {
+    json: { evidence_text: draft, evidence_html: `<p>${draft}</p>` }
+  });
+  assert.equal(save.status, 200);
+  return { projectId, assessmentId, code, controlId };
+}
+
+test('an AI draft\'s markers become countable slots, and filling them moves the counters', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slots');
+
+  // Viewing the page materializes the markers into slot rows.
+  const page = await getText(jar, `/respond/${code}`);
+  assert.match(page.text, /data-slot="s1"/, 'markers become slot spans');
+  const editorHtml = (page.text.split(`id="editor-${controlId}"`)[1] || '').split('</div>')[0];
+  assert.doesNotMatch(editorHtml, /\[\[VALUE:/, 'no raw markers are left in the editor');
+
+  const before = await (await request(jar, 'GET', `/respond/${code}/slots/${controlId}`)).json();
+  assert.equal(before.progress.total, 3, 'three slots were created');
+  assert.equal(before.progress.filled, 0, 'none are filled yet');
+  assert.equal(before.progress.values.total, 2);
+  assert.equal(before.progress.attachments.total, 1);
+
+  const put = await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s1`, {
+    json: { value_html: '<b>AEGIS-STD-07</b>, in the security library' }
+  });
+  const putBody = await put.json();
+  assert.ok(putBody.success, 'the value saves');
+  assert.equal(putBody.progress.filled, 1, 'the filled counter moves');
+  assert.equal(putBody.progress.percent, 33);
+
+  // It is persisted, not just echoed.
+  const after = await (await request(jar, 'GET', `/respond/${code}/slots/${controlId}`)).json();
+  const s1 = after.slots.find(s => s.key === 's1');
+  assert.ok(s1.filled, 's1 reads as filled on reload');
+  assert.match(s1.value_text, /AEGIS-STD-07/);
+});
+
+test('removing a slot keeps its text as prose and lowers the total', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slot Remove');
+  await getText(jar, `/respond/${code}`);
+
+  await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s2`, {
+    json: { value_html: '12 June 2026' }
+  });
+  const del = await request(jar, 'DELETE', `/respond/${code}/slots/${controlId}/s2`);
+  const body = await del.json();
+  assert.ok(body.success);
+  assert.equal(body.text, '12 June 2026', 'the slot hands back its text so the sentence survives');
+  assert.equal(body.progress.total, 2, 'the removed slot no longer counts');
+});
+
+test('a slot can be added from the provider\'s own selection', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slot Add');
+  await getText(jar, `/respond/${code}`);
+
+  const add = await request(jar, 'POST', `/respond/${code}/slots/${controlId}`, {
+    json: { type: 'attach', label: 'retention policy export' }
+  });
+  const body = await add.json();
+  assert.ok(body.success);
+  assert.equal(body.slot.type, 'attach');
+  assert.equal(body.progress.attachments.total, 2, 'the new attachment slot is counted');
+});
+
+test('evidence HTML from the provider is sanitised before it reaches the assessor', async () => {
+  const jar = await loginAdminWithTotp();
+  const { assessmentId, code, controlId } = await seedSlotDraft(jar, 'E2E Slot XSS');
+
+  await request(jar, 'POST', `/respond/${code}/save/${controlId}`, {
+    json: {
+      evidence_text: 'x',
+      evidence_html: '<p onclick="alert(1)">ok</p><script>alert(2)</script><img src=x onerror=alert(3)>'
+    }
+  });
+  // evidence_html is rendered unescaped on the assessor's page, so the stored
+  // value must not carry script or event handlers.
+  const admin = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.doesNotMatch(admin.text, /onerror=|onclick="alert|<script>alert/,
+    'no script or event handler survives into the assessor view');
+  assert.match(admin.text, /ok/, 'the legitimate text is kept');
+});
+
+test('a slot value is sanitised too', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slot Value XSS');
+  await getText(jar, `/respond/${code}`);
+  await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s1`, {
+    json: { value_html: '<img src=x onerror=alert(1)><b>kept</b>' }
+  });
+  const after = await (await request(jar, 'GET', `/respond/${code}/slots/${controlId}`)).json();
+  const s1 = after.slots.find(s => s.key === 's1');
+  assert.doesNotMatch(s1.value_html, /onerror|<img/, 'the image and its handler are dropped');
+  assert.match(s1.value_html, /<b>kept<\/b>/, 'legitimate formatting is kept');
+});
+
+test('attachment uploads are refused unless the content matches the extension', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slot Upload');
+  await getText(jar, `/respond/${code}`);
+
+  const post = async (bytes, name, type) => {
+    const fd = new FormData();
+    fd.append('file', new Blob([bytes], { type }), name);
+    const r = await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/files`, { body: fd });
+    return r.json();
+  };
+
+  // An executable wearing a .pdf extension.
+  const exe = await post(Buffer.concat([Buffer.from([0x4d, 0x5a]), Buffer.alloc(64)]), 'payload.pdf', 'application/pdf');
+  assert.equal(exe.success, false);
+  assert.equal(exe.reason, 'mismatch', 'magic bytes are checked, not just the extension');
+
+  // An archive, refused by policy.
+  const zip = await post(Buffer.from('PK\u0003\u0004 not really'), 'bundle.zip', 'application/zip');
+  assert.equal(zip.success, false);
+  assert.equal(zip.reason, 'archive');
+
+  // EICAR, so the control is demonstrably testable.
+  const eicar = await post(Buffer.from(slotSafety.EICAR, 'latin1'), 'test.txt', 'text/plain');
+  assert.equal(eicar.success, false);
+  assert.equal(eicar.reason, 'eicar');
+
+  // A real PDF is accepted, and counts toward completeness.
+  const ok = await post(Buffer.from('%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\n', 'latin1'), 'catalogue.pdf', 'application/pdf');
+  assert.ok(ok.success, 'a genuine PDF is accepted');
+  assert.equal(ok.file.scan_status, 'checked', 'reported as checked, never "clean"');
+  assert.equal(ok.progress.attachments.filled, 1, 'the attachment counter moves');
+});
+
+test('a downloaded attachment is never served inline', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, code, controlId } = await seedSlotDraft(jar, 'E2E Slot Download');
+  await getText(jar, `/respond/${code}`);
+  const fd = new FormData();
+  fd.append('file', new Blob([Buffer.from('%PDF-1.4\ntrailer<<>>', 'latin1')], { type: 'application/pdf' }), 'proof.pdf');
+  const up = await (await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/files`, { body: fd })).json();
+  assert.ok(up.success);
+
+  const dl = await request(jar, 'GET', `/admin/projects/${projectId}/evidence-attachments/${up.file.id}/download`);
+  assert.equal(dl.status, 200);
+  assert.match(dl.headers.get('content-disposition') || '', /^attachment;/,
+    'served as a download, never inline');
+  assert.equal(dl.headers.get('x-content-type-options'), 'nosniff');
+  assert.equal(dl.headers.get('content-type'), 'application/pdf',
+    'the type comes from our allow-list, not the client');
+});
+
+test('slot routes are refused once the control is marked ready', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slot Locked');
+  await getText(jar, `/respond/${code}`);
+  await request(jar, 'POST', `/respond/${code}/ready/${controlId}`, { json: { ready: true } });
+
+  const put = await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s1`, {
+    json: { value_html: 'should not apply' }
+  });
+  const body = await put.json();
+  assert.equal(body.success, false, 'a ready control is read-only');
+});
+
+test('the file-safety check accepts real documents and refuses active content', async () => {
+  // Unit-level, so the matrix is exercised without an upload round trip.
+  const ok = await slotSafety.inspect(Buffer.from('%PDF-1.4\ntrailer<<>>', 'latin1'), 'a.pdf');
+  assert.ok(ok.ok);
+  assert.equal(ok.status, 'checked');
+
+  const js = await slotSafety.inspect(
+    Buffer.from('%PDF-1.4\n/OpenAction<</S/JavaScript/JS(app.alert(1))>>', 'latin1'), 'a.pdf');
+  assert.equal(js.ok, false);
+  assert.equal(js.reason, 'activeContent');
+
+  for (const [name, reason] of [['a.svg', 'svg'], ['a.exe', 'executable'], ['a.docm', 'macro'], ['a.bin', 'extension']]) {
+    const r = await slotSafety.inspect(Buffer.from('hello'), name);
+    assert.equal(r.ok, false, `${name} is refused`);
+    assert.equal(r.reason, reason, `${name} is refused for the right reason`);
+  }
+});
+
+test('the sanitiser keeps slot markers but drops everything dangerous', () => {
+  const out = slotSanitize.sanitizeHtml(
+    '<span data-slot="s1" data-slot-type="value"></span><script>alert(1)</script><b>t</b>');
+  assert.match(out, /data-slot="s1"/, 'slot markers survive a round trip');
+  assert.doesNotMatch(out, /script/, 'script is removed with its contents');
+  assert.match(out, /<b>t<\/b>/);
 });

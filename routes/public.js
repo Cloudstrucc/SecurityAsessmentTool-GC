@@ -11,6 +11,9 @@ const crypto = require('crypto');
 const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
 const QRCode = require('qrcode');
 const { UPLOAD_DIR, INTAKE_UPLOAD_DIR: intakeUploadDir, ensureUploadDirs } = require('../config/storage');
+const { sanitizeHtml, htmlToText } = require('../utils/html-sanitize');
+const slots = require('../utils/evidence-slots');
+const fileSafety = require('../utils/file-safety');
 const ai = require('../config/ai-service');
 const { determineProfile, detectComplexity } = require('../config/security-profiles');
 const {
@@ -211,7 +214,19 @@ router.post('/respond/access', (req, res) => {
 // to the right place (an assessment → its evidence flow). Signed-out visitors are
 // routed to sign in / register carrying the code. Used by the "invite sent" banner
 // hyperlink and by the "Redeem a code" modal on the intake/assessment/POA&M pages.
-function tr(req, key, fallback) { return (req.t && req.t(key) !== key) ? req.t(key) : fallback; }
+/**
+ * Translate `key`, falling back to `fallback` when i18n has no entry.
+ * `opts` carries interpolation values ({{detail}}, {{n}}, …) — without passing
+ * them through, a localized string renders with its placeholders visible.
+ */
+function tr(req, key, fallback, opts) {
+  if (req.t) {
+    const v = req.t(key, opts || {});
+    if (v && v !== key) return v;
+  }
+  // Interpolate the fallback too, so an un-translated string still reads right.
+  return String(fallback || '').replace(/\{\{(\w+)\}\}/g, (_m, k) => (opts && opts[k] != null ? opts[k] : ''));
+}
 
 function redeemActor(req) {
   if (req.isAuthenticated && req.isAuthenticated()) return { id: req.user.id, email: req.user.email };
@@ -405,6 +420,35 @@ router.get('/respond/:code', ensureEvidenceUser, (req, res) => {
   }
   controls.forEach(c => { c.attachmentList = attachmentsByControl[c.id] || []; });
 
+  // Evidence slots. A legacy draft still holding raw [[VALUE:]] markers is
+  // materialized on first view, so existing records gain slots without a
+  // separate migration pass. Controls with no markers get slots_total = 0 and
+  // keep their old all-or-nothing completeness rather than regressing to 0%.
+  controls.forEach(c => {
+    if (!c.readonly && slots.hasMarkers(c.evidence_html || '')) {
+      const { html, created } = slots.materialize(c.id, c.evidence_html || '');
+      if (created) {
+        run('UPDATE assessment_controls SET evidence_html = ?, slots_migrated_at = CURRENT_TIMESTAMP WHERE id = ?',
+          [html, c.id]);
+        c.evidence_html = html;
+      }
+    }
+    const list = slots.listSlots(c.id);
+    c.slotList = list.map(sl => ({
+      key: sl.slot_key, type: sl.slot_type, label: sl.label,
+      value_html: sl.value_html || '', value_text: sl.value_text || '',
+      filled: slots.isFilled(sl),
+      files: all(`SELECT id, original_name, size, scan_status FROM attachments
+                  WHERE slot_id = ? ORDER BY id`, [sl.id])
+    }));
+    c.slotProgress = slots.progress(c.id);
+    c.hasSlots = c.slotList.length > 0;
+    // The editor shows chips; the read view shows the finished narrative.
+    c.evidence_read_html = c.hasSlots
+      ? slots.renderForRead(c.evidence_html || '', list)
+      : (c.evidence_html || '');
+  });
+
   const families = {};
   controls.forEach(c => {
     if (!families[c.family]) families[c.family] = { code: c.family, name: c.family_name, controls: [] };
@@ -465,8 +509,12 @@ router.post('/respond/:code/save/:controlId', ensureEvidenceUser, express.json({
   }
   if (current && current.evidence_ready) return res.json({ success: false, message: tr(req, 'ev.roReady', 'This control is marked Ready. Reactivate it to make changes.') });
 
-  const { evidence_text, evidence_html } = req.body;
   const who = history.actor(req);
+  // Evidence HTML comes from an EXTERNAL evidence provider and is rendered
+  // unescaped into the assessor's admin page, so it is sanitised here rather
+  // than trusted. Slot markers survive; script, attributes and URLs do not.
+  const evidence_html = sanitizeHtml(req.body.evidence_html, { allowSlots: true });
+  const evidence_text = htmlToText(evidence_html) || String(req.body.evidence_text || '');
   // A provider save is real evidence — flip provenance off 'ai-suggested'.
   run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?,
     evidence_status = CASE WHEN ? != '' THEN 'provided' ELSE 'pending' END,
@@ -538,6 +586,7 @@ router.post('/respond/:code/bulk', ensureEvidenceUser, express.json(), async (re
         const html = es.suggestToHtml(text);
         run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?, evidence_source = 'ai-suggested', evidence_status = 'pending',
              evidence_suggested_at = CURRENT_TIMESTAMP, evidence_edited_by = 'Aegis AI', evidence_edited_at = CURRENT_TIMESTAMP WHERE id = ?`, [text, html, id]);
+        materializeSlots(id);
         history.record({ controlDbId: id, assessmentId: assessment.id, action: 'ai-draft', actorName: 'Aegis AI', actorType: 'ai', control: get('SELECT * FROM assessment_controls WHERE id = ?', [id]) }); n++;
         results.push({ id, html });
       }
@@ -625,6 +674,7 @@ router.post('/respond/:code/suggest/:controlId', ensureEvidenceUser, express.jso
          evidence_status = 'pending', evidence_suggested_at = CURRENT_TIMESTAMP,
          evidence_edited_by = 'Aegis AI', evidence_edited_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
       [text, html, control.id]);
+    materializeSlots(control.id);
     const drafted = get('SELECT * FROM assessment_controls WHERE id = ?', [control.id]);
     history.record({ controlDbId: control.id, assessmentId: assessment.id, action: 'ai-draft', actorName: 'Aegis AI', actorType: 'ai', control: drafted });
     res.json({ success: true, text, html });
@@ -677,7 +727,186 @@ router.get('/respond/:code/attachment/:attId', ensureEvidenceUser, (req, res) =>
   ];
   const filePath = candidates.find(p => fs.existsSync(p));
   if (!filePath) return res.status(404).send('That attachment is missing from storage.');
-  res.download(filePath, attachment.original_name);
+  // Never serve a provider-supplied file inline, and never trust the type the
+  // client claimed — an HTML or SVG payload must not execute on our origin.
+  res.download(filePath, fileSafety.safeName(attachment.original_name), {
+    headers: {
+      'Content-Type': fileSafety.serveType(attachment.original_name),
+      'X-Content-Type-Options': 'nosniff'
+    }
+  });
+});
+
+/**
+ * Turn a freshly generated draft's [[VALUE:]] / [[ATTACH:]] markers into slot
+ * rows and rewrite the stored HTML with slot spans. Safe to call twice.
+ */
+function materializeSlots(controlId) {
+  const c = get('SELECT id, evidence_html FROM assessment_controls WHERE id = ?', [controlId]);
+  if (!c) return null;
+  const { html, created } = slots.materialize(c.id, c.evidence_html || '');
+  if (created) {
+    run(`UPDATE assessment_controls SET evidence_html = ?, slots_migrated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`, [html, c.id]);
+  }
+  return slots.progress(c.id);
+}
+
+// ── Evidence slots ──────────────────────────────────────────────────────────
+// A slot is one [[VALUE:]] or [[ATTACH:]] the AI left for the provider to fill.
+// Every route here is behind the same edit gate as save/:controlId, so a
+// submitted or audited assessment is read-only.
+
+/** Resolve the assessment + control and confirm the caller may edit it. */
+function slotGate(req, res) {
+  const code = String(req.params.code || '').toUpperCase();
+  const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
+  if (!assessment) { res.status(404).json({ success: false, message: 'Not found' }); return null; }
+  const acc = evidenceAccess(req, assessment);
+  if (!acc || !acc.canEdit) {
+    res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
+    return null;
+  }
+  const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?',
+    [req.params.controlId, assessment.id]);
+  if (!control) { res.status(404).json({ success: false, message: 'Not found' }); return null; }
+  if (control.evidence_ready) {
+    res.json({ success: false, message: tr(req, 'ev.roReady', 'This control is marked Ready. Reactivate it to make changes.') });
+    return null;
+  }
+  return { assessment, control };
+}
+
+/** Slots + progress for one control. */
+router.get('/respond/:code/slots/:controlId', ensureEvidenceUser, (req, res) => {
+  const code = String(req.params.code || '').toUpperCase();
+  const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
+  if (!assessment) return res.status(404).json({ success: false });
+  const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?',
+    [req.params.controlId, assessment.id]);
+  if (!control) return res.status(404).json({ success: false });
+  const list = slots.listSlots(control.id).map(sl => ({
+    key: sl.slot_key, type: sl.slot_type, label: sl.label,
+    value_html: sl.value_html || '', value_text: sl.value_text || '',
+    filled: slots.isFilled(sl), filled_by: sl.filled_by, filled_at: sl.filled_at,
+    files: all(`SELECT id, original_name, size, scan_status FROM attachments
+                WHERE slot_id = ? ORDER BY id`, [sl.id])
+  }));
+  res.json({ success: true, slots: list, progress: slots.progress(control.id) });
+});
+
+/** Write a value slot. */
+router.put('/respond/:code/slots/:controlId/:slotKey', ensureEvidenceUser, express.json(), (req, res) => {
+  const ctx = slotGate(req, res); if (!ctx) return;
+  const who = history.actor(req);
+  const updated = slots.setValue(ctx.control.id, req.params.slotKey, req.body.value_html, who.name);
+  if (!updated) return res.status(404).json({ success: false, message: 'Slot not found' });
+  res.json({ success: true, progress: slots.progress(ctx.control.id) });
+});
+
+/** Add a slot the draft did not include. */
+router.post('/respond/:code/slots/:controlId', ensureEvidenceUser, express.json(), (req, res) => {
+  const ctx = slotGate(req, res); if (!ctx) return;
+  const slot = slots.addSlot(ctx.control.id, req.body.type, req.body.label);
+  res.json({ success: true, slot: { key: slot.slot_key, type: slot.slot_type, label: slot.label },
+    progress: slots.progress(ctx.control.id) });
+});
+
+/** Soft-remove a slot; the narrative keeps the prose. */
+router.delete('/respond/:code/slots/:controlId/:slotKey', ensureEvidenceUser, (req, res) => {
+  const ctx = slotGate(req, res); if (!ctx) return;
+  const removed = slots.removeSlot(ctx.control.id, req.params.slotKey);
+  if (!removed) return res.status(404).json({ success: false, message: 'Slot not found' });
+  res.json({ success: true, text: removed.value_text || '', progress: slots.progress(ctx.control.id) });
+});
+
+/**
+ * Upload into an attachment slot.
+ *
+ * Validation is synchronous and content-based — see utils/file-safety.js for
+ * exactly what it does and, importantly, what it does NOT do (it is not malware
+ * scanning). A rejected file is deleted from disk before this returns.
+ */
+router.post('/respond/:code/slots/:controlId/:slotKey/files', ensureEvidenceUser,
+  upload.single('file'), async (req, res) => {
+    const cleanup = () => { try { if (req.file) fs.unlinkSync(req.file.path); } catch (e) { /* already gone */ } };
+    const ctx = slotGate(req, res); if (!ctx) { cleanup(); return; }
+    if (!req.file) return res.json({ success: false, message: tr(req, 'esl.noFile', 'No file was received.') });
+
+    const slot = get(`SELECT * FROM evidence_slots
+                      WHERE assessment_control_id = ? AND slot_key = ? AND removed_at IS NULL`,
+    [ctx.control.id, req.params.slotKey]);
+    if (!slot || slot.slot_type !== 'attach') { cleanup(); return res.status(404).json({ success: false, message: 'Slot not found' }); }
+
+    const existing = all('SELECT id, size FROM attachments WHERE slot_id = ?', [slot.id]);
+    if (existing.length >= fileSafety.MAX_FILES_PER_SLOT) {
+      cleanup();
+      return res.json({ success: false, message: tr(req, 'esl.tooManyFiles',
+        'That slot already holds the maximum of {{n}} files.', { n: fileSafety.MAX_FILES_PER_SLOT }) });
+    }
+    const controlBytes = all(`SELECT a.size FROM attachments a
+                              JOIN evidence_slots s ON s.id = a.slot_id
+                              WHERE s.assessment_control_id = ?`, [ctx.control.id])
+      .reduce((t, r) => t + Number(r.size || 0), 0);
+    if (controlBytes + Number(req.file.size || 0) > fileSafety.MAX_BYTES_PER_CONTROL) {
+      cleanup();
+      return res.json({ success: false, message: tr(req, 'esl.controlFull',
+        'This control has reached its total attachment size limit.') });
+    }
+
+    let verdict;
+    try {
+      verdict = await fileSafety.inspect(fs.readFileSync(req.file.path), req.file.originalname);
+    } catch (err) {
+      cleanup();
+      return res.json({ success: false, message: tr(req, 'esl.checkFailed', 'That file could not be checked.') });
+    }
+    if (!verdict.ok) {
+      cleanup();
+      return res.json({ success: false, reason: verdict.reason, detail: verdict.detail,
+        message: tr(req, 'esl.rejected.' + verdict.reason, rejectFallback(verdict), { detail: verdict.detail }) });
+    }
+
+    const id = run(`INSERT INTO attachments
+      (assessment_control_id, slot_id, filename, original_name, mime_type, size, uploaded_by, scan_status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'checked')`,
+    [ctx.control.id, slot.id, req.file.filename, fileSafety.safeName(req.file.originalname),
+      fileSafety.serveType(req.file.originalname), req.file.size, 'project-owner']);
+    slots.syncCounts(ctx.control.id);
+
+    res.json({ success: true,
+      file: { id, name: fileSafety.safeName(req.file.originalname), size: req.file.size, scan_status: 'checked' },
+      progress: slots.progress(ctx.control.id) });
+  });
+
+/** English fallbacks for the rejection reasons, used when i18n has no key. */
+function rejectFallback(v) {
+  return {
+    empty: 'That file is empty.',
+    tooLarge: 'That file is larger than 25 MB.',
+    archive: 'Archives are not accepted as evidence — attach the documents themselves.',
+    executable: 'Executable files are not accepted.',
+    macro: 'Macro-enabled Office files are not accepted — save it without macros.',
+    svg: 'SVG files are not accepted because they can carry script.',
+    extension: 'That file type is not accepted.',
+    eicar: 'That file was rejected by the content check.',
+    mismatch: 'That file\'s contents do not match its extension ({{detail}}).',
+    activeContent: 'That file contains active content ({{detail}}) and was rejected.'
+  }[v.reason] || 'That file was rejected.';
+}
+
+/** Detach a file from a slot. */
+router.delete('/respond/:code/slots/:controlId/:slotKey/files/:fileId', ensureEvidenceUser, (req, res) => {
+  const ctx = slotGate(req, res); if (!ctx) return;
+  const slot = get(`SELECT * FROM evidence_slots
+                    WHERE assessment_control_id = ? AND slot_key = ? AND removed_at IS NULL`,
+  [ctx.control.id, req.params.slotKey]);
+  if (!slot) return res.status(404).json({ success: false });
+  const att = get('SELECT * FROM attachments WHERE id = ? AND slot_id = ?', [req.params.fileId, slot.id]);
+  if (!att) return res.status(404).json({ success: false });
+  run('DELETE FROM attachments WHERE id = ?', [att.id]);
+  slots.syncCounts(ctx.control.id);
+  res.json({ success: true, progress: slots.progress(ctx.control.id) });
 });
 
 // Add comment
@@ -765,6 +994,7 @@ router.post('/respond/:code/apply-suggestions', ensureEvidenceUser, express.json
            evidence_status = 'pending', evidence_suggested_at = CURRENT_TIMESTAMP,
            evidence_edited_by = 'Aegis AI', evidence_edited_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
         [text, html, control.id]);
+      materializeSlots(control.id);
       const d2 = get('SELECT * FROM assessment_controls WHERE id = ?', [control.id]);
       history.record({ controlDbId: control.id, assessmentId: assessment.id, action: 'ai-draft', actorName: 'Aegis AI', actorType: 'ai', control: d2 });
       applied.push({ controlDbId: control.id, text, html });

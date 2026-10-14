@@ -1714,7 +1714,15 @@ router.get('/projects/:id/evidence-attachments/:attId/download', ensureAuthentic
     req.flash('error', tr(req, 'ea.missingFile', 'That attachment is missing from storage.'));
     return res.redirect(`/admin/projects/${req.params.id}`);
   }
-  res.download(filePath, attachment.original_name);
+  // Same hardening as the provider-side download: these are files uploaded by
+  // an external party and must never render inline on our origin.
+  const fileSafety = require('../utils/file-safety');
+  res.download(filePath, fileSafety.safeName(attachment.original_name), {
+    headers: {
+      'Content-Type': fileSafety.serveType(attachment.original_name),
+      'X-Content-Type-Options': 'nosniff'
+    }
+  });
 });
 
 router.post('/projects/:id/documents/:docId/delete', ensureAuthenticated, (req, res) => {
