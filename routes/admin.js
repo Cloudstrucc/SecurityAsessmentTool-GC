@@ -3425,6 +3425,41 @@ router.post('/assessments/:id/delete', ensureAuthenticated, (req, res) => {
 // Sets the project and all its assessments + intakes to 'archived' status while
 // preserving their prior status, so they can be restored later. Archived records
 // are hidden from the dashboard and the main list views but not deleted.
+/**
+ * Update a project's key contacts (owner / authority / CIO) and org placement.
+ *
+ * These were previously write-once: they could only be set on the New Project
+ * screen, and the only UPDATE that touched them lived in POST /projects/new,
+ * which also inserts a fresh intake — and a new intake becomes the project's
+ * ACTIVE intake (config/process-flows.js takes the newest), dragging a finished
+ * project's tracker back to stage 1. So correcting a misspelled name or a
+ * departed authority meant damaging the record. This route changes only the
+ * contact columns.
+ */
+router.post('/projects/:id/contacts', ensureAuthenticated, (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+  if (!project || !access.canAccessProject(req.user, project)) {
+    req.flash('error', tr(req, 'pc.notFound', 'Project not found'));
+    return res.redirect('/admin/projects');
+  }
+
+  const b = req.body;
+  run(`UPDATE projects SET
+    project_owner_name = ?, project_owner_email = ?,
+    project_authority_name = ?, project_authority_email = ?,
+    cio_name = ?, cio_email = ?,
+    department = ?, branch = ?,
+    updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?`,
+  [(b.project_owner_name || '').trim(), normalizeEmail(b.project_owner_email),
+    (b.project_authority_name || '').trim(), normalizeEmail(b.project_authority_email),
+    (b.cio_name || '').trim(), normalizeEmail(b.cio_email),
+    (b.department || '').trim(), (b.branch || '').trim(), project.id]);
+
+  req.flash('success', tr(req, 'pc.saved', 'Project contacts updated.'));
+  res.redirect(`/admin/projects/${project.id}`);
+});
+
 router.post('/projects/:id/archive', ensureAuthenticated, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
   if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }

@@ -4126,5 +4126,20 @@
   "cf.familyCount": "{{n}} controllo/i",
   "cf.descMore": "Mostra di più",
   "cf.descLess": "Mostra meno",
-  "cf.descToggleAria": "Mostra o nascondi la descrizione completa del controllo"
+  "cf.descToggleAria": "Mostra o nascondi la descrizione completa del controllo",
+  "pc.edit": "Modifica contatti",
+  "pc.title": "Modifica i contatti del progetto",
+  "pc.intro": "Correggi un nome, un'email o la collocazione organizzativa. Nient'altro del progetto viene modificato.",
+  "pc.ownerName": "Responsabile / architetto del progetto",
+  "pc.ownerEmail": "Email del responsabile del progetto",
+  "pc.authorityName": "Autorità del progetto",
+  "pc.authorityEmail": "Email dell'autorità del progetto",
+  "pc.cioName": "CIO / autorità delegata",
+  "pc.cioEmail": "Email del CIO",
+  "pc.department": "Dipartimento / ente",
+  "pc.branch": "Direzione / area",
+  "pc.save": "Salva contatti",
+  "pc.cancel": "Annulla",
+  "pc.saved": "Contatti del progetto aggiornati.",
+  "pc.notFound": "Progetto non trovato"
 }

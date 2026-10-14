@@ -2755,3 +2755,66 @@ test('an intake that belongs to a project is refused deletion and told to archiv
   const projectAfter = await getText(jar, `/admin/projects/${projectId}`);
   assert.equal(projectAfter.response.status, 200, 'the project still loads with its intake archived');
 });
+
+test('project contacts can be corrected after creation without disturbing the project tracker', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Contacts ${Date.now()}`);
+
+  // The intake the project was created with is the one the tracker reads.
+  const before = await getText(jar, `/admin/projects/${projectId}`);
+  const intakeIdBefore = before.text.match(/\/admin\/intakes\/(\d+)/)?.[1];
+  assert.ok(intakeIdBefore, 'the project links to its intake');
+
+  const res = await request(jar, 'POST', `/admin/projects/${projectId}/contacts`, {
+    form: {
+      project_owner_name: 'Dana Whitfield',
+      project_owner_email: 'dana.whitfield@example.test',
+      project_authority_name: 'Jordan Avery',
+      project_authority_email: 'jordan.avery@example.test',
+      cio_name: 'Priya Raman',
+      cio_email: 'priya.raman@example.test',
+      department: 'Digital Government',
+      branch: 'Identity and Trust Services'
+    }
+  });
+  assert.equal(res.status, 302, 'the update redirects back to the project');
+
+  const after = await getText(jar, `/admin/projects/${projectId}`);
+  assert.match(after.text, /Jordan Avery/, 'the new authority name is shown');
+  assert.match(after.text, /Dana Whitfield/, 'the owner name is shown');
+  assert.match(after.text, /Identity and Trust Services/, 'the branch is shown');
+
+  // The whole point of a dedicated route: no second intake, so the tracker's
+  // active intake (the newest) is unchanged.
+  const intakeIds = [...after.text.matchAll(/\/admin\/intakes\/(\d+)/g)].map(m => m[1]);
+  assert.ok(intakeIds.every(id => id === intakeIdBefore),
+    'no additional intake was created by editing contacts');
+});
+
+test('project contacts cannot be edited across workspaces', async () => {
+  const owner = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(owner, `E2E Contacts Tenant ${Date.now()}`);
+
+  // A self-registered workspace of its own — an org admin, not a platform root.
+  const outsider = new CookieJar();
+  const reg = await request(outsider, 'POST', '/register', {
+    form: {
+      plan: 'trial', first_name: 'Outsider', last_name: 'Owner',
+      organization: `E2E Contacts Outsider ${Date.now()}`,
+      email: `contacts.outsider.${Date.now()}@example.test`,
+      password: 'TenantPass123!', agree: '1'
+    }
+  });
+  assert.equal(reg.status, 302, 'the outsider workspace registers');
+
+  const res = await request(outsider, 'POST', `/admin/projects/${projectId}/contacts`, {
+    form: { project_authority_name: 'Should Not Apply' }
+  });
+  // The router-level tenant guard answers cross-tenant mutations with 404 (not a
+  // redirect), so an outsider cannot even confirm the project exists.
+  assert.equal(res.status, 404, 'the outsider is refused, not served the project');
+
+  const after = await getText(owner, `/admin/projects/${projectId}`);
+  assert.doesNotMatch(after.text, /Should Not Apply/,
+    "another workspace's user cannot rewrite this project's contacts");
+});

@@ -4126,5 +4126,20 @@
   "cf.familyCount": "{{n}} Kontrolle(n)",
   "cf.descMore": "Mehr anzeigen",
   "cf.descLess": "Weniger anzeigen",
-  "cf.descToggleAria": "Vollständige Kontrollbeschreibung ein- oder ausblenden"
+  "cf.descToggleAria": "Vollständige Kontrollbeschreibung ein- oder ausblenden",
+  "pc.edit": "Kontakte bearbeiten",
+  "pc.title": "Projektkontakte bearbeiten",
+  "pc.intro": "Korrigieren Sie einen Namen, eine E-Mail-Adresse oder die organisatorische Zuordnung. Am Projekt wird sonst nichts geändert.",
+  "pc.ownerName": "Projektverantwortliche Person / Architektur",
+  "pc.ownerEmail": "E-Mail der projektverantwortlichen Person",
+  "pc.authorityName": "Projektautorität",
+  "pc.authorityEmail": "E-Mail der Projektautorität",
+  "pc.cioName": "CIO / delegierte Autorität",
+  "pc.cioEmail": "E-Mail des CIO",
+  "pc.department": "Ministerium / Behörde",
+  "pc.branch": "Abteilung / Bereich",
+  "pc.save": "Kontakte speichern",
+  "pc.cancel": "Abbrechen",
+  "pc.saved": "Projektkontakte aktualisiert.",
+  "pc.notFound": "Projekt nicht gefunden"
 }

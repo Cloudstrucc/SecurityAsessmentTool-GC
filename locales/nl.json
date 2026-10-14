@@ -4126,5 +4126,20 @@
   "cf.familyCount": "{{n}} maatregel(en)",
   "cf.descMore": "Meer weergeven",
   "cf.descLess": "Minder weergeven",
-  "cf.descToggleAria": "De volledige beschrijving van de maatregel weergeven of verbergen"
+  "cf.descToggleAria": "De volledige beschrijving van de maatregel weergeven of verbergen",
+  "pc.edit": "Contactpersonen bewerken",
+  "pc.title": "Contactpersonen van het project bewerken",
+  "pc.intro": "Corrigeer een naam, e-mailadres of organisatorische plaatsing. Er verandert verder niets aan het project.",
+  "pc.ownerName": "Projecteigenaar / architect",
+  "pc.ownerEmail": "E-mailadres van de projecteigenaar",
+  "pc.authorityName": "Projectautoriteit",
+  "pc.authorityEmail": "E-mailadres van de projectautoriteit",
+  "pc.cioName": "CIO / gedelegeerde autoriteit",
+  "pc.cioEmail": "E-mailadres van de CIO",
+  "pc.department": "Ministerie / instantie",
+  "pc.branch": "Directie / afdeling",
+  "pc.save": "Contactpersonen opslaan",
+  "pc.cancel": "Annuleren",
+  "pc.saved": "Contactpersonen van het project bijgewerkt.",
+  "pc.notFound": "Project niet gevonden"
 }

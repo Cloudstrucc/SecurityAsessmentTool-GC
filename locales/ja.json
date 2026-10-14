@@ -4126,5 +4126,20 @@
   "cf.familyCount": "{{n}} 件の管理策",
   "cf.descMore": "さらに表示",
   "cf.descLess": "表示を減らす",
-  "cf.descToggleAria": "管理策の説明全文を表示または非表示にします"
+  "cf.descToggleAria": "管理策の説明全文を表示または非表示にします",
+  "pc.edit": "連絡先を編集",
+  "pc.title": "プロジェクトの連絡先を編集",
+  "pc.intro": "氏名、メールアドレス、所属組織を修正します。プロジェクトの他の情報は変更されません。",
+  "pc.ownerName": "プロジェクト責任者／アーキテクト",
+  "pc.ownerEmail": "プロジェクト責任者のメールアドレス",
+  "pc.authorityName": "プロジェクト権限者",
+  "pc.authorityEmail": "プロジェクト権限者のメールアドレス",
+  "pc.cioName": "CIO／委任権限者",
+  "pc.cioEmail": "CIO のメールアドレス",
+  "pc.department": "省庁／機関",
+  "pc.branch": "部門／局",
+  "pc.save": "連絡先を保存",
+  "pc.cancel": "キャンセル",
+  "pc.saved": "プロジェクトの連絡先を更新しました。",
+  "pc.notFound": "プロジェクトが見つかりません"
 }

@@ -4148,5 +4148,20 @@
   "cf.familyCount": "{{n}} contrôle(s)",
   "cf.descMore": "Afficher plus",
   "cf.descLess": "Afficher moins",
-  "cf.descToggleAria": "Afficher ou masquer la description complète du contrôle"
+  "cf.descToggleAria": "Afficher ou masquer la description complète du contrôle",
+  "pc.edit": "Modifier les personnes-ressources",
+  "pc.title": "Modifier les personnes-ressources du projet",
+  "pc.intro": "Corrigez un nom, un courriel ou le rattachement organisationnel. Rien d'autre n'est modifié dans le projet.",
+  "pc.ownerName": "Responsable / architecte du projet",
+  "pc.ownerEmail": "Courriel du responsable du projet",
+  "pc.authorityName": "Autorité du projet",
+  "pc.authorityEmail": "Courriel de l'autorité du projet",
+  "pc.cioName": "DPI / autorité déléguée",
+  "pc.cioEmail": "Courriel du DPI",
+  "pc.department": "Ministère / organisme",
+  "pc.branch": "Direction générale",
+  "pc.save": "Enregistrer",
+  "pc.cancel": "Annuler",
+  "pc.saved": "Personnes-ressources du projet mises à jour.",
+  "pc.notFound": "Projet introuvable"
 }

@@ -4104,5 +4104,20 @@
   "cf.familyCount": "{{n}} control(s)",
   "cf.descMore": "Show more",
   "cf.descLess": "Show less",
-  "cf.descToggleAria": "Show or hide the full control description"
+  "cf.descToggleAria": "Show or hide the full control description",
+  "pc.edit": "Edit contacts",
+  "pc.title": "Edit project contacts",
+  "pc.intro": "Correct a name, email or organizational placement. Nothing else about the project is changed.",
+  "pc.ownerName": "Project owner / architect",
+  "pc.ownerEmail": "Project owner email",
+  "pc.authorityName": "Project authority",
+  "pc.authorityEmail": "Project authority email",
+  "pc.cioName": "CIO / delegated authority",
+  "pc.cioEmail": "CIO email",
+  "pc.department": "Department / agency",
+  "pc.branch": "Branch / directorate",
+  "pc.save": "Save contacts",
+  "pc.cancel": "Cancel",
+  "pc.saved": "Project contacts updated.",
+  "pc.notFound": "Project not found"
 }
