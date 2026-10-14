@@ -4231,5 +4231,15 @@
   "esl.rejected.mismatch": "Il contenuto di questo file non corrisponde alla sua estensione ({{detail}}).",
   "esl.rejected.activeContent": "Questo file contiene contenuto attivo ({{detail}}) ed è stato rifiutato.",
   "esl.dropHere": "Trascina qui i file oppure fai clic per sceglierli",
-  "esl.uploading": "Caricamento di {name}…"
+  "esl.uploading": "Caricamento di {name}…",
+  "esl.orReference": "Oppure fai riferimento a un sistema esterno",
+  "esl.addReference": "Aggiungi",
+  "esl.referencePlaceholder": "https://… oppure un riferimento di gestione documentale",
+  "esl.referenceHelp": "Solo i link http e https diventano cliccabili. Gli altri riferimenti restano testo.",
+  "esl.referenceBadge": "Riferimento",
+  "esl.refEmpty": "Inserisci un link o un riferimento.",
+  "esl.refTooLong": "Questo riferimento è troppo lungo.",
+  "esl.refInvalid": "Non sembra un link o un riferimento valido.",
+  "esl.refScheme": "Sono accettati solo link http e https.",
+  "rf.externalReference": "riferimento esterno"
 }

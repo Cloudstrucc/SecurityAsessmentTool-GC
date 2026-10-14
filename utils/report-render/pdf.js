@@ -255,7 +255,9 @@ function render(model, opts = {}) {
       if (m.attachments && m.attachments.length) {
         heading('7', t('rf.evidenceAttachments'));
         dataTable([t('rf.control'), t('rf.document'), t('rf.uploaded')],
-          m.attachments.map(a => [a.control_id || '', a.original_name || '', a.uploaded_at || '']),
+          m.attachments.map(a => [a.control_id || '',
+            (a.original_name || '') + (a.ref_url ? ` (${t('rf.externalReference')})` : ''),
+            a.uploaded_at || '']),
           [0.18, 0.56, 0.26]);
       }
     } else if (m.type === 'portfolio') {

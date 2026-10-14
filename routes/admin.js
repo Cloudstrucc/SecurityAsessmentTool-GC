@@ -570,6 +570,9 @@ function resolveProjectDocumentPath(document) {
  * itself, not in the project/intake folders — so they need their own resolver.
  */
 function resolveEvidenceAttachmentPath(attachment) {
+  // An empty filename (an external reference) would join to the upload
+  // DIRECTORY, which exists — guard before building any candidate path.
+  if (!attachment || !attachment.filename) return undefined;
   const candidates = [
     path.join(UPLOAD_DIR, attachment.filename),
     path.join(projectUploadDir, attachment.filename),
@@ -1707,6 +1710,10 @@ router.get('/projects/:id/evidence-attachments/:attId/download', ensureAuthentic
   `, [req.params.attId, req.params.id]);
   if (!attachment) {
     req.flash('error', tr(req, 'ea.notFound', 'Attachment not found'));
+    return res.redirect(`/admin/projects/${req.params.id}`);
+  }
+  if (attachment.ref_url) {
+    req.flash('error', tr(req, 'ea.isReference', 'That item is an external reference, not a stored file.'));
     return res.redirect(`/admin/projects/${req.params.id}`);
   }
   const filePath = resolveEvidenceAttachmentPath(attachment);

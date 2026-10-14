@@ -160,8 +160,50 @@ function serveType(name) {
   return SERVE_TYPE[path.extname(String(name || '')).toLowerCase()] || 'application/octet-stream';
 }
 
+const MAX_REF_LENGTH = 500;
+
+/**
+ * Validate an "external system reference" — a link into a document management
+ * system, or a plain record identifier when it is not a URL at all.
+ *
+ * This is rendered as a clickable link in the ASSESSOR's page, from a value an
+ * external evidence provider supplied, so the scheme allow-list is the whole
+ * point: `javascript:`, `data:`, `vbscript:` and `file:` are all refused. Only
+ * http and https become links; anything else is kept as plain text and shown
+ * without a href, so a reference like "DMS-12345" still works but cannot be
+ * turned into a navigation target.
+ *
+ * The URL is never fetched by the server — storing it must not become an SSRF
+ * primitive against the host's own network.
+ *
+ * @returns {{ok:boolean, reason?:string, kind?:'url'|'text', value?:string}}
+ */
+function inspectReference(raw) {
+  const value = String(raw == null ? '' : raw).trim();
+  if (!value) return { ok: false, reason: 'refEmpty' };
+  if (value.length > MAX_REF_LENGTH) return { ok: false, reason: 'refTooLong' };
+  // Control characters would let a reference break out of the context it is
+  // rendered in, and are never legitimate in a link or an identifier.
+  if (/[\u0000-\u001f\u007f]/.test(value)) return { ok: false, reason: 'refInvalid' };
+
+  // Looks like it is trying to be a URL? Then it must be a safe one.
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value)) {
+    let parsed;
+    try { parsed = new URL(value); } catch (e) { return { ok: false, reason: 'refInvalid' }; }
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return { ok: false, reason: 'refScheme' };
+    }
+    return { ok: true, kind: 'url', value: parsed.href };
+  }
+  // Protocol-relative (//evil.com) resolves to a URL in a browser — treat it
+  // as a URL attempt rather than as text.
+  if (value.startsWith('//')) return { ok: false, reason: 'refScheme' };
+
+  return { ok: true, kind: 'text', value };
+}
+
 module.exports = {
-  inspect, safeName, serveType, sniff,
+  inspect, inspectReference, MAX_REF_LENGTH, safeName, serveType, sniff,
   MAX_FILE_BYTES, MAX_FILES_PER_SLOT, MAX_BYTES_PER_CONTROL,
   ALLOWED_EXTENSIONS: Object.keys(ALLOWED), EICAR
 };

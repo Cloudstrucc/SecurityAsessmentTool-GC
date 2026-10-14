@@ -4231,5 +4231,15 @@
   "esl.rejected.mismatch": "このファイルの内容が拡張子と一致しません（{{detail}}）。",
   "esl.rejected.activeContent": "このファイルにはアクティブコンテンツ（{{detail}}）が含まれるため拒否されました。",
   "esl.dropHere": "ここにファイルをドロップ、またはクリックして選択",
-  "esl.uploading": "{name} をアップロード中…"
+  "esl.uploading": "{name} をアップロード中…",
+  "esl.orReference": "または外部システムを参照",
+  "esl.addReference": "追加",
+  "esl.referencePlaceholder": "https://… または文書管理システムの参照",
+  "esl.referenceHelp": "リンクになるのは http と https のみです。その他の参照はテキストとして保持されます。",
+  "esl.referenceBadge": "参照",
+  "esl.refEmpty": "リンクまたは参照を入力してください。",
+  "esl.refTooLong": "この参照は長すぎます。",
+  "esl.refInvalid": "有効なリンクまたは参照に見えません。",
+  "esl.refScheme": "http と https のリンクのみ受け付けます。",
+  "rf.externalReference": "外部参照"
 }

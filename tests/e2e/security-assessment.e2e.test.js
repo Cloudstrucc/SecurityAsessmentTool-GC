@@ -3135,3 +3135,89 @@ test('the drop zone is keyboard reachable and drives the same hidden input', asy
   assert.match(page.text, /id="eslAttInput"[^>]*multiple/, 'the real input accepts several files at once');
   assert.match(page.text, /addEventListener\('drop'/, 'a drop handler is wired');
 });
+
+test('an external reference can stand in for an uploaded file', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slot Ref');
+  await getText(jar, `/respond/${code}`);
+
+  const add = async (reference) => {
+    const r = await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/reference`, {
+      json: { reference }
+    });
+    return r.json();
+  };
+
+  const url = await add('https://dms.example.org/record/AEGIS-2026-0042');
+  assert.ok(url.success, 'an https link is accepted');
+  assert.equal(url.file.ref_kind, 'url');
+  assert.equal(url.progress.attachments.filled, 1,
+    'a reference fills the slot just like a file does');
+
+  // A plain record identifier is kept, but never becomes a link.
+  const text = await add('Records Centre ref 2026/0042');
+  assert.ok(text.success);
+  assert.equal(text.file.ref_kind, 'text', 'a non-URL reference is stored as text');
+});
+
+test('a reference cannot smuggle a dangerous scheme into the assessor\'s page', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slot Ref Scheme');
+  await getText(jar, `/respond/${code}`);
+
+  for (const bad of ['javascript:alert(1)', 'data:text/html,<script>alert(1)</script>',
+    'vbscript:msgbox(1)', 'file:///etc/passwd', '//evil.example.com/x']) {
+    const r = await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/reference`, {
+      json: { reference: bad }
+    });
+    const d = await r.json();
+    assert.equal(d.success, false, `${bad} is refused`);
+    assert.equal(d.reason, 'refScheme', `${bad} is refused for its scheme`);
+  }
+
+  const empty = await (await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/reference`,
+    { json: { reference: '   ' } })).json();
+  assert.equal(empty.reason, 'refEmpty');
+
+  const long = await (await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/reference`,
+    { json: { reference: 'https://x.example/' + 'a'.repeat(600) } })).json();
+  assert.equal(long.reason, 'refTooLong');
+});
+
+test('a reference is not downloadable as a file', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, code, controlId } = await seedSlotDraft(jar, 'E2E Slot Ref Download');
+  await getText(jar, `/respond/${code}`);
+  const added = await (await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/reference`,
+    { json: { reference: 'https://dms.example.org/record/1' } })).json();
+  assert.ok(added.success);
+
+  // There is no file on disk; an empty filename must not resolve to the
+  // uploads directory and be served.
+  const dl = await request(jar, 'GET',
+    `/admin/projects/${projectId}/evidence-attachments/${added.file.id}/download`, { redirect: 'manual' });
+  assert.equal(dl.status, 302, 'the assessor is redirected, not handed a directory');
+
+  const providerDl = await request(jar, 'GET', `/respond/${code}/attachment/${added.file.id}`);
+  assert.equal(providerDl.status, 409, 'the provider side says plainly that it is a reference');
+});
+
+test('references appear in the full project report, marked as references', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, code, controlId } = await seedSlotDraft(jar, 'E2E Slot Ref Report');
+  await getText(jar, `/respond/${code}`);
+  await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/reference`, {
+    json: { reference: 'https://dms.example.org/record/REPORTED-1' }
+  });
+
+  const html = await getText(jar, `/admin/reports/project/${projectId}.html`);
+  assert.match(html.text, /REPORTED-1/, 'the reference is listed in the report');
+  assert.match(html.text, /external reference/i, 'and is distinguished from a stored file');
+});
+
+test('the reference validator keeps identifiers but refuses navigable schemes', () => {
+  assert.equal(slotSafety.inspectReference('https://a.example/x').kind, 'url');
+  assert.equal(slotSafety.inspectReference('DMS-12345').kind, 'text');
+  assert.equal(slotSafety.inspectReference('javascript:alert(1)').ok, false);
+  assert.equal(slotSafety.inspectReference('\u0000http://x').ok, false);
+});

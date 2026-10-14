@@ -869,6 +869,17 @@ window.AIAssistConfig = {
               active content, but not scanned for malware. --}}
         <div class="form-text fst-italic">{{t 'esl.scanNote'}}</div>
         <div id="eslAttErrors" class="mt-2"></div>
+        {{!-- Or point at a record that lives somewhere else. Only http/https
+              become links; anything else is kept as plain text. --}}
+        <div class="mt-3">
+          <label class="form-label small fw-semibold mb-1" for="eslAttRef">{{t 'esl.orReference'}}</label>
+          <div class="input-group input-group-sm">
+            <input type="text" class="form-control" id="eslAttRef"
+              placeholder="{{t 'esl.referencePlaceholder'}}" maxlength="500">
+            <button type="button" class="btn btn-outline-secondary" id="eslAttRefAdd">{{t 'esl.addReference'}}</button>
+          </div>
+          <div class="form-text">{{t 'esl.referenceHelp'}}</div>
+        </div>
         <div id="eslAttList" class="mt-2"></div>
       </div>
       <div class="modal-footer">
@@ -887,7 +898,8 @@ const ESL_I18N = {
   removed: {{{tjs 'esl.removed'}}}, failed: {{{tjs 'esl.failed'}}},
   newValue: {{{tjs 'esl.newValue'}}}, newAttach: {{{tjs 'esl.newAttach'}}},
   checked: {{{tjs 'esl.checked'}}}, remove: {{{tjs 'ui.remove'}}},
-  uploading: {{{tjs 'esl.uploading'}}}
+  uploading: {{{tjs 'esl.uploading'}}},
+  reference: {{{tjs 'esl.referenceBadge'}}}
 };
 let eslActive = null;   // { cid, key, type, label }
 
@@ -966,13 +978,22 @@ async function eslOpen(cid, key){
 
 function eslPaintFiles(files){
   const list = document.getElementById('eslAttList');
-  list.innerHTML = files.map(f =>
-    '<div class="d-flex align-items-center gap-2 border rounded p-2 mb-1">' +
-    '<span class="fw-semibold small">' + hEsc(f.original_name) + '</span>' +
-    '<span class="badge text-bg-success">' + hEsc(ESL_I18N.checked) + '</span>' +
-    '<span class="ms-auto"></span>' +
-    '<button type="button" class="btn btn-sm btn-outline-danger" data-fid="' + f.id + '">' + hEsc(ESL_I18N.remove) + '</button></div>'
-  ).join('') || '';
+  list.innerHTML = files.map(f => {
+    // A reference row carries ref_url and no stored file. Only an http(s)
+    // reference becomes a link, and it opens with noopener/noreferrer so the
+    // provider's URL cannot reach back into this page.
+    const isRef = !!f.ref_url;
+    const label = isRef && f.ref_kind === 'url'
+      ? '<a href="' + hEsc(f.ref_url) + '" target="_blank" rel="noopener noreferrer nofollow" class="fw-semibold small">' + hEsc(f.ref_url) + '</a>'
+      : '<span class="fw-semibold small">' + hEsc(f.original_name) + '</span>';
+    const badge = isRef
+      ? '<span class="badge text-bg-info">' + hEsc(ESL_I18N.reference) + '</span>'
+      : '<span class="badge text-bg-success">' + hEsc(ESL_I18N.checked) + '</span>';
+    return '<div class="d-flex align-items-center gap-2 border rounded p-2 mb-1">' +
+      (isRef ? '<i class="bi bi-link-45deg"></i>' : '<i class="bi bi-paperclip"></i>') +
+      label + badge + '<span class="ms-auto"></span>' +
+      '<button type="button" class="btn btn-sm btn-outline-danger" data-fid="' + f.id + '">' + hEsc(ESL_I18N.remove) + '</button></div>';
+  }).join('') || '';
   list.querySelectorAll('[data-fid]').forEach(b => {
     b.onclick = async () => {
       const a = eslActive; if (!a) return;
@@ -1058,6 +1079,33 @@ document.getElementById('eslAttInput').onchange = function(){
   eslUpload(this.files);
   this.value = '';
 };
+
+/** Attach an external reference rather than a file. */
+async function eslAddReference(){
+  const a = eslActive; if (!a) return;
+  const input = document.getElementById('eslAttRef');
+  const errs = document.getElementById('eslAttErrors');
+  const value = input.value.trim();
+  if (!value) return;
+  const r = await fetch('/respond/' + INVITE_CODE + '/slots/' + a.cid + '/' + a.key + '/reference', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reference: value })
+  });
+  const d = await r.json();
+  if (!d.success) {
+    errs.innerHTML = '<div class="small text-danger py-1">' + hEsc(d.message || ESL_I18N.failed) + '</div>';
+    return;
+  }
+  errs.innerHTML = '';
+  input.value = '';
+  const fresh = await eslLoad(a.cid);
+  const s = fresh && (fresh.slots || []).find(x => x.key === a.key);
+  eslPaintFiles(s ? s.files : []);
+}
+document.getElementById('eslAttRefAdd').onclick = eslAddReference;
+document.getElementById('eslAttRef').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); eslAddReference(); }
+});
 
 /* Drop zone: click, keyboard and drag-and-drop all reach the same uploader. */
 (function(){

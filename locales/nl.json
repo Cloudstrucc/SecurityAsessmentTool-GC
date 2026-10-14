@@ -4231,5 +4231,15 @@
   "esl.rejected.mismatch": "De inhoud van dat bestand komt niet overeen met de extensie ({{detail}}).",
   "esl.rejected.activeContent": "Dat bestand bevat actieve inhoud ({{detail}}) en is geweigerd.",
   "esl.dropHere": "Sleep bestanden hierheen of klik om te kiezen",
-  "esl.uploading": "{name} wordt geüpload…"
+  "esl.uploading": "{name} wordt geüpload…",
+  "esl.orReference": "Of verwijs naar een extern systeem",
+  "esl.addReference": "Toevoegen",
+  "esl.referencePlaceholder": "https://… of een documentbeheerreferentie",
+  "esl.referenceHelp": "Alleen http- en https-links worden klikbaar. Andere verwijzingen blijven platte tekst.",
+  "esl.referenceBadge": "Verwijzing",
+  "esl.refEmpty": "Voer een link of verwijzing in.",
+  "esl.refTooLong": "Die verwijzing is te lang.",
+  "esl.refInvalid": "Dat lijkt geen geldige link of verwijzing.",
+  "esl.refScheme": "Alleen http- en https-links worden geaccepteerd.",
+  "rf.externalReference": "externe verwijzing"
 }

@@ -500,7 +500,8 @@ function projectBody(m, b, t, logoDataUri, cls) {
         <table class="data"><thead><tr><th style="width:22mm">${esc(t('rf.control'))}</th><th>${esc(t('rf.document'))}</th>
           <th style="width:26mm">${esc(t('rf.uploaded'))}</th></tr></thead><tbody>
           ${m.attachments.map(a => `<tr><td><span class="ctlid">${esc(a.control_id || '')}</span></td>
-            <td>${esc(a.original_name || '')}</td><td>${esc(a.uploaded_at || '')}</td></tr>`).join('')}
+            <td>${esc(a.original_name || '')}${a.ref_url ? ` <span class="pill p-info">${esc(t('rf.externalReference'))}</span>` : ''}</td>
+            <td>${esc(a.uploaded_at || '')}</td></tr>`).join('')}
         </tbody></table>
       </section>${foot(b, m, cls)}</div>`;
   }

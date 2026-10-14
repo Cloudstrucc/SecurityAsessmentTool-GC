@@ -148,7 +148,9 @@ function render(model, opts = {}) {
     if (m.attachments && m.attachments.length) {
       out += h(2, t('rf.evidenceAttachments'));
       out += table([t('rf.control'), t('rf.document'), t('rf.uploaded')],
-        m.attachments.map(a => [a.control_id || '', a.original_name || '', a.uploaded_at || '']));
+        m.attachments.map(a => [a.control_id || '',
+          (a.original_name || '') + (a.ref_url ? ` (${t('rf.externalReference')})` : ''),
+          a.uploaded_at || '']));
     }
   } else if (m.type === 'portfolio') {
     const S = m.summary;

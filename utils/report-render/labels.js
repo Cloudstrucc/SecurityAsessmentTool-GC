@@ -13,6 +13,7 @@ const EN = {
   'rf.authorizationDecision': 'Authorization decision',
   'rf.controlsAndEvidence': 'Controls and evidence',
   'rf.evidenceAttachments': 'Evidence attachments',
+  'rf.externalReference': 'external reference',
   'rf.field': 'Field',
   'rf.value': 'Value',
   'rf.report': 'report',

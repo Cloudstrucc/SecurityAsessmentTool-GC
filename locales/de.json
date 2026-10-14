@@ -4231,5 +4231,15 @@
   "esl.rejected.mismatch": "Der Inhalt dieser Datei passt nicht zu ihrer Erweiterung ({{detail}}).",
   "esl.rejected.activeContent": "Diese Datei enthält aktive Inhalte ({{detail}}) und wurde abgelehnt.",
   "esl.dropHere": "Dateien hier ablegen oder zum Auswählen klicken",
-  "esl.uploading": "{name} wird hochgeladen…"
+  "esl.uploading": "{name} wird hochgeladen…",
+  "esl.orReference": "Oder auf ein externes System verweisen",
+  "esl.addReference": "Hinzufügen",
+  "esl.referencePlaceholder": "https://… oder eine Dokumentenmanagement-Referenz",
+  "esl.referenceHelp": "Nur http- und https-Links werden anklickbar. Andere Referenzen bleiben Klartext.",
+  "esl.referenceBadge": "Referenz",
+  "esl.refEmpty": "Geben Sie einen Link oder eine Referenz ein.",
+  "esl.refTooLong": "Diese Referenz ist zu lang.",
+  "esl.refInvalid": "Das sieht nicht nach einem gültigen Link oder einer gültigen Referenz aus.",
+  "esl.refScheme": "Es werden nur http- und https-Links akzeptiert.",
+  "rf.externalReference": "externe Referenz"
 }

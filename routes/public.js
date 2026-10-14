@@ -438,7 +438,7 @@ router.get('/respond/:code', ensureEvidenceUser, (req, res) => {
       key: sl.slot_key, type: sl.slot_type, label: sl.label,
       value_html: sl.value_html || '', value_text: sl.value_text || '',
       filled: slots.isFilled(sl),
-      files: all(`SELECT id, original_name, size, scan_status FROM attachments
+      files: all(`SELECT id, original_name, size, scan_status, ref_url, ref_kind FROM attachments
                   WHERE slot_id = ? ORDER BY id`, [sl.id])
     }));
     c.slotProgress = slots.progress(c.id);
@@ -721,6 +721,9 @@ router.get('/respond/:code/attachment/:attId', ensureEvidenceUser, (req, res) =>
     WHERE at.id = ? AND ac.assessment_id = ?
   `, [req.params.attId, assessment.id]);
   if (!attachment) return res.status(404).send('Not found');
+  // A reference is a link, not a stored file — there is nothing to download,
+  // and an empty filename would otherwise resolve to the uploads directory.
+  if (attachment.ref_url) return res.status(409).send('That item is an external reference, not a file.');
   const candidates = [
     path.join(UPLOAD_DIR, attachment.filename),
     path.join(intakeUploadDir, attachment.filename)
@@ -789,7 +792,7 @@ router.get('/respond/:code/slots/:controlId', ensureEvidenceUser, (req, res) => 
     key: sl.slot_key, type: sl.slot_type, label: sl.label,
     value_html: sl.value_html || '', value_text: sl.value_text || '',
     filled: slots.isFilled(sl), filled_by: sl.filled_by, filled_at: sl.filled_at,
-    files: all(`SELECT id, original_name, size, scan_status FROM attachments
+    files: all(`SELECT id, original_name, size, scan_status, ref_url, ref_kind FROM attachments
                 WHERE slot_id = ? ORDER BY id`, [sl.id])
   }));
   res.json({ success: true, slots: list, progress: slots.progress(control.id) });
@@ -893,6 +896,53 @@ function rejectFallback(v) {
     mismatch: 'That file\'s contents do not match its extension ({{detail}}).',
     activeContent: 'That file contains active content ({{detail}}) and was rejected.'
   }[v.reason] || 'That file was rejected.';
+}
+
+/**
+ * Attach an external reference instead of a file — a link into a document
+ * management system, or a plain record identifier.
+ *
+ * Stored as an attachments row with ref_url set and no filename, so slot
+ * completeness, listing and removal all work unchanged. The URL is never
+ * fetched by the server; it is only stored and later rendered as a link.
+ */
+router.post('/respond/:code/slots/:controlId/:slotKey/reference', ensureEvidenceUser, express.json(), (req, res) => {
+  const ctx = slotGate(req, res); if (!ctx) return;
+  const slot = get(`SELECT * FROM evidence_slots
+                    WHERE assessment_control_id = ? AND slot_key = ? AND removed_at IS NULL`,
+  [ctx.control.id, req.params.slotKey]);
+  if (!slot || slot.slot_type !== 'attach') return res.status(404).json({ success: false, message: 'Slot not found' });
+
+  const existing = all('SELECT id FROM attachments WHERE slot_id = ?', [slot.id]);
+  if (existing.length >= fileSafety.MAX_FILES_PER_SLOT) {
+    return res.json({ success: false, message: tr(req, 'esl.tooManyFiles',
+      'That slot already holds the maximum of {{n}} items.', { n: fileSafety.MAX_FILES_PER_SLOT }) });
+  }
+
+  const verdict = fileSafety.inspectReference(req.body.reference);
+  if (!verdict.ok) {
+    return res.json({ success: false, reason: verdict.reason,
+      message: tr(req, 'esl.' + verdict.reason, refFallback(verdict.reason)) });
+  }
+
+  const id = run(`INSERT INTO attachments
+    (assessment_control_id, slot_id, filename, original_name, mime_type, size, uploaded_by, scan_status, ref_url, ref_kind)
+    VALUES (?, ?, '', ?, '', 0, ?, 'reference', ?, ?)`,
+  [ctx.control.id, slot.id, verdict.value.slice(0, 200), 'project-owner', verdict.value, verdict.kind]);
+  slots.syncCounts(ctx.control.id);
+
+  res.json({ success: true,
+    file: { id, original_name: verdict.value, ref_url: verdict.value, ref_kind: verdict.kind, scan_status: 'reference' },
+    progress: slots.progress(ctx.control.id) });
+});
+
+function refFallback(reason) {
+  return {
+    refEmpty: 'Enter a link or a reference.',
+    refTooLong: 'That reference is too long.',
+    refInvalid: 'That does not look like a valid link or reference.',
+    refScheme: 'Only http and https links are accepted.'
+  }[reason] || 'That reference was rejected.';
 }
 
 /** Detach a file from a slot. */

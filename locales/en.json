@@ -4209,5 +4209,15 @@
   "esl.rejected.mismatch": "That file's contents do not match its extension ({{detail}}).",
   "esl.rejected.activeContent": "That file contains active content ({{detail}}) and was rejected.",
   "esl.dropHere": "Drop files here, or click to choose",
-  "esl.uploading": "Uploading {name}…"
+  "esl.uploading": "Uploading {name}…",
+  "esl.orReference": "Or reference an external system",
+  "esl.addReference": "Add",
+  "esl.referencePlaceholder": "https://… or a document management reference",
+  "esl.referenceHelp": "Only http and https links become clickable. Other references are kept as plain text.",
+  "esl.referenceBadge": "Reference",
+  "esl.refEmpty": "Enter a link or a reference.",
+  "esl.refTooLong": "That reference is too long.",
+  "esl.refInvalid": "That does not look like a valid link or reference.",
+  "esl.refScheme": "Only http and https links are accepted.",
+  "rf.externalReference": "external reference"
 }

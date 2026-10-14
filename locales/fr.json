@@ -4253,5 +4253,15 @@
   "esl.rejected.mismatch": "Le contenu de ce fichier ne correspond pas à son extension ({{detail}}).",
   "esl.rejected.activeContent": "Ce fichier contient du contenu actif ({{detail}}) et a été rejeté.",
   "esl.dropHere": "Déposez les fichiers ici ou cliquez pour les choisir",
-  "esl.uploading": "Téléversement de {name}…"
+  "esl.uploading": "Téléversement de {name}…",
+  "esl.orReference": "Ou référencer un système externe",
+  "esl.addReference": "Ajouter",
+  "esl.referencePlaceholder": "https://… ou une référence de gestion documentaire",
+  "esl.referenceHelp": "Seuls les liens http et https deviennent cliquables. Les autres références restent du texte.",
+  "esl.referenceBadge": "Référence",
+  "esl.refEmpty": "Saisissez un lien ou une référence.",
+  "esl.refTooLong": "Cette référence est trop longue.",
+  "esl.refInvalid": "Cela ne ressemble pas à un lien ou à une référence valide.",
+  "esl.refScheme": "Seuls les liens http et https sont acceptés.",
+  "rf.externalReference": "référence externe"
 }

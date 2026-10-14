@@ -1084,6 +1084,11 @@ async function initDatabase() {
     ['attachments', 'slot_id', 'ALTER TABLE attachments ADD COLUMN slot_id INTEGER'],
     ['attachments', 'scan_status', "ALTER TABLE attachments ADD COLUMN scan_status TEXT DEFAULT 'checked'"],
     ['attachments', 'scan_detail', 'ALTER TABLE attachments ADD COLUMN scan_detail TEXT'],
+    // An external reference instead of an uploaded file: a link into a document
+    // management system, or a plain record identifier. The row carries no
+    // filename — ref_url set is what makes it a reference rather than a file.
+    ['attachments', 'ref_url', 'ALTER TABLE attachments ADD COLUMN ref_url TEXT'],
+    ['attachments', 'ref_kind', 'ALTER TABLE attachments ADD COLUMN ref_kind TEXT'],
     ['assessment_controls', 'tailoring_status', "ALTER TABLE assessment_controls ADD COLUMN tailoring_status TEXT DEFAULT 'in-scope'"],
     ['assessment_controls', 'tailoring_rationale', 'ALTER TABLE assessment_controls ADD COLUMN tailoring_rationale TEXT'],
     ['assessment_controls', 'rationale_source', "ALTER TABLE assessment_controls ADD COLUMN rationale_source TEXT DEFAULT 'engine'"],

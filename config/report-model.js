@@ -250,7 +250,8 @@ function projectRollup(projectId, { orgId, req } = {}) {
   // Evidence the provider attached, per control, so the record shows what was
   // actually filed and not just the narrative that cites it.
   const attachments = all(`
-    SELECT at.original_name, at.size, at.uploaded_at, ac.control_id, ac.title AS control_title
+    SELECT at.original_name, at.size, at.uploaded_at, at.ref_url, at.ref_kind,
+           ac.control_id, ac.title AS control_title
     FROM attachments at
     JOIN assessment_controls ac ON ac.id = at.assessment_control_id
     JOIN assessments a ON a.id = ac.assessment_id
