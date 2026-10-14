@@ -111,13 +111,11 @@
 
     {{#each families}}
       <div class="form-section" id="family-{{this.code}}">
-        <div class="section-header">
-          <h3 class="section-title">
-            <span class="section-number">{{this.code}}</span>
-            {{this.name}}
-          </h3>
-          <p class="section-description">
-            {{this.controls.length}} control(s) in this family
+        <div class="family-header">
+          <span class="family-code badge rounded-pill text-bg-primary">{{this.code}}</span>
+          <h3 class="family-name">{{this.name}}</h3>
+          <p class="family-meta">
+            {{t 'cf.familyCount' n=this.controls.length}}
             <span class="ms-2">
               <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none"
                 onclick="toggleFamily('{{this.code}}', true)">{{t 'bk.selectFamily'}}</button>

@@ -4122,5 +4122,9 @@
   "ik.alreadyArchived": "Dieser Antrag ist bereits archiviert.",
   "ik.restored": "Antrag wiederhergestellt.",
   "ik.notFound": "Antrag nicht gefunden.",
-  "ik.showActive": "Aktive Anträge"
+  "ik.showActive": "Aktive Anträge",
+  "cf.familyCount": "{{n}} Kontrolle(n)",
+  "cf.descMore": "Mehr anzeigen",
+  "cf.descLess": "Weniger anzeigen",
+  "cf.descToggleAria": "Vollständige Kontrollbeschreibung ein- oder ausblenden"
 }

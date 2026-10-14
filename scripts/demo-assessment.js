@@ -446,8 +446,15 @@ async function cmdPackage(api, args) {
 
   if (args.issue) {
     for (const state of ['in-review', 'recommended', 'decided', 'issued']) {
-      const r = await api.request('POST', `/admin/decision-packages/${dpId}/transition`, { form: { to: state } });
+      // The form field is `state`. A wrong/unknown value is NOT an HTTP error:
+      // the route flashes "Cannot move a decision package…" and redirects, so
+      // the status code alone would report success on a no-op.
+      const r = await api.request('POST', `/admin/decision-packages/${dpId}/transition`, { form: { state } });
       if (r.status >= 400) die(`Transition to "${state}" failed (HTTP ${r.status}).`);
+      const after = await api.request('GET', `/admin/decision-packages/${dpId}`);
+      if (/Cannot move a decision package/.test(after.body || '')) {
+        die(`Transition to "${state}" was rejected by the workflow (package left in its previous state).`);
+      }
     }
     console.log(`Decision package #${dpId} issued.`);
   }

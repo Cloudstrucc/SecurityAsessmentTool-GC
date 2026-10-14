@@ -4144,5 +4144,9 @@
   "ik.alreadyArchived": "Esa solicitud ya está archivada.",
   "ik.restored": "Solicitud restaurada.",
   "ik.notFound": "Solicitud no encontrada.",
-  "ik.showActive": "Solicitudes activas"
+  "ik.showActive": "Solicitudes activas",
+  "cf.familyCount": "{{n}} control(es)",
+  "cf.descMore": "Mostrar más",
+  "cf.descLess": "Mostrar menos",
+  "cf.descToggleAria": "Mostrar u ocultar la descripción completa del control"
 }

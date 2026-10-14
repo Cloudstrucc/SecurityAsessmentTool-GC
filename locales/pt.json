@@ -4122,5 +4122,9 @@
   "ik.alreadyArchived": "Esse pedido já está arquivado.",
   "ik.restored": "Pedido restaurado.",
   "ik.notFound": "Pedido não encontrado.",
-  "ik.showActive": "Pedidos ativos"
+  "ik.showActive": "Pedidos ativos",
+  "cf.familyCount": "{{n}} controlo(s)",
+  "cf.descMore": "Mostrar mais",
+  "cf.descLess": "Mostrar menos",
+  "cf.descToggleAria": "Mostrar ou ocultar a descrição completa do controlo"
 }

@@ -4144,5 +4144,9 @@
   "ik.alreadyArchived": "Cette demande est déjà archivée.",
   "ik.restored": "Demande restaurée.",
   "ik.notFound": "Demande introuvable.",
-  "ik.showActive": "Demandes actives"
+  "ik.showActive": "Demandes actives",
+  "cf.familyCount": "{{n}} contrôle(s)",
+  "cf.descMore": "Afficher plus",
+  "cf.descLess": "Afficher moins",
+  "cf.descToggleAria": "Afficher ou masquer la description complète du contrôle"
 }

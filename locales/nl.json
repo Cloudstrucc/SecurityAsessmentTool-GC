@@ -4122,5 +4122,9 @@
   "ik.alreadyArchived": "Die aanvraag is al gearchiveerd.",
   "ik.restored": "Aanvraag hersteld.",
   "ik.notFound": "Aanvraag niet gevonden.",
-  "ik.showActive": "Actieve aanvragen"
+  "ik.showActive": "Actieve aanvragen",
+  "cf.familyCount": "{{n}} maatregel(en)",
+  "cf.descMore": "Meer weergeven",
+  "cf.descLess": "Minder weergeven",
+  "cf.descToggleAria": "De volledige beschrijving van de maatregel weergeven of verbergen"
 }

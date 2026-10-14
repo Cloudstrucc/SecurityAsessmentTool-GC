@@ -4122,5 +4122,9 @@
   "ik.alreadyArchived": "この申請はすでにアーカイブされています。",
   "ik.restored": "申請を復元しました。",
   "ik.notFound": "申請が見つかりません。",
-  "ik.showActive": "有効な申請"
+  "ik.showActive": "有効な申請",
+  "cf.familyCount": "{{n}} 件の管理策",
+  "cf.descMore": "さらに表示",
+  "cf.descLess": "表示を減らす",
+  "cf.descToggleAria": "管理策の説明全文を表示または非表示にします"
 }

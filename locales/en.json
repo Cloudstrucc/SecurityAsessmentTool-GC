@@ -4100,5 +4100,9 @@
   "ik.alreadyArchived": "That intake is already archived.",
   "ik.restored": "Intake restored.",
   "ik.notFound": "Intake not found.",
-  "ik.showActive": "Active intakes"
+  "ik.showActive": "Active intakes",
+  "cf.familyCount": "{{n}} control(s)",
+  "cf.descMore": "Show more",
+  "cf.descLess": "Show less",
+  "cf.descToggleAria": "Show or hide the full control description"
 }
