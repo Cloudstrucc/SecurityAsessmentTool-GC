@@ -8,6 +8,38 @@ interim authorization and a tracked remediation plan. One tool, one thread, no s
 
 ---
 
+## Direct links, by persona
+
+Swap the host for whichever environment you are demoing. Screenshots in this script were
+captured on **dev**.
+
+| Environment | Base URL |
+|---|---|
+| Dev (rehearsal) | `https://vanguard-saa-dev.azurewebsites.net` |
+| QA | `https://vanguard-saa-qa.azurewebsites.net` |
+| Production | `https://aegis-sa.io` |
+
+| Persona | What they do | Link |
+|---|---|---|
+| **Assessor / admin** — you | Everything on the authorization side | `/admin/login` → `/admin/dashboard` |
+| **Evidence provider** — Dana | Fills in evidence for the controls sent to them | `/respond/<INVITE-CODE>` (sign-in required) |
+| **Evidence provider, no code to hand** | Signs in and picks from their own work queue | `/client/login` → `/portal` |
+| **Public intake submitter** | Submits a system for assessment without an account | `/intake` |
+| **Anyone evaluating the product** | Free 5-minute self-assessment | `/security-self-assessment` |
+| **Authorizing official** | Reads the decision package | `/admin/decision-packages/<id>` |
+
+Useful deep links once the demo project exists:
+
+| Screen | Link |
+|---|---|
+| The assessment record | `/admin/assessments/<id>` |
+| Its evidence flow (resolves the invite code for you) | `/admin/assessments/<id>/evidence` |
+| Tailoring a new assessment | `/admin/projects/<id>/assessments/new` |
+| POA&M for a decision package | `/admin/decision-packages/<id>/poam` |
+| Report in any format | `/admin/reports/assessment/<id>.pdf` · `.docx` · `.html` · `.md` |
+
+---
+
 ## 0 · Prep (do this the night before, ~20 min)
 
 | # | Item | Why |
@@ -329,6 +361,7 @@ Return to the **Dashboard**. Point at the moved counters and the amber banner:
 |---|---|---|
 | AI draft spins > 60 s | Carry on talking; or cancel and paste Appendix B | "I'll paste a finished one — you've seen it generate." |
 | Decision tiles show 0 / 0 / 0 / 0 | **Reload the page** | "Let me refresh to pick up the scores." |
+| Browser asks "Complete the audit and issue the authorization decision?" | Click **OK** — it is a native confirm, still present | — |
 | Evidence progress reads *0 of 5* while drafts exist | Ignore it, point at the control cards instead | — |
 | Audit tracker jumps to *Completed* as soon as you start the audit | Don't point at the tracker during Act 7 | — |
 | The email doesn't arrive in window B | Use the **invite code** directly: `/respond/<CODE>` | "I'll use the direct link rather than wait on mail." |
@@ -354,6 +387,41 @@ Return to the **Dashboard**. Point at the moved counters and the amber banner:
   a package can be extended or revoked with the change recorded.
 - **"Languages?"** — Eight: English, French, Spanish, German, Portuguese, Italian, Dutch and
   Japanese, including the exported reports.
+
+---
+
+## Screenshots — every step, annotated
+
+Captured on dev by walking the real workflow end to end. The red ring marks what to click or look
+at; the numbered callout is the talking point.
+
+| # | Step | Screenshot |
+|---|---|---|
+| 1 | Dashboard — start an intake | ![](demo-screenshots/01-dashboard-new-project.jpg) |
+| 2 | AI-assisted intake — paste the PM's paragraph | ![](demo-screenshots/02-new-project-ai-intake.jpg) |
+| 3 | Classification + C/I/A — the four answers that pick the baseline | ![](demo-screenshots/03-classification-cia.jpg) |
+| 4 | Create Project — mints the intake reference | ![](demo-screenshots/04-create-project.jpg) |
+| 5 | Project record — assessments and decision packages | ![](demo-screenshots/05-project-assessments-and-decision-packages.jpg) |
+| 6 | Tailoring — every control says *why* it is in scope | ![](demo-screenshots/06-tailoring-rationale.jpg) |
+| 7 | Bulk actions — select a family, tailor it out with one reason | ![](demo-screenshots/07-bulk-action-bar.jpg) |
+| 8 | Tailored-out register — 224 recommended → 4 in scope, reasons kept | ![](demo-screenshots/08-tailored-out-register.jpg) |
+| 9 | Assign & send — hands the controls to the provider | ![](demo-screenshots/09-assign-and-send.jpg) |
+| 10 | Provider view — *why you're being asked for this* | ![](demo-screenshots/10-provider-why-asked.jpg) |
+| 11 | AI draft with a blank for every fact only they can supply | ![](demo-screenshots/11-ai-draft-placeholders.jpg) |
+| 12 | 4 of 4 answered — Submit All Evidence | ![](demo-screenshots/12-submit-all-evidence.jpg) |
+| 13 | Evidence back and locked — Start Audit | ![](demo-screenshots/13-start-audit.jpg) |
+| 14 | Scoring — Met / Partially met / Not met, with the finding | ![](demo-screenshots/14-audit-scoring.jpg) |
+| 15 | Decision panel — open high-risk findings block a full ATO | ![](demo-screenshots/15-complete-audit-iato.jpg) |
+| 16 | iATO granted, 63% — POA&M auto-generated for 2 findings | ![](demo-screenshots/16-iato-granted.jpg) |
+| 17 | Create the decision package against the completed assessment | ![](demo-screenshots/17-create-decision-package.jpg) |
+| 18 | DP-0001 — assessment pinned at an immutable version | ![](demo-screenshots/18-decision-package-pinned.jpg) |
+| 19 | POA&M — conditions generated from the authorized version | ![](demo-screenshots/19-poam-conditions.jpg) |
+| 20 | Export — same record, four formats | ![](demo-screenshots/20-export-formats.jpg) |
+
+**Numbers from the real run**, if you want to narrate the same ones: 224 controls recommended →
+4 in scope, 220 tailored out with reasons · 54 placeholders across 4 AI drafts (32 values,
+22 attachments) · scored 2 Met / 1 Partially met / 1 Not met → **63%**, 1 high-risk finding →
+**iATO**, expiry 2027-01-12 · **2 POA&M items auto-generated**, highest due 2026-11-13.
 
 ---
 
