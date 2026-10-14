@@ -564,12 +564,28 @@ router.post('/ai/refine-answer', ensureAuthenticated, express.json(), async (req
   try {
     if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY or configure your own provider.' });
     if (!aiAllowed(req, res, 'refine')) return;
-    const { controlId, controlTitle, controlGuidance, userSummary, frameworkLabel } = req.body;
-    if (!userSummary || String(userSummary).trim().length < 3) return res.status(400).json({ error: 'Please enter a brief answer to refine.' });
-    const refined = await ai.refineControlAnswer({
-      controlId: controlId || '', controlTitle: controlTitle || '', controlGuidance: controlGuidance || '',
-      userSummary: String(userSummary), frameworkLabel: frameworkLabel || 'ITSG-33'
-    });
+    const { controlId, controlTitle, controlGuidance, userSummary, frameworkLabel, mode, projectId } = req.body;
+    const note = String(userSummary || '').trim();
+
+    // `mode: 'guidance'` asks for what the provider must SUPPLY; the default
+    // refines/expands the assessor's own tailoring note. Neither requires an
+    // existing note any more — an empty box used to 400 here, which the page
+    // swallowed and showed as a dead button.
+    let refined;
+    if (mode === 'guidance') {
+      const project = projectId
+        ? get('SELECT * FROM projects WHERE id = ?', [projectId])
+        : null;
+      refined = await ai.generateEvidenceGuidance(
+        { control_id: controlId || '', title: controlTitle || '', description: controlGuidance || note || '' },
+        project || {}
+      );
+    } else {
+      refined = await ai.refineControlAnswer({
+        controlId: controlId || '', controlTitle: controlTitle || '', controlGuidance: controlGuidance || '',
+        userSummary: note, frameworkLabel: frameworkLabel || 'ITSG-33'
+      });
+    }
     access.recordAiUse(req.user, 'refine');
     res.json({ success: true, refined });
   } catch (err) {

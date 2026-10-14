@@ -96,8 +96,15 @@
     <!-- Sticky toolbar -->
     <div class="progress-sticky">
       <div class="d-flex justify-content-between align-items-center">
+        {{!-- Reports SCOPE, not selection. Reading "0 of N selected" after a bulk
+              tailor-out made a successful action look like a no-op. --}}
         <div>
-          <span class="fw-semibold" id="selectedCount">{{controlCount}}</span> of {{controlCount}} controls selected
+          <span class="fw-semibold" id="selectedCount">{{controlCount}}</span>
+          {{t 'bk.ofInScope' total=controlCount}}
+          <span id="tailoredOutNote" class="text-muted ms-2" hidden>
+            · <span id="tailoredOutCount">0</span> {{t 'bk.tailoredOutLabel'}}
+          </span>
+          <span id="bulkFlash" class="ms-2 badge text-bg-success" hidden></span>
         </div>
         <div class="d-flex gap-2">
           <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll(true)">{{t 'ui.selectAll'}}</button>
@@ -177,15 +184,26 @@
                 <div class="col-md-6">
                   <div class="d-flex justify-content-between align-items-center">
                     <label class="form-label small fw-semibold mb-1">{{t 'ui.tailoredDescription'}}</label>
-                    <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" style="font-size:12px;color:#6d28d9"
-                      onclick="aiRefineControl('{{this.id}}', {{{json this.title}}}, this)"><i class="bi bi-stars me-1"></i>{{t 'ui.refineWithAi'}}</button>
+                    {{!-- Bound by a delegated listener, NOT an inline onclick: the
+                          handler used to interpolate {{{json title}}} into a
+                          double-quoted attribute, and the quotes JSON adds closed
+                          the attribute early, so the handler was truncated to
+                          "aiRefineControl('AC-1', " and every button was dead. --}}
+                    <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none js-ai-refine"
+                      style="font-size:12px;color:#6d28d9"
+                      data-cid="{{this.id}}" data-title="{{this.title}}"><i class="bi bi-stars me-1"></i>{{t 'ui.refineWithAi'}}</button>
                   </div>
                   <textarea class="form-control form-control-sm" name="tailored[{{this.id}}]" id="tailored-{{this.id}}" rows="3"
                     placeholder="{{t 'ui.typeAQuickNoteThen'}}">{{this.tailoredDescription}}</textarea>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">{{t 'ui.evidenceGuidance'}}</label>
-                  <textarea class="form-control form-control-sm" name="guidance[{{this.id}}]" rows="3"
+                  <div class="d-flex justify-content-between align-items-center">
+                    <label class="form-label small fw-semibold mb-1">{{t 'ui.evidenceGuidance'}}</label>
+                    <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none js-ai-guidance"
+                      style="font-size:12px;color:#6d28d9"
+                      data-cid="{{this.id}}" data-title="{{this.title}}"><i class="bi bi-stars me-1"></i>{{t 'bk.generateGuidance'}}</button>
+                  </div>
+                  <textarea class="form-control form-control-sm" name="guidance[{{this.id}}]" id="guidance-{{this.id}}" rows="3"
                     placeholder="{{t 'ui.whatEvidenceTheProjectOwner'}}">{{this.evidenceGuidance}}</textarea>
                 </div>
               </div>
@@ -253,11 +271,37 @@
 </div>
 
 <script>
+const BK_I18N = {
+  tailoredOut: {{{tjs 'bk.flashTailoredOut'}}},
+  keptOnly: {{{tjs 'bk.flashKeptOnly'}}}
+};
+const AI_I18N = {
+  working: {{{tjs 'bk.aiWorking'}}},
+  failed: {{{tjs 'bk.aiFailed'}}}
+};
 function updateCount() {
   const boxes = document.querySelectorAll('.control-toggle');
   const checked = document.querySelectorAll('.control-toggle:checked').length;
   document.getElementById('selectedCount').textContent = checked;
+  // A control that is not selected is tailored OUT of this assessment — say so,
+  // otherwise the only number on screen is the one that just went to zero.
+  const out = boxes.length - checked;
+  const note = document.getElementById('tailoredOutNote');
+  const outEl = document.getElementById('tailoredOutCount');
+  if (outEl) outEl.textContent = out;
+  if (note) note.hidden = (out === 0);
   bulkBar(checked, boxes.length);
+}
+
+// Transient confirmation in the sticky header, so a bulk action says what it did.
+let bulkFlashTimer = null;
+function bulkFlash(message) {
+  const el = document.getElementById('bulkFlash');
+  if (!el) return;
+  el.textContent = message;
+  el.hidden = false;
+  clearTimeout(bulkFlashTimer);
+  bulkFlashTimer = setTimeout(() => { el.hidden = true; }, 6000);
 }
 function toggleAll(state) {
   document.querySelectorAll('.control-toggle').forEach(cb => { cb.checked = state; });
@@ -299,6 +343,7 @@ function bulkTailorOut() {
   });
   if (box) box.value = '';
   updateCount();
+  bulkFlash(BK_I18N.tailoredOut.replace('{n}', sel.length));
 }
 function bulkKeepOnly() {
   const keep = new Set(Array.prototype.filter.call(document.querySelectorAll('.control-toggle'), cb => cb.checked)
@@ -309,6 +354,7 @@ function bulkKeepOnly() {
     if (card) card.style.opacity = cb.checked ? '' : '.5';
   });
   updateCount();
+  bulkFlash(BK_I18N.keptOnly.replace('{n}', keep.size));
 }
 document.addEventListener('DOMContentLoaded', updateCount);
 </script>
@@ -391,22 +437,40 @@ document.addEventListener('DOMContentLoaded', updateCount);
   };
 })();
 
-// Per-control "Refine with AI": expand a brief note into a fuller draft (approval-gated).
-async function aiRefineControl(id, title, btn){
-  var ta=document.getElementById('tailored-'+id); if(!ta) return;
+// Per-control "Refine with AI": expand a note into a fuller draft (approval-gated).
+// With an empty field it generates from the control itself rather than doing
+// nothing — an empty box used to return silently, which read as a dead button.
+async function aiRefineControl(id, title, btn, target){
+  var ta=target||document.getElementById('tailored-'+id); if(!ta) return;
   var summary=(ta.value||'').trim();
-  if(summary.length<3){ ta.focus(); ta.setAttribute('placeholder','Type a short note first, then Refine with AI…'); return; }
-  var orig=btn.innerHTML; btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm"></span> Refining…';
+  var mode=ta.dataset.aiMode||'tailoring';
+  var orig=btn.innerHTML; btn.disabled=true;
+  btn.innerHTML='<span class="spinner-border spinner-border-sm"></span> '+AI_I18N.working;
   try{
     var g=document.querySelector('[name="control_guidance_'+id+'"]');
     var r=await fetch('/api/ai/refine-answer',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({controlId:id,controlTitle:title||'',controlGuidance:g?g.value:'',userSummary:summary,frameworkLabel:(window.AIAssistConfig&&AIAssistConfig.frameworkLabel)||'ITSG-33'})});
+      body:JSON.stringify({controlId:id,controlTitle:title||'',controlGuidance:g?g.value:'',
+        userSummary:summary,mode:mode,projectId:{{project.id}},
+        frameworkLabel:(window.AIAssistConfig&&AIAssistConfig.frameworkLabel)||'ITSG-33'})});
     var data=await r.json();
-    if(!r.ok||!data.success) throw new Error(data.error||'Could not refine.');
+    if(!r.ok||!data.success) throw new Error(data.error||AI_I18N.failed);
     aiShowRefinePreview(ta, data.refined);
-  }catch(e){ alert(e.message); }
+  }catch(e){ alert(e.message||AI_I18N.failed); }
   btn.disabled=false; btn.innerHTML=orig;
 }
+
+// One delegated listener for every per-control AI button on the page, including
+// controls the assistant injects after load.
+document.addEventListener('click', function(ev){
+  var btn=ev.target.closest('.js-ai-refine, .js-ai-guidance');
+  if(!btn) return;
+  ev.preventDefault();
+  var id=btn.dataset.cid;
+  var isGuidance=btn.classList.contains('js-ai-guidance');
+  var target=document.getElementById((isGuidance?'guidance-':'tailored-')+id);
+  if(target) target.dataset.aiMode=isGuidance?'guidance':'tailoring';
+  aiRefineControl(id, btn.dataset.title||'', btn, target);
+});
 function aiShowRefinePreview(ta, refined){
   var esc=function(s){return String(s).replace(/[&<>]/g,function(m){return({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]);});};
   var old=ta.parentNode.querySelector('.ai-refine-preview'); if(old) old.remove();

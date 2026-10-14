@@ -4151,5 +4151,15 @@
   "ea.forControl": "Evidenza per {{control}}",
   "ea.none": "Nessun allegato di evidenza al momento.",
   "ea.heading": "Allegati delle evidenze",
-  "ea.attachedFiles": "File allegati"
+  "ea.attachedFiles": "File allegati",
+  "bk.ofInScope": "di {{total}} controlli nel perimetro",
+  "bk.tailoredOutLabel": "esclusi",
+  "bk.flashTailoredOut": "{n} controllo/i escluso/i dal perimetro",
+  "bk.flashKeptOnly": "{n} controllo/i mantenuto/i nel perimetro",
+  "bk.generateGuidance": "Genera con l'IA",
+  "bk.aiWorking": "In corso…",
+  "bk.aiFailed": "Non è stato possibile completare la richiesta all'IA.",
+  "rv.isReviewed": "Esaminato",
+  "rv.reopen": "Riapri",
+  "rv.pReopen": "Riapertura del controllo…"
 }

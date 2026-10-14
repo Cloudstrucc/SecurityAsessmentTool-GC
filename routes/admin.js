@@ -315,7 +315,54 @@ function filterCatalogControls(projectInfo, documents = [], includeAll = false) 
   if (selected.length < Math.min(25, controls.length)) {
     selected = controls.slice(0, Math.min(60, controls.length));
   }
-  return selected.slice(0, 120);
+  return capAcrossFamilies(selected, RECOMMENDATION_CAP);
+}
+
+/**
+ * How many controls the New Assessment screen may offer at once.
+ *
+ * The limit exists because the form posts ~17 fields per control and
+ * express.urlencoded is configured with parameterLimit: 10000 (app.js) — past
+ * roughly 580 controls the body is rejected and creation silently bounces.
+ * 400 leaves clear headroom.
+ */
+const RECOMMENDATION_CAP = 400;
+
+/**
+ * Trim a recommendation to `cap` WITHOUT letting one family eat the whole quota.
+ *
+ * The rows arrive ordered by family, so a plain slice(0, cap) returned the first
+ * N alphabetically: on NIST SP 800-53 (1196 rows) that was 120 Access Control
+ * entries and not one AU, IA, SC or SI control, which made the baseline look
+ * broken. Take one control from each family in turn instead, so every family is
+ * represented and the deeper enhancements are what get dropped.
+ */
+function capAcrossFamilies(controls, cap) {
+  if (controls.length <= cap) return controls;
+
+  const byFamily = new Map();
+  controls.forEach(c => {
+    const key = c.family || 'ZZ';
+    if (!byFamily.has(key)) byFamily.set(key, []);
+    byFamily.get(key).push(c);
+  });
+
+  const kept = new Set();
+  const queues = [...byFamily.values()];
+  let round = 0;
+  while (kept.size < cap) {
+    let tookOne = false;
+    for (const q of queues) {
+      if (round >= q.length) continue;
+      kept.add(q[round]);
+      tookOne = true;
+      if (kept.size >= cap) break;
+    }
+    if (!tookOne) break; // every family exhausted
+    round += 1;
+  }
+  // Back into catalogue order so the screen still reads family by family.
+  return controls.filter(c => kept.has(c));
 }
 
 function groupCatalogControls(controls) {
@@ -2860,6 +2907,10 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     // The assessor can send individual controls back for update once the provider
     // has moved past initial gathering (submitted / audit / already reactivated).
     canRequestUpdates: ['submitted', 'reactivated', 'audit'].includes(assessment.status),
+    // One checkbox drives both the review actions and "send for update", so the
+    // control header renders it when EITHER is available.
+    selectableControls: (assessment.status === 'audit'
+      || (['submitted', 'reactivated', 'audit'].includes(assessment.status) && !req.query.version)),
     families: Object.values(families), controls, stats, documents, atoRecords,
     scopedOut, scopedOutFamilies: Object.values(scopedOutFamilies),
     tailorMode: req.query.tailor === '1' && !viewingVersion,

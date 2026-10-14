@@ -4151,5 +4151,15 @@
   "ea.forControl": "{{control}} の証跡",
   "ea.none": "証跡の添付ファイルはまだありません。",
   "ea.heading": "証跡の添付ファイル",
-  "ea.attachedFiles": "添付ファイル"
+  "ea.attachedFiles": "添付ファイル",
+  "bk.ofInScope": "／ {{total}} 件の管理策が対象範囲",
+  "bk.tailoredOutLabel": "対象外",
+  "bk.flashTailoredOut": "{n} 件の管理策を対象外にしました",
+  "bk.flashKeptOnly": "{n} 件の管理策を対象範囲に残しました",
+  "bk.generateGuidance": "AI で生成",
+  "bk.aiWorking": "処理中…",
+  "bk.aiFailed": "AI への要求を完了できませんでした。",
+  "rv.isReviewed": "レビュー済み",
+  "rv.reopen": "再オープン",
+  "rv.pReopen": "管理策を再オープンしています…"
 }

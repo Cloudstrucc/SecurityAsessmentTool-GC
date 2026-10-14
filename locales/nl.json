@@ -4151,5 +4151,15 @@
   "ea.forControl": "Bewijs voor {{control}}",
   "ea.none": "Nog geen bewijsbijlagen.",
   "ea.heading": "Bewijsbijlagen",
-  "ea.attachedFiles": "Bijgevoegde bestanden"
+  "ea.attachedFiles": "Bijgevoegde bestanden",
+  "bk.ofInScope": "van {{total}} maatregelen binnen de scope",
+  "bk.tailoredOutLabel": "buiten scope",
+  "bk.flashTailoredOut": "{n} maatregel(en) buiten de scope geplaatst",
+  "bk.flashKeptOnly": "{n} maatregel(en) binnen de scope gehouden",
+  "bk.generateGuidance": "Genereren met AI",
+  "bk.aiWorking": "Bezig…",
+  "bk.aiFailed": "Het AI-verzoek kon niet worden voltooid.",
+  "rv.isReviewed": "Beoordeeld",
+  "rv.reopen": "Heropenen",
+  "rv.pReopen": "Maatregel wordt heropend…"
 }

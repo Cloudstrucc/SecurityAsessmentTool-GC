@@ -678,11 +678,18 @@ function parseChatResponse(text) {
  * statement. Grounded only in what the user wrote (never invents specifics).
  */
 async function refineControlAnswer({ controlId = '', controlTitle = '', controlGuidance = '', userSummary = '', frameworkLabel = 'ITSG-33' }) {
-  const system = `You are the "Aegis SA Assistant". A user wrote a brief note describing how a security control is implemented (or the evidence for it). Expand it into a clear, professional, comprehensive control implementation / evidence statement suitable for a ${frameworkLabel} security assessment.
+  // With no note the assessor is asking for a starting draft, not an expansion —
+  // the control's own text is then the only grounding available.
+  const note = String(userSummary || '').trim();
+  const system = note
+    ? `You are the "Aegis SA Assistant". A user wrote a brief note describing how a security control is implemented (or the evidence for it). Expand it into a clear, professional, comprehensive control implementation / evidence statement suitable for a ${frameworkLabel} security assessment.
 - Stay grounded ONLY in what the user wrote; do NOT invent specific product names, versions, dates or configurations they did not mention. Where detail is missing, describe in general terms what should be stated.
-- Plain, professional language. 1–3 short paragraphs. Return ONLY the refined statement text — no preamble, headings or markdown fences.`;
+- Plain, professional language. 1–3 short paragraphs. Return ONLY the refined statement text — no preamble, headings or markdown fences.`
+    : `You are the "Aegis SA Assistant". Write a tailored description for a security control in a ${frameworkLabel} assessment: a short statement of what this control means FOR THIS SYSTEM and what the assessor expects to see.
+- You have no implementation details, so do NOT invent product names, versions, dates or configurations. Write what should be stated, in general terms.
+- Plain, professional language. 1–2 short paragraphs. Return ONLY the statement text — no preamble, headings or markdown fences.`;
   const userContent = `Control ${controlId}${controlTitle ? ' — ' + controlTitle : ''}.
-${controlGuidance ? 'What this control expects: ' + controlGuidance + '\n' : ''}User's brief note: ${userSummary}`;
+${controlGuidance ? 'What this control expects: ' + controlGuidance + '\n' : ''}${note ? 'User\'s brief note: ' + note : 'No note was provided — draft from the control itself.'}`;
   const text = await callClaude(system, userContent, { maxTokens: 1200 });
   return String(text || '').trim();
 }

@@ -4151,5 +4151,15 @@
   "ea.forControl": "Prova para {{control}}",
   "ea.none": "Ainda não existem anexos de prova.",
   "ea.heading": "Anexos de prova",
-  "ea.attachedFiles": "Ficheiros anexados"
+  "ea.attachedFiles": "Ficheiros anexados",
+  "bk.ofInScope": "de {{total}} controlos no âmbito",
+  "bk.tailoredOutLabel": "excluídos",
+  "bk.flashTailoredOut": "{n} controlo(s) excluído(s) do âmbito",
+  "bk.flashKeptOnly": "{n} controlo(s) mantido(s) no âmbito",
+  "bk.generateGuidance": "Gerar com IA",
+  "bk.aiWorking": "A processar…",
+  "bk.aiFailed": "Não foi possível concluir o pedido à IA.",
+  "rv.isReviewed": "Revisto",
+  "rv.reopen": "Reabrir",
+  "rv.pReopen": "A reabrir o controlo…"
 }

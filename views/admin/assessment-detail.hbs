@@ -563,8 +563,13 @@
                 {{else}}
                   <input type="checkbox" class="form-check-input ai-control-checkbox" value="{{this.id}}" style="display:none;">
                 {{/if}}
-                {{#eq ../../assessment.status "audit"}}<input type="checkbox" class="form-check-input rv-select" data-cid="{{this.id}}" onchange="rvUpdateBar()">{{/eq}}
-                {{#if ../../canRequestUpdates}}{{#unless ../../viewingVersion}}<input type="checkbox" class="form-check-input ru-select" data-cid="{{this.id}}" title="{{t 'ru.selectHelp'}}" onchange="ruUpdateBar()">{{/unless}}{{/if}}
+                {{!-- ONE selection checkbox. Review and "send for update" used to
+                      render a checkbox each, so during audit every control showed
+                      two unlabelled boxes feeding two different bottom bars. --}}
+                {{#if @root.selectableControls}}
+                  <input type="checkbox" class="form-check-input rv-select ru-select" data-cid="{{this.id}}"
+                    title="{{t 'ru.selectHelp'}}" onchange="selUpdateBars()">
+                {{/if}}
                 {{{controlResultIcon this.audit_result}}}
                 <span class="control-id">{{this.control_id}}</span>
                 <span class="control-title">{{this.title}}</span>
@@ -838,10 +843,18 @@
                   <textarea class="form-control form-control-sm rv-input" rows="1" data-cid="{{this.id}}" data-field="assessor_feedback"
                     placeholder="{{t 'rv.feedbackPh'}}" onchange="rvSaveField(this,'{{../../assessment.id}}')">{{this.assessor_feedback}}</textarea>
                 </div>
-                <div class="col-12 d-flex gap-2 flex-wrap">
-                  <button type="button" class="btn btn-sm btn-outline-success" onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','reviewed')"><i class="bi bi-check2-circle me-1"></i>{{t 'rv.markReviewed'}}</button>
-                  <button type="button" class="btn btn-sm btn-outline-warning" onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','needs-resubmission')"><i class="bi bi-arrow-repeat me-1"></i>{{t 'rv.requestResub'}}</button>
-                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','removed')"><i class="bi bi-x-circle me-1"></i>{{t 'rv.remove'}}</button>
+                {{!-- The review buttons reflect review_status. They deliberately do
+                      NOT disable the Audit result above: that is a separate axis and
+                      complete-audit scores from it, so locking it would make a
+                      reviewed control impossible to score. --}}
+                <div class="col-12 d-flex gap-2 flex-wrap rv-actions" id="rvActions-{{this.id}}" data-cid="{{this.id}}" data-aid="{{../../assessment.id}}">
+                  <button type="button" class="btn btn-sm btn-outline-success rv-act-reviewed"
+                    onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','reviewed')"><i class="bi bi-check2-circle me-1"></i>{{t 'rv.markReviewed'}}</button>
+                  <button type="button" class="btn btn-sm btn-success rv-act-isreviewed" hidden disabled><i class="bi bi-check2-circle me-1"></i>{{t 'rv.isReviewed'}}</button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary rv-act-reopen" hidden
+                    onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','pending')"><i class="bi bi-arrow-counterclockwise me-1"></i>{{t 'rv.reopen'}}</button>
+                  <button type="button" class="btn btn-sm btn-outline-warning rv-act-resub" onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','needs-resubmission')"><i class="bi bi-arrow-repeat me-1"></i>{{t 'rv.requestResub'}}</button>
+                  <button type="button" class="btn btn-sm btn-outline-danger rv-act-remove" onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','removed')"><i class="bi bi-x-circle me-1"></i>{{t 'rv.remove'}}</button>
                 </div>
               </div>
             </div>
@@ -859,7 +872,9 @@
 
           <!-- Comment thread toggle -->
           <div class="mt-2">
-            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0"
+            {{!-- Reading the thread is not editing, so it stays available on a
+                  locked (reviewed) control. --}}
+            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" data-rv-keep-enabled
               data-bs-toggle="collapse" data-bs-target="#comments-{{this.id}}">
               <i class="bi bi-chat-dots me-1"></i>{{t 'ui.comments'}}
             </button>
@@ -1784,12 +1799,17 @@ window.AIAssistConfig = {
 
 {{#if canRequestUpdates}}{{#unless viewingVersion}}
 <!-- Send selected control(s) back to the assignee for update (with a note per control) -->
+{{!-- Shown on its own only when the review bar is not available (i.e. outside the
+      audit step). During audit the Send-for-update action lives inside the single
+      review bar — two bottom-centred fixed bars used to sit on top of each other. --}}
+{{#unless (eq assessment.status "audit")}}
 <div id="ruBar" class="position-fixed bottom-0 start-50 translate-middle-x mb-3 shadow rounded bg-white border p-2 px-3 d-flex align-items-center gap-2" style="z-index:1080;display:none">
   <span class="badge text-bg-warning"><i class="bi bi-arrow-repeat me-1"></i><span id="ruCount">0</span></span>
   <span class="small fw-semibold">{{t 'ru.barTitle'}}</span>
   <button type="button" class="btn btn-sm btn-warning ms-2" onclick="ruOpen()"><i class="bi bi-send me-1"></i>{{t 'ru.sendBtn'}}</button>
   <button type="button" class="btn-close ms-1" aria-label="Close" onclick="ruClear()"></button>
 </div>
+{{/unless}}
 
 <div class="modal fade" id="ruModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-scrollable modal-lg">
@@ -1824,8 +1844,8 @@ window.AIAssistConfig = {
                label:((card&&card.getAttribute('data-ctrlid'))||'')+' — '+((card&&card.getAttribute('data-title'))||'') };
     });
   }
-  window.ruUpdateBar=function(){ var n=document.querySelectorAll('.ru-select:checked').length; var bar=document.getElementById('ruBar'); document.getElementById('ruCount').textContent=n; bar.style.display=n?'flex':'none'; };
-  window.ruClear=function(){ document.querySelectorAll('.ru-select:checked').forEach(function(b){b.checked=false;}); ruUpdateBar(); };
+  window.ruUpdateBar=function(){ var n=document.querySelectorAll('.ru-select:checked').length; var bar=document.getElementById('ruBar'); if(!bar) return; var c=document.getElementById('ruCount'); if(c) c.textContent=n; bar.style.display=n?'flex':'none'; };
+  window.ruClear=function(){ document.querySelectorAll('.ru-select:checked').forEach(function(b){b.checked=false;}); selUpdateBars(); };
   window.ruOpen=function(){
     var sel=selected(); if(!sel.length) return;
     document.getElementById('ruModalRows').innerHTML = sel.map(function(s){
@@ -1856,7 +1876,25 @@ window.AIAssistConfig = {
 <style>
   .rv-badge-reviewed{background:#2fa06d} .rv-badge-needs-resubmission{background:#e0a53d;color:#332600}
   .rv-badge-removed{background:#6b7c90} .rv-badge-accepted{background:#1c7a4e} .rv-badge-pending{background:#4d9fe0}
+  /* Brief confirmation on the control itself after a review action. */
+  @keyframes rvJustChanged {
+    0%   { box-shadow:0 0 0 0 rgba(47,160,109,.55); background:#eafaf2; }
+    100% { box-shadow:0 0 0 10px rgba(47,160,109,0); background:transparent; }
+  }
+  .rv-just-changed { animation: rvJustChanged 1.4s ease-out; }
+  @media (prefers-reduced-motion: reduce) { .rv-just-changed { animation: none; background:#eafaf2; } }
+  /* A reviewed control is locked: signed off, and read-only until reopened. */
+  .rv-locked { border-left:4px solid #1c7a4e; background:#fbfdfc; }
+  .rv-locked :disabled { cursor:not-allowed; }
 </style>
+{{!-- One checkbox per control drives both the review bar (audit) and the
+      send-for-update bar, so the handler must exist whenever either can render. --}}
+<script>
+function selUpdateBars(){
+  if (typeof window.rvUpdateBar === 'function') window.rvUpdateBar();
+  if (typeof window.ruUpdateBar === 'function') window.ruUpdateBar();
+}
+</script>
 {{#eq assessment.status "audit"}}
 {{> bulk-feedback}}
 <div id="rvBulkBar" class="shadow" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:1050;background:#0a1626;color:#fff;border-radius:12px;padding:8px 12px;align-items:center;gap:10px">
@@ -1865,6 +1903,9 @@ window.AIAssistConfig = {
   <button type="button" class="btn btn-sm btn-outline-light" onclick="rvBulk('needs-resubmission')"><i class="bi bi-arrow-repeat me-1"></i>{{t 'rv.requestResub'}}</button>
   <button type="button" class="btn btn-sm btn-outline-light" onclick="rvBulk('accept')"><i class="bi bi-patch-check me-1"></i>{{t 'rv.acceptAll'}}</button>
   <button type="button" class="btn btn-sm btn-outline-light" onclick="rvBulk('removed')"><i class="bi bi-x-circle me-1"></i>{{t 'rv.remove'}}</button>
+  {{#if canRequestUpdates}}{{#unless viewingVersion}}
+    <button type="button" class="btn btn-sm btn-warning" onclick="ruOpen()"><i class="bi bi-send me-1"></i>{{t 'ru.sendBtn'}}</button>
+  {{/unless}}{{/if}}
   <button type="button" class="btn btn-sm btn-link text-light text-decoration-none" onclick="rvClear()">{{t 'ev.clear'}}</button>
 </div>
 <div id="rvCtxMenu" class="shadow-sm border bg-white rounded" style="display:none;position:fixed;z-index:1060;min-width:200px;font-size:13px;padding:4px 0">
@@ -1879,9 +1920,9 @@ const RV_FILTERS = new Set();
 function rvToggleFilter(el){ const f=el.getAttribute('data-f'); if(RV_FILTERS.has(f)){RV_FILTERS.delete(f);el.style.outline='';}else{RV_FILTERS.add(f);el.style.outline='2px solid rgba(0,0,0,.3)';} rvApplyFilter(); }
 function rvApplyFilter(){ document.querySelectorAll('.rv-ctrl').forEach(function(c){ const show=RV_FILTERS.size===0||RV_FILTERS.has(c.getAttribute('data-rvstatus')); c.style.display=show?'':'none'; if(!show){var b=c.querySelector('.rv-select'); if(b) b.checked=false;} }); rvUpdateBar(); }
 function rvSelectedIds(){ return [].slice.call(document.querySelectorAll('.rv-select:checked')).map(function(b){return Number(b.getAttribute('data-cid'));}); }
-function rvUpdateBar(){ const ids=rvSelectedIds(); const bar=document.getElementById('rvBulkBar'); if(!bar) return; document.getElementById('rvSelCount').textContent=ids.length; bar.style.display=ids.length?'flex':'none'; }
-function rvToggleSelectAll(cb){ document.querySelectorAll('.rv-ctrl').forEach(function(c){ if(c.style.display!=='none'){var b=c.querySelector('.rv-select'); if(b) b.checked=cb.checked;} }); rvUpdateBar(); }
-function rvClear(){ document.querySelectorAll('.rv-select:checked').forEach(function(b){b.checked=false;}); var sa=document.getElementById('rvSelectAll'); if(sa) sa.checked=false; rvUpdateBar(); }
+window.rvUpdateBar = function rvUpdateBar(){ const ids=rvSelectedIds(); const bar=document.getElementById('rvBulkBar'); if(!bar) return; document.getElementById('rvSelCount').textContent=ids.length; bar.style.display=ids.length?'flex':'none'; }
+function rvToggleSelectAll(cb){ document.querySelectorAll('.rv-ctrl').forEach(function(c){ if(c.style.display!=='none'){var b=c.querySelector('.rv-select'); if(b) b.checked=cb.checked;} }); selUpdateBars(); }
+function rvClear(){ document.querySelectorAll('.rv-select:checked').forEach(function(b){b.checked=false;}); var sa=document.getElementById('rvSelectAll'); if(sa) sa.checked=false; selUpdateBars(); }
 async function rvSaveField(el, aid){
   const cid=el.getAttribute('data-cid'), field=el.getAttribute('data-field');
   const body={}; body[field]=el.value;
@@ -1897,8 +1938,8 @@ async function rvSetStatus(cid, aid, status){
     showBulkFlash(BF_I18N.updated.replace('{n}', 1));
   }catch(e){ hideBulkProgress(); showBulkFlash(BF_I18N.error, true); }
 }
-const RV_PROG = { reviewed: {{{tjs 'rv.pReviewed'}}}, 'needs-resubmission': {{{tjs 'rv.pResub'}}}, accept: {{{tjs 'rv.pAccept'}}}, removed: {{{tjs 'rv.pRemoved'}}} };
-const RV_STLABEL = { reviewed: {{{tjs 'rv.st_reviewed'}}}, 'needs-resubmission': {{{tjs 'rv.st_needs-resubmission'}}}, removed: {{{tjs 'rv.st_removed'}}}, accepted: {{{tjs 'rv.st_accepted'}}} };
+const RV_PROG = { pending: {{{tjs 'rv.pReopen'}}}, reviewed: {{{tjs 'rv.pReviewed'}}}, 'needs-resubmission': {{{tjs 'rv.pResub'}}}, accept: {{{tjs 'rv.pAccept'}}}, removed: {{{tjs 'rv.pRemoved'}}} };
+const RV_STLABEL = { reviewed: {{{tjs 'rv.st_reviewed'}}}, 'needs-resubmission': {{{tjs 'rv.st_needs-resubmission'}}}, removed: {{{tjs 'rv.st_removed'}}}, accepted: {{{tjs 'rv.st_accepted'}}}, pending: {{{tjs 'rv.st_pending'}}} };
 async function rvBulk(action){
   const ids=rvSelectedIds(); if(!ids.length) return;
   showBulkProgress(RV_PROG[action] || '');
@@ -1916,10 +1957,58 @@ function rvApplyStatus(cid, status){
   const card=document.getElementById('control-'+cid); if(!card) return;
   card.setAttribute('data-rvstatus', status);
   var badge=document.getElementById('rvBadge-'+cid);
-  if(!badge){ var host=card.querySelector('.d-flex.gap-1'); if(host){ badge=document.createElement('span'); badge.id='rvBadge-'+cid; badge.className='badge'; host.appendChild(badge); } }
+  if(!badge){
+    // The old lookup relied on a '.d-flex.gap-1' host existing; fall back to the
+    // card header so a control without one still gets its status badge.
+    var host=card.querySelector('.d-flex.gap-1') || card.querySelector('.d-flex');
+    if(host){ badge=document.createElement('span'); badge.id='rvBadge-'+cid; badge.className='badge'; host.appendChild(badge); }
+  }
   if(badge){ badge.className='badge rv-badge rv-badge-'+status; badge.textContent=RV_STLABEL[status]||status; }
-  if(status==='removed') card.style.opacity='.6';
+  card.style.opacity = (status==='removed') ? '.6' : '';
+  rvSyncActions(cid, status);
+  // Confirm at the control, since that is where the assessor is looking.
+  card.classList.remove('rv-just-changed');
+  void card.offsetWidth;            // restart the animation on a repeat action
+  card.classList.add('rv-just-changed');
 }
+
+// Show the state the control is IN, and the action that moves it on: a control
+// already marked reviewed should not keep offering "Mark reviewed".
+function rvSyncActions(cid, status){
+  const box=document.getElementById('rvActions-'+cid); if(!box) return;
+  const done = (status==='reviewed' || status==='accepted');
+  const set=(sel,on)=>{ const el=box.querySelector(sel); if(el) el.hidden=!on; };
+  set('.rv-act-reviewed', !done);
+  set('.rv-act-isreviewed', done);
+  set('.rv-act-reopen', done);
+  rvSetReadOnly(cid, done);
+}
+
+/**
+ * Lock a reviewed control so the audit record cannot drift after sign-off.
+ *
+ * Everything inside the card is disabled — audit result, comments, reliability,
+ * sufficiency, weight, feedback — except the two things needed to get back out:
+ * the Reopen button and the selection checkbox (selecting is not editing, and
+ * bulk reopen has to stay reachable).
+ */
+function rvSetReadOnly(cid, locked){
+  const card=document.getElementById('control-'+cid); if(!card) return;
+  card.classList.toggle('rv-locked', locked);
+  card.querySelectorAll('input, select, textarea, button').forEach(function(el){
+    if (el.classList.contains('rv-select') || el.classList.contains('ru-select')) return;
+    if (el.classList.contains('rv-act-reopen')) { el.disabled = false; return; }
+    if (el.classList.contains('rv-act-isreviewed')) return;  // a label, always disabled
+    if (el.hasAttribute('data-rv-keep-enabled')) return;
+    el.disabled = locked;
+  });
+}
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.rv-actions').forEach(function(box){
+    const card=document.getElementById('control-'+box.dataset.cid);
+    rvSyncActions(box.dataset.cid, card ? card.getAttribute('data-rvstatus') : 'pending');
+  });
+});
 let rvCtxId=null;
 document.addEventListener('contextmenu',function(e){ const card=e.target.closest && e.target.closest('.rv-ctrl'); if(!card||card.style.display==='none') return; if(!document.querySelector('.rv-select')) return; e.preventDefault(); const cb=card.querySelector('.rv-select'); if(cb && rvSelectedIds().length===0){ cb.checked=true; rvUpdateBar(); } rvCtxId=cb?Number(cb.getAttribute('data-cid')):null; const m=document.getElementById('rvCtxMenu'); m.style.left=Math.min(e.clientX,window.innerWidth-210)+'px'; m.style.top=e.clientY+'px'; m.style.display='block'; });
 document.addEventListener('click',function(){ var m=document.getElementById('rvCtxMenu'); if(m) m.style.display='none'; });

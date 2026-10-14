@@ -4151,5 +4151,15 @@
   "ea.forControl": "Nachweis für {{control}}",
   "ea.none": "Noch keine Nachweisanhänge vorhanden.",
   "ea.heading": "Nachweisanhänge",
-  "ea.attachedFiles": "Angehängte Dateien"
+  "ea.attachedFiles": "Angehängte Dateien",
+  "bk.ofInScope": "von {{total}} Kontrollen im Geltungsbereich",
+  "bk.tailoredOutLabel": "ausgeschlossen",
+  "bk.flashTailoredOut": "{n} Kontrolle(n) aus dem Geltungsbereich entfernt",
+  "bk.flashKeptOnly": "{n} Kontrolle(n) im Geltungsbereich behalten",
+  "bk.generateGuidance": "Mit KI erzeugen",
+  "bk.aiWorking": "Wird bearbeitet…",
+  "bk.aiFailed": "Die KI-Anfrage konnte nicht abgeschlossen werden.",
+  "rv.isReviewed": "Geprüft",
+  "rv.reopen": "Erneut öffnen",
+  "rv.pReopen": "Kontrolle wird wieder geöffnet…"
 }

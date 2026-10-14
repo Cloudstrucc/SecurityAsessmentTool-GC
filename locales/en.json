@@ -4129,5 +4129,15 @@
   "ea.forControl": "Evidence for {{control}}",
   "ea.none": "No evidence attachments yet.",
   "ea.heading": "Evidence attachments",
-  "ea.attachedFiles": "Attached files"
+  "ea.attachedFiles": "Attached files",
+  "bk.ofInScope": "of {{total}} controls in scope",
+  "bk.tailoredOutLabel": "tailored out",
+  "bk.flashTailoredOut": "{n} control(s) tailored out",
+  "bk.flashKeptOnly": "Kept {n} control(s) in scope",
+  "bk.generateGuidance": "Generate with AI",
+  "bk.aiWorking": "Working…",
+  "bk.aiFailed": "The AI request could not be completed.",
+  "rv.isReviewed": "Reviewed",
+  "rv.reopen": "Reopen",
+  "rv.pReopen": "Reopening the control…"
 }

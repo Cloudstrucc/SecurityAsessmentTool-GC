@@ -4173,5 +4173,15 @@
   "ea.forControl": "Preuve pour {{control}}",
   "ea.none": "Aucune pièce jointe de preuve pour le moment.",
   "ea.heading": "Pièces jointes des preuves",
-  "ea.attachedFiles": "Fichiers joints"
+  "ea.attachedFiles": "Fichiers joints",
+  "bk.ofInScope": "de {{total}} contrôles dans la portée",
+  "bk.tailoredOutLabel": "retirés",
+  "bk.flashTailoredOut": "{n} contrôle(s) retiré(s) de la portée",
+  "bk.flashKeptOnly": "{n} contrôle(s) conservé(s) dans la portée",
+  "bk.generateGuidance": "Générer avec l'IA",
+  "bk.aiWorking": "En cours…",
+  "bk.aiFailed": "La demande à l'IA n'a pas pu aboutir.",
+  "rv.isReviewed": "Examiné",
+  "rv.reopen": "Rouvrir",
+  "rv.pReopen": "Réouverture du contrôle…"
 }

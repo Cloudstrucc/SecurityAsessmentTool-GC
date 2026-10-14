@@ -4173,5 +4173,15 @@
   "ea.forControl": "Evidencia de {{control}}",
   "ea.none": "Todavía no hay adjuntos de evidencia.",
   "ea.heading": "Adjuntos de evidencia",
-  "ea.attachedFiles": "Archivos adjuntos"
+  "ea.attachedFiles": "Archivos adjuntos",
+  "bk.ofInScope": "de {{total}} controles en el alcance",
+  "bk.tailoredOutLabel": "excluidos",
+  "bk.flashTailoredOut": "{n} control(es) excluido(s) del alcance",
+  "bk.flashKeptOnly": "Se mantuvieron {n} control(es) en el alcance",
+  "bk.generateGuidance": "Generar con IA",
+  "bk.aiWorking": "Procesando…",
+  "bk.aiFailed": "No se pudo completar la solicitud a la IA.",
+  "rv.isReviewed": "Revisado",
+  "rv.reopen": "Reabrir",
+  "rv.pReopen": "Reabriendo el control…"
 }
