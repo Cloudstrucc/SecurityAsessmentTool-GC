@@ -111,6 +111,45 @@ function render(model, opts = {}) {
     out += h(2, t('rf.outstandingConditions'));
     out += table(['#', t('rf.control'), t('rf.risk'), t('rf.owner'), t('rf.due'), t('rf.state')],
       m.conditions.filter(i => i.state !== 'accepted').map(i => [i.id, i.control_id || '', i.risk_level || '', i.assigned_to || '', i.deadline || '', i.state]));
+
+    // Full detail: the authorization narrative, the controls with their evidence,
+    // and the files filed against them — the rollup above is only a summary.
+    const D = m.decisionDetail && m.decisionDetail.decision;
+    if (D) {
+      out += h(2, t('rf.authorizationDecision'));
+      out += `- **${t('rf.packageReference')}:** ${D.reference || '—'}\n`;
+      out += `- **${t('rf.decisionType')}:** ${String(D.decision_type || '').toUpperCase()}\n`;
+      out += `- **${t('rf.state')}:** ${D.state || '—'}\n`;
+      out += `- **${t('rf.authorizingOfficial')}:** ${D.authorizing_official || '—'}\n`;
+      out += `- **${t('rf.assessor')}:** ${D.assessor || '—'}\n`;
+      out += `- **${t('rf.issued')}:** ${D.issued_at || '—'} · **${t('rf.expires')}:** ${D.expires_at || '—'}\n\n`;
+      [['rf.executiveSummary', D.executive_summary], ['rf.residualRisk', D.residual_risk_statement],
+        ['rf.decisionRationale', D.decision_rationale], ['rf.conditions', D.conditions]]
+        .forEach(([k, v]) => { if (v) out += h(3, t(k)) + v + '\n\n'; });
+    }
+    const AD = m.activeDetail;
+    const ctls = (AD && AD.controls) || [];
+    if (ctls.length) {
+      out += h(2, t('rf.controlsAndEvidence'));
+      ctls.forEach(c => {
+        out += h(3, `${c.control_id} — ${c.title || ''}`);
+        out += `**${t('rf.result')}:** ${c.result || t('rf.pending')}\n\n`;
+        if (c.rationale) out += `**${t('rf.tailoringRationale')}:** ${c.rationale}\n\n`;
+        out += `**${t('rf.evidence')}:**\n\n${c.evidence || '—'}\n\n`;
+        if (c.finding) out += `**${t('rf.finding')}:** ${c.finding}\n\n`;
+      });
+      const so = (AD && AD.scopedOut) || [];
+      if (so.length) {
+        out += h(2, t('rf.tailoringRegister'));
+        out += table([t('rf.control'), t('rf.title'), t('rf.exclusionReason')],
+          so.map(c => [c.control_id, c.title || '', c.reason || '—']));
+      }
+    }
+    if (m.attachments && m.attachments.length) {
+      out += h(2, t('rf.evidenceAttachments'));
+      out += table([t('rf.control'), t('rf.document'), t('rf.uploaded')],
+        m.attachments.map(a => [a.control_id || '', a.original_name || '', a.uploaded_at || '']));
+    }
   } else if (m.type === 'portfolio') {
     const S = m.summary;
     out += h(2, t('rf.systems'));

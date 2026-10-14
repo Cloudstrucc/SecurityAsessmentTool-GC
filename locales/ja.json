@@ -4185,5 +4185,10 @@
   "sc.ofAssessment": "（評価スコアに占める割合）",
   "sc.outOfMax": "最大 {{max}} % のうち",
   "sc.ofOwnCeiling": "上限の {{pct}} %",
-  "sc.fullDoc": "詳細ドキュメント"
+  "sc.fullDoc": "詳細ドキュメント",
+  "rf.authorizationDecision": "認可判断",
+  "rf.controlsAndEvidence": "管理策と証跡",
+  "rf.evidenceAttachments": "証跡の添付ファイル",
+  "rf.field": "項目",
+  "rf.value": "値"
 }

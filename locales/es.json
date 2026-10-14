@@ -4207,5 +4207,10 @@
   "sc.ofAssessment": "de la puntuación de la evaluación",
   "sc.outOfMax": "de un máximo del {{max}} %",
   "sc.ofOwnCeiling": "{{pct}} % de su máximo",
-  "sc.fullDoc": "Documentación completa"
+  "sc.fullDoc": "Documentación completa",
+  "rf.authorizationDecision": "Decisión de autorización",
+  "rf.controlsAndEvidence": "Controles y evidencias",
+  "rf.evidenceAttachments": "Adjuntos de evidencia",
+  "rf.field": "Campo",
+  "rf.value": "Valor"
 }

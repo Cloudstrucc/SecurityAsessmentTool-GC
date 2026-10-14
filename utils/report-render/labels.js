@@ -9,6 +9,12 @@
  * renderers still work in tests and scripts with no i18n runtime.
  */
 const EN = {
+  // Full project report — the detail sections appended to the rollup.
+  'rf.authorizationDecision': 'Authorization decision',
+  'rf.controlsAndEvidence': 'Controls and evidence',
+  'rf.evidenceAttachments': 'Evidence attachments',
+  'rf.field': 'Field',
+  'rf.value': 'Value',
   'rf.report': 'report',
   'rf.generated': 'Generated',
   'rf.generatedBy': 'by',

@@ -4163,5 +4163,10 @@
   "sc.ofAssessment": "of the assessment score",
   "sc.outOfMax": "of a possible {{max}}%",
   "sc.ofOwnCeiling": "{{pct}}% of its own ceiling",
-  "sc.fullDoc": "Full documentation"
+  "sc.fullDoc": "Full documentation",
+  "rf.authorizationDecision": "Authorization decision",
+  "rf.controlsAndEvidence": "Controls and evidence",
+  "rf.evidenceAttachments": "Evidence attachments",
+  "rf.field": "Field",
+  "rf.value": "Value"
 }

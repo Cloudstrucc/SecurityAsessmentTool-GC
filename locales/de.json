@@ -4185,5 +4185,10 @@
   "sc.ofAssessment": "der Bewertungspunktzahl",
   "sc.outOfMax": "von maximal {{max}} %",
   "sc.ofOwnCeiling": "{{pct}} % des eigenen Maximums",
-  "sc.fullDoc": "Vollständige Dokumentation"
+  "sc.fullDoc": "Vollständige Dokumentation",
+  "rf.authorizationDecision": "Autorisierungsentscheidung",
+  "rf.controlsAndEvidence": "Kontrollen und Nachweise",
+  "rf.evidenceAttachments": "Nachweisanhänge",
+  "rf.field": "Feld",
+  "rf.value": "Wert"
 }

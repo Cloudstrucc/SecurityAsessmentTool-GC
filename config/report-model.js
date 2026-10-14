@@ -236,8 +236,33 @@ function projectRollup(projectId, { orgId, req } = {}) {
   });
   const active = assessments.find(a => !['archived', 'superseded'].includes(a.status)) || assessments[0] || null;
 
+  // ── Full detail ──────────────────────────────────────────────────────────
+  // The rollup used to list assessments and decisions as one-line rows, so the
+  // "full project report" carried no controls, no evidence and none of the
+  // authorization narrative — the things an assessor actually needs to show.
+  // Compose the detail from the same assemblers the standalone reports use, so
+  // there is one definition of each section rather than two that can drift.
+  const activeDetail = active ? assessmentReport(active.id, { orgId, req }) : null;
+  // The authoritative decision is the issued one; fall back to the newest.
+  const issued = decisions.find(d => d.state === 'issued') || decisions[0] || null;
+  const decisionDetail = issued ? decisionPackage(issued.id, { orgId, req }) : null;
+
+  // Evidence the provider attached, per control, so the record shows what was
+  // actually filed and not just the narrative that cites it.
+  const attachments = all(`
+    SELECT at.original_name, at.size, at.uploaded_at, ac.control_id, ac.title AS control_title
+    FROM attachments at
+    JOIN assessment_controls ac ON ac.id = at.assessment_control_id
+    JOIN assessments a ON a.id = ac.assessment_id
+    WHERE a.project_id = ?
+    ORDER BY ac.control_id, at.id
+  `, [projectId]).map(r => ({ ...r, uploaded_at: fmtDate(r.uploaded_at) }));
+
   return {
     type: 'project', immutable: false,
+    // Detail sections — each may be null when the project has not reached that
+    // stage; every renderer guards on that rather than assuming they exist.
+    activeDetail, decisionDetail, attachments,
     title: 'Project rollup report', subject: project.name,
     subtitle: project.description ? stripHtml(project.description) : '',
     reportId: `PRJ-${String(projectId).padStart(4, '0')}`,

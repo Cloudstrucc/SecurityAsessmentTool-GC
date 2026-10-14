@@ -432,6 +432,78 @@ function projectBody(m, b, t, logoDataUri, cls) {
       </tbody></table>
       <div class="note">${esc(t('rf.noAttachmentsNote'))}</div>
     </section>${foot(b, m, cls)}</div>`;
+
+  // ── Full detail ────────────────────────────────────────────────────────
+  // The sections above are the rollup. What follows is the detail an assessor
+  // has to be able to show from a single document: the authorization narrative,
+  // the controls with their evidence and results, and the files actually filed.
+  // Reuses the same classes, pills and labels as the standalone reports.
+  const D = m.decisionDetail && m.decisionDetail.decision;
+  if (D) {
+    const fld = (labelKey, value) => value
+      ? `<div class="lbl">${esc(t(labelKey))}</div><div class="body">${esc(value).replace(/\n/g, '<br>')}</div>` : '';
+    h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span></span></div>
+      <section><div class="sec-h"><span class="num">5</span><h2>${esc(t('rf.authorizationDecision'))}</h2></div>
+        <table class="kv"><tbody>
+          <tr><th>${esc(t('rf.packageReference'))}</th><td class="mono">${esc(D.reference || '')}</td></tr>
+          <tr><th>${esc(t('rf.decisionType'))}</th><td>${esc(String(D.decision_type || '').toUpperCase())}</td></tr>
+          <tr><th>${esc(t('rf.state'))}</th><td><span class="pill p-ok">${esc(D.state || '')}</span></td></tr>
+          <tr><th>${esc(t('rf.authorizingOfficial'))}</th><td>${esc(D.authorizing_official || '—')}</td></tr>
+          <tr><th>${esc(t('rf.assessor'))}</th><td>${esc(D.assessor || '—')}</td></tr>
+          <tr><th>${esc(t('rf.issued'))}</th><td>${esc(D.issued_at || '—')}</td></tr>
+          <tr><th>${esc(t('rf.expires'))}</th><td>${esc(D.expires_at || '—')}</td></tr>
+        </tbody></table>
+        <div class="finding">
+          ${fld('rf.executiveSummary', D.executive_summary)}
+          ${fld('rf.residualRisk', D.residual_risk_statement)}
+          ${fld('rf.decisionRationale', D.decision_rationale)}
+          ${fld('rf.conditions', D.conditions)}
+        </div>
+      </section>${foot(b, m, cls)}</div>`;
+  }
+
+  // Controls with their evidence — four per sheet, same shape as the findings
+  // pages of the assessment report.
+  const AD = m.activeDetail;
+  const ctls = (AD && AD.controls) || [];
+  if (ctls.length) {
+    const fmtCtl = c => `<div class="finding ${c.result === 'partial' ? 'warn' : ''}">
+      <h4><span><span class="ctlid">${esc(c.control_id)}</span> — ${esc(c.title || '')}</span>${resultPill(t, c.result)}</h4>
+      ${c.rationale ? `<div class="lbl">${esc(t('rf.tailoringRationale'))}</div><div class="body">${esc(c.rationale)}</div>` : ''}
+      <div class="lbl">${esc(t('rf.evidence'))}</div><div class="body">${c.evidence ? esc(c.evidence).replace(/\n/g, '<br>') : '—'}</div>
+      ${c.finding ? `<div class="lbl">${esc(t('rf.finding'))}</div><div class="body">${esc(c.finding)}</div>` : ''}</div>`;
+    const cch = [];
+    for (let i = 0; i < ctls.length; i += 4) cch.push(ctls.slice(i, i + 4));
+    cch.forEach((chunk, idx) => {
+      h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span></span></div>
+        <section><div class="sec-h"><span class="num">6</span><h2>${esc(t('rf.controlsAndEvidence'))}${idx ? ' (…)' : ''}</h2></div>
+          ${chunk.map(fmtCtl).join('')}
+        </section>${foot(b, m, cls)}</div>`;
+    });
+
+    const so = (AD && AD.scopedOut) || [];
+    if (so.length) {
+      h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span></span></div>
+        <section><div class="sec-h"><span class="num">7</span><h2>${esc(t('rf.tailoringRegister'))}</h2></div>
+          <table class="data"><thead><tr><th style="width:22mm">${esc(t('rf.control'))}</th><th>${esc(t('rf.title'))}</th>
+            <th style="width:70mm">${esc(t('rf.exclusionReason'))}</th></tr></thead><tbody>
+            ${so.map(c => `<tr><td><span class="ctlid">${esc(c.control_id)}</span></td>
+              <td>${esc(c.title || '')}</td><td>${esc(c.reason || '—')}</td></tr>`).join('')}
+          </tbody></table>
+        </section>${foot(b, m, cls)}</div>`;
+    }
+  }
+
+  if (m.attachments && m.attachments.length) {
+    h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span></span></div>
+      <section><div class="sec-h"><span class="num">8</span><h2>${esc(t('rf.evidenceAttachments'))}</h2></div>
+        <table class="data"><thead><tr><th style="width:22mm">${esc(t('rf.control'))}</th><th>${esc(t('rf.document'))}</th>
+          <th style="width:26mm">${esc(t('rf.uploaded'))}</th></tr></thead><tbody>
+          ${m.attachments.map(a => `<tr><td><span class="ctlid">${esc(a.control_id || '')}</span></td>
+            <td>${esc(a.original_name || '')}</td><td>${esc(a.uploaded_at || '')}</td></tr>`).join('')}
+        </tbody></table>
+      </section>${foot(b, m, cls)}</div>`;
+  }
   return h;
 }
 

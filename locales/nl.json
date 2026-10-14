@@ -4185,5 +4185,10 @@
   "sc.ofAssessment": "van de beoordelingsscore",
   "sc.outOfMax": "van maximaal {{max}} %",
   "sc.ofOwnCeiling": "{{pct}} % van haar eigen maximum",
-  "sc.fullDoc": "Volledige documentatie"
+  "sc.fullDoc": "Volledige documentatie",
+  "rf.authorizationDecision": "Autorisatiebesluit",
+  "rf.controlsAndEvidence": "Maatregelen en bewijs",
+  "rf.evidenceAttachments": "Bewijsbijlagen",
+  "rf.field": "Veld",
+  "rf.value": "Waarde"
 }
