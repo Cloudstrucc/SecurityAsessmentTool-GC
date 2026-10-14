@@ -4,6 +4,7 @@ const { run, all, get } = require('../models/database');
 const emailService = require('../utils/emailService');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
@@ -389,6 +390,21 @@ router.get('/respond/:code', ensureEvidenceUser, (req, res) => {
     ORDER BY family, control_id
   `, [assessment.id]);
 
+  // Saved attachments, grouped by control. The page used to render these only
+  // from the in-page upload handler, so everything already on file vanished on
+  // the next page load and could not be downloaded back.
+  const attachmentsByControl = {};
+  if (controls.length) {
+    const placeholders = controls.map(() => '?').join(',');
+    all(`SELECT id, assessment_control_id, original_name, size
+         FROM attachments WHERE assessment_control_id IN (${placeholders})
+         ORDER BY uploaded_at, id`, controls.map(c => c.id))
+      .forEach(a => {
+        (attachmentsByControl[a.assessment_control_id] ||= []).push(a);
+      });
+  }
+  controls.forEach(c => { c.attachmentList = attachmentsByControl[c.id] || []; });
+
   const families = {};
   controls.forEach(c => {
     if (!families[c.family]) families[c.family] = { code: c.family, name: c.family_name, controls: [] };
@@ -626,7 +642,7 @@ router.post('/respond/:code/upload/:controlId', ensureEvidenceUser, upload.singl
   const accU = evidenceAccess(req, assessment);
   if (!accU || !accU.canEdit) return res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
 
-  run(`INSERT INTO attachments (assessment_control_id, filename, original_name, mime_type, size, uploaded_by)
+  const attachmentId = run(`INSERT INTO attachments (assessment_control_id, filename, original_name, mime_type, size, uploaded_by)
     VALUES (?, ?, ?, ?, ?, ?)`,
     [req.params.controlId, req.file.filename, req.file.originalname, req.file.mimetype, req.file.size, 'project-owner']);
 
@@ -635,7 +651,33 @@ router.post('/respond/:code/upload/:controlId', ensureEvidenceUser, upload.singl
   run('UPDATE assessment_controls SET attachments = ? WHERE id = ?',
     [JSON.stringify(attachments.map(a => ({ id: a.id, name: a.original_name, size: a.size }))), req.params.controlId]);
 
-  res.json({ success: true, file: { id: req.file.filename, name: req.file.originalname } });
+  // attachmentId is what the download link needs; `id` stays the stored filename
+  // for any older caller that still reads it.
+  res.json({ success: true, file: { id: req.file.filename, attachmentId, name: req.file.originalname } });
+});
+
+/**
+ * Download an attachment the provider filed against a control. The id is
+ * resolved through THIS assessment's controls, so an id belonging to another
+ * assessment is simply not found.
+ */
+router.get('/respond/:code/attachment/:attId', ensureEvidenceUser, (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
+  if (!assessment) return res.status(404).send('Not found');
+  const attachment = get(`
+    SELECT at.* FROM attachments at
+    JOIN assessment_controls ac ON ac.id = at.assessment_control_id
+    WHERE at.id = ? AND ac.assessment_id = ?
+  `, [req.params.attId, assessment.id]);
+  if (!attachment) return res.status(404).send('Not found');
+  const candidates = [
+    path.join(UPLOAD_DIR, attachment.filename),
+    path.join(intakeUploadDir, attachment.filename)
+  ];
+  const filePath = candidates.find(p => fs.existsSync(p));
+  if (!filePath) return res.status(404).send('That attachment is missing from storage.');
+  res.download(filePath, attachment.original_name);
 });
 
 // Add comment

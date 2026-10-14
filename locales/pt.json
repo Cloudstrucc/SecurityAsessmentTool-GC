@@ -4141,5 +4141,15 @@
   "pc.save": "Guardar contactos",
   "pc.cancel": "Cancelar",
   "pc.saved": "Contactos do projeto atualizados.",
-  "pc.notFound": "Projeto não encontrado"
+  "pc.notFound": "Projeto não encontrado",
+  "ea.download": "Transferir",
+  "ea.notFound": "Anexo não encontrado",
+  "ea.missingFile": "Esse anexo não está no armazenamento.",
+  "ea.evidenceSource": "Prova",
+  "ea.projectSource": "Documento do projeto",
+  "ea.source": "Origem",
+  "ea.forControl": "Prova para {{control}}",
+  "ea.none": "Ainda não existem anexos de prova.",
+  "ea.heading": "Anexos de prova",
+  "ea.attachedFiles": "Ficheiros anexados"
 }

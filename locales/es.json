@@ -4163,5 +4163,15 @@
   "pc.save": "Guardar contactos",
   "pc.cancel": "Cancelar",
   "pc.saved": "Contactos del proyecto actualizados.",
-  "pc.notFound": "Proyecto no encontrado"
+  "pc.notFound": "Proyecto no encontrado",
+  "ea.download": "Descargar",
+  "ea.notFound": "Adjunto no encontrado",
+  "ea.missingFile": "Ese adjunto no está en el almacenamiento.",
+  "ea.evidenceSource": "Evidencia",
+  "ea.projectSource": "Documento del proyecto",
+  "ea.source": "Origen",
+  "ea.forControl": "Evidencia de {{control}}",
+  "ea.none": "Todavía no hay adjuntos de evidencia.",
+  "ea.heading": "Adjuntos de evidencia",
+  "ea.attachedFiles": "Archivos adjuntos"
 }

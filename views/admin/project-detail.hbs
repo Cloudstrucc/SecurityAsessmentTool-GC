@@ -430,6 +430,50 @@
           {{else}}
             <p class="text-muted small mb-0">{{t 'ui.noProjectDocumentsUploadedYet'}}</p>
           {{/if}}
+
+          {{!-- Files the evidence provider attached to controls. They live in the
+                attachments table, not project_documents, so they are listed
+                (not copied) here to stay downloadable after the assessment. --}}
+          <h6 class="mt-4 mb-2 small text-uppercase fw-bold text-muted">
+            <i class="bi bi-paperclip me-1"></i>{{t 'ea.heading'}}
+            <span class="badge bg-light text-dark border ms-1">{{evidenceAttachments.length}}</span>
+          </h6>
+          {{#if evidenceAttachments.length}}
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>{{t 'ui.document'}}</th>
+                    <th>{{t 'ea.source'}}</th>
+                    <th>{{t 'ui.uploaded'}}</th>
+                    <th>{{t 'ui.size'}}</th>
+                    <th class="text-end">{{t 'ui.actions'}}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#each evidenceAttachments}}
+                    <tr>
+                      <td class="fw-semibold">{{this.original_name}}</td>
+                      <td class="small">
+                        <span class="badge bg-light text-dark border">{{t 'ea.evidenceSource'}}</span>
+                        <a href="/admin/assessments/{{this.assessment_id}}" class="ms-1 text-decoration-none">{{this.control_id}}</a>
+                      </td>
+                      <td class="small text-muted">{{formatDate this.uploaded_at}}</td>
+                      <td class="small">{{this.display_size}}</td>
+                      <td class="text-end text-nowrap">
+                        <a href="/admin/projects/{{../project.id}}/evidence-attachments/{{this.id}}/download"
+                          class="btn btn-sm btn-outline-primary" title="{{t 'ea.download'}}">
+                          <i class="bi bi-download"></i>
+                        </a>
+                      </td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          {{else}}
+            <p class="text-muted small mb-0">{{t 'ea.none'}}</p>
+          {{/if}}
         </div>
       </div>
 

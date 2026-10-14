@@ -4141,5 +4141,15 @@
   "pc.save": "Kontakte speichern",
   "pc.cancel": "Abbrechen",
   "pc.saved": "Projektkontakte aktualisiert.",
-  "pc.notFound": "Projekt nicht gefunden"
+  "pc.notFound": "Projekt nicht gefunden",
+  "ea.download": "Herunterladen",
+  "ea.notFound": "Anhang nicht gefunden",
+  "ea.missingFile": "Dieser Anhang fehlt im Speicher.",
+  "ea.evidenceSource": "Nachweis",
+  "ea.projectSource": "Projektdokument",
+  "ea.source": "Quelle",
+  "ea.forControl": "Nachweis für {{control}}",
+  "ea.none": "Noch keine Nachweisanhänge vorhanden.",
+  "ea.heading": "Nachweisanhänge",
+  "ea.attachedFiles": "Angehängte Dateien"
 }

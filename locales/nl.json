@@ -4141,5 +4141,15 @@
   "pc.save": "Contactpersonen opslaan",
   "pc.cancel": "Annuleren",
   "pc.saved": "Contactpersonen van het project bijgewerkt.",
-  "pc.notFound": "Project niet gevonden"
+  "pc.notFound": "Project niet gevonden",
+  "ea.download": "Downloaden",
+  "ea.notFound": "Bijlage niet gevonden",
+  "ea.missingFile": "Deze bijlage ontbreekt in de opslag.",
+  "ea.evidenceSource": "Bewijs",
+  "ea.projectSource": "Projectdocument",
+  "ea.source": "Bron",
+  "ea.forControl": "Bewijs voor {{control}}",
+  "ea.none": "Nog geen bewijsbijlagen.",
+  "ea.heading": "Bewijsbijlagen",
+  "ea.attachedFiles": "Bijgevoegde bestanden"
 }

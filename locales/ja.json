@@ -4141,5 +4141,15 @@
   "pc.save": "連絡先を保存",
   "pc.cancel": "キャンセル",
   "pc.saved": "プロジェクトの連絡先を更新しました。",
-  "pc.notFound": "プロジェクトが見つかりません"
+  "pc.notFound": "プロジェクトが見つかりません",
+  "ea.download": "ダウンロード",
+  "ea.notFound": "添付ファイルが見つかりません",
+  "ea.missingFile": "この添付ファイルはストレージに存在しません。",
+  "ea.evidenceSource": "証跡",
+  "ea.projectSource": "プロジェクト文書",
+  "ea.source": "出所",
+  "ea.forControl": "{{control}} の証跡",
+  "ea.none": "証跡の添付ファイルはまだありません。",
+  "ea.heading": "証跡の添付ファイル",
+  "ea.attachedFiles": "添付ファイル"
 }

@@ -4141,5 +4141,15 @@
   "pc.save": "Salva contatti",
   "pc.cancel": "Annulla",
   "pc.saved": "Contatti del progetto aggiornati.",
-  "pc.notFound": "Progetto non trovato"
+  "pc.notFound": "Progetto non trovato",
+  "ea.download": "Scarica",
+  "ea.notFound": "Allegato non trovato",
+  "ea.missingFile": "Questo allegato non è presente nell'archivio.",
+  "ea.evidenceSource": "Evidenza",
+  "ea.projectSource": "Documento di progetto",
+  "ea.source": "Origine",
+  "ea.forControl": "Evidenza per {{control}}",
+  "ea.none": "Nessun allegato di evidenza al momento.",
+  "ea.heading": "Allegati delle evidenze",
+  "ea.attachedFiles": "File allegati"
 }

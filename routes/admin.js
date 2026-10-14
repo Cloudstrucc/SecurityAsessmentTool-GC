@@ -35,6 +35,7 @@ const { createNotification } = require('../config/notify');
 const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
 const QRCode = require('qrcode');
 const {
+  UPLOAD_DIR,
   INTAKE_UPLOAD_DIR: intakeUploadDir,
   PROJECT_UPLOAD_DIR: projectUploadDir,
   BRANDING_UPLOAD_DIR: brandingUploadDir,
@@ -514,6 +515,37 @@ function resolveProjectDocumentPath(document) {
     path.join(intakeUploadDir, document.filename)
   ];
   return candidates.find(p => fs.existsSync(p));
+}
+
+/**
+ * Evidence attachments (the `attachments` table) are written by the evidence
+ * provider through POST /respond/:code/upload/:controlId and land in UPLOAD_DIR
+ * itself, not in the project/intake folders — so they need their own resolver.
+ */
+function resolveEvidenceAttachmentPath(attachment) {
+  const candidates = [
+    path.join(UPLOAD_DIR, attachment.filename),
+    path.join(projectUploadDir, attachment.filename),
+    path.join(intakeUploadDir, attachment.filename)
+  ];
+  return candidates.find(p => fs.existsSync(p));
+}
+
+/**
+ * Every evidence attachment belonging to a project, newest first, with the
+ * control it was filed against. Used by the project's Documentation card and by
+ * the assessment detail page, so a document uploaded against a control is
+ * retrievable later without hunting through the evidence form.
+ */
+function evidenceAttachmentsForProject(projectId) {
+  return all(`
+    SELECT at.*, ac.control_id, ac.title AS control_title, ac.assessment_id
+    FROM attachments at
+    JOIN assessment_controls ac ON ac.id = at.assessment_control_id
+    JOIN assessments a ON a.id = ac.assessment_id
+    WHERE a.project_id = ?
+    ORDER BY at.uploaded_at DESC, at.id DESC
+  `, [projectId]);
 }
 
 function formatBytes(bytes) {
@@ -1580,6 +1612,10 @@ router.get('/projects/:id', ensureAuthenticated, (req, res) => {
     collabMessages: collabEnabled ? collaboration.listMessages(project.id).slice(-8) : [],
     collabCount: collabEnabled ? collaboration.countMessages(project.id) : 0,
     intakeAssignments, assessmentAssignments, documents, branding, projectPoamItems,
+    // Files the evidence provider attached to controls. They live in their own
+    // table, so without this the Documentation card silently omitted them.
+    evidenceAttachments: evidenceAttachmentsForProject(project.id)
+      .map(a => ({ ...a, display_size: formatBytes(a.size) })),
     nonDraftAssessments,
     hasNonDraftAssessments: nonDraftAssessments.length > 0,
     isArchived: !!project.archived_at,
@@ -1608,6 +1644,30 @@ router.get('/projects/:id/documents/:docId/download', ensureAuthenticated, (req,
   const filePath = resolveProjectDocumentPath(document);
   if (!filePath) { req.flash('error', 'Document file is missing from storage.'); return res.redirect(`/admin/projects/${req.params.id}`); }
   res.download(filePath, document.original_name);
+});
+
+/**
+ * Download an evidence attachment from the project side. The id is checked
+ * against THIS project's assessments, so an attachment id from another project
+ * is a miss rather than a cross-record read.
+ */
+router.get('/projects/:id/evidence-attachments/:attId/download', ensureAuthenticated, (req, res) => {
+  const attachment = get(`
+    SELECT at.* FROM attachments at
+    JOIN assessment_controls ac ON ac.id = at.assessment_control_id
+    JOIN assessments a ON a.id = ac.assessment_id
+    WHERE at.id = ? AND a.project_id = ?
+  `, [req.params.attId, req.params.id]);
+  if (!attachment) {
+    req.flash('error', tr(req, 'ea.notFound', 'Attachment not found'));
+    return res.redirect(`/admin/projects/${req.params.id}`);
+  }
+  const filePath = resolveEvidenceAttachmentPath(attachment);
+  if (!filePath) {
+    req.flash('error', tr(req, 'ea.missingFile', 'That attachment is missing from storage.'));
+    return res.redirect(`/admin/projects/${req.params.id}`);
+  }
+  res.download(filePath, attachment.original_name);
 });
 
 router.post('/projects/:id/documents/:docId/delete', ensureAuthenticated, (req, res) => {
@@ -2716,6 +2776,18 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
   const offeredCount = controls.length;
   const scopedOut = controls.filter(c => !c.is_applicable);
   controls = controls.filter(c => c.is_applicable);
+
+  // What the evidence provider actually attached, so the assessor can open the
+  // files from the record instead of only reading the narrative that cites them.
+  if (controls.length && !viewingVersion) {
+    const ph = controls.map(() => '?').join(',');
+    const byControl = {};
+    all(`SELECT id, assessment_control_id, original_name, size
+         FROM attachments WHERE assessment_control_id IN (${ph})
+         ORDER BY uploaded_at, id`, controls.map(c => c.id))
+      .forEach(a => { (byControl[a.assessment_control_id] ||= []).push(a); });
+    controls.forEach(c => { c.attachmentList = byControl[c.id] || []; });
+  }
 
   const families = {};
   controls.forEach(c => {

@@ -4163,5 +4163,15 @@
   "pc.save": "Enregistrer",
   "pc.cancel": "Annuler",
   "pc.saved": "Personnes-ressources du projet mises à jour.",
-  "pc.notFound": "Projet introuvable"
+  "pc.notFound": "Projet introuvable",
+  "ea.download": "Télécharger",
+  "ea.notFound": "Pièce jointe introuvable",
+  "ea.missingFile": "Cette pièce jointe est absente du stockage.",
+  "ea.evidenceSource": "Preuve",
+  "ea.projectSource": "Document de projet",
+  "ea.source": "Source",
+  "ea.forControl": "Preuve pour {{control}}",
+  "ea.none": "Aucune pièce jointe de preuve pour le moment.",
+  "ea.heading": "Pièces jointes des preuves",
+  "ea.attachedFiles": "Fichiers joints"
 }

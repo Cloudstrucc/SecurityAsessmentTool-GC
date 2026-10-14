@@ -4119,5 +4119,15 @@
   "pc.save": "Save contacts",
   "pc.cancel": "Cancel",
   "pc.saved": "Project contacts updated.",
-  "pc.notFound": "Project not found"
+  "pc.notFound": "Project not found",
+  "ea.download": "Download",
+  "ea.notFound": "Attachment not found",
+  "ea.missingFile": "That attachment is missing from storage.",
+  "ea.evidenceSource": "Evidence",
+  "ea.projectSource": "Project document",
+  "ea.source": "Source",
+  "ea.forControl": "Evidence for {{control}}",
+  "ea.none": "No evidence attachments yet.",
+  "ea.heading": "Evidence attachments",
+  "ea.attachedFiles": "Attached files"
 }

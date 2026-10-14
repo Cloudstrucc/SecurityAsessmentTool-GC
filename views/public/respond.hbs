@@ -243,8 +243,16 @@
               </div>
             </div>
           {{/unless}}
+          {{!-- Files already on record, rendered server-side so they survive a
+                reload; uploadFile() appends new ones in the same shape. --}}
           <div id="attachments-{{this.id}}" class="d-flex flex-wrap gap-1 mb-2">
-            {{!-- Attachments loaded dynamically or from data --}}
+            {{#each this.attachmentList}}
+              <a class="badge bg-light text-dark border text-decoration-none"
+                href="/respond/{{@root.inviteCode}}/attachment/{{this.id}}"
+                title="{{t 'ea.download'}}">
+                <i class="bi bi-paperclip me-1"></i>{{this.original_name}}
+              </a>
+            {{/each}}
           </div>
 
           <!-- Comments -->
@@ -290,6 +298,7 @@ const EV_I18N = {
   unsaved: {{{tjs 'ev.unsaved'}}},
   error: {{{tjs 'ev.saveError'}}},
   suggestFail: {{{tjs 'ev.suggestFail'}}},
+  download: {{{tjs 'ea.download'}}},
   phRemain: {{{tjs 'ev.phRemain'}}},
   submitPh: {{{tjs 'ev.submitPlaceholders'}}}
 };
@@ -613,9 +622,13 @@ async function uploadFile(controlId) {
     const data = await res.json();
     if (data.success) {
       const container = document.getElementById('attachments-' + controlId);
-      const badge = document.createElement('span');
-      badge.className = 'badge bg-light text-dark border';
-      badge.innerHTML = '<i class="bi bi-paperclip me-1"></i>' + data.file.name;
+      // Same shape as the server-rendered badge, so a just-uploaded file is
+      // downloadable immediately rather than only after the next page load.
+      const badge = document.createElement('a');
+      badge.className = 'badge bg-light text-dark border text-decoration-none';
+      badge.href = '/respond/' + INVITE_CODE + '/attachment/' + data.file.attachmentId;
+      badge.title = EV_I18N.download;
+      badge.innerHTML = '<i class="bi bi-paperclip me-1"></i>' + hEsc(data.file.name);
       container.appendChild(badge);
       input.value = '';
     }

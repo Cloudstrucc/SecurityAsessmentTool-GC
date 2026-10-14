@@ -2818,3 +2818,76 @@ test('project contacts cannot be edited across workspaces', async () => {
   assert.doesNotMatch(after.text, /Should Not Apply/,
     "another workspace's user cannot rewrite this project's contacts");
 });
+
+test('an evidence attachment survives a reload and is downloadable from both sides', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Attach ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const code = await evidenceCode(jar, assessmentId);
+
+  const page = await getText(jar, `/respond/${code}`);
+  const controlId = page.text.match(/id="editor-(\d+)"/)?.[1];
+  assert.ok(controlId, 'the evidence editor exposes its control id');
+
+  const body = Buffer.from('control,result\nAC-1,met\n');
+  const formData = new FormData();
+  formData.append('file', new Blob([body], { type: 'text/csv' }), 'evidence-sample.csv');
+  const up = await request(jar, 'POST', `/respond/${code}/upload/${controlId}`, { body: formData });
+  assert.equal(up.status, 200);
+  const upJson = await up.json();
+  assert.ok(upJson.success, 'the upload is accepted');
+  assert.ok(upJson.file.attachmentId, 'the response carries the attachment id the download link needs');
+
+  // 1. It is rendered on the next page load, not just appended in-session.
+  const reloaded = await getText(jar, `/respond/${code}`);
+  assert.match(reloaded.text, /evidence-sample\.csv/, 'the saved attachment is listed after a reload');
+  assert.match(reloaded.text, new RegExp(`/respond/${code}/attachment/${upJson.file.attachmentId}`),
+    'the listed attachment links to its download');
+
+  // 2. The provider can download it back, byte for byte.
+  const providerDl = await request(jar, 'GET', `/respond/${code}/attachment/${upJson.file.attachmentId}`);
+  assert.equal(providerDl.status, 200, 'the provider can download the attachment');
+  assert.equal(Buffer.from(await providerDl.arrayBuffer()).toString(), body.toString(),
+    'the downloaded bytes match what was uploaded');
+
+  // 3. It appears in the project Documentation card and downloads from there.
+  const project = await getText(jar, `/admin/projects/${projectId}`);
+  assert.match(project.text, /evidence-sample\.csv/, 'the project documentation lists the evidence attachment');
+  const adminUrl = `/admin/projects/${projectId}/evidence-attachments/${upJson.file.attachmentId}/download`;
+  assert.match(project.text, new RegExp(adminUrl.replace(/\//g, '\\/')), 'the card links to the admin download');
+  const adminDl = await request(jar, 'GET', adminUrl);
+  assert.equal(adminDl.status, 200, 'the assessor can download the attachment from the project');
+
+  // 4. The assessor sees it on the assessment record too.
+  const assessment = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(assessment.text, /evidence-sample\.csv/, 'the assessment record lists the attachment');
+});
+
+test('an evidence attachment cannot be fetched through another project or assessment', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Attach Scope A ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const code = await evidenceCode(jar, assessmentId);
+  const page = await getText(jar, `/respond/${code}`);
+  const controlId = page.text.match(/id="editor-(\d+)"/)?.[1];
+
+  const formData = new FormData();
+  formData.append('file', new Blob([Buffer.from('secret')], { type: 'text/plain' }), 'scoped.txt');
+  const up = await request(jar, 'POST', `/respond/${code}/upload/${controlId}`, { body: formData });
+  const attId = (await up.json()).file.attachmentId;
+
+  // A second project of the same workspace must not be able to serve it.
+  const other = await createAdminProject(jar, `E2E Attach Scope B ${Date.now()}`);
+  const cross = await request(jar, 'GET',
+    `/admin/projects/${other.projectId}/evidence-attachments/${attId}/download`, { redirect: 'manual' });
+  assert.equal(cross.status, 302, 'the attachment is not served through an unrelated project');
+
+  // Nor a different assessment's invite code.
+  const otherA = await createSingleControlAssessment(jar, other.projectId);
+  await request(jar, 'POST', `/admin/assessments/${otherA.assessmentId}/send-invite`);
+  const otherCode = await evidenceCode(jar, otherA.assessmentId);
+  const crossCode = await request(jar, 'GET', `/respond/${otherCode}/attachment/${attId}`);
+  assert.equal(crossCode.status, 404, 'the attachment is not served through another assessment code');
+});

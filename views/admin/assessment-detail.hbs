@@ -752,6 +752,20 @@
             {{else}}
               <div class="small text-muted fst-italic">{{t 'rv.noEvidenceYet'}}</div>
             {{/if}}
+            {{#if this.attachmentList.length}}
+              <div class="mt-2">
+                <small class="fw-semibold d-block mb-1"><i class="bi bi-paperclip me-1"></i>{{t 'ea.attachedFiles'}}</small>
+                <div class="d-flex flex-wrap gap-1">
+                  {{#each this.attachmentList}}
+                    <a class="badge bg-light text-dark border text-decoration-none"
+                      href="/admin/projects/{{@root.assessment.project_id}}/evidence-attachments/{{this.id}}/download"
+                      title="{{t 'ea.download'}}">
+                      <i class="bi bi-download me-1"></i>{{this.original_name}}
+                    </a>
+                  {{/each}}
+                </div>
+              </div>
+            {{/if}}
           </div>
 
           <div class="mt-2 d-flex flex-wrap gap-2 small">
