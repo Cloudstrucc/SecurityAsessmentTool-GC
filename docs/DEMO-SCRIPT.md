@@ -366,6 +366,7 @@ Return to the **Dashboard**. Point at the moved counters and the amber banner:
 | Audit tracker jumps to *Completed* as soon as you start the audit | Don't point at the tracker during Act 7 | — |
 | The email doesn't arrive in window B | Use the **invite code** directly: `/respond/<CODE>` | "I'll use the direct link rather than wait on mail." |
 | Anything is irrecoverable | Switch to the pre-built reference project | "Here's one I ran last week." |
+| You archived the project and the tracker jumped back to Intake | Restore it — the stages come back | — |
 
 ---
 
@@ -417,6 +418,16 @@ at; the numbered callout is the talking point.
 | 18 | DP-0001 — assessment pinned at an immutable version | ![](demo-screenshots/18-decision-package-pinned.jpg) |
 | 19 | POA&M — conditions generated from the authorized version | ![](demo-screenshots/19-poam-conditions.jpg) |
 | 20 | Export — same record, four formats | ![](demo-screenshots/20-export-formats.jpg) |
+| 21 | Decision package — executive summary, residual risk, conditions, authorizing official | ![](demo-screenshots/21-decision-package-fields.jpg) |
+| 22 | State ladder — Draft → In review → Recommended → Decided | ![](demo-screenshots/22-decision-ladder-decided.jpg) |
+| 23 | **Authorization issued** — DP-0001, all five decision stages complete | ![](demo-screenshots/23-authorization-issued.jpg) |
+| 24 | The project reaches **Authorized**, Stage 4 of 4 | ![](demo-screenshots/24-project-authorized.jpg) |
+
+> **Stop at Authorized — do not close the project on stage.** "Project closed" is satisfied by
+> archiving, and archiving currently makes the project tracker regress to *Stage 1 of 4 — Intake,
+> in progress 2/4* while Decision package and Authorized still read Complete. Restoring the project
+> puts it back to Stage 4 of 4, so it is cosmetic, but it would be an ugly thing to have on screen.
+> See `demo-screenshots/bug-archive-regresses-tracker.jpg`.
 
 **Numbers from the real run**, if you want to narrate the same ones: 224 controls recommended →
 4 in scope, 220 tailored out with reasons · 54 placeholders across 4 AI drafts (32 values,
