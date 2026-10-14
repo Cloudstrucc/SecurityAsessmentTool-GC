@@ -2824,6 +2824,18 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
   const scopedOut = controls.filter(c => !c.is_applicable);
   controls = controls.filter(c => c.is_applicable);
 
+  // Per-control share of the weighted audit score, so each control can show what
+  // it is worth and what it is currently earning.
+  if (assessment.status === 'audit') {
+    const { byControl } = require('../config/scoring').contributions(controls);
+    controls.forEach(c => {
+      c.scoreShare = byControl.get(c.id) || null;
+      // What the score actually uses, so the Weight dropdown cannot disagree
+      // with the percentage shown beside it.
+      c.effectiveWeight = c.control_weight || (c.scoreShare && c.scoreShare.weightLabel) || 'medium';
+    });
+  }
+
   // What the evidence provider actually attached, so the assessor can open the
   // files from the record instead of only reading the narrative that cites them.
   if (controls.length && !viewingVersion) {

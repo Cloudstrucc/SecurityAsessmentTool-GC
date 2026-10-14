@@ -496,6 +496,9 @@
   <div class="card mb-3" style="border-left:4px solid var(--gc-accent,#2f80cf)"><div class="card-body py-2 d-flex align-items-center gap-3 flex-wrap">
     <span class="fs-4 fw-bold" style="color:var(--gc-nav,#26374a)">{{reviewScore.score}}%</span>
     <span class="small text-muted">{{t 'rv.scoreLabel'}}</span>
+    <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" data-rv-keep-enabled
+      data-bs-toggle="modal" data-bs-target="#scoreHelpModal" aria-label="{{t 'sc.howCalculated'}}"
+      title="{{t 'sc.howCalculated'}}"><i class="bi bi-question-circle fs-6"></i></button>
     {{#if reviewScore.weak.length}}<span class="badge text-bg-warning ms-auto"><i class="bi bi-exclamation-triangle me-1"></i>{{reviewScore.weak.length}} {{t 'rv.weakEvidence'}}</span>{{/if}}
   </div></div>
   {{/if}}
@@ -834,15 +837,35 @@
                 <div class="col-md-4">
                   <label class="form-label small fw-semibold mb-0">{{t 'rv.weight'}}</label>
                   <select class="form-select form-select-sm rv-input" data-cid="{{this.id}}" data-field="control_weight" onchange="rvSaveField(this,'{{../../assessment.id}}')">
-                    <option value="high" {{#eq this.control_weight 'high'}}selected{{/eq}}>{{t 'rv.wt_high'}}</option>
-                    <option value="medium" {{#eq this.control_weight 'medium'}}selected{{/eq}}>{{t 'rv.wt_medium'}}</option>
-                    <option value="low" {{#eq this.control_weight 'low'}}selected{{/eq}}>{{t 'rv.wt_low'}}</option>
+                    {{!-- Falls back to the EFFECTIVE weight scoring will use (risk
+                          level, else medium). Without this, an unset control_weight
+                          left the browser showing the first option, "High (×3)",
+                          while the score was computed with a different weight. --}}
+                    <option value="high" {{#eq this.effectiveWeight 'high'}}selected{{/eq}}>{{t 'rv.wt_high'}}</option>
+                    <option value="medium" {{#eq this.effectiveWeight 'medium'}}selected{{/eq}}>{{t 'rv.wt_medium'}}</option>
+                    <option value="low" {{#eq this.effectiveWeight 'low'}}selected{{/eq}}>{{t 'rv.wt_low'}}</option>
                   </select>
                 </div>
                 <div class="col-12">
                   <textarea class="form-control form-control-sm rv-input" rows="1" data-cid="{{this.id}}" data-field="assessor_feedback"
                     placeholder="{{t 'rv.feedbackPh'}}" onchange="rvSaveField(this,'{{../../assessment.id}}')">{{this.assessor_feedback}}</textarea>
                 </div>
+                {{#if this.scoreShare}}
+                  {{!-- What this control is worth, and what it is earning, inside
+                        the weighted score shown at the top of the page. --}}
+                  <div class="col-12">
+                    <div class="rv-share small d-flex flex-wrap align-items-center gap-2">
+                      <span class="badge text-bg-secondary">{{t 'sc.weightBadge'}} {{this.scoreShare.weightLabel}} (×{{this.scoreShare.weight}})</span>
+                      <span><strong>{{this.scoreShare.earnedPct}}%</strong> {{t 'sc.ofAssessment'}}</span>
+                      <span class="text-muted">{{t 'sc.outOfMax' max=this.scoreShare.maxPct}}</span>
+                      <div class="progress flex-grow-1" style="height:6px;min-width:120px" role="progressbar"
+                        aria-valuenow="{{this.scoreShare.ofOwnPct}}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" style="width:{{this.scoreShare.ofOwnPct}}%"></div>
+                      </div>
+                      <span class="text-muted">{{t 'sc.ofOwnCeiling' pct=this.scoreShare.ofOwnPct}}</span>
+                    </div>
+                  </div>
+                {{/if}}
                 {{!-- The review buttons reflect review_status. They deliberately do
                       NOT disable the Audit result above: that is a separate axis and
                       complete-audit scores from it, so locking it would make a
@@ -1896,6 +1919,48 @@ function selUpdateBars(){
 }
 </script>
 {{#eq assessment.status "audit"}}
+<div class="modal fade" id="scoreHelpModal" tabindex="-1" aria-labelledby="scoreHelpLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="scoreHelpLabel"><i class="bi bi-calculator me-2"></i>{{t 'sc.howCalculated'}}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t 'ui.close'}}"></button>
+      </div>
+      <div class="modal-body small">
+        <p>{{t 'sc.intro'}}</p>
+        <pre class="bg-light border rounded p-2 mb-3" style="font-size:12px">score = Σ(controlScore × weight) ÷ Σ(weight) × 100</pre>
+
+        <h6 class="fw-bold">{{t 'sc.step1'}}</h6>
+        <p class="mb-2">{{t 'sc.step1Body'}}</p>
+        <ul class="mb-3"><li>{{t 'sc.detMet'}}</li><li>{{t 'sc.detPartial'}}</li><li>{{t 'sc.detNot'}}</li></ul>
+
+        <h6 class="fw-bold">{{t 'sc.step2'}}</h6>
+        <p class="mb-2">{{t 'sc.step2Body'}}</p>
+        <pre class="bg-light border rounded p-2 mb-2" style="font-size:12px">controlScore = determination × (0.6 + 0.4 × reliability × sufficiency)</pre>
+        <div class="row g-2 mb-3">
+          <div class="col-md-6"><strong>{{t 'sc.reliability'}}</strong>
+            <ul class="mb-0"><li>assessor-tested 1.0</li><li>third-party 0.85</li><li>system-generated 0.7</li><li>internal-doc 0.5</li><li>self-attested 0.3</li></ul>
+          </div>
+          <div class="col-md-6"><strong>{{t 'sc.sufficiency'}}</strong>
+            <ul class="mb-0"><li>comprehensive 1.0</li><li>adequate 0.75</li><li>partial 0.45</li><li>none 0.0</li></ul>
+          </div>
+        </div>
+
+        <h6 class="fw-bold">{{t 'sc.step3'}}</h6>
+        <p class="mb-2">{{t 'sc.step3Body'}}</p>
+        <ul class="mb-3"><li>{{t 'sc.wHigh'}}</li><li>{{t 'sc.wMedium'}}</li><li>{{t 'sc.wLow'}}</li></ul>
+        <p class="mb-3">{{t 'sc.thisAssessment' total=reviewScore.score}}</p>
+
+        <div class="alert alert-warning mb-0">
+          <strong>{{t 'sc.noteTitle'}}</strong> {{t 'sc.noteBody'}}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">{{t 'bf.ok'}}</button>
+      </div>
+    </div>
+  </div>
+</div>
 {{> bulk-feedback}}
 <div id="rvBulkBar" class="shadow" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:1050;background:#0a1626;color:#fff;border-radius:12px;padding:8px 12px;align-items:center;gap:10px">
   <span class="fw-semibold"><span id="rvSelCount">0</span> {{t 'ev.selected'}}</span>

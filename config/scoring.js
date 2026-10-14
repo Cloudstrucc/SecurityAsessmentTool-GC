@@ -53,4 +53,36 @@ function weightedScore(controls) {
   return { score, weak };
 }
 
-module.exports = { weightedScore, controlScore, evidenceConfidence, controlWeight, determinationBase, RELIABILITY, SUFFICIENCY, WEIGHT };
+/**
+ * What each control is worth, and what it is currently earning, as a share of
+ * the whole assessment — so the assessor can see why the headline number is
+ * what it is.
+ *
+ *   maxPct   this control's weight as a share of the total weight (its ceiling)
+ *   earnedPct what it contributes right now (controlScore × weight / total weight)
+ *   ofOwnPct  how much of ITS OWN ceiling it has earned (0-100)
+ *
+ * Returns a Map keyed by control id. `totalWeight` is the denominator.
+ */
+function contributions(controls) {
+  const applicable = (controls || []).filter(c => c.is_applicable == null || Number(c.is_applicable) === 1);
+  const totalWeight = applicable.reduce((sum, c) => sum + controlWeight(c), 0);
+  const map = new Map();
+  applicable.forEach(c => {
+    const w = controlWeight(c);
+    const maxPct = totalWeight > 0 ? (w / totalWeight) * 100 : 0;
+    const earnedPct = totalWeight > 0 ? (controlScore(c) * w / totalWeight) * 100 : 0;
+    map.set(c.id, {
+      weight: w,
+      weightLabel: Object.keys(WEIGHT).find(k => WEIGHT[k] === w) || 'medium',
+      maxPct: +maxPct.toFixed(2),
+      earnedPct: +earnedPct.toFixed(2),
+      ofOwnPct: maxPct > 0 ? +((earnedPct / maxPct) * 100).toFixed(0) : 0,
+      confidence: +(evidenceConfidence(c) * 100).toFixed(0),
+      base: determinationBase(c.audit_result)
+    });
+  });
+  return { totalWeight, byControl: map };
+}
+
+module.exports = { weightedScore, contributions, controlScore, evidenceConfidence, controlWeight, determinationBase, RELIABILITY, SUFFICIENCY, WEIGHT };
