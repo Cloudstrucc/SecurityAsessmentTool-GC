@@ -4207,5 +4207,7 @@
   "esl.rejected.extension": "That file type is not accepted.",
   "esl.rejected.eicar": "That file was rejected by the content check.",
   "esl.rejected.mismatch": "That file's contents do not match its extension ({{detail}}).",
-  "esl.rejected.activeContent": "That file contains active content ({{detail}}) and was rejected."
+  "esl.rejected.activeContent": "That file contains active content ({{detail}}) and was rejected.",
+  "esl.dropHere": "Drop files here, or click to choose",
+  "esl.uploading": "Uploading {name}…"
 }

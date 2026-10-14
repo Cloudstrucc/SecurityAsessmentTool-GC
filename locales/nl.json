@@ -4229,5 +4229,7 @@
   "esl.rejected.extension": "Dat bestandstype wordt niet geaccepteerd.",
   "esl.rejected.eicar": "Dat bestand is door de inhoudscontrole geweigerd.",
   "esl.rejected.mismatch": "De inhoud van dat bestand komt niet overeen met de extensie ({{detail}}).",
-  "esl.rejected.activeContent": "Dat bestand bevat actieve inhoud ({{detail}}) en is geweigerd."
+  "esl.rejected.activeContent": "Dat bestand bevat actieve inhoud ({{detail}}) en is geweigerd.",
+  "esl.dropHere": "Sleep bestanden hierheen of klik om te kiezen",
+  "esl.uploading": "{name} wordt geüpload…"
 }

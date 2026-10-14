@@ -4229,5 +4229,7 @@
   "esl.rejected.extension": "Dieser Dateityp wird nicht akzeptiert.",
   "esl.rejected.eicar": "Diese Datei wurde von der Inhaltsprüfung abgelehnt.",
   "esl.rejected.mismatch": "Der Inhalt dieser Datei passt nicht zu ihrer Erweiterung ({{detail}}).",
-  "esl.rejected.activeContent": "Diese Datei enthält aktive Inhalte ({{detail}}) und wurde abgelehnt."
+  "esl.rejected.activeContent": "Diese Datei enthält aktive Inhalte ({{detail}}) und wurde abgelehnt.",
+  "esl.dropHere": "Dateien hier ablegen oder zum Auswählen klicken",
+  "esl.uploading": "{name} wird hochgeladen…"
 }

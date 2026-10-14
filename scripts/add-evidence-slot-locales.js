@@ -17,6 +17,7 @@ const LOCALES = path.join(__dirname, '..', 'locales');
 const KEYS = {
   en: {
     'esl.values': 'values', 'esl.files': 'files',
+    'esl.dropHere': 'Drop files here, or click to choose', 'esl.uploading': 'Uploading {name}…',
     'esl.blanksLeft': '{n} blank(s) left', 'esl.complete': 'Complete',
     'esl.jumpNext': 'Jump to next blank →', 'esl.viewToggle': 'View mode',
     'esl.fillIn': 'Fill in', 'esl.evidenceView': 'Evidence view',
@@ -48,6 +49,7 @@ const KEYS = {
   },
   fr: {
     'esl.values': 'valeurs', 'esl.files': 'fichiers',
+    'esl.dropHere': 'Déposez les fichiers ici ou cliquez pour les choisir', 'esl.uploading': 'Téléversement de {name}…',
     'esl.blanksLeft': '{n} champ(s) à remplir', 'esl.complete': 'Terminé',
     'esl.jumpNext': 'Aller au prochain champ →', 'esl.viewToggle': "Mode d'affichage",
     'esl.fillIn': 'Remplir', 'esl.evidenceView': 'Vue des preuves',
@@ -79,6 +81,7 @@ const KEYS = {
   },
   es: {
     'esl.values': 'valores', 'esl.files': 'archivos',
+    'esl.dropHere': 'Suelte los archivos aquí o haga clic para elegirlos', 'esl.uploading': 'Subiendo {name}…',
     'esl.blanksLeft': '{n} campo(s) por completar', 'esl.complete': 'Completo',
     'esl.jumpNext': 'Ir al siguiente campo →', 'esl.viewToggle': 'Modo de vista',
     'esl.fillIn': 'Completar', 'esl.evidenceView': 'Vista de evidencia',
@@ -110,6 +113,7 @@ const KEYS = {
   },
   de: {
     'esl.values': 'Werte', 'esl.files': 'Dateien',
+    'esl.dropHere': 'Dateien hier ablegen oder zum Auswählen klicken', 'esl.uploading': '{name} wird hochgeladen…',
     'esl.blanksLeft': 'Noch {n} Lücke(n)', 'esl.complete': 'Vollständig',
     'esl.jumpNext': 'Zur nächsten Lücke →', 'esl.viewToggle': 'Ansichtsmodus',
     'esl.fillIn': 'Ausfüllen', 'esl.evidenceView': 'Nachweisansicht',
@@ -141,6 +145,7 @@ const KEYS = {
   },
   pt: {
     'esl.values': 'valores', 'esl.files': 'ficheiros',
+    'esl.dropHere': 'Largue os ficheiros aqui ou clique para escolher', 'esl.uploading': 'A carregar {name}…',
     'esl.blanksLeft': '{n} campo(s) por preencher', 'esl.complete': 'Completo',
     'esl.jumpNext': 'Ir para o próximo campo →', 'esl.viewToggle': 'Modo de vista',
     'esl.fillIn': 'Preencher', 'esl.evidenceView': 'Vista de prova',
@@ -172,6 +177,7 @@ const KEYS = {
   },
   it: {
     'esl.values': 'valori', 'esl.files': 'file',
+    'esl.dropHere': 'Trascina qui i file oppure fai clic per sceglierli', 'esl.uploading': 'Caricamento di {name}…',
     'esl.blanksLeft': '{n} campo/i da compilare', 'esl.complete': 'Completo',
     'esl.jumpNext': 'Vai al prossimo campo →', 'esl.viewToggle': 'Modalità di visualizzazione',
     'esl.fillIn': 'Compila', 'esl.evidenceView': 'Vista evidenze',
@@ -203,6 +209,7 @@ const KEYS = {
   },
   nl: {
     'esl.values': 'waarden', 'esl.files': 'bestanden',
+    'esl.dropHere': 'Sleep bestanden hierheen of klik om te kiezen', 'esl.uploading': '{name} wordt geüpload…',
     'esl.blanksLeft': 'Nog {n} veld(en)', 'esl.complete': 'Volledig',
     'esl.jumpNext': 'Naar het volgende veld →', 'esl.viewToggle': 'Weergavemodus',
     'esl.fillIn': 'Invullen', 'esl.evidenceView': 'Bewijsweergave',
@@ -234,6 +241,7 @@ const KEYS = {
   },
   ja: {
     'esl.values': '値', 'esl.files': 'ファイル',
+    'esl.dropHere': 'ここにファイルをドロップ、またはクリックして選択', 'esl.uploading': '{name} をアップロード中…',
     'esl.blanksLeft': '残り {n} 件', 'esl.complete': '完了',
     'esl.jumpNext': '次の未入力へ →', 'esl.viewToggle': '表示モード',
     'esl.fillIn': '入力', 'esl.evidenceView': '証跡ビュー',

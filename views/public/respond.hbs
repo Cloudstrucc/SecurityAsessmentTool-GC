@@ -855,11 +855,20 @@ window.AIAssistConfig = {
       </div>
       <div class="modal-body">
         <div class="alert alert-warning py-2 px-3 small">{{t 'esl.attachGuide'}}</div>
-        <input type="file" class="form-control form-control-sm" id="eslAttInput">
-        <div class="form-text">{{t 'esl.attachLimits'}}</div>
+        {{!-- Drop zone. The real <input> stays in the DOM (hidden) so the
+              picker, keyboard access and assistive tech all still work — the
+              zone is a label for it, not a replacement. --}}
+        <div class="esl-drop" id="eslAttDrop" role="button" tabindex="0"
+          aria-controls="eslAttInput" aria-describedby="eslAttLimits">
+          <i class="bi bi-cloud-arrow-up d-block" style="font-size:1.6rem"></i>
+          <span class="esl-drop-label">{{t 'esl.dropHere'}}</span>
+          <div class="small mt-1" id="eslAttLimits">{{t 'esl.attachLimits'}}</div>
+        </div>
+        <input type="file" id="eslAttInput" multiple hidden>
         {{!-- Says "checked", never "clean": files are validated for type and
               active content, but not scanned for malware. --}}
         <div class="form-text fst-italic">{{t 'esl.scanNote'}}</div>
+        <div id="eslAttErrors" class="mt-2"></div>
         <div id="eslAttList" class="mt-2"></div>
       </div>
       <div class="modal-footer">
@@ -877,7 +886,8 @@ const ESL_I18N = {
   noBlanks: {{{tjs 'esl.noBlanks'}}}, saved: {{{tjs 'esl.saved'}}},
   removed: {{{tjs 'esl.removed'}}}, failed: {{{tjs 'esl.failed'}}},
   newValue: {{{tjs 'esl.newValue'}}}, newAttach: {{{tjs 'esl.newAttach'}}},
-  checked: {{{tjs 'esl.checked'}}}, remove: {{{tjs 'ui.remove'}}}
+  checked: {{{tjs 'esl.checked'}}}, remove: {{{tjs 'ui.remove'}}},
+  uploading: {{{tjs 'esl.uploading'}}}
 };
 let eslActive = null;   // { cid, key, type, label }
 
@@ -1006,18 +1016,73 @@ document.getElementById('eslValSave').onclick = async () => {
   await eslLoad(a.cid);
 };
 
-document.getElementById('eslAttInput').onchange = async function(){
-  const a = eslActive; if (!a || !this.files.length) return;
-  const fd = new FormData();
-  fd.append('file', this.files[0]);
-  const r = await fetch('/respond/' + INVITE_CODE + '/slots/' + a.cid + '/' + a.key + '/files', { method: 'POST', body: fd });
-  const d = await r.json();
-  this.value = '';
-  if (!d.success) { alert(d.message || ESL_I18N.failed); return; }
+/**
+ * Upload a list of files into the active slot, one at a time so each gets its
+ * own verdict and the per-slot cap is enforced in order. Rejections are shown
+ * against the file that caused them rather than as one opaque alert.
+ */
+async function eslUpload(fileList){
+  const a = eslActive; if (!a || !fileList || !fileList.length) return;
+  const drop = document.getElementById('eslAttDrop');
+  const errs = document.getElementById('eslAttErrors');
+  errs.innerHTML = '';
+  drop.classList.add('busy');
+  for (const file of Array.from(fileList)) {
+    const row = document.createElement('div');
+    row.className = 'small text-muted py-1';
+    row.textContent = ESL_I18N.uploading.replace('{name}', file.name);
+    errs.appendChild(row);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const r = await fetch('/respond/' + INVITE_CODE + '/slots/' + a.cid + '/' + a.key + '/files', { method: 'POST', body: fd });
+      const d = await r.json();
+      if (d.success) {
+        row.remove();
+      } else {
+        row.className = 'small text-danger py-1';
+        row.textContent = file.name + ' — ' + (d.message || ESL_I18N.failed);
+      }
+    } catch (e) {
+      row.className = 'small text-danger py-1';
+      row.textContent = file.name + ' — ' + ESL_I18N.failed;
+    }
+  }
+  drop.classList.remove('busy');
   const fresh = await eslLoad(a.cid);
   const s = fresh && (fresh.slots || []).find(x => x.key === a.key);
   eslPaintFiles(s ? s.files : []);
+}
+
+document.getElementById('eslAttInput').onchange = function(){
+  eslUpload(this.files);
+  this.value = '';
 };
+
+/* Drop zone: click, keyboard and drag-and-drop all reach the same uploader. */
+(function(){
+  const drop = document.getElementById('eslAttDrop');
+  const input = document.getElementById('eslAttInput');
+  if (!drop || !input) return;
+  drop.addEventListener('click', () => input.click());
+  drop.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+  });
+  // The document-level handlers stop the browser from navigating to a file
+  // that misses the zone, which would lose whatever the provider had typed.
+  ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); drop.classList.add('over');
+  }));
+  ['dragleave', 'dragend'].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); drop.classList.remove('over');
+  }));
+  drop.addEventListener('drop', e => {
+    e.preventDefault(); e.stopPropagation(); drop.classList.remove('over');
+    eslUpload(e.dataTransfer && e.dataTransfer.files);
+  });
+  ['dragover', 'drop'].forEach(ev =>
+    document.addEventListener(ev, e => { if (!e.target.closest('.esl-drop')) e.preventDefault(); }));
+})();
 
 async function eslRemoveActive(){
   const a = eslActive; if (!a) return;

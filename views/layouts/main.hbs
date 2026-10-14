@@ -291,6 +291,16 @@
       border-radius:4px; padding:0 .25em; }
     @media print { .ev-slot { border:0; background:transparent; color:inherit; font-weight:600; } }
 
+    /* Attachment drop zone (evidence slots). */
+    .esl-drop { border:2px dashed var(--cs-border,#dce7f2); border-radius:10px; padding:1.3rem 1rem;
+      text-align:center; color:var(--cs-muted,#5f7185); font-size:.875rem;
+      background:var(--cs-mist,#f4f9fd); cursor:pointer; transition:border-color .12s, background .12s; }
+    .esl-drop:hover, .esl-drop:focus-visible { border-color:#4d9fe0; background:#f2f9fe; outline:none; }
+    .esl-drop:focus-visible { box-shadow:0 0 0 3px rgba(77,159,224,.25); }
+    .esl-drop.over { border-color:#2f80cf; background:#e8f4fd; border-style:solid; }
+    .esl-drop.busy { opacity:.6; pointer-events:none; }
+    .esl-drop .esl-drop-label { font-weight:600; color:var(--cs-ink,#17273a); }
+
     /* Tailoring rationale — why a control is in (or out of) scope. */
     .tailor-why { font-size:.8rem; line-height:1.5; background:#f3f8fd; border-left:3px solid var(--cs-accent,#4d9fe0);
       border-radius:0 6px 6px 0; padding:.45rem .65rem; }

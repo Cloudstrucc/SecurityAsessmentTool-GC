@@ -4229,5 +4229,7 @@
   "esl.rejected.extension": "この種類のファイルは受け付けられません。",
   "esl.rejected.eicar": "このファイルは内容チェックにより拒否されました。",
   "esl.rejected.mismatch": "このファイルの内容が拡張子と一致しません（{{detail}}）。",
-  "esl.rejected.activeContent": "このファイルにはアクティブコンテンツ（{{detail}}）が含まれるため拒否されました。"
+  "esl.rejected.activeContent": "このファイルにはアクティブコンテンツ（{{detail}}）が含まれるため拒否されました。",
+  "esl.dropHere": "ここにファイルをドロップ、またはクリックして選択",
+  "esl.uploading": "{name} をアップロード中…"
 }

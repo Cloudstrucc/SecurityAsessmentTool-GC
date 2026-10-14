@@ -4229,5 +4229,7 @@
   "esl.rejected.extension": "Questo tipo di file non è accettato.",
   "esl.rejected.eicar": "Questo file è stato rifiutato dal controllo del contenuto.",
   "esl.rejected.mismatch": "Il contenuto di questo file non corrisponde alla sua estensione ({{detail}}).",
-  "esl.rejected.activeContent": "Questo file contiene contenuto attivo ({{detail}}) ed è stato rifiutato."
+  "esl.rejected.activeContent": "Questo file contiene contenuto attivo ({{detail}}) ed è stato rifiutato.",
+  "esl.dropHere": "Trascina qui i file oppure fai clic per sceglierli",
+  "esl.uploading": "Caricamento di {name}…"
 }

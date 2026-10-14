@@ -3099,3 +3099,39 @@ test('the sanitiser keeps slot markers but drops everything dangerous', () => {
   assert.doesNotMatch(out, /script/, 'script is removed with its contents');
   assert.match(out, /<b>t<\/b>/);
 });
+
+test('an attachment slot holds at most five files, and the sixth is refused', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slot Cap');
+  await getText(jar, `/respond/${code}`);
+
+  const put = async (n) => {
+    const fd = new FormData();
+    fd.append('file', new Blob([Buffer.from(`col\n${n}\n`)], { type: 'text/csv' }), `f${n}.csv`);
+    const r = await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/files`, { body: fd });
+    return r.json();
+  };
+
+  for (let i = 1; i <= 5; i++) {
+    const d = await put(i);
+    assert.ok(d.success, `file ${i} is accepted`);
+  }
+  const sixth = await put(6);
+  assert.equal(sixth.success, false, 'the sixth file is refused');
+  assert.match(sixth.message, /maximum of 5/, 'the limit is stated, with the number interpolated');
+
+  // The slot still counts as filled exactly once, however many files it holds.
+  const after = await (await request(jar, 'GET', `/respond/${code}/slots/${controlId}`)).json();
+  assert.equal(after.progress.attachments.filled, 1);
+  assert.equal(after.slots.find(s => s.key === 'a3').files.length, 5);
+});
+
+test('the drop zone is keyboard reachable and drives the same hidden input', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code } = await seedSlotDraft(jar, 'E2E Slot Drop');
+  const page = await getText(jar, `/respond/${code}`);
+  assert.match(page.text, /id="eslAttDrop"[^>]*role="button"/, 'the zone is exposed as a button');
+  assert.match(page.text, /id="eslAttDrop"[^>]*tabindex="0"/, 'and is reachable by keyboard');
+  assert.match(page.text, /id="eslAttInput"[^>]*multiple/, 'the real input accepts several files at once');
+  assert.match(page.text, /addEventListener\('drop'/, 'a drop handler is wired');
+});

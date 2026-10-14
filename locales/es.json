@@ -4251,5 +4251,7 @@
   "esl.rejected.extension": "Ese tipo de archivo no se acepta.",
   "esl.rejected.eicar": "Ese archivo fue rechazado por la comprobación de contenido.",
   "esl.rejected.mismatch": "El contenido de ese archivo no coincide con su extensión ({{detail}}).",
-  "esl.rejected.activeContent": "Ese archivo contiene contenido activo ({{detail}}) y fue rechazado."
+  "esl.rejected.activeContent": "Ese archivo contiene contenido activo ({{detail}}) y fue rechazado.",
+  "esl.dropHere": "Suelte los archivos aquí o haga clic para elegirlos",
+  "esl.uploading": "Subiendo {name}…"
 }
