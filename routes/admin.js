@@ -270,7 +270,13 @@ function filterCatalogControls(projectInfo, documents = [], includeAll = false) 
     const baselineAliases = [baseline, `%${baseline}%`];
     if (/^IG[123]$/.test(baseline)) baselineAliases.push(`%Implementation Group ${baseline.slice(2)}%`, `%Implementation Groups ${baseline.slice(2)}%`);
     if (/^ML[123]$/.test(baseline)) baselineAliases.push(`%Maturity Level ${baseline.slice(2)}%`);
-    where += ` AND (baseline = ? OR baseline LIKE ?${baselineAliases.slice(2).map(() => ' OR baseline LIKE ?').join('')} OR baseline = "" OR baseline IS NULL)`;
+    // Some catalogs are a single undifferentiated set and tag every row with a
+    // placeholder baseline ("Full control catalog" for NIST SP 800-53, "Full ISM
+    // catalog" for ASD ISM) rather than per-baseline membership. Without the
+    // 'Full %' clause, asking for any real baseline — which is what the intake
+    // and the AI pre-fill both do — matches nothing and the assessment comes
+    // back with zero controls and no explanation.
+    where += ` AND (baseline = ? OR baseline LIKE ?${baselineAliases.slice(2).map(() => ' OR baseline LIKE ?').join('')} OR baseline LIKE 'Full %' OR baseline = "" OR baseline IS NULL)`;
     params.push(...baselineAliases);
   }
   if (category && category !== 'all' && !category.startsWith('fips-') && !category.includes('custom') && !category.includes('agency') && !category.includes('cloud-service') && !category.includes('federal-')) {
