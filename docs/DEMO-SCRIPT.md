@@ -422,12 +422,25 @@ at; the numbered callout is the talking point.
 | 22 | State ladder — Draft → In review → Recommended → Decided | ![](demo-screenshots/22-decision-ladder-decided.jpg) |
 | 23 | **Authorization issued** — DP-0001, all five decision stages complete | ![](demo-screenshots/23-authorization-issued.jpg) |
 | 24 | The project reaches **Authorized**, Stage 4 of 4 | ![](demo-screenshots/24-project-authorized.jpg) |
+| 25 | **Project closed** — both boxes ticked, Authorized 2/2, the record closed out | ![](demo-screenshots/25-project-closed.jpg) |
 
-> **Stop at Authorized — do not close the project on stage.** "Project closed" is satisfied by
-> archiving, and archiving currently makes the project tracker regress to *Stage 1 of 4 — Intake,
-> in progress 2/4* while Decision package and Authorized still read Complete. Restoring the project
-> puts it back to Stage 4 of 4, so it is cosmetic, but it would be an ugly thing to have on screen.
-> See `demo-screenshots/bug-archive-regresses-tracker.jpg`.
+### Closing the project — the last checkbox
+
+"Project closed" is satisfied by **archiving** the project, which completes the Authorized stage at
+2/2 and ticks both boxes (shot 25). The underlying record is correct and the workflow is genuinely
+finished.
+
+> **Known display defect — decide before you demo this.** Archiving also makes the stage pointer
+> jump backwards: the header reads *Stage 1 of 4* and Intake shows *In progress · 2/4*, even though
+> Decision package reads Complete 4/4 and Authorized Complete 2/2. The checklist is right, the
+> pointer is wrong. To show the Authorized checklist after archiving, **click the Authorized stage
+> in the stepper** — the stages are expandable.
+>
+> Two options on stage: end at **Authorized** (shot 24) and describe closing as the final step, or
+> close it and click into the Authorized stage so the ticks are what's on screen. Avoid lingering on
+> the header. Restoring the project puts it back to Stage 4 of 4.
+>
+> Evidence: `demo-screenshots/bug-archive-regresses-tracker.jpg`. Fix in progress.
 
 **Numbers from the real run**, if you want to narrate the same ones: 224 controls recommended →
 4 in scope, 220 tailored out with reasons · 54 placeholders across 4 AI drafts (32 values,
