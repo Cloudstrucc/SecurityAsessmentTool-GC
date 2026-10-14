@@ -102,6 +102,17 @@ app.engine('hbs', engine({
       const options = args.pop();
       return args.every(Boolean) ? options.fn(this) : options.inverse(this);
     },
+    /**
+     * A control id made safe to use in a DOM id and a CSS selector.
+     *
+     * 41% of the catalogue (1147 of 2815) uses enhancement numbers — AC-17(1),
+     * AC-2(12) — and parentheses are not valid in an id selector. Anything that
+     * hands such an id to querySelector, including Bootstrap's own
+     * data-bs-target, throws and the control silently stops working.
+     */
+    domId: function(value) {
+      return String(value == null ? '' : value).replace(/[^A-Za-z0-9_-]/g, '_');
+    },
     t: function(key, options) {
       const req = options.data?.root?.req;
       const params = options.hash && Object.keys(options.hash).length ? options.hash : {};
