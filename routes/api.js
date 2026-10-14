@@ -465,6 +465,7 @@ router.get('/assessments/:id/stats', (req, res) => {
 // AI-ASSISTED FEATURES
 // ═══════════════════════════════════════════════════════════════════════════════
 const ai = require('../config/ai-service');
+const officeText = require('../utils/officeText');
 const access = require('../config/access');
 const { createNotification } = require('../config/notify');
 const multer = require('multer');
@@ -618,9 +619,23 @@ router.post('/ai/parse-document', aiUpload.single('document'), async (req, res) 
       const fileBuffer = fs.readFileSync(filePath);
       const mimeMap = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg' };
       result = await ai.parseDocumentForIntake({ base64: fileBuffer.toString('base64'), mediaType: mimeMap[ext], filename, securityFramework });
+    } else if (officeText.isOfficeXml(ext)) {
+      // .docx / .pptx / .xlsx are ZIP containers. Reading one as utf-8 yields
+      // binary noise, which the model then declines to interpret — so extract
+      // the real text first.
+      const text = (await officeText.extractOfficeText(fs.readFileSync(filePath), ext)).slice(0, MAX_DOC_CHARS);
+      result = await ai.parseDocumentForIntake({ text, filename, securityFramework });
     } else {
-      // Plain text/markdown/etc — read and cap.
-      const text = fs.readFileSync(filePath, 'utf-8').slice(0, MAX_DOC_CHARS);
+      // Plain text/markdown/etc — read and cap. Reject anything that is clearly
+      // binary rather than sending bytes the model cannot read.
+      const raw = fs.readFileSync(filePath);
+      if (raw.includes(0)) {
+        fs.unlinkSync(filePath);
+        return res.status(415).json({
+          error: `"${filename}" is not a readable text document. Upload a PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx), image, or plain text file.`
+        });
+      }
+      const text = raw.toString('utf-8').slice(0, MAX_DOC_CHARS);
       result = await ai.parseDocumentForIntake({ text, filename, securityFramework });
     }
 

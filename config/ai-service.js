@@ -181,8 +181,24 @@ async function callClaude(system, userContent, { maxTokens = 4096 } = {}) {
  * Parse a JSON response from Claude, handling markdown fences
  */
 function parseJSON(text) {
-  const cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-  return JSON.parse(cleaned);
+  const cleaned = String(text || '').replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch (e) {
+    // Salvage the outermost {...} when the model wrapped the JSON in prose.
+    const s = cleaned.indexOf('{'), end = cleaned.lastIndexOf('}');
+    if (s >= 0 && end > s) {
+      try { return JSON.parse(cleaned.slice(s, end + 1)); } catch (e2) { /* fall through */ }
+    }
+    // No JSON at all — usually the model declining because the input was not
+    // readable (e.g. a binary file sent as text). Surface what it actually said
+    // rather than a parser error like: Unexpected token 'I', "I'm unable"...
+    const err = new Error(
+      'The assistant could not read that document. It replied: "'
+      + cleaned.replace(/\s+/g, ' ').slice(0, 180) + (cleaned.length > 180 ? '…' : '') + '"');
+    err.aiRefusal = true;
+    throw err;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
