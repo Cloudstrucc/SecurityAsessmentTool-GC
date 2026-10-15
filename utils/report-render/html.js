@@ -494,6 +494,23 @@ function projectBody(m, b, t, logoDataUri, cls) {
     }
   }
 
+  // Final chapter: who contributed. A summary — the detail is its own report.
+  if (m.contributors && m.contributors.length) {
+    const cs = m.contributorSummary || {};
+    h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span></span></div>
+      <section><div class="sec-h"><span class="num">9</span><h2>${esc(t('rf.contributors'))}</h2></div>
+        <p class="lede">${esc(t('rf.contributorsLede', { people: cs.contributors || 0, actions: cs.actions || 0 }))}</p>
+        <table class="data"><thead><tr><th style="width:42mm">${esc(t('rf.person'))}</th><th style="width:22mm">${esc(t('rf.role'))}</th>
+          <th class="num" style="width:18mm">${esc(t('rf.actions'))}</th><th>${esc(t('rf.contributed'))}</th>
+          <th style="width:26mm">${esc(t('rf.firstActivity'))}</th><th style="width:26mm">${esc(t('rf.lastActivity'))}</th></tr></thead><tbody>
+          ${m.contributors.map(c => `<tr><td>${esc(c.actor_name || '')}${c.actor_email ? `<br><span class="mono" style="font-size:8pt">${esc(c.actor_email)}</span>` : ''}</td>
+            <td><span class="pill ${c.actor_type === 'ai' ? 'p-warn' : c.actor_type === 'assessor' ? 'p-info' : 'p-mute'}">${esc(t('rf.actor_' + c.actor_type) || c.actor_type)}</span></td>
+            <td class="num">${c.actions}</td><td>${esc(c.summary || '')}</td>
+            <td>${esc(c.first_at || '')}</td><td>${esc(c.last_at || '')}</td></tr>`).join('')}
+        </tbody></table>
+      </section>${foot(b, m, cls)}</div>`;
+  }
+
   if (m.attachments && m.attachments.length) {
     h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span></span></div>
       <section><div class="sec-h"><span class="num">8</span><h2>${esc(t('rf.evidenceAttachments'))}</h2></div>
@@ -502,6 +519,45 @@ function projectBody(m, b, t, logoDataUri, cls) {
           ${m.attachments.map(a => `<tr><td><span class="ctlid">${esc(a.control_id || '')}</span></td>
             <td>${esc(a.original_name || '')}${a.ref_url ? ` <span class="pill p-info">${esc(t('rf.externalReference'))}</span>` : ''}</td>
             <td>${esc(a.uploaded_at || '')}</td></tr>`).join('')}
+        </tbody></table>
+      </section>${foot(b, m, cls)}</div>`;
+  }
+  return h;
+}
+
+function contributorsBody(m, b, t, logoDataUri, cls) {
+  const cs = m.summary || {};
+  let h = `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span></span></div>
+    <section><div class="sec-h"><span class="num">1</span><h2>${esc(t('rf.contributors'))}</h2></div>
+      <div class="kpis" style="margin-bottom:6mm">
+        <div class="kpi"><div class="n">${cs.contributors || 0}</div><div class="l">${esc(t('rf.people'))}</div></div>
+        <div class="kpi"><div class="n">${cs.actions || 0}</div><div class="l">${esc(t('rf.actions'))}</div></div>
+      </div>
+      <table class="data"><thead><tr><th style="width:42mm">${esc(t('rf.person'))}</th><th style="width:22mm">${esc(t('rf.role'))}</th>
+        <th class="num" style="width:18mm">${esc(t('rf.actions'))}</th><th>${esc(t('rf.contributed'))}</th>
+        <th style="width:26mm">${esc(t('rf.firstActivity'))}</th><th style="width:26mm">${esc(t('rf.lastActivity'))}</th></tr></thead><tbody>
+        ${(m.contributors || []).map(c => `<tr><td>${esc(c.actor_name || '')}${c.actor_email ? `<br><span class="mono" style="font-size:8pt">${esc(c.actor_email)}</span>` : ''}</td>
+          <td><span class="pill ${c.actor_type === 'ai' ? 'p-warn' : c.actor_type === 'assessor' ? 'p-info' : 'p-mute'}">${esc(t('rf.actor_' + c.actor_type) || c.actor_type)}</span></td>
+          <td class="num">${c.actions}</td><td>${esc(c.summary || '')}</td>
+          <td>${esc(c.first_at || '')}</td><td>${esc(c.last_at || '')}</td></tr>`).join('')
+          || `<tr><td colspan="6">—</td></tr>`}
+      </tbody></table>
+    </section>${foot(b, m, cls)}</div>`;
+
+  // The full trail, paged so a long project stays readable.
+  const rows = m.activity || [];
+  const per = 26;
+  for (let i = 0; i < Math.max(rows.length, 1); i += per) {
+    const chunk = rows.slice(i, i + per);
+    h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span></span></div>
+      <section><div class="sec-h"><span class="num">2</span><h2>${esc(t('rf.activityLog'))}${i ? ' (…)' : ''}</h2></div>
+        <table class="data"><thead><tr><th style="width:28mm">${esc(t('rf.when'))}</th><th style="width:34mm">${esc(t('rf.person'))}</th>
+          <th style="width:22mm">${esc(t('rf.recordType'))}</th><th style="width:30mm">${esc(t('rf.record'))}</th>
+          <th style="width:22mm">${esc(t('rf.action'))}</th><th>${esc(t('rf.detail'))}</th></tr></thead><tbody>
+          ${chunk.map(r => `<tr><td>${esc(r.created_at || '')}</td><td>${esc(r.actor_name || '')}</td>
+            <td>${esc(t('rf.ent_' + r.entity_type) || r.entity_type)}</td><td>${esc(r.entity_ref || '')}</td>
+            <td>${esc(r.action || '')}</td><td>${esc(r.detail || '')}</td></tr>`).join('')
+            || `<tr><td colspan="6">—</td></tr>`}
         </tbody></table>
       </section>${foot(b, m, cls)}</div>`;
   }
@@ -586,7 +642,7 @@ function intakeBody(m, b, t, logoDataUri, cls) {
 
 const BODIES = {
   intake: intakeBody,
-  assessment: assessmentBody, 'decision-package': decisionBody,
+  assessment: assessmentBody, 'decision-package': decisionBody, contributors: contributorsBody,
   poam: poamBody, project: projectBody, portfolio: portfolioBody
 };
 

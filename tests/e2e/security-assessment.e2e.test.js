@@ -3279,3 +3279,73 @@ test('an external reference does not count as an attached artefact for the self-
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
   assert.match(detail.text, /Self-attested/, 'a reference alone does not clear the flag');
 });
+
+// ── Contributors ────────────────────────────────────────────────────────────
+
+test('every contribution is recorded with who made it', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, code, controlId } = await seedSlotDraft(jar, 'E2E Contributors');
+  await getText(jar, `/respond/${code}`);
+
+  await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s1`, {
+    json: { value_html: 'AEGIS-STD-07' }
+  });
+  const fd = new FormData();
+  fd.append('file', new Blob([Buffer.from('%PDF-1.4\ntrailer<<>>', 'latin1')], { type: 'application/pdf' }), 'proof.pdf');
+  await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/files`, { body: fd });
+  await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/reference`, {
+    json: { reference: 'https://dms.example.org/record/1' }
+  });
+
+  const report = await getText(jar, `/admin/reports/contributors/${projectId}.md`);
+  assert.equal(report.response.status, 200, 'the contributors report renders');
+  assert.match(report.text, /Contributors/, 'it has a contributors section');
+  assert.match(report.text, /Activity log/, 'and the detailed trail');
+  // The three distinct contributions are each recorded, by kind.
+  assert.match(report.text, /filled/, 'the slot value is recorded');
+  assert.match(report.text, /attached/, 'the file is recorded');
+  assert.match(report.text, /linked/, 'the reference is recorded');
+  assert.match(report.text, /proof\.pdf/, 'with enough detail to identify what was provided');
+});
+
+test('the full project report ends with a contributors chapter', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, code, controlId } = await seedSlotDraft(jar, 'E2E Contrib Chapter');
+  await getText(jar, `/respond/${code}`);
+  await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s1`, { json: { value_html: 'Policy AEG-1' } });
+
+  const html = await getText(jar, `/admin/reports/project/${projectId}.html`);
+  assert.match(html.text, /Contributors/, 'the rollup carries a contributors chapter');
+  assert.match(html.text, /recorded contributions to this project/, 'with a summary line');
+  // A chapter, not the whole log.
+  assert.doesNotMatch(html.text, /Activity log/, 'the full trail stays in its own report');
+});
+
+test('the AI is credited separately from the person who triggered it', async () => {
+  const activityLog = require('../../config/project-activity');
+  // actor() must never attribute a model's work to a human.
+  const ai = activityLog.AI_ACTOR;
+  assert.equal(ai.type, 'ai');
+  const human = activityLog.actor({ user: { name: 'Dana', email: 'd@example.test' } });
+  assert.equal(human.type, 'assessor');
+  assert.equal(human.name, 'Dana');
+  const provider = activityLog.actor({});
+  assert.equal(provider.type, 'provider');
+});
+
+test('contributors reports are scoped to the caller\'s workspace', async () => {
+  const owner = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(owner, `E2E Contrib Tenant ${Date.now()}`);
+
+  const outsider = new CookieJar();
+  await request(outsider, 'POST', '/register', {
+    form: {
+      plan: 'trial', first_name: 'Outsider', last_name: 'Owner',
+      organization: `E2E Contrib Outsider ${Date.now()}`,
+      email: `contrib.outsider.${Date.now()}@example.test`,
+      password: 'TenantPass123!', agree: '1'
+    }
+  });
+  const cross = await request(outsider, 'GET', `/admin/reports/contributors/${projectId}.md`, { redirect: 'manual' });
+  assert.ok(cross.status >= 300, "another workspace cannot read this project's contributors");
+});

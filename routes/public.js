@@ -13,6 +13,7 @@ const QRCode = require('qrcode');
 const { UPLOAD_DIR, INTAKE_UPLOAD_DIR: intakeUploadDir, ensureUploadDirs } = require('../config/storage');
 const { sanitizeHtml, htmlToText } = require('../utils/html-sanitize');
 const slots = require('../utils/evidence-slots');
+const activity = require('../config/project-activity');
 const fileSafety = require('../utils/file-safety');
 const ai = require('../config/ai-service');
 const { determineProfile, detectComplexity } = require('../config/security-profiles');
@@ -524,6 +525,10 @@ router.post('/respond/:code/save/:controlId', ensureEvidenceUser, express.json({
     [evidence_text, evidence_html, evidence_text || '', who.name, req.params.controlId, assessment.id]);
   const saved = get('SELECT * FROM assessment_controls WHERE id = ?', [req.params.controlId]);
   history.record({ controlDbId: Number(req.params.controlId), assessmentId: assessment.id, action: 'save', actorName: who.name, actorType: who.type, control: saved });
+  activity.record({ projectId: assessment.project_id, entityType: 'control', entityId: saved.id,
+    entityRef: saved.control_id, action: 'saved', field: 'evidence',
+    detail: `Evidence narrative saved (${(saved.evidence_text || '').length} characters)`,
+    actor: activity.actor(req) });
 
   res.json({ success: true });
 });
@@ -615,6 +620,9 @@ router.post('/respond/:code/ready/:controlId', ensureEvidenceUser, express.json(
   run('UPDATE assessment_controls SET evidence_ready = ?, evidence_edited_by = ?, evidence_edited_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
     [makeReady ? 1 : 0, who.name, control.id]);
   history.record({ controlDbId: control.id, assessmentId: assessment.id, action: makeReady ? 'ready' : 'reactivate', actorName: who.name, actorType: who.type, control });
+  activity.record({ projectId: assessment.project_id, entityType: 'control', entityId: control.id,
+    entityRef: control.control_id, action: makeReady ? 'marked ready' : 'reactivated', field: 'evidence',
+    actor: activity.actor(req) });
   res.json({ success: true, ready: makeReady });
 });
 
@@ -804,6 +812,10 @@ router.put('/respond/:code/slots/:controlId/:slotKey', ensureEvidenceUser, expre
   const who = history.actor(req);
   const updated = slots.setValue(ctx.control.id, req.params.slotKey, req.body.value_html, who.name);
   if (!updated) return res.status(404).json({ success: false, message: 'Slot not found' });
+  activity.record({ projectId: ctx.assessment.project_id, entityType: 'slot', entityId: updated.id,
+    entityRef: `${ctx.control.control_id} · ${updated.label}`,
+    action: String(updated.value_text || '').trim() ? 'filled' : 'cleared', field: 'value',
+    detail: String(updated.value_text || '').slice(0, 200), actor: activity.actor(req) });
   res.json({ success: true, progress: slots.progress(ctx.control.id) });
 });
 
@@ -811,6 +823,9 @@ router.put('/respond/:code/slots/:controlId/:slotKey', ensureEvidenceUser, expre
 router.post('/respond/:code/slots/:controlId', ensureEvidenceUser, express.json(), (req, res) => {
   const ctx = slotGate(req, res); if (!ctx) return;
   const slot = slots.addSlot(ctx.control.id, req.body.type, req.body.label);
+  activity.record({ projectId: ctx.assessment.project_id, entityType: 'slot', entityId: slot.id,
+    entityRef: `${ctx.control.control_id} · ${slot.label}`, action: 'added', field: slot.slot_type,
+    detail: `Added a ${slot.slot_type} slot`, actor: activity.actor(req) });
   res.json({ success: true, slot: { key: slot.slot_key, type: slot.slot_type, label: slot.label },
     progress: slots.progress(ctx.control.id) });
 });
@@ -820,6 +835,9 @@ router.delete('/respond/:code/slots/:controlId/:slotKey', ensureEvidenceUser, (r
   const ctx = slotGate(req, res); if (!ctx) return;
   const removed = slots.removeSlot(ctx.control.id, req.params.slotKey);
   if (!removed) return res.status(404).json({ success: false, message: 'Slot not found' });
+  activity.record({ projectId: ctx.assessment.project_id, entityType: 'slot', entityId: removed.id,
+    entityRef: `${ctx.control.control_id} · ${removed.label}`, action: 'removed', field: removed.slot_type,
+    detail: 'Slot removed; its text was kept as prose', actor: activity.actor(req) });
   res.json({ success: true, text: removed.value_text || '', progress: slots.progress(ctx.control.id) });
 });
 
@@ -876,6 +894,10 @@ router.post('/respond/:code/slots/:controlId/:slotKey/files', ensureEvidenceUser
     [ctx.control.id, slot.id, req.file.filename, fileSafety.safeName(req.file.originalname),
       fileSafety.serveType(req.file.originalname), req.file.size, 'project-owner']);
     slots.syncCounts(ctx.control.id);
+    activity.record({ projectId: ctx.assessment.project_id, entityType: 'attachment', entityId: id,
+      entityRef: `${ctx.control.control_id} · ${slot.label}`, action: 'attached', field: 'file',
+      detail: `${fileSafety.safeName(req.file.originalname)} (${Math.round((req.file.size || 0) / 1024)} KB)`,
+      actor: activity.actor(req) });
 
     res.json({ success: true,
       file: { id, name: fileSafety.safeName(req.file.originalname), size: req.file.size, scan_status: 'checked' },
@@ -930,6 +952,9 @@ router.post('/respond/:code/slots/:controlId/:slotKey/reference', ensureEvidence
     VALUES (?, ?, '', ?, '', 0, ?, 'reference', ?, ?)`,
   [ctx.control.id, slot.id, verdict.value.slice(0, 200), 'project-owner', verdict.value, verdict.kind]);
   slots.syncCounts(ctx.control.id);
+  activity.record({ projectId: ctx.assessment.project_id, entityType: 'attachment', entityId: id,
+    entityRef: `${ctx.control.control_id} · ${slot.label}`, action: 'linked', field: 'reference',
+    detail: verdict.value.slice(0, 200), actor: activity.actor(req) });
 
   res.json({ success: true,
     file: { id, original_name: verdict.value, ref_url: verdict.value, ref_kind: verdict.kind, scan_status: 'reference' },
@@ -956,6 +981,10 @@ router.delete('/respond/:code/slots/:controlId/:slotKey/files/:fileId', ensureEv
   if (!att) return res.status(404).json({ success: false });
   run('DELETE FROM attachments WHERE id = ?', [att.id]);
   slots.syncCounts(ctx.control.id);
+  activity.record({ projectId: ctx.assessment.project_id, entityType: 'attachment', entityId: att.id,
+    entityRef: `${ctx.control.control_id} · ${slot.label}`,
+    action: 'detached', field: att.ref_url ? 'reference' : 'file',
+    detail: att.original_name || '', actor: activity.actor(req) });
   res.json({ success: true, progress: slots.progress(ctx.control.id) });
 });
 
@@ -1074,6 +1103,9 @@ router.post('/respond/:code/submit', ensureEvidenceUser, (req, res) => {
 
   run(`UPDATE assessments SET status = 'submitted', submitted_at = CURRENT_TIMESTAMP,
     updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [assessment.id]);
+  activity.record({ projectId: assessment.project_id, entityType: 'assessment', entityId: assessment.id,
+    entityRef: `#${assessment.id}`, action: 'submitted', field: 'evidence',
+    detail: 'All evidence submitted for assessment', actor: activity.actor(req) });
 
   // Notify assessor
   const assessor = get('SELECT * FROM users WHERE id = ?', [assessment.created_by]);

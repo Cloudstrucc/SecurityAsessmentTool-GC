@@ -28,6 +28,7 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const billing = require('../config/billing');
 const access = require('../config/access');
+const activity = require('../config/project-activity');
 const ai = require('../config/ai-service');
 const suggestWorker = require('../config/suggest-worker');
 const orgSettings = require('../config/org-settings');
@@ -2130,6 +2131,12 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
       user: req.user
     });
 
+    // The tailoring decision is a contribution in its own right.
+    activity.record({ projectId: project.id, entityType: 'assessment', entityId: assessmentId,
+      entityRef: `#${assessmentId}`, action: 'created', field: 'tailoring',
+      detail: `${inScopeCount} in scope, ${scopedOutCount} tailored out of ${statements.length} offered`,
+      actor: activity.actor(req) });
+
     req.flash('success', tr(req, 'tl.createdFlash',
       `Assessment created: ${inScopeCount} control(s) in scope, ${scopedOutCount} tailored out of ${statements.length} recommended. You can now review and send the invite.`,
       { inScope: inScopeCount, scopedOut: scopedOutCount, offered: statements.length }));
@@ -2645,6 +2652,9 @@ router.post('/decision-packages/:id/transition', ensureAuthenticated, (req, res)
   if (to === 'issued') { sets.push('issued_at = CURRENT_TIMESTAMP'); }
   vals.push(dp.id);
   run(`UPDATE decision_packages SET ${sets.join(', ')} WHERE id = ?`, vals);
+  activity.record({ projectId: dp.project_id, entityType: 'decision', entityId: dp.id,
+    entityRef: dp.reference || `DP-${dp.id}`, action: 'advanced', field: 'state',
+    detail: `${dp.state} → ${to}`, actor: activity.actor(req) });
   req.flash('success', `Decision package moved to "${to}".`);
   res.redirect(`/admin/decision-packages/${dp.id}`);
 });
@@ -3337,6 +3347,9 @@ router.post('/assessments/:id/controls/:cid/review', ensureAuthenticated, expres
       b.evidence_sufficiency != null ? b.evidence_sufficiency : control.evidence_sufficiency,
       b.control_weight != null ? b.control_weight : control.control_weight, control.id]);
   recordCtrlHistory(control.id, assessment.id, 'review', req.user.name, 'status: ' + rs);
+  activity.record({ projectId: activity.projectForAssessment(assessment.id), entityType: 'control',
+    entityId: control.id, entityRef: control.control_id, action: 'reviewed', field: 'review_status',
+    detail: `Review status set to ${rs}`, actor: activity.actor(req) });
   res.json({ success: true });
 });
 
@@ -3358,6 +3371,9 @@ router.post('/assessments/:id/controls/bulk-review', ensureAuthenticated, expres
     recordCtrlHistory(id, assessment.id, 'review', req.user.name, 'status: ' + rs);
     n++;
   }
+  activity.record({ projectId: activity.projectForAssessment(assessment.id), entityType: 'assessment',
+    entityId: assessment.id, entityRef: `#${assessment.id}`, action: 'reviewed', field: 'review_status',
+    detail: `${n} control(s) set to ${rs}`, actor: activity.actor(req) });
   res.json({ success: true, updated: n, status: rs });
 });
 
@@ -3430,6 +3446,12 @@ router.post('/assessments/:id/audit-control/:controlId', ensureAuthenticated, (r
     audit_reviewed_at = CURRENT_TIMESTAMP, audit_reviewed_by = ?, updated_at = CURRENT_TIMESTAMP 
     WHERE id = ? AND assessment_id = ?`,
     [result, comments, req.user.id, req.params.controlId, req.params.id]);
+  {
+    const c = get('SELECT control_id FROM assessment_controls WHERE id = ?', [req.params.controlId]);
+    activity.record({ projectId: activity.projectForAssessment(req.params.id), entityType: 'control',
+      entityId: Number(req.params.controlId), entityRef: c && c.control_id, action: 'audited',
+      field: 'audit_result', detail: `Scored ${result}`, actor: activity.actor(req) });
+  }
   res.json({ success: true });
 });
 
@@ -3489,6 +3511,10 @@ router.post('/assessments/:id/complete-audit', ensureAuthenticated, (req, res) =
     [score, result, atoType, expiryDate,
      req.body.riskAcceptance || '', req.body.poamNotes || '',
      req.params.id]);
+
+  activity.record({ projectId: project.id, entityType: 'assessment', entityId: assessment.id,
+    entityRef: `#${assessment.id}`, action: 'completed', field: 'audit',
+    detail: `Audit completed — ${result.toUpperCase()} at ${score}%`, actor: activity.actor(req) });
 
   // Auto-populate POA&M items for not-met/partially-met controls
   const findings = controls.filter(c => c.audit_result === 'not-met' || c.audit_result === 'partially-met');
@@ -3633,6 +3659,9 @@ router.post('/projects/:id/contacts', ensureAuthenticated, (req, res) => {
     (b.cio_name || '').trim(), normalizeEmail(b.cio_email),
     (b.department || '').trim(), (b.branch || '').trim(), project.id]);
 
+  activity.record({ projectId: project.id, entityType: 'project', entityId: project.id,
+    entityRef: project.name, action: 'updated', field: 'contacts',
+    detail: 'Key contacts or organizational placement changed', actor: activity.actor(req) });
   req.flash('success', tr(req, 'pc.saved', 'Project contacts updated.'));
   res.redirect(`/admin/projects/${project.id}`);
 });
@@ -4272,6 +4301,9 @@ router.post('/intakes/:id/accept', ensureAuthenticated, (req, res) => {
              assessor_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
           [req.body.assessorNotes || intake.assessor_notes || '',
            req.body.assessorDescription || intake.assessor_description || '', intake.id]);
+        activity.record({ projectId: existing.id, entityType: 'intake', entityId: intake.id,
+          entityRef: intake.ref_code, action: 'accepted', field: 'status',
+          detail: 'Intake accepted and the project opened for assessment', actor: activity.actor(req) });
         req.flash('success', `Intake accepted for "${existing.name}".`);
         return res.redirect('/admin/projects/' + existing.id);
       }
@@ -4712,6 +4744,11 @@ router.post('/assessments/:id/controls/:controlId/scope', ensureAuthenticated, e
       inScope ? null : reason, inScope ? null : new Date().toISOString(),
       control.id, assessment.id]);
 
+  activity.record({ projectId: activity.projectForAssessment(assessment.id), entityType: 'control',
+    entityId: control.id, entityRef: control.control_id,
+    action: inScope ? 'scoped in' : 'tailored out', field: 'is_applicable',
+    detail: inScope ? 'Brought back into scope' : (req.body.reason || 'Tailored out of the assessment'),
+    actor: activity.actor(req) });
   res.json({ success: true, controlId: control.control_id, status: inScope ? 'in-scope' : 'scoped-out' });
 });
 

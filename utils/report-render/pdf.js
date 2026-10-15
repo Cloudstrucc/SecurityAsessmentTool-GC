@@ -252,6 +252,15 @@ function render(model, opts = {}) {
             so.map(c => [c.control_id, c.title || '', c.reason || '—']), [0.18, 0.37, 0.45]);
         }
       }
+      if (m.contributors && m.contributors.length) {
+        const cs = m.contributorSummary || {};
+        heading('8', t('rf.contributors'));
+        para(t('rf.contributorsLede', { people: cs.contributors || 0, actions: cs.actions || 0 }));
+        dataTable([t('rf.person'), t('rf.role'), t('rf.actions'), t('rf.contributed'), t('rf.firstActivity'), t('rf.lastActivity')],
+          m.contributors.map(c => [c.actor_name || '', t('rf.actor_' + c.actor_type) || c.actor_type,
+            String(c.actions), c.summary || '', c.first_at || '', c.last_at || '']),
+          [0.2, 0.11, 0.08, 0.31, 0.15, 0.15], ['left', 'left', 'right', 'left', 'left', 'left']);
+      }
       if (m.attachments && m.attachments.length) {
         heading('7', t('rf.evidenceAttachments'));
         dataTable([t('rf.control'), t('rf.document'), t('rf.uploaded')],
@@ -260,6 +269,19 @@ function render(model, opts = {}) {
             a.uploaded_at || '']),
           [0.18, 0.56, 0.26]);
       }
+    } else if (m.type === 'contributors') {
+      const cs = m.summary || {};
+      heading('1', t('rf.contributors'));
+      para(`${t('rf.people')}: ${cs.contributors || 0} · ${t('rf.actions')}: ${cs.actions || 0}`, { bold: true });
+      dataTable([t('rf.person'), t('rf.role'), t('rf.actions'), t('rf.contributed'), t('rf.firstActivity'), t('rf.lastActivity')],
+        (m.contributors || []).map(c => [c.actor_name || '', t('rf.actor_' + c.actor_type) || c.actor_type,
+          String(c.actions), c.summary || '', c.first_at || '', c.last_at || '']),
+        [0.2, 0.11, 0.08, 0.31, 0.15, 0.15], ['left', 'left', 'right', 'left', 'left', 'left']);
+      heading('2', t('rf.activityLog'));
+      dataTable([t('rf.when'), t('rf.person'), t('rf.recordType'), t('rf.record'), t('rf.action'), t('rf.detail')],
+        (m.activity || []).map(r => [r.created_at || '', r.actor_name || '',
+          t('rf.ent_' + r.entity_type) || r.entity_type, r.entity_ref || '', r.action || '', r.detail || '']),
+        [0.15, 0.17, 0.11, 0.17, 0.12, 0.28]);
     } else if (m.type === 'portfolio') {
       const S = m.summary;
       heading('1', t('rf.systems'));

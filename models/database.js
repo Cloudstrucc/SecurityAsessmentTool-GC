@@ -352,6 +352,24 @@ async function initDatabase() {
 
   // ── FILE ATTACHMENTS ──
   db.run(`
+    CREATE TABLE IF NOT EXISTS project_activity (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      entity_type TEXT NOT NULL,      -- project | intake | assessment | control | slot | attachment | decision
+      entity_id INTEGER,
+      entity_ref TEXT,                -- human handle: AC-2, INT-1234, DP-0001
+      action TEXT NOT NULL,           -- created | updated | removed | filled | attached | …
+      field TEXT,                     -- which attribute, where it narrows the action
+      detail TEXT,                    -- short human summary; never a full document
+      actor_name TEXT,
+      actor_email TEXT,
+      actor_type TEXT,                -- assessor | provider | ai | system
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+    )
+  `);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_project_activity_project ON project_activity(project_id, id)`);
+  db.run(`
     CREATE TABLE IF NOT EXISTS evidence_slots (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       assessment_control_id INTEGER NOT NULL,

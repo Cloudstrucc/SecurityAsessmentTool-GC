@@ -259,11 +259,17 @@ function projectRollup(projectId, { orgId, req } = {}) {
     ORDER BY ac.control_id, at.id
   `, [projectId]).map(r => ({ ...r, uploaded_at: fmtDate(r.uploaded_at) }));
 
+  // Final chapter: who contributed. A summary — the full trail is its own report.
+  const pa = require('./project-activity');
+  const contributors = pa.contributors(projectId)
+    .map(p => ({ ...p, first_at: fmtDate(p.first_at), last_at: fmtDate(p.last_at) }));
+  const contributorSummary = pa.summary(projectId);
+
   return {
     type: 'project', immutable: false,
     // Detail sections — each may be null when the project has not reached that
     // stage; every renderer guards on that rather than assuming they exist.
-    activeDetail, decisionDetail, attachments,
+    activeDetail, decisionDetail, attachments, contributors, contributorSummary,
     title: 'Project rollup report', subject: project.name,
     subtitle: project.description ? stripHtml(project.description) : '',
     reportId: `PRJ-${String(projectId).padStart(4, '0')}`,
@@ -278,6 +284,29 @@ function projectRollup(projectId, { orgId, req } = {}) {
       assessment_version: d.assessment_version, issued_at: fmtDate(d.issued_at), expires_at: fmtDate(d.expires_at)
     })),
     conditions, documents, active
+  };
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// 4b. CONTRIBUTORS — who did what on this project
+// ════════════════════════════════════════════════════════════════════════
+function contributorsReport(projectId, { orgId, req } = {}) {
+  const project = projectForOrg(projectId, orgId);
+  if (!project) return null;
+  const pa = require('./project-activity');
+  const people = pa.contributors(projectId);
+  const log = pa.listForProject(projectId).map(r => ({
+    ...r, created_at: fmtDate(r.created_at)
+  }));
+  return {
+    type: 'contributors', immutable: false,
+    title: 'Project contributors', subject: project.name,
+    subtitle: 'Who provided what, and when',
+    reportId: `CON-${String(projectId).padStart(4, '0')}`,
+    project, meta: meta('contributors', req),
+    summary: pa.summary(projectId),
+    contributors: people.map(p => ({ ...p, first_at: fmtDate(p.first_at), last_at: fmtDate(p.last_at) })),
+    activity: log
   };
 }
 
@@ -377,6 +406,7 @@ const BUILDERS = {
   'decision-package': (id, o) => decisionPackage(id, o),
   poam: (id, o) => poamRegister(id, o),
   project: (id, o) => projectRollup(id, o),
+  contributors: (id, o) => contributorsReport(id, o),
   portfolio: (id, o) => portfolioSummary(o)
 };
 
@@ -388,6 +418,7 @@ function build(type, id, opts = {}) {
 }
 
 module.exports = {
+  contributorsReport,
   build, intakeReport, assessmentReport, decisionPackage, poamRegister, projectRollup, portfolioSummary,
   familyStats, normResult, RESULTS
 };

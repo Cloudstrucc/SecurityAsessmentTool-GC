@@ -176,6 +176,14 @@ function render(model, opts = {}) {
           so.map(c => [c.control_id, c.title || '', c.reason || '—'])));
       }
     }
+    if (m.contributors && m.contributors.length) {
+      const cs = m.contributorSummary || {};
+      children.push(H(t('rf.contributors')));
+      children.push(P(t('rf.contributorsLede', { people: cs.contributors || 0, actions: cs.actions || 0 })));
+      children.push(dataTable([t('rf.person'), t('rf.role'), t('rf.actions'), t('rf.contributed'), t('rf.firstActivity'), t('rf.lastActivity')],
+        m.contributors.map(c => [c.actor_name || '', t('rf.actor_' + c.actor_type) || c.actor_type,
+          c.actions, c.summary || '', c.first_at || '', c.last_at || ''])));
+    }
     if (m.attachments && m.attachments.length) {
       children.push(H(t('rf.evidenceAttachments')));
       children.push(dataTable([t('rf.control'), t('rf.document'), t('rf.uploaded')],
@@ -183,6 +191,17 @@ function render(model, opts = {}) {
           (a.original_name || '') + (a.ref_url ? ` (${t('rf.externalReference')})` : ''),
           a.uploaded_at || ''])));
     }
+  } else if (m.type === 'contributors') {
+    const cs = m.summary || {};
+    children.push(H(t('rf.contributors')));
+    children.push(P(`${t('rf.people')}: ${cs.contributors || 0} · ${t('rf.actions')}: ${cs.actions || 0}`));
+    children.push(dataTable([t('rf.person'), t('rf.role'), t('rf.actions'), t('rf.contributed'), t('rf.firstActivity'), t('rf.lastActivity')],
+      (m.contributors || []).map(c => [c.actor_name || '', t('rf.actor_' + c.actor_type) || c.actor_type,
+        c.actions, c.summary || '', c.first_at || '', c.last_at || ''])));
+    children.push(H(t('rf.activityLog')));
+    children.push(dataTable([t('rf.when'), t('rf.person'), t('rf.recordType'), t('rf.record'), t('rf.action'), t('rf.detail')],
+      (m.activity || []).map(r => [r.created_at || '', r.actor_name || '',
+        t('rf.ent_' + r.entity_type) || r.entity_type, r.entity_ref || '', r.action || '', r.detail || ''])));
   } else if (m.type === 'portfolio') {
     const S = m.summary;
     children.push(H(t('rf.systems')));

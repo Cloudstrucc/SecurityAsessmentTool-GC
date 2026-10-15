@@ -63,7 +63,10 @@ function authorize(req, type, id) {
   }
   // Tenant isolation: an admin may export only records in their own workspace
   // (root admins export any). Non-admins still need an explicit assignment.
-  if (type === 'project') {
+  // `contributors` is project-scoped and carries the same tenant rules as the
+  // project rollup — it must never fall through to the default branch, which
+  // resolves by assessment and would refuse a valid project id.
+  if (type === 'project' || type === 'contributors') {
     const project = get('SELECT * FROM projects WHERE id = ?', [id]);
     if (!project) return { ok: false, code: 404 };
     if (admin) return access.canAccessProject(user, project) ? { ok: true, project } : { ok: false, code: 404 };
