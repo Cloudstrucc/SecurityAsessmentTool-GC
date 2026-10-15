@@ -428,6 +428,7 @@ zip -r "$DEPLOY_ZIP" . \
   -x "data/*" \
   -x "uploads/*" \
   -x "tests/reports/*" \
+  -x "docs/*" \
   -x "*.tar.gz" \
   -x "cookies.txt" \
   -x ".DS_Store" \

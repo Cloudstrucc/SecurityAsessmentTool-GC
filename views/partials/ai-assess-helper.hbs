@@ -218,7 +218,11 @@ window.AIAssist = (function(){
     wrap.appendChild(head);
     var rows=[];
     valid.forEach(function(a){
-      var op=(a.op||'').toLowerCase(); var ids=(a.controlIds||[]).join(', ');
+      var op=(a.op||'').toLowerCase();
+      // Family-wide proposals carry families / exceptFamilies instead of a long ID list.
+      var ids=(a.controlIds||[]).join(', ');
+      if(a.families && a.families.length) ids=(ids?ids+' · ':'')+'all of '+a.families.join(', ');
+      if(a.exceptFamilies && a.exceptFamilies.length) ids=(ids?ids+' · ':'')+'everything except '+a.exceptFamilies.join(', ');
       var row=document.createElement('div'); row.className='aia-act'; row._action=a; row._done=false;
       row.innerHTML='<div><span class="op '+op+'">'+op+'</span><span class="ids">'+(ids||'')+'</span></div>'+
         (a.reason?'<div class="reason">'+escapeHtml(a.reason)+'</div>':'')+

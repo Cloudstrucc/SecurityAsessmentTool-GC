@@ -465,6 +465,7 @@ router.get('/assessments/:id/stats', (req, res) => {
 // AI-ASSISTED FEATURES
 // ═══════════════════════════════════════════════════════════════════════════════
 const ai = require('../config/ai-service');
+const officeText = require('../utils/officeText');
 const access = require('../config/access');
 const { createNotification } = require('../config/notify');
 const multer = require('multer');
@@ -563,12 +564,28 @@ router.post('/ai/refine-answer', ensureAuthenticated, express.json(), async (req
   try {
     if (!ai.isConfigured()) return res.status(503).json({ error: 'AI not configured. Set ANTHROPIC_API_KEY or configure your own provider.' });
     if (!aiAllowed(req, res, 'refine')) return;
-    const { controlId, controlTitle, controlGuidance, userSummary, frameworkLabel } = req.body;
-    if (!userSummary || String(userSummary).trim().length < 3) return res.status(400).json({ error: 'Please enter a brief answer to refine.' });
-    const refined = await ai.refineControlAnswer({
-      controlId: controlId || '', controlTitle: controlTitle || '', controlGuidance: controlGuidance || '',
-      userSummary: String(userSummary), frameworkLabel: frameworkLabel || 'ITSG-33'
-    });
+    const { controlId, controlTitle, controlGuidance, userSummary, frameworkLabel, mode, projectId } = req.body;
+    const note = String(userSummary || '').trim();
+
+    // `mode: 'guidance'` asks for what the provider must SUPPLY; the default
+    // refines/expands the assessor's own tailoring note. Neither requires an
+    // existing note any more — an empty box used to 400 here, which the page
+    // swallowed and showed as a dead button.
+    let refined;
+    if (mode === 'guidance') {
+      const project = projectId
+        ? get('SELECT * FROM projects WHERE id = ?', [projectId])
+        : null;
+      refined = await ai.generateEvidenceGuidance(
+        { control_id: controlId || '', title: controlTitle || '', description: controlGuidance || note || '' },
+        project || {}
+      );
+    } else {
+      refined = await ai.refineControlAnswer({
+        controlId: controlId || '', controlTitle: controlTitle || '', controlGuidance: controlGuidance || '',
+        userSummary: note, frameworkLabel: frameworkLabel || 'ITSG-33'
+      });
+    }
     access.recordAiUse(req.user, 'refine');
     res.json({ success: true, refined });
   } catch (err) {
@@ -618,9 +635,23 @@ router.post('/ai/parse-document', aiUpload.single('document'), async (req, res) 
       const fileBuffer = fs.readFileSync(filePath);
       const mimeMap = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg' };
       result = await ai.parseDocumentForIntake({ base64: fileBuffer.toString('base64'), mediaType: mimeMap[ext], filename, securityFramework });
+    } else if (officeText.isOfficeXml(ext)) {
+      // .docx / .pptx / .xlsx are ZIP containers. Reading one as utf-8 yields
+      // binary noise, which the model then declines to interpret — so extract
+      // the real text first.
+      const text = (await officeText.extractOfficeText(fs.readFileSync(filePath), ext)).slice(0, MAX_DOC_CHARS);
+      result = await ai.parseDocumentForIntake({ text, filename, securityFramework });
     } else {
-      // Plain text/markdown/etc — read and cap.
-      const text = fs.readFileSync(filePath, 'utf-8').slice(0, MAX_DOC_CHARS);
+      // Plain text/markdown/etc — read and cap. Reject anything that is clearly
+      // binary rather than sending bytes the model cannot read.
+      const raw = fs.readFileSync(filePath);
+      if (raw.includes(0)) {
+        fs.unlinkSync(filePath);
+        return res.status(415).json({
+          error: `"${filename}" is not a readable text document. Upload a PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx), image, or plain text file.`
+        });
+      }
+      const text = raw.toString('utf-8').slice(0, MAX_DOC_CHARS);
       result = await ai.parseDocumentForIntake({ text, filename, securityFramework });
     }
 

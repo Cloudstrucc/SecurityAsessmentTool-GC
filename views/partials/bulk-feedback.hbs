@@ -16,7 +16,22 @@
 </div>
 <script>
 window.BF_I18N = { updated: {{{tjs 'bf.updated'}}}, error: {{{tjs 'bf.errorAdmin'}}} };
-function showBulkProgress(msg){ var b=document.getElementById('bulkProgress'); if(!b) return; document.getElementById('bulkProgressMsg').textContent=msg||''; b.style.display='block'; try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); } }
+// Both panels are position:fixed, so they are already in view wherever the page
+// is scrolled. They used to scrollTo(top) as well, which threw the assessor to
+// the top of the page on every per-control action — away from the control they
+// had just acted on, and away from the badge the action had just set.
+function showBulkProgress(msg){ var b=document.getElementById('bulkProgress'); if(!b) return; document.getElementById('bulkProgressMsg').textContent=msg||''; b.style.display='block'; }
 function hideBulkProgress(){ var b=document.getElementById('bulkProgress'); if(b) b.style.display='none'; }
-function showBulkFlash(msg,isError){ var f=document.getElementById('bulkFlash'); if(!f) return; document.getElementById('bulkFlashMsg').textContent=msg||''; var icon=document.getElementById('bulkFlashIcon'); f.style.borderLeftColor=isError?'#d64550':'#2fa06d'; if(icon){ icon.className=isError?'bi bi-exclamation-triangle-fill':'bi bi-check-circle-fill'; icon.style.color=isError?'#d64550':'#2fa06d'; } f.style.display='block'; try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); } }
+var bulkFlashTimer=null;
+function showBulkFlash(msg,isError){
+  var f=document.getElementById('bulkFlash'); if(!f) return;
+  document.getElementById('bulkFlashMsg').textContent=msg||'';
+  var icon=document.getElementById('bulkFlashIcon');
+  f.style.borderLeftColor=isError?'#d64550':'#2fa06d';
+  if(icon){ icon.className=isError?'bi bi-exclamation-triangle-fill':'bi bi-check-circle-fill'; icon.style.color=isError?'#d64550':'#2fa06d'; }
+  f.style.display='block';
+  // A success message should not need dismissing; an error stays until acknowledged.
+  clearTimeout(bulkFlashTimer);
+  if(!isError) bulkFlashTimer=setTimeout(function(){ f.style.display='none'; }, 4000);
+}
 </script>

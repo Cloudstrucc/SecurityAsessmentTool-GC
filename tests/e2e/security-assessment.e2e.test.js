@@ -186,6 +186,20 @@ async function createSingleControlAssessment(jar, projectId) {
   return { assessmentPath, assessmentId: assessmentPath.match(/(\d+)$/)[1] };
 }
 
+/**
+ * Resolve an assessment's evidence-flow code. The record page links to the flow
+ * through /admin/assessments/:id/evidence (so a row with a missing code gets one
+ * rather than yielding a dead "/respond/" link), so follow that hop rather than
+ * scraping a code out of the markup.
+ */
+async function evidenceCode(jar, assessmentId) {
+  const hop = await request(jar, 'GET', `/admin/assessments/${assessmentId}/evidence`);
+  assert.equal(hop.status, 302, 'the evidence route redirects into the flow');
+  const m = (hop.headers.get('location') || '').match(/^\/respond\/([A-Z0-9]+)/);
+  assert.ok(m, 'the evidence route resolves to an invite code');
+  return m[1];
+}
+
 async function uploadSaddDocument(jar, projectId) {
   assert.ok(fs.existsSync(SADD_PATH), `SADD test document missing at ${SADD_PATH}`);
   const formData = new FormData();
@@ -2148,8 +2162,8 @@ test('evidence ownership: an assigned assessment is read-only for the owner unti
   // The detail now offers "Take ownership" (assigned to someone else).
   const detail1 = await getText(jar, `/admin/assessments/${assessmentId}`);
   assert.match(detail1.text, /take-ownership/, 'assigned-to-other shows the Take ownership action');
-  const codeM = detail1.text.match(/\/respond\/([A-Z0-9]+)/);
-  assert.ok(codeM, 'assessment has an evidence-flow code');
+  const codeM = [null, await evidenceCode(jar, assessmentId)];
+  assert.ok(codeM[1], 'assessment has an evidence-flow code');
   const code = codeM[1];
 
   // The owner opens the evidence flow read-only, and saving is refused.
@@ -2196,7 +2210,7 @@ test('evidence editor shows a Save button, periodic autosave, and a saved indica
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
 
   const page = await getText(jar, `/respond/${code}`);
   assert.match(page.text, /bi-save/, 'the evidence editor shows a Save button');
@@ -2212,7 +2226,7 @@ test('suggested evidence: a placeholder draft is generated (offline fallback) an
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`); // -> evidence-gathering, owner can edit
 
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
   const respond = await getText(jar, `/respond/${code}`);
   const cid = respond.text.match(/editor-(\d+)/)[1];
 
@@ -2236,7 +2250,7 @@ test('bulk suggested evidence generates drafts for empty controls and skips real
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
 
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
   const respond = await getText(jar, `/respond/${code}`);
   const cid = respond.text.match(/editor-(\d+)/)[1];
 
@@ -2259,7 +2273,7 @@ test('assistant evidence proposals: apply-suggestions writes drafts and never ov
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
   const respond = await getText(jar, `/respond/${code}`);
   const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
 
@@ -2270,7 +2284,9 @@ test('assistant evidence proposals: apply-suggestions writes drafts and never ov
   assert.equal(body.applied.length, 1, 'one draft applied');
   const respond2 = await getText(jar, `/respond/${code}`);
   assert.match(respond2.text, new RegExp('id="draftBadge-' + cid), 'the applied proposal shows as a draft');
-  assert.match(respond2.text, /ev-ph-value/, 'the [[VALUE]] placeholder renders as a colour-coded chip');
+  // Markers are now materialized into real slots, so the old inline chip class
+  // is gone — the placeholder is a countable slot span instead.
+  assert.match(respond2.text, /data-slot="s1"/, 'the [[VALUE]] placeholder becomes a countable slot');
   assert.match(respond2.text, /ev-ph-attach/, 'the [[ATTACH]] placeholder renders as a colour-coded chip');
   assert.match(respond2.text, /id="progressCount">0</, 'an approved draft does not count as provided');
 
@@ -2289,7 +2305,7 @@ test('reports never present an untouched AI-suggested draft as real evidence', a
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
   const respond = await getText(jar, `/respond/${code}`);
   const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
 
@@ -2319,7 +2335,7 @@ test('evidence Ready lock, edit history, and revert work per control', async () 
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
   const respond = await getText(jar, `/respond/${code}`);
   const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
 
@@ -2352,7 +2368,7 @@ test('bulk suggest runs as a background job with pollable status that fills empt
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
 
   // Start the background job.
   const start = await (await request(jar, 'POST', `/respond/${code}/suggest-bulk`, { json: {} })).json();
@@ -2380,7 +2396,7 @@ test('provider bulk actions mark selected controls Ready', async () => {
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
   const respond = await getText(jar, `/respond/${code}`);
   const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
 
@@ -2398,7 +2414,7 @@ test('assessor review: per-control status/scoring, return-for-revision, and bulk
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
   const respond = await getText(jar, `/respond/${code}`);
   const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
 
@@ -2470,7 +2486,7 @@ test('assessor sends individual control(s) back for update — reopens as reacti
   const { assessmentId } = await createSingleControlAssessment(jar, projectId);
   await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
   const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
-  const code = detail.text.match(/\/respond\/([A-Z0-9]+)/)[1];
+  const code = await evidenceCode(jar, assessmentId);
   const respond = await getText(jar, `/respond/${code}`);
   const cid = Number(respond.text.match(/editor-(\d+)/)[1]);
 
@@ -2519,4 +2535,817 @@ test('security control catalog paginates (default 20, up to 100) and preserves f
   const pf = await getText(jar, '/admin/security-controls?q=account&per=20');
   const EQ = '(?:=|&#x3D;)';
   assert.match(pf.text, new RegExp('href="/admin/security-controls\\?[^"]*q' + EQ + 'account[^"]*per' + EQ + '20[^"]*&amp;page' + EQ), 'pager links preserve filters + per');
+});
+
+test('tailoring keeps every recommended control on the record: unselected ones are scoped out with a reason, and only in-scope controls reach the evidence provider', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Tailoring Project');
+
+  // Three controls are offered; only one is selected, and one of the other two
+  // carries an explicit exclusion reason.
+  const offered = ['AC-2', 'AU-2', 'IA-2'];
+  // URLSearchParams flattens an array value into one comma-joined field, so the
+  // repeated offered_ids keys are appended by hand.
+  const params = new URLSearchParams();
+  offered.forEach(id => params.append('offered_ids', id));
+  const form = {
+    control_ids: 'AC-2',
+    'title_AC-2': 'Account Management',
+    'desc_AC-2': 'Access Control: Account Management',
+    'rationale_AC-2': 'Required by the Protected B / Medium / Medium baseline.',
+    'priority_AC-2': 'P1',
+    'applicable[AC-2]': '1',
+    'title_AU-2': 'Event Logging',
+    'rationale_AU-2': 'Required by the Protected B / Medium / Medium baseline.',
+    'priority_AU-2': 'P1',
+    'scoped_out_reason[AU-2]': 'Logging is inherited from the hosting platform.',
+    'title_IA-2': 'Identification and Authentication',
+    'rationale_IA-2': 'Required by the Protected B / Medium / Medium baseline.',
+    'priority_IA-2': 'P1'
+  };
+  Object.entries(form).forEach(([k, v]) => params.append(k, v));
+  const created = await request(jar, 'POST', `/admin/projects/${projectId}/assessments/new`, {
+    body: params.toString(), headers: { 'content-type': 'application/x-www-form-urlencoded' }
+  });
+  assert.equal(created.status, 302);
+  const assessmentId = created.headers.get('location').match(/(\d+)$/)[1];
+
+  // The record keeps all three; the detail page separates them.
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(detail.text, /scopedOutRegister/, 'tailored-out register is rendered');
+  assert.match(detail.text, /Logging is inherited from the hosting platform\./,
+    'the assessor-supplied exclusion reason is shown');
+  assert.match(detail.text, /Tailored out by the assessor during control selection\./,
+    'an unselected control with no reason gets a default one');
+  assert.match(detail.text, /Required by the Protected B \/ Medium \/ Medium baseline\./,
+    'the in-scope control shows why it is in scope');
+
+  // Only the in-scope control reaches the evidence provider, and it carries the
+  // reason it is being asked for.
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const detailSent = await getText(jar, `/admin/assessments/${assessmentId}`);
+  const code = await evidenceCode(jar, assessmentId);
+  const respond = await getText(jar, `/respond/${code}`);
+  assert.match(respond.text, /AC-2/, 'the in-scope control is shown to the provider');
+  assert.doesNotMatch(respond.text, /Logging is inherited from the hosting platform/,
+    'an exclusion reason never reaches the evidence provider');
+  assert.match(respond.text, /Required by the Protected B \/ Medium \/ Medium baseline\./,
+    'the provider is told why the control is being asked about');
+
+  // Bring one scoped-out control back, then confirm the counts move.
+  const soId = detail.text.match(/id="so-row-(\d+)"/)?.[1];
+  assert.ok(soId, 'scoped-out rows carry their control row id');
+  const back = await request(jar, 'POST',
+    `/admin/assessments/${assessmentId}/controls/${soId}/scope`, { json: { status: 'in-scope' } });
+  assert.equal(back.status, 200);
+  assert.equal((await back.json()).status, 'in-scope');
+
+  // Scoping a control out requires a reason.
+  const noReason = await request(jar, 'POST',
+    `/admin/assessments/${assessmentId}/controls/${soId}/scope`, { json: { status: 'scoped-out' } });
+  assert.equal(noReason.status, 400, 'a reason is mandatory when tailoring a control out');
+
+  const withReason = await request(jar, 'POST',
+    `/admin/assessments/${assessmentId}/controls/${soId}/scope`,
+    { json: { status: 'scoped-out', reason: 'Not reachable from untrusted networks.' } });
+  assert.equal(withReason.status, 200);
+  const after = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(after.text, /Not reachable from untrusted networks\./, 'the new reason is recorded');
+});
+
+test('the evidence flow is reachable from the record even when the invite code is missing or the assessment is still a draft', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, 'E2E Evidence Link Project');
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+
+  // The evidence route resolves to the real flow even while the assessment is
+  // still a draft — a blank invite code used to yield "/respond/", a 404.
+  const hop = await request(jar, 'GET', `/admin/assessments/${assessmentId}/evidence`);
+  assert.equal(hop.status, 302);
+  const target = hop.headers.get('location');
+  assert.match(target, /^\/respond\/[A-Z0-9]+$/, 'redirects to a real invite code');
+  const code = target.replace('/respond/', '');
+
+  // A draft now gives its owner a read-only preview with an explanation rather
+  // than a dead end.
+  const preview = await getText(jar, target);
+  assert.equal(preview.response.status, 200, 'a draft assessment still renders for its owner');
+  assert.doesNotMatch(preview.text, /has not been activated yet/, 'no dead-end error page for the owner');
+  assert.match(preview.text, /still a draft/, 'the preview explains why it is read-only');
+
+  // Signed-out visitors are still sent to sign in.
+  const stranger = new CookieJar();
+  const anon = await request(stranger, 'GET', target, { redirect: 'manual' });
+  assert.equal(anon.status, 302, 'signed-out visitors are sent to sign in');
+
+  // Once activated the record links to the flow through the server, never
+  // through a code interpolated into the template.
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(detail.text, new RegExp(`/admin/assessments/${assessmentId}/evidence`),
+    'the record points at the server-side evidence route');
+  assert.doesNotMatch(detail.text, /href="\/respond\/"/, 'no empty /respond/ link is ever rendered');
+
+  // A per-control link carries its anchor through the redirect.
+  const cid = detail.text.match(/evEditGate\('#control-(\d+)'\)/)?.[1];
+  assert.ok(cid, 'per-control "view / edit evidence" buttons are rendered');
+  const anchored = await request(jar, 'GET', `/admin/assessments/${assessmentId}/evidence?c=${cid}`);
+  assert.equal(anchored.status, 302);
+  assert.match(anchored.headers.get('location'), new RegExp(`^/respond/[A-Z0-9]+#control-${cid}$`),
+    'the control anchor survives the redirect');
+
+  // And the evidence is editable from the flow the record links to.
+  const live = await getText(jar, target);
+  assert.equal(live.response.status, 200);
+  assert.doesNotMatch(live.text, /still a draft/, 'the draft banner clears once the assessment is activated');
+  const saved = await (await request(jar, 'POST', `/respond/${code}/save/${cid}`,
+    { json: { evidence_text: 'Account inventory attached.', evidence_html: '<p>Account inventory attached.</p>' } })).json();
+  assert.equal(saved.success, true, 'evidence can be saved from the flow the record links to');
+});
+
+test('an assessment that predates invite codes is repaired on startup', () => {
+  const legacyDb = path.join(TMP, 'legacy-invite.db');
+  fs.rmSync(legacyDb, { force: true });
+  const script = `
+    (async () => {
+      const db = require('${path.join(ROOT, 'models', 'database.js').replace(/\\/g, '\\\\')}');
+      await db.initDatabase();
+      const pid = db.run("INSERT INTO projects (name, slug, data_classification) VALUES ('Legacy', 'legacy-' || abs(random()), 'protected-b')");
+      db.run("INSERT INTO assessments (project_id, type, status, invite_code) VALUES (?, 'initial', 'evidence-gathering', NULL)", [pid]);
+      await db.saveDatabase();
+      console.log('SEEDED');
+    })();
+  `;
+  execFileSync(process.execPath, ['-e', script], { cwd: ROOT, env: { ...process.env, DB_PATH: legacyDb }, stdio: 'pipe' });
+
+  const verify = `
+    (async () => {
+      const db = require('${path.join(ROOT, 'models', 'database.js').replace(/\\/g, '\\\\')}');
+      await db.initDatabase();
+      const rows = db.all("SELECT invite_code FROM assessments WHERE invite_code IS NULL OR TRIM(invite_code) = ''");
+      const any = db.all("SELECT invite_code FROM assessments");
+      console.log('MISSING=' + rows.length + ' CODES=' + any.map(r => r.invite_code).join(','));
+    })();
+  `;
+  const out = execFileSync(process.execPath, ['-e', verify], { cwd: ROOT, env: { ...process.env, DB_PATH: legacyDb }, stdio: 'pipe' }).toString();
+  const m = out.match(/MISSING=(\d+) CODES=(.*)/);
+  assert.ok(m, `verification output should report the backfill state, got: ${out}`);
+  assert.equal(m[1], '0', 'no assessment is left without an invite code');
+  assert.match(m[2], /[A-Z0-9]{8}/, 'the generated code looks like an invite code');
+});
+
+test('a stale intake can be archived, restored and — when nothing points at it — deleted', async () => {
+  const adminJar = await loginAdminWithTotp();
+  const clientJar = await loginClientWithTotp();
+  const name = `E2E Stale Intake ${Date.now()}`;
+  await submitClientIntake(clientJar, name);
+  const intakeId = await findIntakeIdByName(adminJar, name);
+
+  // Archive hides it from the active list without deleting it.
+  const arch = await request(adminJar, 'POST', `/admin/intakes/${intakeId}/archive`);
+  assert.equal(arch.status, 302);
+  const active = await getText(adminJar, '/admin/intakes');
+  assert.doesNotMatch(active.text, new RegExp(name), 'an archived intake leaves the active list');
+
+  // It stays reachable under ?archived=1, so it can be restored.
+  const archived = await getText(adminJar, '/admin/intakes?archived=1');
+  assert.match(archived.text, new RegExp(name), 'archived intakes are listed under ?archived=1');
+
+  // Archiving twice is refused rather than silently re-stamping the status.
+  const again = await request(adminJar, 'POST', `/admin/intakes/${intakeId}/archive`);
+  assert.equal(again.status, 302);
+  const detail = await getText(adminJar, `/admin/intakes/${intakeId}`);
+  assert.match(detail.text, /already archived/i, 'a second archive is refused');
+
+  // Restore puts it back in the active list with its prior status.
+  const restore = await request(adminJar, 'POST', `/admin/intakes/${intakeId}/unarchive`);
+  assert.equal(restore.status, 302);
+  const back = await getText(adminJar, '/admin/intakes');
+  assert.match(back.text, new RegExp(name), 'a restored intake returns to the active list');
+
+  // An intake with no project behind it can be deleted outright.
+  const del = await request(adminJar, 'POST', `/admin/intakes/${intakeId}/delete`);
+  assert.equal(del.status, 302);
+  const gone = await getText(adminJar, '/admin/intakes');
+  assert.doesNotMatch(gone.text, new RegExp(name), 'a deleted intake is gone from the list');
+  assert.doesNotMatch((await getText(adminJar, '/admin/intakes?archived=1')).text, new RegExp(name),
+    'and is not hiding in the archived list either');
+});
+
+test('an intake that belongs to a project is refused deletion and told to archive instead', async () => {
+  const jar = await loginAdminWithTotp();
+  // Creating a project as an assessor also creates its linked intake.
+  const { projectId } = await createAdminProject(jar, `E2E Linked Intake ${Date.now()}`);
+  const project = await getText(jar, `/admin/projects/${projectId}`);
+  const intakeId = project.text.match(/\/admin\/intakes\/(\d+)/)?.[1];
+  assert.ok(intakeId, 'the project links to its intake');
+
+  const del = await request(jar, 'POST', `/admin/intakes/${intakeId}/delete`);
+  assert.equal(del.status, 302, 'the delete is refused with a redirect, not a crash');
+  const detail = await getText(jar, `/admin/intakes/${intakeId}`);
+  assert.match(detail.text, /belongs to a project or assessment/i,
+    'the refusal explains why and points at archiving');
+
+  // The intake is still there, and the project still references it.
+  const stillThere = await getText(jar, `/admin/projects/${projectId}`);
+  assert.match(stillThere.text, new RegExp(`/admin/intakes/${intakeId}`),
+    'the project still references its intake');
+
+  // Archiving it is allowed, and does not break the project.
+  const arch = await request(jar, 'POST', `/admin/intakes/${intakeId}/archive`);
+  assert.equal(arch.status, 302);
+  const projectAfter = await getText(jar, `/admin/projects/${projectId}`);
+  assert.equal(projectAfter.response.status, 200, 'the project still loads with its intake archived');
+});
+
+test('project contacts can be corrected after creation without disturbing the project tracker', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Contacts ${Date.now()}`);
+
+  // The intake the project was created with is the one the tracker reads.
+  const before = await getText(jar, `/admin/projects/${projectId}`);
+  const intakeIdBefore = before.text.match(/\/admin\/intakes\/(\d+)/)?.[1];
+  assert.ok(intakeIdBefore, 'the project links to its intake');
+
+  const res = await request(jar, 'POST', `/admin/projects/${projectId}/contacts`, {
+    form: {
+      project_owner_name: 'Dana Whitfield',
+      project_owner_email: 'dana.whitfield@example.test',
+      project_authority_name: 'Jordan Avery',
+      project_authority_email: 'jordan.avery@example.test',
+      cio_name: 'Priya Raman',
+      cio_email: 'priya.raman@example.test',
+      department: 'Digital Government',
+      branch: 'Identity and Trust Services'
+    }
+  });
+  assert.equal(res.status, 302, 'the update redirects back to the project');
+
+  const after = await getText(jar, `/admin/projects/${projectId}`);
+  assert.match(after.text, /Jordan Avery/, 'the new authority name is shown');
+  assert.match(after.text, /Dana Whitfield/, 'the owner name is shown');
+  assert.match(after.text, /Identity and Trust Services/, 'the branch is shown');
+
+  // The whole point of a dedicated route: no second intake, so the tracker's
+  // active intake (the newest) is unchanged.
+  const intakeIds = [...after.text.matchAll(/\/admin\/intakes\/(\d+)/g)].map(m => m[1]);
+  assert.ok(intakeIds.every(id => id === intakeIdBefore),
+    'no additional intake was created by editing contacts');
+});
+
+test('project contacts cannot be edited across workspaces', async () => {
+  const owner = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(owner, `E2E Contacts Tenant ${Date.now()}`);
+
+  // A self-registered workspace of its own — an org admin, not a platform root.
+  const outsider = new CookieJar();
+  const reg = await request(outsider, 'POST', '/register', {
+    form: {
+      plan: 'trial', first_name: 'Outsider', last_name: 'Owner',
+      organization: `E2E Contacts Outsider ${Date.now()}`,
+      email: `contacts.outsider.${Date.now()}@example.test`,
+      password: 'TenantPass123!', agree: '1'
+    }
+  });
+  assert.equal(reg.status, 302, 'the outsider workspace registers');
+
+  const res = await request(outsider, 'POST', `/admin/projects/${projectId}/contacts`, {
+    form: { project_authority_name: 'Should Not Apply' }
+  });
+  // The router-level tenant guard answers cross-tenant mutations with 404 (not a
+  // redirect), so an outsider cannot even confirm the project exists.
+  assert.equal(res.status, 404, 'the outsider is refused, not served the project');
+
+  const after = await getText(owner, `/admin/projects/${projectId}`);
+  assert.doesNotMatch(after.text, /Should Not Apply/,
+    "another workspace's user cannot rewrite this project's contacts");
+});
+
+test('an evidence attachment survives a reload and is downloadable from both sides', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Attach ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const code = await evidenceCode(jar, assessmentId);
+
+  const page = await getText(jar, `/respond/${code}`);
+  const controlId = page.text.match(/id="editor-(\d+)"/)?.[1];
+  assert.ok(controlId, 'the evidence editor exposes its control id');
+
+  const body = Buffer.from('control,result\nAC-1,met\n');
+  const formData = new FormData();
+  formData.append('file', new Blob([body], { type: 'text/csv' }), 'evidence-sample.csv');
+  const up = await request(jar, 'POST', `/respond/${code}/upload/${controlId}`, { body: formData });
+  assert.equal(up.status, 200);
+  const upJson = await up.json();
+  assert.ok(upJson.success, 'the upload is accepted');
+  assert.ok(upJson.file.attachmentId, 'the response carries the attachment id the download link needs');
+
+  // 1. It is rendered on the next page load, not just appended in-session.
+  const reloaded = await getText(jar, `/respond/${code}`);
+  assert.match(reloaded.text, /evidence-sample\.csv/, 'the saved attachment is listed after a reload');
+  assert.match(reloaded.text, new RegExp(`/respond/${code}/attachment/${upJson.file.attachmentId}`),
+    'the listed attachment links to its download');
+
+  // 2. The provider can download it back, byte for byte.
+  const providerDl = await request(jar, 'GET', `/respond/${code}/attachment/${upJson.file.attachmentId}`);
+  assert.equal(providerDl.status, 200, 'the provider can download the attachment');
+  assert.equal(Buffer.from(await providerDl.arrayBuffer()).toString(), body.toString(),
+    'the downloaded bytes match what was uploaded');
+
+  // 3. It appears in the project Documentation card and downloads from there.
+  const project = await getText(jar, `/admin/projects/${projectId}`);
+  assert.match(project.text, /evidence-sample\.csv/, 'the project documentation lists the evidence attachment');
+  const adminUrl = `/admin/projects/${projectId}/evidence-attachments/${upJson.file.attachmentId}/download`;
+  assert.match(project.text, new RegExp(adminUrl.replace(/\//g, '\\/')), 'the card links to the admin download');
+  const adminDl = await request(jar, 'GET', adminUrl);
+  assert.equal(adminDl.status, 200, 'the assessor can download the attachment from the project');
+
+  // 4. The assessor sees it on the assessment record too.
+  const assessment = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(assessment.text, /evidence-sample\.csv/, 'the assessment record lists the attachment');
+});
+
+test('an evidence attachment cannot be fetched through another project or assessment', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(jar, `E2E Attach Scope A ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const code = await evidenceCode(jar, assessmentId);
+  const page = await getText(jar, `/respond/${code}`);
+  const controlId = page.text.match(/id="editor-(\d+)"/)?.[1];
+
+  const formData = new FormData();
+  formData.append('file', new Blob([Buffer.from('secret')], { type: 'text/plain' }), 'scoped.txt');
+  const up = await request(jar, 'POST', `/respond/${code}/upload/${controlId}`, { body: formData });
+  const attId = (await up.json()).file.attachmentId;
+
+  // A second project of the same workspace must not be able to serve it.
+  const other = await createAdminProject(jar, `E2E Attach Scope B ${Date.now()}`);
+  const cross = await request(jar, 'GET',
+    `/admin/projects/${other.projectId}/evidence-attachments/${attId}/download`, { redirect: 'manual' });
+  assert.equal(cross.status, 302, 'the attachment is not served through an unrelated project');
+
+  // Nor a different assessment's invite code.
+  const otherA = await createSingleControlAssessment(jar, other.projectId);
+  await request(jar, 'POST', `/admin/assessments/${otherA.assessmentId}/send-invite`);
+  const otherCode = await evidenceCode(jar, otherA.assessmentId);
+  const crossCode = await request(jar, 'GET', `/respond/${otherCode}/attachment/${attId}`);
+  assert.equal(crossCode.status, 404, 'the attachment is not served through another assessment code');
+});
+
+// ── Evidence slots ──────────────────────────────────────────────────────────
+
+const slotSafety = require('../../utils/file-safety');
+const slotSanitize = require('../../utils/html-sanitize');
+
+/** A control carrying an AI draft with raw [[VALUE:]] / [[ATTACH:]] markers. */
+async function seedSlotDraft(jar, label) {
+  const { projectId } = await createAdminProject(jar, `${label} ${Date.now()}`);
+  const { assessmentId } = await createSingleControlAssessment(jar, projectId);
+  await request(jar, 'POST', `/admin/assessments/${assessmentId}/send-invite`);
+  const code = await evidenceCode(jar, assessmentId);
+  const page = await getText(jar, `/respond/${code}`);
+  const controlId = page.text.match(/id="editor-(\d+)"/)?.[1];
+  assert.ok(controlId, 'the evidence editor exposes its control id');
+
+  const draft = 'Logging is defined in [[VALUE: catalogue location]] and reviewed on '
+    + '[[VALUE: review date]]. See [[ATTACH: the event catalogue]].';
+  const save = await request(jar, 'POST', `/respond/${code}/save/${controlId}`, {
+    json: { evidence_text: draft, evidence_html: `<p>${draft}</p>` }
+  });
+  assert.equal(save.status, 200);
+  return { projectId, assessmentId, code, controlId };
+}
+
+test('an AI draft\'s markers become countable slots, and filling them moves the counters', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slots');
+
+  // Viewing the page materializes the markers into slot rows.
+  const page = await getText(jar, `/respond/${code}`);
+  assert.match(page.text, /data-slot="s1"/, 'markers become slot spans');
+  const editorHtml = (page.text.split(`id="editor-${controlId}"`)[1] || '').split('</div>')[0];
+  assert.doesNotMatch(editorHtml, /\[\[VALUE:/, 'no raw markers are left in the editor');
+
+  const before = await (await request(jar, 'GET', `/respond/${code}/slots/${controlId}`)).json();
+  assert.equal(before.progress.total, 3, 'three slots were created');
+  assert.equal(before.progress.filled, 0, 'none are filled yet');
+  assert.equal(before.progress.values.total, 2);
+  assert.equal(before.progress.attachments.total, 1);
+
+  const put = await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s1`, {
+    json: { value_html: '<b>AEGIS-STD-07</b>, in the security library' }
+  });
+  const putBody = await put.json();
+  assert.ok(putBody.success, 'the value saves');
+  assert.equal(putBody.progress.filled, 1, 'the filled counter moves');
+  assert.equal(putBody.progress.percent, 33);
+
+  // It is persisted, not just echoed.
+  const after = await (await request(jar, 'GET', `/respond/${code}/slots/${controlId}`)).json();
+  const s1 = after.slots.find(s => s.key === 's1');
+  assert.ok(s1.filled, 's1 reads as filled on reload');
+  assert.match(s1.value_text, /AEGIS-STD-07/);
+});
+
+test('removing a slot keeps its text as prose and lowers the total', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slot Remove');
+  await getText(jar, `/respond/${code}`);
+
+  await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s2`, {
+    json: { value_html: '12 June 2026' }
+  });
+  const del = await request(jar, 'DELETE', `/respond/${code}/slots/${controlId}/s2`);
+  const body = await del.json();
+  assert.ok(body.success);
+  assert.equal(body.text, '12 June 2026', 'the slot hands back its text so the sentence survives');
+  assert.equal(body.progress.total, 2, 'the removed slot no longer counts');
+});
+
+test('a slot can be added from the provider\'s own selection', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slot Add');
+  await getText(jar, `/respond/${code}`);
+
+  const add = await request(jar, 'POST', `/respond/${code}/slots/${controlId}`, {
+    json: { type: 'attach', label: 'retention policy export' }
+  });
+  const body = await add.json();
+  assert.ok(body.success);
+  assert.equal(body.slot.type, 'attach');
+  assert.equal(body.progress.attachments.total, 2, 'the new attachment slot is counted');
+});
+
+test('evidence HTML from the provider is sanitised before it reaches the assessor', async () => {
+  const jar = await loginAdminWithTotp();
+  const { assessmentId, code, controlId } = await seedSlotDraft(jar, 'E2E Slot XSS');
+
+  await request(jar, 'POST', `/respond/${code}/save/${controlId}`, {
+    json: {
+      evidence_text: 'x',
+      evidence_html: '<p onclick="alert(1)">ok</p><script>alert(2)</script><img src=x onerror=alert(3)>'
+    }
+  });
+  // evidence_html is rendered unescaped on the assessor's page, so the stored
+  // value must not carry script or event handlers.
+  const admin = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.doesNotMatch(admin.text, /onerror=|onclick="alert|<script>alert/,
+    'no script or event handler survives into the assessor view');
+  assert.match(admin.text, /ok/, 'the legitimate text is kept');
+});
+
+test('a slot value is sanitised too', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slot Value XSS');
+  await getText(jar, `/respond/${code}`);
+  await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s1`, {
+    json: { value_html: '<img src=x onerror=alert(1)><b>kept</b>' }
+  });
+  const after = await (await request(jar, 'GET', `/respond/${code}/slots/${controlId}`)).json();
+  const s1 = after.slots.find(s => s.key === 's1');
+  assert.doesNotMatch(s1.value_html, /onerror|<img/, 'the image and its handler are dropped');
+  assert.match(s1.value_html, /<b>kept<\/b>/, 'legitimate formatting is kept');
+});
+
+test('attachment uploads are refused unless the content matches the extension', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slot Upload');
+  await getText(jar, `/respond/${code}`);
+
+  const post = async (bytes, name, type) => {
+    const fd = new FormData();
+    fd.append('file', new Blob([bytes], { type }), name);
+    const r = await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/files`, { body: fd });
+    return r.json();
+  };
+
+  // An executable wearing a .pdf extension.
+  const exe = await post(Buffer.concat([Buffer.from([0x4d, 0x5a]), Buffer.alloc(64)]), 'payload.pdf', 'application/pdf');
+  assert.equal(exe.success, false);
+  assert.equal(exe.reason, 'mismatch', 'magic bytes are checked, not just the extension');
+
+  // An archive, refused by policy.
+  const zip = await post(Buffer.from('PK\u0003\u0004 not really'), 'bundle.zip', 'application/zip');
+  assert.equal(zip.success, false);
+  assert.equal(zip.reason, 'archive');
+
+  // EICAR, so the control is demonstrably testable.
+  const eicar = await post(Buffer.from(slotSafety.EICAR, 'latin1'), 'test.txt', 'text/plain');
+  assert.equal(eicar.success, false);
+  assert.equal(eicar.reason, 'eicar');
+
+  // A real PDF is accepted, and counts toward completeness.
+  const ok = await post(Buffer.from('%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\n', 'latin1'), 'catalogue.pdf', 'application/pdf');
+  assert.ok(ok.success, 'a genuine PDF is accepted');
+  assert.equal(ok.file.scan_status, 'checked', 'reported as checked, never "clean"');
+  assert.equal(ok.progress.attachments.filled, 1, 'the attachment counter moves');
+});
+
+test('a downloaded attachment is never served inline', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, code, controlId } = await seedSlotDraft(jar, 'E2E Slot Download');
+  await getText(jar, `/respond/${code}`);
+  const fd = new FormData();
+  fd.append('file', new Blob([Buffer.from('%PDF-1.4\ntrailer<<>>', 'latin1')], { type: 'application/pdf' }), 'proof.pdf');
+  const up = await (await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/files`, { body: fd })).json();
+  assert.ok(up.success);
+
+  const dl = await request(jar, 'GET', `/admin/projects/${projectId}/evidence-attachments/${up.file.id}/download`);
+  assert.equal(dl.status, 200);
+  assert.match(dl.headers.get('content-disposition') || '', /^attachment;/,
+    'served as a download, never inline');
+  assert.equal(dl.headers.get('x-content-type-options'), 'nosniff');
+  assert.equal(dl.headers.get('content-type'), 'application/pdf',
+    'the type comes from our allow-list, not the client');
+});
+
+test('slot routes are refused once the control is marked ready', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slot Locked');
+  await getText(jar, `/respond/${code}`);
+  await request(jar, 'POST', `/respond/${code}/ready/${controlId}`, { json: { ready: true } });
+
+  const put = await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s1`, {
+    json: { value_html: 'should not apply' }
+  });
+  const body = await put.json();
+  assert.equal(body.success, false, 'a ready control is read-only');
+});
+
+test('the file-safety check accepts real documents and refuses active content', async () => {
+  // Unit-level, so the matrix is exercised without an upload round trip.
+  const ok = await slotSafety.inspect(Buffer.from('%PDF-1.4\ntrailer<<>>', 'latin1'), 'a.pdf');
+  assert.ok(ok.ok);
+  assert.equal(ok.status, 'checked');
+
+  const js = await slotSafety.inspect(
+    Buffer.from('%PDF-1.4\n/OpenAction<</S/JavaScript/JS(app.alert(1))>>', 'latin1'), 'a.pdf');
+  assert.equal(js.ok, false);
+  assert.equal(js.reason, 'activeContent');
+
+  for (const [name, reason] of [['a.svg', 'svg'], ['a.exe', 'executable'], ['a.docm', 'macro'], ['a.bin', 'extension']]) {
+    const r = await slotSafety.inspect(Buffer.from('hello'), name);
+    assert.equal(r.ok, false, `${name} is refused`);
+    assert.equal(r.reason, reason, `${name} is refused for the right reason`);
+  }
+});
+
+test('the sanitiser keeps slot markers but drops everything dangerous', () => {
+  const out = slotSanitize.sanitizeHtml(
+    '<span data-slot="s1" data-slot-type="value"></span><script>alert(1)</script><b>t</b>');
+  assert.match(out, /data-slot="s1"/, 'slot markers survive a round trip');
+  assert.doesNotMatch(out, /script/, 'script is removed with its contents');
+  assert.match(out, /<b>t<\/b>/);
+});
+
+test('an attachment slot holds at most five files, and the sixth is refused', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slot Cap');
+  await getText(jar, `/respond/${code}`);
+
+  const put = async (n) => {
+    const fd = new FormData();
+    fd.append('file', new Blob([Buffer.from(`col\n${n}\n`)], { type: 'text/csv' }), `f${n}.csv`);
+    const r = await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/files`, { body: fd });
+    return r.json();
+  };
+
+  for (let i = 1; i <= 5; i++) {
+    const d = await put(i);
+    assert.ok(d.success, `file ${i} is accepted`);
+  }
+  const sixth = await put(6);
+  assert.equal(sixth.success, false, 'the sixth file is refused');
+  assert.match(sixth.message, /maximum of 5/, 'the limit is stated, with the number interpolated');
+
+  // The slot still counts as filled exactly once, however many files it holds.
+  const after = await (await request(jar, 'GET', `/respond/${code}/slots/${controlId}`)).json();
+  assert.equal(after.progress.attachments.filled, 1);
+  assert.equal(after.slots.find(s => s.key === 'a3').files.length, 5);
+});
+
+test('the drop zone is keyboard reachable and drives the same hidden input', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code } = await seedSlotDraft(jar, 'E2E Slot Drop');
+  const page = await getText(jar, `/respond/${code}`);
+  assert.match(page.text, /id="eslAttDrop"[^>]*role="button"/, 'the zone is exposed as a button');
+  assert.match(page.text, /id="eslAttDrop"[^>]*tabindex="0"/, 'and is reachable by keyboard');
+  assert.match(page.text, /id="eslAttInput"[^>]*multiple/, 'the real input accepts several files at once');
+  assert.match(page.text, /addEventListener\('drop'/, 'a drop handler is wired');
+});
+
+test('an external reference can stand in for an uploaded file', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slot Ref');
+  await getText(jar, `/respond/${code}`);
+
+  const add = async (reference) => {
+    const r = await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/reference`, {
+      json: { reference }
+    });
+    return r.json();
+  };
+
+  const url = await add('https://dms.example.org/record/AEGIS-2026-0042');
+  assert.ok(url.success, 'an https link is accepted');
+  assert.equal(url.file.ref_kind, 'url');
+  assert.equal(url.progress.attachments.filled, 1,
+    'a reference fills the slot just like a file does');
+
+  // A plain record identifier is kept, but never becomes a link.
+  const text = await add('Records Centre ref 2026/0042');
+  assert.ok(text.success);
+  assert.equal(text.file.ref_kind, 'text', 'a non-URL reference is stored as text');
+});
+
+test('a reference cannot smuggle a dangerous scheme into the assessor\'s page', async () => {
+  const jar = await loginAdminWithTotp();
+  const { code, controlId } = await seedSlotDraft(jar, 'E2E Slot Ref Scheme');
+  await getText(jar, `/respond/${code}`);
+
+  for (const bad of ['javascript:alert(1)', 'data:text/html,<script>alert(1)</script>',
+    'vbscript:msgbox(1)', 'file:///etc/passwd', '//evil.example.com/x']) {
+    const r = await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/reference`, {
+      json: { reference: bad }
+    });
+    const d = await r.json();
+    assert.equal(d.success, false, `${bad} is refused`);
+    assert.equal(d.reason, 'refScheme', `${bad} is refused for its scheme`);
+  }
+
+  const empty = await (await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/reference`,
+    { json: { reference: '   ' } })).json();
+  assert.equal(empty.reason, 'refEmpty');
+
+  const long = await (await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/reference`,
+    { json: { reference: 'https://x.example/' + 'a'.repeat(600) } })).json();
+  assert.equal(long.reason, 'refTooLong');
+});
+
+test('a reference is not downloadable as a file', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, code, controlId } = await seedSlotDraft(jar, 'E2E Slot Ref Download');
+  await getText(jar, `/respond/${code}`);
+  const added = await (await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/reference`,
+    { json: { reference: 'https://dms.example.org/record/1' } })).json();
+  assert.ok(added.success);
+
+  // There is no file on disk; an empty filename must not resolve to the
+  // uploads directory and be served.
+  const dl = await request(jar, 'GET',
+    `/admin/projects/${projectId}/evidence-attachments/${added.file.id}/download`, { redirect: 'manual' });
+  assert.equal(dl.status, 302, 'the assessor is redirected, not handed a directory');
+
+  const providerDl = await request(jar, 'GET', `/respond/${code}/attachment/${added.file.id}`);
+  assert.equal(providerDl.status, 409, 'the provider side says plainly that it is a reference');
+});
+
+test('references appear in the full project report, marked as references', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, code, controlId } = await seedSlotDraft(jar, 'E2E Slot Ref Report');
+  await getText(jar, `/respond/${code}`);
+  await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/reference`, {
+    json: { reference: 'https://dms.example.org/record/REPORTED-1' }
+  });
+
+  const html = await getText(jar, `/admin/reports/project/${projectId}.html`);
+  assert.match(html.text, /REPORTED-1/, 'the reference is listed in the report');
+  assert.match(html.text, /external reference/i, 'and is distinguished from a stored file');
+});
+
+test('the reference validator keeps identifiers but refuses navigable schemes', () => {
+  assert.equal(slotSafety.inspectReference('https://a.example/x').kind, 'url');
+  assert.equal(slotSafety.inspectReference('DMS-12345').kind, 'text');
+  assert.equal(slotSafety.inspectReference('javascript:alert(1)').ok, false);
+  assert.equal(slotSafety.inspectReference('\u0000http://x').ok, false);
+});
+
+test('the assessor sees per-slot provenance: what was asked, what came back, and from whom', async () => {
+  const jar = await loginAdminWithTotp();
+  const { assessmentId, code, controlId } = await seedSlotDraft(jar, 'E2E Assessor Slots');
+  await getText(jar, `/respond/${code}`);
+
+  await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s1`, {
+    json: { value_html: 'AEGIS-STD-07, in the security library' }
+  });
+  const fd = new FormData();
+  fd.append('file', new Blob([Buffer.from('%PDF-1.4\ntrailer<<>>', 'latin1')], { type: 'application/pdf' }), 'catalogue.pdf');
+  await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/files`, { body: fd });
+
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(detail.text, /Evidence record/, 'the slot record panel is present');
+  assert.match(detail.text, /What was asked for/, 'it names what was requested');
+  assert.match(detail.text, /catalogue location/, 'the original prompt is shown, not just the answer');
+  assert.match(detail.text, /AEGIS-STD-07/, 'the provided value is shown');
+  assert.match(detail.text, /catalogue\.pdf/, 'the attached file is shown against its slot');
+  assert.match(detail.text, /Incomplete/, 'the control is flagged while blanks remain');
+});
+
+test('a control supported only by written statements is flagged self-attested', async () => {
+  const jar = await loginAdminWithTotp();
+  const { assessmentId, code, controlId } = await seedSlotDraft(jar, 'E2E Self Attested');
+  await getText(jar, `/respond/${code}`);
+
+  // Values only — no artefact of any kind.
+  await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s1`, { json: { value_html: 'Policy AEG-1' } });
+  await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s2`, { json: { value_html: '12 June 2026' } });
+
+  const flagged = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(flagged.text, /Self-attested/, 'written-only evidence is flagged for the assessor');
+
+  // Attaching a real artefact clears the flag.
+  const fd = new FormData();
+  fd.append('file', new Blob([Buffer.from('%PDF-1.4\ntrailer<<>>', 'latin1')], { type: 'application/pdf' }), 'proof.pdf');
+  const up = await (await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/files`, { body: fd })).json();
+  assert.ok(up.success);
+
+  const cleared = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.doesNotMatch(cleared.text, /Self-attested/, 'the flag clears once an artefact is filed');
+});
+
+test('an external reference does not count as an attached artefact for the self-attested flag', async () => {
+  const jar = await loginAdminWithTotp();
+  const { assessmentId, code, controlId } = await seedSlotDraft(jar, 'E2E Ref Not Artefact');
+  await getText(jar, `/respond/${code}`);
+  await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s1`, { json: { value_html: 'Policy AEG-1' } });
+  await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/reference`, {
+    json: { reference: 'https://dms.example.org/record/1' }
+  });
+
+  // A pointer to a record elsewhere is not the artefact itself — the assessor
+  // still has nothing to open, so the prompt to ask for proof stays.
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(detail.text, /Self-attested/, 'a reference alone does not clear the flag');
+});
+
+// ── Contributors ────────────────────────────────────────────────────────────
+
+test('every contribution is recorded with who made it', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, code, controlId } = await seedSlotDraft(jar, 'E2E Contributors');
+  await getText(jar, `/respond/${code}`);
+
+  await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s1`, {
+    json: { value_html: 'AEGIS-STD-07' }
+  });
+  const fd = new FormData();
+  fd.append('file', new Blob([Buffer.from('%PDF-1.4\ntrailer<<>>', 'latin1')], { type: 'application/pdf' }), 'proof.pdf');
+  await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/files`, { body: fd });
+  await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/reference`, {
+    json: { reference: 'https://dms.example.org/record/1' }
+  });
+
+  const report = await getText(jar, `/admin/reports/contributors/${projectId}.md`);
+  assert.equal(report.response.status, 200, 'the contributors report renders');
+  assert.match(report.text, /Contributors/, 'it has a contributors section');
+  assert.match(report.text, /Activity log/, 'and the detailed trail');
+  // The three distinct contributions are each recorded, by kind.
+  assert.match(report.text, /filled/, 'the slot value is recorded');
+  assert.match(report.text, /attached/, 'the file is recorded');
+  assert.match(report.text, /linked/, 'the reference is recorded');
+  assert.match(report.text, /proof\.pdf/, 'with enough detail to identify what was provided');
+});
+
+test('the full project report ends with a contributors chapter', async () => {
+  const jar = await loginAdminWithTotp();
+  const { projectId, code, controlId } = await seedSlotDraft(jar, 'E2E Contrib Chapter');
+  await getText(jar, `/respond/${code}`);
+  await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s1`, { json: { value_html: 'Policy AEG-1' } });
+
+  const html = await getText(jar, `/admin/reports/project/${projectId}.html`);
+  assert.match(html.text, /Contributors/, 'the rollup carries a contributors chapter');
+  assert.match(html.text, /recorded contributions to this project/, 'with a summary line');
+  // A chapter, not the whole log.
+  assert.doesNotMatch(html.text, /Activity log/, 'the full trail stays in its own report');
+});
+
+test('the AI is credited separately from the person who triggered it', async () => {
+  const activityLog = require('../../config/project-activity');
+  // actor() must never attribute a model's work to a human.
+  const ai = activityLog.AI_ACTOR;
+  assert.equal(ai.type, 'ai');
+  const human = activityLog.actor({ user: { name: 'Dana', email: 'd@example.test' } });
+  assert.equal(human.type, 'assessor');
+  assert.equal(human.name, 'Dana');
+  const provider = activityLog.actor({});
+  assert.equal(provider.type, 'provider');
+});
+
+test('contributors reports are scoped to the caller\'s workspace', async () => {
+  const owner = await loginAdminWithTotp();
+  const { projectId } = await createAdminProject(owner, `E2E Contrib Tenant ${Date.now()}`);
+
+  const outsider = new CookieJar();
+  await request(outsider, 'POST', '/register', {
+    form: {
+      plan: 'trial', first_name: 'Outsider', last_name: 'Owner',
+      organization: `E2E Contrib Outsider ${Date.now()}`,
+      email: `contrib.outsider.${Date.now()}@example.test`,
+      password: 'TenantPass123!', agree: '1'
+    }
+  });
+  const cross = await request(outsider, 'GET', `/admin/reports/contributors/${projectId}.md`, { redirect: 'manual' });
+  assert.ok(cross.status >= 300, "another workspace cannot read this project's contributors");
 });

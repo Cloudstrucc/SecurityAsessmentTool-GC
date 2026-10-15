@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Workflow B — Task Inbox</title>
+<style>
+:root{
+  --navy-950:#0a1626;--navy-900:#0d2136;--navy-800:#143453;
+  --sky-300:#a9d8f2;--sky-400:#7cc4ee;--sky-500:#4d9fe0;--sky-600:#2f80cf;
+  --peri-500:#6d7fca;--ink:#17273a;--muted:#5f7185;--line:#dce7f2;
+  --mist:#f4f9fd;--soft:#eaf5fd;--amber:#e0a53d;--green:#2fa06d;--red:#d64550;
+  --r:14px;--r-sm:10px;--pill:999px;
+  --shadow-sm:0 2px 10px rgba(15,32,54,.06);--shadow:0 10px 30px rgba(15,32,54,.10);
+  --font:'Inter','Segoe UI',Roboto,system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font);background:var(--mist);color:var(--ink);font-size:14px;line-height:1.5}
+.appbar{background:var(--navy-950);color:#fff;padding:.7rem 1.25rem;display:flex;align-items:center;gap:1rem}
+.logo{display:flex;align-items:center;gap:.5rem;font-weight:800;letter-spacing:.12em;font-size:15px}
+.logo .sh{width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,var(--peri-500),var(--sky-400))}
+.appbar .sp{flex:1}.appbar .who{font-size:12.5px;opacity:.75}
+.note{max-width:1380px;margin:1rem auto .25rem;padding:0 1rem}
+.note h1{font-size:20px;margin:.2rem 0}
+.note p{color:var(--muted);margin:.25rem 0 .75rem;max-width:84ch}
+
+/* ===== pipeline ribbon ===== */
+.ribbon{max-width:1380px;margin:0 auto 1rem;padding:0 1rem}
+.ribbon .inner{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm);display:flex;overflow:hidden}
+.rb{flex:1;padding:.7rem .8rem;border-right:1px solid var(--line);cursor:pointer;position:relative;background:#fff}
+.rb:last-child{border-right:0}
+.rb .n{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.rb .c{font-size:22px;font-weight:800;line-height:1.1}
+.rb .s{font-size:11.5px;color:var(--muted)}
+.rb.on{background:var(--navy-900);color:#fff}
+.rb.on .n,.rb.on .s{color:rgba(255,255,255,.7)}
+.rb.mine::after{content:"";position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--amber)}
+.rb.on.mine::after{background:var(--sky-400)}
+
+.shell{max-width:1380px;margin:0 auto 3rem;padding:0 1rem;display:grid;grid-template-columns:340px 1fr;gap:1rem;align-items:start}
+@media(max-width:980px){.shell{grid-template-columns:1fr}}
+
+/* ===== queue ===== */
+.queue{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm);position:sticky;top:1rem;overflow:hidden}
+.queue h3{margin:0;padding:.75rem 1rem;border-bottom:1px solid var(--line);font-size:13px;display:flex;align-items:center;gap:.5rem}
+.queue h3 .cnt{margin-left:auto;background:var(--navy-900);color:#fff;border-radius:var(--pill);font-size:11px;padding:0 .5rem}
+.qgrp{padding:.5rem 0}
+.qgrp .ttl{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:.35rem 1rem}
+.qi{display:flex;gap:.6rem;padding:.55rem 1rem;cursor:pointer;border-left:3px solid transparent}
+.qi:hover{background:var(--mist)}
+.qi.on{background:var(--soft);border-left-color:var(--sky-600)}
+.qi .b{flex:0 0 26px;height:26px;border-radius:8px;background:var(--soft);display:grid;place-items:center;font-size:13px}
+.qi .t{font-size:13px;font-weight:600;line-height:1.3}
+.qi .m{font-size:11.5px;color:var(--muted)}
+.qi .due{margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap}
+.qi .due.late{color:var(--red);font-weight:700}
+.qempty{padding:.9rem 1rem;font-size:12.5px;color:var(--muted)}
+
+/* ===== work pane ===== */
+.work{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden}
+.whead{padding:1rem 1.15rem;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fbfdff,#fff)}
+.whead .crumbs{font-size:12px;color:var(--muted)}
+.whead .crumbs b{color:var(--ink)}
+.whead h2{margin:.3rem 0 .15rem;font-size:19px}
+.whead .sub{color:var(--muted);font-size:13px;max-width:78ch}
+.whead .tags{margin-top:.55rem;display:flex;gap:.4rem;flex-wrap:wrap}
+.wbody{padding:1.15rem}
+.chip{display:inline-flex;align-items:center;gap:.3rem;border-radius:var(--pill);padding:.1rem .55rem;font-size:11.5px;font-weight:600}
+.chip.g{background:#e6f6ee;color:#1d6b49}.chip.a{background:#fdf3e2;color:#8a6116}
+.chip.r{background:#fdeaec;color:#9c2b33}.chip.b{background:var(--soft);color:var(--navy-800)}
+.chip.n{background:#eef1f6;color:var(--muted)}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:var(--pill);padding:.45rem .95rem;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.btn.pri{background:var(--navy-900);border-color:var(--navy-900);color:#fff}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--sky-600)}
+
+/* wizard */
+.wiz{display:flex;gap:.3rem;margin:0 0 1rem;flex-wrap:wrap}
+.wiz div{flex:1;min-width:92px;border-radius:var(--r-sm);padding:.4rem .5rem;background:var(--mist);border:1px solid var(--line)}
+.wiz div .n{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.wiz div .l{font-size:12px;font-weight:600}
+.wiz div.done{background:#eef9f3;border-color:#c7e8d8}
+.wiz div.done .l{color:#1d6b49}
+.wiz div.now{background:var(--navy-900);border-color:var(--navy-900)}
+.wiz div.now .l{color:#fff}.wiz div.now .n{color:rgba(255,255,255,.65)}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:.4rem .6rem;border-bottom:1px solid var(--line)}
+td{padding:.5rem .6rem;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem}
+@media(max-width:700px){.kpi{grid-template-columns:repeat(2,1fr)}}
+.kpi div{background:var(--mist);border-radius:var(--r-sm);padding:.6rem;text-align:center}
+.kpi b{display:block;font-size:20px}.kpi span{font-size:11px;color:var(--muted)}
+.field label{display:block;font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:.2rem}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:var(--r-sm);padding:.45rem .6rem;font:inherit;font-size:13px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.callout{border:1px dashed var(--sky-500);background:#f2f9fe;border-radius:var(--r-sm);padding:.55rem .7rem;font-size:12.5px;color:var(--navy-800);margin-top:.85rem}
+.footbar{border-top:1px solid var(--line);padding:.7rem 1.15rem;background:var(--mist);display:flex;align-items:center;gap:.7rem}
+.footbar .t{flex:1;font-size:12.5px;color:var(--muted)}
+.footbar .t b{color:var(--ink)}
+.handoff{display:flex;align-items:center;gap:.5rem;background:#fff;border:1px solid var(--line);border-radius:var(--pill);padding:.25rem .7rem;font-size:12px;color:var(--muted)}
+.handoff b{color:var(--ink)}
+.pane{display:none}.pane.on{display:block}
+.ann{max-width:1380px;margin:1.2rem auto 3rem;padding:0 1rem}
+.ann .inner{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:.9rem 1.1rem}
+.ann h4{margin:0 0 .4rem;font-size:13px}
+.ann ul{margin:0;padding-left:1.1rem;font-size:12.5px;color:var(--muted)}
+.ann li{margin-bottom:.25rem}
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <span class="logo"><span class="sh"></span> AEGIS S.A.</span>
+  <span class="sp"></span>
+  <span class="who">Fred Pearson · Assessor</span>
+</div>
+
+<div class="note">
+  <h1>Workflow B — “Task Inbox”</h1>
+  <p>Navigation is a <b>work queue</b>, not a site map. You never go looking for a project; the thing that needs you is already in the list on the left,
+  sorted by who is blocked. Picking a task opens a focused work pane with its own mini-wizard, and the ribbon across the top is a live portfolio
+  pipeline — click a stage to filter the queue to it. Use the ribbon or the queue to walk the seven steps.</p>
+</div>
+
+<div class="ribbon">
+  <div class="inner" id="ribbon"></div>
+</div>
+
+<div class="shell">
+  <aside class="queue">
+    <h3>⚡ My work <span class="cnt" id="qcount">4</span></h3>
+    <div id="q"></div>
+    <div class="qempty" style="border-top:1px solid var(--line)">
+      <b style="color:var(--ink)">Nothing hidden.</b> Items assigned to someone else live under
+      <i>Waiting on others</i> so your queue only ever shows what you can act on.
+    </div>
+  </aside>
+
+  <main class="work">
+    <div class="whead">
+      <div class="crumbs" id="crumbs"></div>
+      <h2 id="wtitle"></h2>
+      <div class="sub" id="wsub"></div>
+      <div class="tags" id="wtags"></div>
+    </div>
+    <div class="wbody">
+      <div class="wiz" id="wiz"></div>
+
+      <!-- 1 -->
+      <section class="pane" data-step="0">
+        <div class="grid2">
+          <div class="field"><label>System name</label><input value="Claims Portal"></div>
+          <div class="field"><label>Business owner</label><input value="Dana Whitfield"></div>
+          <div class="field"><label>Classification</label><select><option>Protected B</option></select></div>
+          <div class="field"><label>User base</label><select><option>Both internal &amp; external</option></select></div>
+        </div>
+        <div class="callout"><b>Why the queue matters here:</b> an intake that sits half-finished shows up in the owner’s queue as
+        “Claims Portal — 2 of 6 sections”, with the due date, instead of disappearing into a list of projects.</div>
+      </section>
+
+      <!-- 2 -->
+      <section class="pane" data-step="1">
+        <table>
+          <tr><td style="width:40%"><b>Intake</b></td><td>INT-CA986793 · submitted 2 Oct · complete</td></tr>
+          <tr><td><b>Creates</b></td><td>Assessment package v1 <span class="chip n">draft</span></td></tr>
+          <tr><td><b>Suggested profile</b></td><td>Protected B / M-M-M → 190 controls</td></tr>
+        </table>
+        <div class="callout"><b>Change from today:</b> accepting an intake currently lands you on a project page with no obvious next move.
+        Here acceptance immediately <b>writes the next task into your own queue</b> (“Tailor 190 controls”) so the thread is never dropped.</div>
+      </section>
+
+      <!-- 3 -->
+      <section class="pane" data-step="2">
+        <table>
+          <tr><th>Control</th><th>Family</th><th>Decision</th></tr>
+          <tr><td><b>AC-1</b> Policy &amp; procedures</td><td>Access Control</td><td><span class="chip b">Inherited</span></td></tr>
+          <tr><td><b>AC-2</b> Account management</td><td>Access Control</td><td><span class="chip g">In scope</span></td></tr>
+          <tr><td><b>AC-6</b> Least privilege</td><td>Access Control</td><td><span class="chip g">In scope</span></td></tr>
+          <tr><td><b>AU-2</b> Event logging</td><td>Audit &amp; Accountability</td><td><span class="chip g">In scope</span></td></tr>
+          <tr><td><b>IA-2</b> Identification &amp; auth</td><td>Identification &amp; Auth</td><td><span class="chip g">In scope</span></td></tr>
+        </table>
+        <div class="callout"><b>Bulk first:</b> tailoring opens on <i>families</i>, not 190 rows. Drop a whole family in one click, then refine.
+        The queue item’s subtitle counts down live: “184 of 190 decided”.</div>
+      </section>
+
+      <!-- 4 -->
+      <section class="pane" data-step="3">
+        <div class="grid2">
+          <div class="field"><label>Send to</label><input value="dana.whitfield@example.org"></div>
+          <div class="field"><label>Due date</label><input value="2026-10-29"></div>
+        </div>
+        <p style="margin:.7rem 0 .2rem"><label><input type="checkbox" checked> Generate AI evidence drafts</label></p>
+        <div class="callout"><b>The handoff is the point.</b> On send, this task leaves your queue and appears in Dana’s —
+        and yours gains a tracking row under <i>Waiting on others</i> with a one-click <b>Nudge</b>.</div>
+      </section>
+
+      <!-- 5 -->
+      <section class="pane" data-step="4">
+        <div class="kpi">
+          <div><b>5/5</b><span>drafted</span></div>
+          <div><b>49/60</b><span>values filled</span></div>
+          <div><b>8/14</b><span>files attached</span></div>
+          <div><b>2</b><span>ready to submit</span></div>
+        </div>
+        <table style="margin-top:.85rem">
+          <tr><th>Control</th><th>Blanks</th><th>Files</th><th>State</th></tr>
+          <tr><td><b>AC-1</b></td><td>0 left</td><td>2/2</td><td><span class="chip g">Ready</span></td></tr>
+          <tr><td><b>AC-2</b></td><td>0 left</td><td>3/3</td><td><span class="chip g">Ready</span></td></tr>
+          <tr><td><b>AC-6</b></td><td>3 left</td><td>1/3</td><td><span class="chip a">In progress</span></td></tr>
+          <tr><td><b>AU-2</b></td><td>5 left</td><td>0/4</td><td><span class="chip a">In progress</span></td></tr>
+          <tr><td><b>IA-2</b></td><td>3 left</td><td>2/2</td><td><span class="chip a">In progress</span></td></tr>
+        </table>
+        <div class="callout"><b>Change from today:</b> the provider’s progress reads “0 of 5 · 0%” while five AI drafts sit on the page.
+        Counting <b>filled slots</b> makes the number honest and gives the provider a finish line.</div>
+      </section>
+
+      <!-- 6 -->
+      <section class="pane" data-step="5">
+        <div class="kpi">
+          <div><b style="color:var(--green)">3</b><span>met</span></div>
+          <div><b style="color:var(--amber)">1</b><span>partially</span></div>
+          <div><b style="color:var(--red)">1</b><span>not met</span></div>
+          <div><b>53.8%</b><span>weighted</span></div>
+        </div>
+        <table style="margin-top:.85rem">
+          <tr><th>Control</th><th>Result</th><th>Note</th></tr>
+          <tr><td><b>AC-1</b></td><td><span class="chip g">Met</span></td><td class="muted">Inherited policy current.</td></tr>
+          <tr><td><b>AC-2</b></td><td><span class="chip g">Met</span></td><td class="muted">Recertification verified.</td></tr>
+          <tr><td><b>AC-6</b></td><td><span class="chip a">Partially met</span></td><td class="muted">3 service accounts over-privileged.</td></tr>
+          <tr><td><b>AU-2</b></td><td><span class="chip r">Not met</span></td><td class="muted">No central log retention.</td></tr>
+          <tr><td><b>IA-2</b></td><td><span class="chip g">Met</span></td><td class="muted">MFA enforced.</td></tr>
+        </table>
+        <div class="callout"><b>Review is a queue too.</b> “Review Claims Portal” expands into five sub-tasks, one per control.
+        Score one and it disappears; the parent task’s counter drops. You always know how many are left.</div>
+      </section>
+
+      <!-- 7 -->
+      <section class="pane" data-step="6">
+        <table>
+          <tr><th>Finding</th><th>Risk</th><th>Owner</th><th>Due</th></tr>
+          <tr><td><b>AU-2</b> No centralized audit log retention</td><td><span class="chip r">High</span></td><td>Platform Ops</td><td>2026-12-15</td></tr>
+          <tr><td><b>AC-6</b> 3 service accounts over-privileged</td><td><span class="chip a">Medium</span></td><td>App Team</td><td>2026-11-28</td></tr>
+        </table>
+        <div class="field" style="margin-top:.85rem"><label>Residual risk accepted because…</label><textarea rows="3">Interim authorization for 90 days pending closure of both items.</textarea></div>
+        <div class="callout"><b>Change from today:</b> the decision screen reads its totals from the page it was loaded with, so it can show
+        <b>0 / 0 / 0 / 0</b> right after you score. Here the numbers come from the same live source as the queue, and each remediation item
+        becomes a <b>tracked task with an owner and a due date</b> that keeps appearing until it is closed.</div>
+      </section>
+    </div>
+
+    <div class="footbar">
+      <span class="handoff">Next owner: <b id="nextowner">—</b></span>
+      <span class="t" id="foottext"></span>
+      <button class="btn ghost">Save &amp; leave in queue</button>
+      <button class="btn pri" id="footbtn">Continue</button>
+    </div>
+  </main>
+</div>
+
+<div class="ann"><div class="inner">
+  <h4>What this design fixes</h4>
+  <ul>
+    <li><b>No hunting.</b> The home screen is “what needs me”, grouped by blocker, with due dates — not a project list you have to interpret.</li>
+    <li><b>Handoffs are visible.</b> Every task names the next owner, so a sent assessment reads as <i>waiting on Dana</i>, not as a dead end.</li>
+    <li><b>Portfolio and task in one view.</b> The ribbon shows how many systems sit at each stage; clicking a stage filters the queue.</li>
+    <li><b>Big jobs become countable sub-tasks.</b> “Review 5 controls” is five items that disappear as you work, instead of one opaque page.</li>
+    <li><b>Dead ends removed.</b> Finishing a task always writes the next one — to you or to someone else — so nothing ends with “Return home”.</li>
+  </ul>
+</div></div>
+
+<script>
+const STEPS=[
+ {k:'Intake',   t:'Finish the system intake',          sub:'Six short sections describing the system, its data and who uses it. Saves as you go.',
+  crumb:'My work › Claims Portal › Intake', tags:['<span class="chip a">2 of 6 sections</span>','<span class="chip n">Due 10 Oct</span>'],
+  owner:'You', foot:'<b>4 sections</b> left — about 4 minutes', btn:'Save &amp; continue →'},
+ {k:'Accept',   t:'Accept the intake and open assessment v1', sub:'The intake is complete. Accepting creates the assessment package and pre-selects a control profile.',
+  crumb:'My work › Claims Portal › Accept intake', tags:['<span class="chip g">Intake complete</span>'],
+  owner:'You', foot:'Creates <b>assessment v1</b> and adds “Tailor controls” to your queue', btn:'Accept &amp; create assessment'},
+ {k:'Tailor',   t:'Tailor 190 suggested controls', sub:'Mark each control in scope, inherited or not applicable. Work family by family.',
+  crumb:'My work › Claims Portal › Tailoring', tags:['<span class="chip b">190 suggested</span>','<span class="chip g">6 decided</span>'],
+  owner:'You', foot:'<b>184 of 190</b> decided — saving completes this step', btn:'Save tailoring'},
+ {k:'Assign',   t:'Send 5 controls for evidence', sub:'Dana receives a secure link. The task moves to her queue; you keep a tracking row.',
+  crumb:'My work › Claims Portal › Assign', tags:['<span class="chip g">5 in scope</span>','<span class="chip b">AI drafts on</span>'],
+  owner:'Dana Whitfield', foot:'This hands the project to <b>Dana Whitfield</b>, due <b>29 Oct</b>', btn:'Assign &amp; send'},
+ {k:'Evidence', t:'Fill 11 remaining blanks', sub:'Five AI drafts are waiting. Each highlighted slot is a fact only you can supply.',
+  crumb:'My work › Claims Portal › Evidence', tags:['<span class="chip a">11 blanks</span>','<span class="chip a">6 files missing</span>'],
+  owner:'Dana Whitfield', foot:'<b>11 blanks</b> and <b>6 attachments</b> still missing', btn:'Go to next blank →'},
+ {k:'Review',   t:'Score 5 controls', sub:'Mark each control met, partially met or not met and record why. Totals update live.',
+  crumb:'My work › Claims Portal › Review', tags:['<span class="chip b">3 of 5 scored</span>'],
+  owner:'You', foot:'<b>2 controls</b> unscored — they count as “not assessed”', btn:'Review next control →'},
+ {k:'Decision', t:'Issue the authorization decision', sub:'2 high-risk findings are open, so the recommended path is an interim authorization with a remediation plan.',
+  crumb:'My work › Claims Portal › Decision', tags:['<span class="chip r">2 high-risk</span>','<span class="chip b">53.8% weighted</span>'],
+  owner:'Authorizing official', foot:'Issues <b>iATO · expires 6 Jan 2027</b> and creates 2 tracked remediation items', btn:'Issue iATO'}
+];
+const RIB=[
+ {n:'Intake',c:3,s:'2 need you'},{n:'Assessment open',c:1,s:'ready to tailor'},{n:'Tailoring',c:2,s:'1 needs you'},
+ {n:'Sent',c:4,s:'awaiting others'},{n:'Evidence',c:4,s:'1 overdue'},{n:'Review',c:2,s:'2 need you'},{n:'Decision',c:1,s:'ready'}
+];
+const QUEUE=[
+ {g:'Overdue',  i:'⏰', t:'Fill evidence — Claims Portal', m:'11 blanks · 6 files', due:'2 days late', late:true, step:4},
+ {g:'Needs you',i:'🔍', t:'Score 5 controls — Claims Portal', m:'3 of 5 scored', due:'Today', step:5},
+ {g:'Needs you',i:'🛡️', t:'Issue decision — Claims Portal', m:'2 high-risk findings open', due:'Fri', step:6},
+ {g:'Needs you',i:'🎛️', t:'Tailor controls — Benefits API', m:'190 suggested', due:'Mon', step:2},
+ {g:'Needs you',i:'📝', t:'Finish intake — HR Records', m:'2 of 6 sections', due:'10 Oct', step:0},
+ {g:'Needs you',i:'✅', t:'Accept intake — Payments Hub', m:'Submitted 2 Oct', due:'—', step:1},
+ {g:'Waiting on others',i:'📤', t:'Evidence — Payroll Gateway', m:'Sent to J. Moreau · nudge', due:'29 Oct', step:3}
+];
+let cur=4;
+
+const rib=document.getElementById('ribbon');
+RIB.forEach((r,i)=>{
+  const d=document.createElement('div');
+  d.className='rb'+(i===5||i===6||i===0?' mine':'');
+  d.innerHTML='<div class="n">'+r.n+'</div><div class="c">'+r.c+'</div><div class="s">'+r.s+'</div>';
+  d.onclick=()=>go(i); rib.appendChild(d);
+});
+
+function go(i){
+  cur=i;
+  [...rib.children].forEach((d,j)=>d.classList.toggle('on',j===i));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',+p.dataset.step===i));
+  const s=STEPS[i];
+  document.getElementById('crumbs').innerHTML=s.crumb.replace(/›\s([^›]+)$/,'› <b>$1</b>');
+  document.getElementById('wtitle').textContent=s.t;
+  document.getElementById('wsub').textContent=s.sub;
+  document.getElementById('wtags').innerHTML=s.tags.join(' ');
+  document.getElementById('nextowner').textContent=s.owner;
+  document.getElementById('foottext').innerHTML=s.foot;
+  document.getElementById('footbtn').innerHTML=s.btn;
+
+  const wiz=document.getElementById('wiz'); wiz.innerHTML='';
+  STEPS.forEach((st,j)=>{
+    const d=document.createElement('div');
+    d.className=j<i?'done':(j===i?'now':'');
+    d.innerHTML='<div class="n">Step '+(j+1)+'</div><div class="l">'+(j<i?'✓ ':'')+st.k+'</div>';
+    d.onclick=()=>go(j); d.style.cursor='pointer'; wiz.appendChild(d);
+  });
+
+  const q=document.getElementById('q'); q.innerHTML='';
+  let last='';
+  QUEUE.forEach(it=>{
+    if(it.g!==last){last=it.g;const h=document.createElement('div');h.className='ttl';h.textContent=it.g;q.appendChild(h);}
+    const d=document.createElement('div');
+    d.className='qi'+(it.step===i?' on':'');
+    d.innerHTML='<span class="b">'+it.i+'</span><span><span class="t">'+it.t+'</span><div class="m">'+it.m+'</div></span>'+
+      '<span class="due'+(it.late?' late':'')+'">'+it.due+'</span>';
+    d.onclick=()=>go(it.step); q.appendChild(d);
+  });
+}
+go(cur);
+</script>
+</body>
+</html>

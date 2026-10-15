@@ -255,9 +255,27 @@ function assessmentBody(m, b, t, logoDataUri, cls) {
       </section>${foot(b, m, cls)}</div>`;
   });
 
+  // tailoring register — what the baseline recommended and why it was excluded
+  const so = m.scopedOut || [];
+  h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span>${esc(cls || '')}</span></div>
+    <section><div class="sec-h"><span class="num">5</span><h2>${esc(t('rf.tailoringRegister'))}</h2></div>
+      <div class="kpis" style="margin-bottom:6mm">
+        <div class="kpi"><div class="n">${s.offered != null ? s.offered : (s.inScope || 0) + so.length}</div><div class="l">${esc(t('rf.controlsOffered'))}</div></div>
+        <div class="kpi ok"><div class="n">${s.inScope != null ? s.inScope : m.controls.length}</div><div class="l">${esc(t('rf.controlsInScope'))}</div></div>
+        <div class="kpi warn"><div class="n">${so.length}</div><div class="l">${esc(t('rf.scopedOut'))}</div></div>
+      </div>
+      <h3>${esc(t('rf.scopedOut'))}</h3>
+      <table class="data"><thead><tr><th style="width:22mm">${esc(t('rf.control'))}</th><th>${esc(t('rf.title'))}</th>
+        <th style="width:70mm">${esc(t('rf.exclusionReason'))}</th></tr></thead><tbody>
+        ${so.length ? so.map(c => `<tr><td><span class="ctlid">${esc(c.control_id)}</span></td>
+          <td>${esc(c.title || '')}</td><td>${esc(c.reason || '—')}</td></tr>`).join('')
+          : `<tr><td colspan="3">—</td></tr>`}
+      </tbody></table>
+    </section>${foot(b, m, cls)}</div>`;
+
   // signatures + version history
   h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span>${esc(cls || '')}</span></div>
-    <section><div class="sec-h"><span class="num">5</span><h2>${esc(t('rf.signatures'))}</h2></div>
+    <section><div class="sec-h"><span class="num">6</span><h2>${esc(t('rf.signatures'))}</h2></div>
       <div class="sigs">
         <div><div class="sigline"></div><div class="sig"><div class="role">${esc(t('rf.assessor'))}</div><div class="when">${esc(a.assessor_signed_at)}</div></div></div>
         <div><div class="sigline"></div><div class="sig"><div class="role">${esc(t('rf.authorizingOfficial'))}</div><div class="when">${esc(a.authority_signed_at)}</div></div></div>
@@ -414,6 +432,135 @@ function projectBody(m, b, t, logoDataUri, cls) {
       </tbody></table>
       <div class="note">${esc(t('rf.noAttachmentsNote'))}</div>
     </section>${foot(b, m, cls)}</div>`;
+
+  // ── Full detail ────────────────────────────────────────────────────────
+  // The sections above are the rollup. What follows is the detail an assessor
+  // has to be able to show from a single document: the authorization narrative,
+  // the controls with their evidence and results, and the files actually filed.
+  // Reuses the same classes, pills and labels as the standalone reports.
+  const D = m.decisionDetail && m.decisionDetail.decision;
+  if (D) {
+    const fld = (labelKey, value) => value
+      ? `<div class="lbl">${esc(t(labelKey))}</div><div class="body">${esc(value).replace(/\n/g, '<br>')}</div>` : '';
+    h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span></span></div>
+      <section><div class="sec-h"><span class="num">5</span><h2>${esc(t('rf.authorizationDecision'))}</h2></div>
+        <table class="kv"><tbody>
+          <tr><th>${esc(t('rf.packageReference'))}</th><td class="mono">${esc(D.reference || '')}</td></tr>
+          <tr><th>${esc(t('rf.decisionType'))}</th><td>${esc(String(D.decision_type || '').toUpperCase())}</td></tr>
+          <tr><th>${esc(t('rf.state'))}</th><td><span class="pill p-ok">${esc(D.state || '')}</span></td></tr>
+          <tr><th>${esc(t('rf.authorizingOfficial'))}</th><td>${esc(D.authorizing_official || '—')}</td></tr>
+          <tr><th>${esc(t('rf.assessor'))}</th><td>${esc(D.assessor || '—')}</td></tr>
+          <tr><th>${esc(t('rf.issued'))}</th><td>${esc(D.issued_at || '—')}</td></tr>
+          <tr><th>${esc(t('rf.expires'))}</th><td>${esc(D.expires_at || '—')}</td></tr>
+        </tbody></table>
+        <div class="finding">
+          ${fld('rf.executiveSummary', D.executive_summary)}
+          ${fld('rf.residualRisk', D.residual_risk_statement)}
+          ${fld('rf.decisionRationale', D.decision_rationale)}
+          ${fld('rf.conditions', D.conditions)}
+        </div>
+      </section>${foot(b, m, cls)}</div>`;
+  }
+
+  // Controls with their evidence — four per sheet, same shape as the findings
+  // pages of the assessment report.
+  const AD = m.activeDetail;
+  const ctls = (AD && AD.controls) || [];
+  if (ctls.length) {
+    const fmtCtl = c => `<div class="finding ${c.result === 'partial' ? 'warn' : ''}">
+      <h4><span><span class="ctlid">${esc(c.control_id)}</span> — ${esc(c.title || '')}</span>${resultPill(t, c.result)}</h4>
+      ${c.rationale ? `<div class="lbl">${esc(t('rf.tailoringRationale'))}</div><div class="body">${esc(c.rationale)}</div>` : ''}
+      <div class="lbl">${esc(t('rf.evidence'))}</div><div class="body">${c.evidence ? esc(c.evidence).replace(/\n/g, '<br>') : '—'}</div>
+      ${c.finding ? `<div class="lbl">${esc(t('rf.finding'))}</div><div class="body">${esc(c.finding)}</div>` : ''}</div>`;
+    const cch = [];
+    for (let i = 0; i < ctls.length; i += 4) cch.push(ctls.slice(i, i + 4));
+    cch.forEach((chunk, idx) => {
+      h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span></span></div>
+        <section><div class="sec-h"><span class="num">6</span><h2>${esc(t('rf.controlsAndEvidence'))}${idx ? ' (…)' : ''}</h2></div>
+          ${chunk.map(fmtCtl).join('')}
+        </section>${foot(b, m, cls)}</div>`;
+    });
+
+    const so = (AD && AD.scopedOut) || [];
+    if (so.length) {
+      h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span></span></div>
+        <section><div class="sec-h"><span class="num">7</span><h2>${esc(t('rf.tailoringRegister'))}</h2></div>
+          <table class="data"><thead><tr><th style="width:22mm">${esc(t('rf.control'))}</th><th>${esc(t('rf.title'))}</th>
+            <th style="width:70mm">${esc(t('rf.exclusionReason'))}</th></tr></thead><tbody>
+            ${so.map(c => `<tr><td><span class="ctlid">${esc(c.control_id)}</span></td>
+              <td>${esc(c.title || '')}</td><td>${esc(c.reason || '—')}</td></tr>`).join('')}
+          </tbody></table>
+        </section>${foot(b, m, cls)}</div>`;
+    }
+  }
+
+  // Final chapter: who contributed. A summary — the detail is its own report.
+  if (m.contributors && m.contributors.length) {
+    const cs = m.contributorSummary || {};
+    h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span></span></div>
+      <section><div class="sec-h"><span class="num">9</span><h2>${esc(t('rf.contributors'))}</h2></div>
+        <p class="lede">${esc(t('rf.contributorsLede', { people: cs.contributors || 0, actions: cs.actions || 0 }))}</p>
+        <table class="data"><thead><tr><th style="width:42mm">${esc(t('rf.person'))}</th><th style="width:22mm">${esc(t('rf.role'))}</th>
+          <th class="num" style="width:18mm">${esc(t('rf.actions'))}</th><th>${esc(t('rf.contributed'))}</th>
+          <th style="width:26mm">${esc(t('rf.firstActivity'))}</th><th style="width:26mm">${esc(t('rf.lastActivity'))}</th></tr></thead><tbody>
+          ${m.contributors.map(c => `<tr><td>${esc(c.actor_name || '')}${c.actor_email ? `<br><span class="mono" style="font-size:8pt">${esc(c.actor_email)}</span>` : ''}</td>
+            <td><span class="pill ${c.actor_type === 'ai' ? 'p-warn' : c.actor_type === 'assessor' ? 'p-info' : 'p-mute'}">${esc(t('rf.actor_' + c.actor_type) || c.actor_type)}</span></td>
+            <td class="num">${c.actions}</td><td>${esc(c.summary || '')}</td>
+            <td>${esc(c.first_at || '')}</td><td>${esc(c.last_at || '')}</td></tr>`).join('')}
+        </tbody></table>
+      </section>${foot(b, m, cls)}</div>`;
+  }
+
+  if (m.attachments && m.attachments.length) {
+    h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span></span></div>
+      <section><div class="sec-h"><span class="num">8</span><h2>${esc(t('rf.evidenceAttachments'))}</h2></div>
+        <table class="data"><thead><tr><th style="width:22mm">${esc(t('rf.control'))}</th><th>${esc(t('rf.document'))}</th>
+          <th style="width:26mm">${esc(t('rf.uploaded'))}</th></tr></thead><tbody>
+          ${m.attachments.map(a => `<tr><td><span class="ctlid">${esc(a.control_id || '')}</span></td>
+            <td>${esc(a.original_name || '')}${a.ref_url ? ` <span class="pill p-info">${esc(t('rf.externalReference'))}</span>` : ''}</td>
+            <td>${esc(a.uploaded_at || '')}</td></tr>`).join('')}
+        </tbody></table>
+      </section>${foot(b, m, cls)}</div>`;
+  }
+  return h;
+}
+
+function contributorsBody(m, b, t, logoDataUri, cls) {
+  const cs = m.summary || {};
+  let h = `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span></span></div>
+    <section><div class="sec-h"><span class="num">1</span><h2>${esc(t('rf.contributors'))}</h2></div>
+      <div class="kpis" style="margin-bottom:6mm">
+        <div class="kpi"><div class="n">${cs.contributors || 0}</div><div class="l">${esc(t('rf.people'))}</div></div>
+        <div class="kpi"><div class="n">${cs.actions || 0}</div><div class="l">${esc(t('rf.actions'))}</div></div>
+      </div>
+      <table class="data"><thead><tr><th style="width:42mm">${esc(t('rf.person'))}</th><th style="width:22mm">${esc(t('rf.role'))}</th>
+        <th class="num" style="width:18mm">${esc(t('rf.actions'))}</th><th>${esc(t('rf.contributed'))}</th>
+        <th style="width:26mm">${esc(t('rf.firstActivity'))}</th><th style="width:26mm">${esc(t('rf.lastActivity'))}</th></tr></thead><tbody>
+        ${(m.contributors || []).map(c => `<tr><td>${esc(c.actor_name || '')}${c.actor_email ? `<br><span class="mono" style="font-size:8pt">${esc(c.actor_email)}</span>` : ''}</td>
+          <td><span class="pill ${c.actor_type === 'ai' ? 'p-warn' : c.actor_type === 'assessor' ? 'p-info' : 'p-mute'}">${esc(t('rf.actor_' + c.actor_type) || c.actor_type)}</span></td>
+          <td class="num">${c.actions}</td><td>${esc(c.summary || '')}</td>
+          <td>${esc(c.first_at || '')}</td><td>${esc(c.last_at || '')}</td></tr>`).join('')
+          || `<tr><td colspan="6">—</td></tr>`}
+      </tbody></table>
+    </section>${foot(b, m, cls)}</div>`;
+
+  // The full trail, paged so a long project stays readable.
+  const rows = m.activity || [];
+  const per = 26;
+  for (let i = 0; i < Math.max(rows.length, 1); i += per) {
+    const chunk = rows.slice(i, i + per);
+    h += `<div class="sheet"><div class="runhead"><span><b>${esc(m.title)}</b> — ${esc(m.subject)}</span><span></span></div>
+      <section><div class="sec-h"><span class="num">2</span><h2>${esc(t('rf.activityLog'))}${i ? ' (…)' : ''}</h2></div>
+        <table class="data"><thead><tr><th style="width:28mm">${esc(t('rf.when'))}</th><th style="width:34mm">${esc(t('rf.person'))}</th>
+          <th style="width:22mm">${esc(t('rf.recordType'))}</th><th style="width:30mm">${esc(t('rf.record'))}</th>
+          <th style="width:22mm">${esc(t('rf.action'))}</th><th>${esc(t('rf.detail'))}</th></tr></thead><tbody>
+          ${chunk.map(r => `<tr><td>${esc(r.created_at || '')}</td><td>${esc(r.actor_name || '')}</td>
+            <td>${esc(t('rf.ent_' + r.entity_type) || r.entity_type)}</td><td>${esc(r.entity_ref || '')}</td>
+            <td>${esc(r.action || '')}</td><td>${esc(r.detail || '')}</td></tr>`).join('')
+            || `<tr><td colspan="6">—</td></tr>`}
+        </tbody></table>
+      </section>${foot(b, m, cls)}</div>`;
+  }
   return h;
 }
 
@@ -495,7 +642,7 @@ function intakeBody(m, b, t, logoDataUri, cls) {
 
 const BODIES = {
   intake: intakeBody,
-  assessment: assessmentBody, 'decision-package': decisionBody,
+  assessment: assessmentBody, 'decision-package': decisionBody, contributors: contributorsBody,
   poam: poamBody, project: projectBody, portfolio: portfolioBody
 };
 

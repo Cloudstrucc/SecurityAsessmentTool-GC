@@ -4,12 +4,17 @@ const { run, all, get } = require('../models/database');
 const emailService = require('../utils/emailService');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
 const QRCode = require('qrcode');
 const { UPLOAD_DIR, INTAKE_UPLOAD_DIR: intakeUploadDir, ensureUploadDirs } = require('../config/storage');
+const { sanitizeHtml, htmlToText } = require('../utils/html-sanitize');
+const slots = require('../utils/evidence-slots');
+const activity = require('../config/project-activity');
+const fileSafety = require('../utils/file-safety');
 const ai = require('../config/ai-service');
 const { determineProfile, detectComplexity } = require('../config/security-profiles');
 const {
@@ -210,7 +215,19 @@ router.post('/respond/access', (req, res) => {
 // to the right place (an assessment → its evidence flow). Signed-out visitors are
 // routed to sign in / register carrying the code. Used by the "invite sent" banner
 // hyperlink and by the "Redeem a code" modal on the intake/assessment/POA&M pages.
-function tr(req, key, fallback) { return (req.t && req.t(key) !== key) ? req.t(key) : fallback; }
+/**
+ * Translate `key`, falling back to `fallback` when i18n has no entry.
+ * `opts` carries interpolation values ({{detail}}, {{n}}, …) — without passing
+ * them through, a localized string renders with its placeholders visible.
+ */
+function tr(req, key, fallback, opts) {
+  if (req.t) {
+    const v = req.t(key, opts || {});
+    if (v && v !== key) return v;
+  }
+  // Interpolate the fallback too, so an un-translated string still reads right.
+  return String(fallback || '').replace(/\{\{(\w+)\}\}/g, (_m, k) => (opts && opts[k] != null ? opts[k] : ''));
+}
 
 function redeemActor(req) {
   if (req.isAuthenticated && req.isAuthenticated()) return { id: req.user.id, email: req.user.email };
@@ -352,8 +369,19 @@ router.get('/respond/:code', ensureEvidenceUser, (req, res) => {
   if (!assessment) {
     return res.render('error', { title: 'Invalid Code', message: 'The access code is not valid. Please check the code and try again.', showAccessForm: true });
   }
+  // A draft is not yet open for evidence. The assessor who owns it can still
+  // preview it read-only (the record page links here), so only send people
+  // without access to the error page — otherwise it is a dead end from their
+  // own record.
   if (assessment.status === 'draft') {
-    return res.render('error', { title: 'Not Ready', message: 'This assessment has not been activated yet.', showAccessForm: false });
+    const preview = evidenceAccess(req, assessment);
+    if (!preview || !preview.canView) {
+      return res.render('error', {
+        title: tr(req, 'ev.notReadyTitle', 'Not Ready'),
+        message: tr(req, 'ev.notReadyMsg', 'This assessment has not been activated yet.'),
+        showAccessForm: false
+      });
+    }
   }
   if (assessment.invite_expires_at && new Date(assessment.invite_expires_at) < new Date()) {
     return res.render('error', { title: 'Expired', message: 'This invitation has expired.', showAccessForm: false });
@@ -377,6 +405,50 @@ router.get('/respond/:code', ensureEvidenceUser, (req, res) => {
     WHERE assessment_id = ? AND is_applicable = 1
     ORDER BY family, control_id
   `, [assessment.id]);
+
+  // Saved attachments, grouped by control. The page used to render these only
+  // from the in-page upload handler, so everything already on file vanished on
+  // the next page load and could not be downloaded back.
+  const attachmentsByControl = {};
+  if (controls.length) {
+    const placeholders = controls.map(() => '?').join(',');
+    all(`SELECT id, assessment_control_id, original_name, size
+         FROM attachments WHERE assessment_control_id IN (${placeholders})
+         ORDER BY uploaded_at, id`, controls.map(c => c.id))
+      .forEach(a => {
+        (attachmentsByControl[a.assessment_control_id] ||= []).push(a);
+      });
+  }
+  controls.forEach(c => { c.attachmentList = attachmentsByControl[c.id] || []; });
+
+  // Evidence slots. A legacy draft still holding raw [[VALUE:]] markers is
+  // materialized on first view, so existing records gain slots without a
+  // separate migration pass. Controls with no markers get slots_total = 0 and
+  // keep their old all-or-nothing completeness rather than regressing to 0%.
+  controls.forEach(c => {
+    if (!c.readonly && slots.hasMarkers(c.evidence_html || '')) {
+      const { html, created } = slots.materialize(c.id, c.evidence_html || '');
+      if (created) {
+        run('UPDATE assessment_controls SET evidence_html = ?, slots_migrated_at = CURRENT_TIMESTAMP WHERE id = ?',
+          [html, c.id]);
+        c.evidence_html = html;
+      }
+    }
+    const list = slots.listSlots(c.id);
+    c.slotList = list.map(sl => ({
+      key: sl.slot_key, type: sl.slot_type, label: sl.label,
+      value_html: sl.value_html || '', value_text: sl.value_text || '',
+      filled: slots.isFilled(sl),
+      files: all(`SELECT id, original_name, size, scan_status, ref_url, ref_kind FROM attachments
+                  WHERE slot_id = ? ORDER BY id`, [sl.id])
+    }));
+    c.slotProgress = slots.progress(c.id);
+    c.hasSlots = c.slotList.length > 0;
+    // The editor shows chips; the read view shows the finished narrative.
+    c.evidence_read_html = c.hasSlots
+      ? slots.renderForRead(c.evidence_html || '', list)
+      : (c.evidence_html || '');
+  });
 
   const families = {};
   controls.forEach(c => {
@@ -412,9 +484,13 @@ router.get('/respond/:code', ensureEvidenceUser, (req, res) => {
     progress: total > 0 ? Math.round(provided / total * 100) : 0,
     isSubmitted, isReadOnly, resubmitMode,
     viewMode: acc.mode,
-    readOnlyReason: isReadOnly && !isSubmitted ? (acc.mode === 'owner-view'
-      ? tr(req, 'ev.roOwner', 'Read-only: this assessment is assigned to someone else. Take ownership from the assessment page to make changes.')
-      : (acc.mode === 'past' ? tr(req, 'ev.roPast', 'Read-only: you are no longer assigned to this assessment.') : '')) : ''
+    readOnlyReason: isReadOnly && !isSubmitted
+      ? (assessment.status === 'draft'
+        ? tr(req, 'ev.roDraft', 'Preview only: this assessment is still a draft. Use "Assign & send" on the assessment record to open it for evidence.')
+        : (acc.mode === 'owner-view'
+          ? tr(req, 'ev.roOwner', 'Read-only: this assessment is assigned to someone else. Take ownership from the assessment page to make changes.')
+          : (acc.mode === 'past' ? tr(req, 'ev.roPast', 'Read-only: you are no longer assigned to this assessment.') : '')))
+      : ''
   });
 });
 
@@ -434,8 +510,12 @@ router.post('/respond/:code/save/:controlId', ensureEvidenceUser, express.json({
   }
   if (current && current.evidence_ready) return res.json({ success: false, message: tr(req, 'ev.roReady', 'This control is marked Ready. Reactivate it to make changes.') });
 
-  const { evidence_text, evidence_html } = req.body;
   const who = history.actor(req);
+  // Evidence HTML comes from an EXTERNAL evidence provider and is rendered
+  // unescaped into the assessor's admin page, so it is sanitised here rather
+  // than trusted. Slot markers survive; script, attributes and URLs do not.
+  const evidence_html = sanitizeHtml(req.body.evidence_html, { allowSlots: true });
+  const evidence_text = htmlToText(evidence_html) || String(req.body.evidence_text || '');
   // A provider save is real evidence — flip provenance off 'ai-suggested'.
   run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?,
     evidence_status = CASE WHEN ? != '' THEN 'provided' ELSE 'pending' END,
@@ -445,6 +525,10 @@ router.post('/respond/:code/save/:controlId', ensureEvidenceUser, express.json({
     [evidence_text, evidence_html, evidence_text || '', who.name, req.params.controlId, assessment.id]);
   const saved = get('SELECT * FROM assessment_controls WHERE id = ?', [req.params.controlId]);
   history.record({ controlDbId: Number(req.params.controlId), assessmentId: assessment.id, action: 'save', actorName: who.name, actorType: who.type, control: saved });
+  activity.record({ projectId: assessment.project_id, entityType: 'control', entityId: saved.id,
+    entityRef: saved.control_id, action: 'saved', field: 'evidence',
+    detail: `Evidence narrative saved (${(saved.evidence_text || '').length} characters)`,
+    actor: activity.actor(req) });
 
   res.json({ success: true });
 });
@@ -507,6 +591,7 @@ router.post('/respond/:code/bulk', ensureEvidenceUser, express.json(), async (re
         const html = es.suggestToHtml(text);
         run(`UPDATE assessment_controls SET evidence_text = ?, evidence_html = ?, evidence_source = 'ai-suggested', evidence_status = 'pending',
              evidence_suggested_at = CURRENT_TIMESTAMP, evidence_edited_by = 'Aegis AI', evidence_edited_at = CURRENT_TIMESTAMP WHERE id = ?`, [text, html, id]);
+        materializeSlots(id);
         history.record({ controlDbId: id, assessmentId: assessment.id, action: 'ai-draft', actorName: 'Aegis AI', actorType: 'ai', control: get('SELECT * FROM assessment_controls WHERE id = ?', [id]) }); n++;
         results.push({ id, html });
       }
@@ -535,6 +620,9 @@ router.post('/respond/:code/ready/:controlId', ensureEvidenceUser, express.json(
   run('UPDATE assessment_controls SET evidence_ready = ?, evidence_edited_by = ?, evidence_edited_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
     [makeReady ? 1 : 0, who.name, control.id]);
   history.record({ controlDbId: control.id, assessmentId: assessment.id, action: makeReady ? 'ready' : 'reactivate', actorName: who.name, actorType: who.type, control });
+  activity.record({ projectId: assessment.project_id, entityType: 'control', entityId: control.id,
+    entityRef: control.control_id, action: makeReady ? 'marked ready' : 'reactivated', field: 'evidence',
+    actor: activity.actor(req) });
   res.json({ success: true, ready: makeReady });
 });
 
@@ -594,6 +682,7 @@ router.post('/respond/:code/suggest/:controlId', ensureEvidenceUser, express.jso
          evidence_status = 'pending', evidence_suggested_at = CURRENT_TIMESTAMP,
          evidence_edited_by = 'Aegis AI', evidence_edited_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
       [text, html, control.id]);
+    materializeSlots(control.id);
     const drafted = get('SELECT * FROM assessment_controls WHERE id = ?', [control.id]);
     history.record({ controlDbId: control.id, assessmentId: assessment.id, action: 'ai-draft', actorName: 'Aegis AI', actorType: 'ai', control: drafted });
     res.json({ success: true, text, html });
@@ -611,7 +700,7 @@ router.post('/respond/:code/upload/:controlId', ensureEvidenceUser, upload.singl
   const accU = evidenceAccess(req, assessment);
   if (!accU || !accU.canEdit) return res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
 
-  run(`INSERT INTO attachments (assessment_control_id, filename, original_name, mime_type, size, uploaded_by)
+  const attachmentId = run(`INSERT INTO attachments (assessment_control_id, filename, original_name, mime_type, size, uploaded_by)
     VALUES (?, ?, ?, ?, ?, ?)`,
     [req.params.controlId, req.file.filename, req.file.originalname, req.file.mimetype, req.file.size, 'project-owner']);
 
@@ -620,7 +709,283 @@ router.post('/respond/:code/upload/:controlId', ensureEvidenceUser, upload.singl
   run('UPDATE assessment_controls SET attachments = ? WHERE id = ?',
     [JSON.stringify(attachments.map(a => ({ id: a.id, name: a.original_name, size: a.size }))), req.params.controlId]);
 
-  res.json({ success: true, file: { id: req.file.filename, name: req.file.originalname } });
+  // attachmentId is what the download link needs; `id` stays the stored filename
+  // for any older caller that still reads it.
+  res.json({ success: true, file: { id: req.file.filename, attachmentId, name: req.file.originalname } });
+});
+
+/**
+ * Download an attachment the provider filed against a control. The id is
+ * resolved through THIS assessment's controls, so an id belonging to another
+ * assessment is simply not found.
+ */
+router.get('/respond/:code/attachment/:attId', ensureEvidenceUser, (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
+  if (!assessment) return res.status(404).send('Not found');
+  const attachment = get(`
+    SELECT at.* FROM attachments at
+    JOIN assessment_controls ac ON ac.id = at.assessment_control_id
+    WHERE at.id = ? AND ac.assessment_id = ?
+  `, [req.params.attId, assessment.id]);
+  if (!attachment) return res.status(404).send('Not found');
+  // A reference is a link, not a stored file — there is nothing to download,
+  // and an empty filename would otherwise resolve to the uploads directory.
+  if (attachment.ref_url) return res.status(409).send('That item is an external reference, not a file.');
+  const candidates = [
+    path.join(UPLOAD_DIR, attachment.filename),
+    path.join(intakeUploadDir, attachment.filename)
+  ];
+  const filePath = candidates.find(p => fs.existsSync(p));
+  if (!filePath) return res.status(404).send('That attachment is missing from storage.');
+  // Never serve a provider-supplied file inline, and never trust the type the
+  // client claimed — an HTML or SVG payload must not execute on our origin.
+  res.download(filePath, fileSafety.safeName(attachment.original_name), {
+    headers: {
+      'Content-Type': fileSafety.serveType(attachment.original_name),
+      'X-Content-Type-Options': 'nosniff'
+    }
+  });
+});
+
+/**
+ * Turn a freshly generated draft's [[VALUE:]] / [[ATTACH:]] markers into slot
+ * rows and rewrite the stored HTML with slot spans. Safe to call twice.
+ */
+function materializeSlots(controlId) {
+  const c = get('SELECT id, evidence_html FROM assessment_controls WHERE id = ?', [controlId]);
+  if (!c) return null;
+  const { html, created } = slots.materialize(c.id, c.evidence_html || '');
+  if (created) {
+    run(`UPDATE assessment_controls SET evidence_html = ?, slots_migrated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`, [html, c.id]);
+  }
+  return slots.progress(c.id);
+}
+
+// ── Evidence slots ──────────────────────────────────────────────────────────
+// A slot is one [[VALUE:]] or [[ATTACH:]] the AI left for the provider to fill.
+// Every route here is behind the same edit gate as save/:controlId, so a
+// submitted or audited assessment is read-only.
+
+/** Resolve the assessment + control and confirm the caller may edit it. */
+function slotGate(req, res) {
+  const code = String(req.params.code || '').toUpperCase();
+  const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
+  if (!assessment) { res.status(404).json({ success: false, message: 'Not found' }); return null; }
+  const acc = evidenceAccess(req, assessment);
+  if (!acc || !acc.canEdit) {
+    res.json({ success: false, message: tr(req, 'ev.roSave', 'Read-only: you are not the current owner of this assessment.') });
+    return null;
+  }
+  const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?',
+    [req.params.controlId, assessment.id]);
+  if (!control) { res.status(404).json({ success: false, message: 'Not found' }); return null; }
+  if (control.evidence_ready) {
+    res.json({ success: false, message: tr(req, 'ev.roReady', 'This control is marked Ready. Reactivate it to make changes.') });
+    return null;
+  }
+  return { assessment, control };
+}
+
+/** Slots + progress for one control. */
+router.get('/respond/:code/slots/:controlId', ensureEvidenceUser, (req, res) => {
+  const code = String(req.params.code || '').toUpperCase();
+  const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
+  if (!assessment) return res.status(404).json({ success: false });
+  const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?',
+    [req.params.controlId, assessment.id]);
+  if (!control) return res.status(404).json({ success: false });
+  const list = slots.listSlots(control.id).map(sl => ({
+    key: sl.slot_key, type: sl.slot_type, label: sl.label,
+    value_html: sl.value_html || '', value_text: sl.value_text || '',
+    filled: slots.isFilled(sl), filled_by: sl.filled_by, filled_at: sl.filled_at,
+    files: all(`SELECT id, original_name, size, scan_status, ref_url, ref_kind FROM attachments
+                WHERE slot_id = ? ORDER BY id`, [sl.id])
+  }));
+  res.json({ success: true, slots: list, progress: slots.progress(control.id) });
+});
+
+/** Write a value slot. */
+router.put('/respond/:code/slots/:controlId/:slotKey', ensureEvidenceUser, express.json(), (req, res) => {
+  const ctx = slotGate(req, res); if (!ctx) return;
+  const who = history.actor(req);
+  const updated = slots.setValue(ctx.control.id, req.params.slotKey, req.body.value_html, who.name);
+  if (!updated) return res.status(404).json({ success: false, message: 'Slot not found' });
+  activity.record({ projectId: ctx.assessment.project_id, entityType: 'slot', entityId: updated.id,
+    entityRef: `${ctx.control.control_id} · ${updated.label}`,
+    action: String(updated.value_text || '').trim() ? 'filled' : 'cleared', field: 'value',
+    detail: String(updated.value_text || '').slice(0, 200), actor: activity.actor(req) });
+  res.json({ success: true, progress: slots.progress(ctx.control.id) });
+});
+
+/** Add a slot the draft did not include. */
+router.post('/respond/:code/slots/:controlId', ensureEvidenceUser, express.json(), (req, res) => {
+  const ctx = slotGate(req, res); if (!ctx) return;
+  const slot = slots.addSlot(ctx.control.id, req.body.type, req.body.label);
+  activity.record({ projectId: ctx.assessment.project_id, entityType: 'slot', entityId: slot.id,
+    entityRef: `${ctx.control.control_id} · ${slot.label}`, action: 'added', field: slot.slot_type,
+    detail: `Added a ${slot.slot_type} slot`, actor: activity.actor(req) });
+  res.json({ success: true, slot: { key: slot.slot_key, type: slot.slot_type, label: slot.label },
+    progress: slots.progress(ctx.control.id) });
+});
+
+/** Soft-remove a slot; the narrative keeps the prose. */
+router.delete('/respond/:code/slots/:controlId/:slotKey', ensureEvidenceUser, (req, res) => {
+  const ctx = slotGate(req, res); if (!ctx) return;
+  const removed = slots.removeSlot(ctx.control.id, req.params.slotKey);
+  if (!removed) return res.status(404).json({ success: false, message: 'Slot not found' });
+  activity.record({ projectId: ctx.assessment.project_id, entityType: 'slot', entityId: removed.id,
+    entityRef: `${ctx.control.control_id} · ${removed.label}`, action: 'removed', field: removed.slot_type,
+    detail: 'Slot removed; its text was kept as prose', actor: activity.actor(req) });
+  res.json({ success: true, text: removed.value_text || '', progress: slots.progress(ctx.control.id) });
+});
+
+/**
+ * Upload into an attachment slot.
+ *
+ * Validation is synchronous and content-based — see utils/file-safety.js for
+ * exactly what it does and, importantly, what it does NOT do (it is not malware
+ * scanning). A rejected file is deleted from disk before this returns.
+ */
+router.post('/respond/:code/slots/:controlId/:slotKey/files', ensureEvidenceUser,
+  upload.single('file'), async (req, res) => {
+    const cleanup = () => { try { if (req.file) fs.unlinkSync(req.file.path); } catch (e) { /* already gone */ } };
+    const ctx = slotGate(req, res); if (!ctx) { cleanup(); return; }
+    if (!req.file) return res.json({ success: false, message: tr(req, 'esl.noFile', 'No file was received.') });
+
+    const slot = get(`SELECT * FROM evidence_slots
+                      WHERE assessment_control_id = ? AND slot_key = ? AND removed_at IS NULL`,
+    [ctx.control.id, req.params.slotKey]);
+    if (!slot || slot.slot_type !== 'attach') { cleanup(); return res.status(404).json({ success: false, message: 'Slot not found' }); }
+
+    const existing = all('SELECT id, size FROM attachments WHERE slot_id = ?', [slot.id]);
+    if (existing.length >= fileSafety.MAX_FILES_PER_SLOT) {
+      cleanup();
+      return res.json({ success: false, message: tr(req, 'esl.tooManyFiles',
+        'That slot already holds the maximum of {{n}} files.', { n: fileSafety.MAX_FILES_PER_SLOT }) });
+    }
+    const controlBytes = all(`SELECT a.size FROM attachments a
+                              JOIN evidence_slots s ON s.id = a.slot_id
+                              WHERE s.assessment_control_id = ?`, [ctx.control.id])
+      .reduce((t, r) => t + Number(r.size || 0), 0);
+    if (controlBytes + Number(req.file.size || 0) > fileSafety.MAX_BYTES_PER_CONTROL) {
+      cleanup();
+      return res.json({ success: false, message: tr(req, 'esl.controlFull',
+        'This control has reached its total attachment size limit.') });
+    }
+
+    let verdict;
+    try {
+      verdict = await fileSafety.inspect(fs.readFileSync(req.file.path), req.file.originalname);
+    } catch (err) {
+      cleanup();
+      return res.json({ success: false, message: tr(req, 'esl.checkFailed', 'That file could not be checked.') });
+    }
+    if (!verdict.ok) {
+      cleanup();
+      return res.json({ success: false, reason: verdict.reason, detail: verdict.detail,
+        message: tr(req, 'esl.rejected.' + verdict.reason, rejectFallback(verdict), { detail: verdict.detail }) });
+    }
+
+    const id = run(`INSERT INTO attachments
+      (assessment_control_id, slot_id, filename, original_name, mime_type, size, uploaded_by, scan_status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'checked')`,
+    [ctx.control.id, slot.id, req.file.filename, fileSafety.safeName(req.file.originalname),
+      fileSafety.serveType(req.file.originalname), req.file.size, 'project-owner']);
+    slots.syncCounts(ctx.control.id);
+    activity.record({ projectId: ctx.assessment.project_id, entityType: 'attachment', entityId: id,
+      entityRef: `${ctx.control.control_id} · ${slot.label}`, action: 'attached', field: 'file',
+      detail: `${fileSafety.safeName(req.file.originalname)} (${Math.round((req.file.size || 0) / 1024)} KB)`,
+      actor: activity.actor(req) });
+
+    res.json({ success: true,
+      file: { id, name: fileSafety.safeName(req.file.originalname), size: req.file.size, scan_status: 'checked' },
+      progress: slots.progress(ctx.control.id) });
+  });
+
+/** English fallbacks for the rejection reasons, used when i18n has no key. */
+function rejectFallback(v) {
+  return {
+    empty: 'That file is empty.',
+    tooLarge: 'That file is larger than 25 MB.',
+    archive: 'Archives are not accepted as evidence — attach the documents themselves.',
+    executable: 'Executable files are not accepted.',
+    macro: 'Macro-enabled Office files are not accepted — save it without macros.',
+    svg: 'SVG files are not accepted because they can carry script.',
+    extension: 'That file type is not accepted.',
+    eicar: 'That file was rejected by the content check.',
+    mismatch: 'That file\'s contents do not match its extension ({{detail}}).',
+    activeContent: 'That file contains active content ({{detail}}) and was rejected.'
+  }[v.reason] || 'That file was rejected.';
+}
+
+/**
+ * Attach an external reference instead of a file — a link into a document
+ * management system, or a plain record identifier.
+ *
+ * Stored as an attachments row with ref_url set and no filename, so slot
+ * completeness, listing and removal all work unchanged. The URL is never
+ * fetched by the server; it is only stored and later rendered as a link.
+ */
+router.post('/respond/:code/slots/:controlId/:slotKey/reference', ensureEvidenceUser, express.json(), (req, res) => {
+  const ctx = slotGate(req, res); if (!ctx) return;
+  const slot = get(`SELECT * FROM evidence_slots
+                    WHERE assessment_control_id = ? AND slot_key = ? AND removed_at IS NULL`,
+  [ctx.control.id, req.params.slotKey]);
+  if (!slot || slot.slot_type !== 'attach') return res.status(404).json({ success: false, message: 'Slot not found' });
+
+  const existing = all('SELECT id FROM attachments WHERE slot_id = ?', [slot.id]);
+  if (existing.length >= fileSafety.MAX_FILES_PER_SLOT) {
+    return res.json({ success: false, message: tr(req, 'esl.tooManyFiles',
+      'That slot already holds the maximum of {{n}} items.', { n: fileSafety.MAX_FILES_PER_SLOT }) });
+  }
+
+  const verdict = fileSafety.inspectReference(req.body.reference);
+  if (!verdict.ok) {
+    return res.json({ success: false, reason: verdict.reason,
+      message: tr(req, 'esl.' + verdict.reason, refFallback(verdict.reason)) });
+  }
+
+  const id = run(`INSERT INTO attachments
+    (assessment_control_id, slot_id, filename, original_name, mime_type, size, uploaded_by, scan_status, ref_url, ref_kind)
+    VALUES (?, ?, '', ?, '', 0, ?, 'reference', ?, ?)`,
+  [ctx.control.id, slot.id, verdict.value.slice(0, 200), 'project-owner', verdict.value, verdict.kind]);
+  slots.syncCounts(ctx.control.id);
+  activity.record({ projectId: ctx.assessment.project_id, entityType: 'attachment', entityId: id,
+    entityRef: `${ctx.control.control_id} · ${slot.label}`, action: 'linked', field: 'reference',
+    detail: verdict.value.slice(0, 200), actor: activity.actor(req) });
+
+  res.json({ success: true,
+    file: { id, original_name: verdict.value, ref_url: verdict.value, ref_kind: verdict.kind, scan_status: 'reference' },
+    progress: slots.progress(ctx.control.id) });
+});
+
+function refFallback(reason) {
+  return {
+    refEmpty: 'Enter a link or a reference.',
+    refTooLong: 'That reference is too long.',
+    refInvalid: 'That does not look like a valid link or reference.',
+    refScheme: 'Only http and https links are accepted.'
+  }[reason] || 'That reference was rejected.';
+}
+
+/** Detach a file from a slot. */
+router.delete('/respond/:code/slots/:controlId/:slotKey/files/:fileId', ensureEvidenceUser, (req, res) => {
+  const ctx = slotGate(req, res); if (!ctx) return;
+  const slot = get(`SELECT * FROM evidence_slots
+                    WHERE assessment_control_id = ? AND slot_key = ? AND removed_at IS NULL`,
+  [ctx.control.id, req.params.slotKey]);
+  if (!slot) return res.status(404).json({ success: false });
+  const att = get('SELECT * FROM attachments WHERE id = ? AND slot_id = ?', [req.params.fileId, slot.id]);
+  if (!att) return res.status(404).json({ success: false });
+  run('DELETE FROM attachments WHERE id = ?', [att.id]);
+  slots.syncCounts(ctx.control.id);
+  activity.record({ projectId: ctx.assessment.project_id, entityType: 'attachment', entityId: att.id,
+    entityRef: `${ctx.control.control_id} · ${slot.label}`,
+    action: 'detached', field: att.ref_url ? 'reference' : 'file',
+    detail: att.original_name || '', actor: activity.actor(req) });
+  res.json({ success: true, progress: slots.progress(ctx.control.id) });
 });
 
 // Add comment
@@ -708,6 +1073,7 @@ router.post('/respond/:code/apply-suggestions', ensureEvidenceUser, express.json
            evidence_status = 'pending', evidence_suggested_at = CURRENT_TIMESTAMP,
            evidence_edited_by = 'Aegis AI', evidence_edited_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
         [text, html, control.id]);
+      materializeSlots(control.id);
       const d2 = get('SELECT * FROM assessment_controls WHERE id = ?', [control.id]);
       history.record({ controlDbId: control.id, assessmentId: assessment.id, action: 'ai-draft', actorName: 'Aegis AI', actorType: 'ai', control: d2 });
       applied.push({ controlDbId: control.id, text, html });
@@ -715,25 +1081,6 @@ router.post('/respond/:code/apply-suggestions', ensureEvidenceUser, express.json
     res.json({ success: true, applied });
   } catch (err) {
     console.error('respond apply-suggestions error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.post('/respond/:code/ai-refine', ensureEvidenceUser, express.json(), async (req, res) => {
-  try {
-    const code = req.params.code.toUpperCase();
-    const assessment = get('SELECT * FROM assessments WHERE invite_code = ?', [code]);
-    if (!assessment) return res.status(404).json({ error: 'Invalid access code.' });
-    if (!ai.isConfigured()) return res.status(503).json({ error: 'AI is not configured.' });
-    const { controlId, controlTitle, controlGuidance, userSummary } = req.body;
-    if (!userSummary || String(userSummary).trim().length < 3) return res.status(400).json({ error: 'Please enter a brief answer to refine.' });
-    const refined = await ai.refineControlAnswer({
-      controlId: controlId || '', controlTitle: controlTitle || '', controlGuidance: controlGuidance || '',
-      userSummary: String(userSummary), frameworkLabel: assessment.security_framework || 'ITSG-33'
-    });
-    res.json({ success: true, refined });
-  } catch (err) {
-    console.error('respond ai-refine error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -756,6 +1103,9 @@ router.post('/respond/:code/submit', ensureEvidenceUser, (req, res) => {
 
   run(`UPDATE assessments SET status = 'submitted', submitted_at = CURRENT_TIMESTAMP,
     updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [assessment.id]);
+  activity.record({ projectId: assessment.project_id, entityType: 'assessment', entityId: assessment.id,
+    entityRef: `#${assessment.id}`, action: 'submitted', field: 'evidence',
+    detail: 'All evidence submitted for assessment', actor: activity.actor(req) });
 
   // Notify assessor
   const assessor = get('SELECT * FROM users WHERE id = ?', [assessment.created_by]);

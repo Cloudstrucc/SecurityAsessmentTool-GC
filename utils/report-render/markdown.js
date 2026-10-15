@@ -72,6 +72,14 @@ function render(model, opts = {}) {
       out += `- **${t('rf.finding')}:** ${c.finding || '—'}\n`;
       out += `- **${t('rf.evidence')}:** ${c.evidence || '—'}\n\n`;
     });
+    const so = m.scopedOut || [];
+    out += h(2, t('rf.tailoringRegister'));
+    out += `- ${t('rf.controlsOffered')}: **${s.offered != null ? s.offered : m.controls.length + so.length}** · `
+        + `${t('rf.controlsInScope')}: **${s.inScope != null ? s.inScope : m.controls.length}** · `
+        + `${t('rf.scopedOut')}: **${so.length}**\n\n`;
+    out += table([t('rf.control'), t('rf.title'), t('rf.exclusionReason')],
+      so.length ? so.map(c => [c.control_id, c.title || '', c.reason || '—']) : [['—', '', '']]);
+
     out += h(2, t('rf.versionHistory'));
     out += table([t('rf.version'), t('rf.title'), t('rf.date'), t('rf.by'), t('rf.summary')],
       m.versions.map(v => [v.version, v.label || '', String(v.created_at || '').slice(0, 10), v.created_by_name || '', v.summary || '']));
@@ -103,6 +111,66 @@ function render(model, opts = {}) {
     out += h(2, t('rf.outstandingConditions'));
     out += table(['#', t('rf.control'), t('rf.risk'), t('rf.owner'), t('rf.due'), t('rf.state')],
       m.conditions.filter(i => i.state !== 'accepted').map(i => [i.id, i.control_id || '', i.risk_level || '', i.assigned_to || '', i.deadline || '', i.state]));
+
+    // Full detail: the authorization narrative, the controls with their evidence,
+    // and the files filed against them — the rollup above is only a summary.
+    const D = m.decisionDetail && m.decisionDetail.decision;
+    if (D) {
+      out += h(2, t('rf.authorizationDecision'));
+      out += `- **${t('rf.packageReference')}:** ${D.reference || '—'}\n`;
+      out += `- **${t('rf.decisionType')}:** ${String(D.decision_type || '').toUpperCase()}\n`;
+      out += `- **${t('rf.state')}:** ${D.state || '—'}\n`;
+      out += `- **${t('rf.authorizingOfficial')}:** ${D.authorizing_official || '—'}\n`;
+      out += `- **${t('rf.assessor')}:** ${D.assessor || '—'}\n`;
+      out += `- **${t('rf.issued')}:** ${D.issued_at || '—'} · **${t('rf.expires')}:** ${D.expires_at || '—'}\n\n`;
+      [['rf.executiveSummary', D.executive_summary], ['rf.residualRisk', D.residual_risk_statement],
+        ['rf.decisionRationale', D.decision_rationale], ['rf.conditions', D.conditions]]
+        .forEach(([k, v]) => { if (v) out += h(3, t(k)) + v + '\n\n'; });
+    }
+    const AD = m.activeDetail;
+    const ctls = (AD && AD.controls) || [];
+    if (ctls.length) {
+      out += h(2, t('rf.controlsAndEvidence'));
+      ctls.forEach(c => {
+        out += h(3, `${c.control_id} — ${c.title || ''}`);
+        out += `**${t('rf.result')}:** ${c.result || t('rf.pending')}\n\n`;
+        if (c.rationale) out += `**${t('rf.tailoringRationale')}:** ${c.rationale}\n\n`;
+        out += `**${t('rf.evidence')}:**\n\n${c.evidence || '—'}\n\n`;
+        if (c.finding) out += `**${t('rf.finding')}:** ${c.finding}\n\n`;
+      });
+      const so = (AD && AD.scopedOut) || [];
+      if (so.length) {
+        out += h(2, t('rf.tailoringRegister'));
+        out += table([t('rf.control'), t('rf.title'), t('rf.exclusionReason')],
+          so.map(c => [c.control_id, c.title || '', c.reason || '—']));
+      }
+    }
+    if (m.contributors && m.contributors.length) {
+      const cs = m.contributorSummary || {};
+      out += h(2, t('rf.contributors'));
+      out += t('rf.contributorsLede', { people: cs.contributors || 0, actions: cs.actions || 0 }) + '\n\n';
+      out += table([t('rf.person'), t('rf.role'), t('rf.actions'), t('rf.contributed'), t('rf.firstActivity'), t('rf.lastActivity')],
+        m.contributors.map(c => [c.actor_name || '', t('rf.actor_' + c.actor_type) || c.actor_type,
+          c.actions, c.summary || '', c.first_at || '', c.last_at || '']));
+    }
+    if (m.attachments && m.attachments.length) {
+      out += h(2, t('rf.evidenceAttachments'));
+      out += table([t('rf.control'), t('rf.document'), t('rf.uploaded')],
+        m.attachments.map(a => [a.control_id || '',
+          (a.original_name || '') + (a.ref_url ? ` (${t('rf.externalReference')})` : ''),
+          a.uploaded_at || '']));
+    }
+  } else if (m.type === 'contributors') {
+    const cs = m.summary || {};
+    out += h(2, t('rf.contributors'));
+    out += `- ${t('rf.people')}: ${cs.contributors || 0} · ${t('rf.actions')}: ${cs.actions || 0}\n\n`;
+    out += table([t('rf.person'), t('rf.role'), t('rf.actions'), t('rf.contributed'), t('rf.firstActivity'), t('rf.lastActivity')],
+      (m.contributors || []).map(c => [c.actor_name || '', t('rf.actor_' + c.actor_type) || c.actor_type,
+        c.actions, c.summary || '', c.first_at || '', c.last_at || '']));
+    out += h(2, t('rf.activityLog'));
+    out += table([t('rf.when'), t('rf.person'), t('rf.recordType'), t('rf.record'), t('rf.action'), t('rf.detail')],
+      (m.activity || []).map(r => [r.created_at || '', r.actor_name || '',
+        t('rf.ent_' + r.entity_type) || r.entity_type, r.entity_ref || '', r.action || '', r.detail || '']));
   } else if (m.type === 'portfolio') {
     const S = m.summary;
     out += h(2, t('rf.systems'));

@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Evidence Slots — interactive mockup</title>
+<style>
+:root{
+  --navy-950:#0a1626;--navy-900:#0d2136;--navy-800:#143453;
+  --sky-400:#7cc4ee;--sky-500:#4d9fe0;--sky-600:#2f80cf;
+  --peri-500:#6d7fca;--ink:#17273a;--muted:#5f7185;--line:#dce7f2;
+  --mist:#f4f9fd;--soft:#eaf5fd;--amber:#e0a53d;--green:#2fa06d;--red:#d64550;
+  --r:14px;--r-sm:10px;--pill:999px;
+  --shadow-sm:0 2px 10px rgba(15,32,54,.06);--shadow:0 10px 30px rgba(15,32,54,.10);
+  --shadow-lg:0 20px 50px rgba(10,22,38,.20);
+  --font:'Inter','Segoe UI',Roboto,system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font);background:var(--mist);color:var(--ink);font-size:14px;line-height:1.55}
+.appbar{background:var(--navy-950);color:#fff;padding:.7rem 1.25rem;display:flex;align-items:center;gap:1rem}
+.logo{display:flex;align-items:center;gap:.5rem;font-weight:800;letter-spacing:.12em;font-size:15px}
+.logo .sh{width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,var(--peri-500),var(--sky-400))}
+.appbar .sp{flex:1}.appbar .who{font-size:12.5px;opacity:.75}
+.wrap{max-width:1080px;margin:0 auto;padding:1rem}
+.note h1{font-size:20px;margin:.2rem 0}
+.note p{color:var(--muted);margin:.25rem 0 1rem;max-width:84ch}
+
+/* progress header */
+.phead{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm);padding:.9rem 1.1rem;margin-bottom:1rem;position:sticky;top:0;z-index:3}
+.phead .top{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
+.phead h2{margin:0;font-size:16px;flex:1}
+.meter{height:9px;background:var(--soft);border-radius:var(--pill);overflow:hidden;margin-top:.6rem;display:flex}
+.meter i{display:block;height:100%}
+.meter .v{background:var(--green)}
+.meter .a{background:var(--sky-500)}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.45rem;font-size:12px;color:var(--muted)}
+.legend b{color:var(--ink)}
+.sw{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:.3rem;vertical-align:middle}
+
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--pill);overflow:hidden;background:#fff}
+.seg button{border:0;background:#fff;padding:.35rem .9rem;font:inherit;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--navy-900);color:#fff;font-weight:600}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:var(--pill);padding:.42rem .95rem;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.btn.pri{background:var(--navy-900);border-color:var(--navy-900);color:#fff}
+.btn.pri[disabled]{opacity:.4;cursor:not-allowed}
+.btn.sm{padding:.22rem .6rem;font-size:12px}
+.btn.danger{color:var(--red);border-color:#f2cdd1}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--sky-600)}
+
+/* control card */
+.ctrl{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm);margin-bottom:1rem;overflow:hidden}
+.ctrl > header{padding:.7rem 1rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.ctrl > header .id{font-weight:800}
+.ctrl > header .nm{color:var(--muted);font-size:13px}
+.ctrl > header .sp{flex:1}
+.chip{display:inline-flex;align-items:center;gap:.25rem;border-radius:var(--pill);padding:.08rem .5rem;font-size:11px;font-weight:700}
+.chip.g{background:#e6f6ee;color:#1d6b49}.chip.a{background:#fdf3e2;color:#8a6116}
+.chip.r{background:#fdeaec;color:#9c2b33}.chip.b{background:var(--soft);color:var(--navy-800)}
+.chip.n{background:#eef1f6;color:var(--muted)}
+.doc{padding:1rem 1.15rem;font-size:14px}
+.doc p{margin:0 0 .8rem}
+.doc ul{margin:.2rem 0 .8rem;padding-left:1.2rem}
+.doc li{margin-bottom:.3rem}
+
+/* ===== the slots ===== */
+.slot{display:inline-flex;align-items:center;gap:.3rem;border-radius:7px;padding:.02em .4em;font-weight:700;font-size:.92em;cursor:pointer;border:1px solid transparent;white-space:normal;transition:.12s}
+.slot .ic{font-size:.9em;opacity:.8}
+.slot.val{background:#fdf3d8;color:#7a5a10;border-color:#f0dcae}
+.slot.att{background:#e4f1fb;color:#1b4f7d;border-color:#c6def2}
+.slot.val:hover{background:#fbe9bd}
+.slot.att:hover{background:#d2e7f7}
+.slot.filled{background:#e4f6ec;color:#176844;border-color:#bce3cf;font-weight:600}
+.slot.filled:hover{background:#d4efe1}
+.slot.filled .ic::before{content:"✓"}
+.slot.focusme{box-shadow:0 0 0 3px rgba(224,165,61,.35)}
+.slot .rm{opacity:0;margin-left:.1em;font-weight:900;font-size:.95em}
+.slot:hover .rm{opacity:.55}
+.slot .rm:hover{opacity:1;color:var(--red)}
+
+/* evidence (read) view */
+.readview .slot{cursor:default;border:0;padding:0;background:transparent;font-weight:600}
+.readview .slot.val{color:inherit;font-weight:600;background:#f3faf6;border-radius:4px;padding:0 .2em}
+.readview .slot.val.empty{background:#fdeaec;color:#9c2b33;font-weight:700}
+.readview .slot.att{color:var(--sky-600);text-decoration:underline}
+.readview .slot.att.empty{color:#9c2b33;text-decoration:none;background:#fdeaec;border-radius:4px;padding:0 .2em}
+.readview .slot .rm,.readview .slot .ic{display:none}
+
+/* editor toolbar */
+.etb{display:flex;gap:.35rem;align-items:center;flex-wrap:wrap;padding:.5rem 1.15rem;border-top:1px solid var(--line);background:var(--mist)}
+.etb .tb{border:1px solid var(--line);background:#fff;border-radius:8px;padding:.2rem .55rem;font:inherit;font-size:12px;cursor:pointer}
+.etb .sp{flex:1}
+.etb .st{font-size:12px;color:var(--muted)}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(10,22,38,.42);display:none;z-index:9}
+.scrim.on{display:block}
+.modal{position:fixed;z-index:10;left:50%;top:50%;transform:translate(-50%,-50%);width:min(620px,94vw);background:#fff;border-radius:var(--r);box-shadow:var(--shadow-lg);display:none;overflow:hidden}
+.modal.on{display:block}
+.modal header{padding:.85rem 1.1rem;border-bottom:1px solid var(--line);background:var(--navy-900);color:#fff}
+.modal header .eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.7}
+.modal header h3{margin:.15rem 0 0;font-size:16px}
+.modal header .hint{font-size:12px;opacity:.75;margin-top:.15rem}
+.modal .bd{padding:1rem 1.1rem;max-height:60vh;overflow:auto}
+.modal footer{padding:.75rem 1.1rem;border-top:1px solid var(--line);background:var(--mist);display:flex;gap:.5rem;align-items:center}
+.modal footer .sp{flex:1}
+.rtb{display:flex;gap:.25rem;border:1px solid var(--line);border-bottom:0;border-radius:var(--r-sm) var(--r-sm) 0 0;padding:.3rem;background:var(--mist)}
+.rtb button{border:1px solid transparent;background:transparent;border-radius:6px;width:28px;height:26px;cursor:pointer;font:inherit;font-size:13px}
+.rtb button:hover{background:#fff;border-color:var(--line)}
+.rte{border:1px solid var(--line);border-radius:0 0 var(--r-sm) var(--r-sm);min-height:130px;padding:.6rem .7rem;font-size:13.5px;outline:none;background:#fff}
+.rte:focus{box-shadow:0 0 0 3px rgba(77,159,224,.18)}
+.drop{border:2px dashed var(--line);border-radius:var(--r-sm);padding:1.4rem;text-align:center;color:var(--muted);font-size:13px;background:var(--mist);cursor:pointer}
+.drop:hover{border-color:var(--sky-500);background:#f2f9fe}
+.filelist{margin-top:.7rem}
+.file{display:flex;align-items:center;gap:.6rem;border:1px solid var(--line);border-radius:var(--r-sm);padding:.45rem .6rem;margin-bottom:.4rem;background:#fff}
+.file .i{font-size:17px}
+.file .n{font-size:13px;font-weight:600}
+.file .m{font-size:11.5px;color:var(--muted)}
+.file .sp{flex:1}
+.guide{background:#fffaf0;border:1px solid #f3e2c0;border-radius:var(--r-sm);padding:.55rem .7rem;font-size:12.5px;color:#7a5a10;margin-bottom:.8rem}
+.guide b{color:#5e4409}
+.sect-lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:.9rem 0 .35rem}
+
+/* side summary */
+.sum{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm);padding:.85rem 1rem;margin-bottom:1rem}
+.sum h4{margin:0 0 .5rem;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.sum ol{margin:0;padding-left:1.1rem;font-size:13px}
+.sum li{margin-bottom:.25rem;cursor:pointer}
+.sum li:hover{color:var(--sky-600)}
+.callout{border:1px dashed var(--sky-500);background:#f2f9fe;border-radius:var(--r-sm);padding:.6rem .75rem;font-size:12.5px;color:var(--navy-800);margin:1rem 0}
+.ann{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:.9rem 1.1rem;margin:1rem 0 3rem}
+.ann h4{margin:0 0 .4rem;font-size:13px}
+.ann ul{margin:0;padding-left:1.1rem;font-size:12.5px;color:var(--muted)}
+.ann li{margin-bottom:.3rem}
+.toast{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%) translateY(140%);background:var(--navy-900);color:#fff;border-radius:var(--pill);padding:.5rem 1rem;font-size:13px;box-shadow:var(--shadow);transition:.2s;z-index:11}
+.toast.on{transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <span class="logo"><span class="sh"></span> AEGIS S.A.</span>
+  <span class="sp"></span>
+  <span class="who">Dana Whitfield · Evidence provider</span>
+</div>
+
+<div class="wrap">
+  <div class="note">
+    <h1>Evidence slots — fill-in-the-blank evidence</h1>
+    <p>The AI draft stops being a wall of text you have to hand-edit. Every <b>[[VALUE:…]]</b> and <b>[[ATTACH:…]]</b> becomes a
+    <b>clickable slot</b>. Fill one and it turns green; click it again to read or change what you put there. The counter at the top is the
+    control’s real completeness. <b>This mockup is live</b> — click the yellow and blue slots.</p>
+  </div>
+
+  <!-- progress header -->
+  <div class="phead">
+    <div class="top">
+      <h2>AU-2 · Event logging</h2>
+      <span class="chip a" id="statechip">In progress</span>
+      <span class="sp" style="flex:1"></span>
+      <div class="seg" id="viewseg">
+        <button class="on" data-v="edit">✎ Fill in</button>
+        <button data-v="read">👁 Evidence view</button>
+      </div>
+      <button class="btn pri" id="readybtn" disabled>Mark ready</button>
+    </div>
+    <div class="meter"><i class="v" id="mv" style="width:0%"></i><i class="a" id="ma" style="width:0%"></i></div>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--green)"></span>Values <b id="lv">0 of 7</b></span>
+      <span><span class="sw" style="background:var(--sky-500)"></span>Attachments <b id="la">0 of 4</b></span>
+      <span id="lrem"><b>11</b> blanks left</span>
+      <span style="margin-left:auto"><a href="#" id="jump" style="color:var(--sky-600)">Jump to next blank →</a></span>
+    </div>
+  </div>
+
+  <!-- quick list -->
+  <div class="sum">
+    <h4>What is still missing</h4>
+    <ol id="missing"></ol>
+  </div>
+
+  <!-- the control -->
+  <div class="ctrl">
+    <header>
+      <span class="id">AU-2</span><span class="nm">Event logging</span>
+      <span class="sp"></span>
+      <span class="chip b">✨ AI-suggested draft</span>
+    </header>
+
+    <div class="doc" id="doc">
+      <p>The Claims Portal defines its auditable events in alignment with the applicable event-logging guidance and the system’s risk profile.
+      Auditable events include authentication activity (successful and failed logons), authorization changes, account management actions,
+      access to or modification of claims data, administrative and privileged operations, and security-relevant configuration changes.
+      The authoritative list of auditable events is maintained in <span data-slot="s1"></span> and was last reviewed on <span data-slot="s2"></span>.</p>
+
+      <p>Audit event generation is implemented across the application and hosting layers. Application-level events are emitted by the Claims
+      Portal and forwarded to <span data-slot="s3"></span>. Platform and resource-level events are captured through the cloud activity log and
+      diagnostic settings, which are configured to route to <span data-slot="s4"></span>. Resource-specific diagnostic categories enabled are
+      listed in <span data-slot="s5"></span>.</p>
+
+      <p>The selection of auditable events was coordinated between the system owner, security and operations to ensure events support
+      after-the-fact investigation of incidents, and this coordination is documented in <span data-slot="s6"></span>. The rationale and review
+      cadence for the event list are described in <span data-slot="s7"></span>.</p>
+
+      <p><b>Supporting evidence:</b></p>
+      <ul>
+        <li><span data-slot="a1"></span></li>
+        <li><span data-slot="a2"></span></li>
+        <li><span data-slot="a3"></span></li>
+        <li><span data-slot="a4"></span></li>
+      </ul>
+    </div>
+
+    <div class="etb">
+      <button class="tb" id="addVal">+ Value slot</button>
+      <button class="tb" id="addAtt">+ Attachment slot</button>
+      <span class="sp"></span>
+      <span class="st" id="savest">Saved</span>
+      <button class="btn sm">History</button>
+      <button class="btn sm">✨ Suggest a draft</button>
+    </div>
+  </div>
+
+  <div class="callout">
+    <b>Why this beats editing raw text:</b> today the provider has to find ~60 <code>[[VALUE:]]</code> markers across five controls and
+    overwrite each one by hand, and the app has no way to tell a filled draft from an untouched one — so progress reads “0 of 5 · 0%”
+    even when all five drafts exist. Slots make completeness <b>measurable</b>, and they give the assessor a structured record of exactly
+    which fact came from where.
+  </div>
+
+  <div class="ann">
+    <h4>How it behaves</h4>
+    <ul>
+      <li><b>Click a slot → a modal.</b> Value slots open a small rich-text box (bold, italic, lists, tables pasted from a spreadsheet survive). Attachment slots open a drop zone.</li>
+      <li><b>Filled = green, with a ✓ and a preview of what you entered.</b> Click again to read or edit; the modal keeps the original AI prompt (“location/name of audit event catalogue”) as the label so context is never lost.</li>
+      <li><b>Evidence view</b> renders the finished narrative: values appear inline as normal prose, attachments as hyperlinks. Anything still empty shows red, so the reader can see the holes.</li>
+      <li><b>Add and remove slots.</b> Select text and press <i>+ Value slot</i> to turn it into one, or hover a slot and press × to drop it back to plain text. Providers can add an attachment slot where the AI did not ask for one.</li>
+      <li><b>Completeness drives everything.</b> <i>Mark ready</i> stays disabled until the count hits 100%; the assessor’s dashboard shows “49 of 60 values, 8 of 14 files” instead of a binary.</li>
+      <li><b>Assessor side (not shown):</b> each slot carries who filled it and when, and the audit view can flag a control whose evidence is mostly self-attested text with no attachments.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<!-- VALUE modal -->
+<div class="modal" id="mVal">
+  <header>
+    <div class="eyebrow">Value slot</div>
+    <h3 id="mValTitle">location/name of audit event catalogue</h3>
+    <div class="hint">Paste or type the fact. Formatting, lists and pasted tables are kept.</div>
+  </header>
+  <div class="bd">
+    <div class="guide" id="mValGuide"><b>What the assessor expects:</b> a name and location precise enough that someone else could open it — a document title plus where it lives.</div>
+    <div class="rtb">
+      <button data-cmd="bold" title="Bold"><b>B</b></button>
+      <button data-cmd="italic" title="Italic"><i>I</i></button>
+      <button data-cmd="insertUnorderedList" title="Bulleted list">•</button>
+      <button data-cmd="insertOrderedList" title="Numbered list">1.</button>
+      <button data-cmd="removeFormat" title="Clear formatting">⌫</button>
+    </div>
+    <div class="rte" id="mValRte" contenteditable="true"></div>
+    <div class="sect-lbl">Optional</div>
+    <label style="font-size:13px"><input type="checkbox"> Mark as “not applicable” and explain instead</label>
+  </div>
+  <footer>
+    <button class="btn danger sm" id="mValRemove">Remove this slot</button>
+    <span class="sp"></span>
+    <button class="btn" id="mValCancel">Cancel</button>
+    <button class="btn pri" id="mValSave">Save value</button>
+  </footer>
+</div>
+
+<!-- ATTACH modal -->
+<div class="modal" id="mAtt">
+  <header>
+    <div class="eyebrow">Attachment slot</div>
+    <h3 id="mAttTitle">audit event catalogue / list of auditable events</h3>
+    <div class="hint">Attach the artefact the narrative refers to. Up to 5 files per slot, 25 MB each.</div>
+  </header>
+  <div class="bd">
+    <div class="guide"><b>What the assessor expects:</b> the artefact itself, not a screenshot of a menu. Redact personal data before uploading.</div>
+    <div class="drop" id="mAttDrop">⬆ Drop files here, or click to choose<br>
+      <span style="font-size:11.5px">PDF · DOCX · XLSX · PPTX · CSV · TXT · PNG · JPG · JSON · XML — max 25 MB each, 5 per slot</span><br>
+      <span style="font-size:11.5px">(mockup — clicking adds a sample file; the 4th is a deliberately “infected” one)</span></div>
+    <div class="filelist" id="mAttList"></div>
+    <div class="sect-lbl">Or reference an external system</div>
+    <input id="mAttUrl" placeholder="https://… or a document management reference" style="width:100%;border:1px solid var(--line);border-radius:var(--r-sm);padding:.45rem .6rem;font:inherit;font-size:13px">
+  </div>
+  <footer>
+    <button class="btn danger sm" id="mAttRemove">Remove this slot</button>
+    <span class="sp"></span>
+    <button class="btn" id="mAttCancel">Cancel</button>
+    <button class="btn pri" id="mAttSave">Save attachment</button>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SLOTS = {
+  s1:{type:'val',label:'location/name of audit event catalogue',value:''},
+  s2:{type:'val',label:'last review date',value:''},
+  s3:{type:'val',label:'central logging destination, e.g. log analytics workspace name',value:''},
+  s4:{type:'val',label:'destination for platform diagnostic logs',value:''},
+  s5:{type:'val',label:'enabled diagnostic categories',value:''},
+  s6:{type:'val',label:'reference to decision record or meeting minutes',value:''},
+  s7:{type:'val',label:'policy / SOP reference',value:''},
+  a1:{type:'att',label:'audit event catalogue / list of auditable events',file:null},
+  a2:{type:'att',label:'screenshot of diagnostic settings showing enabled log categories and destination',file:null},
+  a3:{type:'att',label:'screenshot or export of application audit logging configuration',file:null},
+  a4:{type:'att',label:'sample audit log export demonstrating captured event types',file:null}
+};
+const ORDER = ['s1','s2','s3','s4','s5','s6','s7','a1','a2','a3','a4'];
+let mode='edit', active=null, extra=0;
+
+const doc=document.getElementById('doc');
+function textOf(html){const d=document.createElement('div');d.innerHTML=html;return (d.textContent||'').trim();}
+
+function render(){
+  document.querySelectorAll('[data-slot]').forEach(host=>{
+    const k=host.dataset.slot, s=SLOTS[k]; if(!s) return;
+    const filled = s.type==='val' ? !!textOf(s.value) : !!s.file;
+    const el=document.createElement('span');
+    el.className='slot '+(s.type==='val'?'val':'att')+(filled?' filled':'')+(!filled?' empty':'');
+    el.dataset.k=k;
+    let body;
+    if(filled){
+      if (s.type==='val') body = textOf(s.value);
+      else {
+        const n = Array.isArray(s.files) ? s.files.length : 1;
+        body = s.file.name + (n > 1 ? ' +' + (n-1) + ' more' : '');
+      }
+    }else{
+      body = (s.type==='val'?'VALUE: ':'ATTACH: ')+s.label;
+    }
+    el.innerHTML = '<span class="ic">'+(filled?'':(s.type==='val'?'✎':'📎'))+'</span>'+
+                   '<span class="bd">'+body+'</span>'+
+                   '<span class="rm" title="Remove slot">×</span>';
+    host.innerHTML=''; host.appendChild(el);
+  });
+  document.querySelector('.ctrl .doc').classList.toggle('readview', mode==='read');
+  tally();
+}
+
+function tally(){
+  const vals=ORDER.filter(k=>SLOTS[k]&&SLOTS[k].type==='val');
+  const atts=ORDER.filter(k=>SLOTS[k]&&SLOTS[k].type==='att');
+  const vf=vals.filter(k=>textOf(SLOTS[k].value)).length;
+  const af=atts.filter(k=>SLOTS[k].file).length;
+  const tot=vals.length+atts.length, done=vf+af;
+  document.getElementById('mv').style.width=(vf/tot*100)+'%';
+  document.getElementById('ma').style.width=(af/tot*100)+'%';
+  document.getElementById('lv').textContent=vf+' of '+vals.length;
+  document.getElementById('la').textContent=af+' of '+atts.length;
+  const rem=tot-done;
+  document.getElementById('lrem').innerHTML = rem? '<b>'+rem+'</b> blank'+(rem>1?'s':'')+' left' : '<b style="color:var(--green)">Complete</b>';
+  const chip=document.getElementById('statechip');
+  chip.className='chip '+(rem?'a':'g');
+  chip.textContent = rem? 'In progress' : 'Complete';
+  document.getElementById('readybtn').disabled = rem>0;
+  const ol=document.getElementById('missing'); ol.innerHTML='';
+  ORDER.filter(k=>SLOTS[k]&&!(SLOTS[k].type==='val'?textOf(SLOTS[k].value):SLOTS[k].file)).forEach(k=>{
+    const li=document.createElement('li');
+    li.innerHTML=(SLOTS[k].type==='val'?'✎ ':'📎 ')+SLOTS[k].label;
+    li.onclick=()=>openSlot(k,true);
+    ol.appendChild(li);
+  });
+  if(!ol.children.length) ol.innerHTML='<li style="color:var(--green);cursor:default">Nothing — this control is ready to submit.</li>';
+}
+
+doc.addEventListener('click', e=>{
+  const rm=e.target.closest('.rm');
+  const el=e.target.closest('.slot');
+  if(!el||mode==='read') return;
+  const k=el.dataset.k;
+  if(rm){ removeSlot(k); return; }
+  openSlot(k);
+});
+
+function removeSlot(k){
+  const host=document.querySelector('[data-slot="'+k+'"]');
+  const s=SLOTS[k];
+  const plain = s.type==='val' ? (textOf(s.value)||'[removed]') : (s.file?s.file.name:'[removed]');
+  host.replaceWith(document.createTextNode(plain));
+  delete SLOTS[k];
+  const i=ORDER.indexOf(k); if(i>=0) ORDER.splice(i,1);
+  toast('Slot removed — the text stays as plain prose');
+  render();
+}
+
+/* ---- VALUE modal ---- */
+const scrim=document.getElementById('scrim');
+const mVal=document.getElementById('mVal'), mAtt=document.getElementById('mAtt');
+function closeAll(){scrim.classList.remove('on');mVal.classList.remove('on');mAtt.classList.remove('on');active=null;}
+scrim.onclick=closeAll;
+document.getElementById('mValCancel').onclick=closeAll;
+document.getElementById('mAttCancel').onclick=closeAll;
+
+function openSlot(k,scroll){
+  active=k; const s=SLOTS[k]; if(!s) return;
+  if(scroll){
+    const host=document.querySelector('[data-slot="'+k+'"]');
+    if(host){host.scrollIntoView({behavior:'smooth',block:'center'});
+      const el=host.querySelector('.slot'); if(el){el.classList.add('focusme'); setTimeout(()=>el.classList.remove('focusme'),1400);} }
+  }
+  scrim.classList.add('on');
+  if(s.type==='val'){
+    document.getElementById('mValTitle').textContent=s.label;
+    document.getElementById('mValRte').innerHTML=s.value||'';
+    mVal.classList.add('on');
+    setTimeout(()=>document.getElementById('mValRte').focus(),30);
+  }else{
+    document.getElementById('mAttTitle').textContent=s.label;
+    renderFiles();
+    mAtt.classList.add('on');
+  }
+}
+document.querySelectorAll('.rtb button').forEach(b=>{
+  b.onmousedown=e=>{e.preventDefault();document.execCommand(b.dataset.cmd,false,null);};
+});
+document.getElementById('mValSave').onclick=()=>{
+  if(active){SLOTS[active].value=document.getElementById('mValRte').innerHTML;}
+  closeAll(); render(); saved(); toast('Value saved');
+};
+document.getElementById('mValRemove').onclick=()=>{const k=active;closeAll();removeSlot(k);};
+
+/* ---- ATTACH modal ---- */
+const SAMPLES=[
+  {name:'auditable-events-catalogue-v3.xlsx', size:'84 KB',  i:'📊'},
+  {name:'diagnostic-settings.png',            size:'312 KB', i:'🖼️'},
+  {name:'app-logging-config.json',            size:'7 KB',   i:'🧾'},
+  {name:'eicar-test-file.com',                size:'68 B',   i:'📄', infected:true}
+];
+let nextSample = 0;
+
+/* An uploaded file is not usable until it has been scanned. The mockup walks the
+   same three states the implementation would: uploading → scanning → verdict. */
+function fileRow(f, idx){
+  let chip, meta;
+  if (f.state === 'uploading')      { chip='<span class="chip n">Uploading…</span>'; meta=f.size; }
+  else if (f.state === 'scanning')  { chip='<span class="chip a">Scanning…</span>';  meta=f.size+' · checking for malware'; }
+  else if (f.state === 'blocked')   { chip='<span class="chip r">Blocked</span>';    meta=f.size+' · malware detected — not stored'; }
+  else                              { chip='<span class="chip g">✓ Clean</span>';    meta=f.size+' · scanned just now'; }
+  return '<div class="file"><span class="i">'+f.i+'</span>'+
+    '<span><span class="n">'+f.name+'</span><div class="m">'+meta+'</div></span>'+
+    '<span class="sp"></span>'+chip+
+    '<button class="btn sm" data-del="'+idx+'">Remove</button></div>';
+}
+function currentFiles(){
+  const s = SLOTS[active];
+  if (!s) return [];
+  if (!Array.isArray(s.files)) s.files = s.file ? [s.file] : [];
+  return s.files;
+}
+function renderFiles(){
+  const list = document.getElementById('mAttList');
+  const files = currentFiles();
+  list.innerHTML = files.map(fileRow).join('');
+  list.querySelectorAll('[data-del]').forEach(b => {
+    b.onclick = () => { files.splice(+b.dataset.del, 1); renderFiles(); };
+  });
+  const drop = document.getElementById('mAttDrop');
+  if (drop) drop.style.opacity = files.length >= 5 ? '.5' : '';
+}
+document.getElementById('mAttDrop').onclick=()=>{
+  const files = currentFiles();
+  if (files.length >= 5) { toast('5 files per slot is the limit'); return; }
+  const f = Object.assign({}, SAMPLES[nextSample++ % SAMPLES.length], { state:'uploading' });
+  files.push(f);
+  renderFiles();
+  // Simulated lifecycle — the real one is driven by the scanner's verdict.
+  setTimeout(() => { f.state='scanning'; renderFiles(); }, 500);
+  setTimeout(() => {
+    f.state = f.infected ? 'blocked' : 'clean';
+    renderFiles();
+    if (f.infected) toast('That file was rejected — malware detected');
+  }, 1700);
+};
+document.getElementById('mAttSave').onclick=()=>{
+  if(active){
+    const files = currentFiles().filter(f => f.state === 'clean');
+    const url = document.getElementById('mAttUrl').value.trim();
+    if (url) files.push({ name:url, size:'link', i:'🔗', state:'clean' });
+    SLOTS[active].files = files;
+    SLOTS[active].file = files[0] || null;   // the chip shows the first
+  }
+  document.getElementById('mAttUrl').value='';
+  closeAll(); render(); saved(); toast('Attachment saved');
+};
+document.getElementById('mAttRemove').onclick=()=>{const k=active;closeAll();removeSlot(k);};
+
+/* ---- view toggle ---- */
+document.getElementById('viewseg').onclick=e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b));
+  mode=b.dataset.v; render();
+  toast(mode==='read'?'Evidence view — this is what the assessor reads':'Fill-in mode');
+};
+
+/* ---- add slots ---- */
+document.getElementById('addVal').onclick=()=>addSlot('val');
+document.getElementById('addAtt').onclick=()=>addSlot('att');
+function addSlot(type){
+  const sel=window.getSelection();
+  const key=type[0]+'x'+(++extra);
+  const label = (sel&&sel.toString().trim()) ? sel.toString().trim().slice(0,70)
+              : (type==='val'?'new value — describe what is needed':'new attachment — describe the file');
+  SLOTS[key]={type,label,value:'',file:null};
+  ORDER.push(key);
+  const host=document.createElement('span'); host.dataset.slot=key;
+  if(sel&&sel.rangeCount&&sel.toString().trim()&&doc.contains(sel.anchorNode)){
+    const r=sel.getRangeAt(0); r.deleteContents(); r.insertNode(host);
+  }else{
+    const p=document.createElement('p'); p.appendChild(host); doc.appendChild(p);
+  }
+  render(); openSlot(key,true);
+  toast(type==='val'?'Value slot inserted':'Attachment slot inserted');
+}
+
+/* ---- misc ---- */
+document.getElementById('jump').onclick=e=>{
+  e.preventDefault();
+  const k=ORDER.find(k=>SLOTS[k]&&!(SLOTS[k].type==='val'?textOf(SLOTS[k].value):SLOTS[k].file));
+  if(k) openSlot(k,true); else toast('No blanks left');
+};
+document.getElementById('readybtn').onclick=()=>toast('AU-2 marked ready — assessor notified');
+function saved(){const s=document.getElementById('savest');s.textContent='Saving…';setTimeout(()=>s.textContent='Saved',500);}
+let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2200);}
+render();
+</script>
+</body>
+</html>

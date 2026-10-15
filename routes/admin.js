@@ -28,6 +28,7 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const billing = require('../config/billing');
 const access = require('../config/access');
+const activity = require('../config/project-activity');
 const ai = require('../config/ai-service');
 const suggestWorker = require('../config/suggest-worker');
 const orgSettings = require('../config/org-settings');
@@ -35,6 +36,7 @@ const { createNotification } = require('../config/notify');
 const { generateSecret: otpGenerateSecret, generateURI: otpGenerateURI, verifySync: otpVerify } = require('otplib');
 const QRCode = require('qrcode');
 const {
+  UPLOAD_DIR,
   INTAKE_UPLOAD_DIR: intakeUploadDir,
   PROJECT_UPLOAD_DIR: projectUploadDir,
   BRANDING_UPLOAD_DIR: brandingUploadDir,
@@ -132,6 +134,19 @@ function asArray(value) {
 
 function normalizeEmail(email) {
   return (email || '').trim().toLowerCase();
+}
+
+/**
+ * Localized flash/message text with an English fallback. i18next interpolates
+ * `opts` into the locale string; the fallback is already-interpolated English so
+ * a missing key still reads correctly.
+ */
+function tr(req, key, fallback, opts) {
+  if (req.t) {
+    const v = req.t(key, opts || {});
+    if (v && v !== key) return v;
+  }
+  return fallback;
 }
 
 // Stash a structured "invite sent" banner so the layout can render the code as a
@@ -257,7 +272,13 @@ function filterCatalogControls(projectInfo, documents = [], includeAll = false) 
     const baselineAliases = [baseline, `%${baseline}%`];
     if (/^IG[123]$/.test(baseline)) baselineAliases.push(`%Implementation Group ${baseline.slice(2)}%`, `%Implementation Groups ${baseline.slice(2)}%`);
     if (/^ML[123]$/.test(baseline)) baselineAliases.push(`%Maturity Level ${baseline.slice(2)}%`);
-    where += ` AND (baseline = ? OR baseline LIKE ?${baselineAliases.slice(2).map(() => ' OR baseline LIKE ?').join('')} OR baseline = "" OR baseline IS NULL)`;
+    // Some catalogs are a single undifferentiated set and tag every row with a
+    // placeholder baseline ("Full control catalog" for NIST SP 800-53, "Full ISM
+    // catalog" for ASD ISM) rather than per-baseline membership. Without the
+    // 'Full %' clause, asking for any real baseline — which is what the intake
+    // and the AI pre-fill both do — matches nothing and the assessment comes
+    // back with zero controls and no explanation.
+    where += ` AND (baseline = ? OR baseline LIKE ?${baselineAliases.slice(2).map(() => ' OR baseline LIKE ?').join('')} OR baseline LIKE 'Full %' OR baseline = "" OR baseline IS NULL)`;
     params.push(...baselineAliases);
   }
   if (category && category !== 'all' && !category.startsWith('fips-') && !category.includes('custom') && !category.includes('agency') && !category.includes('cloud-service') && !category.includes('federal-')) {
@@ -295,7 +316,54 @@ function filterCatalogControls(projectInfo, documents = [], includeAll = false) 
   if (selected.length < Math.min(25, controls.length)) {
     selected = controls.slice(0, Math.min(60, controls.length));
   }
-  return selected.slice(0, 120);
+  return capAcrossFamilies(selected, RECOMMENDATION_CAP);
+}
+
+/**
+ * How many controls the New Assessment screen may offer at once.
+ *
+ * The limit exists because the form posts ~17 fields per control and
+ * express.urlencoded is configured with parameterLimit: 10000 (app.js) — past
+ * roughly 580 controls the body is rejected and creation silently bounces.
+ * 400 leaves clear headroom.
+ */
+const RECOMMENDATION_CAP = 400;
+
+/**
+ * Trim a recommendation to `cap` WITHOUT letting one family eat the whole quota.
+ *
+ * The rows arrive ordered by family, so a plain slice(0, cap) returned the first
+ * N alphabetically: on NIST SP 800-53 (1196 rows) that was 120 Access Control
+ * entries and not one AU, IA, SC or SI control, which made the baseline look
+ * broken. Take one control from each family in turn instead, so every family is
+ * represented and the deeper enhancements are what get dropped.
+ */
+function capAcrossFamilies(controls, cap) {
+  if (controls.length <= cap) return controls;
+
+  const byFamily = new Map();
+  controls.forEach(c => {
+    const key = c.family || 'ZZ';
+    if (!byFamily.has(key)) byFamily.set(key, []);
+    byFamily.get(key).push(c);
+  });
+
+  const kept = new Set();
+  const queues = [...byFamily.values()];
+  let round = 0;
+  while (kept.size < cap) {
+    let tookOne = false;
+    for (const q of queues) {
+      if (round >= q.length) continue;
+      kept.add(q[round]);
+      tookOne = true;
+      if (kept.size >= cap) break;
+    }
+    if (!tookOne) break; // every family exhausted
+    round += 1;
+  }
+  // Back into catalogue order so the screen still reads family by family.
+  return controls.filter(c => kept.has(c));
 }
 
 function groupCatalogControls(controls) {
@@ -495,6 +563,40 @@ function resolveProjectDocumentPath(document) {
     path.join(intakeUploadDir, document.filename)
   ];
   return candidates.find(p => fs.existsSync(p));
+}
+
+/**
+ * Evidence attachments (the `attachments` table) are written by the evidence
+ * provider through POST /respond/:code/upload/:controlId and land in UPLOAD_DIR
+ * itself, not in the project/intake folders — so they need their own resolver.
+ */
+function resolveEvidenceAttachmentPath(attachment) {
+  // An empty filename (an external reference) would join to the upload
+  // DIRECTORY, which exists — guard before building any candidate path.
+  if (!attachment || !attachment.filename) return undefined;
+  const candidates = [
+    path.join(UPLOAD_DIR, attachment.filename),
+    path.join(projectUploadDir, attachment.filename),
+    path.join(intakeUploadDir, attachment.filename)
+  ];
+  return candidates.find(p => fs.existsSync(p));
+}
+
+/**
+ * Every evidence attachment belonging to a project, newest first, with the
+ * control it was filed against. Used by the project's Documentation card and by
+ * the assessment detail page, so a document uploaded against a control is
+ * retrievable later without hunting through the evidence form.
+ */
+function evidenceAttachmentsForProject(projectId) {
+  return all(`
+    SELECT at.*, ac.control_id, ac.title AS control_title, ac.assessment_id
+    FROM attachments at
+    JOIN assessment_controls ac ON ac.id = at.assessment_control_id
+    JOIN assessments a ON a.id = ac.assessment_id
+    WHERE a.project_id = ?
+    ORDER BY at.uploaded_at DESC, at.id DESC
+  `, [projectId]);
 }
 
 function formatBytes(bytes) {
@@ -771,6 +873,42 @@ function entityLink(entityType, entityId) {
 // invite. Assignment and activation go hand in hand: assigning a user should make
 // the assessment immediately accessible, not leave it inert until a separate
 // "send invite" click. Sets the redeem banner to the code that fits the recipient.
+/**
+ * The evidence flow is addressed by invite code. A row without one yields a dead
+ * "/respond/" link on the record page and an unusable link in the invite email,
+ * so generate and persist one on demand rather than trusting the column.
+ * Returns the code.
+ */
+function ensureInviteCode(assessmentId) {
+  const row = get('SELECT invite_code FROM assessments WHERE id = ?', [assessmentId]);
+  if (!row) return null;
+  const current = String(row.invite_code || '').trim();
+  if (current) return current.toUpperCase();
+  let code;
+  do {
+    code = uuidv4().replace(/-/g, '').substring(0, 8).toUpperCase();
+  } while (get('SELECT 1 AS x FROM assessments WHERE UPPER(TRIM(invite_code)) = ?', [code]));
+  run('UPDATE assessments SET invite_code = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [code, assessmentId]);
+  console.log(`[Assessment] Generated missing invite code for assessment ${assessmentId}`);
+  return code;
+}
+
+/**
+ * Open the evidence flow for an assessment. Going through the server means the
+ * record page never has to interpolate a possibly-empty code into a URL, and a
+ * legacy row missing its code is repaired on the way through.
+ * `?c=<assessment_control_id>` is carried over as the in-page anchor.
+ */
+router.get('/assessments/:id/evidence', ensureAuthenticated, (req, res) => {
+  const code = ensureInviteCode(req.params.id);
+  if (!code) {
+    req.flash('error', tr(req, 'ev.noFlow', 'That assessment no longer exists.'));
+    return res.redirect('/admin/assessments');
+  }
+  const anchor = /^\d+$/.test(String(req.query.c || '')) ? `#control-${req.query.c}` : '';
+  res.redirect(`/respond/${code}${anchor}`);
+});
+
 async function activateAndSendInvite(req, assessmentId, { sendEmail = true } = {}) {
   const assessment = get(`
     SELECT a.*, p.project_owner_name, p.project_owner_email, p.name as project_name
@@ -780,6 +918,9 @@ async function activateAndSendInvite(req, assessmentId, { sendEmail = true } = {
 
   const recipientEmail = assessment.assigned_to_email || assessment.project_owner_email;
   if (!recipientEmail) return { ok: false, error: 'No assigned user or project owner email is available for this assessment.' };
+
+  // Never email a link built from a missing code.
+  assessment.invite_code = ensureInviteCode(assessment.id);
 
   // Activate on first send (draft → evidence-gathering); always refresh the window.
   const expiresAt = new Date();
@@ -1522,6 +1663,10 @@ router.get('/projects/:id', ensureAuthenticated, (req, res) => {
     collabMessages: collabEnabled ? collaboration.listMessages(project.id).slice(-8) : [],
     collabCount: collabEnabled ? collaboration.countMessages(project.id) : 0,
     intakeAssignments, assessmentAssignments, documents, branding, projectPoamItems,
+    // Files the evidence provider attached to controls. They live in their own
+    // table, so without this the Documentation card silently omitted them.
+    evidenceAttachments: evidenceAttachmentsForProject(project.id)
+      .map(a => ({ ...a, display_size: formatBytes(a.size) })),
     nonDraftAssessments,
     hasNonDraftAssessments: nonDraftAssessments.length > 0,
     isArchived: !!project.archived_at,
@@ -1550,6 +1695,42 @@ router.get('/projects/:id/documents/:docId/download', ensureAuthenticated, (req,
   const filePath = resolveProjectDocumentPath(document);
   if (!filePath) { req.flash('error', 'Document file is missing from storage.'); return res.redirect(`/admin/projects/${req.params.id}`); }
   res.download(filePath, document.original_name);
+});
+
+/**
+ * Download an evidence attachment from the project side. The id is checked
+ * against THIS project's assessments, so an attachment id from another project
+ * is a miss rather than a cross-record read.
+ */
+router.get('/projects/:id/evidence-attachments/:attId/download', ensureAuthenticated, (req, res) => {
+  const attachment = get(`
+    SELECT at.* FROM attachments at
+    JOIN assessment_controls ac ON ac.id = at.assessment_control_id
+    JOIN assessments a ON a.id = ac.assessment_id
+    WHERE at.id = ? AND a.project_id = ?
+  `, [req.params.attId, req.params.id]);
+  if (!attachment) {
+    req.flash('error', tr(req, 'ea.notFound', 'Attachment not found'));
+    return res.redirect(`/admin/projects/${req.params.id}`);
+  }
+  if (attachment.ref_url) {
+    req.flash('error', tr(req, 'ea.isReference', 'That item is an external reference, not a stored file.'));
+    return res.redirect(`/admin/projects/${req.params.id}`);
+  }
+  const filePath = resolveEvidenceAttachmentPath(attachment);
+  if (!filePath) {
+    req.flash('error', tr(req, 'ea.missingFile', 'That attachment is missing from storage.'));
+    return res.redirect(`/admin/projects/${req.params.id}`);
+  }
+  // Same hardening as the provider-side download: these are files uploaded by
+  // an external party and must never render inline on our origin.
+  const fileSafety = require('../utils/file-safety');
+  res.download(filePath, fileSafety.safeName(attachment.original_name), {
+    headers: {
+      'Content-Type': fileSafety.serveType(attachment.original_name),
+      'X-Content-Type-Options': 'nosniff'
+    }
+  });
 });
 
 router.post('/projects/:id/documents/:docId/delete', ensureAuthenticated, (req, res) => {
@@ -1893,17 +2074,26 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
     const inherited = req.body.inherited || {};
     const inheritedFrom = req.body.inherited_from || {};
     const applicable = req.body.applicable || {};
+    const scopeOutReason = req.body.scoped_out_reason || {};
 
-    const controlList = Array.isArray(controlIds) ? controlIds : [controlIds];
+    const selected = new Set(asArray(controlIds));
+    // Every control the baseline offered is kept on the record — the ones the
+    // assessor did not select become "scoped out" rather than disappearing, so
+    // the tailoring decision is auditable. `offered_ids` is posted by the form
+    // for all rendered controls; older posts fall back to the selected set.
+    const offered = asArray(req.body.offered_ids);
+    const controlList = offered.length ? offered : [...selected];
     const statements = controlList.map(cid => {
+      const inScope = selected.has(cid) && applicable[cid] !== '0';
       const family = req.body[`family_${cid}`] || cid.split('-')[0];
       const framework = req.body[`framework_${cid}`] || frameworkFields.securityFramework || 'ITSG-33';
       const familyName = req.body[`family_name_${cid}`] || CONTROL_FAMILIES[family] || family;
       const priority = req.body[`priority_${cid}`] || 'P1';
       return {
-        sql: `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title, 
-          description, control_guidance, tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority, risk_level, framework, guidance_source)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        sql: `INSERT INTO assessment_controls (assessment_id, control_id, family, family_name, title,
+          description, control_guidance, tailored_description, evidence_guidance, is_inherited, inherited_from, is_applicable, priority, risk_level, framework, guidance_source,
+          tailoring_status, tailoring_rationale, rationale_source, scoped_out_reason, scoped_out_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         params: [assessmentId, cid, family, familyName,
           req.body[`title_${cid}`] || cid,
           req.body[`desc_${cid}`] || '',
@@ -1912,11 +2102,16 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
           guidance[cid] || req.body[`guidance_${cid}`] || '',
           inherited[cid] ? 1 : 0,
           inheritedFrom[cid] || '',
-          applicable[cid] !== '0' ? 1 : 0,
+          inScope ? 1 : 0,
           priority,
           req.body[`risk_${cid}`] || computeRiskLevel({ family, priority }),
           framework,
-          guidance[cid] || req.body[`guidance_${cid}`] ? 'manual' : 'catalog'
+          guidance[cid] || req.body[`guidance_${cid}`] ? 'manual' : 'catalog',
+          inScope ? 'in-scope' : 'scoped-out',
+          req.body[`rationale_${cid}`] || '',
+          'engine',
+          inScope ? null : ((scopeOutReason[cid] || '').trim() || 'Tailored out by the assessor during control selection.'),
+          inScope ? null : new Date().toISOString()
         ]
       };
     });
@@ -1926,12 +2121,25 @@ router.post('/projects/:projectId/assessments/new', ensureAuthenticated, (req, r
       console.log('[Assessment] Inserted', statements.length, 'controls for assessment', assessmentId);
     }
 
+    const inScopeCount = controlList.filter(cid => selected.has(cid) && applicable[cid] !== '0').length;
+    const scopedOutCount = statements.length - inScopeCount;
+
     // Baseline version 1 — the starting point the assessor can always revert to.
     createAssessmentVersion(assessmentId, {
-      label: 'Created', summary: `Baseline — ${statements.length} control(s)`, user: req.user
+      label: 'Created',
+      summary: `Baseline — ${inScopeCount} in scope, ${scopedOutCount} tailored out of ${statements.length} offered`,
+      user: req.user
     });
 
-    req.flash('success', `Assessment created with ${statements.length} controls. You can now review and send the invite.`);
+    // The tailoring decision is a contribution in its own right.
+    activity.record({ projectId: project.id, entityType: 'assessment', entityId: assessmentId,
+      entityRef: `#${assessmentId}`, action: 'created', field: 'tailoring',
+      detail: `${inScopeCount} in scope, ${scopedOutCount} tailored out of ${statements.length} offered`,
+      actor: activity.actor(req) });
+
+    req.flash('success', tr(req, 'tl.createdFlash',
+      `Assessment created: ${inScopeCount} control(s) in scope, ${scopedOutCount} tailored out of ${statements.length} recommended. You can now review and send the invite.`,
+      { inScope: inScopeCount, scopedOut: scopedOutCount, offered: statements.length }));
     res.redirect(`/admin/assessments/${assessmentId}`);
   } catch (err) {
     console.error('Assessment creation error:', err);
@@ -2444,6 +2652,9 @@ router.post('/decision-packages/:id/transition', ensureAuthenticated, (req, res)
   if (to === 'issued') { sets.push('issued_at = CURRENT_TIMESTAMP'); }
   vals.push(dp.id);
   run(`UPDATE decision_packages SET ${sets.join(', ')} WHERE id = ?`, vals);
+  activity.record({ projectId: dp.project_id, entityType: 'decision', entityId: dp.id,
+    entityRef: dp.reference || `DP-${dp.id}`, action: 'advanced', field: 'state',
+    detail: `${dp.state} → ${to}`, actor: activity.actor(req) });
   req.flash('success', `Decision package moved to "${to}".`);
   res.redirect(`/admin/decision-packages/${dp.id}`);
 });
@@ -2631,14 +2842,80 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     }
   }
 
+  // Tailored-out controls stay on the record but are kept out of the working
+  // list: the assessor reviews them in their own register, and the evidence
+  // provider never sees them (/respond already filters on is_applicable).
+  const offeredCount = controls.length;
+  const scopedOut = controls.filter(c => !c.is_applicable);
+  controls = controls.filter(c => c.is_applicable);
+
+  // Per-control share of the weighted audit score, so each control can show what
+  // it is worth and what it is currently earning.
+  if (assessment.status === 'audit') {
+    const { byControl } = require('../config/scoring').contributions(controls);
+    controls.forEach(c => {
+      c.scoreShare = byControl.get(c.id) || null;
+      // What the score actually uses, so the Weight dropdown cannot disagree
+      // with the percentage shown beside it.
+      c.effectiveWeight = c.control_weight || (c.scoreShare && c.scoreShare.weightLabel) || 'medium';
+    });
+  }
+
+  // What the evidence provider actually attached, so the assessor can open the
+  // files from the record instead of only reading the narrative that cites them.
+  if (controls.length && !viewingVersion) {
+    const ph = controls.map(() => '?').join(',');
+    const byControl = {};
+    all(`SELECT id, assessment_control_id, original_name, size, ref_url, ref_kind
+         FROM attachments WHERE assessment_control_id IN (${ph})
+         ORDER BY uploaded_at, id`, controls.map(c => c.id))
+      .forEach(a => { (byControl[a.assessment_control_id] ||= []).push(a); });
+    controls.forEach(c => { c.attachmentList = byControl[c.id] || []; });
+
+    // Per-slot provenance for the assessor: which fact came from where, who put
+    // it there and when. The data was already captured when the provider filled
+    // the slot — this is the first place it is shown.
+    const slots = require('../utils/evidence-slots');
+    controls.forEach(c => {
+      const list = slots.listSlots(c.id);
+      c.slotList = list.map(sl => ({
+        key: sl.slot_key, type: sl.slot_type, label: sl.label,
+        value_text: sl.value_text || '', filled: slots.isFilled(sl),
+        filled_by: sl.filled_by, filled_at: sl.filled_at,
+        files: all(`SELECT id, original_name, size, ref_url, ref_kind FROM attachments
+                    WHERE slot_id = ? ORDER BY id`, [sl.id])
+      }));
+      c.slotProgress = slots.progress(c.id);
+      c.hasSlots = c.slotList.length > 0;
+      // "Self-attested": the provider wrote prose but filed no artefact at all.
+      // Not a judgement on its own — a prompt to ask for proof before accepting.
+      const filledValues = c.slotList.filter(s => s.type === 'value' && s.filled).length;
+      const fileCount = (c.attachmentList || []).filter(a => !a.ref_url).length;
+      c.evidenceSelfAttested = filledValues > 0 && fileCount === 0;
+      c.evidenceIncomplete = c.hasSlots && c.slotProgress.filled < c.slotProgress.total;
+      // Render the narrative with the slot values inline, as the provider's
+      // Evidence view does. Without this the assessor reads the draft with
+      // holes where the slot spans are — "defined in , last reviewed on ."
+      if (c.hasSlots) c.evidence_read_html = slots.renderForRead(c.evidence_html || '', list);
+    });
+  }
+
   const families = {};
   controls.forEach(c => {
     if (!families[c.family]) families[c.family] = { code: c.family, name: c.family_name, controls: [] };
     families[c.family].controls.push(c);
   });
 
+  const scopedOutFamilies = {};
+  scopedOut.forEach(c => {
+    if (!scopedOutFamilies[c.family]) scopedOutFamilies[c.family] = { code: c.family, name: c.family_name, controls: [] };
+    scopedOutFamilies[c.family].controls.push(c);
+  });
+
   const stats = {
     total: controls.length,
+    offered: offeredCount,
+    scopedOut: scopedOut.length,
     applicable: controls.filter(c => c.is_applicable).length,
     inherited: controls.filter(c => c.is_inherited).length,
     evidenceProvided: controls.filter(c => c.evidence_status === 'provided').length,
@@ -2694,7 +2971,12 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
     // The assessor can send individual controls back for update once the provider
     // has moved past initial gathering (submitted / audit / already reactivated).
     canRequestUpdates: ['submitted', 'reactivated', 'audit'].includes(assessment.status),
+    // One checkbox drives both the review actions and "send for update", so the
+    // control header renders it when EITHER is available.
+    selectableControls: (assessment.status === 'audit'
+      || (['submitted', 'reactivated', 'audit'].includes(assessment.status) && !req.query.version)),
     families: Object.values(families), controls, stats, documents, atoRecords,
+    scopedOut, scopedOutFamilies: Object.values(scopedOutFamilies),
     tailorMode: req.query.tailor === '1' && !viewingVersion,
     projectContextJSON: JSON.stringify({
       name: assessment.project_name,
@@ -3065,6 +3347,9 @@ router.post('/assessments/:id/controls/:cid/review', ensureAuthenticated, expres
       b.evidence_sufficiency != null ? b.evidence_sufficiency : control.evidence_sufficiency,
       b.control_weight != null ? b.control_weight : control.control_weight, control.id]);
   recordCtrlHistory(control.id, assessment.id, 'review', req.user.name, 'status: ' + rs);
+  activity.record({ projectId: activity.projectForAssessment(assessment.id), entityType: 'control',
+    entityId: control.id, entityRef: control.control_id, action: 'reviewed', field: 'review_status',
+    detail: `Review status set to ${rs}`, actor: activity.actor(req) });
   res.json({ success: true });
 });
 
@@ -3086,6 +3371,9 @@ router.post('/assessments/:id/controls/bulk-review', ensureAuthenticated, expres
     recordCtrlHistory(id, assessment.id, 'review', req.user.name, 'status: ' + rs);
     n++;
   }
+  activity.record({ projectId: activity.projectForAssessment(assessment.id), entityType: 'assessment',
+    entityId: assessment.id, entityRef: `#${assessment.id}`, action: 'reviewed', field: 'review_status',
+    detail: `${n} control(s) set to ${rs}`, actor: activity.actor(req) });
   res.json({ success: true, updated: n, status: rs });
 });
 
@@ -3158,6 +3446,12 @@ router.post('/assessments/:id/audit-control/:controlId', ensureAuthenticated, (r
     audit_reviewed_at = CURRENT_TIMESTAMP, audit_reviewed_by = ?, updated_at = CURRENT_TIMESTAMP 
     WHERE id = ? AND assessment_id = ?`,
     [result, comments, req.user.id, req.params.controlId, req.params.id]);
+  {
+    const c = get('SELECT control_id FROM assessment_controls WHERE id = ?', [req.params.controlId]);
+    activity.record({ projectId: activity.projectForAssessment(req.params.id), entityType: 'control',
+      entityId: Number(req.params.controlId), entityRef: c && c.control_id, action: 'audited',
+      field: 'audit_result', detail: `Scored ${result}`, actor: activity.actor(req) });
+  }
   res.json({ success: true });
 });
 
@@ -3217,6 +3511,10 @@ router.post('/assessments/:id/complete-audit', ensureAuthenticated, (req, res) =
     [score, result, atoType, expiryDate,
      req.body.riskAcceptance || '', req.body.poamNotes || '',
      req.params.id]);
+
+  activity.record({ projectId: project.id, entityType: 'assessment', entityId: assessment.id,
+    entityRef: `#${assessment.id}`, action: 'completed', field: 'audit',
+    detail: `Audit completed — ${result.toUpperCase()} at ${score}%`, actor: activity.actor(req) });
 
   // Auto-populate POA&M items for not-met/partially-met controls
   const findings = controls.filter(c => c.audit_result === 'not-met' || c.audit_result === 'partially-met');
@@ -3330,6 +3628,44 @@ router.post('/assessments/:id/delete', ensureAuthenticated, (req, res) => {
 // Sets the project and all its assessments + intakes to 'archived' status while
 // preserving their prior status, so they can be restored later. Archived records
 // are hidden from the dashboard and the main list views but not deleted.
+/**
+ * Update a project's key contacts (owner / authority / CIO) and org placement.
+ *
+ * These were previously write-once: they could only be set on the New Project
+ * screen, and the only UPDATE that touched them lived in POST /projects/new,
+ * which also inserts a fresh intake — and a new intake becomes the project's
+ * ACTIVE intake (config/process-flows.js takes the newest), dragging a finished
+ * project's tracker back to stage 1. So correcting a misspelled name or a
+ * departed authority meant damaging the record. This route changes only the
+ * contact columns.
+ */
+router.post('/projects/:id/contacts', ensureAuthenticated, (req, res) => {
+  const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+  if (!project || !access.canAccessProject(req.user, project)) {
+    req.flash('error', tr(req, 'pc.notFound', 'Project not found'));
+    return res.redirect('/admin/projects');
+  }
+
+  const b = req.body;
+  run(`UPDATE projects SET
+    project_owner_name = ?, project_owner_email = ?,
+    project_authority_name = ?, project_authority_email = ?,
+    cio_name = ?, cio_email = ?,
+    department = ?, branch = ?,
+    updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?`,
+  [(b.project_owner_name || '').trim(), normalizeEmail(b.project_owner_email),
+    (b.project_authority_name || '').trim(), normalizeEmail(b.project_authority_email),
+    (b.cio_name || '').trim(), normalizeEmail(b.cio_email),
+    (b.department || '').trim(), (b.branch || '').trim(), project.id]);
+
+  activity.record({ projectId: project.id, entityType: 'project', entityId: project.id,
+    entityRef: project.name, action: 'updated', field: 'contacts',
+    detail: 'Key contacts or organizational placement changed', actor: activity.actor(req) });
+  req.flash('success', tr(req, 'pc.saved', 'Project contacts updated.'));
+  res.redirect(`/admin/projects/${project.id}`);
+});
+
 router.post('/projects/:id/archive', ensureAuthenticated, (req, res) => {
   const project = get('SELECT * FROM projects WHERE id = ?', [req.params.id]);
   if (!project) { req.flash('error', 'Project not found'); return res.redirect('/admin/projects'); }
@@ -3790,14 +4126,20 @@ const ACTIVITY_LABELS = {
 // List all intakes
 router.get('/intakes', ensureAuthenticated, (req, res) => {
   const si = access.intakeScope(req.user);   // tenant isolation
-  const intakes = all(`SELECT * FROM intake_submissions WHERE archived_at IS NULL AND ${si.clause} ORDER BY created_at DESC`, si.params);
+  // ?archived=1 shows the archived ones, so an archived intake stays reachable
+  // and restorable rather than disappearing for good.
+  const showArchived = req.query.archived === '1';
+  const intakes = showArchived
+    ? all(`SELECT * FROM intake_submissions WHERE archived_at IS NOT NULL AND ${si.clause} ORDER BY archived_at DESC`, si.params)
+    : all(`SELECT * FROM intake_submissions WHERE archived_at IS NULL AND ${si.clause} ORDER BY created_at DESC`, si.params);
+  const archivedCount = get(`SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NOT NULL AND ${si.clause}`, si.params)?.c || 0;
   const pending = all(`SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status = 'pending' AND ${si.clause}`, si.params)[0]?.c || 0;
   const accepted = all(`SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status = 'accepted' AND ${si.clause}`, si.params)[0]?.c || 0;
   const inReview = all(`SELECT COUNT(*) as c FROM intake_submissions WHERE archived_at IS NULL AND status = 'in-review' AND ${si.clause}`, si.params)[0]?.c || 0;
 
   res.render('admin/intakes', {
     title: 'Intake Submissions', isAdmin: true, isIntakes: true,
-    admin: req.user, intakes,
+    admin: req.user, intakes, showArchived, archivedCount,
     stats: { total: intakes.length, pending, accepted, inReview }
   });
 });
@@ -3959,6 +4301,9 @@ router.post('/intakes/:id/accept', ensureAuthenticated, (req, res) => {
              assessor_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
           [req.body.assessorNotes || intake.assessor_notes || '',
            req.body.assessorDescription || intake.assessor_description || '', intake.id]);
+        activity.record({ projectId: existing.id, entityType: 'intake', entityId: intake.id,
+          entityRef: intake.ref_code, action: 'accepted', field: 'status',
+          detail: 'Intake accepted and the project opened for assessment', actor: activity.actor(req) });
         req.flash('success', `Intake accepted for "${existing.name}".`);
         return res.redirect('/admin/projects/' + existing.id);
       }
@@ -4071,6 +4416,62 @@ router.post('/intakes/:id/accept', ensureAuthenticated, (req, res) => {
 router.post('/intakes/:id/create-project', ensureAuthenticated, (req, res, next) => {
   req.url = `/intakes/${req.params.id}/accept`;
   router.handle(req, res, next);
+});
+
+/**
+ * Archive a single intake. Mirrors the project pattern: stash the prior status
+ * so restoring is lossless, then set archived_at. Every intake list and counter
+ * already filters on archived_at, so it disappears from the UI immediately
+ * without anything being deleted.
+ */
+router.post('/intakes/:id/archive', ensureAuthenticated, (req, res) => {
+  const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
+  if (!intake) { req.flash('error', tr(req, 'ik.notFound', 'Intake not found.')); return res.redirect('/admin/intakes'); }
+  if (intake.archived_at) {
+    req.flash('error', tr(req, 'ik.alreadyArchived', 'That intake is already archived.'));
+    return res.redirect(`/admin/intakes/${intake.id}`);
+  }
+  run(`UPDATE intake_submissions SET status_before_archive = status, status = 'archived',
+       archived_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [intake.id]);
+  req.flash('success', tr(req, 'ik.archived',
+    `Intake ${intake.ref_code || ''} archived. It is hidden from the lists but not deleted.`,
+    { ref: intake.ref_code || '' }));
+  res.redirect('/admin/intakes');
+});
+
+/** Restore an archived intake to the status it held before. */
+router.post('/intakes/:id/unarchive', ensureAuthenticated, (req, res) => {
+  const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
+  if (!intake) { req.flash('error', tr(req, 'ik.notFound', 'Intake not found.')); return res.redirect('/admin/intakes'); }
+  run(`UPDATE intake_submissions
+         SET status = COALESCE(status_before_archive, 'pending'), status_before_archive = NULL,
+             archived_at = NULL, updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`, [intake.id]);
+  req.flash('success', tr(req, 'ik.restored', 'Intake restored.'));
+  res.redirect(`/admin/intakes/${intake.id}`);
+});
+
+/**
+ * Permanently delete an intake. Refused when anything still points at it —
+ * deleting the intake behind a live project or assessment would orphan the
+ * reference and break that record's audit trail. Archive covers that case.
+ */
+router.post('/intakes/:id/delete', ensureAuthenticated, (req, res) => {
+  const intake = get('SELECT * FROM intake_submissions WHERE id = ?', [req.params.id]);
+  if (!intake) { req.flash('error', tr(req, 'ik.notFound', 'Intake not found.')); return res.redirect('/admin/intakes'); }
+
+  const linkedAssessment = get('SELECT id FROM assessments WHERE intake_id = ?', [intake.id]);
+  if (intake.project_id || linkedAssessment) {
+    req.flash('error', tr(req, 'ik.deleteBlocked',
+      'That intake belongs to a project or assessment, so it cannot be deleted. Archive it instead — it will be hidden everywhere without breaking the record it belongs to.'));
+    return res.redirect(`/admin/intakes/${intake.id}`);
+  }
+
+  run('DELETE FROM intake_attachments WHERE intake_id = ?', [intake.id]);
+  run('DELETE FROM intake_submissions WHERE id = ?', [intake.id]);
+  req.flash('success', tr(req, 'ik.deleted',
+    `Intake ${intake.ref_code || ''} deleted permanently.`, { ref: intake.ref_code || '' }));
+  res.redirect('/admin/intakes');
 });
 
 // Download intake attachment
@@ -4314,6 +4715,103 @@ router.post('/assessments/:id/add-controls', ensureAuthenticated, (req, res) => 
     req.flash('info', 'No new controls to add.');
   }
   res.redirect(`/admin/assessments/${assessment.id}/manage-controls`);
+});
+
+/**
+ * Move a control in or out of scope without deleting it. Tailoring decisions are
+ * part of the authorization record, so "removed" means recorded-as-excluded:
+ * is_applicable drives what the evidence provider sees, tailoring_status and
+ * scoped_out_reason document why.
+ */
+router.post('/assessments/:id/controls/:controlId/scope', ensureAuthenticated, express.json(), (req, res) => {
+  const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+  if (!assessment) return res.status(404).json({ error: 'Assessment not found' });
+  const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?',
+    [req.params.controlId, assessment.id]);
+  if (!control) return res.status(404).json({ error: 'Control not found' });
+
+  const inScope = String(req.body.status || '') !== 'scoped-out';
+  const reason = (req.body.reason || '').trim();
+  if (!inScope && !reason) {
+    return res.status(400).json({ error: tr(req, 'tl.reasonRequired', 'A reason is required when tailoring a control out of scope.') });
+  }
+
+  run(`UPDATE assessment_controls
+         SET is_applicable = ?, tailoring_status = ?, scoped_out_reason = ?, scoped_out_at = ?,
+             updated_at = CURRENT_TIMESTAMP
+       WHERE id = ? AND assessment_id = ?`,
+    [inScope ? 1 : 0, inScope ? 'in-scope' : 'scoped-out',
+      inScope ? null : reason, inScope ? null : new Date().toISOString(),
+      control.id, assessment.id]);
+
+  activity.record({ projectId: activity.projectForAssessment(assessment.id), entityType: 'control',
+    entityId: control.id, entityRef: control.control_id,
+    action: inScope ? 'scoped in' : 'tailored out', field: 'is_applicable',
+    detail: inScope ? 'Brought back into scope' : (req.body.reason || 'Tailored out of the assessment'),
+    actor: activity.actor(req) });
+  res.json({ success: true, controlId: control.control_id, status: inScope ? 'in-scope' : 'scoped-out' });
+});
+
+/** Save an assessor-written rationale for why a control is in scope. */
+router.post('/assessments/:id/controls/:controlId/rationale', ensureAuthenticated, express.json(), (req, res) => {
+  const assessment = get('SELECT * FROM assessments WHERE id = ?', [req.params.id]);
+  if (!assessment) return res.status(404).json({ error: 'Assessment not found' });
+  const control = get('SELECT id FROM assessment_controls WHERE id = ? AND assessment_id = ?',
+    [req.params.controlId, assessment.id]);
+  if (!control) return res.status(404).json({ error: 'Control not found' });
+
+  run(`UPDATE assessment_controls SET tailoring_rationale = ?, rationale_source = 'manual',
+         updated_at = CURRENT_TIMESTAMP WHERE id = ? AND assessment_id = ?`,
+    [(req.body.rationale || '').trim(), control.id, assessment.id]);
+  res.json({ success: true });
+});
+
+/**
+ * Rewrite a control's tailoring rationale in plain language, for the person who
+ * has to supply the evidence. Falls back to the engine rationale on any failure
+ * so the UI always has something to show.
+ */
+router.post('/assessments/:id/ai/explain-control/:controlId', ensureAuthenticated, express.json(), async (req, res) => {
+  const assessment = get(`SELECT a.*, p.name AS project_name, p.description AS project_description,
+      p.data_classification, p.hosting_type, p.app_type, p.technologies
+    FROM assessments a JOIN projects p ON p.id = a.project_id WHERE a.id = ?`, [req.params.id]);
+  if (!assessment) return res.status(404).json({ error: 'Assessment not found' });
+  const control = get('SELECT * FROM assessment_controls WHERE id = ? AND assessment_id = ?',
+    [req.params.controlId, assessment.id]);
+  if (!control) return res.status(404).json({ error: 'Control not found' });
+
+  const lang = String(req.language || 'en').split('-')[0];
+  const system = [
+    'You explain security control scoping to a non-specialist who has to supply the evidence.',
+    `Answer in ${lang}, in 2-3 short sentences: why does THIS system have to satisfy this control, and what will the person be asked to show?`,
+    'Do not restate the control text. Do not invent facts about the system — if something is unknown, say what would need to be confirmed.',
+    'Plain prose only: no preamble, no headings, no bullet points.'
+  ].join(' ');
+  const userContent = [
+    `System: ${assessment.project_name} — ${(assessment.project_description || '').slice(0, 600)}`,
+    `Classification: ${assessment.data_classification || 'n/a'} · Hosting: ${assessment.hosting_type || 'n/a'} · Users: ${assessment.app_type || 'n/a'}`,
+    `Technologies: ${assessment.technologies || 'n/a'}`,
+    '',
+    `Control ${control.control_id} — ${control.title}`,
+    `Control text: ${(control.description || '').slice(0, 900)}`,
+    `Why the baseline selected it: ${control.tailoring_rationale || 'selected by the baseline profile'}`
+  ].join('\n');
+
+  try {
+    const text = String(await ai.callClaude(system, userContent, { maxTokens: 350 }) || '').trim();
+    if (!text) throw new Error('empty response');
+    run(`UPDATE assessment_controls SET tailoring_rationale = ?, rationale_source = 'ai',
+           ai_generated_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ? AND assessment_id = ?`, [text, control.id, assessment.id]);
+    res.json({ success: true, rationale: text, source: 'ai' });
+  } catch (err) {
+    console.error('explain-control error:', err.message);
+    res.status(502).json({
+      error: tr(req, 'tl.explainFailed', 'Could not generate an explanation right now.'),
+      rationale: control.tailoring_rationale || '',
+      source: control.rationale_source || 'engine'
+    });
+  }
 });
 
 // Remove a control from an assessment

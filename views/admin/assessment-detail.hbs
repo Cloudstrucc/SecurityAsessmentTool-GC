@@ -134,7 +134,7 @@
             {{/eq}}
 
             {{#eq assessment.status "submitted"}}
-              <a href="/respond/{{assessment.invite_code}}" class="btn btn-outline-secondary btn-sm">
+              <a href="/admin/assessments/{{assessment.id}}/evidence" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-eye me-1"></i>{{t 'ui.viewEvidence'}}
               </a>
               <form method="POST" action="/admin/assessments/{{assessment.id}}/start-audit" class="d-inline">
@@ -147,7 +147,7 @@
 
             {{#eq assessment.status "reactivated"}}
               <span class="badge bg-warning text-dark align-self-center"><i class="bi bi-arrow-repeat me-1"></i>{{t 'st.reactivated'}}</span>
-              <a href="/respond/{{assessment.invite_code}}" class="btn btn-outline-secondary btn-sm">
+              <a href="/admin/assessments/{{assessment.id}}/evidence" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-eye me-1"></i>{{t 'ui.viewEvidence'}}
               </a>
               <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#assignSendModal" title="{{t 'ui.assignAndSend'}}">
@@ -159,7 +159,7 @@
             {{/eq}}
 
             {{#eq assessment.status "audit"}}
-              <a href="/respond/{{assessment.invite_code}}" class="btn btn-outline-secondary btn-sm">
+              <a href="/admin/assessments/{{assessment.id}}/evidence" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-eye me-1"></i>{{t 'ui.viewEvidence'}}
               </a>
               <button class="btn btn-success" data-bs-toggle="collapse" data-bs-target="#completeAuditForm">
@@ -168,7 +168,7 @@
             {{/eq}}
 
             {{#eq assessment.status "completed"}}
-              <a href="/respond/{{assessment.invite_code}}" class="btn btn-outline-secondary btn-sm">
+              <a href="/admin/assessments/{{assessment.id}}/evidence" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-eye me-1"></i>{{t 'ui.viewEvidence'}}
               </a>
             {{/eq}}
@@ -496,6 +496,9 @@
   <div class="card mb-3" style="border-left:4px solid var(--gc-accent,#2f80cf)"><div class="card-body py-2 d-flex align-items-center gap-3 flex-wrap">
     <span class="fs-4 fw-bold" style="color:var(--gc-nav,#26374a)">{{reviewScore.score}}%</span>
     <span class="small text-muted">{{t 'rv.scoreLabel'}}</span>
+    <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" data-rv-keep-enabled
+      data-bs-toggle="modal" data-bs-target="#scoreHelpModal" aria-label="{{t 'sc.howCalculated'}}"
+      title="{{t 'sc.howCalculated'}}"><i class="bi bi-question-circle fs-6"></i></button>
     {{#if reviewScore.weak.length}}<span class="badge text-bg-warning ms-auto"><i class="bi bi-exclamation-triangle me-1"></i>{{reviewScore.weak.length}} {{t 'rv.weakEvidence'}}</span>{{/if}}
   </div></div>
   {{/if}}
@@ -537,12 +540,10 @@
 
   {{#each families}}
     <div class="form-section" id="family-{{this.code}}" data-familysection="{{this.code}}">
-      <div class="section-header">
-        <h3 class="section-title">
-          <span class="section-number">{{this.code}}</span>
-          {{this.name}}
-        </h3>
-        <p class="section-description">{{this.controls.length}} control(s)</p>
+      <div class="family-header">
+        <span class="family-code badge rounded-pill text-bg-primary">{{this.code}}</span>
+        <h3 class="family-name">{{this.name}}</h3>
+        <p class="family-meta">{{t 'cf.familyCount' n=this.controls.length}}</p>
       </div>
 
       {{#each this.controls}}
@@ -565,8 +566,13 @@
                 {{else}}
                   <input type="checkbox" class="form-check-input ai-control-checkbox" value="{{this.id}}" style="display:none;">
                 {{/if}}
-                {{#eq ../../assessment.status "audit"}}<input type="checkbox" class="form-check-input rv-select" data-cid="{{this.id}}" onchange="rvUpdateBar()">{{/eq}}
-                {{#if ../../canRequestUpdates}}{{#unless ../../viewingVersion}}<input type="checkbox" class="form-check-input ru-select" data-cid="{{this.id}}" title="{{t 'ru.selectHelp'}}" onchange="ruUpdateBar()">{{/unless}}{{/if}}
+                {{!-- ONE selection checkbox. Review and "send for update" used to
+                      render a checkbox each, so during audit every control showed
+                      two unlabelled boxes feeding two different bottom bars. --}}
+                {{#if @root.selectableControls}}
+                  <input type="checkbox" class="form-check-input rv-select ru-select" data-cid="{{this.id}}"
+                    title="{{t 'ru.selectHelp'}}" onchange="selUpdateBars()">
+                {{/if}}
                 {{{controlResultIcon this.audit_result}}}
                 <span class="control-id">{{this.control_id}}</span>
                 <span class="control-title">{{this.title}}</span>
@@ -693,6 +699,24 @@
             {{/if}}
           {{/if}}
 
+          {{!-- Why this control is in scope (engine, assessor or AI) --}}
+          <div class="tailor-why mt-2 {{#eq this.rationale_source 'ai'}}ai{{/eq}}" id="why-{{this.id}}">
+            <span class="tailor-why-k"><i class="bi bi-info-circle me-1"></i>{{t 'tl.whyInScope'}}</span>
+            <span class="tailor-why-v" id="why-text-{{this.id}}">{{#if this.tailoring_rationale}}{{this.tailoring_rationale}}{{else}}{{t 'tl.noRationale'}}{{/if}}</span>
+            {{#eq this.rationale_source 'ai'}}<span class="badge text-bg-light border ms-1" style="font-size:.65rem"><i class="bi bi-stars me-1"></i>{{t 'tl.srcAi'}}</span>{{/eq}}
+            {{#eq this.rationale_source 'manual'}}<span class="badge text-bg-light border ms-1" style="font-size:.65rem">{{t 'tl.srcManual'}}</span>{{/eq}}
+            {{#unless ../../viewingVersion}}
+              <button type="button" class="btn btn-sm btn-link p-0 ms-2 text-decoration-none" style="font-size:.74rem;color:#8b5cf6"
+                onclick="tlExplain({{this.id}}, '{{../../assessment.id}}', this)" title="{{t 'tl.explainHelp'}}">
+                <i class="bi bi-stars me-1"></i>{{t 'tl.explainPlain'}}
+              </button>
+              <button type="button" class="btn btn-sm btn-link p-0 ms-2 text-decoration-none text-danger" style="font-size:.74rem"
+                onclick="tlScopeOut({{this.id}}, '{{../../assessment.id}}', '{{this.control_id}}')">
+                <i class="bi bi-dash-circle me-1"></i>{{t 'tl.tailorOut'}}
+              </button>
+            {{/unless}}
+          </div>
+
           {{#if this.tailored_description}}
             <div class="mt-2 p-2 rounded" style="background:#f8f9fa">
               <small class="text-muted fw-semibold d-block mb-1">{{t 'ui.tailoredDescription'}}</small>
@@ -732,9 +756,95 @@
               {{/unless}}
             </div>
             {{#if this.evidence_text}}
-              <div class="small ev-readonly">{{{this.evidence_html}}}{{#unless this.evidence_html}}{{this.evidence_text}}{{/unless}}</div>
+              {{!-- Slot values inline, so the assessor reads a finished
+                    sentence rather than the draft with gaps in it. --}}
+              <div class="small ev-readonly">{{#if this.hasSlots}}{{{this.evidence_read_html}}}{{else}}{{{this.evidence_html}}}{{#unless this.evidence_html}}{{this.evidence_text}}{{/unless}}{{/if}}</div>
             {{else}}
               <div class="small text-muted fst-italic">{{t 'rv.noEvidenceYet'}}</div>
+            {{/if}}
+            {{#if this.hasSlots}}
+              {{!-- Per-slot provenance: which fact came from where, who filled
+                    it and when. Collapsed by default so it does not crowd the
+                    narrative the assessor is reading. --}}
+              <div class="mt-2">
+                <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" data-rv-keep-enabled
+                  data-bs-toggle="collapse" data-bs-target="#slots-{{this.id}}">
+                  <i class="bi bi-list-check me-1"></i>{{t 'as.slotRecord'}}
+                  <span class="badge text-bg-light border ms-1">{{this.slotProgress.filled}}/{{this.slotProgress.total}}</span>
+                </button>
+                {{#if this.evidenceIncomplete}}
+                  <span class="badge text-bg-warning ms-1" title="{{t 'as.incompleteHelp'}}">
+                    <i class="bi bi-exclamation-triangle me-1"></i>{{t 'as.incomplete'}}</span>
+                {{/if}}
+                {{#if this.evidenceSelfAttested}}
+                  <span class="badge text-bg-secondary ms-1" title="{{t 'as.selfAttestedHelp'}}">
+                    <i class="bi bi-person-lines-fill me-1"></i>{{t 'as.selfAttested'}}</span>
+                {{/if}}
+                <div class="collapse mt-2" id="slots-{{this.id}}">
+                  <div class="table-responsive border rounded">
+                    <table class="table table-sm mb-0 align-middle small">
+                      <thead class="table-light">
+                        <tr><th style="width:38%">{{t 'as.slotAsked'}}</th><th>{{t 'as.slotProvided'}}</th>
+                          <th style="width:22%">{{t 'as.slotSource'}}</th></tr>
+                      </thead>
+                      <tbody>
+                        {{#each this.slotList}}
+                          <tr class="{{#unless this.filled}}table-warning{{/unless}}">
+                            <td>
+                              <i class="bi {{#if (eq this.type 'value')}}bi-pencil{{else}}bi-paperclip{{/if}} me-1 text-muted"></i>
+                              {{this.label}}
+                            </td>
+                            <td>
+                              {{#if this.filled}}
+                                {{#if (eq this.type 'value')}}
+                                  {{this.value_text}}
+                                {{else}}
+                                  {{#each this.files}}
+                                    {{#if this.ref_url}}
+                                      <span class="badge text-bg-info me-1"><i class="bi bi-link-45deg me-1"></i>{{this.original_name}}</span>
+                                    {{else}}
+                                      <a class="badge bg-light text-dark border text-decoration-none me-1"
+                                        href="/admin/projects/{{@root.assessment.project_id}}/evidence-attachments/{{this.id}}/download">
+                                        <i class="bi bi-download me-1"></i>{{this.original_name}}</a>
+                                    {{/if}}
+                                  {{/each}}
+                                {{/if}}
+                              {{else}}
+                                <span class="text-danger fst-italic">{{t 'as.slotEmpty'}}</span>
+                              {{/if}}
+                            </td>
+                            <td class="text-muted">
+                              {{#if this.filled_by}}{{this.filled_by}}{{#if this.filled_at}}<br><span class="small">{{formatDate this.filled_at}}</span>{{/if}}{{else}}—{{/if}}
+                            </td>
+                          </tr>
+                        {{/each}}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            {{/if}}
+            {{#if this.attachmentList.length}}
+              <div class="mt-2">
+                <small class="fw-semibold d-block mb-1"><i class="bi bi-paperclip me-1"></i>{{t 'ea.attachedFiles'}}</small>
+                <div class="d-flex flex-wrap gap-1">
+                  {{#each this.attachmentList}}
+                    {{#if this.ref_url}}
+                      {{!-- An external reference, not a stored file: there is
+                            nothing to download, so it is shown, not linked. --}}
+                      <span class="badge text-bg-info" title="{{t 'esl.referenceBadge'}}">
+                        <i class="bi bi-link-45deg me-1"></i>{{this.original_name}}
+                      </span>
+                    {{else}}
+                      <a class="badge bg-light text-dark border text-decoration-none"
+                        href="/admin/projects/{{@root.assessment.project_id}}/evidence-attachments/{{this.id}}/download"
+                        title="{{t 'ea.download'}}">
+                        <i class="bi bi-download me-1"></i>{{this.original_name}}
+                      </a>
+                    {{/if}}
+                  {{/each}}
+                </div>
+              </div>
             {{/if}}
           </div>
 
@@ -799,19 +909,47 @@
                 <div class="col-md-4">
                   <label class="form-label small fw-semibold mb-0">{{t 'rv.weight'}}</label>
                   <select class="form-select form-select-sm rv-input" data-cid="{{this.id}}" data-field="control_weight" onchange="rvSaveField(this,'{{../../assessment.id}}')">
-                    <option value="high" {{#eq this.control_weight 'high'}}selected{{/eq}}>{{t 'rv.wt_high'}}</option>
-                    <option value="medium" {{#eq this.control_weight 'medium'}}selected{{/eq}}>{{t 'rv.wt_medium'}}</option>
-                    <option value="low" {{#eq this.control_weight 'low'}}selected{{/eq}}>{{t 'rv.wt_low'}}</option>
+                    {{!-- Falls back to the EFFECTIVE weight scoring will use (risk
+                          level, else medium). Without this, an unset control_weight
+                          left the browser showing the first option, "High (×3)",
+                          while the score was computed with a different weight. --}}
+                    <option value="high" {{#eq this.effectiveWeight 'high'}}selected{{/eq}}>{{t 'rv.wt_high'}}</option>
+                    <option value="medium" {{#eq this.effectiveWeight 'medium'}}selected{{/eq}}>{{t 'rv.wt_medium'}}</option>
+                    <option value="low" {{#eq this.effectiveWeight 'low'}}selected{{/eq}}>{{t 'rv.wt_low'}}</option>
                   </select>
                 </div>
                 <div class="col-12">
                   <textarea class="form-control form-control-sm rv-input" rows="1" data-cid="{{this.id}}" data-field="assessor_feedback"
                     placeholder="{{t 'rv.feedbackPh'}}" onchange="rvSaveField(this,'{{../../assessment.id}}')">{{this.assessor_feedback}}</textarea>
                 </div>
-                <div class="col-12 d-flex gap-2 flex-wrap">
-                  <button type="button" class="btn btn-sm btn-outline-success" onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','reviewed')"><i class="bi bi-check2-circle me-1"></i>{{t 'rv.markReviewed'}}</button>
-                  <button type="button" class="btn btn-sm btn-outline-warning" onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','needs-resubmission')"><i class="bi bi-arrow-repeat me-1"></i>{{t 'rv.requestResub'}}</button>
-                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','removed')"><i class="bi bi-x-circle me-1"></i>{{t 'rv.remove'}}</button>
+                {{#if this.scoreShare}}
+                  {{!-- What this control is worth, and what it is earning, inside
+                        the weighted score shown at the top of the page. --}}
+                  <div class="col-12">
+                    <div class="rv-share small d-flex flex-wrap align-items-center gap-2">
+                      <span class="badge text-bg-secondary">{{t 'sc.weightBadge'}} {{this.scoreShare.weightLabel}} (×{{this.scoreShare.weight}})</span>
+                      <span><strong>{{this.scoreShare.earnedPct}}%</strong> {{t 'sc.ofAssessment'}}</span>
+                      <span class="text-muted">{{t 'sc.outOfMax' max=this.scoreShare.maxPct}}</span>
+                      <div class="progress flex-grow-1" style="height:6px;min-width:120px" role="progressbar"
+                        aria-valuenow="{{this.scoreShare.ofOwnPct}}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" style="width:{{this.scoreShare.ofOwnPct}}%"></div>
+                      </div>
+                      <span class="text-muted">{{t 'sc.ofOwnCeiling' pct=this.scoreShare.ofOwnPct}}</span>
+                    </div>
+                  </div>
+                {{/if}}
+                {{!-- The review buttons reflect review_status. They deliberately do
+                      NOT disable the Audit result above: that is a separate axis and
+                      complete-audit scores from it, so locking it would make a
+                      reviewed control impossible to score. --}}
+                <div class="col-12 d-flex gap-2 flex-wrap rv-actions" id="rvActions-{{this.id}}" data-cid="{{this.id}}" data-aid="{{../../assessment.id}}">
+                  <button type="button" class="btn btn-sm btn-outline-success rv-act-reviewed"
+                    onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','reviewed')"><i class="bi bi-check2-circle me-1"></i>{{t 'rv.markReviewed'}}</button>
+                  <button type="button" class="btn btn-sm btn-success rv-act-isreviewed" hidden disabled><i class="bi bi-check2-circle me-1"></i>{{t 'rv.isReviewed'}}</button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary rv-act-reopen" hidden
+                    onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','pending')"><i class="bi bi-arrow-counterclockwise me-1"></i>{{t 'rv.reopen'}}</button>
+                  <button type="button" class="btn btn-sm btn-outline-warning rv-act-resub" onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','needs-resubmission')"><i class="bi bi-arrow-repeat me-1"></i>{{t 'rv.requestResub'}}</button>
+                  <button type="button" class="btn btn-sm btn-outline-danger rv-act-remove" onclick="rvSetStatus({{this.id}},'{{../../assessment.id}}','removed')"><i class="bi bi-x-circle me-1"></i>{{t 'rv.remove'}}</button>
                 </div>
               </div>
             </div>
@@ -829,7 +967,9 @@
 
           <!-- Comment thread toggle -->
           <div class="mt-2">
-            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0"
+            {{!-- Reading the thread is not editing, so it stays available on a
+                  locked (reviewed) control. --}}
+            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" data-rv-keep-enabled
               data-bs-toggle="collapse" data-bs-target="#comments-{{this.id}}">
               <i class="bi bi-chat-dots me-1"></i>{{t 'ui.comments'}}
             </button>
@@ -850,6 +990,58 @@
       {{/each}}
     </div>
   {{/each}}
+
+  {{!-- ── Tailored-out register ────────────────────────────────────────────
+       Controls the baseline recommended that the assessor took out of scope.
+       They stay on the record (the tailoring decision is part of the
+       authorization evidence) but never reach the evidence provider. --}}
+  {{#if scopedOut.length}}
+    <div class="card mt-4" id="scopedOutRegister">
+      <div class="card-header d-flex align-items-center flex-wrap gap-2" style="cursor:pointer"
+           data-bs-toggle="collapse" data-bs-target="#scopedOutBody">
+        <i class="bi bi-funnel me-1"></i>
+        <strong>{{t 'tl.tailoredOutTitle'}}</strong>
+        <span class="badge bg-light text-dark">{{scopedOut.length}}</span>
+        <span class="small ms-1" style="opacity:.75">{{t 'tl.tailoredOutHint'}}</span>
+        <span class="ms-auto small" style="opacity:.75">
+          {{stats.offered}} {{t 'tl.offered'}} → {{stats.total}} {{t 'tl.inScopeLower'}}
+        </span>
+      </div>
+      <div class="collapse" id="scopedOutBody">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th style="width:120px">{{t 'tl.colControl'}}</th>
+                  <th>{{t 'tl.colTitle'}}</th>
+                  <th style="width:34%">{{t 'tl.colReason'}}</th>
+                  <th style="width:150px"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each scopedOut}}
+                  <tr class="scoped-out-row" id="so-row-{{this.id}}">
+                    <td><span class="control-id">{{this.control_id}}</span><div class="small text-muted">{{this.family}}</div></td>
+                    <td class="small">{{this.title}}</td>
+                    <td class="small">{{#if this.scoped_out_reason}}{{this.scoped_out_reason}}{{else}}{{t 'tl.noReason'}}{{/if}}</td>
+                    <td class="text-end">
+                      {{#unless ../viewingVersion}}
+                        <button type="button" class="btn btn-sm btn-outline-success"
+                          onclick="tlScopeIn({{this.id}}, '{{../assessment.id}}', '{{this.control_id}}')">
+                          <i class="bi bi-plus-circle me-1"></i>{{t 'tl.bringBack'}}
+                        </button>
+                      {{/unless}}
+                    </td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  {{/if}}
 
     </div><!-- end col-lg-9 -->
 
@@ -893,6 +1085,51 @@
 </div><!-- end container -->
 
 <script>
+// ── Tailoring: rationale + scope in/out ──────────────────────────────────────
+async function tlExplain(controlId, assessmentId, btn) {
+  const txt = document.getElementById('why-text-' + controlId);
+  const box = document.getElementById('why-' + controlId);
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>' + {{{tjs 'tl.explaining'}}};
+  try {
+    const r = await fetch('/admin/assessments/' + assessmentId + '/ai/explain-control/' + controlId, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}'
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'failed');
+    if (txt) txt.textContent = d.rationale;
+    if (box) box.classList.add('ai');
+  } catch (e) {
+    alert(e.message || {{{tjs 'tl.explainFailed'}}});
+  } finally {
+    btn.disabled = false; btn.innerHTML = original;
+  }
+}
+
+async function tlScopeOut(controlId, assessmentId, code) {
+  const reason = prompt({{{tjs 'tl.promptReason'}}} + ' (' + code + ')');
+  if (reason === null) return;
+  if (!reason.trim()) { alert({{{tjs 'tl.reasonRequired'}}}); return; }
+  const r = await fetch('/admin/assessments/' + assessmentId + '/controls/' + controlId + '/scope', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: 'scoped-out', reason: reason.trim() })
+  });
+  const d = await r.json();
+  if (!r.ok) { alert(d.error || 'Could not update the control.'); return; }
+  location.reload();
+}
+
+async function tlScopeIn(controlId, assessmentId, code) {
+  const r = await fetch('/admin/assessments/' + assessmentId + '/controls/' + controlId + '/scope', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: 'in-scope' })
+  });
+  const d = await r.json();
+  if (!r.ok) { alert(d.error || 'Could not update the control.'); return; }
+  location.reload();
+}
+
 async function auditControl(controlId, assessmentId, result, btn, comments) {
   const payload = {};
   if (result) {
@@ -1555,11 +1792,17 @@ window.AIAssistConfig = {
 </div>
 <script>
 (function(){
-  var FLOW='/respond/{{assessment.invite_code}}', AID='{{assessment.id}}';
+  // Go through the server rather than interpolating the invite code here: a row
+  // with a missing code used to produce a dead "/respond/" link (404).
+  var AID='{{assessment.id}}';
+  var FLOW='/admin/assessments/{{assessment.id}}/evidence';
   var MINE={{#if assignedToMe}}true{{else}}false{{/if}}, OTHER={{#if assignedToOther}}true{{else}}false{{/if}};
   var ERR={{{tjs 'ev.gateError'}}};
   var anchor='';
-  function openFlow(){ window.open(FLOW+anchor,'_blank','noopener'); }
+  function openFlow(){
+    var m = /^#control-(\d+)$/.exec(anchor || '');
+    window.open(FLOW + (m ? '?c=' + m[1] : ''), '_blank', 'noopener');
+  }
   window.evEditGate=function(a){
     anchor=a||'';
     if (MINE || !OTHER) { openFlow(); return; }   // owner or unassigned → editable
@@ -1651,12 +1894,17 @@ window.AIAssistConfig = {
 
 {{#if canRequestUpdates}}{{#unless viewingVersion}}
 <!-- Send selected control(s) back to the assignee for update (with a note per control) -->
+{{!-- Shown on its own only when the review bar is not available (i.e. outside the
+      audit step). During audit the Send-for-update action lives inside the single
+      review bar — two bottom-centred fixed bars used to sit on top of each other. --}}
+{{#unless (eq assessment.status "audit")}}
 <div id="ruBar" class="position-fixed bottom-0 start-50 translate-middle-x mb-3 shadow rounded bg-white border p-2 px-3 d-flex align-items-center gap-2" style="z-index:1080;display:none">
   <span class="badge text-bg-warning"><i class="bi bi-arrow-repeat me-1"></i><span id="ruCount">0</span></span>
   <span class="small fw-semibold">{{t 'ru.barTitle'}}</span>
   <button type="button" class="btn btn-sm btn-warning ms-2" onclick="ruOpen()"><i class="bi bi-send me-1"></i>{{t 'ru.sendBtn'}}</button>
   <button type="button" class="btn-close ms-1" aria-label="Close" onclick="ruClear()"></button>
 </div>
+{{/unless}}
 
 <div class="modal fade" id="ruModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-scrollable modal-lg">
@@ -1691,8 +1939,8 @@ window.AIAssistConfig = {
                label:((card&&card.getAttribute('data-ctrlid'))||'')+' — '+((card&&card.getAttribute('data-title'))||'') };
     });
   }
-  window.ruUpdateBar=function(){ var n=document.querySelectorAll('.ru-select:checked').length; var bar=document.getElementById('ruBar'); document.getElementById('ruCount').textContent=n; bar.style.display=n?'flex':'none'; };
-  window.ruClear=function(){ document.querySelectorAll('.ru-select:checked').forEach(function(b){b.checked=false;}); ruUpdateBar(); };
+  window.ruUpdateBar=function(){ var n=document.querySelectorAll('.ru-select:checked').length; var bar=document.getElementById('ruBar'); if(!bar) return; var c=document.getElementById('ruCount'); if(c) c.textContent=n; bar.style.display=n?'flex':'none'; };
+  window.ruClear=function(){ document.querySelectorAll('.ru-select:checked').forEach(function(b){b.checked=false;}); selUpdateBars(); };
   window.ruOpen=function(){
     var sel=selected(); if(!sel.length) return;
     document.getElementById('ruModalRows').innerHTML = sel.map(function(s){
@@ -1723,8 +1971,68 @@ window.AIAssistConfig = {
 <style>
   .rv-badge-reviewed{background:#2fa06d} .rv-badge-needs-resubmission{background:#e0a53d;color:#332600}
   .rv-badge-removed{background:#6b7c90} .rv-badge-accepted{background:#1c7a4e} .rv-badge-pending{background:#4d9fe0}
+  /* Brief confirmation on the control itself after a review action. */
+  @keyframes rvJustChanged {
+    0%   { box-shadow:0 0 0 0 rgba(47,160,109,.55); background:#eafaf2; }
+    100% { box-shadow:0 0 0 10px rgba(47,160,109,0); background:transparent; }
+  }
+  .rv-just-changed { animation: rvJustChanged 1.4s ease-out; }
+  @media (prefers-reduced-motion: reduce) { .rv-just-changed { animation: none; background:#eafaf2; } }
+  /* A reviewed control is locked: signed off, and read-only until reopened. */
+  .rv-locked { border-left:4px solid #1c7a4e; background:#fbfdfc; }
+  .rv-locked :disabled { cursor:not-allowed; }
 </style>
+{{!-- One checkbox per control drives both the review bar (audit) and the
+      send-for-update bar, so the handler must exist whenever either can render. --}}
+<script>
+function selUpdateBars(){
+  if (typeof window.rvUpdateBar === 'function') window.rvUpdateBar();
+  if (typeof window.ruUpdateBar === 'function') window.ruUpdateBar();
+}
+</script>
 {{#eq assessment.status "audit"}}
+<div class="modal fade" id="scoreHelpModal" tabindex="-1" aria-labelledby="scoreHelpLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="scoreHelpLabel"><i class="bi bi-calculator me-2"></i>{{t 'sc.howCalculated'}}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t 'ui.close'}}"></button>
+      </div>
+      <div class="modal-body small">
+        <p>{{t 'sc.intro'}}</p>
+        <pre class="bg-light border rounded p-2 mb-3" style="font-size:12px">score = Σ(controlScore × weight) ÷ Σ(weight) × 100</pre>
+
+        <h6 class="fw-bold">{{t 'sc.step1'}}</h6>
+        <p class="mb-2">{{t 'sc.step1Body'}}</p>
+        <ul class="mb-3"><li>{{t 'sc.detMet'}}</li><li>{{t 'sc.detPartial'}}</li><li>{{t 'sc.detNot'}}</li></ul>
+
+        <h6 class="fw-bold">{{t 'sc.step2'}}</h6>
+        <p class="mb-2">{{t 'sc.step2Body'}}</p>
+        <pre class="bg-light border rounded p-2 mb-2" style="font-size:12px">controlScore = determination × (0.6 + 0.4 × reliability × sufficiency)</pre>
+        <div class="row g-2 mb-3">
+          <div class="col-md-6"><strong>{{t 'sc.reliability'}}</strong>
+            <ul class="mb-0"><li>assessor-tested 1.0</li><li>third-party 0.85</li><li>system-generated 0.7</li><li>internal-doc 0.5</li><li>self-attested 0.3</li></ul>
+          </div>
+          <div class="col-md-6"><strong>{{t 'sc.sufficiency'}}</strong>
+            <ul class="mb-0"><li>comprehensive 1.0</li><li>adequate 0.75</li><li>partial 0.45</li><li>none 0.0</li></ul>
+          </div>
+        </div>
+
+        <h6 class="fw-bold">{{t 'sc.step3'}}</h6>
+        <p class="mb-2">{{t 'sc.step3Body'}}</p>
+        <ul class="mb-3"><li>{{t 'sc.wHigh'}}</li><li>{{t 'sc.wMedium'}}</li><li>{{t 'sc.wLow'}}</li></ul>
+        <p class="mb-3">{{t 'sc.thisAssessment' total=reviewScore.score}}</p>
+
+        <div class="alert alert-warning mb-0">
+          <strong>{{t 'sc.noteTitle'}}</strong> {{t 'sc.noteBody'}}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">{{t 'bf.ok'}}</button>
+      </div>
+    </div>
+  </div>
+</div>
 {{> bulk-feedback}}
 <div id="rvBulkBar" class="shadow" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:1050;background:#0a1626;color:#fff;border-radius:12px;padding:8px 12px;align-items:center;gap:10px">
   <span class="fw-semibold"><span id="rvSelCount">0</span> {{t 'ev.selected'}}</span>
@@ -1732,6 +2040,9 @@ window.AIAssistConfig = {
   <button type="button" class="btn btn-sm btn-outline-light" onclick="rvBulk('needs-resubmission')"><i class="bi bi-arrow-repeat me-1"></i>{{t 'rv.requestResub'}}</button>
   <button type="button" class="btn btn-sm btn-outline-light" onclick="rvBulk('accept')"><i class="bi bi-patch-check me-1"></i>{{t 'rv.acceptAll'}}</button>
   <button type="button" class="btn btn-sm btn-outline-light" onclick="rvBulk('removed')"><i class="bi bi-x-circle me-1"></i>{{t 'rv.remove'}}</button>
+  {{#if canRequestUpdates}}{{#unless viewingVersion}}
+    <button type="button" class="btn btn-sm btn-warning" onclick="ruOpen()"><i class="bi bi-send me-1"></i>{{t 'ru.sendBtn'}}</button>
+  {{/unless}}{{/if}}
   <button type="button" class="btn btn-sm btn-link text-light text-decoration-none" onclick="rvClear()">{{t 'ev.clear'}}</button>
 </div>
 <div id="rvCtxMenu" class="shadow-sm border bg-white rounded" style="display:none;position:fixed;z-index:1060;min-width:200px;font-size:13px;padding:4px 0">
@@ -1746,9 +2057,9 @@ const RV_FILTERS = new Set();
 function rvToggleFilter(el){ const f=el.getAttribute('data-f'); if(RV_FILTERS.has(f)){RV_FILTERS.delete(f);el.style.outline='';}else{RV_FILTERS.add(f);el.style.outline='2px solid rgba(0,0,0,.3)';} rvApplyFilter(); }
 function rvApplyFilter(){ document.querySelectorAll('.rv-ctrl').forEach(function(c){ const show=RV_FILTERS.size===0||RV_FILTERS.has(c.getAttribute('data-rvstatus')); c.style.display=show?'':'none'; if(!show){var b=c.querySelector('.rv-select'); if(b) b.checked=false;} }); rvUpdateBar(); }
 function rvSelectedIds(){ return [].slice.call(document.querySelectorAll('.rv-select:checked')).map(function(b){return Number(b.getAttribute('data-cid'));}); }
-function rvUpdateBar(){ const ids=rvSelectedIds(); const bar=document.getElementById('rvBulkBar'); if(!bar) return; document.getElementById('rvSelCount').textContent=ids.length; bar.style.display=ids.length?'flex':'none'; }
-function rvToggleSelectAll(cb){ document.querySelectorAll('.rv-ctrl').forEach(function(c){ if(c.style.display!=='none'){var b=c.querySelector('.rv-select'); if(b) b.checked=cb.checked;} }); rvUpdateBar(); }
-function rvClear(){ document.querySelectorAll('.rv-select:checked').forEach(function(b){b.checked=false;}); var sa=document.getElementById('rvSelectAll'); if(sa) sa.checked=false; rvUpdateBar(); }
+window.rvUpdateBar = function rvUpdateBar(){ const ids=rvSelectedIds(); const bar=document.getElementById('rvBulkBar'); if(!bar) return; document.getElementById('rvSelCount').textContent=ids.length; bar.style.display=ids.length?'flex':'none'; }
+function rvToggleSelectAll(cb){ document.querySelectorAll('.rv-ctrl').forEach(function(c){ if(c.style.display!=='none'){var b=c.querySelector('.rv-select'); if(b) b.checked=cb.checked;} }); selUpdateBars(); }
+function rvClear(){ document.querySelectorAll('.rv-select:checked').forEach(function(b){b.checked=false;}); var sa=document.getElementById('rvSelectAll'); if(sa) sa.checked=false; selUpdateBars(); }
 async function rvSaveField(el, aid){
   const cid=el.getAttribute('data-cid'), field=el.getAttribute('data-field');
   const body={}; body[field]=el.value;
@@ -1764,8 +2075,8 @@ async function rvSetStatus(cid, aid, status){
     showBulkFlash(BF_I18N.updated.replace('{n}', 1));
   }catch(e){ hideBulkProgress(); showBulkFlash(BF_I18N.error, true); }
 }
-const RV_PROG = { reviewed: {{{tjs 'rv.pReviewed'}}}, 'needs-resubmission': {{{tjs 'rv.pResub'}}}, accept: {{{tjs 'rv.pAccept'}}}, removed: {{{tjs 'rv.pRemoved'}}} };
-const RV_STLABEL = { reviewed: {{{tjs 'rv.st_reviewed'}}}, 'needs-resubmission': {{{tjs 'rv.st_needs-resubmission'}}}, removed: {{{tjs 'rv.st_removed'}}}, accepted: {{{tjs 'rv.st_accepted'}}} };
+const RV_PROG = { pending: {{{tjs 'rv.pReopen'}}}, reviewed: {{{tjs 'rv.pReviewed'}}}, 'needs-resubmission': {{{tjs 'rv.pResub'}}}, accept: {{{tjs 'rv.pAccept'}}}, removed: {{{tjs 'rv.pRemoved'}}} };
+const RV_STLABEL = { reviewed: {{{tjs 'rv.st_reviewed'}}}, 'needs-resubmission': {{{tjs 'rv.st_needs-resubmission'}}}, removed: {{{tjs 'rv.st_removed'}}}, accepted: {{{tjs 'rv.st_accepted'}}}, pending: {{{tjs 'rv.st_pending'}}} };
 async function rvBulk(action){
   const ids=rvSelectedIds(); if(!ids.length) return;
   showBulkProgress(RV_PROG[action] || '');
@@ -1783,10 +2094,58 @@ function rvApplyStatus(cid, status){
   const card=document.getElementById('control-'+cid); if(!card) return;
   card.setAttribute('data-rvstatus', status);
   var badge=document.getElementById('rvBadge-'+cid);
-  if(!badge){ var host=card.querySelector('.d-flex.gap-1'); if(host){ badge=document.createElement('span'); badge.id='rvBadge-'+cid; badge.className='badge'; host.appendChild(badge); } }
+  if(!badge){
+    // The old lookup relied on a '.d-flex.gap-1' host existing; fall back to the
+    // card header so a control without one still gets its status badge.
+    var host=card.querySelector('.d-flex.gap-1') || card.querySelector('.d-flex');
+    if(host){ badge=document.createElement('span'); badge.id='rvBadge-'+cid; badge.className='badge'; host.appendChild(badge); }
+  }
   if(badge){ badge.className='badge rv-badge rv-badge-'+status; badge.textContent=RV_STLABEL[status]||status; }
-  if(status==='removed') card.style.opacity='.6';
+  card.style.opacity = (status==='removed') ? '.6' : '';
+  rvSyncActions(cid, status);
+  // Confirm at the control, since that is where the assessor is looking.
+  card.classList.remove('rv-just-changed');
+  void card.offsetWidth;            // restart the animation on a repeat action
+  card.classList.add('rv-just-changed');
 }
+
+// Show the state the control is IN, and the action that moves it on: a control
+// already marked reviewed should not keep offering "Mark reviewed".
+function rvSyncActions(cid, status){
+  const box=document.getElementById('rvActions-'+cid); if(!box) return;
+  const done = (status==='reviewed' || status==='accepted');
+  const set=(sel,on)=>{ const el=box.querySelector(sel); if(el) el.hidden=!on; };
+  set('.rv-act-reviewed', !done);
+  set('.rv-act-isreviewed', done);
+  set('.rv-act-reopen', done);
+  rvSetReadOnly(cid, done);
+}
+
+/**
+ * Lock a reviewed control so the audit record cannot drift after sign-off.
+ *
+ * Everything inside the card is disabled — audit result, comments, reliability,
+ * sufficiency, weight, feedback — except the two things needed to get back out:
+ * the Reopen button and the selection checkbox (selecting is not editing, and
+ * bulk reopen has to stay reachable).
+ */
+function rvSetReadOnly(cid, locked){
+  const card=document.getElementById('control-'+cid); if(!card) return;
+  card.classList.toggle('rv-locked', locked);
+  card.querySelectorAll('input, select, textarea, button').forEach(function(el){
+    if (el.classList.contains('rv-select') || el.classList.contains('ru-select')) return;
+    if (el.classList.contains('rv-act-reopen')) { el.disabled = false; return; }
+    if (el.classList.contains('rv-act-isreviewed')) return;  // a label, always disabled
+    if (el.hasAttribute('data-rv-keep-enabled')) return;
+    el.disabled = locked;
+  });
+}
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.rv-actions').forEach(function(box){
+    const card=document.getElementById('control-'+box.dataset.cid);
+    rvSyncActions(box.dataset.cid, card ? card.getAttribute('data-rvstatus') : 'pending');
+  });
+});
 let rvCtxId=null;
 document.addEventListener('contextmenu',function(e){ const card=e.target.closest && e.target.closest('.rv-ctrl'); if(!card||card.style.display==='none') return; if(!document.querySelector('.rv-select')) return; e.preventDefault(); const cb=card.querySelector('.rv-select'); if(cb && rvSelectedIds().length===0){ cb.checked=true; rvUpdateBar(); } rvCtxId=cb?Number(cb.getAttribute('data-cid')):null; const m=document.getElementById('rvCtxMenu'); m.style.left=Math.min(e.clientX,window.innerWidth-210)+'px'; m.style.top=e.clientY+'px'; m.style.display='block'; });
 document.addEventListener('click',function(){ var m=document.getElementById('rvCtxMenu'); if(m) m.style.display='none'; });

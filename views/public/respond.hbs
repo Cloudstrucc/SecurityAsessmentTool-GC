@@ -121,11 +121,10 @@
   <!-- Control Families -->
   {{#each families}}
     <div class="form-section" id="family-{{this.code}}">
-      <div class="section-header">
-        <h3 class="section-title">
-          <span class="section-number">{{this.code}}</span>
-          {{this.name}}
-        </h3>
+      <div class="family-header">
+        <span class="family-code badge rounded-pill text-bg-primary">{{this.code}}</span>
+        <h3 class="family-name">{{this.name}}</h3>
+        <p class="family-meta">{{t 'cf.familyCount' n=this.controls.length}}</p>
       </div>
 
       {{#each this.controls}}
@@ -166,6 +165,13 @@
             <p class="control-desc mb-2">{{this.description}}</p>
           {{/if}}
 
+          {{#if this.tailoring_rationale}}
+            <div class="tailor-why mb-2">
+              <span class="tailor-why-k"><i class="bi bi-info-circle me-1"></i>{{t 'tl.whyAsked'}}</span>
+              <span class="tailor-why-v">{{this.tailoring_rationale}}</span>
+            </div>
+          {{/if}}
+
           {{#if this.evidence_guidance}}
             <div class="p-2 rounded mb-3" style="background:#fff8e1">
               <small class="fw-semibold"><i class="bi bi-lightbulb me-1"></i>Evidence Guidance:</small>
@@ -184,6 +190,32 @@
               <span class="badge rounded-pill {{#if (eq this.evidence_source 'ai-suggested')}}text-bg-warning{{else}}text-bg-light border{{/if}}">
                 <i class="bi {{#if (eq this.evidence_source 'ai-suggested')}}bi-magic{{else}}bi-person-check{{/if}} me-1"></i>{{t 'ev.editedBy'}} {{this.evidence_edited_by}}</span>
             </div>
+            {{#if this.hasSlots}}
+              {{!-- Real completeness. Before slots this was a boolean, which is
+                    why a control holding 14 unfilled placeholders read as done. --}}
+              <div class="ev-slotbar mb-2" id="slotbar-{{this.id}}" data-cid="{{this.id}}">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <div class="progress flex-grow-1" style="height:8px;min-width:120px">
+                    <div class="progress-bar bg-success ev-sb-fill" style="width:{{this.slotProgress.percent}}%"></div>
+                  </div>
+                  <small class="text-muted ev-sb-text">
+                    <span class="ev-sb-v">{{this.slotProgress.values.filled}}</span>/<span>{{this.slotProgress.values.total}}</span> {{t 'esl.values'}}
+                    · <span class="ev-sb-a">{{this.slotProgress.attachments.filled}}</span>/<span>{{this.slotProgress.attachments.total}}</span> {{t 'esl.files'}}
+                  </small>
+                  <small class="ev-sb-left fw-semibold"></small>
+                  <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none ms-auto"
+                    onclick="eslJumpNext({{this.id}})">{{t 'esl.jumpNext'}}</button>
+                  <div class="btn-group btn-group-sm" role="group" aria-label="{{t 'esl.viewToggle'}}">
+                    <button type="button" class="btn btn-outline-secondary active" data-evview="edit" data-cid="{{this.id}}"
+                      onclick="eslSetView({{this.id}},'edit',this)">{{t 'esl.fillIn'}}</button>
+                    <button type="button" class="btn btn-outline-secondary" data-evview="read" data-cid="{{this.id}}"
+                      onclick="eslSetView({{this.id}},'read',this)">{{t 'esl.evidenceView'}}</button>
+                  </div>
+                </div>
+              </div>
+              {{!-- The finished narrative, values inline and holes in red. --}}
+              <div class="evidence-readview" id="readview-{{this.id}}" hidden>{{{this.evidence_read_html}}}</div>
+            {{/if}}
             {{#if this.readonly}}
               <div class="evidence-editor" style="background:#f8f9fa;min-height:80px">
                 {{{this.evidence_html}}}
@@ -201,12 +233,16 @@
                   <button type="button" class="btn btn-outline-secondary" onclick="execCmd('insertUnorderedList')" title="Bullet List"><i class="bi bi-list-ul"></i></button>
                   <button type="button" class="btn btn-outline-secondary" onclick="execCmd('insertOrderedList')" title="Numbered List"><i class="bi bi-list-ol"></i></button>
                 </div>
+                {{!-- Select text and press one of these to turn it into a slot. --}}
+                <div class="btn-group btn-group-sm">
+                  <button type="button" class="btn btn-outline-secondary" onclick="eslAddSlot({{this.id}},'value')"
+                    title="{{t 'esl.addValueHelp'}}">+ {{t 'esl.valueSlot'}}</button>
+                  <button type="button" class="btn btn-outline-secondary" onclick="eslAddSlot({{this.id}},'attach')"
+                    title="{{t 'esl.addAttachHelp'}}">+ {{t 'esl.attachSlot'}}</button>
+                </div>
                 <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
                   <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" style="font-size:12px;color:#0d6efd"
                     data-cid="{{this.id}}" onclick="aiSuggestEvidence(this)" title="{{t 'ev.suggestHelp'}}"><i class="bi bi-magic me-1"></i>{{t 'ev.suggestBtn'}}</button>
-                  <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" style="font-size:12px;color:#6d28d9"
-                    data-cid="{{this.id}}" data-control="{{this.control_id}}" data-title="{{this.title}}" data-guidance="{{this.evidence_guidance}}"
-                    onclick="aiRefineEvidence(this)"><i class="bi bi-stars me-1"></i>Refine with AI</button>
                   <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" style="font-size:12px;color:#5f7185"
                     data-cid="{{this.id}}" onclick="toggleHistory(this)"><i class="bi bi-clock-history me-1"></i>{{t 'ev.history'}}</button>
                   <small class="evidence-save-status" id="saveStatus-{{this.id}}"></small>
@@ -240,8 +276,16 @@
               </div>
             </div>
           {{/unless}}
+          {{!-- Files already on record, rendered server-side so they survive a
+                reload; uploadFile() appends new ones in the same shape. --}}
           <div id="attachments-{{this.id}}" class="d-flex flex-wrap gap-1 mb-2">
-            {{!-- Attachments loaded dynamically or from data --}}
+            {{#each this.attachmentList}}
+              <a class="badge bg-light text-dark border text-decoration-none"
+                href="/respond/{{@root.inviteCode}}/attachment/{{this.id}}"
+                title="{{t 'ea.download'}}">
+                <i class="bi bi-paperclip me-1"></i>{{this.original_name}}
+              </a>
+            {{/each}}
           </div>
 
           <!-- Comments -->
@@ -287,6 +331,7 @@ const EV_I18N = {
   unsaved: {{{tjs 'ev.unsaved'}}},
   error: {{{tjs 'ev.saveError'}}},
   suggestFail: {{{tjs 'ev.suggestFail'}}},
+  download: {{{tjs 'ea.download'}}},
   phRemain: {{{tjs 'ev.phRemain'}}},
   submitPh: {{{tjs 'ev.submitPlaceholders'}}}
 };
@@ -610,9 +655,13 @@ async function uploadFile(controlId) {
     const data = await res.json();
     if (data.success) {
       const container = document.getElementById('attachments-' + controlId);
-      const badge = document.createElement('span');
-      badge.className = 'badge bg-light text-dark border';
-      badge.innerHTML = '<i class="bi bi-paperclip me-1"></i>' + data.file.name;
+      // Same shape as the server-rendered badge, so a just-uploaded file is
+      // downloadable immediately rather than only after the next page load.
+      const badge = document.createElement('a');
+      badge.className = 'badge bg-light text-dark border text-decoration-none';
+      badge.href = '/respond/' + INVITE_CODE + '/attachment/' + data.file.attachmentId;
+      badge.title = EV_I18N.download;
+      badge.innerHTML = '<i class="bi bi-paperclip me-1"></i>' + hEsc(data.file.name);
       container.appendChild(badge);
       input.value = '';
     }
@@ -723,7 +772,7 @@ window.AIAssistConfig = {
   frameworkLabel: '{{assessment.security_framework}}',
   subtitle: 'Evidence help · ask anything',
   placeholder: {{{tjs 'ev.placeholderEvidence'}}},
-  greeting: 'Hi — I can explain what each control is asking for and help you write clear evidence. Ask me anything, or use “Refine with AI” on a control to expand a quick note.',
+  greeting: 'Hi — I can explain what each control is asking for and help you write clear evidence. Ask me anything, or use “Suggest a draft” on a control to start from a skeleton.',
   getSelected: function(){ return []; },   // the server loads the control set for context
   applyActions: function(){},               // evidence mode exposes no scope CRUD
   // Render the assistant's evidence proposals as Approve / Approve all cards.
@@ -758,32 +807,428 @@ window.AIAssistConfig = {
     };
   }
 };
-async function aiRefineEvidence(btn){
-  var id=btn.getAttribute('data-cid');
-  var editor=document.getElementById('editor-'+id); if(!editor) return;
-  var summary=(editor.innerText||'').trim();
-  if(summary.length<3){ editor.focus(); return; }
-  var orig=btn.innerHTML; btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm"></span> Refining…';
-  try{
-    var r=await fetch('/respond/'+INVITE_CODE+'/ai-refine',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({controlId:btn.getAttribute('data-control'),controlTitle:btn.getAttribute('data-title'),controlGuidance:btn.getAttribute('data-guidance'),userSummary:summary})});
-    var data=await r.json();
-    if(!r.ok||!data.success) throw new Error(data.error||'Could not refine.');
-    aiEvidencePreview(editor, id, data.refined);
-  }catch(e){ alert(e.message); }
-  btn.disabled=false; btn.innerHTML=orig;
-}
-function aiEvidencePreview(editor, id, refined){
-  var esc=function(s){return String(s).replace(/[&<>]/g,function(m){return({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]);});};
-  var old=editor.parentNode.querySelector('.ai-ev-preview'); if(old) old.remove();
-  var box=document.createElement('div'); box.className='ai-ev-preview';
-  box.style.cssText='border:1px solid #ddd6fe;background:#faf7ff;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:13px';
-  box.innerHTML='<div class="fw-semibold mb-1" style="color:#6d28d9"><i class="bi bi-stars me-1"></i>AI-refined draft — approve to use</div>'+
-    '<div style="color:#22303a">'+evDecorate(refined)+'</div>'+
-    '<div class="d-flex gap-2 mt-2"><button type="button" class="btn btn-sm btn-primary py-0 aiap">Approve &amp; use</button><button type="button" class="btn btn-sm btn-outline-secondary py-0 aidz">Discard</button></div>';
-  box.querySelector('.aiap').onclick=function(){ editor.innerHTML=evDecorate(refined); markDirty(id); saveEvidence(id, true); box.remove(); };
-  box.querySelector('.aidz').onclick=function(){ box.remove(); };
-  editor.parentNode.appendChild(box);
-}
 </script>
 {{/unless}}
+
+{{!-- ════ Evidence slots ════════════════════════════════════════════════════
+      Click a chip → a modal. Value slots get a small rich-text box; attachment
+      slots get a drop zone. Filled chips go green with a ✓. --}}
+<div class="modal fade" id="eslValModal" tabindex="-1" aria-labelledby="eslValLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <div class="small text-uppercase opacity-75" style="letter-spacing:.12em;font-size:10.5px">{{t 'esl.valueSlot'}}</div>
+          <h5 class="modal-title mb-0" id="eslValLabel"></h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t 'ui.close'}}"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning py-2 px-3 small">{{t 'esl.valueGuide'}}</div>
+        <div class="btn-group btn-group-sm mb-1">
+          <button type="button" class="btn btn-outline-secondary" onmousedown="eslCmd(event,'bold')"><b>B</b></button>
+          <button type="button" class="btn btn-outline-secondary" onmousedown="eslCmd(event,'italic')"><i>I</i></button>
+          <button type="button" class="btn btn-outline-secondary" onmousedown="eslCmd(event,'insertUnorderedList')">•</button>
+          <button type="button" class="btn btn-outline-secondary" onmousedown="eslCmd(event,'insertOrderedList')">1.</button>
+          <button type="button" class="btn btn-outline-secondary" onmousedown="eslCmd(event,'removeFormat')">⌫</button>
+        </div>
+        <div class="form-control" id="eslValRte" contenteditable="true" style="min-height:130px"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-outline-danger me-auto" id="eslValRemove">{{t 'esl.removeSlot'}}</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">{{t 'ui.cancel'}}</button>
+        <button type="button" class="btn btn-sm btn-primary" id="eslValSave">{{t 'esl.saveValue'}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="eslAttModal" tabindex="-1" aria-labelledby="eslAttLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <div class="small text-uppercase opacity-75" style="letter-spacing:.12em;font-size:10.5px">{{t 'esl.attachSlot'}}</div>
+          <h5 class="modal-title mb-0" id="eslAttLabel"></h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t 'ui.close'}}"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning py-2 px-3 small">{{t 'esl.attachGuide'}}</div>
+        {{!-- Drop zone. The real <input> stays in the DOM (hidden) so the
+              picker, keyboard access and assistive tech all still work — the
+              zone is a label for it, not a replacement. --}}
+        <div class="esl-drop" id="eslAttDrop" role="button" tabindex="0"
+          aria-controls="eslAttInput" aria-describedby="eslAttLimits">
+          <i class="bi bi-cloud-arrow-up d-block" style="font-size:1.6rem"></i>
+          <span class="esl-drop-label">{{t 'esl.dropHere'}}</span>
+          <div class="small mt-1" id="eslAttLimits">{{t 'esl.attachLimits'}}</div>
+        </div>
+        <input type="file" id="eslAttInput" multiple hidden>
+        {{!-- Says "checked", never "clean": files are validated for type and
+              active content, but not scanned for malware. --}}
+        <div class="form-text fst-italic">{{t 'esl.scanNote'}}</div>
+        <div id="eslAttErrors" class="mt-2"></div>
+        {{!-- Or point at a record that lives somewhere else. Only http/https
+              become links; anything else is kept as plain text. --}}
+        <div class="mt-3">
+          <label class="form-label small fw-semibold mb-1" for="eslAttRef">{{t 'esl.orReference'}}</label>
+          <div class="input-group input-group-sm">
+            <input type="text" class="form-control" id="eslAttRef"
+              placeholder="{{t 'esl.referencePlaceholder'}}" maxlength="500">
+            <button type="button" class="btn btn-outline-secondary" id="eslAttRefAdd">{{t 'esl.addReference'}}</button>
+          </div>
+          <div class="form-text">{{t 'esl.referenceHelp'}}</div>
+        </div>
+        <div id="eslAttList" class="mt-2"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-outline-danger me-auto" id="eslAttRemove">{{t 'esl.removeSlot'}}</button>
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">{{t 'ui.close'}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Evidence slots ──────────────────────────────────────────────────────── */
+const ESL_I18N = {
+  blanksLeft: {{{tjs 'esl.blanksLeft'}}}, complete: {{{tjs 'esl.complete'}}},
+  noBlanks: {{{tjs 'esl.noBlanks'}}}, saved: {{{tjs 'esl.saved'}}},
+  removed: {{{tjs 'esl.removed'}}}, failed: {{{tjs 'esl.failed'}}},
+  newValue: {{{tjs 'esl.newValue'}}}, newAttach: {{{tjs 'esl.newAttach'}}},
+  checked: {{{tjs 'esl.checked'}}}, remove: {{{tjs 'ui.remove'}}},
+  uploading: {{{tjs 'esl.uploading'}}},
+  reference: {{{tjs 'esl.referenceBadge'}}}
+};
+let eslActive = null;   // { cid, key, type, label }
+
+function eslCmd(e, cmd){ e.preventDefault(); document.execCommand(cmd, false, null); }
+
+/** Paint every slot span in a control from its data. */
+function eslRender(cid, data){
+  const editor = document.getElementById('editor-' + cid);
+  if (!editor) return;
+  const byKey = {};
+  (data.slots || []).forEach(s => { byKey[s.key] = s; });
+  editor.querySelectorAll('span[data-slot]').forEach(span => {
+    const s = byKey[span.getAttribute('data-slot')];
+    if (!s) { span.remove(); return; }
+    const filled = s.filled;
+    const body = filled
+      ? (s.type === 'value' ? s.value_text : (s.files[0] ? s.files[0].original_name + (s.files.length > 1 ? ' +' + (s.files.length - 1) : '') : ''))
+      : (s.type === 'value' ? 'VALUE: ' : 'ATTACH: ') + s.label;
+    span.className = 'ev-slot ' + (s.type === 'value' ? 'ev-slot-value' : 'ev-slot-attach') + (filled ? ' filled' : '');
+    span.setAttribute('contenteditable', 'false');
+    span.setAttribute('role', 'button');
+    span.setAttribute('tabindex', '0');
+    span.title = s.label;
+    span.textContent = (filled ? '✓ ' : (s.type === 'value' ? '✎ ' : '📎 ')) + body;
+  });
+  eslPaintProgress(cid, data.progress);
+}
+
+function eslPaintProgress(cid, p){
+  if (!p) return;
+  const bar = document.getElementById('slotbar-' + cid);
+  if (!bar) return;
+  const pct = p.total ? Math.round(p.filled / p.total * 100) : 0;
+  bar.querySelector('.ev-sb-fill').style.width = pct + '%';
+  bar.querySelector('.ev-sb-v').textContent = p.values.filled;
+  bar.querySelector('.ev-sb-a').textContent = p.attachments.filled;
+  const left = p.total - p.filled;
+  const el = bar.querySelector('.ev-sb-left');
+  el.textContent = left ? ESL_I18N.blanksLeft.replace('{n}', left) : ESL_I18N.complete;
+  el.className = 'ev-sb-left fw-semibold ' + (left ? 'text-warning-emphasis' : 'text-success');
+  // Mark ready stays disabled until every blank is filled.
+  const ready = document.getElementById('readyBtn-' + cid);
+  if (ready && ready.getAttribute('data-ready') !== '1') {
+    ready.disabled = left > 0;
+    ready.title = left > 0 ? ESL_I18N.blanksLeft.replace('{n}', left) : '';
+  }
+}
+
+async function eslLoad(cid){
+  try {
+    const r = await fetch('/respond/' + INVITE_CODE + '/slots/' + cid);
+    const d = await r.json();
+    if (d.success) eslRender(cid, d);
+    return d;
+  } catch (e) { return null; }
+}
+
+/** Open the right modal for a slot. */
+async function eslOpen(cid, key){
+  const d = await eslLoad(cid);
+  if (!d || !d.success) return;
+  const s = (d.slots || []).find(x => x.key === key);
+  if (!s) return;
+  eslActive = { cid, key, type: s.type, label: s.label };
+  if (s.type === 'value') {
+    document.getElementById('eslValLabel').textContent = s.label;
+    document.getElementById('eslValRte').innerHTML = s.value_html || '';
+    new bootstrap.Modal(document.getElementById('eslValModal')).show();
+  } else {
+    document.getElementById('eslAttLabel').textContent = s.label;
+    eslPaintFiles(s.files || []);
+    document.getElementById('eslAttInput').value = '';
+    new bootstrap.Modal(document.getElementById('eslAttModal')).show();
+  }
+}
+
+function eslPaintFiles(files){
+  const list = document.getElementById('eslAttList');
+  list.innerHTML = files.map(f => {
+    // A reference row carries ref_url and no stored file. Only an http(s)
+    // reference becomes a link, and it opens with noopener/noreferrer so the
+    // provider's URL cannot reach back into this page.
+    const isRef = !!f.ref_url;
+    const label = isRef && f.ref_kind === 'url'
+      ? '<a href="' + hEsc(f.ref_url) + '" target="_blank" rel="noopener noreferrer nofollow" class="fw-semibold small">' + hEsc(f.ref_url) + '</a>'
+      : '<span class="fw-semibold small">' + hEsc(f.original_name) + '</span>';
+    const badge = isRef
+      ? '<span class="badge text-bg-info">' + hEsc(ESL_I18N.reference) + '</span>'
+      : '<span class="badge text-bg-success">' + hEsc(ESL_I18N.checked) + '</span>';
+    return '<div class="d-flex align-items-center gap-2 border rounded p-2 mb-1">' +
+      (isRef ? '<i class="bi bi-link-45deg"></i>' : '<i class="bi bi-paperclip"></i>') +
+      label + badge + '<span class="ms-auto"></span>' +
+      '<button type="button" class="btn btn-sm btn-outline-danger" data-fid="' + f.id + '">' + hEsc(ESL_I18N.remove) + '</button></div>';
+  }).join('') || '';
+  list.querySelectorAll('[data-fid]').forEach(b => {
+    b.onclick = async () => {
+      const a = eslActive; if (!a) return;
+      await fetch('/respond/' + INVITE_CODE + '/slots/' + a.cid + '/' + a.key + '/files/' + b.dataset.fid, { method: 'DELETE' });
+      const d = await eslLoad(a.cid);
+      const s = d && (d.slots || []).find(x => x.key === a.key);
+      eslPaintFiles(s ? s.files : []);
+    };
+  });
+}
+
+/* Click (or keyboard) on a chip opens its modal. */
+document.addEventListener('click', e => {
+  const span = e.target.closest && e.target.closest('span[data-slot]');
+  if (!span) return;
+  const editor = span.closest('.evidence-editor');
+  if (!editor || editor.getAttribute('contenteditable') !== 'true') return;
+  e.preventDefault();
+  eslOpen(editor.dataset.controlId, span.getAttribute('data-slot'));
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const span = e.target.closest && e.target.closest('span[data-slot]');
+  if (!span) return;
+  const editor = span.closest('.evidence-editor');
+  if (!editor || editor.getAttribute('contenteditable') !== 'true') return;
+  e.preventDefault();
+  eslOpen(editor.dataset.controlId, span.getAttribute('data-slot'));
+});
+
+document.getElementById('eslValSave').onclick = async () => {
+  const a = eslActive; if (!a) return;
+  const html = document.getElementById('eslValRte').innerHTML;
+  const r = await fetch('/respond/' + INVITE_CODE + '/slots/' + a.cid + '/' + a.key, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ value_html: html })
+  });
+  const d = await r.json();
+  if (!d.success) { alert(d.message || ESL_I18N.failed); return; }
+  bootstrap.Modal.getInstance(document.getElementById('eslValModal')).hide();
+  await eslLoad(a.cid);
+};
+
+/**
+ * Upload a list of files into the active slot, one at a time so each gets its
+ * own verdict and the per-slot cap is enforced in order. Rejections are shown
+ * against the file that caused them rather than as one opaque alert.
+ */
+async function eslUpload(fileList){
+  const a = eslActive; if (!a || !fileList || !fileList.length) return;
+  const drop = document.getElementById('eslAttDrop');
+  const errs = document.getElementById('eslAttErrors');
+  errs.innerHTML = '';
+  drop.classList.add('busy');
+  for (const file of Array.from(fileList)) {
+    const row = document.createElement('div');
+    row.className = 'small text-muted py-1';
+    row.textContent = ESL_I18N.uploading.replace('{name}', file.name);
+    errs.appendChild(row);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const r = await fetch('/respond/' + INVITE_CODE + '/slots/' + a.cid + '/' + a.key + '/files', { method: 'POST', body: fd });
+      const d = await r.json();
+      if (d.success) {
+        row.remove();
+      } else {
+        row.className = 'small text-danger py-1';
+        row.textContent = file.name + ' — ' + (d.message || ESL_I18N.failed);
+      }
+    } catch (e) {
+      row.className = 'small text-danger py-1';
+      row.textContent = file.name + ' — ' + ESL_I18N.failed;
+    }
+  }
+  drop.classList.remove('busy');
+  const fresh = await eslLoad(a.cid);
+  const s = fresh && (fresh.slots || []).find(x => x.key === a.key);
+  eslPaintFiles(s ? s.files : []);
+}
+
+document.getElementById('eslAttInput').onchange = function(){
+  eslUpload(this.files);
+  this.value = '';
+};
+
+/** Attach an external reference rather than a file. */
+async function eslAddReference(){
+  const a = eslActive; if (!a) return;
+  const input = document.getElementById('eslAttRef');
+  const errs = document.getElementById('eslAttErrors');
+  const value = input.value.trim();
+  if (!value) return;
+  const r = await fetch('/respond/' + INVITE_CODE + '/slots/' + a.cid + '/' + a.key + '/reference', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reference: value })
+  });
+  const d = await r.json();
+  if (!d.success) {
+    errs.innerHTML = '<div class="small text-danger py-1">' + hEsc(d.message || ESL_I18N.failed) + '</div>';
+    return;
+  }
+  errs.innerHTML = '';
+  input.value = '';
+  const fresh = await eslLoad(a.cid);
+  const s = fresh && (fresh.slots || []).find(x => x.key === a.key);
+  eslPaintFiles(s ? s.files : []);
+}
+document.getElementById('eslAttRefAdd').onclick = eslAddReference;
+document.getElementById('eslAttRef').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); eslAddReference(); }
+});
+
+/* Drop zone: click, keyboard and drag-and-drop all reach the same uploader. */
+(function(){
+  const drop = document.getElementById('eslAttDrop');
+  const input = document.getElementById('eslAttInput');
+  if (!drop || !input) return;
+  drop.addEventListener('click', () => input.click());
+  drop.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+  });
+  // The document-level handlers stop the browser from navigating to a file
+  // that misses the zone, which would lose whatever the provider had typed.
+  ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); drop.classList.add('over');
+  }));
+  ['dragleave', 'dragend'].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); drop.classList.remove('over');
+  }));
+  drop.addEventListener('drop', e => {
+    e.preventDefault(); e.stopPropagation(); drop.classList.remove('over');
+    eslUpload(e.dataTransfer && e.dataTransfer.files);
+  });
+  ['dragover', 'drop'].forEach(ev =>
+    document.addEventListener(ev, e => { if (!e.target.closest('.esl-drop')) e.preventDefault(); }));
+})();
+
+async function eslRemoveActive(){
+  const a = eslActive; if (!a) return;
+  const r = await fetch('/respond/' + INVITE_CODE + '/slots/' + a.cid + '/' + a.key, { method: 'DELETE' });
+  const d = await r.json();
+  if (!d.success) { alert(d.message || ESL_I18N.failed); return; }
+  // The prose stays — the span becomes the text the slot held.
+  const editor = document.getElementById('editor-' + a.cid);
+  const span = editor && editor.querySelector('span[data-slot="' + a.key + '"]');
+  if (span) span.replaceWith(document.createTextNode(d.text || ''));
+  ['eslValModal', 'eslAttModal'].forEach(id => {
+    const inst = bootstrap.Modal.getInstance(document.getElementById(id)); if (inst) inst.hide();
+  });
+  eslPaintProgress(a.cid, d.progress);
+  saveEvidence(a.cid, true);
+}
+document.getElementById('eslValRemove').onclick = eslRemoveActive;
+document.getElementById('eslAttRemove').onclick = eslRemoveActive;
+
+/** Turn the current selection into a new slot. */
+async function eslAddSlot(cid, type){
+  const sel = window.getSelection();
+  const picked = sel && sel.toString().trim();
+  const label = picked ? picked.slice(0, 70) : (type === 'value' ? ESL_I18N.newValue : ESL_I18N.newAttach);
+  const r = await fetch('/respond/' + INVITE_CODE + '/slots/' + cid, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type, label })
+  });
+  const d = await r.json();
+  if (!d.success) { alert(d.message || ESL_I18N.failed); return; }
+  const editor = document.getElementById('editor-' + cid);
+  const span = document.createElement('span');
+  span.setAttribute('data-slot', d.slot.key);
+  span.setAttribute('data-slot-type', d.slot.type);
+  span.setAttribute('contenteditable', 'false');
+  if (picked && sel.rangeCount && editor.contains(sel.anchorNode)) {
+    const range = sel.getRangeAt(0); range.deleteContents(); range.insertNode(span);
+  } else {
+    editor.appendChild(span);
+  }
+  await saveEvidence(cid, true);
+  await eslLoad(cid);
+  eslOpen(cid, d.slot.key);
+}
+
+/** Scroll to the first unfilled slot and open it. */
+async function eslJumpNext(cid){
+  const d = await eslLoad(cid);
+  if (!d || !d.success) return;
+  const next = (d.slots || []).find(s => !s.filled);
+  if (!next) { alert(ESL_I18N.noBlanks); return; }
+  const editor = document.getElementById('editor-' + cid);
+  const span = editor && editor.querySelector('span[data-slot="' + next.key + '"]');
+  if (span) span.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  eslOpen(cid, next.key);
+}
+
+/**
+ * Fill-in vs Evidence view.
+ *
+ * The read view is rebuilt from the live editor each time it is shown. It was
+ * server-rendered at page load, which meant a value filled in this session
+ * still showed as an unfilled hole until the page was reloaded.
+ */
+async function eslSetView(cid, mode, btn){
+  const editor = document.getElementById('editor-' + cid);
+  const read = document.getElementById('readview-' + cid);
+  if (!editor || !read) return;
+  const editing = mode === 'edit';
+  if (!editing) {
+    const d = await eslLoad(cid);
+    const byKey = {};
+    if (d && d.success) (d.slots || []).forEach(s => { byKey[s.key] = s; });
+    const clone = editor.cloneNode(true);
+    clone.querySelectorAll('span[data-slot]').forEach(span => {
+      const s = byKey[span.getAttribute('data-slot')];
+      const out = document.createElement('span');
+      if (!s) { span.remove(); return; }
+      if (s.filled) {
+        out.className = s.type === 'value' ? 'ev-slot-val' : 'ev-slot-att';
+        out.innerHTML = s.type === 'value'
+          ? (s.value_html || '')
+          : s.files.map(f => hEsc(f.original_name)).join(', ');
+      } else {
+        out.className = 'ev-slot-empty';
+        out.textContent = '[' + s.label + ']';
+      }
+      span.replaceWith(out);
+    });
+    read.innerHTML = clone.innerHTML;
+  }
+  editor.hidden = !editing;
+  read.hidden = editing;
+  const bar = document.getElementById('slotbar-' + cid);
+  if (bar) bar.querySelectorAll('[data-evview]').forEach(b => b.classList.toggle('active', b === btn));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.ev-slotbar').forEach(bar => eslLoad(bar.dataset.cid));
+});
+</script>

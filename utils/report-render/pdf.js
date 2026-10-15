@@ -170,6 +170,15 @@ function render(model, opts = {}) {
         doc.fillColor(muted).text(`${t('rf.evidence')}: ${c.evidence || '—'}`, { width: W() });
         doc.moveDown(0.5);
       });
+      // The tailoring decision is part of the authorization record: what the
+      // baseline recommended, what stayed in scope, and why the rest came out.
+      heading('5', t('rf.tailoringRegister'));
+      const so = m.scopedOut || [];
+      para(`${t('rf.controlsOffered')}: ${s.offered != null ? s.offered : m.controls.length + so.length} · ${t('rf.controlsInScope')}: ${s.inScope != null ? s.inScope : m.controls.length} · ${t('rf.scopedOut')}: ${so.length}`, { bold: true });
+      dataTable([t('rf.control'), t('rf.title'), t('rf.exclusionReason')],
+        so.length ? so.map(c => [c.control_id, c.title || '', c.reason || '—']) : [['—', '', '']],
+        [0.14, 0.36, 0.5]);
+
       heading('A', t('rf.versionHistory'));
       dataTable([t('rf.version'), t('rf.title'), t('rf.date'), t('rf.by'), t('rf.summary')],
         m.versions.map(v => [v.version, v.label || '', String(v.created_at || '').slice(0, 10), v.created_by_name || '', v.summary || '']),
@@ -207,6 +216,72 @@ function render(model, opts = {}) {
       dataTable(['#', t('rf.control'), t('rf.risk'), t('rf.owner'), t('rf.due'), t('rf.state')],
         m.conditions.filter(i => i.state !== 'accepted').map(i => [i.id, i.control_id || '', i.risk_level || '', i.assigned_to || '', i.deadline || '', pillText(i.state, i.overdue)]),
         [0.07, 0.16, 0.12, 0.3, 0.15, 0.2], ['right', 'left', 'left', 'left', 'right', 'left']);
+
+      // Full detail — kept in step with the HTML layout by hand, as the two
+      // layouts are deliberately maintained separately (see docs/REPORTING.md).
+      const D = m.decisionDetail && m.decisionDetail.decision;
+      if (D) {
+        heading('4', t('rf.authorizationDecision'));
+        dataTable([t('rf.field'), t('rf.value')], [
+          [t('rf.packageReference'), D.reference || '—'],
+          [t('rf.decisionType'), String(D.decision_type || '').toUpperCase()],
+          [t('rf.state'), D.state || '—'],
+          [t('rf.authorizingOfficial'), D.authorizing_official || '—'],
+          [t('rf.assessor'), D.assessor || '—'],
+          [t('rf.issued'), D.issued_at || '—'],
+          [t('rf.expires'), D.expires_at || '—']
+        ], [0.32, 0.68]);
+        [['rf.executiveSummary', D.executive_summary], ['rf.residualRisk', D.residual_risk_statement],
+          ['rf.decisionRationale', D.decision_rationale], ['rf.conditions', D.conditions]]
+          .forEach(([k, v]) => { if (v) { para(t(k), { bold: true }); para(v); } });
+      }
+      const AD = m.activeDetail;
+      const ctls = (AD && AD.controls) || [];
+      if (ctls.length) {
+        heading('5', t('rf.controlsAndEvidence'));
+        ctls.forEach(c => {
+          para(`${c.control_id} — ${c.title || ''}  [${c.result || t('rf.pending')}]`, { bold: true });
+          if (c.rationale) para(`${t('rf.tailoringRationale')}: ${c.rationale}`);
+          para(`${t('rf.evidence')}: ${c.evidence || '—'}`);
+          if (c.finding) para(`${t('rf.finding')}: ${c.finding}`);
+        });
+        const so = (AD && AD.scopedOut) || [];
+        if (so.length) {
+          heading('6', t('rf.tailoringRegister'));
+          dataTable([t('rf.control'), t('rf.title'), t('rf.exclusionReason')],
+            so.map(c => [c.control_id, c.title || '', c.reason || '—']), [0.18, 0.37, 0.45]);
+        }
+      }
+      if (m.contributors && m.contributors.length) {
+        const cs = m.contributorSummary || {};
+        heading('8', t('rf.contributors'));
+        para(t('rf.contributorsLede', { people: cs.contributors || 0, actions: cs.actions || 0 }));
+        dataTable([t('rf.person'), t('rf.role'), t('rf.actions'), t('rf.contributed'), t('rf.firstActivity'), t('rf.lastActivity')],
+          m.contributors.map(c => [c.actor_name || '', t('rf.actor_' + c.actor_type) || c.actor_type,
+            String(c.actions), c.summary || '', c.first_at || '', c.last_at || '']),
+          [0.2, 0.11, 0.08, 0.31, 0.15, 0.15], ['left', 'left', 'right', 'left', 'left', 'left']);
+      }
+      if (m.attachments && m.attachments.length) {
+        heading('7', t('rf.evidenceAttachments'));
+        dataTable([t('rf.control'), t('rf.document'), t('rf.uploaded')],
+          m.attachments.map(a => [a.control_id || '',
+            (a.original_name || '') + (a.ref_url ? ` (${t('rf.externalReference')})` : ''),
+            a.uploaded_at || '']),
+          [0.18, 0.56, 0.26]);
+      }
+    } else if (m.type === 'contributors') {
+      const cs = m.summary || {};
+      heading('1', t('rf.contributors'));
+      para(`${t('rf.people')}: ${cs.contributors || 0} · ${t('rf.actions')}: ${cs.actions || 0}`, { bold: true });
+      dataTable([t('rf.person'), t('rf.role'), t('rf.actions'), t('rf.contributed'), t('rf.firstActivity'), t('rf.lastActivity')],
+        (m.contributors || []).map(c => [c.actor_name || '', t('rf.actor_' + c.actor_type) || c.actor_type,
+          String(c.actions), c.summary || '', c.first_at || '', c.last_at || '']),
+        [0.2, 0.11, 0.08, 0.31, 0.15, 0.15], ['left', 'left', 'right', 'left', 'left', 'left']);
+      heading('2', t('rf.activityLog'));
+      dataTable([t('rf.when'), t('rf.person'), t('rf.recordType'), t('rf.record'), t('rf.action'), t('rf.detail')],
+        (m.activity || []).map(r => [r.created_at || '', r.actor_name || '',
+          t('rf.ent_' + r.entity_type) || r.entity_type, r.entity_ref || '', r.action || '', r.detail || '']),
+        [0.15, 0.17, 0.11, 0.17, 0.12, 0.28]);
     } else if (m.type === 'portfolio') {
       const S = m.summary;
       heading('1', t('rf.systems'));

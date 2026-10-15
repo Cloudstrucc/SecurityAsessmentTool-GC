@@ -61,6 +61,14 @@ const TYPES = [
     csv: true                        // existing controls.csv
   },
   {
+    id: 'contributors',
+    entity: 'project',
+    labelKey: 'rf.catContributors',
+    descKey: 'rf.catContributorsDesc',
+    formats: ALL,
+    csv: false
+  },
+  {
     id: 'portfolio',
     entity: 'organization',
     labelKey: 'rf.catPortfolio',

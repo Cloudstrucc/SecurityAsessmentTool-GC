@@ -192,6 +192,30 @@
     .section-number { background:var(--cs-accent); color:#fff; min-width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:600; }
     .section-description { color:var(--cs-muted); margin-top:.5rem; font-size:.9375rem; }
 
+    /* Control-family header — a Bootstrap pill bar used by the control-family
+       pages (respond, new assessment, assessment detail). Deliberately a class
+       of its own: .section-header is shared with intake/settings/report pages
+       and must keep its plain underlined look there. */
+    .family-header {
+      display:flex; align-items:center; flex-wrap:wrap; gap:.4rem .75rem;
+      margin-bottom:1.25rem; padding:.4rem .9rem .4rem .45rem;
+      background:var(--bs-primary-bg-subtle,#cfe2ff);
+      border:1px solid var(--bs-primary-border-subtle,#9ec5fe);
+      border-radius:50rem;
+    }
+    .family-header .family-code { flex:0 0 auto; font-size:.75rem; letter-spacing:.02em; padding:.4rem .7rem; }
+    .family-header .family-name { margin:0; font-size:1rem; font-weight:600; line-height:1.3;
+      color:var(--bs-primary-text-emphasis,#052c65); }
+    .family-header .family-meta { margin:0 0 0 auto; font-size:.8125rem; white-space:nowrap;
+      color:var(--bs-secondary-color,#6c757d); }
+    @media (max-width:575.98px) {
+      /* A pill that has to wrap is no longer a pill — square it off instead,
+         and let the meta line wrap rather than run past the edge (the family
+         action labels are much longer in fr/de/nl than in en). */
+      .family-header { border-radius:.75rem; }
+      .family-header .family-meta { margin-left:0; white-space:normal; }
+    }
+
     .progress { height:8px; border-radius:6px; }
     .progress-bar { background:linear-gradient(90deg,var(--cs-accent),var(--cs-info)); border-radius:6px; }
 
@@ -230,6 +254,84 @@
     .control-card .control-id { font-family:monospace; font-weight:700; color:var(--cs-nav); }
     .control-card .control-title { font-weight:600; margin-bottom:.25rem; }
     .control-card .control-desc { font-size:.875rem; color:var(--gc-muted); }
+
+    /* Long control statements (NIST/FedRAMP run several hundred characters) are
+       clamped to a few lines with a Show more / Show less toggle. The clamp is
+       added by JS only once it has measured an overflow, so with JS off — and
+       for print — the full text stays visible. */
+    .control-desc.is-clamped {
+      display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+    .desc-toggle { font-size:.8125rem; padding:0; margin:-.25rem 0 .5rem; text-decoration:none; }
+    .desc-toggle:hover { text-decoration:underline; }
+    @media print { .control-desc.is-clamped { display:block; overflow:visible; } .desc-toggle { display:none; } }
+
+    /* ── Evidence slots ──────────────────────────────────────────────────
+       A [[VALUE:]] / [[ATTACH:]] the provider still has to fill. Yellow for a
+       value, blue for a file, green once filled — so an unfinished draft is
+       visibly unfinished instead of reading as complete. */
+    .ev-slot { display:inline-flex; align-items:center; gap:.25rem; border-radius:7px;
+      padding:.02em .4em; font-weight:700; font-size:.92em; cursor:pointer;
+      border:1px solid transparent; transition:background .12s; user-select:none; }
+    .ev-slot-value { background:#fdf3d8; color:#7a5a10; border-color:#f0dcae; }
+    .ev-slot-attach { background:#e4f1fb; color:#1b4f7d; border-color:#c6def2; }
+    .ev-slot-value:hover { background:#fbe9bd; }
+    .ev-slot-attach:hover { background:#d2e7f7; }
+    .ev-slot.filled { background:#e4f6ec; color:#176844; border-color:#bce3cf; font-weight:600; }
+    .ev-slot.filled:hover { background:#d4efe1; }
+    .ev-slot:focus-visible { outline:2px solid #4d9fe0; outline-offset:1px; }
+    /* Evidence view: the finished narrative. Values read as prose; anything
+       still empty is red so the reader can see the holes. */
+    .evidence-readview { border:1px solid var(--cs-border); border-radius:6px;
+      padding:.65rem .75rem; background:#fcfdfe; min-height:80px; }
+    .evidence-readview .ev-slot-val { background:#f3faf6; border-radius:4px; padding:0 .2em; font-weight:600; }
+    .evidence-readview .ev-slot-att { color:#2f80cf; text-decoration:underline; }
+    .evidence-readview .ev-slot-empty { background:#fdeaec; color:#9c2b33; font-weight:700;
+      border-radius:4px; padding:0 .25em; }
+    @media print { .ev-slot { border:0; background:transparent; color:inherit; font-weight:600; } }
+
+    /* Attachment drop zone (evidence slots). */
+    .esl-drop { border:2px dashed var(--cs-border,#dce7f2); border-radius:10px; padding:1.3rem 1rem;
+      text-align:center; color:var(--cs-muted,#5f7185); font-size:.875rem;
+      background:var(--cs-mist,#f4f9fd); cursor:pointer; transition:border-color .12s, background .12s; }
+    .esl-drop:hover, .esl-drop:focus-visible { border-color:#4d9fe0; background:#f2f9fe; outline:none; }
+    .esl-drop:focus-visible { box-shadow:0 0 0 3px rgba(77,159,224,.25); }
+    .esl-drop.over { border-color:#2f80cf; background:#e8f4fd; border-style:solid; }
+    .esl-drop.busy { opacity:.6; pointer-events:none; }
+    .esl-drop .esl-drop-label { font-weight:600; color:var(--cs-ink,#17273a); }
+
+    /* Tailoring rationale — why a control is in (or out of) scope. */
+    .tailor-why { font-size:.8rem; line-height:1.5; background:#f3f8fd; border-left:3px solid var(--cs-accent,#4d9fe0);
+      border-radius:0 6px 6px 0; padding:.45rem .65rem; }
+    .tailor-why-k { font-weight:700; color:var(--cs-nav,#26374a); margin-right:.3rem; }
+    .tailor-why-v { color:#44586d; }
+    .tailor-why.out { background:#faf7f2; border-left-color:#e0a53d; }
+    .tailor-why.ai { background:#f8f5ff; border-left-color:#8b5cf6; }
+    .scoped-out-row td { color:var(--gc-muted); }
+    .scoped-out-row .control-id { opacity:.75; }
+
+    /* Floating bulk-action bar (control tailoring). Hidden until something is
+       selected, so "Select all" always has somewhere to go. */
+    .bulk-bar {
+      position:fixed; left:50%; bottom:1.1rem; transform:translateX(-50%) translateY(140%);
+      display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; z-index:1040;
+      background:var(--cs-nav,#0d2136); color:#fff; border-radius:999px;
+      padding:.5rem .85rem; box-shadow:0 12px 32px rgba(10,22,38,.32);
+      transition:transform .2s cubic-bezier(.4,0,.2,1); max-width:calc(100vw - 2rem);
+    }
+    .bulk-bar.on { transform:translateX(-50%) translateY(0); }
+    .bulk-bar .bulk-n { font-size:.85rem; padding-right:.3rem; white-space:nowrap; }
+    .bulk-bar .bulk-reason {
+      border:1px solid rgba(255,255,255,.35); background:rgba(255,255,255,.1); color:#fff;
+      border-radius:999px; padding:.2rem .7rem; font-size:.8rem; min-width:13rem; outline:none;
+    }
+    .bulk-bar .bulk-reason::placeholder { color:rgba(255,255,255,.6); }
+    .bulk-bar .bulk-reason:focus { border-color:var(--cs-accent,#4d9fe0); background:rgba(255,255,255,.16); }
+    .bulk-bar .btn { --bs-btn-padding-y:.2rem; --bs-btn-padding-x:.6rem; font-size:.8rem; white-space:nowrap; }
+    .bulk-bar .btn-outline-light { --bs-btn-color:#fff; --bs-btn-border-color:rgba(255,255,255,.45); }
+    .bulk-bar .btn-outline-danger { --bs-btn-color:#ffb3ba; --bs-btn-border-color:rgba(255,120,130,.6); }
+    @media (max-width:575px){ .bulk-bar { bottom:.6rem; padding:.4rem .6rem; } .bulk-bar .bulk-n { width:100%; } }
 
     .comment-thread { max-height:300px; overflow-y:auto; }
     .comment-item { padding:.5rem; border-bottom:1px solid #f0f0f0; font-size:.875rem; }
@@ -502,6 +604,15 @@
   {{#if user}}<script src="/js/nav-dock.js" defer></script>
   <script src="/js/record-actions.js" defer></script>
   <script src="/js/fab-dock.js" defer></script>{{/if}}
+  <script>
+    /* Labels for control-desc.js — localized here because the script is static. */
+    window.CF_DESC_LABELS = {
+      more: {{{tjs 'cf.descMore'}}},
+      less: {{{tjs 'cf.descLess'}}},
+      aria: {{{tjs 'cf.descToggleAria'}}}
+    };
+  </script>
+  <script src="/js/control-desc.js" defer></script>
   {{#if extraScripts}}{{{extraScripts}}}{{/if}}
 </body>
 </html>

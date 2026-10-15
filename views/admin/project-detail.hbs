@@ -104,7 +104,13 @@
 
       <!-- Contacts -->
       <div class="card mt-3">
-        <div class="card-header bg-light"><i class="bi bi-people me-2"></i>{{t 'ui.keyContacts'}}</div>
+        <div class="card-header bg-light d-flex align-items-center">
+          <span><i class="bi bi-people me-2"></i>{{t 'ui.keyContacts'}}</span>
+          <button type="button" class="btn btn-sm btn-link ms-auto p-0 text-decoration-none"
+            data-bs-toggle="modal" data-bs-target="#editContactsModal">
+            <i class="bi bi-pencil me-1"></i>{{t 'pc.edit'}}
+          </button>
+        </div>
         <div class="card-body">
           {{#if project.project_owner_name}}
             <div class="mb-3">
@@ -127,6 +133,60 @@
               {{#if project.cio_email}}<div class="small text-muted">{{project.cio_email}}</div>{{/if}}
             </div>
           {{/if}}
+        </div>
+      </div>
+
+      {{!-- Contacts are otherwise write-once: the only other UPDATE that touches
+            them also inserts an intake, which resets the project tracker. --}}
+      <div class="modal fade" id="editContactsModal" tabindex="-1" aria-labelledby="editContactsLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <form class="modal-content" method="POST" action="/admin/projects/{{project.id}}/contacts">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editContactsLabel"><i class="bi bi-people me-2"></i>{{t 'pc.title'}}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t 'pc.cancel'}}"></button>
+            </div>
+            <div class="modal-body">
+              <p class="small text-muted">{{t 'pc.intro'}}</p>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label" for="pcOwnerName">{{t 'pc.ownerName'}}</label>
+                  <input class="form-control" id="pcOwnerName" name="project_owner_name" value="{{project.project_owner_name}}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="pcOwnerEmail">{{t 'pc.ownerEmail'}}</label>
+                  <input type="email" class="form-control" id="pcOwnerEmail" name="project_owner_email" value="{{project.project_owner_email}}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="pcAuthName">{{t 'pc.authorityName'}}</label>
+                  <input class="form-control" id="pcAuthName" name="project_authority_name" value="{{project.project_authority_name}}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="pcAuthEmail">{{t 'pc.authorityEmail'}}</label>
+                  <input type="email" class="form-control" id="pcAuthEmail" name="project_authority_email" value="{{project.project_authority_email}}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="pcCioName">{{t 'pc.cioName'}}</label>
+                  <input class="form-control" id="pcCioName" name="cio_name" value="{{project.cio_name}}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="pcCioEmail">{{t 'pc.cioEmail'}}</label>
+                  <input type="email" class="form-control" id="pcCioEmail" name="cio_email" value="{{project.cio_email}}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="pcDept">{{t 'pc.department'}}</label>
+                  <input class="form-control" id="pcDept" name="department" value="{{project.department}}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="pcBranch">{{t 'pc.branch'}}</label>
+                  <input class="form-control" id="pcBranch" name="branch" value="{{project.branch}}">
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{t 'pc.cancel'}}</button>
+              <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>{{t 'pc.save'}}</button>
+            </div>
+          </form>
         </div>
       </div>
 
@@ -369,6 +429,50 @@
             </div>
           {{else}}
             <p class="text-muted small mb-0">{{t 'ui.noProjectDocumentsUploadedYet'}}</p>
+          {{/if}}
+
+          {{!-- Files the evidence provider attached to controls. They live in the
+                attachments table, not project_documents, so they are listed
+                (not copied) here to stay downloadable after the assessment. --}}
+          <h6 class="mt-4 mb-2 small text-uppercase fw-bold text-muted">
+            <i class="bi bi-paperclip me-1"></i>{{t 'ea.heading'}}
+            <span class="badge bg-light text-dark border ms-1">{{evidenceAttachments.length}}</span>
+          </h6>
+          {{#if evidenceAttachments.length}}
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>{{t 'ui.document'}}</th>
+                    <th>{{t 'ea.source'}}</th>
+                    <th>{{t 'ui.uploaded'}}</th>
+                    <th>{{t 'ui.size'}}</th>
+                    <th class="text-end">{{t 'ui.actions'}}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#each evidenceAttachments}}
+                    <tr>
+                      <td class="fw-semibold">{{this.original_name}}</td>
+                      <td class="small">
+                        <span class="badge bg-light text-dark border">{{t 'ea.evidenceSource'}}</span>
+                        <a href="/admin/assessments/{{this.assessment_id}}" class="ms-1 text-decoration-none">{{this.control_id}}</a>
+                      </td>
+                      <td class="small text-muted">{{formatDate this.uploaded_at}}</td>
+                      <td class="small">{{this.display_size}}</td>
+                      <td class="text-end text-nowrap">
+                        <a href="/admin/projects/{{../project.id}}/evidence-attachments/{{this.id}}/download"
+                          class="btn btn-sm btn-outline-primary" title="{{t 'ea.download'}}">
+                          <i class="bi bi-download"></i>
+                        </a>
+                      </td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          {{else}}
+            <p class="text-muted small mb-0">{{t 'ea.none'}}</p>
           {{/if}}
         </div>
       </div>

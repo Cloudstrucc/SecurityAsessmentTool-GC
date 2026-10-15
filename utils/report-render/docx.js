@@ -102,6 +102,13 @@ function render(model, opts = {}) {
       children.push(P(`${t('rf.finding')}: ${c.finding || '—'}`));
       children.push(P(`${t('rf.evidence')}: ${c.evidence || '—'}`, { color: '5F7185' }));
     });
+    // Tailoring register — what was recommended, what stayed, why the rest went.
+    const so = m.scopedOut || [];
+    children.push(H(t('rf.tailoringRegister')));
+    children.push(P(`${t('rf.controlsOffered')}: ${s.offered != null ? s.offered : m.controls.length + so.length} · ${t('rf.controlsInScope')}: ${s.inScope != null ? s.inScope : m.controls.length} · ${t('rf.scopedOut')}: ${so.length}`));
+    children.push(dataTable([t('rf.control'), t('rf.title'), t('rf.exclusionReason')],
+      so.length ? so.map(c => [c.control_id, c.title || '', c.reason || '—']) : [['—', '', '']]));
+
     children.push(H(t('rf.versionHistory')));
     children.push(dataTable([t('rf.version'), t('rf.title'), t('rf.date'), t('rf.by'), t('rf.summary')],
       m.versions.map(v => [v.version, v.label || '', String(v.created_at || '').slice(0, 10), v.created_by_name || '', v.summary || ''])));
@@ -133,6 +140,68 @@ function render(model, opts = {}) {
     children.push(H(t('rf.outstandingConditions')));
     children.push(dataTable(['#', t('rf.control'), t('rf.risk'), t('rf.owner'), t('rf.due'), t('rf.state')],
       m.conditions.filter(i => i.state !== 'accepted').map(i => [i.id, i.control_id || '', i.risk_level || '', i.assigned_to || '', i.deadline || '', i.state])));
+
+    // Full detail — the rollup tables above are a summary; these sections carry
+    // the authorization narrative, the controls with evidence, and the files.
+    const D = m.decisionDetail && m.decisionDetail.decision;
+    if (D) {
+      children.push(H(t('rf.authorizationDecision')));
+      children.push(dataTable([t('rf.field'), t('rf.value')], [
+        [t('rf.packageReference'), D.reference || '—'],
+        [t('rf.decisionType'), String(D.decision_type || '').toUpperCase()],
+        [t('rf.state'), D.state || '—'],
+        [t('rf.authorizingOfficial'), D.authorizing_official || '—'],
+        [t('rf.assessor'), D.assessor || '—'],
+        [t('rf.issued'), D.issued_at || '—'],
+        [t('rf.expires'), D.expires_at || '—']
+      ]));
+      [['rf.executiveSummary', D.executive_summary], ['rf.residualRisk', D.residual_risk_statement],
+        ['rf.decisionRationale', D.decision_rationale], ['rf.conditions', D.conditions]]
+        .forEach(([k, v]) => { if (v) { children.push(H(t(k))); children.push(P(v)); } });
+    }
+    const AD = m.activeDetail;
+    const ctls = (AD && AD.controls) || [];
+    if (ctls.length) {
+      children.push(H(t('rf.controlsAndEvidence')));
+      ctls.forEach(c => {
+        children.push(P(`${c.control_id} — ${c.title || ''}  [${c.result || t('rf.pending')}]`));
+        if (c.rationale) children.push(P(`${t('rf.tailoringRationale')}: ${c.rationale}`));
+        children.push(P(`${t('rf.evidence')}: ${c.evidence || '—'}`));
+        if (c.finding) children.push(P(`${t('rf.finding')}: ${c.finding}`));
+      });
+      const so = (AD && AD.scopedOut) || [];
+      if (so.length) {
+        children.push(H(t('rf.tailoringRegister')));
+        children.push(dataTable([t('rf.control'), t('rf.title'), t('rf.exclusionReason')],
+          so.map(c => [c.control_id, c.title || '', c.reason || '—'])));
+      }
+    }
+    if (m.contributors && m.contributors.length) {
+      const cs = m.contributorSummary || {};
+      children.push(H(t('rf.contributors')));
+      children.push(P(t('rf.contributorsLede', { people: cs.contributors || 0, actions: cs.actions || 0 })));
+      children.push(dataTable([t('rf.person'), t('rf.role'), t('rf.actions'), t('rf.contributed'), t('rf.firstActivity'), t('rf.lastActivity')],
+        m.contributors.map(c => [c.actor_name || '', t('rf.actor_' + c.actor_type) || c.actor_type,
+          c.actions, c.summary || '', c.first_at || '', c.last_at || ''])));
+    }
+    if (m.attachments && m.attachments.length) {
+      children.push(H(t('rf.evidenceAttachments')));
+      children.push(dataTable([t('rf.control'), t('rf.document'), t('rf.uploaded')],
+        m.attachments.map(a => [a.control_id || '',
+          (a.original_name || '') + (a.ref_url ? ` (${t('rf.externalReference')})` : ''),
+          a.uploaded_at || ''])));
+    }
+  } else if (m.type === 'contributors') {
+    const cs = m.summary || {};
+    children.push(H(t('rf.contributors')));
+    children.push(P(`${t('rf.people')}: ${cs.contributors || 0} · ${t('rf.actions')}: ${cs.actions || 0}`));
+    children.push(dataTable([t('rf.person'), t('rf.role'), t('rf.actions'), t('rf.contributed'), t('rf.firstActivity'), t('rf.lastActivity')],
+      (m.contributors || []).map(c => [c.actor_name || '', t('rf.actor_' + c.actor_type) || c.actor_type,
+        c.actions, c.summary || '', c.first_at || '', c.last_at || ''])));
+    children.push(H(t('rf.activityLog')));
+    children.push(dataTable([t('rf.when'), t('rf.person'), t('rf.recordType'), t('rf.record'), t('rf.action'), t('rf.detail')],
+      (m.activity || []).map(r => [r.created_at || '', r.actor_name || '',
+        t('rf.ent_' + r.entity_type) || r.entity_type, r.entity_ref || '', r.action || '', r.detail || ''])));
   } else if (m.type === 'portfolio') {
     const S = m.summary;
     children.push(H(t('rf.systems')));

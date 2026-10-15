@@ -352,6 +352,43 @@ async function initDatabase() {
 
   // ── FILE ATTACHMENTS ──
   db.run(`
+    CREATE TABLE IF NOT EXISTS project_activity (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      entity_type TEXT NOT NULL,      -- project | intake | assessment | control | slot | attachment | decision
+      entity_id INTEGER,
+      entity_ref TEXT,                -- human handle: AC-2, INT-1234, DP-0001
+      action TEXT NOT NULL,           -- created | updated | removed | filled | attached | …
+      field TEXT,                     -- which attribute, where it narrows the action
+      detail TEXT,                    -- short human summary; never a full document
+      actor_name TEXT,
+      actor_email TEXT,
+      actor_type TEXT,                -- assessor | provider | ai | system
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+    )
+  `);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_project_activity_project ON project_activity(project_id, id)`);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS evidence_slots (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      assessment_control_id INTEGER NOT NULL,
+      slot_key TEXT NOT NULL,
+      slot_type TEXT NOT NULL,
+      label TEXT NOT NULL,
+      position INTEGER,
+      value_html TEXT,
+      value_text TEXT,
+      filled_at DATETIME,
+      filled_by TEXT,
+      removed_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(assessment_control_id, slot_key),
+      FOREIGN KEY (assessment_control_id) REFERENCES assessment_controls(id) ON DELETE CASCADE
+    )
+  `);
+  db.run(`
     CREATE TABLE IF NOT EXISTS attachments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       assessment_control_id INTEGER NOT NULL,
@@ -1051,6 +1088,30 @@ async function initDatabase() {
     ['assessment_controls', 'evidence_reliability', 'ALTER TABLE assessment_controls ADD COLUMN evidence_reliability TEXT'],
     ['assessment_controls', 'evidence_sufficiency', 'ALTER TABLE assessment_controls ADD COLUMN evidence_sufficiency TEXT'],
     ['assessment_controls', 'control_weight', 'ALTER TABLE assessment_controls ADD COLUMN control_weight TEXT'],
+    // Tailoring record: every recommended control is kept, in scope or not, with
+    // the reason it was selected (or excluded). is_applicable stays the switch
+    // that governs what the evidence provider sees.
+    // Evidence slots: cached completeness so list pages and "Mark ready" do not
+    // have to aggregate. slots_total = 0 means the control predates slots (or
+    // was hand-written) and must NOT regress to 0%.
+    ['assessment_controls', 'slots_total', 'ALTER TABLE assessment_controls ADD COLUMN slots_total INTEGER DEFAULT 0'],
+    ['assessment_controls', 'slots_filled', 'ALTER TABLE assessment_controls ADD COLUMN slots_filled INTEGER DEFAULT 0'],
+    ['assessment_controls', 'slots_migrated_at', 'ALTER TABLE assessment_controls ADD COLUMN slots_migrated_at DATETIME'],
+    // A file belongs to a specific [[ATTACH:]] slot. Existing control-level
+    // attachments keep slot_id NULL and keep working.
+    ['attachments', 'slot_id', 'ALTER TABLE attachments ADD COLUMN slot_id INTEGER'],
+    ['attachments', 'scan_status', "ALTER TABLE attachments ADD COLUMN scan_status TEXT DEFAULT 'checked'"],
+    ['attachments', 'scan_detail', 'ALTER TABLE attachments ADD COLUMN scan_detail TEXT'],
+    // An external reference instead of an uploaded file: a link into a document
+    // management system, or a plain record identifier. The row carries no
+    // filename — ref_url set is what makes it a reference rather than a file.
+    ['attachments', 'ref_url', 'ALTER TABLE attachments ADD COLUMN ref_url TEXT'],
+    ['attachments', 'ref_kind', 'ALTER TABLE attachments ADD COLUMN ref_kind TEXT'],
+    ['assessment_controls', 'tailoring_status', "ALTER TABLE assessment_controls ADD COLUMN tailoring_status TEXT DEFAULT 'in-scope'"],
+    ['assessment_controls', 'tailoring_rationale', 'ALTER TABLE assessment_controls ADD COLUMN tailoring_rationale TEXT'],
+    ['assessment_controls', 'rationale_source', "ALTER TABLE assessment_controls ADD COLUMN rationale_source TEXT DEFAULT 'engine'"],
+    ['assessment_controls', 'scoped_out_reason', 'ALTER TABLE assessment_controls ADD COLUMN scoped_out_reason TEXT'],
+    ['assessment_controls', 'scoped_out_at', 'ALTER TABLE assessment_controls ADD COLUMN scoped_out_at DATETIME'],
     ['iato_checklist', 'project_id', 'ALTER TABLE iato_checklist ADD COLUMN project_id INTEGER'],
     ['iato_checklist', 'ato_record_id', 'ALTER TABLE iato_checklist ADD COLUMN ato_record_id INTEGER'],
     ['iato_checklist', 'residual_risk', 'ALTER TABLE iato_checklist ADD COLUMN residual_risk TEXT'],
@@ -1138,6 +1199,56 @@ async function initDatabase() {
       // Table might not exist yet, that's fine — CREATE TABLE handles it
     }
   });
+
+  // Plan-limit re-sync. seats_limit / projects_limit are stored per organization,
+  // so changing a plan's definition in config/billing.js does not reach orgs that
+  // already exist. Re-stamp them from the plan on boot.
+  //
+  // Only orgs on a plan we recognise and WITHOUT a comp code: a comped org carries
+  // the limits its code granted, which are deliberately not the plan's defaults.
+  // Doing this at startup also means the app applies it to its own in-memory copy,
+  // rather than an external writer racing the file.
+  try {
+    const { PLANS } = require('../config/billing');
+    Object.values(PLANS).forEach(p => {
+      db.run(
+        `UPDATE organizations SET seats_limit = ?, projects_limit = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE plan = ? AND comp_code_id IS NULL
+            AND (seats_limit IS NOT ? OR projects_limit IS NOT ?)`,
+        [p.seats, p.projects, p.key, p.seats, p.projects]);
+    });
+  } catch (e) { /* organizations table may not exist on a brand-new DB yet */ }
+
+  // Invite-code backfill. The evidence flow is addressed by invite code
+  // (/respond/<code>); an assessment without one produces a dead "/respond/"
+  // link from the record page and an unusable link in the invite email. Older
+  // rows predate the code being set at creation, so give them one.
+  try {
+    const orphans = db.exec(
+      "SELECT id FROM assessments WHERE invite_code IS NULL OR TRIM(invite_code) = ''");
+    if (orphans.length && orphans[0].values.length) {
+      const taken = new Set();
+      const existing = db.exec('SELECT UPPER(TRIM(invite_code)) FROM assessments WHERE invite_code IS NOT NULL');
+      if (existing.length) existing[0].values.forEach(r => taken.add(r[0]));
+      orphans[0].values.forEach(([id]) => {
+        let code;
+        do {
+          code = require('crypto').randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase();
+        } while (taken.has(code));
+        taken.add(code);
+        db.run('UPDATE assessments SET invite_code = ? WHERE id = ?', [code, id]);
+      });
+      console.log(`Migration: generated invite codes for ${orphans[0].values.length} assessment(s)`);
+    }
+  } catch (e) { /* assessments table may not exist on a fresh DB yet */ }
+
+  // Tailoring-status backfill: rows that predate the column take their status
+  // from is_applicable, which was already the provider-visibility switch.
+  try {
+    db.run(`UPDATE assessment_controls
+               SET tailoring_status = CASE WHEN is_applicable = 0 THEN 'scoped-out' ELSE 'in-scope' END
+             WHERE tailoring_status IS NULL OR tailoring_status = ''`);
+  } catch (e) { /* table may not exist on a fresh DB yet */ }
 
   // Tenant isolation backfill: older projects predate organization_id. Adopt each
   // project into its creator's organization so workspace scoping has something to

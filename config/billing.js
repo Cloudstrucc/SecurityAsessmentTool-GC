@@ -38,7 +38,7 @@ function webhookConfigured() {
 // are unchanged. `team`/`business`/`payg` are retained (unadvertised) so existing
 // subscriptions keep resolving; new sign-ups use `basic`.
 const PLANS = {
-  trial:      { key: 'trial',      label: 'Trial',          seats: 3,    projects: 1,    tokens: 250000,    mode: 'trial',        trialDays: 14 },
+  trial:      { key: 'trial',      label: 'Trial',          seats: 3,    projects: 3,    tokens: 250000,    mode: 'trial',        trialDays: 14 },
   basic:      { key: 'basic',      label: 'Basic',          seats: null, projects: null, tokens: 15000000,  mode: 'subscription', perSeat: true, priceEnv: 'STRIPE_PRICE_BASIC' },
   enterprise: { key: 'enterprise', label: 'Enterprise',     seats: null, projects: null, tokens: null,      mode: 'contact' },
   team:       { key: 'team',       label: 'Team',           seats: 5,    projects: 5,    tokens: 3000000,   mode: 'subscription', priceEnv: 'STRIPE_PRICE_TEAM',     legacy: true },

@@ -181,8 +181,24 @@ async function callClaude(system, userContent, { maxTokens = 4096 } = {}) {
  * Parse a JSON response from Claude, handling markdown fences
  */
 function parseJSON(text) {
-  const cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-  return JSON.parse(cleaned);
+  const cleaned = String(text || '').replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch (e) {
+    // Salvage the outermost {...} when the model wrapped the JSON in prose.
+    const s = cleaned.indexOf('{'), end = cleaned.lastIndexOf('}');
+    if (s >= 0 && end > s) {
+      try { return JSON.parse(cleaned.slice(s, end + 1)); } catch (e2) { /* fall through */ }
+    }
+    // No JSON at all — usually the model declining because the input was not
+    // readable (e.g. a binary file sent as text). Surface what it actually said
+    // rather than a parser error like: Unexpected token 'I', "I'm unable"...
+    const err = new Error(
+      'The assistant could not read that document. It replied: "'
+      + cleaned.replace(/\s+/g, ' ').slice(0, 180) + (cleaned.length > 180 ? '…' : '') + '"');
+    err.aiRefusal = true;
+    throw err;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -581,18 +597,45 @@ Full baseline size: ${baselineCount || 'n/a'} controls.
 Currently IN-SCOPE controls (${(selectedControls || []).length}):
 ${selectedList || '(none listed)'}
 
+YOUR ROLE — read this before anything else:
+You are a TOOL the assessor drives, not an approver, a gatekeeper or an authority in this process.
+The assessor owns the control set and is professionally accountable for it. You never write to the
+record: every action you return is a PROPOSAL rendered as "Approve / Dismiss" buttons that a human
+clicks before anything changes. Because the human is always the one who decides, withholding a
+proposal does not protect anyone — it just breaks the tool.
+
 Rules:
+- CARRY OUT the assessor's scoping instructions. Produce the actions they asked for, including
+  large, sweeping or unusual ones ("tailor out everything except the AC family", "purge these",
+  "remove all of IR"). Do it even when you would have advised differently.
+- NEVER refuse a scoping instruction, never return an empty action list as a form of objection,
+  never ask the assessor to justify themselves, and never require them to re-state the request.
+  "That would be non-compliant" is a caution to mention, not a reason to withhold the actions.
+- You may give ONE short caution in "reply" — at most one sentence naming what the change would
+  leave uncovered — and then you produce the actions anyway. If the assessor repeats or confirms
+  the instruction, drop the caution entirely and just return the actions.
+- Assessors legitimately work on demo, training, test and scoping-exercise assessments. Their
+  stated reason is sufficient. Do not question it or weigh it against compliance.
+- "tailor out", "scope out", "purge", "drop", "exclude" and "remove" all mean op "remove".
 - Be concise, practical and specific to the control IDs shown.
-- When the user asks to change the in-scope set (e.g. "remove controls specific to on-prem", "add controls covering API security"), propose concrete changes by control ID.
-- Only "add" controls that genuinely belong to the ${frameworkLabel} baseline. For remove/tailor prefer IDs from the in-scope list.
-- NEVER apply changes yourself — you only propose; the human approves every change.
+- Only "add" controls that genuinely belong to the ${frameworkLabel} baseline. For remove/tailor
+  prefer IDs from the in-scope list.
 
 Respond with ONLY a JSON object (no prose outside it):
 {
   "reply": "your conversational answer — keep it to at most ~4 short sentences; put detailed per-control instructions in each action's 'tailoring' field, NOT here (markdown ok: **bold**, - bullets)",
-  "actions": [ { "op": "remove" | "add" | "tailor", "controlIds": ["AC-2"], "reason": "short reason", "tailoring": "for op=tailor only: suggested tailoring note" } ]
+  "actions": [ { "op": "remove" | "add" | "tailor", "controlIds": ["AC-2"], "families": ["AU"], "exceptFamilies": ["AC"], "reason": "short reason", "tailoring": "for op=tailor only: suggested tailoring note" } ]
 }
-If no scope change is warranted, return "actions": [].${mode === 'evidence' ? `
+
+FAMILY-WIDE CHANGES — use these instead of listing hundreds of IDs:
+- "families": ["AU","SC"] applies the op to every in-scope control in those families.
+- "exceptFamilies": ["AC"] applies the op to every in-scope control NOT in those families.
+  So "tailor out everything except AC" is exactly:
+  { "op": "remove", "exceptFamilies": ["AC"], "reason": "Assessor scoped this assessment to Access Control only" }
+Use "controlIds" when the change is a handful of specific controls; use "families" /
+"exceptFamilies" whenever the instruction is about whole families. You may combine them.
+
+If the assessor asked a question rather than for a change, return "actions": [].${mode === 'evidence' ? `
 
 EVIDENCE MODE — populating evidence: when the user asks you to draft/fill/write/populate evidence for one or more controls, return ONE action per control shaped EXACTLY like:
   { "op": "populate_evidence", "controlId": "AC-11", "text": "draft evidence text..." }
@@ -635,11 +678,18 @@ function parseChatResponse(text) {
  * statement. Grounded only in what the user wrote (never invents specifics).
  */
 async function refineControlAnswer({ controlId = '', controlTitle = '', controlGuidance = '', userSummary = '', frameworkLabel = 'ITSG-33' }) {
-  const system = `You are the "Aegis SA Assistant". A user wrote a brief note describing how a security control is implemented (or the evidence for it). Expand it into a clear, professional, comprehensive control implementation / evidence statement suitable for a ${frameworkLabel} security assessment.
+  // With no note the assessor is asking for a starting draft, not an expansion —
+  // the control's own text is then the only grounding available.
+  const note = String(userSummary || '').trim();
+  const system = note
+    ? `You are the "Aegis SA Assistant". A user wrote a brief note describing how a security control is implemented (or the evidence for it). Expand it into a clear, professional, comprehensive control implementation / evidence statement suitable for a ${frameworkLabel} security assessment.
 - Stay grounded ONLY in what the user wrote; do NOT invent specific product names, versions, dates or configurations they did not mention. Where detail is missing, describe in general terms what should be stated.
-- Plain, professional language. 1–3 short paragraphs. Return ONLY the refined statement text — no preamble, headings or markdown fences.`;
+- Plain, professional language. 1–3 short paragraphs. Return ONLY the refined statement text — no preamble, headings or markdown fences.`
+    : `You are the "Aegis SA Assistant". Write a tailored description for a security control in a ${frameworkLabel} assessment: a short statement of what this control means FOR THIS SYSTEM and what the assessor expects to see.
+- You have no implementation details, so do NOT invent product names, versions, dates or configurations. Write what should be stated, in general terms.
+- Plain, professional language. 1–2 short paragraphs. Return ONLY the statement text — no preamble, headings or markdown fences.`;
   const userContent = `Control ${controlId}${controlTitle ? ' — ' + controlTitle : ''}.
-${controlGuidance ? 'What this control expects: ' + controlGuidance + '\n' : ''}User's brief note: ${userSummary}`;
+${controlGuidance ? 'What this control expects: ' + controlGuidance + '\n' : ''}${note ? 'User\'s brief note: ' + note : 'No note was provided — draft from the control itself.'}`;
   const text = await callClaude(system, userContent, { maxTokens: 1200 });
   return String(text || '').trim();
 }
