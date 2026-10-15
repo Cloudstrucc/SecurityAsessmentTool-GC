@@ -4241,5 +4241,14 @@
   "esl.refTooLong": "この参照は長すぎます。",
   "esl.refInvalid": "有効なリンクまたは参照に見えません。",
   "esl.refScheme": "http と https のリンクのみ受け付けます。",
-  "rf.externalReference": "外部参照"
+  "rf.externalReference": "外部参照",
+  "as.slotRecord": "証跡記録",
+  "as.slotAsked": "要求された内容",
+  "as.slotProvided": "提出された内容",
+  "as.slotSource": "入力者",
+  "as.slotEmpty": "未提出",
+  "as.incomplete": "未完了",
+  "as.incompleteHelp": "要求された事実またはファイルの一部が提出されていません。",
+  "as.selfAttested": "自己申告",
+  "as.selfAttestedHelp": "この管理策は記述のみで裏付けられており、成果物が添付されていません。"
 }

@@ -2856,11 +2856,38 @@ router.get('/assessments/:id', ensureAuthenticated, (req, res) => {
   if (controls.length && !viewingVersion) {
     const ph = controls.map(() => '?').join(',');
     const byControl = {};
-    all(`SELECT id, assessment_control_id, original_name, size
+    all(`SELECT id, assessment_control_id, original_name, size, ref_url, ref_kind
          FROM attachments WHERE assessment_control_id IN (${ph})
          ORDER BY uploaded_at, id`, controls.map(c => c.id))
       .forEach(a => { (byControl[a.assessment_control_id] ||= []).push(a); });
     controls.forEach(c => { c.attachmentList = byControl[c.id] || []; });
+
+    // Per-slot provenance for the assessor: which fact came from where, who put
+    // it there and when. The data was already captured when the provider filled
+    // the slot — this is the first place it is shown.
+    const slots = require('../utils/evidence-slots');
+    controls.forEach(c => {
+      const list = slots.listSlots(c.id);
+      c.slotList = list.map(sl => ({
+        key: sl.slot_key, type: sl.slot_type, label: sl.label,
+        value_text: sl.value_text || '', filled: slots.isFilled(sl),
+        filled_by: sl.filled_by, filled_at: sl.filled_at,
+        files: all(`SELECT id, original_name, size, ref_url, ref_kind FROM attachments
+                    WHERE slot_id = ? ORDER BY id`, [sl.id])
+      }));
+      c.slotProgress = slots.progress(c.id);
+      c.hasSlots = c.slotList.length > 0;
+      // "Self-attested": the provider wrote prose but filed no artefact at all.
+      // Not a judgement on its own — a prompt to ask for proof before accepting.
+      const filledValues = c.slotList.filter(s => s.type === 'value' && s.filled).length;
+      const fileCount = (c.attachmentList || []).filter(a => !a.ref_url).length;
+      c.evidenceSelfAttested = filledValues > 0 && fileCount === 0;
+      c.evidenceIncomplete = c.hasSlots && c.slotProgress.filled < c.slotProgress.total;
+      // Render the narrative with the slot values inline, as the provider's
+      // Evidence view does. Without this the assessor reads the draft with
+      // holes where the slot spans are — "defined in , last reviewed on ."
+      if (c.hasSlots) c.evidence_read_html = slots.renderForRead(c.evidence_html || '', list);
+    });
   }
 
   const families = {};

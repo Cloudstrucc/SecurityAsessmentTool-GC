@@ -4219,5 +4219,14 @@
   "esl.refTooLong": "That reference is too long.",
   "esl.refInvalid": "That does not look like a valid link or reference.",
   "esl.refScheme": "Only http and https links are accepted.",
-  "rf.externalReference": "external reference"
+  "rf.externalReference": "external reference",
+  "as.slotRecord": "Evidence record",
+  "as.slotAsked": "What was asked for",
+  "as.slotProvided": "What was provided",
+  "as.slotSource": "Filled by",
+  "as.slotEmpty": "Not provided",
+  "as.incomplete": "Incomplete",
+  "as.incompleteHelp": "Some of the requested facts or files were not provided.",
+  "as.selfAttested": "Self-attested",
+  "as.selfAttestedHelp": "This control is supported by written statements only — no artefact was attached."
 }

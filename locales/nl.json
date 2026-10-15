@@ -4241,5 +4241,14 @@
   "esl.refTooLong": "Die verwijzing is te lang.",
   "esl.refInvalid": "Dat lijkt geen geldige link of verwijzing.",
   "esl.refScheme": "Alleen http- en https-links worden geaccepteerd.",
-  "rf.externalReference": "externe verwijzing"
+  "rf.externalReference": "externe verwijzing",
+  "as.slotRecord": "Bewijsregister",
+  "as.slotAsked": "Wat is gevraagd",
+  "as.slotProvided": "Wat is geleverd",
+  "as.slotSource": "Ingevuld door",
+  "as.slotEmpty": "Niet geleverd",
+  "as.incomplete": "Onvolledig",
+  "as.incompleteHelp": "Sommige gevraagde gegevens of bestanden zijn niet geleverd.",
+  "as.selfAttested": "Eigen verklaring",
+  "as.selfAttestedHelp": "Deze maatregel steunt alleen op schriftelijke verklaringen — er is geen artefact bijgevoegd."
 }

@@ -4241,5 +4241,14 @@
   "esl.refTooLong": "Questo riferimento è troppo lungo.",
   "esl.refInvalid": "Non sembra un link o un riferimento valido.",
   "esl.refScheme": "Sono accettati solo link http e https.",
-  "rf.externalReference": "riferimento esterno"
+  "rf.externalReference": "riferimento esterno",
+  "as.slotRecord": "Registro delle evidenze",
+  "as.slotAsked": "Che cosa è stato richiesto",
+  "as.slotProvided": "Che cosa è stato fornito",
+  "as.slotSource": "Compilato da",
+  "as.slotEmpty": "Non fornito",
+  "as.incomplete": "Incompleto",
+  "as.incompleteHelp": "Alcuni dei dati o dei file richiesti non sono stati forniti.",
+  "as.selfAttested": "Autodichiarato",
+  "as.selfAttestedHelp": "Questo controllo si basa solo su dichiarazioni scritte — non è stato allegato alcun artefatto."
 }

@@ -3221,3 +3221,61 @@ test('the reference validator keeps identifiers but refuses navigable schemes', 
   assert.equal(slotSafety.inspectReference('javascript:alert(1)').ok, false);
   assert.equal(slotSafety.inspectReference('\u0000http://x').ok, false);
 });
+
+test('the assessor sees per-slot provenance: what was asked, what came back, and from whom', async () => {
+  const jar = await loginAdminWithTotp();
+  const { assessmentId, code, controlId } = await seedSlotDraft(jar, 'E2E Assessor Slots');
+  await getText(jar, `/respond/${code}`);
+
+  await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s1`, {
+    json: { value_html: 'AEGIS-STD-07, in the security library' }
+  });
+  const fd = new FormData();
+  fd.append('file', new Blob([Buffer.from('%PDF-1.4\ntrailer<<>>', 'latin1')], { type: 'application/pdf' }), 'catalogue.pdf');
+  await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/files`, { body: fd });
+
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(detail.text, /Evidence record/, 'the slot record panel is present');
+  assert.match(detail.text, /What was asked for/, 'it names what was requested');
+  assert.match(detail.text, /catalogue location/, 'the original prompt is shown, not just the answer');
+  assert.match(detail.text, /AEGIS-STD-07/, 'the provided value is shown');
+  assert.match(detail.text, /catalogue\.pdf/, 'the attached file is shown against its slot');
+  assert.match(detail.text, /Incomplete/, 'the control is flagged while blanks remain');
+});
+
+test('a control supported only by written statements is flagged self-attested', async () => {
+  const jar = await loginAdminWithTotp();
+  const { assessmentId, code, controlId } = await seedSlotDraft(jar, 'E2E Self Attested');
+  await getText(jar, `/respond/${code}`);
+
+  // Values only — no artefact of any kind.
+  await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s1`, { json: { value_html: 'Policy AEG-1' } });
+  await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s2`, { json: { value_html: '12 June 2026' } });
+
+  const flagged = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(flagged.text, /Self-attested/, 'written-only evidence is flagged for the assessor');
+
+  // Attaching a real artefact clears the flag.
+  const fd = new FormData();
+  fd.append('file', new Blob([Buffer.from('%PDF-1.4\ntrailer<<>>', 'latin1')], { type: 'application/pdf' }), 'proof.pdf');
+  const up = await (await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/files`, { body: fd })).json();
+  assert.ok(up.success);
+
+  const cleared = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.doesNotMatch(cleared.text, /Self-attested/, 'the flag clears once an artefact is filed');
+});
+
+test('an external reference does not count as an attached artefact for the self-attested flag', async () => {
+  const jar = await loginAdminWithTotp();
+  const { assessmentId, code, controlId } = await seedSlotDraft(jar, 'E2E Ref Not Artefact');
+  await getText(jar, `/respond/${code}`);
+  await request(jar, 'PUT', `/respond/${code}/slots/${controlId}/s1`, { json: { value_html: 'Policy AEG-1' } });
+  await request(jar, 'POST', `/respond/${code}/slots/${controlId}/a3/reference`, {
+    json: { reference: 'https://dms.example.org/record/1' }
+  });
+
+  // A pointer to a record elsewhere is not the artefact itself — the assessor
+  // still has nothing to open, so the prompt to ask for proof stays.
+  const detail = await getText(jar, `/admin/assessments/${assessmentId}`);
+  assert.match(detail.text, /Self-attested/, 'a reference alone does not clear the flag');
+});

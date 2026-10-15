@@ -756,20 +756,92 @@
               {{/unless}}
             </div>
             {{#if this.evidence_text}}
-              <div class="small ev-readonly">{{{this.evidence_html}}}{{#unless this.evidence_html}}{{this.evidence_text}}{{/unless}}</div>
+              {{!-- Slot values inline, so the assessor reads a finished
+                    sentence rather than the draft with gaps in it. --}}
+              <div class="small ev-readonly">{{#if this.hasSlots}}{{{this.evidence_read_html}}}{{else}}{{{this.evidence_html}}}{{#unless this.evidence_html}}{{this.evidence_text}}{{/unless}}{{/if}}</div>
             {{else}}
               <div class="small text-muted fst-italic">{{t 'rv.noEvidenceYet'}}</div>
+            {{/if}}
+            {{#if this.hasSlots}}
+              {{!-- Per-slot provenance: which fact came from where, who filled
+                    it and when. Collapsed by default so it does not crowd the
+                    narrative the assessor is reading. --}}
+              <div class="mt-2">
+                <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" data-rv-keep-enabled
+                  data-bs-toggle="collapse" data-bs-target="#slots-{{this.id}}">
+                  <i class="bi bi-list-check me-1"></i>{{t 'as.slotRecord'}}
+                  <span class="badge text-bg-light border ms-1">{{this.slotProgress.filled}}/{{this.slotProgress.total}}</span>
+                </button>
+                {{#if this.evidenceIncomplete}}
+                  <span class="badge text-bg-warning ms-1" title="{{t 'as.incompleteHelp'}}">
+                    <i class="bi bi-exclamation-triangle me-1"></i>{{t 'as.incomplete'}}</span>
+                {{/if}}
+                {{#if this.evidenceSelfAttested}}
+                  <span class="badge text-bg-secondary ms-1" title="{{t 'as.selfAttestedHelp'}}">
+                    <i class="bi bi-person-lines-fill me-1"></i>{{t 'as.selfAttested'}}</span>
+                {{/if}}
+                <div class="collapse mt-2" id="slots-{{this.id}}">
+                  <div class="table-responsive border rounded">
+                    <table class="table table-sm mb-0 align-middle small">
+                      <thead class="table-light">
+                        <tr><th style="width:38%">{{t 'as.slotAsked'}}</th><th>{{t 'as.slotProvided'}}</th>
+                          <th style="width:22%">{{t 'as.slotSource'}}</th></tr>
+                      </thead>
+                      <tbody>
+                        {{#each this.slotList}}
+                          <tr class="{{#unless this.filled}}table-warning{{/unless}}">
+                            <td>
+                              <i class="bi {{#if (eq this.type 'value')}}bi-pencil{{else}}bi-paperclip{{/if}} me-1 text-muted"></i>
+                              {{this.label}}
+                            </td>
+                            <td>
+                              {{#if this.filled}}
+                                {{#if (eq this.type 'value')}}
+                                  {{this.value_text}}
+                                {{else}}
+                                  {{#each this.files}}
+                                    {{#if this.ref_url}}
+                                      <span class="badge text-bg-info me-1"><i class="bi bi-link-45deg me-1"></i>{{this.original_name}}</span>
+                                    {{else}}
+                                      <a class="badge bg-light text-dark border text-decoration-none me-1"
+                                        href="/admin/projects/{{@root.assessment.project_id}}/evidence-attachments/{{this.id}}/download">
+                                        <i class="bi bi-download me-1"></i>{{this.original_name}}</a>
+                                    {{/if}}
+                                  {{/each}}
+                                {{/if}}
+                              {{else}}
+                                <span class="text-danger fst-italic">{{t 'as.slotEmpty'}}</span>
+                              {{/if}}
+                            </td>
+                            <td class="text-muted">
+                              {{#if this.filled_by}}{{this.filled_by}}{{#if this.filled_at}}<br><span class="small">{{formatDate this.filled_at}}</span>{{/if}}{{else}}—{{/if}}
+                            </td>
+                          </tr>
+                        {{/each}}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
             {{/if}}
             {{#if this.attachmentList.length}}
               <div class="mt-2">
                 <small class="fw-semibold d-block mb-1"><i class="bi bi-paperclip me-1"></i>{{t 'ea.attachedFiles'}}</small>
                 <div class="d-flex flex-wrap gap-1">
                   {{#each this.attachmentList}}
-                    <a class="badge bg-light text-dark border text-decoration-none"
-                      href="/admin/projects/{{@root.assessment.project_id}}/evidence-attachments/{{this.id}}/download"
-                      title="{{t 'ea.download'}}">
-                      <i class="bi bi-download me-1"></i>{{this.original_name}}
-                    </a>
+                    {{#if this.ref_url}}
+                      {{!-- An external reference, not a stored file: there is
+                            nothing to download, so it is shown, not linked. --}}
+                      <span class="badge text-bg-info" title="{{t 'esl.referenceBadge'}}">
+                        <i class="bi bi-link-45deg me-1"></i>{{this.original_name}}
+                      </span>
+                    {{else}}
+                      <a class="badge bg-light text-dark border text-decoration-none"
+                        href="/admin/projects/{{@root.assessment.project_id}}/evidence-attachments/{{this.id}}/download"
+                        title="{{t 'ea.download'}}">
+                        <i class="bi bi-download me-1"></i>{{this.original_name}}
+                      </a>
+                    {{/if}}
                   {{/each}}
                 </div>
               </div>

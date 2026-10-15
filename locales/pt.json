@@ -4241,5 +4241,14 @@
   "esl.refTooLong": "Essa referência é demasiado longa.",
   "esl.refInvalid": "Isso não parece uma ligação nem uma referência válida.",
   "esl.refScheme": "Apenas são aceites ligações http e https.",
-  "rf.externalReference": "referência externa"
+  "rf.externalReference": "referência externa",
+  "as.slotRecord": "Registo de provas",
+  "as.slotAsked": "O que foi pedido",
+  "as.slotProvided": "O que foi fornecido",
+  "as.slotSource": "Preenchido por",
+  "as.slotEmpty": "Não fornecido",
+  "as.incomplete": "Incompleto",
+  "as.incompleteHelp": "Alguns dos dados ou ficheiros pedidos não foram fornecidos.",
+  "as.selfAttested": "Autodeclarado",
+  "as.selfAttestedHelp": "Este controlo apoia-se apenas em declarações escritas — não foi anexado nenhum artefacto."
 }
